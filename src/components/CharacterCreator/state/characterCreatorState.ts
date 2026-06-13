@@ -147,7 +147,8 @@ export type CharacterCreatorAction =
   | { type: 'SET_CHARACTER_AGE'; payload: number }
   | { type: 'SELECT_BACKGROUND'; payload: string }
   | { type: 'GO_BACK' }
-  | { type: 'NAVIGATE_TO_STEP'; payload: CreationStep };
+  | { type: 'NAVIGATE_TO_STEP'; payload: CreationStep }
+  | { type: 'RESET_CREATOR' };
 
 // --- Initial State ---
 export const initialCharacterCreatorState: CharacterCreationState = {
@@ -595,6 +596,20 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       const targetStep = action.payload;
       if (targetStep === state.step) return state;
       return { ...state, step: targetStep };
+    }
+    case 'RESET_CREATOR': {
+      // Full wipe back to step 1. Fresh object/array copies so the shared
+      // initial-state constant can never be mutated through the live state.
+      return {
+        ...initialCharacterCreatorState,
+        racialSelections: {},
+        selectedSkills: [],
+        selectedCantrips: [],
+        selectedSpellsL1: [],
+        featChoices: {},
+        visuals: { ...initialCharacterCreatorState.visuals },
+        portrait: { ...initialCharacterCreatorState.portrait },
+      };
     }
     default:
       return state;

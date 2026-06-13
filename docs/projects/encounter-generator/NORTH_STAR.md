@@ -7,6 +7,7 @@ main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: review-required
 last_updated: 2026-06-09
+iteration: 3
 confidence: medium
 evidence: docs/projects/encounter-generator
 gap_signal: 1 open gap (G4 AI determinism boundary)

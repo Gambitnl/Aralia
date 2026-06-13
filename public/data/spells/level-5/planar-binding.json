@@ -109,7 +109,12 @@
       "condition": {
         "type": "always",
         "targetFilter": {
-          "creatureTypes": [],
+          "creatureTypes": [
+            "Celestial",
+            "Elemental",
+            "Fey",
+            "Fiend"
+          ],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],

@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Action Pane
 slug: action-pane
-status: active
-last_updated: "2026-06-10"
+status: idle
+last_updated: 2026-06-12
 iteration: 6
 source_agent: Codex / Gemini 3.5 Flash
 target_agent: next cold-start agent
@@ -19,9 +19,8 @@ gaps: docs/projects/action-pane/GAPS.md
 ---
 # Action Pane Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-10
-
+status: idle
+Last updated: 2026-06-12
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -107,3 +106,36 @@ Final response must report:
 - assumptions made
 - next safe resume action
 ---END NEXT AGENT HANDOFF---
+
+## Project Prompt Conformance Notes
+
+Last updated: 2026-06-12
+This section aligns older cold-start prompts with the shared living-project workflow without replacing the project-specific handoff above. The original handoff remains authoritative for project context; this section records the universal prompt shape that every next agent must honor.
+
+Conformance issues repaired on 2026-06-12: missing_iteration_ledger.
+
+Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
+
+Agent identity / runtime:
+Before selecting work, identify yourself and the surface you are running through. Use one of: CLI agent, application agent, browser/app-embedded agent, MCP/subagent, or unknown. Mark the classification as certain, inferred, or unknown and name the clue used.
+
+### Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| pre-standardization | not recorded | unknown | unknown | before 2026-06-12 | Original action-pane handoff predates the ledger requirement. |
+
+### Required project docs to account for
+
+- docs/projects/action-pane/NORTH_STAR.md
+- docs/projects/action-pane/TRACKER.md
+- docs/projects/action-pane/GAPS.md
+- docs/projects/action-pane/COLD_START_AGENT_PROMPT.md
+- docs/projects/action-pane/DECISIONS.md
+- docs/projects/action-pane/AUDIT_OR_PROOF.md
+- docs/projects/action-pane/RUNBOOK.md
+
+Closeout reminder:
+Before ending an iteration, refresh or explicitly report on every required project doc above. If a supporting doc is not relevant to the current slice, say why instead of silently ignoring it.

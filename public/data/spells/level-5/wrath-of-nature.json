@@ -223,7 +223,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Restrained unless the target succeeds on a Strength save for 1 minute; current escape-check metadata is preserved.",
+      "description": "Applies Restrained for 1 minute on the turn-end Strength-save effect; the target can use the modeled Athletics escape check to break free.",
       "conditionalEndings": []
     },
     {

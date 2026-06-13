@@ -157,7 +157,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Summons a steed companion through the row's current always-on summoning scaffold.",
+      "description": "Summons a steed companion for the spell's persistent companion effect; no slot-scaling changes are modeled.",
       "conditionalEndings": []
     }
   ],

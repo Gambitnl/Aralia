@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 12/06/2026, 23:50:22
+ * Dependents: commands/effects/DamageCommand.ts, commands/effects/HealingCommand.ts, hooks/combat/engine/useCombatEngine.ts, utils/combat/actionEconomyUtils.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file utils/combat/deathSaveUtils.ts
  * Centralized utility functions for managing Downing states, Death Saving Throws,
@@ -129,10 +145,14 @@ export function applyDamageAndCheckDowned(character: CombatCharacter, amount: nu
   if (updatedCharacter.tempHP && updatedCharacter.tempHP > 0) {
     if (updatedCharacter.tempHP >= damageToApply) {
       updatedCharacter.tempHP -= damageToApply;
+      if (updatedCharacter.tempHP === 0) {
+        delete updatedCharacter.temporaryHitPointSource;
+      }
       damageToApply = 0;
     } else {
       damageToApply -= updatedCharacter.tempHP;
       updatedCharacter.tempHP = 0;
+      delete updatedCharacter.temporaryHitPointSource;
     }
   }
 

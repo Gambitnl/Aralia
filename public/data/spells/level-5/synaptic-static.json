@@ -241,7 +241,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Muddled Thoughts unless the target succeeds on an Intelligence save for 1 minute; repeat Intelligence save at turn end can end the condition; current escape-check metadata is preserved.",
+      "description": "Applies Muddled Thoughts for 1 minute unless the target succeeds on an Intelligence save; a turn-end Intelligence save can end it.",
       "conditionalEndings": []
     }
   ],

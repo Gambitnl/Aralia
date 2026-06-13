@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Creatures System
 slug: creatures
-status: review-required
-last_updated: "2026-06-09"
+Status: idle
+last_updated: 2026-06-12
 iteration: 6
 source_agent: Boyle / gpt-5.4-mini high
 target_agent: next cold-start agent
@@ -19,9 +19,8 @@ gaps: docs/projects/creatures/GAPS.md
 ---
 # Creatures System Cold Start Agent Handoff
 
-Status: review-required
-Last updated: 2026-06-09
-
+Status: idle
+Last updated: 2026-06-12
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
 Shared workflow:
@@ -39,7 +38,7 @@ docs/projects/creatures/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Creatures System
 Project folder: docs/projects/creatures
-Iteration: 6
+iteration: 6
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md

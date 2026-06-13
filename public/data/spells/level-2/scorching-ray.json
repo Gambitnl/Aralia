@@ -148,7 +148,7 @@
         "dice": "2d6",
         "type": "Fire"
       },
-      "description": "Per ray hit",
+      "description": "Each ray that hits deals 2d6 Fire damage; each slot level above 2nd adds one additional ray.",
       "scaling": {
         "type": "slot_level",
         "customFormula": "+1 ray per slot level above 2nd",

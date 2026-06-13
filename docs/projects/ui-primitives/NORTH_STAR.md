@@ -6,10 +6,11 @@ category: active project
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: active
-last_updated: 2026-06-08
+last_updated: 2026-06-12
+iteration: 2
 confidence: unknown
 evidence: "docs/projects/ui-primitives/TRACKER.md; docs/projects/ui-primitives/GAPS.md"
-gap_signal: G5 validation feedback, G9 focus-trap manager coverage, G10/G11 ARIA labeling passes, and G12 coin-display semantics done
+gap_signal: "0 open gaps; validation feedback, focus-trap, ARIA, and coin-display semantics gaps are marked done"
 protocol: living-project
 next_step: "No open UI primitive gap remains after G12; run a fresh source-backed gap scan before assigning another forward pass."
 agent_comments: ""
@@ -41,7 +42,7 @@ human_decision_required: "no"
 # UI Primitives North Star
 
 Status: active  
-Last updated: 2026-06-08
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 
@@ -123,5 +124,5 @@ The next cold-start agent must:
 
 | GG ID | Imported? | Destination | Scope rationale | Checked |
 |---|---|---|---|---|
-| GG-20 | no | — | GameModals.tsx architectural split is out of scope; ui-primitives covers reusable controls/surfaces, not file-level decomposition of the orchestrator | 2026-06-03 |
-| GG-21 | no | — | ActionPane local state fragmentation belongs to state/architecture project, not ui-primitives surface | 2026-06-03 |
+| GG-20 | no | â€” | GameModals.tsx architectural split is out of scope; ui-primitives covers reusable controls/surfaces, not file-level decomposition of the orchestrator | 2026-06-03 |
+| GG-21 | no | â€” | ActionPane local state fragmentation belongs to state/architecture project, not ui-primitives surface | 2026-06-03 |

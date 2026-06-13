@@ -6,10 +6,11 @@ category: Gameplay Systems
 main_category: "Game & Simulation"
 subcategory: Core Sim Systems
 status: active
-last_updated: 2026-06-09
+last_updated: 2026-06-12
+iteration: 6
 confidence: high
 evidence: docs/projects/crafting
-gap_signal: "G1 compatibility proof closed; G5 blocked on UX ownership; G13 provenance follow-up completed"
+gap_signal: "2 open gaps; G5 remains blocked and G6 waits on validation"
 protocol: living project doc set
 next_step: "Keep both craft engines separate; the G1 compatibility proof is closed, and any future migration work should start from a new evidence-backed gap. Keep G5 blocked until refining/enchanting placement is decided."
 agent_comments: ""
@@ -43,7 +44,7 @@ human_decision_required: "no"
 # Crafting System North Star
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-12
 
 ## Why this project exists
 The crafting project is active in registry and has substantial existing implementation, but previous handoff notes were limited to scaffolding.  

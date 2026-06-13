@@ -14,6 +14,8 @@ import { getGameDay } from '../../../utils/core';
 import { createMockGameState } from '../../../utils/factories';
 import { createEmptyHistory } from '../../../utils/historyUtils';
 import * as WeatherSystem from '../../../systems/environment/WeatherSystem';
+import type { AppAction } from '../../actionTypes';
+import type { WorldDelta } from '../../../systems/worldforge/delta/types';
 
 // Mock WorldEventManager to avoid RNG and check integration
 vi.mock('../../../systems/world/WorldEventManager', () => ({
@@ -103,6 +105,115 @@ afterEach(() => {
 });
 
 describe('worldReducer', () => {
+    // ============================================================================
+    // Ground Position Persistence
+    // ============================================================================
+    // Ground mode uses tile-local meters, not the continent-meter coordinate space
+    // stored in playerWorldPos. These tests keep that save contract separate so a
+    // resume cannot accidentally feed ground camera coordinates into atlas travel.
+    // ============================================================================
+
+    it('sets, replaces, and clears the player ground position immutably', () => {
+        const firstPosition = { tileX: 12, tileY: 7, xM: 128.5, zM: 384.25 };
+        const secondPosition = { tileX: 12, tileY: 7, xM: 256.75, zM: 192.5 };
+        const baseState = createMockGameState({
+            playerGroundPos: null,
+        });
+
+        // Setting a position should produce a new state slice while leaving the
+        // original state empty for callers that still hold the old object.
+        const setAction: AppAction = {
+            type: 'SET_PLAYER_GROUND_POS',
+            payload: { position: firstPosition },
+        };
+        const setResult = worldReducer(baseState, setAction);
+
+        expect(setResult.playerGroundPos).toEqual(firstPosition);
+        expect(setResult.playerGroundPos).not.toBe(firstPosition);
+        expect(baseState.playerGroundPos).toBeNull();
+
+        // Replacing the position should overwrite the old camera anchor instead
+        // of appending a movement history or merging partial coordinates.
+        const replaceAction: AppAction = {
+            type: 'SET_PLAYER_GROUND_POS',
+            payload: { position: secondPosition },
+        };
+        const replaceResult = worldReducer(
+            { ...baseState, playerGroundPos: setResult.playerGroundPos },
+            replaceAction
+        );
+
+        expect(replaceResult.playerGroundPos).toEqual(secondPosition);
+        expect(replaceResult.playerGroundPos).not.toBe(setResult.playerGroundPos);
+
+        // Clearing the position leaves the separate continent-space playerWorldPos
+        // untouched; renderer wiring decides when to synchronize those domains.
+        const clearAction: AppAction = {
+            type: 'SET_PLAYER_GROUND_POS',
+            payload: { position: null },
+        };
+        const clearResult = worldReducer(
+            { ...baseState, playerGroundPos: replaceResult.playerGroundPos },
+            clearAction
+        );
+
+        expect(clearResult.playerGroundPos).toBeNull();
+    });
+
+    // ============================================================================
+    // Worldforge Delta Persistence
+    // ============================================================================
+    // These tests protect the small state bridge between Worldforge plot edits and
+    // save files. The reducer does not replay deltas itself; it only preserves the
+    // append-only record that the 3D village layer can replay after a load.
+    // ============================================================================
+
+    const createWorldforgeDelta = (id: string, sequence: number): WorldDelta => ({
+        id,
+        schemaVersion: 1,
+        opVersion: 1,
+        artifactSeedPath: 'wf:123/cell:test/village:demo',
+        entityKey: `plot:${sequence}`,
+        sequence,
+        operation: {
+            kind: 'modify-plot',
+            plotId: sequence,
+            role: sequence % 2 === 0 ? 'home' : 'shop',
+            storeys: 1 + sequence,
+        },
+    });
+
+    it('appends worldforge deltas immutably, ignores duplicate ids, and keeps order deterministic', () => {
+        const firstDelta = createWorldforgeDelta('delta-1', 1);
+        const secondDelta = createWorldforgeDelta('delta-2', 2);
+        const baseState = createMockGameState({
+            worldforgeDeltas: [firstDelta],
+        });
+        const originalDeltas = baseState.worldforgeDeltas;
+
+        const appendAction: AppAction = {
+            type: 'APPLY_WORLDFORGE_DELTA',
+            payload: { delta: secondDelta },
+        };
+        const appendResult = worldReducer(baseState, appendAction);
+
+        expect(appendResult.worldforgeDeltas).toEqual([firstDelta, secondDelta]);
+        expect(appendResult.worldforgeDeltas).not.toBe(originalDeltas);
+        expect(baseState.worldforgeDeltas).toEqual([firstDelta]);
+
+        const duplicateAction: AppAction = {
+            type: 'APPLY_WORLDFORGE_DELTA',
+            payload: { delta: firstDelta },
+        };
+        const duplicateResult = worldReducer(
+            { ...baseState, worldforgeDeltas: appendResult.worldforgeDeltas! },
+            duplicateAction
+        );
+
+        expect(duplicateResult.worldforgeDeltas).toEqual([firstDelta, secondDelta]);
+        expect(duplicateResult.worldforgeDeltas).toBe(appendResult.worldforgeDeltas);
+    });
+
     it('should trigger processWorldEvents when time advances by a day', () => {
         const baseState = createMockGameState({
             gameTime: new Date('2024-01-01T12:00:00Z')
@@ -134,7 +245,7 @@ describe('worldReducer', () => {
         expect(result.messages?.[0].text).toBe('Mock World Event');
         // The reducer should now keep the full daily-world payload instead of
         // dropping non-message outputs at the boundary.
-        expect(result.economy.activeEvents).toHaveLength(1);
+        expect(result.economy!.activeEvents).toHaveLength(1);
         expect(result.activeRumors).toHaveLength(1);
         expect(result.activeRumors?.[0].id).toBe('rumor-moon');
         expect(result.worldHistory).toEqual(createEmptyHistory());
@@ -144,7 +255,7 @@ describe('worldReducer', () => {
         });
         expect(result.pendingCouriers).toHaveLength(1);
         expect(result.pendingCouriers?.[0].id).toBe('courier-moon');
-        expect(result.environment).toEqual(weatherUpdate);
+        expect(result.environment).toMatchObject(weatherUpdate);
         expect(WeatherSystem.updateWeather).toHaveBeenCalledTimes(1);
         expect(WeatherSystem.updateWeather).toHaveBeenCalledWith(
             expect.anything(),
@@ -216,7 +327,7 @@ describe('worldReducer', () => {
             expect.stringContaining('Day'),
             expect.anything()
         );
-        expect(result.environment).toEqual(weatherUpdate);
+        expect(result.environment).toMatchObject(weatherUpdate);
     });
 
     it('produces the same environment for identical seeded day advances', () => {

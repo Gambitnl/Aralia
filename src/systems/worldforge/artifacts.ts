@@ -160,6 +160,13 @@ export interface RegionArtifact extends WorldforgeArtifact {
    */
   markers?: RegionMarker[];
   zones?: RegionZone[];
+  /**
+   * Member-cell biome tint sites for multi-biome blending (additive,
+   * 2026-06-12): atlas cell centers in feet with their biome colors. The
+   * renderer IDW-blends these so land near a biome border shades toward
+   * the neighbor instead of wearing the anchor's color wall-to-wall.
+   */
+  biomeSites?: Array<{ x: Feet; y: Feet; color: string }>;
 }
 
 // ---------------------------------------------------------------------------

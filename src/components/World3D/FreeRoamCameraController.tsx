@@ -43,9 +43,28 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
   const sinceReport = useRef(0);
   const lastReported = useRef(new THREE.Vector2(NaN, NaN));
 
-  useFrame((_, delta) => {
+  useFrame((three, delta) => {
     const controls = controlsRef.current;
     if (!controls?.target) return;
+
+    // Dev hooks: expose the live camera pose (read every frame) and a pose
+    // SETTER so external tooling (headless capture replication, orchestrator
+    // screenshot review) can mirror the user's exact framing.
+    const w = window as unknown as {
+      __wf3dPose?: object;
+      __wf3dSetPose?: (cam: number[], target: number[]) => void;
+    };
+    w.__wf3dPose = {
+      cam: three.camera.position.toArray(),
+      target: controls.target.toArray(),
+    };
+    if (!w.__wf3dSetPose) {
+      w.__wf3dSetPose = (cam: number[], target: number[]) => {
+        three.camera.position.set(cam[0], cam[1], cam[2]);
+        controls.target.set(target[0], target[1], target[2]);
+        controls.update();
+      };
+    }
 
     sinceReport.current += delta;
     if (sinceReport.current < REPORT_INTERVAL) return;

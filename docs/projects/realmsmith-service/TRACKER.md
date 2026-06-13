@@ -1,4 +1,4 @@
-# RealmSmith Service Living Tracker
+﻿# RealmSmith Service Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -17,7 +17,6 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Refresh docs for cold-start continuity in `docs/projects/realmsmith-service/` | Codex agent | 2026-05-31 | `NORTH_STAR.md`, `GAPS.md` | continue with implementation follow-ups from gaps | source path + tracker alignment still valid |
 | T2 | active | Confirm RealmSmith service contract and retry policy before next implementation change | Codex agent | 2026-06-05 | `src/services/RealmSmithTownGenerator.ts`, `src/services/RealmSmithAssetPainter.ts`, `src/services/README.md` | source-scan the contract surface and document the chosen retry/failure policy | docs agree on the contract and retry decision |
 
 ## Gap Log

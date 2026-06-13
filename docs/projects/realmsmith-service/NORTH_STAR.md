@@ -7,6 +7,7 @@ main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
 last_updated: 2026-06-05
+iteration: 2
 confidence: medium
 evidence: docs/projects/realmsmith-service
 gap_signal: 3 open gaps (2 support-needed, 1 adjacent follow-up)

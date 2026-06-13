@@ -6,10 +6,11 @@ category: Runtime / Systems
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-08
+last_updated: 2026-06-12
+iteration: 3
 confidence: medium
 evidence: docs/projects/command-factory-runtime
-gap_signal: 4 open project gaps
+gap_signal: 4 open gaps; 4 open project gaps
 protocol: living project doc set
 next_step: Re-check src/commands/factory and src/hooks/useAbilitySystem.ts after the next source edit, then update GAPS.md if drift appears.
 agent_comments: ""
@@ -40,7 +41,7 @@ human_decision_required: "no"
 # NORTH_STAR: Command Factory Runtime
 
 Status: active  
-Last updated: 2026-06-08
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 

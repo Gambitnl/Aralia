@@ -1,4 +1,4 @@
-# Crime System Living Tracker
+﻿# Crime System Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -17,8 +17,6 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Create and initialize the Crime living-project docs. | Worker A | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md` row; initial scaffold commit | Not needed | Not needed |
-| T2 | done | Enrich the three Crime project docs with evidence-backed state map, gaps, and resume path. | Worker A | 2026-05-31 | `src/systems/crime/**`, `src/state/reducers/crimeReducer.ts`, `src/components/Crime/ThievesGuild` | Pause for implementation handoff | `git diff --check` and file-to-evidence reconciliation |
 | T3 | active | Resolve in-scope crime gap set in `docs/projects/crime/GAPS.md` after implementation handoff. | Worker A | 2026-06-05 | `docs/projects/crime/GAPS.md` | Start with G1 expired bounty cleanup, then reassess G2 fence semantics if the slice expands | Add/refresh regression tests |
 
 ## Gap Log

@@ -30,12 +30,31 @@
 import * as THREE from 'three';
 import type { VegetationScatter } from '@/systems/world3d/types';
 
+/** Geometry profile per vegetation kind: footprint, height, and the lift
+ * that grounds a center-origin cone/sphere on the terrain. */
+export type VegetationProfile = 'tree' | 'bush';
+
+const PROFILE_SCALE = {
+  tree: { width: 2, height: 6, yLift: 3 },
+  bush: { width: 2.5, height: 1.8, yLift: 0.9 },
+} as const;
+
+const FALLBACK_COLOR = new THREE.Color('#2f5d2f');
+
 /** Minimal surface needed by the matrix writer. */
 export interface VegetationInstanceMatrixTarget {
   setMatrixAt(index: number, matrix: THREE.Matrix4): void;
+  setColorAt?(index: number, color: THREE.Color): void;
   instanceMatrix: {
     needsUpdate: boolean;
   };
+  instanceColor?: {
+    needsUpdate: boolean;
+  } | null;
+  /** The mesh material — recompiled once when instance colors first appear
+   * (three.js only injects USE_INSTANCING_COLOR if the attribute existed at
+   * compile time; setColorAt after first render needs material.needsUpdate). */
+  material?: { needsUpdate: boolean } | Array<{ needsUpdate: boolean }>;
 }
 
 /** Mutable one-slot cache for the last scatter key written into a mesh. */
@@ -51,6 +70,7 @@ export function syncVegetationInstanceMatrices(
   target: VegetationInstanceMatrixTarget,
   scatter: VegetationScatter,
   cacheRef: VegetationScatterCacheRef,
+  profile: VegetationProfile = 'tree',
 ): boolean {
   if (cacheRef.current === scatter.cacheKey) {
     return false;
@@ -61,18 +81,53 @@ export function syncVegetationInstanceMatrices(
   const axis = new THREE.Vector3(0, 1, 0);
   const position = new THREE.Vector3();
   const scale = new THREE.Vector3();
+  const color = new THREE.Color();
+  const { width: sw, height: sh, yLift } = PROFILE_SCALE[profile];
   const count = scatter.positions.length / 3;
 
   for (let i = 0; i < count; i++) {
     const s = scatter.scales[i];
     rotation.setFromAxisAngle(axis, scatter.rotations[i]);
-    position.set(scatter.positions[i * 3], scatter.positions[i * 3 + 1], scatter.positions[i * 3 + 2]);
-    scale.set(s * 2, s * 5, s * 2);
+    // yLift grounds the center-origin geometry: base sits ON the surface
+    // sample instead of the cone straddling it half-buried.
+    position.set(
+      scatter.positions[i * 3],
+      scatter.positions[i * 3 + 1] + s * yLift,
+      scatter.positions[i * 3 + 2],
+    );
+    scale.set(s * sw, s * sh, s * sw);
     matrix.compose(position, rotation, scale);
     target.setMatrixAt(i, matrix);
+
+    if (target.setColorAt) {
+      if (scatter.colors) {
+        // Palette floats are authored as sRGB values; setRGB defaults to the
+        // LINEAR working space in three r152+, which washed every tree out
+        // to pale mint (linear 0.3 displays like sRGB ~0.58).
+        color.setRGB(
+          scatter.colors[i * 3],
+          scatter.colors[i * 3 + 1],
+          scatter.colors[i * 3 + 2],
+          THREE.SRGBColorSpace,
+        );
+      } else {
+        color.copy(FALLBACK_COLOR);
+      }
+      target.setColorAt(i, color);
+    }
   }
 
   target.instanceMatrix.needsUpdate = true;
+  if (target.instanceColor) {
+    target.instanceColor.needsUpdate = true;
+    // Force a recompile so the shader picks up USE_INSTANCING_COLOR — the
+    // attribute did not exist when the material first compiled.
+    if (Array.isArray(target.material)) {
+      for (const m of target.material) m.needsUpdate = true;
+    } else if (target.material) {
+      target.material.needsUpdate = true;
+    }
+  }
   cacheRef.current = scatter.cacheKey;
   return true;
 }

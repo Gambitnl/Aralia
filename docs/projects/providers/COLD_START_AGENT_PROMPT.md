@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Providers
 slug: providers
-status: review-required
-last_updated: "2026-06-08"
+Status: active
+last_updated: 2026-06-10
 iteration: 3
 source_agent: gpt-5.4-mini high
 target_agent: next cold-start agent
@@ -19,8 +19,8 @@ gaps: docs/projects/providers/GAPS.md
 ---
 # Providers Cold Start Agent Handoff
 
-Status: review-required
-Last updated: 2026-06-08
+Status: active
+Last updated: 2026-06-10
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -39,7 +39,7 @@ docs/projects/providers/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Providers
 Project folder: docs/projects/providers
-Iteration: 3
+iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md

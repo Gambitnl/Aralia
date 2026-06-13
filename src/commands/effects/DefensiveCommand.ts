@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 12/06/2026, 23:50:22
+ * Dependents: commands/factory/SpellCommandFactory.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
 import { CombatState, ActiveEffect } from '../../types/combat';
@@ -111,6 +126,15 @@ export class DefensiveCommand implements SpellCommand {
 
           if (newTemp > currentTemp) {
             updatedCharacter.tempHP = newTemp;
+            // Record the spell that owns this temporary HP pool. Reactive
+            // spells such as Armor of Agathys must end when their own temp HP
+            // is gone, and cannot safely treat another feature's temp HP as
+            // keeping the retaliation alive.
+            updatedCharacter.temporaryHitPointSource = {
+              spellId: this.context.spellId,
+              spellName: this.context.spellName,
+              casterId: this.context.caster.id
+            };
             logMessage = `${this.context.spellName} grants ${newTemp} temporary HP`;
           } else {
             logMessage = `${this.context.spellName} grants ${newTemp} temporary HP (overlapped)`;

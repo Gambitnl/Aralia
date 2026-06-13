@@ -6,10 +6,11 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 8
 confidence: medium
 evidence: docs/projects/battle-map
-gap_signal: "G3 decided 2026-06-10 (D17, Option B: keep filename, document utility contract); G6 tactical spawn scoring is adjacent follow-up, parity proof recorded"
+gap_signal: "3 open gaps; G5, G6, and CMA-G15 remain open after G3 decision and parity proof"
 protocol: living project doc set
 next_step: "G3 decided 2026-06-10 (D17): keep useBattleMapGeneration.ts filename and the documented stateless utility contract; revisit rename only with planned caller churn. G6 spawn scoring is the next bounded adjacent slice."
 agent_comments: ""
@@ -30,7 +31,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-08
 workflow_gaps_reviewed: 2026-06-10
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -40,7 +41,7 @@ human_decision_required: "no"
 # Battle Map North Star
 
 Status: active (G3 decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Why This Project Exists
 
@@ -87,9 +88,9 @@ Proof after decision: Focused caller sweep, test update, and docs refresh that m
 Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D17 in
 `docs/projects/DECISION_BLITZ_2026-06-10.md`):
 
-- **Option B — keep the `useBattleMapGeneration.ts` filename.** No rename, no caller sweep.
+- **Option B Ã¢â‚¬â€ keep the `useBattleMapGeneration.ts` filename.** No rename, no caller sweep.
 - Document the stateless utility contract (the module exports a plain setup helper,
-  `generateBattleSetup`, despite the hook-shaped filename) — this North Star and the gap
+  `generateBattleSetup`, despite the hook-shaped filename) Ã¢â‚¬â€ this North Star and the gap
   registry are that documentation.
 - Revisit the rename only when caller churn is already planned for other reasons.
 
@@ -244,7 +245,7 @@ Keep durable evidence here (scope, contracts, status, and follow-up decisions). 
 2. Read `docs/projects/battle-map/TRACKER.md`.
 3. Read `docs/projects/battle-map/GAPS.md`.
 4. Confirm registry and global links in `docs/projects/PROJECT_TRACKER.md` and `docs/projects/GLOBAL_GAPS.md`.
-5. Continue from the next gap row in `TRACKER.md`: G3 is review-required, so keep the naming decision visible and use the parity checklist before any renderer behavior expansion. (Update 2026-06-10: G3 is decided — D17, keep-as-is — so the next open lanes are G6 spawn scoring and the routed CMA gaps; the parity checklist gate still applies.)
+5. Continue from the next gap row in `TRACKER.md`: G3 is review-required, so keep the naming decision visible and use the parity checklist before any renderer behavior expansion. (Update 2026-06-10: G3 is decided Ã¢â‚¬â€ D17, keep-as-is Ã¢â‚¬â€ so the next open lanes are G6 spawn scoring and the routed CMA gaps; the parity checklist gate still applies.)
 
 
 

@@ -6,10 +6,11 @@ category: active project
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: unknown
 evidence: "docs/projects/underdark/TRACKER.md; docs/projects/underdark/GAPS.md"
-gap_signal: present
+gap_signal: 5 open gaps; depth, biome, territory, duplicate implementation, and lighting-contract gaps remain open
 protocol: living-project
 next_step: Resume from TRACKER.md and keep the gap log aligned.
 agent_comments: ""
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # Underdark System North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 

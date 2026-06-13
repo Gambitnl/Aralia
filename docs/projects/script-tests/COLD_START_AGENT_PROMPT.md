@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Script Tests
 slug: script-tests
-status: active
-last_updated: "2026-06-06"
+Status: merged-reference
+last_updated: 2026-06-12
 iteration: 2
 source_agent: Not recorded
 target_agent: next cold-start agent
@@ -19,8 +19,8 @@ gaps: docs/projects/script-tests/GAPS.md
 ---
 # Script Tests Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-06
+Status: merged-reference
+Last updated: 2026-06-12
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -45,7 +45,7 @@ docs/projects/script-tests/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Script Tests
 Project folder: docs/projects/script-tests
-Iteration: 2
+iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -93,7 +93,7 @@ Key files to touch:
 - docs/projects/script-tests/RUNBOOK.md
 - docs/projects/PROJECT_CARD_SCHEMA.md
 - docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
+- docs/projects/script-tests plus source/docs named by the active tracker task
 
 Optional docs to check when present or named by tracker:
 - tasks/

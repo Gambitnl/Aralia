@@ -287,7 +287,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Blinded unless the target succeeds on a Constitution save for 1 minute; repeat Constitution save at turn end can end the condition; current escape-check metadata is preserved.",
+      "description": "Applies Blinded for 1 minute unless the target succeeds on a Constitution save; a turn-end Constitution save can end it.",
       "conditionalEndings": []
     }
   ],

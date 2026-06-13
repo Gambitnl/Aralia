@@ -7,6 +7,7 @@ main_category: "Game & Simulation"
 subcategory: Core Sim Systems
 status: active
 last_updated: 2026-06-05
+iteration: 2
 confidence: medium
 evidence: docs/projects/intrigue
 gap_signal: 7 open gaps in GAPS.md

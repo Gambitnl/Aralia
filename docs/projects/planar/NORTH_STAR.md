@@ -6,7 +6,8 @@ category: Systems
 main_category: "Content & Rules"
 subcategory: "Rules, Spells & Source Data"
 status: partial
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: high
 evidence: docs/projects/planar
 gap_signal: 5 open gaps, with 3 support-needed-now items at the front of the queue
@@ -39,7 +40,7 @@ human_decision_required: "no"
 # Planar System North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Why This Project Exists
 This project owns Planar mechanics and the command, combat, and location
@@ -203,3 +204,15 @@ The next cold-start agent must:
 - route any cross-project issue to `docs/projects/GLOBAL_GAPS.md`
 - avoid inventing filler gaps when no real gap is found
 
+## Required Review Brief
+
+Title: Planar partial due to support-needed core gaps
+Question: Which support-needed gap should lead the next Planar iteration?
+Issue: The project has five open gaps, with canonical plane resolution, portal spell/time semantics, and infernal contract typing at the front.
+Current behavior: The North Star says to start with G1 canonical plane resolution, then G2 portal spell/time semantics.
+Why blocked: Plane resolution and portal requirements are foundational contracts; later planar effects can drift if these stay heuristic.
+Option A: Start with G1 and replace currentLocationId prefix heuristics with authoritative location data.
+Option B: Start with G2 only if portal content is the immediate product driver.
+Evidence: NORTH_STAR.md next_step; GAPS.md P1-P3.
+Decision owner: Planar system owner
+Proof after decision: Regression tests cover Material, Feywild, unknown location, and portal spell/time reason strings.

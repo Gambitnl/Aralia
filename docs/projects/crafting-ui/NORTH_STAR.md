@@ -7,6 +7,7 @@ main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
 last_updated: 2026-06-09
+iteration: 3
 confidence: medium
 evidence: docs/projects/crafting-ui
 gap_signal: 5 open gaps (2 current blockers, 3 follow-ups)

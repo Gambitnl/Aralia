@@ -6,10 +6,11 @@ category: Gameplay Systems
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 6
 confidence: medium
 evidence: docs/projects/religion
-gap_signal: "G4 decision recorded 2026-06-10: Rituals owns the backlash contract; Religion consumes the normalized result and waits on the Rituals consequence tests"
+gap_signal: "3 open gaps; G4 waits on Rituals, while G5 and G6 remain active"
 protocol: living project doc set
 next_step: Wait for Rituals to deliver the backlash schema/effect math and consequence tests, then add Religion-side integration assertions that consume the normalized result. G5/G6 remain assignable Religion lanes.
 agent_comments: "G4 Required Review Brief resolved 2026-06-10 (Option B: Rituals-owned contract). See docs/projects/DECISION_BLITZ_2026-06-10.md D12."
@@ -43,7 +44,7 @@ human_decision_required: "no"
 # Religion System North Star
 
 Status: active (G4 decision recorded 2026-06-10; Religion consumes the Rituals-owned contract)
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Purpose
 This project covers implemented religion systems in the current codebase:
@@ -107,7 +108,7 @@ Religion is already a registered project in `docs/projects/PROJECT_TRACKER.md`, 
 1. Keep the G1 compatibility helper in place and do not assign forward Religion implementation while the ritual ownership decision is unresolved.
 2. Keep the combat trigger taxonomy map in place and preserve the ritual reducer/manager boundary until the Required Review Brief is answered.
 3. Keep ritual consequence and UI typing follow-ups queued behind the ownership decision instead of widening now.
-4. Update (2026-06-10): the ownership decision is recorded — Rituals owns the backlash contract; Religion consumes the normalized result (DECISION_BLITZ D12). G4 waits on the Rituals consequence tests; G5 (payload typing) and G6 (blessing lifecycle) are the assignable Religion lanes now.
+4. Update (2026-06-10): the ownership decision is recorded â€” Rituals owns the backlash contract; Religion consumes the normalized result (DECISION_BLITZ D12). G4 waits on the Rituals consequence tests; G5 (payload typing) and G6 (blessing lifecycle) are the assignable Religion lanes now.
 
 ## Required Review Brief
 
@@ -153,7 +154,7 @@ Proof after decision: Focused ritual reducer/manager tests that assert the chose
 
 ### Decision (2026-06-10)
 
-Outcome: **Option B — Rituals owns the backlash contract.** Rituals defines the backlash schema and effect math; Religion consumes the normalized result without defining a new consequence contract. Proof order: Rituals consequence tests land first, then Religion adds integration assertions on the normalized output.
+Outcome: **Option B â€” Rituals owns the backlash contract.** Rituals defines the backlash schema and effect math; Religion consumes the normalized result without defining a new consequence contract. Proof order: Rituals consequence tests land first, then Religion adds integration assertions on the normalized output.
 Decider: Remy (project owner) with Religion and Rituals context, batched decision session.
 Record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D12).
 Effect: the G4 review gate is lifted. Religion's G4 lane becomes a consumer slice that waits on the Rituals contract (RG-3/RG-4 in `docs/projects/rituals/GAPS.md`); G5/G6 remain assignable Religion work in the meantime.
@@ -164,7 +165,7 @@ Effect: the G4 review gate is lifted. Religion's G4 lane becomes a consumer slic
 2. Read `docs/projects/religion/TRACKER.md`.
 3. Read `docs/projects/religion/GAPS.md`.
 4. Stop forward implementation until the Required Review Brief is answered, then resume from the decided owner boundary with the compatibility helper, combat taxonomy map, and temple service adapter intact.
-5. Update (2026-06-10): the brief is answered (Rituals owns the backlash contract — DECISION_BLITZ D12). Resume from the decided boundary: keep G4 as a consumer slice waiting on the Rituals schema/tests, and work G5/G6 in the meantime.
+5. Update (2026-06-10): the brief is answered (Rituals owns the backlash contract â€” DECISION_BLITZ D12). Resume from the decided boundary: keep G4 as a consumer slice waiting on the Rituals schema/tests, and work G5/G6 in the meantime.
 
 
 ## Cold-Start Gap Routing

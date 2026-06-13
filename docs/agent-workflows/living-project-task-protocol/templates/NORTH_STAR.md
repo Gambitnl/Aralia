@@ -3,6 +3,11 @@
 Status: active
 Last updated: <YYYY-MM-DD>
 
+Dashboard schema: fill `docs/projects/PROJECT_CARD_SCHEMA.md` YAML frontmatter
+when converting this template into a project file. The `gap_signal` field must
+start with a parseable count such as `0 open gaps`, `1 open gap`, or
+`<N> open gaps` before any summary details.
+
 ## Why This Project Exists
 
 <Why this task became a project and what risk the North Star protects against.>

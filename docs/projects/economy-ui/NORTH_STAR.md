@@ -7,6 +7,7 @@ main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
 last_updated: 2026-06-10
+iteration: 6
 confidence: medium
 evidence: docs/projects/economy-ui
 gap_signal: 5 open gaps (G4 player entry, G6 escape chain, G7 type drift, G8 economy bypass, G9 missing domains)
@@ -33,7 +34,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-10
 workflow_gaps_reviewed: 2026-06-10
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -48,7 +49,7 @@ Last updated: 2026-06-10
 ## Purpose and scope
 
 This project is the **universal UI framework for any place gold changes hands**
-in the game. It is not limited to trade routes or the four economy panels — it
+in the game. It is not limited to trade routes or the four economy panels Ã¢â‚¬â€ it
 covers the front-end surface for every transaction domain: buying, selling,
 hiring, investing, paying fees, receiving rewards, and any future system where
 currency moves between the player and the world.
@@ -73,7 +74,7 @@ Out of scope:
   `docs/projects/economy`).
 - Business rule changes outside user-visible economy UI.
 - Building the game systems themselves (e.g., the mount system, the housing
-  system) — this project owns how their transaction UIs connect to economy state.
+  system) Ã¢â‚¬â€ this project owns how their transaction UIs connect to economy state.
 
 ## Current state
 
@@ -166,7 +167,7 @@ Workflow gaps reviewed: 2026-06-10
 
 This is the landscape of every place gold moves in the game, whether or not it
 currently routes through the economy system. The core gap is that most existing
-transaction UIs bypass the economy framework entirely — they do direct
+transaction UIs bypass the economy framework entirely Ã¢â‚¬â€ they do direct
 `gold - cost` without connecting to market factors, regional pricing, or faction
 modifiers.
 
@@ -227,7 +228,7 @@ This project owns where and how that state is surfaced to the player.
 - G6: `isTradeRouteDashboardVisible` missing from the Escape key handler chain.
 - G7: `TOGGLE_INVESTMENT_BOARD` missing from `actionTypes.d.ts`.
 - G8: Most existing transaction UIs (crafting, fencing, org upgrades, quest
-  rewards, combat loot) bypass the economy framework entirely — direct gold
+  rewards, combat loot) bypass the economy framework entirely Ã¢â‚¬â€ direct gold
   math with no connection to market factors or regional pricing.
 - G9: No transaction UI surfaces exist for major RPG domains: mounts, ships,
   hirelings, housing, inns, temple services, training, guild fees, enchanting,

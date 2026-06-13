@@ -1,4 +1,4 @@
-# History System Living Tracker
+﻿# History System Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -17,7 +17,6 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|
-| T1 | done | Create and stabilize the history project living docs from registry evidence. | Worker A | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md` | Keep docs scoped to project evidence and gaps only. | `NORTH_STAR.md`, `TRACKER.md`, `GAPS.md` updated and aligned. |
 | T2 | active | Audit all current world-history producers and map intended event sources against `WorldHistoryEventType`. | Worker A | 2026-06-05 | `src/types/history.ts`, `src/services/WorldHistoryService.ts`, `src/systems/world/WorldEventManager.ts`, `src/systems/history/HistoryService.ts`, `docs/projects/history/NORTH_STAR.md` | Keep the source map and gap classifications aligned with the code scan. | Confirm only skirmish currently emits permanent records, and keep the remaining event types explicitly classified. |
 | T3 | active | Define retention and lifecycle policy for `worldHistory` and its save compatibility impact. | Worker A | 2026-05-31 | `src/utils/world/historyUtils.ts`, `src/types/world.ts`, `src/systems/world/WorldEventManager.ts` | Decide policy (no prune, periodic archive, external rollup, etc.) and document acceptance criteria. | Identify migration risks for save/load and test coverage targets for pruning behavior. |
 | T4 | active | Validate read/query contract for timeline behavior and consumer expectations. | Worker A | 2026-05-31 | `src/utils/world/historyUtils.ts`, `src/types/history.ts`, `src/systems/world/World_Ralph.md` | Decide whether timeline view, replay, or replay-like query paths are in this project scope. | Add a concrete gap or in-scope note for each missing consumer contract. |

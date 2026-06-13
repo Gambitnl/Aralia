@@ -6,10 +6,11 @@ category: active project
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 4
 confidence: unknown
 evidence: "docs/projects/worldsim-service/TRACKER.md; docs/projects/worldsim-service/GAPS.md"
-gap_signal: "WSS-005 decision recorded 2026-06-10 (Azgaar is canonical; feature hints flow into WorldData) — implementation lane open; WSS-006/WSS-007/WSS-008 remediated"
+gap_signal: "5 open gaps; WSS-001, WSS-002, WSS-003, WSS-005, and WSS-005a remain open after WSS-006 through WSS-008 remediation"
 protocol: living-project
 next_step: "Implement the WSS-005 decided contract: consume Azgaar feature hints into WorldData (Azgaar canonical), starting with the WSS-005a bridge spec + fixed-seed acceptance check."
 agent_comments: "WSS-005 Required Review Brief resolved 2026-06-10 in the June 2026 proc-gen campaign context. See docs/projects/DECISION_BLITZ_2026-06-10.md D1."
@@ -29,7 +30,7 @@ completed_verification:
   - focused worldSim + migration test runs
 last_proof: 2026-06-08
 workflow_gaps_reviewed: 2026-06-08
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -39,14 +40,14 @@ human_decision_required: "no"
 # NORTH_STAR: WorldSim Service
 
 Status: active (WSS-005 decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-10 (WSS-005 decided — Azgaar is canonical; feature hints flow into WorldData)
+Last updated: 2026-06-12
 
 > One of three distinct surfaces in the **Azgaar-driven streamed 3D world** initiative
 > (not consolidated):
-> - **this surface (`worldsim-service`)** — world **generation + simulation**: the spatial
+> - **this surface (`worldsim-service`)** Ã¢â‚¬â€ world **generation + simulation**: the spatial
 >   geometry pipeline *and* the world's first-build history/story/events.
-> - `world3d` — the 3D rendering engine that consumes this surface's `WorldData`.
-> - `world-3d-ui` — the 2D↔3D transition + in-3D HUD.
+> - `world3d` Ã¢â‚¬â€ the 3D rendering engine that consumes this surface's `WorldData`.
+> - `world-3d-ui` Ã¢â‚¬â€ the 2DÃ¢â€ â€3D transition + in-3D HUD.
 > Owner: claude.
 
 ## Dashboard Card Schema
@@ -59,7 +60,7 @@ Last updated: 2026-06-10 (WSS-005 decided — Azgaar is canonical; feature hints
 | Status | active (WSS-005 decision recorded 2026-06-10; implementation lane open) |
 | Confidence | unknown |
 | Evidence | docs/projects/worldsim-service/TRACKER.md; docs/projects/worldsim-service/GAPS.md |
-| Gap signal | WSS-005 decided 2026-06-10 (Azgaar canonical; feature hints flow into WorldData); WSS-006/WSS-007/WSS-008 remediated |
+| Gap signal | 5 open gaps; WSS-001, WSS-002, WSS-003, WSS-005, and WSS-005a remain open after WSS-006 through WSS-008 remediation |
 | Protocol | living-project |
 | Next step | Implement the WSS-005 decided contract (Azgaar feature hints into WorldData), starting with the WSS-005a bridge spec + fixed-seed acceptance check; future birth-entry points reuse the WSS-008 bridge. |
 | Required verification | docs consistency |
@@ -87,11 +88,11 @@ After decision: update WSS-005 and add a bridge-spec proof before assigning sour
 
 ### Decision (2026-06-10)
 
-Outcome: **Azgaar is canonical.** Azgaar feature hints (rivers/sites/roads and related atlas features) flow into `WorldData`; 3D and gameplay features follow the atlas. The proc-gen pipeline derives deterministically from Azgaar output — this is option (A) from the brief (consume Azgaar feature hints into `WorldData`).
+Outcome: **Azgaar is canonical.** Azgaar feature hints (rivers/sites/roads and related atlas features) flow into `WorldData`; 3D and gameplay features follow the atlas. The proc-gen pipeline derives deterministically from Azgaar output Ã¢â‚¬â€ this is option (A) from the brief (consume Azgaar feature hints into `WorldData`).
 Decider: Remy (project owner), batched decision session.
-Context: this decision was made in the context of the June 2026 proc-gen campaign — a unified procedural world pipeline where Azgaar-based generation is extended below Azgaar's deepest zoom to replace the Submap, continuing into a 3D ground-level mode with owned town generation and an entity pipeline. The master record's Context section (`docs/projects/DECISION_BLITZ_2026-06-10.md`) explains the campaign.
+Context: this decision was made in the context of the June 2026 proc-gen campaign Ã¢â‚¬â€ a unified procedural world pipeline where Azgaar-based generation is extended below Azgaar's deepest zoom to replace the Submap, continuing into a 3D ground-level mode with owned town generation and an entity pipeline. The master record's Context section (`docs/projects/DECISION_BLITZ_2026-06-10.md`) explains the campaign.
 Record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D1).
-Effect: the WSS-005 review gate is lifted. Next slice: WSS-005a's bridge spec — a shared feature encoding that carries Azgaar feature hints into `WorldData`, plus a fixed-seed acceptance check proving atlas and 3D consume the same canonical features.
+Effect: the WSS-005 review gate is lifted. Next slice: WSS-005a's bridge spec Ã¢â‚¬â€ a shared feature encoding that carries Azgaar feature hints into `WorldData`, plus a fixed-seed acceptance check proving atlas and 3D consume the same canonical features.
 
 ## Why This Project Exists
 
@@ -102,7 +103,7 @@ simulation that produces its initial state and story at first build. Two halves:
    `WorldData` v2 artifact (heightmap, biomes, rivers, roads, sites, coastlines, lakes) that
    the 3D rendering engine (`world3d`) and the 2D atlas consume. This is the "Plan 1" work.
 2. **World story / history / events (growth area):** the narrative simulation that runs when
-   a player first creates a character and the world is generated — the world's seeded history,
+   a player first creates a character and the world is generated Ã¢â‚¬â€ the world's seeded history,
    founding events, and initial lore. `src/services/WorldHistoryService.ts` is the current
    seed of this; it is early and intended to grow under this surface.
 
@@ -119,10 +120,10 @@ In scope:
 - The generation entry paths (`mapService.ts`, `azgaarDerivedMapService.ts`).
 
 Out of scope (owned elsewhere):
-- 3D rendering of `WorldData` — `world3d`.
-- Entry/transition + HUD — `world-3d-ui`.
+- 3D rendering of `WorldData` Ã¢â‚¬â€ `world3d`.
+- Entry/transition + HUD Ã¢â‚¬â€ `world-3d-ui`.
 - **Ongoing/live** gameplay world-state churn after world birth (faction events over time,
-  rumor systems, economy ticks) — stays under `docs/projects/world`. The boundary: this
+  rumor systems, economy ticks) Ã¢â‚¬â€ stays under `docs/projects/world`. The boundary: this
   surface owns world **birth** (generation + initial story); `world` owns world **runtime**.
 
 ## Key File Map
@@ -184,8 +185,8 @@ Out of scope (owned elsewhere):
 - Runtime performance envelope for very large map seeds is not fully measured (sync generation + migration fallback path).
 - Migration behavior for future `WorldData` versions (v3+) is not defined yet.
 - River/road and site features are generated but downstream render contracts are partially coupled to placeholder 3D mesh builders.
-- **WSS-004 (REMEDIATED 2026-06-02):** the `generateLegacyMap` fallback omits `azgaarWorld`/`worldData`, so migration previously backfilled flat constant heights → a featureless flat 3D world. **Fixed (policy A — derive from biomes):** `src/services/worldSim/heightFromBiomes.ts` maps each cell's biome `elevation` band → height + seeded jitter (deterministic per seed); `migrateMapDataToWorldDataV2` calls it instead of `fill(30)`. Provenance literal renamed `flat-backfill`→`biome-derived` (`world.ts`/`world.d.ts`/`DebugHUD.tsx`), still flagged amber as lower-fidelity. Empirical proof: real `generateMap` legacy-fallback now yields heights `distinct=38 min=25 max=88` (was constant 30). Remediated 2026-06-08 by adding deterministic smoothing to the biome-derived height pass. WSS-006 was remediated 2026-06-08 via biome-derived climate fields.
-- **WSS-005 (REVIEW-REQUIRED 2026-06-08):** 2D atlas rivers (Azgaar's `azgaarWorld.rivers`) and 3D rivers (`runWorldSim` `traceRivers`) come from different algorithms and diverge for a fixed seed in `featureSourceTruth.test.ts`; source of truth is undecided. **Update (2026-06-10): DECIDED — Azgaar is canonical; Azgaar feature hints flow into `WorldData` and 3D/gameplay features follow the atlas (DECISION_BLITZ D1, June 2026 proc-gen campaign). Implementation starts with the WSS-005a bridge spec.**
+- **WSS-004 (REMEDIATED 2026-06-02):** the `generateLegacyMap` fallback omits `azgaarWorld`/`worldData`, so migration previously backfilled flat constant heights Ã¢â€ â€™ a featureless flat 3D world. **Fixed (policy A Ã¢â‚¬â€ derive from biomes):** `src/services/worldSim/heightFromBiomes.ts` maps each cell's biome `elevation` band Ã¢â€ â€™ height + seeded jitter (deterministic per seed); `migrateMapDataToWorldDataV2` calls it instead of `fill(30)`. Provenance literal renamed `flat-backfill`Ã¢â€ â€™`biome-derived` (`world.ts`/`world.d.ts`/`DebugHUD.tsx`), still flagged amber as lower-fidelity. Empirical proof: real `generateMap` legacy-fallback now yields heights `distinct=38 min=25 max=88` (was constant 30). Remediated 2026-06-08 by adding deterministic smoothing to the biome-derived height pass. WSS-006 was remediated 2026-06-08 via biome-derived climate fields.
+- **WSS-005 (REVIEW-REQUIRED 2026-06-08):** 2D atlas rivers (Azgaar's `azgaarWorld.rivers`) and 3D rivers (`runWorldSim` `traceRivers`) come from different algorithms and diverge for a fixed seed in `featureSourceTruth.test.ts`; source of truth is undecided. **Update (2026-06-10): DECIDED Ã¢â‚¬â€ Azgaar is canonical; Azgaar feature hints flow into `WorldData` and 3D/gameplay features follow the atlas (DECISION_BLITZ D1, June 2026 proc-gen campaign). Implementation starts with the WSS-005a bridge spec.**
 - **WSS-008 (REMEDIATED 2026-06-08):** `WorldHistoryService.createFirstBuildHistory(...)` now emits a deterministic seeded first-build history contract and `useGameInitialization`/`START_GAME_SUCCESS`/`START_GAME_FOR_DUMMY` carry it into `GameState`. `saveLoadService.loadGame(...)` backfills an empty history shell for legacy saves that predate the bridge.
 
 ## Global Gap Imports

@@ -180,7 +180,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Summons a familiar spirit at a point within range using the row's summoning effect; no slot scaling is currently modeled.",
+      "description": "Summons a familiar spirit at an unoccupied point within range; no slot-scaling changes are modeled for this summoning effect.",
       "conditionalEndings": [],
       "tags": [
         "summon",

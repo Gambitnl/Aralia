@@ -6,10 +6,11 @@ category: active project
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: unknown
 evidence: "docs/projects/visibility/TRACKER.md; docs/projects/visibility/GAPS.md"
-gap_signal: present
+gap_signal: 5 open gaps; renderer consumption, environment mapping, LOS bridge, attack policy, and routing decisions remain open
 protocol: living-project
 next_step: Resume from TRACKER.md and keep the gap log aligned.
 agent_comments: ""
@@ -28,7 +29,7 @@ completed_verification:
   - docs refresh
 last_proof: 2026-06-05
 workflow_gaps_reviewed: ""
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # Visibility System North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 Owner: Worker A
 Evidence seed: `docs/projects/PROJECT_TRACKER.md` row for `Visibility System`
 

@@ -1,4 +1,4 @@
-# Visibility Living Tracker
+﻿# Visibility Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -18,7 +18,6 @@ Owning docs: `NORTH_STAR.md`, `GAPS.md`
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| V-1 | done | Replace placeholder visibility docs with concrete project context and evidence links. | Worker A | 2026-05-31 | `docs/projects/visibility/NORTH_STAR.md` | Keep tracker/gap table current. | Confirm only visibility docs changed. |
 | V-2 | active | Verify renderer integration evidence and classify non-local gaps for routing. | Worker A | 2026-05-31 | `src/hooks/combat/useVisibility.ts`, `src/hooks/combat/useTargetValidator.ts`, `src/commands/factory/AbilityCommandFactory.ts` | Add/confirm non-local gap if environment or renderer ownership requires routing. | Re-run `rg -l -F \"useVisibility\" src/components src/hooks` and validate that result remains no production consumer. |
 
 ## Gap Log

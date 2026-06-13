@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Party UI
 slug: party-ui
-status: active
-last_updated: "2026-06-08"
+Status: partial
+last_updated: 2026-06-12
 iteration: 6
 source_agent: Qoder
 target_agent: next cold-start agent
@@ -19,8 +19,8 @@ gaps: docs/projects/party-ui/GAPS.md
 ---
 # Party UI Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-08
+Status: partial
+Last updated: 2026-06-12
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -39,7 +39,7 @@ docs/projects/party-ui/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Party UI
 Project folder: docs/projects/party-ui
-Iteration: 6
+iteration: 6
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -62,7 +62,7 @@ Iteration 5 resolved G3 (README alignment). Both `PartyOverlay.README.md` and `P
 ## Current Mission
 
 Active task:
-All T-tasks (T1–T5) are done. G3 and G8 are resolved. The next safe work is gap-driven:
+All T-tasks (T1â€“T5) are done. G3 and G8 are resolved. The next safe work is gap-driven:
 - G5 remains blocked on human decision (roster acceptance rule for non-companion NPCs). Do not touch G5 except to keep it recorded.
 - G7 (wire companion relationship data into PartyOverlay) is the next safe implementation lane, but it depends on G5 being decided first.
 - G9 (add `PartyMemberCard` test coverage) is an independent test-coverage task any agent can pick up.
@@ -96,4 +96,54 @@ Iteration 5 audited both Party READMEs against source, rewrote them to match cur
 ## Required End State For This Iteration
 
 Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers. Keep the iteration agent ledger as one compact row per completed iteration; do not preserve old handoff transcripts in this file.
+Required docs to account for before closeout:
+- NORTH_STAR.md
+- TRACKER.md
+- GAPS.md
+- COLD_START_AGENT_PROMPT.md
+- DECISIONS.md
+- AUDIT_OR_PROOF.md
+- RUNBOOK.md
+- docs/projects/PROJECT_CARD_SCHEMA.md
+- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+
+Optional docs to check when present or named by tracker:
+- tasks/
+- architecture notes
+- migration notes
+- project-specific proof or design notes
 ---END NEXT AGENT HANDOFF---
+
+## Project Prompt Conformance Notes
+
+Last updated: 2026-06-12
+
+This section aligns older cold-start prompts with the shared living-project workflow without replacing the project-specific handoff above. The original handoff remains authoritative for project context; this section records the universal prompt shape that every next agent must honor.
+
+Conformance issues repaired on 2026-06-12: missing_decisions_reference, missing_proof_reference, missing_runbook_reference.
+
+Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
+
+Agent identity / runtime:
+Before selecting work, identify yourself and the surface you are running through. Use one of: CLI agent, application agent, browser/app-embedded agent, MCP/subagent, or unknown. Mark the classification as certain, inferred, or unknown and name the clue used.
+
+### Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| pre-standardization | not recorded | unknown | unknown | before 2026-06-12 | Original party-ui handoff predates the ledger requirement. |
+
+### Required project docs to account for
+
+- docs/projects/party-ui/NORTH_STAR.md
+- docs/projects/party-ui/TRACKER.md
+- docs/projects/party-ui/GAPS.md
+- docs/projects/party-ui/COLD_START_AGENT_PROMPT.md
+- docs/projects/party-ui/DECISIONS.md
+- docs/projects/party-ui/AUDIT_OR_PROOF.md
+- docs/projects/party-ui/RUNBOOK.md
+
+Closeout reminder:
+Before ending an iteration, refresh or explicitly report on every required project doc above. If a supporting doc is not relevant to the current slice, say why instead of silently ignoring it.

@@ -149,7 +149,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 2d8 Acid, Cold, Fire, or Lightning damage on the row's current hit-based resolution; slot scaling adds +1d8.",
+      "description": "Deals 2d8 Acid, Cold, Fire, or Lightning damage when the hit-based elemental aura damage resolves; each slot level above 4th adds +1d8.",
       "conditionalEndings": []
     },
     {

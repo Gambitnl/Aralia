@@ -6,7 +6,8 @@ category: Feature/UI Projects
 main_category: "Game & Simulation"
 subcategory: "Combat & Encounters"
 status: active
-last_updated: 2026-06-11
+last_updated: 2026-06-11
+iteration: 8
 confidence: high
 evidence: docs/projects/3d-combat-map
 gap_signal: "5 open gaps (G1/G2/G3/G4/G6/G7/G8 closed; NC1 and NC2 done. Open: G5 style policy, G9 character silhouette pop proof, G10 3D status/defeat readability proof, G11 targeting decal PNG proof, G12 elevation contrast)"

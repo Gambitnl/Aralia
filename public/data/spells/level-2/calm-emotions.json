@@ -226,7 +226,9 @@
         "saveType": "Charisma",
         "saveEffect": "negates_condition",
         "targetFilter": {
-          "creatureTypes": [],
+          "creatureTypes": [
+            "Humanoid"
+          ],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],

@@ -6,12 +6,13 @@ category: Feature Domains and Runtime Support
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 5
 confidence: high
 evidence: docs/projects/command-effects-runtime; docs/projects/DECISION_BLITZ_2026-06-10.md (D9)
-gap_signal: "G1 decision recorded 2026-06-10 (command context owns the delegated payload); implementation lane open; G3/G5 parked; G2/G4 resolved"
+gap_signal: "3 open gaps; G1, G3, and G5 remain open after G2/G4 resolution"
 protocol: living project doc set
-next_step: Implement the G1 decision — expose a safe delegated-payload source-of-truth in the command context and let ReactiveEffectCommand rehydrate sibling effect commands on trigger; resume T2 with focused trigger-path tests.
+next_step: Implement the G1 decision Ã¢â‚¬â€ expose a safe delegated-payload source-of-truth in the command context and let ReactiveEffectCommand rehydrate sibling effect commands on trigger; resume T2 with focused trigger-path tests.
 agent_comments: "G1 cannot safely synthesize delegated payloads from the current command context; the missing source-of-truth needs a decision. Decided 2026-06-10: command context owns the delegated payload (DECISION_BLITZ D9)."
 required_docs:
   - NORTH_STAR.md
@@ -32,7 +33,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-09
 workflow_gaps_reviewed: 2026-06-09
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -41,8 +42,8 @@ human_decision_required: "no"
 ---
 # NORTH_STAR: Command Effects Runtime
 
-Status: active — G1 decision recorded 2026-06-10; implementation lane open
-Last updated: 2026-06-10
+Status: active Ã¢â‚¬â€ G1 decision recorded 2026-06-10; implementation lane open
+Last updated: 2026-06-12
 
 ## Why This Project Exists
 
@@ -76,7 +77,7 @@ Keep a concise cold-start handoff for:
 | Stop condition | the review brief is recorded and the next agent can resume only after the payload-owner decision is answered |
 | Verification | docs consistency review against `TRACKER.md`, `GAPS.md`, and source-anchored evidence; scoped tests resume after the decision if implementation is approved |
 | Owner | Worker C |
-| Next action | decision recorded 2026-06-10 (DECISION_BLITZ D9): command context owns the delegated payload — resume T2/G1 by exposing the delegated-payload source-of-truth in `CommandContext` with focused trigger-path tests |
+| Next action | decision recorded 2026-06-10 (DECISION_BLITZ D9): command context owns the delegated payload Ã¢â‚¬â€ resume T2/G1 by exposing the delegated-payload source-of-truth in `CommandContext` with focused trigger-path tests |
 
 ## Required Review Brief
 
@@ -95,23 +96,23 @@ Keep a concise cold-start handoff for:
 
 ### Decision (2026-06-10)
 
-Resolved — **Option A selected: the command context owns the delegated payload.** Expose a safe delegated-payload source-of-truth in the command context so `ReactiveEffectCommand` can rehydrate sibling effect commands on trigger and reactive effects execute through the normal command pipeline.
+Resolved Ã¢â‚¬â€ **Option A selected: the command context owns the delegated payload.** Expose a safe delegated-payload source-of-truth in the command context so `ReactiveEffectCommand` can rehydrate sibling effect commands on trigger and reactive effects execute through the normal command pipeline.
 
 - Decider: Remy (project owner), batched decision session 2026-06-10.
 - Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D9); local record: `docs/projects/command-effects-runtime/DECISIONS.md` D-03.
-- Status: decision recorded 2026-06-10; implementation lane open. T2/G1 resumes — add the delegated-payload handle to `CommandContext`, rehydrate delegated commands in `ReactiveEffectCommand`, and land the focused trigger-path proof named above. The inline reactive handling in `useActionExecutor.ts` should converge onto the command-context owner as part of the slice.
+- Status: decision recorded 2026-06-10; implementation lane open. T2/G1 resumes Ã¢â‚¬â€ add the delegated-payload handle to `CommandContext`, rehydrate delegated commands in `ReactiveEffectCommand`, and land the focused trigger-path proof named above. The inline reactive handling in `useActionExecutor.ts` should converge onto the command-context owner as part of the slice.
 
 ## Dashboard Card Schema
 
 Project: Command Effects Runtime
 Slug: command-effects-runtime
 Category: Feature Domains and Runtime Support
-Status: active — G1 decision recorded 2026-06-10; implementation lane open
+Status: active Ã¢â‚¬â€ G1 decision recorded 2026-06-10; implementation lane open
 Confidence: high
 Evidence: docs/projects/command-effects-runtime; docs/projects/DECISION_BLITZ_2026-06-10.md (D9)
 Gap signal: G1 decision recorded 2026-06-10 (command context owns the delegated payload); G3/G5 parked; G2/G4 resolved
 Protocol: living project doc set
-Next step: Implement the G1 decision — expose the delegated-payload source-of-truth in the command context and resume T2 with focused trigger-path tests.
+Next step: Implement the G1 decision Ã¢â‚¬â€ expose the delegated-payload source-of-truth in the command context and resume T2 with focused trigger-path tests.
 Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-09
@@ -179,7 +180,7 @@ Out of scope:
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| Reactive trigger callback does not execute delegated effect commands yet | in_scope_now (decision recorded 2026-06-10) | Worker C | `src/commands/effects/ReactiveEffectCommand.ts`, `src/commands/base/SpellCommand.ts`, `src/hooks/combat/useActionExecutor.ts`, `docs/projects/DECISION_BLITZ_2026-06-10.md` (D9) | decided: the delegated payload lives in command context — expose the source-of-truth handle and rehydrate delegated commands with trigger-path tests |
+| Reactive trigger callback does not execute delegated effect commands yet | in_scope_now (decision recorded 2026-06-10) | Worker C | `src/commands/effects/ReactiveEffectCommand.ts`, `src/commands/base/SpellCommand.ts`, `src/hooks/combat/useActionExecutor.ts`, `docs/projects/DECISION_BLITZ_2026-06-10.md` (D9) | decided: the delegated payload lives in command context Ã¢â‚¬â€ expose the source-of-truth handle and rehydrate delegated commands with trigger-path tests |
 | Rider registration only supports direct damage riders in command path | adjacent_follow_up | Worker C | `src/commands/effects/RegisterRiderCommand.ts` | route expansion scope for non-damage riders |
 | Status effect duration expiry cleanup is not fully command-owned | adjacent_follow_up | Worker C | `src/commands/effects/StatusConditionCommand.ts` | confirm lifetime owner for expiry and cleanup |
 

@@ -102,7 +102,10 @@
       "condition": {
         "type": "always",
         "targetFilter": {
-          "creatureTypes": [],
+          "creatureTypes": [
+            "Beast",
+            "Humanoid"
+          ],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
@@ -234,7 +237,10 @@
       "condition": {
         "type": "always",
         "targetFilter": {
-          "creatureTypes": [],
+          "creatureTypes": [
+            "Beast",
+            "Humanoid"
+          ],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],

@@ -47,8 +47,11 @@ const World3DDemo: React.FC = () => {
       const params = new URLSearchParams(window.location.search);
       const gx = Number(params.get('gx') ?? 16);
       const gy = Number(params.get('gy') ?? 4);
+      // &hour= drives time-of-day occupant placement (default noon: workers
+      // at their shops). The PLAYING integration will pass real game time.
+      const hour = Number(params.get('hour') ?? 12);
       const bridged = getWorldforgeLocalForLocation(42, gx, gy, 25, 16);
-      const { ground, loader: groundLoader } = createGroundChunkLoader(bridged.local, 42, bridged.region);
+      const { ground, loader: groundLoader } = createGroundChunkLoader(bridged.local, 42, bridged.region, { hour });
 
       // Spawn at the artifact center, on the ground surface
       const startX = ground.extentMetersX / 2;

@@ -7,6 +7,7 @@ main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: active
 last_updated: 2026-06-05
+iteration: 2
 confidence: medium
 evidence: docs/projects/naval-ui
 gap_signal: "5 open gaps remain in the project handoff set; ShipPane is still read-only and the voyage/action surface is unresolved"

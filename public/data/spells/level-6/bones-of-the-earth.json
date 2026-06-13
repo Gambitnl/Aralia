@@ -193,7 +193,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 6d6 Bludgeoning damage on the row's Dexterity save resolution; the current row records no success-side damage reduction.",
+      "description": "Deals 6d6 Bludgeoning damage through a Dexterity-save damage effect; no reduced-success damage is modeled.",
       "conditionalEndings": []
     }
   ],

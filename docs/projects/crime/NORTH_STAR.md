@@ -6,12 +6,13 @@ category: Game Systems
 main_category: Review / Archive
 subcategory: Deprecation Review
 status: active
-last_updated: "2026-06-11"
+last_updated: 2026-06-12
+iteration: 2
 confidence: medium
 evidence: docs/projects/crime/TRACKER.md
-gap_signal: 5 open gaps, 1 adjacent follow-up
+gap_signal: "6 open gaps; G1 through G6 remain open"
 protocol: living project doc set
-next_step: Resume T3 — start with G1 expired-bounty cleanup, then reassess G2 fence semantics.
+next_step: Resume T3 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â start with G1 expired-bounty cleanup, then reassess G2 fence semantics.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -35,6 +36,8 @@ deprecation_reason: ""
 canonical_owner: docs/projects/crime
 human_decision_required: "no"
 ---
+
+Last updated: 2026-06-12
 ## Dashboard Card Schema
 
 Project: Crime System
@@ -43,9 +46,9 @@ Category: Game Systems
 Status: active
 Confidence: medium
 Evidence: docs/projects/crime/TRACKER.md
-Gap signal: 5 open gaps, 1 adjacent follow-up
+Gap signal: 6 open gaps; G1 through G6 remain open
 Protocol: living project doc set
-Next step: Resume T3 — G1 expired-bounty cleanup first.
+Next step: Resume T3 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â G1 expired-bounty cleanup first.
 Required verification: docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-05
@@ -82,7 +85,7 @@ the Thieves' Guild UI. The systems live in `src/systems/crime/**`
 
 This file previously contained ~140k lines of unrelated repo-corpus grep
 output (build logs, AGENTS.bak notes, glossary dumps) appended after the
-Resume Path section — queued for repair by the Decision Blitz
+Resume Path section ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â queued for repair by the Decision Blitz
 (docs/projects/DECISION_BLITZ_2026-06-10.md, "Items converted to work").
 The legitimate frontmatter and body were preserved verbatim; only the
 foreign corpus block was removed (it exists in git history if ever needed).

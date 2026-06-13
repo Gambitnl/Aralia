@@ -6,10 +6,11 @@ category: active project
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 2
 confidence: unknown
 evidence: "docs/projects/world/TRACKER.md; docs/projects/world/GAPS.md"
-gap_signal: "G3 decision recorded 2026-06-10 (Option B: new canonical world-geography contract + adapters for every tile-grid dependency before retiring old fields) — implementation lane open"
+gap_signal: "8 open gaps; G1 through G8 remain open around world-geography contract implementation"
 protocol: living-project
 next_step: Define the new canonical world-geography contract (aligned with the Azgaar-based pipeline) and build explicit adapters for every tile-grid dependency (movement, passability, discovery, save/load/migration, 3D markers) before retiring old fields.
 agent_comments: "G3 Required Review Brief resolved 2026-06-10 (Option B). See docs/projects/DECISION_BLITZ_2026-06-10.md D2."
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # World System North Star
 
 Status: active (G3 decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 
@@ -59,7 +60,7 @@ Last updated: 2026-06-10
 | Workflow gaps reviewed | 2026-06-09 |
 
 Dashboard lifecycle: phase-out-contract-implementation
-Assignment rule: Do not assign forward runtime changes until `MapData` tile-grid movement, save/load, and migration compatibility dependencies are explicitly preserved or routed. Update (2026-06-10): the G3 decision is recorded (Option B — DECISION_BLITZ D2); forward runtime work is assignable only through the new-contract-plus-adapters lane, and tile-grid fields stay canonical until every dependency has an explicit adapter.
+Assignment rule: Do not assign forward runtime changes until `MapData` tile-grid movement, save/load, and migration compatibility dependencies are explicitly preserved or routed. Update (2026-06-10): the G3 decision is recorded (Option B â€” DECISION_BLITZ D2); forward runtime work is assignable only through the new-contract-plus-adapters lane, and tile-grid fields stay canonical until every dependency has an explicit adapter.
 
 ## Required Review Brief
 
@@ -76,8 +77,8 @@ Proof after decision: Contract preservation table plus focused startup/load/move
 
 ### Decision (2026-06-10)
 
-Outcome: **Option B — promote a new canonical world-geography contract and create an explicit migration/adapter layer for every tile-grid dependency before retiring old fields.** The new contract aligns with the Azgaar-based proc-gen pipeline (Azgaar is canonical per WorldSim Service D1). Required adapters cover, at minimum: movement, passability, discovery/current-tile markers, save/load/migration compatibility, and 3D marker anchors. Tile-grid `MapData` fields are not removed until each dependency has a working adapter and verification.
-Decider: Remy (project owner), batched decision session (June 2026 proc-gen campaign context — see the master record's Context section).
+Outcome: **Option B â€” promote a new canonical world-geography contract and create an explicit migration/adapter layer for every tile-grid dependency before retiring old fields.** The new contract aligns with the Azgaar-based proc-gen pipeline (Azgaar is canonical per WorldSim Service D1). Required adapters cover, at minimum: movement, passability, discovery/current-tile markers, save/load/migration compatibility, and 3D marker anchors. Tile-grid `MapData` fields are not removed until each dependency has a working adapter and verification.
+Decider: Remy (project owner), batched decision session (June 2026 proc-gen campaign context â€” see the master record's Context section).
 Record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D2).
 Effect: the G3 review gate is lifted. Next slice: write the contract preservation table mapping every tile-grid dependency to its adapter, define the new canonical world-geography contract, then run the focused startup/load/movement verification named above before any old field is retired.
 
@@ -138,7 +139,7 @@ Keep this project focused on world-system ownership; do not close open items fro
 2. Read `docs/projects/world/TRACKER.md`.
 3. Read `docs/projects/world/GAPS.md`.
 4. Continue with evidence-backed tile-grid contract preservation before any forward runtime edits.
-5. Update (2026-06-10): the G3 decision is recorded (new canonical world-geography contract + adapters — DECISION_BLITZ D2). The next slice is the contract preservation table and the new-contract/adapters definition; old tile-grid fields stay until each dependency has a verified adapter.
+5. Update (2026-06-10): the G3 decision is recorded (new canonical world-geography contract + adapters â€” DECISION_BLITZ D2). The next slice is the contract preservation table and the new-contract/adapters definition; old tile-grid fields stay until each dependency has a verified adapter.
 
 
 ## Cold-Start Gap Routing

@@ -6,10 +6,11 @@ category: Feature/UI Projects
 main_category: Review / Archive
 subcategory: Deprecation Review
 status: reference-only
-last_updated: 2026-06-11
+last_updated: 2026-06-12
+iteration: 2
 confidence: medium
 evidence: docs/projects/demo-area
-gap_signal: "All gaps resolved (G1 keep, G2 mounted & aligned)"
+gap_signal: "0 open gaps; All gaps resolved (G1 keep, G2 mounted & aligned)"
 protocol: living project doc set
 next_step: "Project is fully resolved as reference-only. CombatMessagingDemo is mounted to the Dev Menu for reference validation."
 agent_comments: ""
@@ -38,9 +39,9 @@ human_decision_required: "no"
 # Demo Area North Star
 
 Status: reference-only-due-to-orphaned-component (retention decision recorded 2026-06-10: retain as reference artifact)
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
-Project classification for this cycle: Reference-only, with retention/removal decision pending. (Update 2026-06-10: the retention decision is recorded — D19, retain as reference artifact; the classification stays reference-only by choice rather than pending review.)
+Project classification for this cycle: Reference-only, with retention/removal decision pending. (Update 2026-06-10: the retention decision is recorded â€” D19, retain as reference artifact; the classification stays reference-only by choice rather than pending review.)
 
 ## Purpose And Scope
 
@@ -141,3 +142,16 @@ The next cold-start agent must:
 - identify and register 2 additional real project gaps tied to this project in `GAPS.md`
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
+
+## Required Review Brief
+
+Title: Demo Area resolved as reference-only
+Question: Should Demo Area receive new implementation work?
+Issue: The project is reference-only because the CombatMessagingDemo orphan decision was resolved as retain-for-reference and the demo is mounted for validation.
+Current behavior: GAPS.md shows G1 and G2 done; the North Star says the project is fully resolved as reference-only.
+Why blocked: Forward implementation here would conflict with the accepted reference-artifact decision unless a human reopens scope.
+Option A: Keep reference-only and use the mounted demo for validation/reference.
+Option B: Reopen only if a new product task explicitly needs Demo Area ownership.
+Evidence: NORTH_STAR.md next_step; GAPS.md G1/G2; DECISION_BLITZ D19.
+Decision owner: Human operator if reopening is desired
+Proof after decision: Dev Menu still mounts CombatMessagingDemo and no active implementation gaps remain.

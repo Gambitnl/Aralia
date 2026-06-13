@@ -6,10 +6,11 @@ category: Feature Domains and Runtime Support
 main_category: Review / Archive
 subcategory: Deprecation Review
 status: merged-reference
-last_updated: 2026-06-09
+last_updated: 2026-06-12
+iteration: 4
 confidence: high
 evidence: "src/hooks/useSubmapProceduralData.ts; src/components/Submap/SubmapPane.tsx; src/components/Minimap.tsx; src/components/Submap/submapVisuals.ts; src/components/Submap/useSubmapGrid.ts; src/features/SubmapGeneration/README.md"
-gap_signal: "merged into Submap pre-deprecation extraction; G1-G3 resolved; G4/G5 routed to Submap G4/G5"
+gap_signal: "2 open gaps; G4 and G5 are routed to Submap after this project merged into pre-deprecation extraction"
 protocol: living project doc set
 next_step: Do not assign separately. Route generation extraction through docs/projects/submap G4 and the Submap dependency contract.
 agent_comments: Clarified 2026-06-09: Submap Generation is supporting evidence for the active Submap pre-deprecation extraction project.
@@ -31,7 +32,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-09
 workflow_gaps_reviewed: 2026-06-09
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: merged-reference
 deprecation_confidence: strong
 deprecation_reason: merged_into_submap_pre_deprecation_extraction
@@ -41,7 +42,7 @@ human_decision_required: "no"
 # Submap Generation North Star
 
 Status: merged-reference
-Last updated: 2026-06-09
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 
@@ -216,3 +217,16 @@ The next cold-start agent must:
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in
   `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
+
+## Required Review Brief
+
+Title: Submap Generation merged into Submap
+Question: Should generation extraction be assigned here or to Submap?
+Issue: This project is marked merged-reference because generation extraction was merged into the Submap pre-deprecation extraction work.
+Current behavior: G1-G3 are resolved here; G4/G5 route through docs/projects/submap and the Submap dependency contract.
+Why blocked: Standalone assignments here would bypass the canonical Submap owner.
+Option A: Keep this as merged-reference and route work through docs/projects/submap.
+Option B: Reopen standalone only if Submap explicitly splits generation ownership again.
+Evidence: NORTH_STAR.md frontmatter; GAPS.md resolved G1-G3 rows; canonical_owner docs/projects/submap.
+Decision owner: Submap owner or human operator if ownership changes
+Proof after decision: Submap tracker owns active generation extraction rows and this folder remains reference-only.

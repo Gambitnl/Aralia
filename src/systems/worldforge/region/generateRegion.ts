@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/06/2026, 09:47:43
- * Dependents: components/Worldforge/AtlasDemo.tsx
- * Imports: 7 files
+ * Last Sync: 12/06/2026, 09:51:50
+ * Dependents: components/Worldforge/AtlasDemo.tsx, systems/worldforge/bridge/legacySubmapBridge.ts
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -123,6 +123,7 @@ import type { FmgAtlasResult } from '../fmg/generateAtlas';
 import type { FmgWorldResult } from '../fmg/generateWorld';
 import type { Burg } from '../fmg/burgs-generator';
 import type { Route } from '../fmg/routes-generator';
+import { smoothRegionRiverCenterline } from './riverCenterlineSmoothing';
 
 export interface GenerateRegionOptions {
   /** Feet per FMG pixel (Lane B's canonical converter; pass any plausible value for tests). */
@@ -220,6 +221,9 @@ export function generateRegion(
     bounds,
   );
 
+  // ── Biome tint sites (multi-biome blend, 2026-06-12) ──────────────────
+  const biomeSites = extractBiomeSites(opts.world, memberCells, pack.cells.p, feetPerPixel, bounds);
+
   return {
     layer: 'region',
     schemaVersion: WORLDFORGE_SCHEMA_VERSION,
@@ -231,7 +235,42 @@ export function generateRegion(
     townSites,
     markers,
     zones,
+    biomeSites,
   };
+}
+
+/**
+ * Member cells' centers + biome colors, kept when they fall inside the
+ * window (plus a quarter-window margin so borders blend ACROSS the edge
+ * instead of snapping at it). Undefined without world data — the renderer
+ * then keeps the single anchor-color tint (back-compat).
+ */
+function extractBiomeSites(
+  world: FmgWorldResult | undefined,
+  memberCells: number[],
+  cellPoints: Array<[number, number]> | Float64Array[] | number[][],
+  feetPerPixel: number,
+  bounds: BoundsFt,
+): RegionArtifact['biomeSites'] {
+  const biome = world?.pack.cells.biome;
+  const colors = world?.biomesData?.color;
+  if (!biome || !colors) return undefined;
+
+  const margin = bounds.width * 0.25;
+  const sites: NonNullable<RegionArtifact['biomeSites']> = [];
+  for (const id of memberCells) {
+    const p = cellPoints[id];
+    if (!p) continue;
+    const x = p[0] * feetPerPixel;
+    const y = p[1] * feetPerPixel;
+    if (
+      x < bounds.x - margin || x > bounds.x + bounds.width + margin ||
+      y < bounds.y - margin || y > bounds.y + bounds.height + margin
+    ) continue;
+    const color = colors[biome[id]];
+    if (typeof color === 'string') sites.push({ x, y, color });
+  }
+  return sites.length > 0 ? sites : undefined;
 }
 
 /**
@@ -608,8 +647,10 @@ function generateRiverBanks(
 
     banks.push({ riverId: river.i, centerline, widthFt });
 
-    // Carve channel into heightfield
-    carveRiverChannel(centerline, widthFt, heightfield, bounds);
+    // WF-G5: carve the terrain under the same curved band the renderer draws.
+    // The artifact keeps the clipped raw path for traceability; both carve and
+    // draw derive the smoothed path from riverCenterlineSmoothing.ts.
+    carveRiverChannel(smoothRegionRiverCenterline(centerline), widthFt, heightfield, bounds);
   }
 
   return banks;
@@ -715,8 +756,9 @@ function generateCivData(
     ]);
     if (rawCenterline.length < 2) continue;
 
-    // Chaikin smooth (3 iterations for gentle curves, same as river rendering)
-    const centerline = clipPolylineToBounds(chaikinSmooth(rawCenterline, 3), bounds);
+    // Chaikin smooth (3 iterations for gentle curves). Roads keep using the
+    // same region helper so all curved L1 polylines share one curve profile.
+    const centerline = clipPolylineToBounds(smoothRegionRiverCenterline(rawCenterline), bounds);
     if (centerline.length < 2) continue;
 
     // Width by kind: road=40ft (main trade routes), trail=20ft (local paths)
@@ -775,25 +817,6 @@ function generateCivData(
   flattenUnderTowns(townSites, heightfield, bounds);
 
   return { townSites, roads };
-}
-
-/**
- * Chaikin smoothing: iteratively average adjacent points to produce curves.
- * Reused from proof renderer for road centerlines.
- */
-function chaikinSmooth(pts: Array<[number, number]>, iterations: number): Array<[number, number]> {
-  let current = pts;
-  for (let iter = 0; iter < iterations; iter++) {
-    const smoothed: Array<[number, number]> = [];
-    for (let i = 0; i < current.length - 1; i++) {
-      const [ax, ay] = current[i];
-      const [bx, by] = current[i + 1];
-      smoothed.push([ax * 0.75 + bx * 0.25, ay * 0.75 + by * 0.25]);
-      smoothed.push([ax * 0.25 + bx * 0.75, ay * 0.25 + by * 0.75]);
-    }
-    current = smoothed;
-  }
-  return current;
 }
 
 /**

@@ -1,7 +1,7 @@
 # PHB 2024 Glossary Audit Gap Registry
 
 Status: reference-only — archived 2026-06-10; open gaps remain routed to adjacent owners
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 > Archive note (2026-06-10): the project was archived as reference-only by
 > Remy (project owner) in the batched decision session
@@ -15,10 +15,6 @@ Last updated: 2026-06-10
 
 Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Current Gaps
-
-- **[resolved - in_scope_now] Item metadata extraction for 2024 items**
-  - `scripts/ingestPhbGlossary.ts` now includes core mechanical fields (`type`, `value`, `weight`, `dmg1`, `ac`) in generated glossary content.
-  - Impact: mechanical display and downstream mapping no longer depend on implicit parsing only.
 
 - **[open - support_needed_now] Item metadata contract parity**
   - `itemMetadata` remains a runtime/data shape gap between glossary ingestion, declaration typing, and UI consumers.
@@ -41,7 +37,9 @@ Use this file for durable unresolved findings that are too important or too larg
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | not_started | adjacent_follow_up | future agent | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization | Replace this seeded gap row with project-specific findings if any remain after the next bounded gap sweep | docs/agent-workflows/living-project-task-protocol/templates/GAPS.md | The workflow requires durable gaps to have a consistent table shape and evidence path | Perform a bounded gap sweep and either update this row or close it as no longer applicable | Updated GAPS.md and TRACKER.md agree on the project gap state |
+| PHB-G2 | routed | support_needed_now | Item Categorization | `docs/projects/item_categorization` | archive routing | Item metadata contract parity remains routed to Item Categorization. | `docs/projects/item_categorization`; PHB audit archive note | This project is reference-only; active ownership belongs to the adjacent item project. | Continue from Item Categorization's item metadata/taxonomy work. | Item Categorization docs record the accepted contract and proof. |
+| PHB-G3 | routed | adjacent_follow_up | Glossary maintenance | `docs/tasks/glossary` | archive routing | Non-dev glossary rebuild contract remains routed to Glossary maintenance. | `scripts/generateGlossaryIndex.js`; `vite.config.ts`; PHB audit archive note | Rebuild workflow is operational/documentation ownership, not active PHB audit implementation. | Document repeatable non-interactive rebuild command chain in the owning glossary surface. | Glossary runbook or task doc includes the command and proof. |
+| PHB-G4 | routed | adjacent_follow_up | Glossary maintenance | `docs/tasks/glossary` | archive routing | Glossary scope overlap remains routed to Glossary maintenance. | `docs/tasks/glossary/GLOSSARY_RELEVANT_RULES_TARGET_SET.md`; PHB audit archive note | Mixed-priority rule-surface questions should not reactivate this archived reference project. | Keep PHB audit scoped to reference evidence and handle mixed rule-surface questions in glossary docs. | Glossary owner confirms route or records a replacement gap. |
 
 ## Classification Reference
 

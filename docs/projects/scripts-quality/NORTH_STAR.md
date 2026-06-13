@@ -6,10 +6,11 @@ category: Documentation
 main_category: "Tools, Docs & Agents"
 subcategory: "Scripts & Automation"
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 3
 confidence: medium
 evidence: docs/projects/scripts-quality; docs/projects/script-tests (merged support surface); docs/projects/DECISION_BLITZ_2026-06-10.md (D21)
-gap_signal: "repeatable checkpoint convention established; 1 adjacent follow-up remains routed to scripts-git; script-tests merged in 2026-06-10 (ST-GAP-001..004 now owned here)"
+gap_signal: "2 open gaps; G3 and G4 remain open after script-tests merge"
 protocol: living project doc set
 next_step: Run npm run quality:debt at each quality-scope change, keep the routed scripts-git follow-up outside this project unless ownership changes, and pick up the inherited script-tests gaps (ST-GAP-001 first) as the next test slices.
 agent_comments: ""
@@ -40,7 +41,7 @@ human_decision_required: "no"
 # NORTH_STAR: Scripts: Quality
 
 Status: active
-Last updated: 2026-06-10 (script-tests merge recorded)
+Last updated: 2026-06-12
 
 ## Why This Project Exists
 
@@ -80,8 +81,8 @@ batched decision session 2026-06-10; master record
 - Inherited scope: the `scripts/__tests__` continuity contract (file map and
   integration points documented in `docs/projects/script-tests/NORTH_STAR.md`)
   and the open gaps ST-GAP-001 through ST-GAP-004 in
-  `docs/projects/script-tests/GAPS.md` (ST-GAP-001 — `spellFieldInventory`
-  fixture test — remains the safest first slice).
+  `docs/projects/script-tests/GAPS.md` (ST-GAP-001 â€” `spellFieldInventory`
+  fixture test â€” remains the safest first slice).
 - Local records: `docs/projects/scripts-quality/DECISIONS.md` D2 (receiving
   side) and `docs/projects/script-tests/DECISIONS.md` D2 (merged side).
 Required verification: quality_debt_command, docs_consistency

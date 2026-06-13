@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 06:46:55
+ * Last Sync: 12/06/2026, 23:54:23
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 10 files
  *
@@ -598,8 +598,11 @@ export const useActionExecutor = ({
     // Spell-zone area effects on movement
     areaEffectTrackerRef.current.setZones(spellZones);
     const tracker = areaEffectTrackerRef.current;
+    // Movement paths are optional so non-map callers can keep their endpoint
+    // behavior, but map-driven movement can now preserve each walked tile for
+    // Spike Growth-style effects that count travel through a zone.
     const areaTriggerResults = tracker.handleMovement(
-      updatedCharacter, action.targetPosition, previousPosition, turnState.currentTurn
+      updatedCharacter, action.targetPosition, previousPosition, turnState.currentTurn, action.movementPath
     );
 
     for (const result of areaTriggerResults) {
@@ -776,6 +779,49 @@ export const useActionExecutor = ({
 
         for (const trigger of triggers) {
           const effect = trigger.sourceEffect;
+          const attackFilter = effect.trigger.attackFilter;
+
+          // Armor of Agathys stores its "melee attack only" rule in the
+          // trigger's attack filter. The executor already has the triggering
+          // ability in hand, so reject obvious melee/ranged mismatches before
+          // rolling retaliation damage. This is intentionally range-based to
+          // match the existing opportunity-attack melee convention in this
+          // hook. Hit/miss payloads and source temp-HP ownership remain
+          // separate gates for the broader reactive contract.
+          if (attackFilter?.weaponType === 'melee' && ability.range > 2) continue;
+          if (attackFilter?.weaponType === 'ranged' && ability.range <= 2) continue;
+
+          // Spell data can also say whether a reactive rider belongs to weapon
+          // attacks or spell attacks. The action executor's ability shape is
+          // coarse, so "weapon" currently means the normal attack ability path,
+          // while "spell" means an ability carrying spell attack metadata.
+          const isSpellAttack = ability.type === 'spell' || (ability.spell?.attackType !== undefined && ability.spell.attackType !== 'none');
+          const isWeaponAttack = ability.type === 'attack';
+          if (attackFilter?.attackType === 'weapon' && !isWeaponAttack) continue;
+          if (attackFilter?.attackType === 'spell' && !isSpellAttack) continue;
+
+          // Some reactive defenses, most notably Armor of Agathys, say the
+          // spell ends when its own temporary HP is gone. A generic tempHP
+          // number is not enough here because another feature can grant temp HP
+          // after Armor has ended. Only keep the trigger alive when the
+          // protected target's current temp HP is still owned by this spell.
+          const endsWhenOwnTempHpIsGone = effect.conditionalEndings?.some(ending =>
+            ending.trigger === 'temporary_hit_points_depleted'
+          ) === true;
+          if (endsWhenOwnTempHpIsGone) {
+            const protectedTarget = characters.find(c => c.id === targetId);
+            const sourceMatchesCurrentTempHp = trigger.sourceSpellId !== undefined &&
+              protectedTarget?.temporaryHitPointSource?.spellId === trigger.sourceSpellId;
+            if (!protectedTarget?.tempHP || protectedTarget.tempHP <= 0 || !sourceMatchesCurrentTempHp) continue;
+          }
+
+          // If the attack resolver already knows this target was missed, do
+          // not let hit-only retaliation fire. Callers that do not yet provide
+          // attackResults keep the legacy behavior until the broader battle-map
+          // attack-result handoff is wired into every producer.
+          const explicitAttackResult = action.attackResults?.find(result => result.targetId === targetId);
+          if (explicitAttackResult && !explicitAttackResult.isHit) continue;
+
           if (effect.type === 'DAMAGE' && effect.damage) {
             const damage = rollDice(effect.damage.dice);
             onLogEntry({
@@ -784,13 +830,16 @@ export const useActionExecutor = ({
               characterId: updatedCharacter.id,
               data: { damage, trigger: 'on_target_attack' }
             });
-            // Note: Re-fetch target to get latest HP if multiple triggers fire in the same pass.
-            const currentTarget = characters.find(c => c.id === targetId);
-            if (currentTarget) {
-              const updatedTarget = handleDamage(currentTarget, damage, 'reactive effect', effect.damage.type);
-              onCharacterUpdate(updatedTarget);
-              addDamageNumber(damage, currentTarget.position, 'damage');
-            }
+            // On-target-attack retaliation belongs to the creature that made
+            // the attack, not the protected creature that was attacked. This
+            // keeps Armor of Agathys-style damage pointed at the aggressor
+            // while preserving the existing trigger binding on the protected
+            // target. Hit/miss, melee-only filtering, and temp-HP ownership are
+            // still separate gates for the broader reactive payload contract.
+            const reactiveDamageRecipient = updatedCharacter;
+            const updatedReactiveDamageRecipient = handleDamage(reactiveDamageRecipient, damage, 'reactive effect', effect.damage.type);
+            onCharacterUpdate(updatedReactiveDamageRecipient);
+            addDamageNumber(damage, reactiveDamageRecipient.position, 'damage');
           }
 
           const targetPositions = action.targetCharacterIds

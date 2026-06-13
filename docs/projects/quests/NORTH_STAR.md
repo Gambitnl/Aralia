@@ -6,12 +6,13 @@ category: Feature Systems
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 3
 confidence: high
 evidence: docs/projects/quests
-gap_signal: 5 open project gaps (GQ-1 resolved, GQ-7 and GQ-8 added), 1 routed global candidate
+gap_signal: "7 open gaps; GQ-2 through GQ-8 remain open after GQ-1 resolution"
 protocol: living project doc set
-next_step: Implement Phase 1 adapter layer — `adaptQuestDefinitionToQuest` in `src/systems/quests/questAdapter.ts` with a round-trip unit test (QTS-5).
+next_step: Implement Phase 1 adapter layer â€” `adaptQuestDefinitionToQuest` in `src/systems/quests/questAdapter.ts` with a round-trip unit test (QTS-5).
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # Quests System North Star
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Purpose And Scope
 - Own the quest feature lane for Aralia: runtime progression, state transitions, and UI surfaces.
@@ -53,9 +54,9 @@ Category: Feature Systems
 Status: active
 Confidence: high
 Evidence: docs/projects/quests
-Gap signal: 5 open project gaps (GQ-1 resolved, GQ-7 and GQ-8 added), 1 routed global candidate
+Gap signal: 7 open gaps; GQ-2 through GQ-8 remain open after GQ-1 resolution
 Protocol: living project doc set
-Next step: Implement Phase 1 adapter layer — `adaptQuestDefinitionToQuest` in `src/systems/quests/questAdapter.ts` with a round-trip unit test (QTS-5).
+Next step: Implement Phase 1 adapter layer â€” `adaptQuestDefinitionToQuest` in `src/systems/quests/questAdapter.ts` with a round-trip unit test (QTS-5).
 Required verification: docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-10
@@ -96,11 +97,11 @@ Workflow gaps reviewed: 2026-06-10
   - `src/components/QuestLog/__tests__/QuestLog.test.tsx`
   - `src/test/contracts/quests.contract.test.ts`
 
-## Migration Decision (D2 — 2026-06-10)
+## Migration Decision (D2 â€” 2026-06-10)
 
 The migration from legacy `Quest` to `QuestDefinition` will follow a **phased adapter-bridge** approach. See `DECISIONS.md` D2 for the full record.
 
-- **Phase 1 (next)**: Introduce `adaptQuestDefinitionToQuest` adapter — quest authors can write in `QuestDefinition`, adapter flattens to legacy `Quest` for the reducer/UI.
+- **Phase 1 (next)**: Introduce `adaptQuestDefinitionToQuest` adapter â€” quest authors can write in `QuestDefinition`, adapter flattens to legacy `Quest` for the reducer/UI.
 - **Phase 2**: Add stage-aware reducer actions (`ADVANCE_QUEST_STAGE`).
 - **Phase 3**: Migrate UI consumers to read stage-aware state.
 - **Phase 4**: Retire legacy `Quest` type.
@@ -141,7 +142,7 @@ Compatibility boundary: all existing reducer actions, UI reads, and QuestManager
 - No end-to-end evidence yet for stage branching, prerequisite graph checks, or advanced failure-condition states in play (GQ-4).
 - UI truth is split across the modal and journal quest surfaces (GQ-5).
 - Quest state save/load round-trip has not been verified against the legacy or future schema (GQ-7).
-- No adapter-layer test exists yet for the `QuestDefinition` → `Quest` mapping (GQ-8).
+- No adapter-layer test exists yet for the `QuestDefinition` â†’ `Quest` mapping (GQ-8).
 
 ## Next Checks
 - Implement Phase 1 adapter and unit test (QTS-5).

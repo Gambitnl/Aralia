@@ -6,10 +6,11 @@ category: Projectized Planning Areas
 main_category: "Content & Rules"
 subcategory: "Items & Content Pipelines"
 status: active
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: medium
 evidence: docs/projects/roadmap-maintenance
-gap_signal: 2 open gaps, 2 resolved gaps
+gap_signal: "3 open gaps; G2, G3, and G5 remain open after G1 and G4 closure"
 protocol: living project doc set
 next_step: Keep the remaining roadmap-local open items routed here until a fresh audit run changes the evidence set.
 agent_comments: ""
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # Roadmap Maintenance North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Why this project exists
 
@@ -64,7 +65,7 @@ Category: Projectized Planning Areas
 Status: active
 Confidence: medium
 Evidence: `docs/projects/roadmap-maintenance`
-Gap signal: 2 open gaps, 2 resolved gaps
+Gap signal: 3 open gaps; G2, G3, and G5 remain open after G1 and G4 closure
 Protocol: living project doc set
 Next step: Keep the remaining roadmap-local open items routed here until a fresh audit run changes the evidence set.
 Required verification: docs_consistency

@@ -7,6 +7,7 @@ main_category: "Game & Simulation"
 subcategory: "Combat & Encounters"
 status: review-required
 last_updated: 2026-06-05
+iteration: 2
 confidence: medium
 evidence: docs/projects/physics
 gap_signal: "8 open gaps; G7 needs a human decision"

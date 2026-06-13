@@ -2,14 +2,15 @@
 schema_version: 1
 project: Tiered Autosave
 slug: tiered-autosave
-category: active project
-main_category: Other / Unsorted
-subcategory: Unsorted
+category: Runtime Support
+main_category: Runtime & Services
+subcategory: Commands & Runtime Support
 status: active
-last_updated: ""
+last_updated: 2026-06-12
+iteration: 3
 confidence: unknown
 evidence: "docs/projects/tiered-autosave/TRACKER.md; docs/projects/tiered-autosave/GAPS.md"
-gap_signal: present
+gap_signal: "4 open gaps; checkpoint runner, checkpoint UI, IDB-path tests, and save/load README refresh remain open"
 protocol: living-project
 next_step: Resume from TRACKER.md and keep the gap log aligned.
 agent_comments: ""
@@ -38,6 +39,7 @@ human_decision_required: "no"
 ---
 # NORTH STAR: Tiered Autosave Checkpoint System
 
+Last updated: 2026-06-12
 ## Dashboard Card Schema
 
 | Field | Value |
@@ -48,7 +50,7 @@ human_decision_required: "no"
 | Status | active |
 | Confidence | unknown |
 | Evidence | docs/projects/tiered-autosave/TRACKER.md; docs/projects/tiered-autosave/GAPS.md |
-| Gap signal | present |
+| Gap signal | 4 open gaps; checkpoint runner, checkpoint UI, IDB-path tests, and save/load README refresh remain open |
 | Protocol | living-project |
 | Next step | Resume from TRACKER.md and keep the gap log aligned. |
 | Required verification | docs consistency |

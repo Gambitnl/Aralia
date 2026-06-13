@@ -1,4 +1,4 @@
-# Crafting UI Gap Registry
+﻿# Crafting UI Gap Registry
 
 Status: active
 Last updated: 2026-06-09
@@ -10,7 +10,6 @@ Current resume priority: G3, then G2. G4, G5, and G6 remain real follow-ups, but
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | done | in_scope_now | Worker | docs/projects/crafting/ (adjacent) and systems/crafting owners | docs/projects/crafting-ui/NORTH_STAR.md update | Align UI skill/crafter model with systems ownership | `src/components/Crafting/crafterAdapter.ts`, `src/components/Crafting/GatheringPanel.tsx`, `src/components/Crafting/CreatureHarvestPanel.tsx`, `src/components/Crafting/__tests__/craftingCrafterAdapter.test.ts`, `src/components/Crafting/__tests__/GatheringPanel.test.tsx`, `src/components/Crafting/__tests__/CreatureHarvestPanel.test.tsx` | Gathering now prefers the selected character from the open sheet, and creature harvest stays on the party lead until the combat entrypoint exposes a separate selector. | Keep the adapter narrow; if combat later needs a non-lead harvester, add an explicit selection prop rather than reintroducing a mock. | Regression proof: `npm exec vitest run src/components/Crafting/__tests__/craftingCrafterAdapter.test.ts src/components/Crafting/__tests__/GatheringPanel.test.tsx src/components/Crafting/__tests__/CreatureHarvestPanel.test.tsx`. |
 | G2 | active | in_scope_now | Worker | src/state/actionTypes.ts / src/state/reducers/craftingReducer.ts | docs/projects/crafting-ui/NORTH_STAR.md update | Tighten crafting action payload typing to typed quality/category unions | Reducer expects strict behavior while action type uses `quality: string`, `category: string` | Add typed action payloads in action types and align reducer callers in panels | Build passes for typecheck or bounded type-focused compile run |
 | G3 | active | support_needed_now | Worker | src/systems/crafting (upstream) | docs/projects/crafting-ui/NORTH_STAR.md update | Resolve experimental damage handling contract | `src/components/Crafting/ExperimentPanel.tsx` only logs damage text | Decide whether damage should call shared HP actions and what resistance path to use | Add contract note in systems tracker or this project's gap when decision is made |
 | G4 | active | adjacent_follow_up | Worker | docs/projects/crafting/ | docs/projects/crafting-ui/NORTH_STAR.md update | Reconcile UI windowing patterns | Only Alchemy bench uses `WindowFrame`; gathering and creature harvest use custom overlays | Decide if window pattern should be standardized for UX consistency | Add a follow-up in systems UI review if this remains intentional |

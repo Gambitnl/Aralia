@@ -4,7 +4,7 @@ handoff_type: agent_to_agent
 project: Tiered Autosave
 slug: tiered-autosave
 status: active
-last_updated: "2026-06-10"
+last_updated: 2026-06-12
 iteration: 3
 source_agent: Not recorded
 target_agent: next cold-start agent
@@ -20,7 +20,7 @@ gaps: docs/projects/tiered-autosave/GAPS.md
 # Tiered Autosave Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-06
+Last updated: 2026-06-12
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 

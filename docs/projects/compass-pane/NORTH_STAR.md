@@ -7,6 +7,7 @@ main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: active
 last_updated: 2026-06-08
+iteration: 3
 confidence: medium
 evidence: docs/projects/compass-pane
 gap_signal: "3 open gaps; movement proof captured and affordance semantics still need validation"

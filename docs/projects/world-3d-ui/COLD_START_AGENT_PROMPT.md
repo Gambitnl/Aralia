@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: World 3D UI
 slug: world-3d-ui
-status: active
-last_updated: "2026-06-10"
+Status: active
+last_updated: 2026-06-10
 iteration: 5
 source_agent: "claude-fable-5 (Claude Code)"
 target_agent: next cold-start agent
@@ -39,7 +39,7 @@ docs/projects/world-3d-ui/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: World 3D UI
 Project folder: docs/projects/world-3d-ui
-Iteration: 5
+iteration: 5
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -56,7 +56,7 @@ Gaps: docs/projects/world-3d-ui/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 4 was a monitor pass: no implementation task was open. Re-ran the scoped verification (`World3DNameplates.test.tsx` 2/2, then the full `src/components/World3D/__tests__` suite — 11 files, 25 tests, all green), performed the bounded gap sweep, closed the seeded Gap Log row G1 in both TRACKER.md and GAPS.md (no project-specific finding remained to replace it), and re-checked GLOBAL_GAPS through GG-27 with no imports for this surface. Proof recorded in AUDIT_OR_PROOF.md (2026-06-10 row). Note: older "29/29"/"30/30" counts in tracker notes were measured over a broader scope; the `__tests__` directory inventory only grew (12 → 25 cases since 06-02).
+Iteration 4 was a monitor pass: no implementation task was open. Re-ran the scoped verification (`World3DNameplates.test.tsx` 2/2, then the full `src/components/World3D/__tests__` suite â€” 11 files, 25 tests, all green), performed the bounded gap sweep, closed the seeded Gap Log row G1 in both TRACKER.md and GAPS.md (no project-specific finding remained to replace it), and re-checked GLOBAL_GAPS through GG-27 with no imports for this surface. Proof recorded in AUDIT_OR_PROOF.md (2026-06-10 row). Note: older "29/29"/"30/30" counts in tracker notes were measured over a broader scope; the `__tests__` directory inventory only grew (12 â†’ 25 cases since 06-02).
 
 ## Current Mission
 
@@ -83,7 +83,7 @@ Use `npm exec vitest -- run src/components/World3D/__tests__/World3DNameplates.t
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs. GG-14 (jsdom canvas getContext) stays global —
+instead of editing their docs. GG-14 (jsdom canvas getContext) stays global â€”
 do not import it here; its warnings on minimap/atlas-strip tests are known and
 non-failing.
 
@@ -109,3 +109,37 @@ Final response must report:
 - assumptions made
 - next safe resume action
 ---END NEXT AGENT HANDOFF---
+
+## Project Prompt Conformance Notes
+
+Last updated: 2026-06-10
+
+This section aligns older cold-start prompts with the shared living-project workflow without replacing the project-specific handoff above. The original handoff remains authoritative for project context; this section records the universal prompt shape that every next agent must honor.
+
+Conformance issues repaired on 2026-06-12: missing_decisions_reference, missing_runbook_reference.
+
+Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
+
+Agent identity / runtime:
+Before selecting work, identify yourself and the surface you are running through. Use one of: CLI agent, application agent, browser/app-embedded agent, MCP/subagent, or unknown. Mark the classification as certain, inferred, or unknown and name the clue used.
+
+### Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| pre-standardization | not recorded | unknown | unknown | before 2026-06-12 | Original world-3d-ui handoff predates the ledger requirement. |
+
+### Required project docs to account for
+
+- docs/projects/world-3d-ui/NORTH_STAR.md
+- docs/projects/world-3d-ui/TRACKER.md
+- docs/projects/world-3d-ui/GAPS.md
+- docs/projects/world-3d-ui/COLD_START_AGENT_PROMPT.md
+- docs/projects/world-3d-ui/DECISIONS.md
+- docs/projects/world-3d-ui/AUDIT_OR_PROOF.md
+- docs/projects/world-3d-ui/RUNBOOK.md
+
+Closeout reminder:
+Before ending an iteration, refresh or explicitly report on every required project doc above. If a supporting doc is not relevant to the current slice, say why instead of silently ignoring it.

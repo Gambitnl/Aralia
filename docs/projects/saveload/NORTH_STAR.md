@@ -6,10 +6,11 @@ category: Feature Domains and Runtime Support
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: partial
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: high
 evidence: docs/projects/saveload
-gap_signal: 1 active gap, 4 open gaps
+gap_signal: "6 open gaps; G1 through G6 remain open, with G4 active"
 protocol: living project doc set
 next_step: Resolve storage bootstrap and version-policy decisions before code changes resume.
 agent_comments: ""
@@ -28,7 +29,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-05
 workflow_gaps_reviewed: 2026-06-05
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # SaveLoad North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 
@@ -48,7 +49,7 @@ Category: Feature Domains and Runtime Support
 Status: partial
 Confidence: high
 Evidence: docs/projects/saveload
-Gap signal: 1 active gap, 4 open gaps
+Gap signal: 6 open gaps; G1 through G6 remain open, with G4 active
 Protocol: living project doc set
 Next step: Resolve storage bootstrap and version-policy decisions before code changes resume.
 Required verification: docs_consistency
@@ -222,3 +223,16 @@ transient process logs unless a future doc entry requires them.
 - Keep new SaveLoad findings in `GAPS.md` with evidence and next proof.
 - Route cross-project findings to `docs/projects/GLOBAL_GAPS.md`.
 - If no new real gaps are found, say so explicitly in the closeout instead of inventing filler rows.
+
+## Required Review Brief
+
+Title: SaveLoad partial due to bootstrap/version policy decisions
+Question: What storage bootstrap and version policy should gate the next SaveLoad code change?
+Issue: The project has active/open gaps for storage initialization, checkpoint scheduling, file backup, and version policy.
+Current behavior: The next step says storage bootstrap and version-policy decisions must be resolved before code changes resume.
+Why blocked: Save/load changes without bootstrap and version policy can create migration drift and false confidence in persistence behavior.
+Option A: Define and wire controlled startup initialization first.
+Option B: Document version/checkpoint policy first if migration semantics are the riskier blocker.
+Evidence: NORTH_STAR.md next_step; GAPS.md G1-G3.
+Decision owner: SaveLoad owner
+Proof after decision: A startup/migration fixture proves initialization behavior with localStorage and IndexedDB available.

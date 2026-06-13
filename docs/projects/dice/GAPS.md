@@ -1,7 +1,7 @@
-# Dice Gap Registry
+﻿# Dice Gap Registry
 
 Status: review-required
-Last updated: 2026-06-08
+Last updated: 2026-06-12
 
 Use this file for durable, in-project unresolved findings.
 
@@ -10,7 +10,6 @@ Use this file for durable unresolved findings that are too important or too larg
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| D-G1 | done | in_scope_now | Agent | `docs/projects/dice/TRACKER.md` | narrow code scan | Deterministic/seeded RNG support added for silent Dice path | `src/utils/combat/combatUtils.ts`, `src/systems/spells/mechanics/DiceRoller.ts` | Replayability, tests, and seed-based checks were limited without this API | Add visual policy and cross-path contract before D-G2 execution | Rolled into follow-up acceptance for D-G2 |
 | D-G2 | not_started | in_scope_now | Agent | `docs/projects/dice/TRACKER.md` | narrow code scan | No dice roll history persistence for users or replay logs | `src/components/dice/DiceRollerModal.tsx`, `src/services/DiceService.ts` | Hard to debug outcomes or audit roll outcomes after session events | Specify history storage and retention policy | Add UI and state persistence definition |
 | D-G3 | blocked_human_decision | support_needed_now | Agent | `docs/projects/dice/TRACKER.md` | narrow code scan | Silent and visual roll paths share behavior expectations but differ by deterministic contract | `src/services/DiceService.ts`, `src/hooks/useDiceBox.ts`, `src/components/dice/DiceOverlay.tsx` | Divergent behavior can make outcomes inconsistent between gameplay and visual display | Finalize deterministic + history contract in review brief | Add a policy acceptance test |
 
@@ -32,7 +31,6 @@ Use this file for durable unresolved findings that are too important or too larg
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | not_started | adjacent_follow_up | future agent | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization | Replace this seeded gap row with project-specific findings if any remain after the next bounded gap sweep | docs/agent-workflows/living-project-task-protocol/templates/GAPS.md | The workflow requires durable gaps to have a consistent table shape and evidence path | Perform a bounded gap sweep and either update this row or close it as no longer applicable | Updated GAPS.md and TRACKER.md agree on the project gap state |
 
 ## Classification Reference
 

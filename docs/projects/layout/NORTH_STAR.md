@@ -6,10 +6,11 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 3
 confidence: medium
 evidence: docs/projects/layout
-gap_signal: "G3/G4 decided 2026-06-10 (D7); implementation lane open"
+gap_signal: "2 open gaps; G4 and CMA-G17 remain open after G3/G4 decision notes"
 protocol: living project doc set
 next_step: "Implement the approved app-shell split: move provider composition out of App.tsx into a dedicated app-shell module with preservation tests (provider order, DataLoaderGate, GameProvider boundaries); keep isUIInteractive as a documented compatibility pass-through."
 agent_comments: ""
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # Layout Project North Star
 
 Status: active (decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 
@@ -139,10 +140,10 @@ Proof after decision: Either a focused App/GameModals test update that exercises
 Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D7 in
 `docs/projects/DECISION_BLITZ_2026-06-10.md`):
 
-- **G3 — Option A.** `isUIInteractive` stays as a documented compatibility pass-through.
+- **G3 â€” Option A.** `isUIInteractive` stays as a documented compatibility pass-through.
   `GameModals` continues to ignore it; wiring it into a modal-lock policy or retiring it
   is a later, separate decision.
-- **G4 — App-shell split approved.** Provider composition moves out of `App.tsx` into a
+- **G4 â€” App-shell split approved.** Provider composition moves out of `App.tsx` into a
   dedicated app-shell module, with explicit preservation tests covering provider order,
   `DataLoaderGate`, and `GameProvider` boundaries (joint decision with Providers / G5).
 
@@ -150,7 +151,7 @@ Status: decision recorded 2026-06-10; implementation lane open.
 
 ## Next Checks
 
-1. Await the owner decision recorded in the Required Review Brief. (Done 2026-06-10 — see Decision subsection above; D7.)
+1. Await the owner decision recorded in the Required Review Brief. (Done 2026-06-10 â€” see Decision subsection above; D7.)
 2. Record exact modal ownership for each overlay and whether each one is window-frame based.
 3. Verify responsive behavior and boundary coverage for non-playing phases after the interaction-lock rule is fixed.
 4. If the owner keeps the compatibility hook, wire the flag into the chosen modal-lock surface and add focused tests.

@@ -1,9 +1,9 @@
-﻿// @dependencies-start
+// @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 17:58:48
+ * Last Sync: 12/06/2026, 17:45:59
  * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx
  * Imports: 9 files
  *
@@ -130,7 +130,7 @@ const RoadPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   if (!roads) return null;
   return (
     <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-      <meshStandardMaterial color="#6f5a3e" /> {/* darker earth: road ribbons must contrast with grass at walking scale */}
+      <meshStandardMaterial color="#a08b62" /> {/* packed dirt: light enough to read against grass at walking scale (shot-1 review) */}
     </mesh>
   );
 };
@@ -139,6 +139,37 @@ const RoadPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
 // proportion) but stays within walkable-scale bounds.
 const roofHeight = (w: number, d: number): number =>
   Math.max(1.2, Math.min(3, Math.min(w, d) * 0.5));
+
+// Enterable buildings have a smaller wall envelope inside the reserved plot.
+// Their roof should hug that wall envelope with a readable eave instead of
+// spanning the whole plot and exposing an open soffit gap.
+const EAVE_M = 0.45;
+
+function roofFootprint(s: LoadedChunk['bundle']['sites'][number]): { width: number; depth: number } {
+  if (
+    s.parts &&
+    typeof s.wallWidthM === 'number' &&
+    typeof s.wallDepthM === 'number'
+  ) {
+    return {
+      width: s.wallWidthM + EAVE_M * 2,
+      depth: s.wallDepthM + EAVE_M * 2,
+    };
+  }
+
+  // Legacy solid-shell sites still use the plot footprint eave. This preserves
+  // continent-mode buildings and older chunks that do not carry interior parts.
+  return {
+    width: (s.boxWidth ?? 0) * 1.08,
+    depth: (s.boxDepth ?? 0) * 1.08,
+  };
+}
+
+// Debug toggle: ?wf_roofless=1 hides roofs on interior-bearing buildings so
+// rooms/furnishings/occupants can be inspected (and captured) from above.
+const ROOFLESS =
+  typeof window !== 'undefined' &&
+  new URLSearchParams(window.location.search).get('wf_roofless') === '1';
 
 const SitePieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
   return (
@@ -152,33 +183,62 @@ const SitePieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chu
             position={[s.localX, s.surfaceY, s.localZ]}
             rotation={[0, s.rotationY ?? 0, 0]}
           >
-            <mesh position={[0, s.boxHeight * 0.5, 0]} castShadow={SHADOWS}>
-              <boxGeometry args={[s.boxWidth, s.boxHeight, s.boxDepth]} />
-              <meshStandardMaterial color={s.colorHex ?? '#b09a72'} />
-            </mesh>
+            {s.parts ? (
+              // Seamless interior (Worldforge L4): perimeter + room walls
+              // with real door gaps, plus furnishing blocks — the camera can
+              // enter. Parts use +z = inward-from-street; doorZSign maps
+              // that onto whichever face of this rotated group the street
+              // actually is (plots wind oppositely across a street).
+              s.parts.map((p, i) => (
+                <mesh
+                  key={`part-${i}`}
+                  position={[p.x, p.h * 0.5, p.z * -(s.doorZSign ?? -1)]}
+                  castShadow={SHADOWS}
+                >
+                  <boxGeometry args={[p.w, p.h, p.d]} />
+                  <meshStandardMaterial color={p.colorHex} />
+                </mesh>
+              ))
+            ) : (
+              <mesh position={[0, s.boxHeight * 0.5, 0]} castShadow={SHADOWS}>
+                <boxGeometry args={[s.boxWidth, s.boxHeight, s.boxDepth]} />
+                <meshStandardMaterial color={s.colorHex ?? '#b09a72'} />
+              </mesh>
+            )}
             {/* Hip roof: a 4-segment cone is a pyramid whose base square is
                 45°-rotated, so the extra π/4 yaw realigns its edges with the
-                walls; 1.08 base scale gives a small eave overhang. */}
-            <mesh
-              position={[0, s.boxHeight + roofHeight(s.boxWidth, s.boxDepth) * 0.5, 0]}
-              rotation={[0, Math.PI / 4, 0]}
-              scale={[s.boxWidth * 1.08, roofHeight(s.boxWidth, s.boxDepth), s.boxDepth * 1.08]}
-              castShadow={SHADOWS}
-            >
-              <coneGeometry args={[Math.SQRT1_2, 1, 4]} />
-              <meshStandardMaterial color="#7a4a32" flatShading />
-            </mesh>
-            {/* Door on the street-facing wall (doorZSign), half-proud of the
-                plaster so it reads at walking distance. */}
-            <mesh
-              position={[0, Math.min(2.2, s.boxHeight * 0.8) / 2, (s.doorZSign ?? -1) * s.boxDepth * 0.5]}
-            >
-              <boxGeometry args={[1.3, Math.min(2.2, s.boxHeight * 0.8), 0.4]} />
-              <meshStandardMaterial color="#4a3220" />
-            </mesh>
-            {/* Shuttered windows flanking the door, mirrored on the rear
-                wall — skipped on plots too narrow to carry them. */}
-            {s.boxWidth >= 5 &&
+                walls; 1.08 base scale gives a small eave overhang. Hidden on
+                interior-bearing buildings when ?wf_roofless=1 (debug). */}
+            {!(ROOFLESS && s.parts) && (
+              (() => {
+                const roof = roofFootprint(s);
+                const height = roofHeight(roof.width, roof.depth);
+
+                return (
+                  <mesh
+                    position={[0, s.boxHeight + height * 0.5, 0]}
+                    rotation={[0, Math.PI / 4, 0]}
+                    scale={[roof.width, height, roof.depth]}
+                    castShadow={SHADOWS}
+                  >
+                    <coneGeometry args={[Math.SQRT1_2, 1, 4]} />
+                    <meshStandardMaterial color="#7a4a32" flatShading side={THREE.DoubleSide} />
+                  </mesh>
+                );
+              })()
+            )}
+            {/* Door slab + windows only dress the SOLID shell; with interior
+                parts the entry gap in the perimeter wall is the door. */}
+            {!s.parts && (
+              <mesh
+                position={[0, Math.min(2.2, s.boxHeight * 0.8) / 2, (s.doorZSign ?? -1) * s.boxDepth * 0.5]}
+              >
+                <boxGeometry args={[1.3, Math.min(2.2, s.boxHeight * 0.8), 0.4]} />
+                <meshStandardMaterial color="#4a3220" />
+              </mesh>
+            )}
+            {!s.parts &&
+              s.boxWidth >= 5 &&
               ([-1, 1] as const).flatMap((sideX) =>
                 ([-1, 1] as const).map((sideZ) => (
                   <mesh
@@ -204,26 +264,47 @@ const SitePieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chu
 
 const VegetationPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
   const veg = chunk.bundle.vegetation;
-  const ref = useRef<THREE.InstancedMesh>(null);
-  // Track the last vegetation payload key so identical worker-cloned scatters do not
-  // rewrite every instance matrix again. If vegetation disappears, the key resets so the
-  // next mount still repopulates the new mesh.
-  const lastVegetationCacheKey = useRef<string | null>(null);
+  const bushes = chunk.bundle.bushes;
+  const treeRef = useRef<THREE.InstancedMesh>(null);
+  const bushRef = useRef<THREE.InstancedMesh>(null);
+  // Track the last payload keys so identical worker-cloned scatters do not
+  // rewrite every instance matrix again (W3D-G25). Trees and bushes are
+  // separate instanced layers (variety dispatch 2026-06-12): distinct
+  // geometry + per-instance palette colors, one draw call per kind.
+  const lastTreeCacheKey = useRef<string | null>(null);
+  const lastBushCacheKey = useRef<string | null>(null);
   useEffect(() => {
-    if (!veg || !ref.current) {
-      lastVegetationCacheKey.current = null;
+    if (!veg || !treeRef.current) {
+      lastTreeCacheKey.current = null;
       return;
     }
-    syncVegetationInstanceMatrices(ref.current, veg, lastVegetationCacheKey);
+    syncVegetationInstanceMatrices(treeRef.current, veg, lastTreeCacheKey, 'tree');
   }, [veg?.cacheKey]);
-  const count = veg ? veg.positions.length / 3 : 0;
-  if (!veg || count === 0) return null;
+  useEffect(() => {
+    if (!bushes || !bushRef.current) {
+      lastBushCacheKey.current = null;
+      return;
+    }
+    syncVegetationInstanceMatrices(bushRef.current, bushes, lastBushCacheKey, 'bush');
+  }, [bushes?.cacheKey]);
+  const treeCount = veg ? veg.positions.length / 3 : 0;
+  const bushCount = bushes ? bushes.positions.length / 3 : 0;
+  if (treeCount === 0 && bushCount === 0) return null;
   return (
     <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-      <instancedMesh ref={ref} args={[undefined, undefined, count]} castShadow={SHADOWS}>
-        <coneGeometry args={[1, 1, 6]} />
-        <meshStandardMaterial color="#2f5d2f" flatShading />
-      </instancedMesh>
+      {treeCount > 0 && (
+        <instancedMesh ref={treeRef} args={[undefined, undefined, treeCount]} castShadow={SHADOWS}>
+          <coneGeometry args={[1, 1, 8]} />
+          {/* White base: per-instance palette colors multiply against it. */}
+          <meshStandardMaterial color="#ffffff" flatShading />
+        </instancedMesh>
+      )}
+      {bushCount > 0 && (
+        <instancedMesh ref={bushRef} args={[undefined, undefined, bushCount]} castShadow={SHADOWS}>
+          <sphereGeometry args={[1, 6, 4]} />
+          <meshStandardMaterial color="#ffffff" flatShading />
+        </instancedMesh>
+      )}
     </group>
   );
 };

@@ -193,7 +193,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Summons a floating disk at a point within 30 feet using the row's summoning effect; no slot scaling is currently modeled.",
+      "description": "Summons a floating disk at a point within 30 feet; no slot-scaling changes are modeled for this summoning effect.",
       "conditionalEndings": [
         {
           "trigger": "carried_weight_exceeds_limit",

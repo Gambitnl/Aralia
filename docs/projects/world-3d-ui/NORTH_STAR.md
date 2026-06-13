@@ -6,13 +6,14 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 5
 confidence: high
 evidence: docs/projects/world-3d-ui
-gap_signal: "All W3DUI gaps closed; seeded G1 row resolved; monitor nameplate density/perf; inherited ThreeD Modal entrypoint gaps (D5 merge 2026-06-10) await triage"
+gap_signal: "0 open gaps; local W3DUI rows are closed, while inherited ThreeD Modal routes remain listed in docs/projects/three-d-modal/GAPS.md"
 protocol: living project doc set
 next_step: "D5 merge recorded 2026-06-10: this project now owns all 3D entrypoints (modal launch, phase transition, close/focus policy) including the merged ThreeD Modal contracts; triage the inherited three-d-modal gaps (entry/close/focus policy, onMove contract, submap test coverage, CMA-G14) into this surface's queue. Otherwise monitor nameplate density/perf."
-agent_comments: "Historical '29/29'/'30/30' suite counts in tracker notes were measured over a broader scope; the __tests__ directory is 11 files/25 tests as of 2026-06-10 and its inventory only grew since 06-02 — do not read the lower count as lost tests."
+agent_comments: "Historical '29/29'/'30/30' suite counts in tracker notes were measured over a broader scope; the __tests__ directory is 11 files/25 tests as of 2026-06-10 and its inventory only grew since 06-02 Ã¢â‚¬â€ do not read the lower count as lost tests."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -32,7 +33,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-10
 workflow_gaps_reviewed: 2026-06-10
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -42,17 +43,17 @@ human_decision_required: "no"
 # World 3D UI North Star
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 > One of three distinct surfaces in the **Azgaar-driven streamed 3D world** initiative:
-> - `world3d` — the 3D **rendering engine** (chunk streaming, meshes, R3F scene).
-> - `worldsim-service` — world **generation + simulation** (geometry + first-build history/story).
-> - **this surface (`world-3d-ui`)** — the **transition + HUD** layer.
+> - `world3d` Ã¢â‚¬â€ the 3D **rendering engine** (chunk streaming, meshes, R3F scene).
+> - `worldsim-service` Ã¢â‚¬â€ world **generation + simulation** (geometry + first-build history/story).
+> - **this surface (`world-3d-ui`)** Ã¢â‚¬â€ the **transition + HUD** layer.
 > These are not consolidated; each owns a separate concern. Owner: claude.
 >
 > Merge update (2026-06-10, D5): the former `three-d-modal` project merged into this
-> surface. World 3D UI is now the **single owner of all 3D entrypoints** — modal launch,
-> phase transition, and close/focus policy — including the legacy `ThreeDModal`
+> surface. World 3D UI is now the **single owner of all 3D entrypoints** Ã¢â‚¬â€ modal launch,
+> phase transition, and close/focus policy Ã¢â‚¬â€ including the legacy `ThreeDModal`
 > entrypoint contracts. `docs/projects/three-d-modal` is merged-reference.
 
 ## Dashboard Card Schema
@@ -63,9 +64,9 @@ Category: Feature/UI Projects
 Status: active
 Confidence: high
 Evidence: docs/projects/world-3d-ui
-Gap signal: All W3DUI gaps closed; seeded G1 row resolved; monitor nameplate density/perf; inherited ThreeD Modal entrypoint gaps (D5 merge 2026-06-10) await triage
+Gap signal: 0 open gaps; local W3DUI rows are closed, while inherited ThreeD Modal routes remain listed in docs/projects/three-d-modal/GAPS.md
 Protocol: living project doc set
-Next step: D5 merge recorded 2026-06-10 — this surface now owns all 3D entrypoints (modal launch, phase transition, close/focus policy); triage the inherited three-d-modal gaps into this queue, otherwise monitor nameplate density/perf.
+Next step: D5 merge recorded 2026-06-10 Ã¢â‚¬â€ this surface now owns all 3D entrypoints (modal launch, phase transition, close/focus policy); triage the inherited three-d-modal gaps into this queue, otherwise monitor nameplate density/perf.
 Required verification: scoped_tests, docs_consistency
 Completed verification: scoped_tests, docs_consistency
 Last proof: 2026-06-10
@@ -82,30 +83,30 @@ The 3D world needs two things the rendering engine deliberately does not own: a 
 world, and back), and the **2D UI layered on top of it** while you're there (controls,
 nameplates, minimap, mode toggles). Keeping this separate from `world3d` prevents the
 rendering engine from absorbing transition state and HUD concerns, and gives the eventual
-atlas↔3D bridge a clear owner.
+atlasÃ¢â€ â€3D bridge a clear owner.
 
 ## Intended Outcome
 
-- A smooth **2D atlas → 3D world transition**: zoom/dive from the Azgaar map into the
+- A smooth **2D atlas Ã¢â€ â€™ 3D world transition**: zoom/dive from the Azgaar map into the
   streamed world at the chosen location, mount the 3D scene, and reverse it on exit.
 - A **bidirectional marker sync**: the player's 3D world position projects to a marker on
-  the 2D atlas; clicking the atlas can drive entry/relocation. (Spec §8–§9, "Plan 4".)
+  the 2D atlas; clicking the atlas can drive entry/relocation. (Spec Ã‚Â§8Ã¢â‚¬â€œÃ‚Â§9, "Plan 4".)
 - An **in-3D HUD**: control panel, view-mode toggle, nameplates/labels, minimap, and debug
   overlays composited over the rendering engine's canvas.
 
 ## Current State
 
-**Plan 4 complete (T7–T11).** Production PLAYING entry path is wired:
+**Plan 4 complete (T7Ã¢â‚¬â€œT11).** Production PLAYING entry path is wired:
 
-- **Game-state anchors** (`worldViewMode`, `playerWorldPos`, actions, reducer, hooks) — done (T7).
-- **PLAYING-phase 3D routing** — `TransitionController` cross-fades atlas ↔ `World3DWrapper` by `worldViewMode` (T8/T10).
-- **`World3DWrapper`** — worker-backed `ChunkLoader` from `worldData` (W3DUI-1), throttled position dispatch with terrain height via `getTerrainHeight()`, FPS/chunk debug stats (T8/T9).
-- **`InWorldHUD`** — control panel (Open Map, Exit to Menu), view-mode toggle, dev-only `DebugHUD` (T9).
-- **`AtlasPlayerMarker` + click-to-travel** — marker on MapPane Azgaar overlay; **Enter 3D** interaction mode dispatches position + `worldViewMode`; compass **Enter 3D** routes to streamed world (T10).
-- **Integration tests + perf budget** — RTL lifecycle (W3DUI-3), `worldCoords` unit tests, Playwright HUD round-trip, `docs/projects/world-3d-ui/PERF.md` (T11).
-- **Sandbox** `WORLD3D_DEMO` → `<World3DDemo />` via `?phase=world3d` remains unchanged.
-- **In-3D minimap** — `World3DMinimap` paints a top-down view from `WorldData.biomeIds` with the live `AtlasPlayerMarker`, mounted bottom-left of `InWorldHUD` (W3DUI-26). In-3D nameplates are now implemented and gated in `World3DNameplates` (W3DUI-27).
-- **`WorldAtlasStrip`** — compact world-map preview with `AtlasPlayerMarker` on PLAYING `GameLayout` when `playerWorldPos` is set (W3DUI-23).
+- **Game-state anchors** (`worldViewMode`, `playerWorldPos`, actions, reducer, hooks) Ã¢â‚¬â€ done (T7).
+- **PLAYING-phase 3D routing** Ã¢â‚¬â€ `TransitionController` cross-fades atlas Ã¢â€ â€ `World3DWrapper` by `worldViewMode` (T8/T10).
+- **`World3DWrapper`** Ã¢â‚¬â€ worker-backed `ChunkLoader` from `worldData` (W3DUI-1), throttled position dispatch with terrain height via `getTerrainHeight()`, FPS/chunk debug stats (T8/T9).
+- **`InWorldHUD`** Ã¢â‚¬â€ control panel (Open Map, Exit to Menu), view-mode toggle, dev-only `DebugHUD` (T9).
+- **`AtlasPlayerMarker` + click-to-travel** Ã¢â‚¬â€ marker on MapPane Azgaar overlay; **Enter 3D** interaction mode dispatches position + `worldViewMode`; compass **Enter 3D** routes to streamed world (T10).
+- **Integration tests + perf budget** Ã¢â‚¬â€ RTL lifecycle (W3DUI-3), `worldCoords` unit tests, Playwright HUD round-trip, `docs/projects/world-3d-ui/PERF.md` (T11).
+- **Sandbox** `WORLD3D_DEMO` Ã¢â€ â€™ `<World3DDemo />` via `?phase=world3d` remains unchanged.
+- **In-3D minimap** Ã¢â‚¬â€ `World3DMinimap` paints a top-down view from `WorldData.biomeIds` with the live `AtlasPlayerMarker`, mounted bottom-left of `InWorldHUD` (W3DUI-26). In-3D nameplates are now implemented and gated in `World3DNameplates` (W3DUI-27).
+- **`WorldAtlasStrip`** Ã¢â‚¬â€ compact world-map preview with `AtlasPlayerMarker` on PLAYING `GameLayout` when `playerWorldPos` is set (W3DUI-23).
 
 ## Active Task
 
@@ -123,28 +124,28 @@ atlas↔3D bridge a clear owner.
 ## Scope Boundaries
 
 In scope:
-- 2D→3D and 3D→2D transition orchestration (entry trigger, camera dive, scene mount/unmount handoff).
-- Bidirectional Azgaar atlas ↔ 3D position marker sync; `playerWorldPos` game-state anchor.
+- 2DÃ¢â€ â€™3D and 3DÃ¢â€ â€™2D transition orchestration (entry trigger, camera dive, scene mount/unmount handoff).
+- Bidirectional Azgaar atlas Ã¢â€ â€ 3D position marker sync; `playerWorldPos` game-state anchor.
 - Phase/entry wiring that makes the 3D world reachable (`WORLD3D_DEMO` today; real routing later).
 - In-3D HUD: control panel, view-mode toggle, nameplates, minimap, debug overlays.
-- Since 2026-06-10 (D5 merge): **all 3D entrypoint contracts** — modal launch, phase
-  transition, and close/focus policy — including the legacy `ThreeDModal` surface
+- Since 2026-06-10 (D5 merge): **all 3D entrypoint contracts** Ã¢â‚¬â€ modal launch, phase
+  transition, and close/focus policy Ã¢â‚¬â€ including the legacy `ThreeDModal` surface
   (`src/components/ThreeDModal/*`, its `GameModals`/`SubmapPane` entry paths, and the
   `isThreeDVisible`/`TOGGLE_THREE_D_VISIBILITY` wiring) formerly owned by
   `docs/projects/three-d-modal` (now merged-reference).
 
 Out of scope (owned elsewhere):
-- Chunk streaming, mesh generation, the R3F scene/camera-controller, materials — `world3d`.
-- World generation + history/story/events — `worldsim-service`.
-- Combat HUD / `BattleMap3D` — separate combat surfaces.
+- Chunk streaming, mesh generation, the R3F scene/camera-controller, materials Ã¢â‚¬â€ `world3d`.
+- World generation + history/story/events Ã¢â‚¬â€ `worldsim-service`.
+- Combat HUD / `BattleMap3D` Ã¢â‚¬â€ separate combat surfaces.
 
 ## What Must Not Be Lost
 
 - The `world3d` URL slug for entry; the existing `WORLD3D_DEMO` phase as the current entry seam.
 - The eventual transition must **reuse** `world3d`'s scene rather than re-implement rendering.
-- Worker utilities exist in `world3d` but are unused by the demo entry — an entry-strategy decision lives here, not a reason to delete them.
+- Worker utilities exist in `world3d` but are unused by the demo entry Ã¢â‚¬â€ an entry-strategy decision lives here, not a reason to delete them.
 
-## Merge Record (2026-06-10): ThreeD Modal → World 3D UI
+## Merge Record (2026-06-10): ThreeD Modal Ã¢â€ â€™ World 3D UI
 
 Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D5 in
 `docs/projects/DECISION_BLITZ_2026-06-10.md`), recorded here from the receiving side:
@@ -168,9 +169,9 @@ See `docs/projects/world-3d-ui/GAPS.md`. Headline:
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
 | Cold-load `?phase=world3d` bounces to main_menu intermittently | done | claude | W3DUI-5 | Fixed |
-| 2D↔3D transition animations in PLAYING | done | unassigned | W3DUI-20 | `TransitionController` wraps PLAYING branch (T10) |
-| Bidirectional atlas ↔ 3D marker sync | done | unassigned | W3DUI-7 | T10: marker + Enter 3D mode |
-| Compass "Enter 3D" → `worldViewMode` | done | unassigned | W3DUI-21 | T10: `toggle_three_d` in PLAYING |
+| 2DÃ¢â€ â€3D transition animations in PLAYING | done | unassigned | W3DUI-20 | `TransitionController` wraps PLAYING branch (T10) |
+| Bidirectional atlas Ã¢â€ â€ 3D marker sync | done | unassigned | W3DUI-7 | T10: marker + Enter 3D mode |
+| Compass "Enter 3D" Ã¢â€ â€™ `worldViewMode` | done | unassigned | W3DUI-21 | T10: `toggle_three_d` in PLAYING |
 | Transition lifecycle RTL proof | done | unassigned | W3DUI-3 | T11: `TransitionController.lifecycle.test.tsx` |
 | Legacy `ThreeDModal` parallel to streamed entry | done | unassigned | W3DUI-22 | PLAYING uses streamed path only; legacy modal non-PLAYING + submap |
 | Marker only on MapPane modal | done | unassigned | W3DUI-23 | `WorldAtlasStrip` on GameLayout when `playerWorldPos` set |
@@ -187,22 +188,22 @@ Checked `docs/projects/GLOBAL_GAPS.md` on **2026-06-10** (previous check 2026-06
 
 | Global gap | Pertains to this surface? | Imported? | Destination | Scope rationale |
 |---|---|---|---|---|
-| GG-1..GG-3, GG-5..GG-13 | No | no | — | Character/economy/combat/inventory surfaces — not transition/HUD |
-| GG-4 (vegetation scatter perf) | No | no | already routed → `world3d` | Rendering-engine perf; owned by sibling `world3d`, not this layer |
-| GG-14 (jsdom canvas getContext) | Partially (touches `World3DMinimap`/`WorldAtlasStrip` tests) | no | — | Repo-wide test-infra fix (`vitest-canvas-mock`); not a transition/HUD feature — left global for tooling owner. Warnings still observed (non-failing) in the 2026-06-10 suite run |
-| GG-15 (Ollama proxy log flood) | No | no | — | Vite dev-tooling config; unrelated to this surface |
-| GG-16..GG-25 (dep headers, type drift, character/combat/spell debt, coverage) | No | no | — | Tooling/types/character/combat surfaces — none owned by transition/HUD |
-| GG-26 (project-card schema migration) | Already satisfied here | no | — | This folder has full `NORTH_STAR.md` frontmatter plus DECISIONS/AUDIT_OR_PROOF/RUNBOOK (created 2026-06-10 migration pass) |
-| GG-27 (missing Required Review Briefs) | No | no | — | This project is not review-required (`human_decision_required: no`) |
+| GG-1..GG-3, GG-5..GG-13 | No | no | Ã¢â‚¬â€ | Character/economy/combat/inventory surfaces Ã¢â‚¬â€ not transition/HUD |
+| GG-4 (vegetation scatter perf) | No | no | already routed Ã¢â€ â€™ `world3d` | Rendering-engine perf; owned by sibling `world3d`, not this layer |
+| GG-14 (jsdom canvas getContext) | Partially (touches `World3DMinimap`/`WorldAtlasStrip` tests) | no | Ã¢â‚¬â€ | Repo-wide test-infra fix (`vitest-canvas-mock`); not a transition/HUD feature Ã¢â‚¬â€ left global for tooling owner. Warnings still observed (non-failing) in the 2026-06-10 suite run |
+| GG-15 (Ollama proxy log flood) | No | no | Ã¢â‚¬â€ | Vite dev-tooling config; unrelated to this surface |
+| GG-16..GG-25 (dep headers, type drift, character/combat/spell debt, coverage) | No | no | Ã¢â‚¬â€ | Tooling/types/character/combat surfaces Ã¢â‚¬â€ none owned by transition/HUD |
+| GG-26 (project-card schema migration) | Already satisfied here | no | Ã¢â‚¬â€ | This folder has full `NORTH_STAR.md` frontmatter plus DECISIONS/AUDIT_OR_PROOF/RUNBOOK (created 2026-06-10 migration pass) |
+| GG-27 (missing Required Review Briefs) | No | no | Ã¢â‚¬â€ | This project is not review-required (`human_decision_required: no`) |
 
-None imported this cycle: no global gap is owned by the 2D↔3D transition + in-3D HUD surface.
+None imported this cycle: no global gap is owned by the 2DÃ¢â€ â€3D transition + in-3D HUD surface.
 
 ## Evidence And Proof
 
 | Evidence | What it proves | Location |
 |---|---|---|
 | `?phase=world3d` renders the sandbox (when it sticks) | the entry seam works | live this session |
-| Design spec §7–§9 | the intended transition/marker model | `docs/superpowers/specs/2026-05-28-azgaar-3d-streamed-world-design.md` |
+| Design spec Ã‚Â§7Ã¢â‚¬â€œÃ‚Â§9 | the intended transition/marker model | `docs/superpowers/specs/2026-05-28-azgaar-3d-streamed-world-design.md` |
 | Plan 4 doc | complete design for transition + marker sync + HUD | `docs/superpowers/plans/2026-06-01-world-3d-ui-transition-and-marker-sync.md` |
 | RTL + Playwright + PERF | T11 verification | `src/components/World3D/__tests__/`, `tests/world-3d-ui-transition.spec.ts`, `PERF.md` |
 
@@ -216,7 +217,7 @@ None imported this cycle: no global gap is owned by the 2D↔3D transition + in-
 | `docs/projects/world-3d-ui/PERF.md` | Entry/exit/dispatch perf budget | active |
 | `docs/projects/world3d/NORTH_STAR.md` | Sibling: the rendering engine this layer drives | active |
 | `docs/projects/worldsim-service/NORTH_STAR.md` | Sibling: world generation/simulation | active |
-| `docs/superpowers/specs/2026-05-28-azgaar-3d-streamed-world-design.md` | Governing spec (transition §8, marker §9) | active |
+| `docs/superpowers/specs/2026-05-28-azgaar-3d-streamed-world-design.md` | Governing spec (transition Ã‚Â§8, marker Ã‚Â§9) | active |
 | `docs/superpowers/plans/2026-06-01-world-3d-ui-transition-and-marker-sync.md` | Plan 4: transition + marker sync design | active |
 
 ## Artifact Boundary
@@ -235,6 +236,6 @@ Durable: transition/HUD design intent, the entry seam, decisions, gap classifica
 1. Read this file.
 2. Read `docs/projects/world-3d-ui/TRACKER.md` then `GAPS.md`.
 3. Read Plan 4: `docs/superpowers/plans/2026-06-01-world-3d-ui-transition-and-marker-sync.md`.
-4. Plan 4 slices T7–T11 are **done**; pick follow-up from Active Task or `GAPS.md`.
+4. Plan 4 slices T7Ã¢â‚¬â€œT11 are **done**; pick follow-up from Active Task or `GAPS.md`.
 5. Run `npx vitest run src/components/World3D/__tests__` and optionally `npx playwright test tests/world-3d-ui-transition.spec.ts`.
 6. W3DUI-1/18/22/23/24/25/26/27 done. Plan 4 HUD UX is complete; monitor naming plate density and perf as follow-up signals.

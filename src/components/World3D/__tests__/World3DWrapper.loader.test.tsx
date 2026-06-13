@@ -3,7 +3,7 @@
  * Guards W3DUI-1: PLAYING uses createWorkerChunkLoader (not inline handleChunkRequest).
  */
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { render, cleanup } from '@testing-library/react';
+import { render, cleanup, waitFor } from '@testing-library/react';
 import type { ChunkLoader } from '@/systems/world3d/types';
 import type { WorldData } from '@/services/worldSim/types';
 
@@ -94,13 +94,16 @@ describe('World3DWrapper chunk loader (W3DUI-1)', () => {
       />,
     );
 
-    expect(mockCreateWorkerChunkLoader).toHaveBeenCalledTimes(1);
+    // Ground mode is the default since 2026-06-12; with no resolvable tile
+    // (mocked empty state) the wrapper falls back to the worker loader
+    // AFTER its dynamic bridge imports resolve — hence waitFor.
+    await waitFor(() => expect(mockCreateWorkerChunkLoader).toHaveBeenCalledTimes(1), { timeout: 20000 });
     expect(mockCreateWorkerChunkLoader).toHaveBeenCalledWith(
       world,
       expect.any(Number),
       expect.any(Function),
     );
-  });
+  }, 30000);
 
   it('does not create a loader when worldData is null', async () => {
     const World3DWrapper = (await import('../World3DWrapper')).default;

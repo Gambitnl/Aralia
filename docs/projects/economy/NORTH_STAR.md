@@ -5,8 +5,9 @@ slug: economy
 category: Feature/System Projects
 main_category: "Game & Simulation"
 subcategory: Core Sim Systems
-status: active
-last_updated: 2026-06-08
+status: idle
+last_updated: 2026-06-12
+iteration: 3
 confidence: high
 evidence: docs/projects/economy
 gap_signal: 0 open gaps
@@ -30,7 +31,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-08
 workflow_gaps_reviewed: 2026-06-08
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -39,9 +40,8 @@ human_decision_required: "no"
 ---
 # Economy System North Star
 
-Status: active
-Last updated: 2026-06-08
-
+status: idle
+Last updated: 2026-06-12
 ## Purpose and scope
 
 Economy is a partial but active gameplay system. It models:
@@ -129,7 +129,7 @@ Pass criteria:
 Project: Economy System
 Slug: economy
 Category: Feature/System Projects
-Status: active
+status: idle
 Confidence: high
 Evidence: `docs/projects/economy`
 Gap signal: 0 open gaps
@@ -222,3 +222,16 @@ The next cold-start agent must:
 - identify and register 2 additional real project gaps tied to this project in `GAPS.md`
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
+
+## Required Review Brief
+
+Title: Economy idle with event contract parity stable
+Question: Should Economy receive another forward iteration now?
+Issue: The project reports 0 open gaps after event, route, pricing, and proof-ledger gaps were closed.
+Current behavior: The next step is maintenance: keep active event contract parity in any new event source.
+Why blocked: No current source-backed economy gap remains open.
+Option A: Keep idle and monitor future event-source changes.
+Option B: Reopen active when a new economy event, route, merchant, or pricing gap is registered.
+Evidence: NORTH_STAR.md gap_signal and next_step; GAPS.md G1-G5 done.
+Decision owner: Economy owner
+Proof after decision: A new tracker/gap row names the event source and focused economy proof path.

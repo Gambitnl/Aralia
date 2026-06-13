@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Design Preview
 slug: design-preview
-status: active
-last_updated: "2026-06-10"
+status: idle
+last_updated: 2026-06-12
 iteration: 8
 source_agent: Gemini CLI
 target_agent: next cold-start agent
@@ -19,9 +19,8 @@ gaps: docs/projects/design-preview/GAPS.md
 ---
 # Design Preview Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-10
-
+status: idle
+Last updated: 2026-06-12
 This file is the project-specific context package and directive checklist for
 the next cold-start agent. It does not duplicate the full workflow rules. The
 agent must follow the shared workflow file and use this file for current

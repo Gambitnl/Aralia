@@ -148,7 +148,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Invisible through the row's always-on status scaffold for 1 minute.",
+      "description": "Applies Invisible for 1 minute to the target.",
       "conditionalEndings": []
     }
   ],

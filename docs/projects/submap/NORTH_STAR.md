@@ -6,10 +6,11 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 5
 confidence: medium
 evidence: "docs/projects/submap/DEPENDENCY_CONTRACT.md; docs/projects/submap/AUDIT_OR_PROOF.md; src/utils/spatial/submapActionContracts.ts; docs/projects/submap/GENERATION_MODULARIZATION.md"
-gap_signal: "action contracts extracted with tests; dependent matrix drafted; generation core extraction next; G5 replacement surface decided 2026-06-10 (Azgaar-continuation proc-gen submap system)"
+gap_signal: "8 open gaps; extraction, generation, replacement-surface, and CMA-G16 follow-ups remain open"
 protocol: living project doc set
 next_step: Wire SubmapPane through submapActionContracts, extract generateLocalTerrainData from useSubmapProceduralData, and prove Minimap can consume the extracted core. The G7/G8 extraction contracts plus DEPENDENCY_CONTRACT.md are now the named inventory the replacement Azgaar-continuation proc-gen submap system must honor (DECISION_BLITZ D3).
 agent_comments: "Clarified 2026-06-09: Submap is not deprecated immediately; this is an active pre-deprecation extraction/modularization project."
@@ -32,7 +33,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-10
 workflow_gaps_reviewed: 2026-06-10
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: pre-deprecation-extraction
 deprecation_confidence: strong
 deprecation_reason: pending_extraction_before_component_deprecation
@@ -42,7 +43,7 @@ human_decision_required: "no"
 # Submap North Star
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 
@@ -206,27 +207,27 @@ proof.
 
 ## Decision (2026-06-10): Replacement Surface Named (G5)
 
-Resolved by Remy (project owner) in the 2026-06-10 batched decision session —
+Resolved by Remy (project owner) in the 2026-06-10 batched decision session Ã¢â‚¬â€
 see `docs/projects/DECISION_BLITZ_2026-06-10.md` (D3) and its
 "Context: the June 2026 campaign" section.
 
 - **The replacement surface is the new Azgaar-continuation proc-gen submap
   system** from the June 2026 campaign: Azgaar-based generation extended below
   Azgaar's deepest zoom replaces the Submap, with that zoom continuing into a
-  3D ground-level mode (campaign window 2026-06-10 → 2026-06-22).
+  3D ground-level mode (campaign window 2026-06-10 Ã¢â€ â€™ 2026-06-22).
 - **The in-flight extraction contracts are the inventory the new system must
   honor**: G7/G8, `src/utils/spatial/submapActionContracts.ts`, and
   `docs/projects/submap/DEPENDENCY_CONTRACT.md`.
 - Status: decision recorded 2026-06-10; implementation lane open. Extraction
   work (G7 SubmapPane wiring, G8 `generateLocalTerrainData`) continues as
-  before — it is now explicitly feeding the named replacement rather than an
+  before Ã¢â‚¬â€ it is now explicitly feeding the named replacement rather than an
   unnamed future owner. Component deprecation still requires proof that the
   replacement honors the inventoried contracts.
 - Local record: `docs/projects/submap/DECISIONS.md` D-006.
 
 ## Open Architecture Questions
 
-> Note (2026-06-10): the first question below — what replaces the Submap — is
+> Note (2026-06-10): the first question below Ã¢â‚¬â€ what replaces the Submap Ã¢â‚¬â€ is
 > answered by the D3 decision above (Azgaar-continuation proc-gen submap
 > system). The remaining questions stay open and should be settled during the
 > replacement implementation against the dependency contract.

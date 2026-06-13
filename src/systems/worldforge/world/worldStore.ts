@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 11/06/2026, 03:21:46
+ * Last Sync: 12/06/2026, 03:10:00
  * Dependents: None (Orphan)
  * Imports: 5 files
  *
@@ -35,7 +35,10 @@ import { createWorld } from './createWorld';
 // Store save schema
 // ---------------------------------------------------------------------------
 // This schema versions the compact world-store envelope. Delta records inside
-// it still carry their own versions for replay compatibility.
+// it still carry their own versions for replay compatibility. B6 town-plan
+// mutations do not bump this schema because the store already persists a
+// generic WorldDelta[]; the saved envelope shape stays exactly the same while
+// the operation union grows additively.
 // ---------------------------------------------------------------------------
 
 export const WORLD_STORE_SCHEMA_VERSION = 1;

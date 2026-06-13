@@ -1,4 +1,4 @@
-# Trade Ui Living Tracker
+﻿# Trade Ui Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -17,8 +17,6 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Create trade-ui project docs scaffold and map from registry evidence | worker | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md` | Keep updates scoped to trade-ui docs only | `docs/projects/trade-ui/NORTH_STAR.md` |
-| T2 | done | Refresh docs with implementation scan of Trade UI and direct refs | worker | 2026-05-31 | `src/components/Trade`, `src/hooks/actions/handleMerchantInteraction.ts` | Review gaps and keep project intent stable | `docs/projects/trade-ui/GAPS.md` |
 | T3 | active | Run next-check pass for relation points and unresolved gaps before next implementation slice | worker | 2026-05-31 | `docs/projects/trade-ui/NORTH_STAR.md` | Confirm integration assumptions with economy/economy-ui docs | Open `src/components/Trade` and `src/utils/economy/economyUtils.ts` |
 
 ## Gap Log

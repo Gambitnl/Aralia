@@ -6,10 +6,11 @@ category: Gameplay Systems
 main_category: "Game & Simulation"
 subcategory: Core Sim Systems
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 4
 confidence: medium
 evidence: docs/projects/events
-gap_signal: "G3/G4 decision recorded 2026-06-10 (keep split lanes; document the bridge) — implementation lane open; G1/G2/G5/G6 resolved 2026-06-08"
+gap_signal: "2 open gaps; G3 and G4 remain open after split-lane bridge decision"
 protocol: living project doc set
 next_step: Write the explicit compatibility envelope for the split event lanes with documented combat_turn / world_day markers (no shared scheduler this cycle), then add ordering/marker proof tests.
 agent_comments: "G3/G4 Required Review Brief resolved 2026-06-10: keep the split lanes and document the bridge. See docs/projects/DECISION_BLITZ_2026-06-10.md D8."
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # Events System North Star
 
 Status: active (G3/G4 decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Why This Project Exists
 
@@ -153,7 +154,7 @@ Effect: the G3/G4 review gate is lifted. Next slice: write the compatibility-env
 1. Keep the explicit envelope idea (`type`, `priority`, `phase`, `source`, `seq`, `tick`) as a review-only candidate until the owner decides whether the split lanes stay split.
 2. Decide whether combat events should flow through one centralized scheduler or remain split with an explicit bridge to daily world events and turn-order transitions.
 3. Add tests that prove event order, replay snapshot round-tripping, consumer correctness across producers, and keep the daily-world merge regression in place.
-4. Update (2026-06-10): items 1 and 2 are decided — the lanes stay split and the explicit envelope is now the approved documentation target, including `combat_turn` / `world_day` markers (DECISION_BLITZ D8). Item 3's ordering/marker proof tests are the follow-on slice.
+4. Update (2026-06-10): items 1 and 2 are decided â€” the lanes stay split and the explicit envelope is now the approved documentation target, including `combat_turn` / `world_day` markers (DECISION_BLITZ D8). Item 3's ordering/marker proof tests are the follow-on slice.
 
 ## Evidence and Proof
 
@@ -174,7 +175,7 @@ Effect: the G3/G4 review gate is lifted. Next slice: write the compatibility-env
 2. Read `docs/projects/events/TRACKER.md` and `docs/projects/events/GAPS.md`.
 3. Confirm the remaining open gap rows still match source evidence and global-gap routing rules.
 4. Continue from G3/G4 review work; G6 reducer merge proof is complete, so do not assign G3/G4 implementation until the split-lane and turn/day marker decisions are approved.
-5. Update (2026-06-10): the split-lane and marker decisions are approved (keep split lanes; document the bridge — DECISION_BLITZ D8). G3/G4 are open for the compatibility-envelope documentation and marker proof tests.
+5. Update (2026-06-10): the split-lane and marker decisions are approved (keep split lanes; document the bridge â€” DECISION_BLITZ D8). G3/G4 are open for the compatibility-envelope documentation and marker proof tests.
 
 
 ## Cold-Start Gap Routing

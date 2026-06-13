@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/05/2026, 17:10:47
- * Dependents: hooks/combat/useCombatAI.ts, utils/combat/index.ts
- * Imports: 4 files
+ * Last Sync: 12/06/2026, 23:58:58
+ * Dependents: hooks/combat/useCombatAI.ts, hooks/combat/useTurnManager.ts, utils/combat/index.ts
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,6 +23,7 @@
 import { CombatCharacter, CombatAction, BattleMapData, Ability, Position, BattleMapTile } from '../../types/combat';
 import { computeAoETiles, getDistance, generateId, resolveAreaDefinition, getOccupiedTiles, getCharacterDistance } from '../../utils/combatUtils';
 import { hasLineOfSight } from '../../utils/lineOfSight';
+import { TargetValidationUtils } from '../../systems/spells/targeting/TargetValidationUtils';
 import { logger } from '../logger';
 
 /**
@@ -56,6 +57,18 @@ const WEIGHTS = {
   POSITIONING_BONUS: 0.6,
 };
 
+const matchesAbilityCreatureTypes = (target: CombatCharacter, validCreatureTypes?: string[]): boolean => {
+  if (!validCreatureTypes?.length) return true;
+
+  // AI targeting must use the same taxonomy read path as player spell
+  // targeting. During migration, some creatures have top-level creatureTypes
+  // while older data keeps the labels under stats.creatureTypes.
+  const targetCreatureTypes = TargetValidationUtils.getCreatureTypes(target);
+  return validCreatureTypes.some(requiredType =>
+    targetCreatureTypes.some(targetType => targetType.toLowerCase() === requiredType.toLowerCase())
+  );
+};
+
 /**
  * Represents a candidate action for the AI to consider.
  * Each plan includes the type of action, targets, and a computed score
@@ -70,11 +83,25 @@ interface AIPlan {
   targetPosition?: Position;
   /** IDs of characters targeted by this action. */
   targetCharacterIds?: string[];
+  /** Tile-by-tile movement route for move plans. */
+  movementPath?: Position[];
+  /** Movement cost for move plans, using the planner's reachable-tile budget. */
+  movementCost?: number;
   /** The utility score of this plan. Higher is better. */
   score: number;
   /** Human-readable description of the plan for debugging/logging. */
   description: string;
 }
+
+/**
+ * Reachable movement tile plus the route used to get there.
+ *
+ * AI planning chooses a destination first, but spell-zone triggers need the
+ * walked route later. Keeping the path in the reachable-tile cache lets every
+ * AI movement plan reuse one source of movement truth instead of recalculating
+ * a possibly different route after scoring.
+ */
+type ReachableTilePlan = { tile: BattleMapTile; cost: number; path: Position[] };
 
 /**
  * Evaluates the combat state and returns the best action for the given AI character.
@@ -99,6 +126,13 @@ export function evaluateCombatTurn(
   mapData: BattleMapData
 ): CombatAction {
   // TODO(FEATURES): Extend AI planning to cover allied party members (auto-battle companions) with player-configurable tactics (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+
+  if (hasCommandSkipTurnDirective(character)) {
+    // Halt and Grovel are magical control instructions, not tactical options.
+    // Obey it before scoring attacks, movement, retreats, or support spells.
+    logger.info(`[AI] ${character.name} is under a skip-turn Command directive and ends its turn.`);
+    return createEndTurnAction(character);
+  }
   
   // 1. Identify Potential Targets (Active vs. Downed)
   // DOWNED AWARENESS & TARGETING HEURISTICS
@@ -135,6 +169,22 @@ export function evaluateCombatTurn(
   // Pre-compute reachability once so scoring can reuse it.
   const reachableTiles = buildReachableTileMap(character, mapData, occupiedTileIds);
 
+  const commandApproachAction = planCommandApproachMovement(character, characters, reachableTiles);
+  if (commandApproachAction) {
+    // Command: Approach overrides ordinary tactical scoring. The creature
+    // spends movement closing distance to the caster who issued the command.
+    logger.info(`[AI] ${character.name} is under Command: Approach and moves toward the command caster.`);
+    return commandApproachAction;
+  }
+
+  const commandFleeAction = planCommandFleeMovement(character, characters, reachableTiles);
+  if (commandFleeAction) {
+    // Command: Flee overrides ordinary tactical scoring. The creature spends
+    // its turn moving away from the caster who issued the command.
+    logger.info(`[AI] ${character.name} is under Command: Flee and moves away from the command caster.`);
+    return commandFleeAction;
+  }
+
   // Turn-scoped AoE geometry cache: keyed by (shape, size, centerX, centerY, castTileId).
   // Shared across all AoE ability evaluations this turn so tile computations for
   // overlapping areas are not repeated when multiple spells target the same center.
@@ -166,21 +216,13 @@ export function evaluateCombatTurn(
       });
     } else if (ability.targeting === 'single_enemy') {
       // Filter by creature-type constraint (e.g. Hold Person: Humanoid only)
-      const validTargets = ability.validCreatureTypes?.length
-        ? allEnemies.filter(e => ability.validCreatureTypes!.some(t =>
-            e.stats.creatureTypes?.some(ct => ct.toLowerCase() === t.toLowerCase())
-          ))
-        : allEnemies;
+      const validTargets = allEnemies.filter(enemy => matchesAbilityCreatureTypes(enemy, ability.validCreatureTypes));
       for (const target of validTargets) {
         const plan = evaluateAttackPlan(character, target, ability, mapData, reachableTiles, activeEnemies);
         if (plan) possiblePlans.push(plan);
       }
     } else if (ability.targeting === 'single_ally') {
-      const validTargets = ability.validCreatureTypes?.length
-        ? allAllies.filter(a => ability.validCreatureTypes!.some(t =>
-            a.stats.creatureTypes?.some(ct => ct.toLowerCase() === t.toLowerCase())
-          ))
-        : allAllies;
+      const validTargets = allAllies.filter(ally => matchesAbilityCreatureTypes(ally, ability.validCreatureTypes));
       for (const target of validTargets) {
         const plan = evaluateSupportPlan(character, target, ability, mapData, reachableTiles);
         if (plan) possiblePlans.push(plan);
@@ -245,8 +287,11 @@ export function evaluateCombatTurn(
       type: bestPlan.actionType,
       abilityId: bestPlan.abilityId,
       targetPosition: bestPlan.targetPosition,
+      movementPath: bestPlan.movementPath,
       targetCharacterIds: bestPlan.targetCharacterIds,
-      cost: character.abilities.find(a => a.id === bestPlan.abilityId)?.cost || { type: 'free' }, // Fallback cost
+      cost: bestPlan.actionType === 'move'
+        ? { type: 'movement-only', movementCost: bestPlan.movementCost ?? 0 }
+        : character.abilities.find(a => a.id === bestPlan.abilityId)?.cost || { type: 'free' }, // Fallback cost
       timestamp: Date.now(),
     };
   }
@@ -274,6 +319,122 @@ function createEndTurnAction(character: CombatCharacter): CombatAction {
     characterId: character.id,
     type: 'end_turn',
     cost: { type: 'free' },
+    timestamp: Date.now(),
+  };
+}
+
+function hasCommandSkipTurnDirective(character: CombatCharacter): boolean {
+  // UtilityCommand records next-turn Command orders as one-round statuses with
+  // readable names and a skip-turn effect. Checking both keeps the AI from
+  // treating an unrelated future skip-turn status as this specific spell family.
+  return character.statusEffects.some(status =>
+    ['Command: Halt', 'Command: Grovel', 'Command: Drop'].includes(String(status.name)) &&
+    status.effect?.type === 'skip_turn' &&
+    status.duration > 0
+  );
+}
+
+function planCommandFleeMovement(
+  character: CombatCharacter,
+  characters: CombatCharacter[],
+  reachableTiles: Map<string, ReachableTilePlan>
+): CombatAction | null {
+  const fleeDirective = character.statusEffects.find(status =>
+    status.name === 'Command: Flee' &&
+    status.duration > 0 &&
+    !!status.sourceCasterId
+  );
+
+  if (!fleeDirective?.sourceCasterId) {
+    return null;
+  }
+
+  const commandCaster = characters.find(candidate => candidate.id === fleeDirective.sourceCasterId);
+  if (!commandCaster) {
+    return null;
+  }
+
+  // Choose the legal reachable tile farthest from the caster who issued
+  // Command. This is intentionally caster-relative instead of nearest-enemy
+  // retreat logic, because the spell says to flee from "you."
+  const startDistance = getDistance(character.position, commandCaster.position);
+  let bestPlan: ReachableTilePlan | null = null;
+  let bestDistance = startDistance;
+
+  reachableTiles.forEach(plan => {
+    const distanceFromCaster = getDistance(plan.tile.coordinates, commandCaster.position);
+    if (distanceFromCaster > bestDistance) {
+      bestDistance = distanceFromCaster;
+      bestPlan = plan;
+    }
+  });
+
+  if (!bestPlan) {
+    // If there is no legal tile farther away, the directive still prevents a
+    // normal attack. End the turn rather than silently ignoring the command.
+    return createEndTurnAction(character);
+  }
+
+  return {
+    id: generateId(),
+    characterId: character.id,
+    type: 'move',
+    cost: { type: 'movement-only', movementCost: bestPlan.cost },
+    targetPosition: bestPlan.tile.coordinates,
+    movementPath: bestPlan.path,
+    timestamp: Date.now(),
+  };
+}
+
+function planCommandApproachMovement(
+  character: CombatCharacter,
+  characters: CombatCharacter[],
+  reachableTiles: Map<string, ReachableTilePlan>
+): CombatAction | null {
+  const approachDirective = character.statusEffects.find(status =>
+    status.name === 'Command: Approach' &&
+    status.duration > 0 &&
+    !!status.sourceCasterId
+  );
+
+  if (!approachDirective?.sourceCasterId) {
+    return null;
+  }
+
+  const commandCaster = characters.find(candidate => candidate.id === approachDirective.sourceCasterId);
+  if (!commandCaster) {
+    return null;
+  }
+
+  // Command: Approach is caster-relative. Move to the legal reachable tile
+  // nearest to that caster, but do not move if already within 5 feet.
+  const startDistance = getDistance(character.position, commandCaster.position);
+  if (startDistance <= 1) {
+    return createEndTurnAction(character);
+  }
+
+  let bestPlan: ReachableTilePlan | null = null;
+  let bestDistance = startDistance;
+
+  reachableTiles.forEach(plan => {
+    const distanceToCaster = getDistance(plan.tile.coordinates, commandCaster.position);
+    if (distanceToCaster < bestDistance && distanceToCaster >= 1) {
+      bestDistance = distanceToCaster;
+      bestPlan = plan;
+    }
+  });
+
+  if (!bestPlan) {
+    return createEndTurnAction(character);
+  }
+
+  return {
+    id: generateId(),
+    characterId: character.id,
+    type: 'move',
+    cost: { type: 'movement-only', movementCost: bestPlan.cost },
+    targetPosition: bestPlan.tile.coordinates,
+    movementPath: bestPlan.path,
     timestamp: Date.now(),
   };
 }
@@ -348,7 +509,7 @@ function evaluateAttackPlan(
   target: CombatCharacter,
   ability: Ability,
   mapData: BattleMapData,
-  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>,
+  reachableTiles: Map<string, ReachableTilePlan>,
   activeEnemies: CombatCharacter[]
 ): AIPlan | null {
   const dist = getDistance(caster.position, target.position);
@@ -407,10 +568,13 @@ function evaluateAttackPlan(
   // If out of range, look for a reachable tile that puts us in range + LoS.
   const moveTile = findCastPosition(reachableTiles, target.position, ability, mapData);
   if (moveTile) {
+    const movePlan = reachableTiles.get(moveTile.id);
     return {
       actionType: 'move',
       targetPosition: moveTile.coordinates,
-      score: score + WEIGHTS.DISTANCE_PENALTY * moveTile.movementCost,
+      movementPath: movePlan?.path,
+      movementCost: movePlan?.cost ?? moveTile.movementCost,
+      score: score + WEIGHTS.DISTANCE_PENALTY * (movePlan?.cost ?? moveTile.movementCost),
       description: `Reposition to cast ${ability.name} on ${target.name}`,
     };
   }
@@ -433,7 +597,7 @@ function evaluateSupportPlan(
   target: CombatCharacter,
   ability: Ability,
   mapData: BattleMapData,
-  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>
+  reachableTiles: Map<string, ReachableTilePlan>
 ): AIPlan | null {
   // Similar to attack but for heals/buffs on allies
   const dist = getDistance(caster.position, target.position);
@@ -482,10 +646,13 @@ function evaluateSupportPlan(
 
   const moveTile = findCastPosition(reachableTiles, target.position, ability, mapData);
   if (moveTile) {
+    const movePlan = reachableTiles.get(moveTile.id);
     return {
       actionType: 'move',
       targetPosition: moveTile.coordinates,
-      score: score + WEIGHTS.DISTANCE_PENALTY * moveTile.movementCost,
+      movementPath: movePlan?.path,
+      movementCost: movePlan?.cost ?? moveTile.movementCost,
+      score: score + WEIGHTS.DISTANCE_PENALTY * (movePlan?.cost ?? moveTile.movementCost),
       description: `Advance to support ${target.name} with ${ability.name}`,
     };
   }
@@ -806,7 +973,7 @@ function planMovement(
   targetPos: Position,
   rangeNeeded: number,
   mapData: BattleMapData,
-  reachableTiles?: Map<string, { tile: BattleMapTile; cost: number }>,
+  reachableTiles?: Map<string, ReachableTilePlan>,
   occupiedTileIds: Set<string> = new Set()
 ): CombatAction | null {
   // We want to get within 'rangeNeeded' of 'targetPos'
@@ -824,14 +991,16 @@ function planMovement(
   let bestTile: BattleMapTile | null = null;
   let minDistToTarget = Infinity;
   let bestCost = 0;
+  let bestPath: Position[] | undefined;
 
   // Choose the reachable tile that gets us as close as possible to desired range while avoiding blockers.
-  searchTiles.forEach(({ tile, cost }) => {
+  searchTiles.forEach(({ tile, cost, path }) => {
     const distToTarget = getDistance(tile.coordinates, targetPos);
     if (distToTarget < minDistToTarget) {
       minDistToTarget = distToTarget;
       bestTile = tile;
       bestCost = cost;
+      bestPath = path;
     }
   });
 
@@ -851,6 +1020,7 @@ function planMovement(
       type: 'move',
       cost: { type: 'movement-only', movementCost: bestCost },
       targetPosition: targetTile.coordinates,
+      movementPath: bestPath,
       timestamp: Date.now(),
     };
   }
@@ -870,18 +1040,18 @@ function buildReachableTileMap(
   character: CombatCharacter,
   mapData: BattleMapData,
   occupiedTileIds: Set<string> = new Set()
-): Map<string, { tile: BattleMapTile; cost: number }> {
-  const reachable = new Map<string, { tile: BattleMapTile; cost: number }>();
+): Map<string, ReachableTilePlan> {
+  const reachable = new Map<string, ReachableTilePlan>();
   const startTile = mapData.tiles.get(`${character.position.x}-${character.position.y}`);
   if (!startTile) return reachable;
 
   const availableMovement = character.actionEconomy.movement.total - character.actionEconomy.movement.used;
-  const queue: { tile: BattleMapTile; cost: number }[] = [{ tile: startTile, cost: 0 }];
+  const queue: ReachableTilePlan[] = [{ tile: startTile, cost: 0, path: [startTile.coordinates] }];
   const visited = new Set<string>([startTile.id]);
 
   while (queue.length > 0) {
-    const { tile, cost } = queue.shift()!;
-    reachable.set(tile.id, { tile, cost });
+    const { tile, cost, path } = queue.shift()!;
+    reachable.set(tile.id, { tile, cost, path });
 
     if (cost >= availableMovement) continue;
 
@@ -895,7 +1065,7 @@ function buildReachableTileMap(
           const newCost = cost + neighbor.movementCost;
           if (newCost <= availableMovement) {
             visited.add(neighborId);
-            queue.push({ tile: neighbor, cost: newCost });
+            queue.push({ tile: neighbor, cost: newCost, path: [...path, neighbor.coordinates] });
           }
         }
       }
@@ -916,7 +1086,7 @@ function buildReachableTileMap(
  * @returns The best tile to cast from, or null if none found.
  */
 function findCastPosition(
-  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>,
+  reachableTiles: Map<string, ReachableTilePlan>,
   targetPos: Position,
   ability: Ability,
   mapData: BattleMapData
@@ -970,7 +1140,7 @@ function evaluateRetreatPlan(
   caster: CombatCharacter,
   enemies: CombatCharacter[],
   mapData: BattleMapData,
-  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>
+  reachableTiles: Map<string, ReachableTilePlan>
 ): AIPlan | null {
   const healthPct = caster.currentHP / caster.maxHP;
   if (healthPct > 0.35) return null; // Only retreat when actually threatened.
@@ -981,12 +1151,15 @@ function evaluateRetreatPlan(
   let safestTile: BattleMapTile | null = null;
   let bestScore = -Infinity;
 
-  reachableTiles.forEach(({ tile }) => {
+  let safestPlan: ReachableTilePlan | undefined;
+  reachableTiles.forEach((plan) => {
+    const { tile } = plan;
     const distance = getDistance(tile.coordinates, closestEnemy.position);
     const safetyScore = distance * WEIGHTS.SAFETY_DISTANCE;
     if (safetyScore > bestScore) {
       bestScore = safetyScore;
       safestTile = tile;
+      safestPlan = plan;
     }
   });
 
@@ -995,6 +1168,8 @@ function evaluateRetreatPlan(
     return {
       actionType: 'move',
       targetPosition: retreatTile.coordinates,
+      movementPath: safestPlan?.path,
+      movementCost: safestPlan?.cost,
       score: bestScore + WEIGHTS.SELF_PRESERVATION,
       description: `Retreat to safety from ${closestEnemy.name}`,
     };

@@ -6,7 +6,8 @@ category: Tools, Automation, and Infrastructure
 main_category: "Tools, Docs & Agents"
 subcategory: "Scripts & Automation"
 status: partial
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: medium
 evidence: docs/projects/scripts-git
 gap_signal: 2 open gaps, 1 in-scope and 1 follow-up
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # NORTHSTAR: Scripts: Git
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Why This Project Exists
 
@@ -189,3 +190,16 @@ The next cold-start agent must:
 - identify and register 2 additional real project gaps tied to this project in `GAPS.md`
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
+
+## Required Review Brief
+
+Title: Scripts: Git partial due to hook-policy verification gap
+Question: What is the smallest believable verification path for git hook policy behavior?
+Issue: The project has an in-scope gap for end-to-end hook script behavior and a follow-up runbook gap.
+Current behavior: GAPS.md marks G1 not_started/in_scope_now and G2 as an adjacent runbook follow-up.
+Why blocked: Without a reproducible proof path, hook policy can drift while still appearing documented.
+Option A: Add a narrow verification checklist or test for hook behavior.
+Option B: Create the runbook first if operator execution is currently the failure point.
+Evidence: NORTH_STAR.md next_step; GAPS.md G1 and G2.
+Decision owner: Scripts/Git tooling owner
+Proof after decision: A documented sample run covers sync-check, git:hygiene, and intent-gate expectations.

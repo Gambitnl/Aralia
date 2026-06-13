@@ -1,4 +1,4 @@
-# Roadmap Maintenance Living Tracker
+﻿# Roadmap Maintenance Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -17,8 +17,6 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Create durable scaffold documents from registry evidence. | previous worker | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md` | Maintain durable ownership in this folder. | This file trio remains the project entry surface. |
-| T2 | done | Normalize project docs with evidence-backed ownership/storage/operational facts and gap classification. | future agent | 2026-06-05 | `package.json`; `devtools/roadmap/scripts/roadmap-storage.ts`; `docs/tasks/roadmap/1C-ROADMAP-IMPLEMENTATION-PLAN.md`; `.agent/roadmap-local/README.md`; `docs/projects/PROJECT_CARD_SCHEMA.md`; `docs/projects/roadmap-maintenance/NORTH_STAR.md` | Keep the durable doc slice compact and let the North Star carry the dashboard schema explicitly. | Docs consistency review is now the proof; revisit only if the schema or evidence stack changes. |
 | T3 | active | Audit and route open roadmap-local gaps that should be project-owned vs cross-project. | future agent | 2026-06-05 | `.agent/roadmap-local/features/roadmap-visualizer/open_tasks.md`; `devtools/roadmap/ROADMAP_AUDIT_RUNBOOK.local.md`; `devtools/roadmap/ROADMAP_BRANCH_COMPLETENESS_AUDIT.md`; `docs/projects/GLOBAL_GAPS.md`; `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` | Keep the remaining roadmap-local open items explicitly classified here and only reroute if fresh evidence changes ownership. | Confirm no cross-project gap is left here without explicit rationale; rerun the triage when the roadmap-local snapshot changes. |
 
 ## Gap Log

@@ -1,10 +1,10 @@
-﻿// @dependencies-start
+// @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 08/06/2026, 13:48:54
- * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/createWorkerChunkLoader.ts, components/World3D/useChunkStreaming.ts, components/World3D/vegetationInstanceMatrices.ts, systems/world3d/chunkBundle.ts, systems/world3d/chunkGeometry.ts, systems/world3d/chunkManager.ts, systems/world3d/chunkSampler.ts, systems/world3d/chunkStreamer.ts, systems/world3d/chunkWorkerCore.ts, systems/world3d/coords.ts, systems/world3d/lod.ts, systems/world3d/polylineClip.ts, systems/world3d/roadGeometry.ts, systems/world3d/siteGeometry.ts, systems/world3d/vegetationScatter.ts, systems/world3d/waterGeometry.ts
+ * Last Sync: 12/06/2026, 07:04:41
+ * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DNameplates.tsx, components/World3D/World3DScene.tsx, components/World3D/createWorkerChunkLoader.ts, components/World3D/useChunkStreaming.ts, components/World3D/vegetationInstanceMatrices.ts, systems/world3d/chunkBundle.ts, systems/world3d/chunkGeometry.ts, systems/world3d/chunkManager.ts, systems/world3d/chunkSampler.ts, systems/world3d/chunkStreamer.ts, systems/world3d/chunkWorkerCore.ts, systems/world3d/coords.ts, systems/world3d/lod.ts, systems/world3d/polylineClip.ts, systems/world3d/roadGeometry.ts, systems/world3d/siteGeometry.ts, systems/world3d/vegetationScatter.ts, systems/world3d/waterGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -65,6 +65,16 @@ export interface ChunkData {
     position: { x: number; y: number };
     footprint: { x: number; y: number }[];
     walled: boolean;
+    /**
+     * Optional display text for HUD labels. When absent, World3D keeps the
+     * older "Kind - id" fallback so existing towns and ruins read the same.
+     */
+    name?: string;
+    /**
+     * Optional per-site label distance in world meters. Roster occupants use
+     * this to appear only at walking range without shrinking town labels.
+     */
+    labelRangeM?: number;
     population?: number;
     surfaceY: number;
     /**
@@ -87,6 +97,20 @@ export interface ChunkData {
      * marker cube would dwarf them.
      */
     markerOnly?: boolean;
+    /**
+     * Seamless-interior parts (Worldforge L4): site-local boxes in METERS
+     * (x along the footprint frontage, z inward from the street, y on the
+     * ground). When present the renderer draws these walls/furnishings
+     * instead of the solid footprint box — the building is enterable.
+     */
+    parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string }>;
+    /**
+     * Interior wall envelope in meters (≤ plot footprint). Roofs and floor
+     * slabs must size to THIS, not the footprint box — the plot is up to
+     * 5 ft larger per axis (construction v2, 2026-06-12 visual review).
+     */
+    wallWidthM?: number;
+    wallDepthM?: number;
   }[];
 }
 
@@ -128,6 +152,16 @@ export interface ChunkSite {
   radius: number;
   walled: boolean;
   /**
+   * Optional HUD label text carried through from ChunkData. This lets ground
+   * mode show a villager's roster name while older sites keep their fallback.
+   */
+  name?: string;
+  /**
+   * Optional per-site label range in world meters. It overrides only the
+   * nameplate distance gate for this site, not geometry or streaming.
+   */
+  labelRangeM?: number;
+  /**
    * Oriented-box footprint (2026-06-11, Worldforge ground mode): present
    * when the site arrived with a 4-corner footprint â€” the renderer then
    * draws a rotated boxWidth Ã— boxHeight Ã— boxDepth building instead of
@@ -138,6 +172,11 @@ export interface ChunkSite {
   unlabeled?: boolean;
   /** Render no mesh — nameplate only (see ChunkData.sites.markerOnly). */
   markerOnly?: boolean;
+  /** Seamless-interior boxes, site-local meters (see ChunkData.sites.parts). */
+  parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string }>;
+  /** Interior wall envelope, meters (see ChunkData.sites.wallWidthM). */
+  wallWidthM?: number;
+  wallDepthM?: number;
   boxWidth?: number;
   boxDepth?: number;
   boxHeight?: number;
@@ -155,6 +194,8 @@ export interface VegetationScatter {
   positions: Float32Array;
   scales: Float32Array;
   rotations: Float32Array;
+  /** Optional per-instance RGB (3 floats per instance) for color variety. */
+  colors?: Float32Array;
   /**
    * Stable payload fingerprint for the chunk that produced these buffers.
    * The renderer uses this to skip rewriting instance matrices when a worker
@@ -172,6 +213,9 @@ export interface ChunkMeshBundle {
   roads?: ChunkGeometryArrays;
   sites: ChunkSite[];
   vegetation?: VegetationScatter;
+  /** Second vegetation layer (ground mode): bushes, rendered as their own
+   * instanced mesh so trees and bushes can differ in geometry/palette. */
+  bushes?: VegetationScatter;
 }
 
 /** Async producer of a chunk's full mesh bundle. Worker-backed in production, inline in tests. */

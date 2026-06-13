@@ -6,7 +6,8 @@ category: Test Infrastructure
 main_category: Review / Archive
 subcategory: Deprecation Review
 status: merged-reference
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 2
 confidence: medium
 evidence: docs/projects/script-tests; docs/projects/DECISION_BLITZ_2026-06-10.md (D21)
 gap_signal: "4 open gaps (ST-GAP-001..004) now owned by scripts-quality after the 2026-06-10 merge decision; ST-GAP-001 remains the safest next slice"
@@ -38,8 +39,8 @@ human_decision_required: "no"
 ---
 # NORTH_STAR: Script Tests
 
-Status: merged-reference — decision recorded 2026-06-10; merged into Scripts: Quality
-Last updated: 2026-06-10
+Status: merged-reference â€” decision recorded 2026-06-10; merged into Scripts: Quality
+Last updated: 2026-06-12
 
 ## Purpose And Scope
 
@@ -153,3 +154,16 @@ The next cold-start agent must:
 - identify and register 2 additional real project gaps tied to this project in `GAPS.md`
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
+
+## Required Review Brief
+
+Title: Script Tests merged into Scripts: Quality
+Question: Should Script Tests receive new standalone worker assignments?
+Issue: This project is marked merged-reference because its open ST-GAP rows are now owned by scripts-quality after the 2026-06-10 merge decision.
+Current behavior: The folder remains as a support/reference surface for test coverage context, but forward work should continue under docs/projects/scripts-quality.
+Why blocked: Dispatching workers here would split ownership from the canonical scripts-quality tracker.
+Option A: Keep this project as merged-reference and route ST-GAP work through scripts-quality.
+Option B: Reopen this as standalone only if a human decides script-test ownership must split again.
+Evidence: NORTH_STAR.md frontmatter; GAPS.md ST-GAP-001..004; DECISION_BLITZ D21; canonical_owner docs/projects/scripts-quality.
+Decision owner: scripts-quality owner or human operator if reopening is desired
+Proof after decision: scripts-quality tracker contains the active ST-GAP work and this project remains non-dispatchable.

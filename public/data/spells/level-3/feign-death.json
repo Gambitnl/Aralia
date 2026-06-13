@@ -146,7 +146,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Blinded through the row's always-on status scaffold for 60 minutes.",
+      "description": "Applies Blinded for 60 minutes as part of Feign Death's protective deathlike state.",
       "conditionalEndings": []
     },
     {
@@ -212,7 +212,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Incapacitated through the row's always-on status scaffold for 60 minutes.",
+      "description": "Applies Incapacitated for 60 minutes as part of Feign Death's protective deathlike state.",
       "conditionalEndings": []
     },
     {

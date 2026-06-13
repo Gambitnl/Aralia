@@ -7,6 +7,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_WORLD_GEN_OPTIONS, type WorldGenOptions } from '../adapter/worldGenOptions';
+import { applyDeltas } from '../delta/applyDeltas';
 import {
   WORLD_DELTA_OPERATION_VERSION,
   WORLD_DELTA_SCHEMA_VERSION,
@@ -17,9 +18,12 @@ import {
   type FmgWorldOptions,
   type FmgWorldResult,
 } from '../fmg/generateWorld';
+import { generateInterior } from '../interior/generateInterior';
+import { EXTERIOR } from '../interior/types';
 import { generateLocal } from '../local/generateLocal';
 import { generateRegion } from '../region/generateRegion';
 import { rootSeedPath } from '../seedPath';
+import { generateTownPlan } from '../town/generateTownPlan';
 import { boundsCenter } from '../units';
 import { createWorld } from '../world/createWorld';
 import { WorldStore } from '../world/worldStore';
@@ -86,6 +90,40 @@ function buildRoadProbePipeline(): Pipeline {
   );
   const local = generateLocal(region, boundsCenter(region.bounds), region.seedPath, {
     biomeId: world.pack.cells.biome![ROAD_PROBE_ANCHOR_CELL],
+  });
+
+  return { created, world, region, local };
+}
+
+function buildTownProbePipeline(): Pipeline {
+  const created = createWorld(SEED_STR, WORLD_SEED, OPTIONS);
+  const world = generateFmgWorld(SEED_STR, toFmgOptions(OPTIONS));
+  let anchor = -1;
+
+  for (let cellId = 0; cellId < world.pack.cells.h.length; cellId++) {
+    if (
+      world.pack.cells.burg &&
+      world.pack.cells.burg[cellId] > 0 &&
+      world.pack.cells.h[cellId] >= 20
+    ) {
+      anchor = cellId;
+      break;
+    }
+  }
+
+  expect(anchor).toBeGreaterThanOrEqual(0);
+
+  const region = generateRegion(
+    world,
+    anchor,
+    rootSeedPath(WORLD_SEED),
+    {
+      feetPerPixel: FEET_PER_PIXEL,
+      world,
+    },
+  );
+  const local = generateLocal(region, boundsCenter(region.bounds), region.seedPath, {
+    biomeId: world.pack.cells.biome![anchor],
   });
 
   return { created, world, region, local };
@@ -183,6 +221,94 @@ function makeChainDelta(): WorldDelta {
   };
 }
 
+function makeTownPlotDelta(local: LocalArtifact, plotId: number): WorldDelta {
+  return {
+    id: 'town-plot-contract-delta',
+    schemaVersion: WORLD_DELTA_SCHEMA_VERSION,
+    opVersion: WORLD_DELTA_OPERATION_VERSION,
+    artifactSeedPath: local.seedPath,
+    entityKey: `plot:${plotId}`,
+    sequence: 1,
+    operation: {
+      kind: 'modify-plot',
+      plotId,
+      role: 'inn',
+      storeys: 3,
+    },
+  };
+}
+
+// Change an existing house into a market because L4 maps market plots to a
+// shopfloor entry room. This proves plot role deltas reach interior generation.
+function makeInteriorRoleDelta(local: LocalArtifact, plotId: number): WorldDelta {
+  return {
+    id: 'town-interior-role-delta',
+    schemaVersion: WORLD_DELTA_SCHEMA_VERSION,
+    opVersion: WORLD_DELTA_OPERATION_VERSION,
+    artifactSeedPath: local.seedPath,
+    entityKey: `plot:${plotId}`,
+    sequence: 1,
+    operation: {
+      kind: 'modify-plot',
+      plotId,
+      role: 'market',
+      storeys: 2,
+    },
+  };
+}
+
+// Add a new building as a real plot with a shifted copy of generated geometry.
+// The shifted footprint stays deterministic while avoiding collision with the
+// source plot in the replayed TownPlan.
+function makeInteriorBuildingDelta(local: LocalArtifact, plotId: number): WorldDelta {
+  const sourcePlot = local.townPlan?.plots[0];
+
+  expect(sourcePlot).toBeDefined();
+
+  return {
+    id: 'town-add-building-interior-delta',
+    schemaVersion: WORLD_DELTA_SCHEMA_VERSION,
+    opVersion: WORLD_DELTA_OPERATION_VERSION,
+    artifactSeedPath: local.seedPath,
+    entityKey: `plot:${plotId}`,
+    sequence: 2,
+    operation: {
+      kind: 'add-building',
+      plotId,
+      buildingId: 50_001,
+      role: 'market',
+      storeys: 2,
+      footprint: sourcePlot!.footprint.map(([x, y]) => [x + 120, y + 120]),
+      featureData: { sign: 'new-market' },
+    },
+  };
+}
+
+// Remove one generated plot so the integration test can prove replay leaves no
+// orphan plot for L4 to generate later.
+function makeRemovePlotDelta(local: LocalArtifact, plotId: number): WorldDelta {
+  return {
+    id: 'town-remove-plot-interior-delta',
+    schemaVersion: WORLD_DELTA_SCHEMA_VERSION,
+    opVersion: WORLD_DELTA_OPERATION_VERSION,
+    artifactSeedPath: local.seedPath,
+    entityKey: `plot:${plotId}`,
+    sequence: 3,
+    operation: {
+      kind: 'remove-plot',
+      plotId,
+    },
+  };
+}
+
+// Interior role assertions follow the actual street door rather than assuming
+// room 0 is always the entry room.
+function entryRoomRole(plan: ReturnType<typeof generateInterior>): string | undefined {
+  const entryDoor = plan.doorways.find((doorway) => doorway.a === EXTERIOR);
+
+  return plan.rooms.find((room) => room.id === entryDoor?.b)?.role;
+}
+
 function toFmgOptions(options: WorldGenOptions): FmgWorldOptions {
   return {
     ...options,
@@ -215,9 +341,12 @@ describe('worldforge pipeline integration', () => {
       // recorded in the Worldforge tracker.
       // Re-frozen 2026-06-11 ~13:55 (relief calibration: ridged macro octave,
       // 8,000 ft landforms + smoothstep lattice weights — Remy quality pass).
+      // Re-frozen 2026-06-12 (WF-G5): L1 river carving now follows the same
+      // smoothed river band as the renderer, shifting the region heightfield
+      // and the downstream local material classification along tight bends.
       atlasCellCount: 6005,
-      regionHeightfieldHash: 875885905,
-      localMaterialHash: 1206025414,
+      regionHeightfieldHash: 2605897242,
+      localMaterialHash: 2802789951,
     });
   }, 60_000); // world gen now includes Military/Markers/Zones (stages 33-35)
 
@@ -312,4 +441,120 @@ describe('worldforge pipeline integration', () => {
       Array.from(original.local.terrain.materialIndex),
     );
   });
+
+  it('persists and replays a generated TownPlan plot delta through the world store', () => {
+    const townProbe = buildTownProbePipeline();
+    const site = townProbe.region.townSites[0];
+
+    expect(site).toBeDefined();
+
+    const townPlan = generateTownPlan(site, townProbe.region.seedPath);
+    const localWithTownPlan: LocalArtifact = {
+      ...townProbe.local,
+      townPlan,
+    };
+    const targetPlotId = townPlan.plots[0].id;
+    const townDelta = makeTownPlotDelta(localWithTownPlan, targetPlotId);
+
+    const store = new WorldStore(SEED_STR, WORLD_SEED, OPTIONS);
+    store.appendDelta(townDelta);
+    const restored = WorldStore.deserialize(store.serialize());
+    const restoredPayload = JSON.parse(restored.serialize()) as {
+      deltas: WorldDelta[];
+    };
+
+    const originalReplay = applyDeltas(localWithTownPlan, [townDelta]);
+    const restoredReplay = applyDeltas(localWithTownPlan, restoredPayload.deltas);
+
+    expect(restoredReplay).toEqual(originalReplay);
+    expect({
+      burgId: restoredReplay.artifact.townPlan?.burgId,
+      plotCount: restoredReplay.artifact.townPlan?.plots.length,
+      firstPlot: restoredReplay.artifact.townPlan?.plots[0],
+      townFeatureCount: restoredReplay.artifact.features.length,
+    }).toEqual({
+      burgId: 264,
+      plotCount: 7,
+      firstPlot: {
+        id: 0,
+        footprint: [
+          [337141.0104583791, 106998.96632789141],
+          [337200.3556304727, 106990.12604796478],
+          [337191.10964927793, 106928.05738614306],
+          [337131.76447718433, 106936.8976660697],
+        ],
+        role: 'inn',
+        storeys: 3,
+      },
+      townFeatureCount: 1395,
+    });
+  }, 60_000);
+
+  it('keeps plot deltas coherent with generated interiors', () => {
+    const townProbe = buildTownProbePipeline();
+    const site = townProbe.region.townSites[0];
+
+    expect(site).toBeDefined();
+
+    const townPlan = generateTownPlan(site, townProbe.region.seedPath);
+    const localWithTownPlan: LocalArtifact = {
+      ...townProbe.local,
+      townPlan,
+    };
+    const housePlot = townPlan.plots.find((plot) => plot.role === 'house');
+    const plotToRemove = townPlan.plots.find((plot) => plot.id !== housePlot?.id);
+
+    expect(housePlot).toBeDefined();
+    expect(plotToRemove).toBeDefined();
+
+    const newPlotId = Math.max(...townPlan.plots.map((plot) => plot.id)) + 100;
+    const replay = applyDeltas(localWithTownPlan, [
+      makeInteriorRoleDelta(localWithTownPlan, housePlot!.id),
+      makeInteriorBuildingDelta(localWithTownPlan, newPlotId),
+      makeRemovePlotDelta(localWithTownPlan, plotToRemove!.id),
+    ]);
+
+    expect(replay.warnings).toEqual([]);
+
+    const originalInterior = generateInterior(housePlot!, localWithTownPlan.seedPath);
+    const modifiedPlot = replay.artifact.townPlan?.plots.find(
+      (plot) => plot.id === housePlot!.id,
+    );
+    const addedPlot = replay.artifact.townPlan?.plots.find(
+      (plot) => plot.id === newPlotId,
+    );
+    const removedPlot = replay.artifact.townPlan?.plots.find(
+      (plot) => plot.id === plotToRemove!.id,
+    );
+
+    expect(modifiedPlot).toBeDefined();
+    expect(addedPlot).toBeDefined();
+    expect(removedPlot).toBeUndefined();
+
+    const modifiedInterior = generateInterior(modifiedPlot!, replay.artifact.seedPath);
+    const addedInterior = generateInterior(addedPlot!, replay.artifact.seedPath);
+    const addedExteriorDoor = addedInterior.doorways.find(
+      (doorway) => doorway.a === EXTERIOR,
+    );
+
+    expect(entryRoomRole(originalInterior)).toBe('hall');
+    expect(entryRoomRole(modifiedInterior)).toBe('shopfloor');
+    expect(addedInterior.rooms.length).toBeGreaterThan(0);
+    expect(addedExteriorDoor).toBeDefined();
+    expect({
+      modifiedPlotRole: modifiedPlot?.role,
+      modifiedInteriorEntryRole: entryRoomRole(modifiedInterior),
+      addedPlotRole: addedPlot?.role,
+      addedInteriorRoomCount: addedInterior.rooms.length,
+      hasAddedExteriorDoor: Boolean(addedExteriorDoor),
+      removedPlotPresent: Boolean(removedPlot),
+    }).toEqual({
+      modifiedPlotRole: 'market',
+      modifiedInteriorEntryRole: 'shopfloor',
+      addedPlotRole: 'market',
+      addedInteriorRoomCount: 8,
+      hasAddedExteriorDoor: true,
+      removedPlotPresent: false,
+    });
+  }, 60_000);
 });

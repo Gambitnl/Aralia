@@ -7,6 +7,7 @@ main_category: "Tools, Docs & Agents"
 subcategory: "Scripts & Automation"
 status: active
 last_updated: 2026-06-05
+iteration: 2
 confidence: medium
 evidence: docs/projects/scripts-tooling
 gap_signal: 3 open gaps

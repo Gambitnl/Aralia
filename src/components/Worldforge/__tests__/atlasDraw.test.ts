@@ -255,6 +255,30 @@ describe("drawAtlas", () => {
     );
     expect(hasTransformedMove).toBe(true);
   });
+
+  it("should tint land cells with the selected culture overlay color", () => {
+    const ctx = createMockContext2D();
+    const cultureAtlas: FmgAtlasResult = {
+      ...mockAtlas,
+      pack: {
+        ...mockAtlas.pack,
+        cells: {
+          ...mockAtlas.pack.cells,
+          h: new Uint8Array([25, 25, 25]),
+          culture: new Uint16Array([0, 1, 0]),
+        },
+        cultures: [
+          { i: 0, name: "Wildlands", base: 1, shield: "round" },
+          { i: 1, name: "Test Culture", base: 1, shield: "round", color: "#ff0000" },
+        ],
+      },
+    };
+
+    drawAtlas(ctx, cultureAtlas, { offsetX: 0, offsetY: 0, scale: 1, overlayMode: "culture" });
+
+    const cultureTint = ctx.calls.find((c) => c.name === "set_fillStyle" && c.args[0] === "rgb(143,37,47)");
+    expect(cultureTint).toBeDefined();
+  });
 });
 
 describe("isCacheValid", () => {
@@ -280,6 +304,11 @@ describe("isCacheValid", () => {
   it("should return true if scale, seed, and showGraticule all match", () => {
     const cache = { scale: 2.5, seed: "seed", showGraticule: true };
     expect(isCacheValid(cache, 2.5, "seed", true)).toBe(true);
+  });
+
+  it("should return false if the atlas overlay mode does not match", () => {
+    const cache = { scale: 1.0, seed: "seed", overlayMode: "culture" as const };
+    expect(isCacheValid(cache, 1.0, "seed", undefined, undefined, undefined, undefined, undefined, "religion")).toBe(false);
   });
 });
 

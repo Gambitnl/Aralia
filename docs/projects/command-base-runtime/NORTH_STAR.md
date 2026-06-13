@@ -5,8 +5,9 @@ slug: command-base-runtime
 category: Runtime Infrastructure
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
-status: active
-last_updated: 2026-06-08
+status: idle
+last_updated: 2026-06-12
+iteration: 4
 confidence: high
 evidence: docs/projects/command-base-runtime
 gap_signal: 0 open gaps
@@ -42,9 +43,8 @@ human_decision_required: "no"
 ---
 # NORTH_STAR: Command Base Runtime
 
-Status: active
-Last updated: 2026-06-08
-
+status: idle
+Last updated: 2026-06-12
 ## Why This Project Exists
 
 `src/commands/base` is the shared execution layer for combat command sequencing. It
@@ -77,7 +77,7 @@ active gaps, and verification that non-rollback failure semantics remain stable.
 Project: Command Base Runtime
 Slug: command-base-runtime
 Category: Runtime Infrastructure
-Status: active
+status: idle
 Confidence: high
 Evidence: docs/projects/command-base-runtime
 Gap signal: 0 open gaps
@@ -97,7 +97,7 @@ Human decision required: no
 
 | Field | Value |
 |---|---|
-| Task | **DONE** — Capture explicit state-freshness contract for `G4` and keep failure-path evidence in place |
+| Task | **DONE** Ã¢â‚¬â€ Capture explicit state-freshness contract for `G4` and keep failure-path evidence in place |
 | Acceptance criteria | Keep `G3` command-executor coverage in `src/commands/__tests__/CommandExecutor.test.ts` and add a focused state-freshness proof for `G4` in `src/commands/__tests__/BaseEffectCommand.test.ts`. |
 | Allowed boundaries | `docs/projects/command-base-runtime/*`, `src/commands/__tests__/CommandExecutor.test.ts`, `src/commands/__tests__/BaseEffectCommand.test.ts`, `src/commands/base/BaseEffectCommand.ts`, `src/commands/base/SpellCommand.ts` |
 | Stop condition | Tests pass and `G4` marked done with proof in project docs. |
@@ -137,3 +137,16 @@ Human decision required: no
 
 Check `docs/projects/GLOBAL_GAPS.md` before adding cross-project gaps. `G3` and `G4` are now
 closed and in-scope; route only real out-of-scope findings there when encountered.
+
+## Required Review Brief
+
+Title: Command Base Runtime idle with contract tests stable
+Question: Should Command Base Runtime receive another forward iteration now?
+Issue: The project reports 0 open gaps and its resolved gaps document the rollback/live-state contract.
+Current behavior: The next step is maintenance: keep contract tests and docs aligned when interfaces evolve.
+Why blocked: No current source-backed implementation gap is present.
+Option A: Keep idle until command context or command interfaces change.
+Option B: Reopen active when a new command-runtime regression or API change is registered.
+Evidence: NORTH_STAR.md gap_signal and next_step; GAPS.md G1-G4 closed/done.
+Decision owner: Command runtime owner
+Proof after decision: A new tracker row names the interface change and focused command test path.

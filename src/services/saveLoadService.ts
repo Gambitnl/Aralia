@@ -183,14 +183,15 @@ export async function saveGame(
       ...gameState,
       saveVersion: SAVE_GAME_VERSION,
       saveTimestamp: Date.now(),
-      // Ensure transient states are not saved or are reset if needed
+      // Ensure transient states are not saved or are reset if needed.
+      // Player-facing overlay flags (isMapVisible/isSubmapVisible/
+      // isDiscoveryLogVisible) are deliberately persisted as-is so resume
+      // reopens the panel the player was using (resume-journey task 4).
+      // Dev/debug surfaces and object-holding modals stay forced closed.
       isLoading: false,
       isImageLoading: false,
       error: null,
-      isMapVisible: false,
-      isSubmapVisible: false,
       geminiGeneratedActions: null,
-      isDiscoveryLogVisible: false, // Ensure journal is closed in saved state
       isDevMenuVisible: false,
       isGeminiLogViewerVisible: false,
       characterSheetModal: { isOpen: false, character: null },
@@ -344,13 +345,23 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     loadedState.isLoading = false;
     loadedState.isImageLoading = false;
     loadedState.error = null;
-    loadedState.isMapVisible = false;
-    loadedState.isSubmapVisible = false;
-    loadedState.isDiscoveryLogVisible = false; // Ensure journal is closed on load
+    // Player-facing overlays restore as saved (resume-journey task 4), but only
+    // strict booleans survive — legacy/hand-edited saves heal to closed rather
+    // than resuming into an undefined panel state.
+    loadedState.isMapVisible = loadedState.isMapVisible === true;
+    loadedState.isSubmapVisible = loadedState.isSubmapVisible === true;
+    loadedState.isDiscoveryLogVisible = loadedState.isDiscoveryLogVisible === true;
     loadedState.isDevMenuVisible = false;
     loadedState.isGeminiLogViewerVisible = false;
     loadedState.isOllamaLogViewerVisible = false;
     loadedState.geminiGeneratedActions = null;
+    // Combat runtime (turn order, initiative, battle map) is hook-local and never
+    // serialized, so a save written during combat can only resume on the
+    // exploration surface. We treat that save as a pre-combat checkpoint: heal the
+    // phase to PLAYING and tell the player why they're back in the world.
+    if (loadedState.phase === GamePhase.COMBAT || loadedState.phase === GamePhase.BATTLE_MAP_DEMO) {
+      notify?.({ message: 'Resumed from pre-combat checkpoint.', type: 'info' });
+    }
     loadedState.phase = GamePhase.PLAYING; // Ensure game phase is set to playing
     loadedState.characterSheetModal = loadedState.characterSheetModal || { isOpen: false, character: null }; // Ensure it exists
 
@@ -716,10 +727,8 @@ export function emergencySaveSync(gameState: GameState): void {
       isLoading: false,
       isImageLoading: false,
       error: null,
-      isMapVisible: false,
-      isSubmapVisible: false,
+      // Overlay flags persist as-is — same contract as saveGame (task 4).
       geminiGeneratedActions: null,
-      isDiscoveryLogVisible: false,
       isDevMenuVisible: false,
       isGeminiLogViewerVisible: false,
       characterSheetModal: { isOpen: false, character: null },

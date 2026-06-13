@@ -1,6 +1,6 @@
 # Character Creator
 
-This capability note tracks the current character creation flow as it exists in the repo today. The multi-step flow is implemented, the background step uses an explicit confirmation action, and per-step completion checks exist, but the sidebar still exposes broad navigation instead of acting as a hard sequential gate.
+This capability note tracks the current character creation flow as it exists in the repo today. The multi-step flow is implemented, the background step uses an explicit confirmation action, and per-step completion checks exist. The sidebar exposes broad navigation (permissive navigation with locked step placeholders is the intentional design choice, rather than a sequential gate).
 
 ## Current Status
 
@@ -32,7 +32,7 @@ Character creator foundations are implemented and actively used. The flow is not
 
 ## Remaining Gaps Or Uncertainty
 
-- This doc no longer claims strict sequential locking, because the current sidebar configuration exposes broad navigation even while completion checks exist.
+- Permissive sidebar navigation with locked placeholders is the intentional design, resolved on 2026-06-08 (G2).
 - Rendered UX was not re-verified in this doc pass; this is a code-backed capability note rather than a visual QA report.
 
 

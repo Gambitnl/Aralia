@@ -1,9 +1,9 @@
-﻿// @dependencies-start
+// @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/06/2026, 03:04:03
+ * Last Sync: 12/06/2026, 09:06:27
  * Dependents: components/Worldforge/AtlasDemo.tsx
  * Imports: 3 files
  *
@@ -29,7 +29,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { ZoomIn, ZoomOut, Maximize } from "lucide-react";
-import { drawAtlas, isCacheValid, drawScaleBar, type AtlasView, type CacheView } from "./atlasDraw";
+import { drawAtlas, isCacheValid, drawScaleBar, type AtlasOverlayMode, type AtlasView, type CacheView } from "./atlasDraw";
 
 // Zoom scale at which scroll-zoom hands off to the L1 region layer.
 // Raised 4.0 â†’ 16.0 (Remy, 2026-06-11): deep atlas browsing first.
@@ -66,6 +66,8 @@ export interface AtlasMapViewProps {
   showGraticule?: boolean;
   /** Toggle political overlay rendering. Default is false. */
   showPolitical?: boolean;
+  /** Mutually exclusive atlas cell tint source. Political remains the default mode. */
+  overlayMode?: AtlasOverlayMode;
   showMarkers?: boolean;
   showZones?: boolean;
   showMilitary?: boolean;
@@ -94,6 +96,7 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
   showScaleBar = true,
   showGraticule = false,
   showPolitical = false,
+  overlayMode = "political",
   showMarkers = false,
   showZones = false,
   showMilitary = false,
@@ -381,7 +384,17 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
     const metaValid =
       cacheCanvasRef.current &&
       cacheViewRef.current &&
-      isCacheValid(cacheViewRef.current, view.scale, atlas.seed, showGraticule, showPolitical, showMarkers, showZones, showMilitary);
+      isCacheValid(
+        cacheViewRef.current,
+        view.scale,
+        atlas.seed,
+        showGraticule,
+        showPolitical,
+        showMarkers,
+        showZones,
+        showMilitary,
+        overlayMode
+      );
 
     if (view.scale <= FULL_CACHE_MAX_SCALE) {
       // â”€â”€ Shallow zoom: cache the WHOLE map at scale (pan = free blit) â”€â”€â”€â”€
@@ -405,11 +418,21 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
             showScaleBar: false,
             showGraticule,
             showPolitical,
+            overlayMode,
             showMarkers,
             showZones,
             showMilitary,
           });
-          cacheViewRef.current = { scale: view.scale, seed: atlas.seed, showGraticule, showPolitical, showMarkers, showZones, showMilitary };
+          cacheViewRef.current = {
+            scale: view.scale,
+            seed: atlas.seed,
+            showGraticule,
+            showPolitical,
+            overlayMode,
+            showMarkers,
+            showZones,
+            showMilitary,
+          };
         }
       }
 
@@ -450,11 +473,21 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
             showScaleBar: false,
             showGraticule,
             showPolitical,
+            overlayMode,
             showMarkers,
             showZones,
             showMilitary,
           });
-          cacheViewRef.current = { scale: view.scale, seed: atlas.seed, showGraticule, showPolitical, showMarkers, showZones, showMilitary };
+          cacheViewRef.current = {
+            scale: view.scale,
+            seed: atlas.seed,
+            showGraticule,
+            showPolitical,
+            overlayMode,
+            showMarkers,
+            showZones,
+            showMilitary,
+          };
           deepAnchorRef.current = { offsetX: view.offsetX, offsetY: view.offsetY, width, height };
         }
       }
@@ -494,9 +527,10 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
         showScaleBar,
         showGraticule,
         showPolitical,
+        overlayMode,
       });
     }
-  }, [atlas, view, width, height, showScaleBar, showGraticule, showPolitical, showMarkers, showZones, showMilitary, markers, hoverPos]);
+  }, [atlas, view, width, height, showScaleBar, showGraticule, showPolitical, overlayMode, showMarkers, showZones, showMilitary, markers, hoverPos]);
 
   // --------------------------------------------------------------------------
   // Button-Triggered Zoom Helpers

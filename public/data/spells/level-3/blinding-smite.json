@@ -139,7 +139,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 3d8 Radiant damage on the row's current hit-based resolution.",
+      "description": "Deals 3d8 Radiant damage when the hit-based smite damage effect resolves.",
       "conditionalEndings": []
     },
     {
@@ -210,7 +210,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Applies Blinded on the row's current hit-based resolution for 1 minute; repeat Constitution save at turn end can end the condition; slot scaling adds +1d8.",
+      "description": "On the hit-based smite effect, applies Blinded for 1 minute; a turn-end Constitution save can end it, and slot scaling adds +1d8 damage.",
       "conditionalEndings": []
     }
   ],

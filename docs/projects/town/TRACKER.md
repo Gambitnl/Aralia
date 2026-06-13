@@ -1,7 +1,7 @@
-# Town Living Tracker
+﻿# Town Living Tracker
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Status Vocabulary
 
@@ -16,10 +16,8 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Convert Town to implementation-grounded docs and replace initial scaffolding. | Codex | 2026-05-31 | `src/components/Town`, `src/hooks/actions`, `src/state`, `src/types` | Keep doc scope to `docs/projects/town` files only. | File map and integration text now present in NORTH_STAR.md. |
 | T2 | active | Validate town entry contract and town-description coupling boundaries. | future owner | 2026-05-31 | `src/App.tsx`, `src/hooks/actions/handleMovement.ts`, `src/state/appState.ts` | Confirm canonical transition is `ENTER_VILLAGE` or document active exception. | Decision note added to GAPS.md with proof location. |
 | T3 | active | Stabilize city-state coupling expectations. | future owner | 2026-05-31 | `src/utils/world/settlementGeneration.ts`, `src/types/world.ts`, `src/types/state.ts` | Define whether governing-body/cultural profile belongs in Town state or world state. | Gap row updated with decision check in next review. |
-| T4 | done | Register and keep unresolveds in durable GAPS. | Codex | 2026-05-31 | `docs/projects/town/GAPS.md` | Ensure each active gap has a next proof/check. | GAPS table includes status, owner, next check. |
 
 ## Update Rules
 
@@ -38,4 +36,3 @@ Last updated: 2026-06-05
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | not_started | adjacent_follow_up | future agent | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization | Replace this seeded gap row with project-specific findings if any remain after the next bounded gap sweep | docs/agent-workflows/living-project-task-protocol/templates/GAPS.md | The workflow requires durable gaps to have a consistent table shape and evidence path | Perform a bounded gap sweep and either update this row or close it as no longer applicable | Updated GAPS.md and TRACKER.md agree on the project gap state |

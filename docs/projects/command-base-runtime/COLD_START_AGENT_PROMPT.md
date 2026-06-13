@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Command Base Runtime
 slug: command-base-runtime
-status: active
-last_updated: "2026-06-08"
+status: idle
+last_updated: 2026-06-12
 iteration: 4
 source_agent: Not recorded
 target_agent: next cold-start agent
@@ -19,9 +19,8 @@ gaps: docs/projects/command-base-runtime/GAPS.md
 ---
 # Command Base Runtime Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-08
-
+status: idle
+Last updated: 2026-06-12
 This is the project-specific context packet. Follow the shared workflow file for iteration process and include workflow gaps in closeout reporting.
 
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
@@ -54,7 +53,7 @@ production execution path; `CommandExecutor.execute` is the default.
 ## Current Mission
 
 Active task completed:
-T4 — Expand `CommandExecutor.execute` failure-path tests (G3)
+T4 â€” Expand `CommandExecutor.execute` failure-path tests (G3)
 
 Acceptance criteria completed:
 - Async failure path tested (promise rejection).
@@ -70,7 +69,7 @@ Acceptance criteria completed:
 
 ## Next Task
 
-T5 — Add an explicit state-freshness contract for context-vs-live reads (`G4`) and any minimal focused proof needed.
+T5 â€” Add an explicit state-freshness contract for context-vs-live reads (`G4`) and any minimal focused proof needed.
 
 ## Required End State For This Iteration
 
@@ -90,4 +89,53 @@ T5 — Add an explicit state-freshness contract for context-vs-live reads (`G4`)
 ## agent_comments
 
 - No active inline agent comments are carried into the next iteration.
+Required docs to account for before closeout:
+- NORTH_STAR.md
+- TRACKER.md
+- GAPS.md
+- COLD_START_AGENT_PROMPT.md
+- DECISIONS.md
+- AUDIT_OR_PROOF.md
+- RUNBOOK.md
+- docs/projects/PROJECT_CARD_SCHEMA.md
+- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+
+Optional docs to check when present or named by tracker:
+- tasks/
+- architecture notes
+- migration notes
+- project-specific proof or design notes
 ---END NEXT AGENT HANDOFF---
+
+## Project Prompt Conformance Notes
+
+Last updated: 2026-06-12
+This section aligns older cold-start prompts with the shared living-project workflow without replacing the project-specific handoff above. The original handoff remains authoritative for project context; this section records the universal prompt shape that every next agent must honor.
+
+Conformance issues repaired on 2026-06-12: missing_decisions_reference, missing_proof_reference, missing_runbook_reference.
+
+Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
+
+Agent identity / runtime:
+Before selecting work, identify yourself and the surface you are running through. Use one of: CLI agent, application agent, browser/app-embedded agent, MCP/subagent, or unknown. Mark the classification as certain, inferred, or unknown and name the clue used.
+
+### Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| pre-standardization | not recorded | unknown | unknown | before 2026-06-12 | Original command-base-runtime handoff predates the ledger requirement. |
+
+### Required project docs to account for
+
+- docs/projects/command-base-runtime/NORTH_STAR.md
+- docs/projects/command-base-runtime/TRACKER.md
+- docs/projects/command-base-runtime/GAPS.md
+- docs/projects/command-base-runtime/COLD_START_AGENT_PROMPT.md
+- docs/projects/command-base-runtime/DECISIONS.md
+- docs/projects/command-base-runtime/AUDIT_OR_PROOF.md
+- docs/projects/command-base-runtime/RUNBOOK.md
+
+Closeout reminder:
+Before ending an iteration, refresh or explicitly report on every required project doc above. If a supporting doc is not relevant to the current slice, say why instead of silently ignoring it.

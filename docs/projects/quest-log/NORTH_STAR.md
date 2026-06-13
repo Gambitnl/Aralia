@@ -6,10 +6,11 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 7
 confidence: medium
 evidence: docs/projects/quest-log/AUDIT_OR_PROOF.md
-gap_signal: "G3 decided 2026-06-10 (D14, Option A); implementation lane open"
+gap_signal: "3 open gaps; G2, G3, and G5 remain open after G3 decision"
 protocol: living project doc set
 next_step: "Implement the quest-giver bridge in handleNpcInteraction.ts (Option A): define a minimal quest-offer payload as part of the work and cover the handoff with focused source-backed tests."
 agent_comments: ""
@@ -43,7 +44,7 @@ human_decision_required: "no"
 # Quest Log North Star
 
 Status: active (decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Purpose and Scope
 
@@ -186,7 +187,7 @@ Proof after decision: A focused source-backed test for the chosen handoff path p
 Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D14 in
 `docs/projects/DECISION_BLITZ_2026-06-10.md`):
 
-- **Option A — wire the quest-giver bridge now.** `handleNpcInteraction.ts` owns the NPC
+- **Option A â€” wire the quest-giver bridge now.** `handleNpcInteraction.ts` owns the NPC
   quest handoff; add the bridge that dispatches quest acceptance from dialogue outcomes,
   with focused source-backed test coverage.
 - The owner chose this over deferring for a broader dialogue/quest contract. The bridge
@@ -198,7 +199,7 @@ Status: decision recorded 2026-06-10; implementation lane open.
 ## Next Checks
 
 - Confirm quest-log behavior after any quest-state schema migration.
-- Resolve the NPC quest handoff ownership decision in the Required Review Brief. (Done 2026-06-10 — see Decision subsection above; implement Option A with the minimal quest-offer payload and focused tests.)
+- Resolve the NPC quest handoff ownership decision in the Required Review Brief. (Done 2026-06-10 â€” see Decision subsection above; implement Option A with the minimal quest-offer payload and focused tests.)
 
 ## Resume Path
 

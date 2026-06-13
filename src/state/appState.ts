@@ -632,8 +632,14 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // Keep preference from the current session (user-level), not the save slot payload.
                 autoSaveEnabled: state.autoSaveEnabled ?? loadedState.autoSaveEnabled ?? true,
                 isLoading: false, loadingMessage: null, isImageLoading: false, error: null,
-                isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isPartyEditorVisible: false,
-                isPartyOverlayVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, isDiscoveryLogVisible: false,
+                // Player-facing overlays (map/submap/journal) resume as saved
+                // (resume-journey task 4); strict-boolean check heals legacy
+                // saves. Dev/debug surfaces stay forced closed.
+                isMapVisible: loadedState.isMapVisible === true,
+                isSubmapVisible: loadedState.isSubmapVisible === true,
+                isDiscoveryLogVisible: loadedState.isDiscoveryLogVisible === true,
+                isDevMenuVisible: false, isPartyEditorVisible: false,
+                isPartyOverlayVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
                 isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isLogbookVisible: false,
                 isGameGuideVisible: false, isThievesGuildVisible: false,
                 isNavalDashboardVisible: loadedState.isNavalDashboardVisible ?? false,

@@ -5,8 +5,9 @@ slug: design-preview
 category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
-status: active
-last_updated: 2026-06-10
+status: idle
+last_updated: 2026-06-12
+iteration: 8
 confidence: medium
 evidence: docs/projects/design-preview
 gap_signal: "0 open gaps; lane steward map and split-proof notes added"
@@ -31,7 +32,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-10
 workflow_gaps_reviewed: 2026-06-09
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -40,9 +41,8 @@ human_decision_required: "no"
 ---
 # Design Preview North Star
 
-Status: active
-Last updated: 2026-06-08
-
+status: idle
+Last updated: 2026-06-12
 ## Why This Project Exists
 
 Design Preview is a standalone developer-facing UI surface for visual checks,
@@ -156,9 +156,6 @@ Out of scope:
 
 | Gap | Classification | Owner | Evidence | Next action |
 |---|---|---|---|---|
-| G1 | done | adjacent_follow_up | Worker B | `docs/projects/PROJECT_TRACKER.md` | Keep provisional steward notes visible until a named lane owner map is approved | `docs/projects/design-preview/NORTH_STAR.md` | Ownership drift is now covered by the source-backed lane steward map | Lane steward map exists and points at the active preview lanes | `docs/projects/design-preview/NORTH_STAR.md` lane steward map |
-| G3 | done | adjacent_follow_up | Worker B | `src/components/DesignPreview/DesignPreviewPage.tsx` | Decide if all Design Preview steps should have stable local owners | `docs/projects/design-preview/NORTH_STAR.md` | Stable owners are now documented by lane family | Lane steward map exists and points at the active preview lanes | `docs/projects/design-preview/NORTH_STAR.md` lane steward map |
-| G4 | done | adjacent_follow_up | Codex | `docs/projects/code-modularization-audit` CMA-G3 | `PreviewComponents.tsx` and sibling preview steps are large enough to need step-owner and visual-proof routing before any split. | `src/components/DesignPreview/steps/PreviewComponents.tsx`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G3 | The split checklist now lives in the Design Preview handoff | Large-step proof gates are documented before any move or modularization | `misc/design.html?step=components` screenshot plus `PreviewTables.test.tsx` as the current test anchor |
 
 G2 is closed in `GAPS.md` and documented in `RUNBOOK.md`. G4 remains in
 `GAPS.md` only because it is owned by the adjacent code-modularization audit,
@@ -227,3 +224,16 @@ This project is decoupled. The following is the self-contained workflow for a co
    - Update `GAPS.md` (status of gaps).
    - Update `COLD_START_AGENT_PROMPT.md` with the new handoff and increment the Iteration Agent Ledger.
    - End with a structured final report as required by the iteration protocol.
+
+## Required Review Brief
+
+Title: Design Preview idle after steward map closure
+Question: Should Design Preview receive another forward iteration now?
+Issue: The project reports 0 open gaps and the lane steward/split-proof notes are already added.
+Current behavior: The project should wait for new preview requests or a modularization-audit route.
+Why blocked: No current source-backed preview gap is open.
+Option A: Keep idle and preserve the lane steward map.
+Option B: Reopen active when a new preview lane, split, or visual proof request is routed here.
+Evidence: NORTH_STAR.md gap_signal and next_step; GAPS.md G1-G4 closed.
+Decision owner: Design Preview owner or modularization audit owner
+Proof after decision: A new tracker/gap row names the preview lane and required visual check.

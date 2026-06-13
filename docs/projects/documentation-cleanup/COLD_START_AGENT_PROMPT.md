@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Documentation Cleanup
 slug: documentation-cleanup
-status: active
-last_updated: "2026-06-07"
+Status: complete
+last_updated: 2026-06-10
 iteration: 3
 source_agent: Not recorded
 target_agent: next cold-start agent
@@ -19,8 +19,8 @@ gaps: docs/projects/documentation-cleanup/GAPS.md
 ---
 # Documentation Cleanup Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-07
+Status: complete
+Last updated: 2026-06-10
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -45,7 +45,7 @@ docs/projects/documentation-cleanup/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Documentation Cleanup
 Project folder: docs/projects/documentation-cleanup
-Iteration: 3
+iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -55,7 +55,7 @@ Gaps: docs/projects/documentation-cleanup/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 2 verified the path-drift evidence for packets 1G.7–1G.10 against the
+Iteration 2 verified the path-drift evidence for packets 1G.7Ã¢â‚¬â€œ1G.10 against the
 live repo, resolving G2 with full evidence in `DECISIONS.md` D-01 and
 `AUDIT_OR_PROOF.md`. Found and corrected G4 (stale PROJECT_TRACKER.md link).
 Created `DECISIONS.md` and `AUDIT_OR_PROOF.md` as new required supporting docs.
@@ -81,7 +81,7 @@ Key files to touch:
 - docs/projects/documentation-cleanup/AUDIT_OR_PROOF.md
 - docs/projects/PROJECT_CARD_SCHEMA.md
 - docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
+- docs/projects/documentation-cleanup plus source/docs named by the active tracker task
 
 Optional docs to check when present or named by tracker:
 - tasks/
@@ -99,7 +99,7 @@ Recent progress:
 G2 (path-drift) resolved with evidence table. G4 (stale tracker link) corrected.
 DECISIONS.md and AUDIT_OR_PROOF.md created. G1 (broad curation) and G3
 (duplicate-cleanup scope) remain open. PROJECT_TRACKER.md has duplicate table
-sections (Feature/UI, Tools/Automation repeated) — noted as adjacent
+sections (Feature/UI, Tools/Automation repeated) Ã¢â‚¬â€ noted as adjacent
 documentation quality issue, not in this project's current slice.
 
 ## Required End State For This Iteration
@@ -121,3 +121,37 @@ Final response must report:
 - assumptions made
 - next safe resume action
 ---END NEXT AGENT HANDOFF---
+
+## Project Prompt Conformance Notes
+
+Last updated: 2026-06-10
+
+This section aligns older cold-start prompts with the shared living-project workflow without replacing the project-specific handoff above. The original handoff remains authoritative for project context; this section records the universal prompt shape that every next agent must honor.
+
+Conformance issues repaired on 2026-06-12: missing_runbook_reference.
+
+Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
+
+Agent identity / runtime:
+Before selecting work, identify yourself and the surface you are running through. Use one of: CLI agent, application agent, browser/app-embedded agent, MCP/subagent, or unknown. Mark the classification as certain, inferred, or unknown and name the clue used.
+
+### Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| pre-standardization | not recorded | unknown | unknown | before 2026-06-12 | Original documentation-cleanup handoff predates the ledger requirement. |
+
+### Required project docs to account for
+
+- docs/projects/documentation-cleanup/NORTH_STAR.md
+- docs/projects/documentation-cleanup/TRACKER.md
+- docs/projects/documentation-cleanup/GAPS.md
+- docs/projects/documentation-cleanup/COLD_START_AGENT_PROMPT.md
+- docs/projects/documentation-cleanup/DECISIONS.md
+- docs/projects/documentation-cleanup/AUDIT_OR_PROOF.md
+- docs/projects/documentation-cleanup/RUNBOOK.md
+
+Closeout reminder:
+Before ending an iteration, refresh or explicitly report on every required project doc above. If a supporting doc is not relevant to the current slice, say why instead of silently ignoring it.

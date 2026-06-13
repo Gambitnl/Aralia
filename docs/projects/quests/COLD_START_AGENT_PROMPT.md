@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Quests System
 slug: quests
-status: active
-last_updated: "2026-06-10"
+Status: active
+last_updated: 2026-06-10
 iteration: 3
 source_agent: Qoder
 target_agent: next cold-start agent
@@ -46,7 +46,7 @@ docs/projects/quests/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Quests System
 Project folder: docs/projects/quests
-Iteration: 3
+iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -61,7 +61,7 @@ Iteration 2 completed QTS-3: the migration decision from legacy `Quest` to `Ques
 ## Current Mission
 
 Active task:
-QTS-5 - Implement Phase 1 adapter — `adaptQuestDefinitionToQuest` with round-trip unit test
+QTS-5 - Implement Phase 1 adapter â€” `adaptQuestDefinitionToQuest` with round-trip unit test
 
 Acceptance criteria:
 1. Create `src/systems/quests/questAdapter.ts` with `adaptQuestDefinitionToQuest(def: QuestDefinition): Quest`.

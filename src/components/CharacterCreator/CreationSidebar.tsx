@@ -34,6 +34,8 @@ interface CreationSidebarProps {
   currentStep: CreationStep;
   state: CharacterCreationState;
   onNavigateToStep: (step: CreationStep) => void;
+  /** Wipes every choice and returns to the Race step (two-click confirm). */
+  onStartOver?: () => void;
 }
 
 /**
@@ -146,9 +148,28 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
   currentStep,
   state,
   onNavigateToStep,
+  onStartOver,
 }) => {
   // Get visible steps
   const visibleSteps = SIDEBAR_STEPS.filter(step => step.isVisible(state));
+
+  // Two-click confirm for the destructive Start Over action. The armed state
+  // disarms automatically so a stray first click can't linger as a landmine.
+  const [confirmingReset, setConfirmingReset] = React.useState(false);
+  React.useEffect(() => {
+    if (!confirmingReset) return;
+    const timer = setTimeout(() => setConfirmingReset(false), 4000);
+    return () => clearTimeout(timer);
+  }, [confirmingReset]);
+
+  const handleStartOverClick = () => {
+    if (!confirmingReset) {
+      setConfirmingReset(true);
+      return;
+    }
+    setConfirmingReset(false);
+    onStartOver?.();
+  };
 
   return (
     <aside
@@ -175,10 +196,24 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
       </nav>
 
       {/* Footer with completion status */}
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-gray-700 space-y-2">
         <div className="text-xs text-gray-500">
           {visibleSteps.filter(s => isStepCompleted(s.step, state)).length} / {visibleSteps.length} steps complete
         </div>
+        {onStartOver && (
+          <button
+            type="button"
+            onClick={handleStartOverClick}
+            className={`w-full text-xs rounded-md px-2 py-1.5 border transition-colors ${
+              confirmingReset
+                ? 'bg-red-900/50 border-red-500 text-red-200 hover:bg-red-800/60'
+                : 'bg-transparent border-gray-600 text-gray-400 hover:border-red-500/60 hover:text-red-300'
+            }`}
+            aria-label={confirmingReset ? 'Confirm: erase all choices and start over' : 'Start over'}
+          >
+            {confirmingReset ? 'Erase all choices?' : '↺ Start Over'}
+          </button>
+        )}
       </div>
     </aside>
   );

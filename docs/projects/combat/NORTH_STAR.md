@@ -6,10 +6,11 @@ category: Gameplay Systems
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 11
 confidence: medium
 evidence: docs/projects/combat
-gap_signal: "G30 decision recorded 2026-06-10; implementation lane open — Code Modularization Audit owns the split plan, Combat contributes invariants/tests"
+gap_signal: "2 open gaps; G30 and CMA-G18 remain open after the G30 decision"
 protocol: living project doc set
 next_step: Contribute the Combat invariants and focused regression tests (combat rules, action sequencing, reaction behavior, combat log semantics) required by the Code Modularization Audit split plan before any code movement.
 agent_comments: "G30 Required Review Brief resolved 2026-06-10 (Option B): Code Modularization Audit owns the split plan; Combat's lane is invariants and preservation tests. See docs/projects/DECISION_BLITZ_2026-06-10.md D6."
@@ -33,7 +34,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-09
 workflow_gaps_reviewed: 2026-06-09
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -43,7 +44,7 @@ human_decision_required: "no"
 # Combat System North Star
 
 Status: active (G30 decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Why This Project Exists
 Combat has a live implementation split across systems, hooks, and UI surfaces that were added in different slices. This project doc keeps ownership, execution paths, and unresolved behavior gaps visible for next agents so future work does not restart discovery or collapse unfinished intent.
@@ -190,7 +191,7 @@ Proof after decision: A named split plan that lists files allowed to move, files
 
 ### Decision (2026-06-10)
 
-Outcome: **Option B — Code Modularization Audit owns the split plan** for `useAbilitySystem.ts` / `useCombatEngine.ts` (and any App-shell/provider movement routes through its cross-project plan). Combat's responsibility is to contribute the required invariants and focused regression tests (combat rules, action sequencing, reaction behavior, combat log semantics) before any code movement. Owner rationale: modularization is not Combat's directive.
+Outcome: **Option B Ã¢â‚¬â€ Code Modularization Audit owns the split plan** for `useAbilitySystem.ts` / `useCombatEngine.ts` (and any App-shell/provider movement routes through its cross-project plan). Combat's responsibility is to contribute the required invariants and focused regression tests (combat rules, action sequencing, reaction behavior, combat log semantics) before any code movement. Owner rationale: modularization is not Combat's directive.
 Decider: Remy (project owner), batched decision session.
 Record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D6).
 Effect: the G30 review gate is lifted; Combat's implementation lane is open for the invariants/tests contribution. Code movement itself still waits for the Code Modularization Audit split plan that names files allowed to move, files not allowed to move, and the preservation tests.
@@ -207,7 +208,7 @@ Effect: the G30 review gate is lifted; Combat's implementation lane is open for 
 |---|---|
 | Task | G30 decision recorded 2026-06-10 (D6): Code Modularization Audit owns the split plan; Combat's next slice is contributing the required invariants and focused regression tests before code movement. |
 | Acceptance criteria | A named Combat invariants/tests contribution covering combat rules, action sequencing, reaction behavior, and combat log semantics, handed to the Code Modularization Audit split plan. |
-| Allowed boundaries | Tests and invariant documentation only; do not split `useAbilitySystem.ts`, `useCombatEngine.ts`, or `App.tsx` during a normal Combat pass — code movement belongs to the Code Modularization Audit plan. |
+| Allowed boundaries | Tests and invariant documentation only; do not split `useAbilitySystem.ts`, `useCombatEngine.ts`, or `App.tsx` during a normal Combat pass Ã¢â‚¬â€ code movement belongs to the Code Modularization Audit plan. |
 | Stop condition | Stop after the invariants/tests contribution is recorded; do not move code until the Code Modularization Audit split plan names allowed files and preservation tests. |
 
 ## Resume Path for Cold Start

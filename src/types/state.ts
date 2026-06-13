@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 02:44:58
+ * Last Sync: 12/06/2026, 08:04:28
  * Dependents: state/reducers/craftingReducer.ts, types/index.ts, utils/world/sceneUtils.ts
  * Imports: None
  *
@@ -33,6 +33,7 @@ import { Stronghold } from './stronghold.js';
 import { NavalState, Ship } from './naval.js';
 import { CraftingState } from './crafting.js';
 import { JournalState } from './journal.js';
+import type { WorldDelta } from '../systems/worldforge/delta/types.js';
 // TODO(lint-intent): 'Notification' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
@@ -137,6 +138,14 @@ export interface PlayerWorldPosition {
   x: number;  // world meters (X axis)
   y: number;  // height (terrain Y)
   z: number;  // world meters (Z axis; maps to Y in 2D atlas coords)
+}
+
+/** Tile-scoped ground position in meters. Kept separate from continent-space playerWorldPos. */
+export interface PlayerGroundPosition {
+  tileX: number;
+  tileY: number;
+  xM: number;
+  zM: number;
 }
 
 // -----------------------------------------------------------------------------
@@ -336,4 +345,11 @@ export interface GameState {
   worldViewMode: WorldViewMode;
   /** Player's 3D world position (null when not in 3D mode). */
   playerWorldPos: PlayerWorldPosition | null;
+  /** Player's ground-mode camera anchor in tile-local meters, or null when unset. */
+  playerGroundPos?: PlayerGroundPosition | null;
+
+  // Worldforge replay log
+  // Plot/building edits are stored as JSON-safe deltas so regenerated village
+  // geometry can be replayed after loading a save.
+  worldforgeDeltas: WorldDelta[];
 }

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 12/06/2026, 23:50:22
+ * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * This file resolves damage applications on characters during combat.
  *
@@ -300,6 +316,7 @@ export class DamageCommand extends BaseEffectCommand {
       currentState = this.updateCharacter(currentState, target.id, {
         currentHP: updatedTarget.currentHP,
         tempHP: updatedTarget.tempHP,
+        temporaryHitPointSource: updatedTarget.temporaryHitPointSource,
         deathSaves: updatedTarget.deathSaves,
         statusEffects: updatedTarget.statusEffects,
         conditions: updatedTarget.conditions,

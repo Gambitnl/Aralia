@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Dialogue
 slug: dialogue
-status: active
-last_updated: "2026-06-10"
+Status: active
+last_updated: 2026-06-10
 iteration: 3
 source_agent: qoder-iteration2
 target_agent: next cold-start agent
@@ -46,7 +46,7 @@ docs/projects/dialogue/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Dialogue
 Project folder: docs/projects/dialogue
-Iteration: 3
+iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md

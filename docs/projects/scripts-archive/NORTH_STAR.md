@@ -7,6 +7,7 @@ main_category: Review / Archive
 subcategory: Deprecation Review
 status: active
 last_updated: 2026-06-05
+iteration: 2
 confidence: medium
 evidence: docs/projects/scripts-archive
 gap_signal: 2 open gaps

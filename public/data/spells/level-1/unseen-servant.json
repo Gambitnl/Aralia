@@ -156,7 +156,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Summons an unseen servant at a point within 60 feet using the row's summoning effect; no slot scaling is currently modeled.",
+      "description": "Summons an unseen servant in an unoccupied ground space within 60 feet; no slot-scaling changes are modeled for this summoning effect.",
       "conditionalEndings": [
         {
           "trigger": "created_entity_drops_to_0_hp",

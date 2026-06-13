@@ -177,6 +177,74 @@ describe('SpellIntegrityValidator', () => {
       const errors = SpellIntegrityValidator.validate(badSpell);
       expect(errors).toContain('Effect Description Placeholder: effect 0 uses generic placeholder "See description."');
     });
+
+    it('fails if an effect description leaks importer scaffold language', () => {
+      const badSpell = {
+        id: 'scaffold-effect-description',
+        duration: { concentration: false },
+        tags: [],
+        school: 'Evocation',
+        targeting: { type: 'single' },
+        effects: [
+          {
+            type: 'DAMAGE',
+            description: 'Deals 3d8 Radiant damage on the row\'s current hit-based resolution.'
+          }
+        ]
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Effect Description Internal Scaffold: effect 0 uses importer-facing wording "row\'s current hit-based resolution"');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Unit tests: Effect Target Filter Completeness rule
+  // -------------------------------------------------------------------------
+  // These tests keep direct-target spell restrictions visible at the validator
+  // layer, not only in the all-spell corpus test. If a spell says "only
+  // Humanoids" at target selection time, a direct effect that acts on that same
+  // target should carry the same filter or be explicitly classified elsewhere.
+  describe('Rule: Effect Target Filter Completeness', () => {
+
+    it('fails if a direct restricted effect omits the spell-level creature filter', () => {
+      const badSpell = {
+        id: 'direct-restricted-effect-filter-gap',
+        duration: { concentration: false },
+        tags: [],
+        school: 'Enchantment',
+        targeting: {
+          type: 'single',
+          filter: {
+            creatureTypes: ['Humanoid']
+          }
+        },
+        effects: [
+          {
+            type: 'UTILITY',
+            description: 'Directly charms the selected Humanoid target.',
+            condition: {
+              type: 'save',
+              targetFilter: {
+                creatureTypes: []
+              }
+            }
+          }
+        ]
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Effect Target Filter Gap: effect 0 does not repeat spell-level creatureTypes restriction');
+    });
+
+    it('exposes the classified residual restricted-filter mismatches as validator-owned data', () => {
+      // The production validator owns this list because spell JSON validation
+      // and the corpus regression must agree about which remaining mismatches
+      // are semantic exceptions rather than direct data omissions.
+      expect(SpellIntegrityValidator.getClassifiedRestrictedFilterMismatchKeys()).toContain('plant-growth:0:creatureTypes');
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -222,6 +290,20 @@ describe('SpellIntegrityValidator', () => {
       const descriptionFailures = failures.filter(f => f.includes('Effect Description'));
       expect(descriptionFailures).toHaveLength(0);
     });
+
+    it('keeps Hold Person Humanoid restriction on the effect-level Paralyzed payload', () => {
+      const holdPerson = spells.find(spell => spell.id === 'hold-person');
+      const paralyzedEffect = holdPerson?.effects.find(effect =>
+        effect.type === 'STATUS_CONDITION'
+        && effect.statusCondition?.name === 'Paralyzed'
+      );
+
+      // The top-level target picker already says Hold Person can only choose a
+      // Humanoid. The effect row must repeat that creature gate so future
+      // multi-target, delayed, or retargeted execution paths do not apply the
+      // Paralyzed condition to a non-Humanoid after initial selection.
+      expect(paralyzedEffect?.condition.targetFilter?.creatureTypes).toContain('Humanoid');
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -238,6 +320,129 @@ describe('SpellIntegrityValidator', () => {
     for (let level = 0; level <= 9; level++) {
       allSpells.push(...getSpells(level));
     }
+
+    it('keeps restricted status-condition creature filters on effect payloads', () => {
+      const animalFriendship = allSpells.find(spell => spell.id === 'animal-friendship');
+      const animalFriendshipCharmed = animalFriendship?.effects.find(effect =>
+        effect.type === 'STATUS_CONDITION'
+        && effect.statusCondition?.name === 'Charmed'
+      );
+
+      const fastFriends = allSpells.find(spell => spell.id === 'fast-friends');
+      const fastFriendsCharmed = fastFriends?.effects.find(effect =>
+        effect.type === 'STATUS_CONDITION'
+        && effect.statusCondition?.name === 'Charmed'
+      );
+
+      // These spell-level target pickers already restrict the legal target by
+      // creature family. The status-condition effect must repeat that same gate
+      // so delayed, repeated, or retargeted execution paths cannot apply the
+      // condition after the original target selection context is gone.
+      expect(animalFriendshipCharmed?.condition.targetFilter?.creatureTypes).toContain('Beast');
+      expect(fastFriendsCharmed?.condition.targetFilter?.creatureTypes).toContain('Humanoid');
+    });
+
+    it('keeps direct restricted utility creature filters on effect payloads', () => {
+      const getEffectFilter = (spellId: string, effectIndex: number) => {
+        const spell = allSpells.find(candidate => candidate.id === spellId);
+        return spell?.effects[effectIndex]?.condition.targetFilter;
+      };
+
+      // These utility rows still act on the originally restricted creature. The
+      // effect-level filters repeat that restriction so later command creation,
+      // delayed execution, or audit tooling can understand the legal target even
+      // without re-reading the top-level spell target picker.
+      expect(getEffectFilter('charm-person', 1)?.creatureTypes).toContain('Humanoid');
+      expect(getEffectFilter('animal-messenger', 0)?.creatureTypes).toContain('Beast');
+      expect(getEffectFilter('animal-messenger', 0)?.sizes).toContain('Tiny');
+      expect(getEffectFilter('beast-sense', 0)?.creatureTypes).toContain('Beast');
+      expect(getEffectFilter('calm-emotions', 1)?.creatureTypes).toContain('Humanoid');
+      expect(getEffectFilter('crown-of-madness', 0)?.creatureTypes).toContain('Humanoid');
+      expect(getEffectFilter('dominate-person', 0)?.creatureTypes).toContain('Humanoid');
+      expect(getEffectFilter('planar-binding', 0)?.creatureTypes).toEqual(
+        expect.arrayContaining(['Celestial', 'Elemental', 'Fey', 'Fiend'])
+      );
+    });
+
+    it('keeps Simulacrum creation filters on original-creature effect payloads', () => {
+      const simulacrum = allSpells.find(spell => spell.id === 'simulacrum');
+      const summoningFilter = simulacrum?.effects[0]?.condition.targetFilter;
+      const creationDetailFilter = simulacrum?.effects[2]?.condition.targetFilter;
+
+      // Simulacrum chooses one Beast or Humanoid as the original creature. The
+      // creation effects need that same gate, but the repair effect is not
+      // asserted here because it later acts on the created simulacrum instead of
+      // the original creature.
+      expect(summoningFilter?.creatureTypes).toEqual(expect.arrayContaining(['Beast', 'Humanoid']));
+      expect(creationDetailFilter?.creatureTypes).toEqual(expect.arrayContaining(['Beast', 'Humanoid']));
+    });
+
+    it('hard-fails unclassified restricted-filter mismatches', () => {
+      const restrictedFilterMismatchKeys: string[] = [];
+      const restrictedFilterKeys = ['creatureTypes', 'excludeCreatureTypes', 'sizes', 'alignments'] as const;
+      const classifiedRestrictedFilterMismatches = new Set(
+        SpellIntegrityValidator.getClassifiedRestrictedFilterMismatchKeys()
+      );
+
+      const normalizeFilterValues = (value: unknown): string[] => (
+        Array.isArray(value)
+          ? value.filter(item => item !== 'not_applicable').map(String).sort()
+          : []
+      );
+
+      const sameFilterValues = (left: unknown, right: unknown): boolean => {
+        const normalizedLeft = normalizeFilterValues(left);
+        const normalizedRight = normalizeFilterValues(right);
+
+        return normalizedLeft.length === normalizedRight.length
+          && normalizedLeft.every((value, index) => value === normalizedRight[index]);
+      };
+
+      allSpells.forEach(spell => {
+        const spellFilter = spell.targeting.filter;
+        const restrictedKeys = restrictedFilterKeys.filter(key =>
+          normalizeFilterValues(spellFilter?.[key]).length > 0
+        );
+
+        if (restrictedKeys.length === 0) {
+          return;
+        }
+
+        spell.effects.forEach((effect, index) => {
+          const effectFilter = effect.condition?.targetFilter;
+
+          if (!effectFilter) {
+            return;
+          }
+
+          restrictedKeys.forEach(key => {
+            if (!sameFilterValues(spellFilter?.[key], effectFilter[key])) {
+              restrictedFilterMismatchKeys.push(`${spell.id}:${index}:${key}`);
+            }
+          });
+        });
+      });
+
+      const unclassifiedMismatches = restrictedFilterMismatchKeys.filter(key =>
+        !classifiedRestrictedFilterMismatches.has(key)
+      );
+      const staleClassifications = SpellIntegrityValidator.getClassifiedRestrictedFilterMismatchKeys().filter(key =>
+        !restrictedFilterMismatchKeys.includes(key)
+      );
+
+      // Direct-target restricted effects should either repeat the relevant
+      // creature/size/alignment gate on their effect payload or be explicitly
+      // classified as a semantic exception. This keeps future copy-paste target
+      // filter omissions visible without pretending that plant/object, aura,
+      // ongoing-area, repair-target, and form-choice rows all have the same
+      // effect-target semantics.
+      expect(unclassifiedMismatches).toHaveLength(0);
+
+      // If a future data/modeling pass resolves one of the semantic exceptions,
+      // this makes the old allowlist entry fail so the classification list does
+      // not become permanent invisible debt.
+      expect(staleClassifications).toHaveLength(0);
+    });
 
     it('hard-fails monolithic spell effects across all spells', () => {
       const monolithicFailures: string[] = [];
@@ -277,6 +482,29 @@ describe('SpellIntegrityValidator', () => {
       }
 
       expect(descriptionFailures).toHaveLength(0);
+    });
+
+    it('hard-fails importer scaffold wording in effect descriptions across all spells', () => {
+      const scaffoldFailures: string[] = [];
+
+      allSpells.forEach(spell => {
+        const errors = filterReviewedMonolithicClearance(spell, SpellIntegrityValidator.validate(spell));
+        const relevantErrors = errors.filter(error => error.includes('Effect Description Internal Scaffold'));
+
+        if (relevantErrors.length > 0) {
+          scaffoldFailures.push(`${spell.id || spell.name}: ${relevantErrors.join(', ')}`);
+        }
+      });
+
+      // Importer-facing phrases such as "row's current" and "scaffold" are not
+      // useful in runtime logs or UI rows. This keeps future repair batches from
+      // replacing blank descriptions with text that still describes the migration
+      // machinery rather than the spell effect the player sees.
+      if (scaffoldFailures.length > 0) {
+        console.warn(`Effect Description Internal Scaffold Failures (${scaffoldFailures.length}):\n${scaffoldFailures.join('\n')}`);
+      }
+
+      expect(scaffoldFailures).toHaveLength(0);
     });
   });
 });

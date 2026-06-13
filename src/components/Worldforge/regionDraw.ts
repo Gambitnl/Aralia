@@ -1,11 +1,11 @@
-﻿// @dependencies-start
+// @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/06/2026, 09:46:53
- * Dependents: components/Worldforge/RegionMapView.tsx
- * Imports: 1 files
+ * Last Sync: 12/06/2026, 09:51:50
+ * Dependents: components/Worldforge/LocalMapView.tsx, components/Worldforge/RegionMapView.tsx
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,6 +33,7 @@
  */
 
 import type { RegionArtifact } from "../../systems/worldforge/artifacts";
+import { smoothRegionRiverCenterline } from "../../systems/worldforge/region/riverCenterlineSmoothing";
 
 // ============================================================================
 // Types
@@ -219,6 +220,30 @@ export function drawRegion(
   // biomeColor the legacy hypsometric palette is used (tests/back-compat).
   const biomeRGB = options.biomeColor ? parseHexColor(options.biomeColor) : null;
 
+  // Multi-biome blend (2026-06-12): when the artifact carries member-cell
+  // biome sites, land near a biome border IDW-shades toward the neighbor's
+  // hue instead of wearing the anchor color wall-to-wall. Only active in
+  // coherence mode with ≥2 parsable sites; otherwise the single tint (or
+  // hypsometric legacy) path is untouched.
+  const blendSites =
+    biomeRGB && region.biomeSites && region.biomeSites.length >= 2
+      ? region.biomeSites
+          .map((s) => ({ x: s.x, y: s.y, rgb: parseHexColor(s.color) }))
+          .filter((s): s is { x: number; y: number; rgb: [number, number, number] } => s.rgb !== null)
+      : null;
+  const idwTint = (fx: number, fy: number): [number, number, number] => {
+    let wr = 0, wg = 0, wb = 0, wsum = 0;
+    for (const s of blendSites!) {
+      const d2 = (s.x - fx) * (s.x - fx) + (s.y - fy) * (s.y - fy) + 1;
+      const w = 1 / d2;
+      wr += s.rgb[0] * w;
+      wg += s.rgb[1] * w;
+      wb += s.rgb[2] * w;
+      wsum += w;
+    }
+    return [wr / wsum, wg / wsum, wb / wsum];
+  };
+
   // Render each grid cell as a rectangle
   const rectW = resolutionFt * scale + 0.6; // 0.6 overlap prevents sub-pixel grid gaps
   const rectH = resolutionFt * scale + 0.6;
@@ -258,10 +283,11 @@ export function drawRegion(
         // Biome-tinted relief: the atlas hue, lightness driven by the local
         // elevation stretch (valleys darker, heights lighter, faint snow
         // blend at the very top of the local range).
+        const tint = blendSites && blendSites.length >= 2 ? idwTint(feetX, feetY) : biomeRGB;
         const lift = 0.72 + 0.56 * hStretched;
-        rBase = biomeRGB[0] * lift;
-        gBase = biomeRGB[1] * lift;
-        bBase = biomeRGB[2] * lift;
+        rBase = tint[0] * lift;
+        gBase = tint[1] * lift;
+        bBase = tint[2] * lift;
         if (hStretched > 0.9) {
           const t = (hStretched - 0.9) / 0.1;
           rBase = rBase + (245 - rBase) * t * 0.55;
@@ -312,12 +338,15 @@ export function drawRegion(
     const { centerline, widthFt } = river;
     if (centerline.length < 2) continue;
 
+    // WF-G5: render the same smoothed river band that the generator carves
+    // into terrain, so tight bends no longer show water beside its channel.
+    const drawCenterline = smoothRegionRiverCenterline(centerline);
     const w = Math.max(1.5, widthFt * scale);
     const trace = () => {
       ctx.beginPath();
-      ctx.moveTo(tx(centerline[0][0]), ty(centerline[0][1]));
-      for (let i = 1; i < centerline.length; i++) {
-        ctx.lineTo(tx(centerline[i][0]), ty(centerline[i][1]));
+      ctx.moveTo(tx(drawCenterline[0][0]), ty(drawCenterline[0][1]));
+      for (let i = 1; i < drawCenterline.length; i++) {
+        ctx.lineTo(tx(drawCenterline[i][0]), ty(drawCenterline[i][1]));
       }
       ctx.stroke();
     };
@@ -482,4 +511,3 @@ export function drawRegion(
     ctx.restore();
   });
 }
-

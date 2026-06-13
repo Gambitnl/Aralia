@@ -141,7 +141,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Restores 4d8 + 15 hit points through the row's always-on healing scaffold.",
+      "description": "Restores 4d8 + 15 hit points to the target as the spell's immediate healing effect.",
       "conditionalEndings": []
     },
     {

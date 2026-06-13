@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 12/06/2026, 23:50:22
+ * Dependents: commands/factory/SpellCommandFactory.ts
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/commands/effects/ReactiveEffectCommand.ts
  * Command for handling effects that trigger based on future events or require sustaining.
@@ -39,6 +55,8 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
         newTriggers.push({
             id: triggerId,
             sourceEffect: this.effect,
+            sourceSpellId: this.context.spellId,
+            sourceSpellName: this.context.spellName,
             casterId: this.context.caster.id,
             targetId: this.context.targets[0]?.id, // Bind to specific target
             createdTurn: state.turnState.currentTurn,

@@ -1,4 +1,4 @@
-# Naval UI Living Tracker
+﻿# Naval UI Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -16,7 +16,6 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action |
 |---|---|---|---|---|---|---|
-| U1 | done | Add initial Naval UI project docs from living-project protocol | Worker B | 2026-05-31 | `docs/projects/naval-ui/*.md` | Keep this package updated with UI-surface drift |
 | U2 | active | Document naval UI implementation state, integration points, and current gaps | Worker B | 2026-06-05 | `docs/projects/naval-ui/*.md`, `src/components/Naval`, `src/components/layout/GameModals.tsx`, `src/state/reducers` | Keep the refreshed handoff aligned and trace the ShipPane action decision against reducer behavior before adding controls |
 | U3 | active | Track gaps that block Voyage + crew + status workflows from becoming usable from UI | Worker B | 2026-06-05 | `src/state/reducers/navalReducer.ts`, `src/state/actionTypes.ts`, `src/data/naval/*` | Add UI-safe proof checks in the next implementation slice |
 

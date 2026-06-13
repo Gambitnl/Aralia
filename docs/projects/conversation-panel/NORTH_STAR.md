@@ -6,7 +6,8 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: partial
-last_updated: 2026-06-08
+last_updated: 2026-06-12
+iteration: 3
 confidence: medium
 evidence: docs/projects/conversation-panel
 gap_signal: 1 open gap
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # Conversation Panel North Star
 
 Status: active  
-Last updated: 2026-06-08
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 
@@ -143,3 +144,16 @@ Keep durable intent and decisions in project docs. Avoid adding runtime log dump
 
 - The implementation slice for `START_CONVERSATION` trigger path and `isPlayerTurn` gating is now in place.
 - Any remaining cross-flow sequencing questions belong to `CMA-G12`; this project is now at evidence-complete handoff state.
+
+## Required Review Brief
+
+Title: Conversation Panel partial status
+Question: What must happen before Conversation Panel can return to fully active/complete status?
+Issue: The project is partial because prior implementation closed the known conversation gaps, but the next slice still depends on preserving activeConversation/activeDialogueSession exclusivity intent in CMA-G12.
+Current behavior: GAPS.md shows CP-001 through CP-003 done, while the next step says to close the current slice and continue the next planned project action.
+Why blocked: The status should stay partial until the active slice is closed and the exclusivity boundary is proven in its owner path.
+Option A: Keep partial and route the exclusivity continuation through the named CMA-G12 owner.
+Option B: Mark active only when a new Conversation Panel implementation slice is selected with proof.
+Evidence: NORTH_STAR.md next_step; GAPS.md CP-001..CP-003 done rows.
+Decision owner: Conversation Panel owner / CMA-G12 owner
+Proof after decision: Tracker names the next active slice and links the exclusivity proof path.

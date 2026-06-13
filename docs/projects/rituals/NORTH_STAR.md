@@ -7,6 +7,7 @@ main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
 last_updated: 2026-06-05
+iteration: 2
 confidence: high
 evidence: docs/projects/rituals
 gap_signal: "8 open gaps remain; start-path wiring, typed events, interruption branches, and ritual economy math are still open"

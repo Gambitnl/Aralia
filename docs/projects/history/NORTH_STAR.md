@@ -7,6 +7,7 @@ main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
 last_updated: 2026-06-05
+iteration: 2
 confidence: medium
 evidence: docs/projects/history/NORTH_STAR.md
 gap_signal: "4 open gaps; T2 still needs a complete producer map"

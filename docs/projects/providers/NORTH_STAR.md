@@ -6,13 +6,14 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 3
 confidence: medium
 evidence: docs/projects/providers
-gap_signal: "G2/G3 resolved; G5 decided 2026-06-10 (D7, Option B); G4 unblocked"
+gap_signal: "3 open gaps; G1, G4, and G5 remain open after G2/G3 resolution"
 protocol: living project doc set
 next_step: "Implement the approved app-shell split (Option B): move provider composition into a dedicated app-shell module with preservation tests for provider order, DataLoaderGate, and GameProvider boundaries; then run the G4 GlossaryContext README sync."
-agent_comments: "G2/G3 provider startup and boundary docs are resolved; G5 decided 2026-06-10 (D7) — implementation lane open; G4 source-doc sync is unblocked."
+agent_comments: "G2/G3 provider startup and boundary docs are resolved; G5 decided 2026-06-10 (D7) Ã¢â‚¬â€ implementation lane open; G4 source-doc sync is unblocked."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -28,7 +29,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-08
 workflow_gaps_reviewed: 2026-06-08
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # Providers North Star
 
 Status: active (decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Why This Project Exists
 
@@ -75,7 +76,7 @@ Required verification: docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-08 docs-only review of `App.tsx`, `AppProviders.tsx`, `DataLoaderGate.tsx`, `SpellContext.tsx`, and `GlossaryContext.tsx`
 Workflow gaps reviewed: 2026-06-08
-Agent comments: G2/G3 provider startup and boundary docs are resolved; G5 decided 2026-06-10 (D7) — implementation lane open; G4 source-doc sync is unblocked.
+Agent comments: G2/G3 provider startup and boundary docs are resolved; G5 decided 2026-06-10 (D7) Ã¢â‚¬â€ implementation lane open; G4 source-doc sync is unblocked.
 
 ## Required Review Brief
 
@@ -100,7 +101,7 @@ Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D7 
   app-shell/provider module, with explicit preservation tests covering provider order,
   `DataLoaderGate` behavior, and `GameProvider` boundaries (joint decision with Layout
   G3/G4; `isUIInteractive` stays a documented compatibility pass-through on the Layout side).
-- The split is approved only with the preservation tests — they are part of the scope.
+- The split is approved only with the preservation tests Ã¢â‚¬â€ they are part of the scope.
 
 Status: decision recorded 2026-06-10; implementation lane open. `G4` (GlossaryContext
 README sync) is unblocked by this decision.
@@ -152,7 +153,7 @@ Out of scope:
 - `SpellContext` and `GlossaryContext` consumers exist across Character Creator, Combat, and glossary UI.
 - Ownership boundary for `GameProvider` relative to provider wrappers is documented in this file, and the startup matrix now reflects the current non-blocking degraded-state behavior.
 - `G4` remains a useful source-doc sync slice, but this project is review-required until the G5 provider-boundary decision is recorded.
-- Update 2026-06-10: the G5 decision is recorded (D7, Option B) — the review gate is cleared, the app-shell split implementation lane is open, and `G4` is unblocked.
+- Update 2026-06-10: the G5 decision is recorded (D7, Option B) Ã¢â‚¬â€ the review gate is cleared, the app-shell split implementation lane is open, and `G4` is unblocked.
 
 ## Global Gap Imports
 
@@ -203,7 +204,7 @@ Keep this project scope in these files and direct code evidence references.
 | Follow-up | Why it matters | Owner | Needed by |
 |---|---|---|---|
 | `G4` GlossaryContext README sync | The current README still needs to reflect the live fetch path and empty-list fallback behavior. | Worker B | review gate cleared 2026-06-10 (D7); ready now |
-| `G5` app-shell/provider modularization decision | The split stays blocked until a human decision is recorded. Decided 2026-06-10 (D7, Option B) — implementation lane open. | human/product owner + providers/layout owners | decision recorded 2026-06-10 |
+| `G5` app-shell/provider modularization decision | The split stays blocked until a human decision is recorded. Decided 2026-06-10 (D7, Option B) Ã¢â‚¬â€ implementation lane open. | human/product owner + providers/layout owners | decision recorded 2026-06-10 |
 
 ## Resume Path For A Cold Agent
 
@@ -211,7 +212,7 @@ Keep this project scope in these files and direct code evidence references.
 2. Read docs/projects/providers/TRACKER.md.
 3. Read docs/projects/providers/GAPS.md.
 4. Check `docs/projects/PROJECT_TRACKER.md` and `docs/projects/GLOBAL_GAPS.md`.
-5. Continue only after the provider-boundary decision is recorded; then run the `G4` source-doc sync for `GlossaryContext.README.md` if still needed. (The decision was recorded 2026-06-10 — D7, Option B — so the app-shell split slice and the `G4` sync are both open.)
+5. Continue only after the provider-boundary decision is recorded; then run the `G4` source-doc sync for `GlossaryContext.README.md` if still needed. (The decision was recorded 2026-06-10 Ã¢â‚¬â€ D7, Option B Ã¢â‚¬â€ so the app-shell split slice and the `G4` sync are both open.)
 
 
 

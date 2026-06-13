@@ -219,7 +219,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Prone unless the target succeeds on a Dexterity save for the row's special duration.",
+      "description": "Applies Prone unless the target succeeds on a Dexterity save; the condition uses the special duration encoded on this effect.",
       "conditionalEndings": []
     }
   ],

@@ -115,6 +115,8 @@ describe('combatAI', () => {
     // Should move towards 9,9
     expect(result.targetPosition?.x).toBeGreaterThan(0);
     expect(result.targetPosition?.y).toBeGreaterThan(0);
+    expect(result.movementPath?.[0]).toEqual(hero.position);
+    expect(result.movementPath?.[result.movementPath.length - 1]).toEqual(result.targetPosition);
   });
 
   it('should not plan movement onto an occupied enemy tile', () => {
@@ -162,6 +164,76 @@ describe('combatAI', () => {
 
     expect(result.type).toBe('ability');
     expect(result.abilityId).toBe(basicAttack.id);
+    expect(result.targetCharacterIds).toContain(enemy.id);
+  });
+
+  it('should use top-level creatureTypes when filtering restricted AI targets', () => {
+    const humanoidOnlyAttack: Ability = {
+      ...basicAttack,
+      id: 'hold-person-like-strike',
+      name: 'Humanoid Lock',
+      validCreatureTypes: ['Humanoid']
+    };
+    hero = createMockCombatCharacter({
+      id: 'hero',
+      team: 'player',
+      position: { x: 0, y: 0 },
+      abilities: [humanoidOnlyAttack]
+    });
+
+    // Player-facing spell targeting reads top-level creatureTypes. The AI must
+    // read the same canonical field so a Humanoid-only spell does not skip a
+    // legal target just because legacy stats.creatureTypes is absent.
+    enemy = createMockCombatCharacter({
+      id: 'bandit',
+      team: 'enemy',
+      position: { x: 0, y: 2 },
+      creatureTypes: ['Humanoid'],
+      stats: {
+        ...createMockCombatCharacter({ id: 'stats-template' }).stats,
+        creatureTypes: undefined
+      }
+    });
+
+    const result = evaluateCombatTurn(hero, [hero, enemy], mapData);
+
+    expect(result.type).toBe('ability');
+    expect(result.abilityId).toBe(humanoidOnlyAttack.id);
+    expect(result.targetCharacterIds).toContain(enemy.id);
+  });
+
+  it('should use the shared creature-type path for Beast-restricted AI targets', () => {
+    const beastOnlyAttack: Ability = {
+      ...basicAttack,
+      id: 'dominate-beast-like-strike',
+      name: 'Beast Lock',
+      validCreatureTypes: ['Beast']
+    };
+    hero = createMockCombatCharacter({
+      id: 'hero',
+      team: 'player',
+      position: { x: 0, y: 0 },
+      abilities: [beastOnlyAttack]
+    });
+
+    // Dominate Beast-style targeting uses the same taxonomy path as Humanoid
+    // spells. This protects the second restricted family named by the tracker
+    // without claiming full enum normalization.
+    enemy = createMockCombatCharacter({
+      id: 'wolf',
+      team: 'enemy',
+      position: { x: 0, y: 2 },
+      creatureTypes: ['Beast'],
+      stats: {
+        ...createMockCombatCharacter({ id: 'stats-template' }).stats,
+        creatureTypes: undefined
+      }
+    });
+
+    const result = evaluateCombatTurn(hero, [hero, enemy], mapData);
+
+    expect(result.type).toBe('ability');
+    expect(result.abilityId).toBe(beastOnlyAttack.id);
     expect(result.targetCharacterIds).toContain(enemy.id);
   });
 
@@ -277,6 +349,163 @@ describe('combatAI', () => {
     expect(result.type).toBe('ability');
     expect(result.abilityId).toBe(basicAttack.id);
     expect(result.targetCharacterIds).toContain(enemy.id);
+  });
+
+  it('should end the turn instead of attacking while under Command: Halt', () => {
+    hero = createMockCombatCharacter({
+      id: 'hero',
+      team: 'player',
+      position: { x: 0, y: 0 },
+      abilities: [basicAttack],
+      statusEffects: [{
+        id: 'command-halt-status',
+        name: 'Command: Halt',
+        type: 'debuff',
+        duration: 1,
+        source: 'Command',
+        sourceCasterId: 'cleric-command-caster',
+        description: 'The target must halt and take no action.',
+        effect: { type: 'skip_turn' }
+      }]
+    });
+
+    enemy = createMockCombatCharacter({
+      id: 'goblin',
+      team: 'enemy',
+      position: { x: 0, y: 2 }
+    });
+
+    const result = evaluateCombatTurn(hero, [hero, enemy], mapData);
+
+    // Command: Halt is a control directive, not a normal tactical preference.
+    // The planner should obey it before scoring attacks or movement.
+    expect(result.type).toBe('end_turn');
+  });
+
+  it('should stay prone and end the turn instead of attacking while under Command: Grovel', () => {
+    hero = createMockCombatCharacter({
+      id: 'hero',
+      team: 'player',
+      position: { x: 0, y: 0 },
+      abilities: [basicAttack],
+      statusEffects: [{
+        id: 'command-grovel-status',
+        name: 'Command: Grovel',
+        type: 'debuff',
+        duration: 1,
+        source: 'Command',
+        sourceCasterId: 'cleric-command-caster',
+        description: 'The target must grovel and end its turn.',
+        effect: { type: 'skip_turn' }
+      }]
+    });
+
+    enemy = createMockCombatCharacter({
+      id: 'goblin',
+      team: 'enemy',
+      position: { x: 0, y: 2 }
+    });
+
+    const result = evaluateCombatTurn(hero, [hero, enemy], mapData);
+
+    // Command: Grovel should keep the affected creature from picking a normal
+    // attack after it has been forced prone.
+    expect(result.type).toBe('end_turn');
+  });
+
+  it('should move away from the command caster while under Command: Flee', () => {
+    const commandCaster = createMockCombatCharacter({
+      id: 'cleric-command-caster',
+      team: 'enemy',
+      position: { x: 4, y: 5 }
+    });
+    hero = createMockCombatCharacter({
+      id: 'hero',
+      team: 'player',
+      position: { x: 5, y: 5 },
+      abilities: [basicAttack],
+      statusEffects: [{
+        id: 'command-flee-status',
+        name: 'Command: Flee',
+        type: 'debuff',
+        duration: 1,
+        source: 'Command',
+        sourceCasterId: commandCaster.id,
+        description: 'The target must move away from the command caster.',
+        effect: { type: 'condition' }
+      }]
+    });
+
+    const result = evaluateCombatTurn(hero, [hero, commandCaster], mapData);
+
+    // Flee is a movement directive tied to the command caster, not a normal AI
+    // preference. The chosen move should increase distance from that caster.
+    expect(result.type).toBe('move');
+    expect(result.targetPosition?.x).toBeGreaterThan(hero.position.x);
+    expect(result.movementPath?.[0]).toEqual(hero.position);
+  });
+
+  it('should move toward the command caster while under Command: Approach', () => {
+    const commandCaster = createMockCombatCharacter({
+      id: 'cleric-command-caster',
+      team: 'enemy',
+      position: { x: 4, y: 5 }
+    });
+    hero = createMockCombatCharacter({
+      id: 'hero',
+      team: 'player',
+      position: { x: 8, y: 5 },
+      abilities: [basicAttack],
+      statusEffects: [{
+        id: 'command-approach-status',
+        name: 'Command: Approach',
+        type: 'debuff',
+        duration: 1,
+        source: 'Command',
+        sourceCasterId: commandCaster.id,
+        description: 'The target must move toward the command caster.',
+        effect: { type: 'condition' }
+      }]
+    });
+
+    const result = evaluateCombatTurn(hero, [hero, commandCaster], mapData);
+
+    // Approach is caster-relative and should override a normal in-range attack.
+    // The target should spend movement closing distance to the command caster.
+    expect(result.type).toBe('move');
+    expect(result.targetPosition?.x).toBeLessThan(hero.position.x);
+    expect(result.movementPath?.[0]).toEqual(hero.position);
+  });
+
+  it('should end the turn instead of attacking while under Command: Drop', () => {
+    hero = createMockCombatCharacter({
+      id: 'hero',
+      team: 'player',
+      position: { x: 0, y: 0 },
+      abilities: [basicAttack],
+      statusEffects: [{
+        id: 'command-drop-status',
+        name: 'Command: Drop',
+        type: 'debuff',
+        duration: 1,
+        source: 'Command',
+        sourceCasterId: 'cleric-command-caster',
+        description: 'The target must drop what it is holding and end its turn.',
+        effect: { type: 'skip_turn' }
+      }]
+    });
+
+    enemy = createMockCombatCharacter({
+      id: 'goblin',
+      team: 'enemy',
+      position: { x: 0, y: 2 }
+    });
+
+    const result = evaluateCombatTurn(hero, [hero, enemy], mapData);
+
+    // Drop should consume the commanded turn just like Halt/Grovel. Held-item
+    // mutation is still separate; this proves AI obedience.
+    expect(result.type).toBe('end_turn');
   });
 
   it('should prioritize killing blow', () => {

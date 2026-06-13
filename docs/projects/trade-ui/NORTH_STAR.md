@@ -6,10 +6,11 @@ category: active project
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: unknown
 evidence: "docs/projects/trade-ui/TRACKER.md; docs/projects/trade-ui/GAPS.md"
-gap_signal: present
+gap_signal: 4 open gaps; pricing, typed events, haggling UI, and route status assumptions remain open
 protocol: living-project
 next_step: Resume from TRACKER.md and keep the gap log aligned.
 agent_comments: ""
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # Trade UI North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 

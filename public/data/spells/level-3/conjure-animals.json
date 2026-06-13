@@ -178,7 +178,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Summons creatures through the row's current always-on summoning scaffold.",
+      "description": "Summons creatures through the persistent summoning effect; current data keeps form/count choice and richer control behavior as separate follow-up work.",
       "conditionalEndings": []
     }
   ],

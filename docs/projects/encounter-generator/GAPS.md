@@ -1,4 +1,4 @@
-# Encounter Generator Gap Registry
+﻿# Encounter Generator Gap Registry
 
 Status: review-required
 Last updated: 2026-06-09
@@ -9,9 +9,6 @@ Use this file for durable unresolved findings that belong directly to encounter 
 
 | Gap ID | Status | Classification | Owner | Owning tracker | Found during | Gap | Evidence | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | done | adjacent_follow_up | Worker B | `TRACKER.md` | Seed iteration | Seedability was missing in bestiary/AI fallback/bestiary reroll paths | `src/utils/world/bestiaryEncounterGenerator.ts`, `src/services/gemini/encounters.ts`, `src/services/geminiServiceFallback.ts`, `src/components/Combat/EncounterModal.tsx` | Replays could not be reproduced for issue reports or deterministic validation | Use deterministic `seed` flow and stable bestiary rerolls in all local generation and fallback paths | `src/services/__tests__/geminiServiceFallback.test.ts`, `src/utils/world/__tests__/bestiaryEncounterGenerator.test.ts` |
-| G2 | done | in_scope_now | Worker B | `TRACKER.md` | Seed iteration | Difficulty policy across paths was not explicitly documented as a single source of truth | `src/utils/combat/encounterDifficulty.ts`, `src/utils/world/encounterUtils.ts`, `src/components/Combat/EncounterModal.tsx`, `src/utils/world/bestiaryEncounterGenerator.ts` | Without an explicit contract, modal tiers and rebuild output can diverge as implementations evolve | Enforce `calculateDifficulty` in generation verification paths and add focused test coverage | `src/utils/world/__tests__/bestiaryEncounterGenerator.test.ts`, `src/services/__tests__/geminiServiceFallback.test.ts` |
-| G3 | done | support_needed_now | Worker B | `TRACKER.md` | Scope audit | EncounterGenerator runtime surface was larger than implementation reality | `src/components/EncounterGenerator/PartyManager.tsx`, `src/components/Combat/EncounterModal.tsx` | Scope confusion can cause duplicated or abandoned work between UI and runtime ownership | Record scope boundary in NORTH_STAR and keep this project scoped to encounter runtime ownership | `NORTH_STAR.md` |
 | G4 | blocked_human_decision | in_scope_now | Worker B | `TRACKER.md` | Seed iteration | Strict end-to-end deterministic AI encounter generation is not guaranteed because provider output can vary despite fixed prompt/seed | `src/services/gemini/encounters.ts`, `src/services/geminiServiceFallback.ts`, `src/hooks/actions/handleEncounter.ts` | Replay workflows can still diverge whenever Gemini returns a different valid encounter for the same seed and same constraints | Product decision required: define if full end-to-end replay guarantees are needed before advancing to cross-session encounter sharing | Review task update required; capture decision in tracker next iteration |
 
 ## Classification Reference

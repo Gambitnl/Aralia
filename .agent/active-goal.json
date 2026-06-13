@@ -1,12 +1,13 @@
 {
-  "name": "resume-journey-flow",
-  "nudge": "[GOAL REMINDER] Active goal: fix the resume-journey flow. Read .agent/GOAL-resume-journey.md for the standard and .agent/resume-journey/TRACKER.md for the live task frontier — trust the dated statuses there. If the audit task is still open, run it first: symptoms before fixes. Done means: TRACKER.md current, GAPS.md logs out-of-scope finds, every fix has reproducible before/after evidence (capture or console transcript), and a full save → reload → Continue Journey round trip restores the session cleanly.",
+  "paused": true,
+  "name": "fleet-orchestration",
+  "nudge": "[GOAL REMINDER] Active goal: orchestrate Aralia work through the AI-agent fleet. Read .agent/orchestration/TRACKER.md for fleet readiness, dispatch rules, and the dispatch log — trust its dated statuses. Flow: keep the dashboard (misc/agent_matrix.html) current, pick open Aralia work (e.g. .agent/resume-journey/TRACKER.md tasks 3-5, worldforge lane), dispatch to the cheapest capable agent with a self-contained spec, verify the result yourself (tests + diff review), log the dispatch. Respect usage limits: check /api/agent-usage before dispatching; fall back per the rules when an agent runs dry.",
   "progressPaths": [
-    ".agent/GOAL-resume-journey.md",
-    ".agent/resume-journey/TRACKER.md",
-    ".agent/resume-journey/GAPS.md"
+    ".agent/orchestration/TRACKER.md",
+    "misc/agent_matrix.html",
+    ".agent/usage-cache.json"
   ],
-  "capturesDir": ".agent/resume-journey/evidence",
-  "goalDoc": ".agent/GOAL-resume-journey.md",
-  "trackerDoc": ".agent/resume-journey/TRACKER.md"
+  "capturesDir": ".agent/orchestration",
+  "goalDoc": ".agent/orchestration/TRACKER.md",
+  "trackerDoc": ".agent/orchestration/TRACKER.md"
 }

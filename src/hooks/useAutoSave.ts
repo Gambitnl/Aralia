@@ -6,9 +6,15 @@ import * as SaveLoadService from '../services/saveLoadService';
 const AUTO_SAVE_DEBOUNCE_MS = 1500;
 const AUTO_SAVE_THROTTLE_MS = 10_000;
 
+// Combat runtime is hook-local and never serialized, so autosaving mid-combat
+// would silently resume the player on the exploration surface. Exploration
+// phases are eligible for the rolling autosave; combat is handled by a one-shot
+// pre-combat checkpoint (see useAutoSave) instead.
 const isGameplayPhase = (phase: GamePhase) =>
   phase === GamePhase.PLAYING ||
-  phase === GamePhase.VILLAGE_VIEW ||
+  phase === GamePhase.VILLAGE_VIEW;
+
+const isCombatPhase = (phase: GamePhase) =>
   phase === GamePhase.COMBAT ||
   phase === GamePhase.BATTLE_MAP_DEMO;
 
@@ -36,6 +42,7 @@ export function useAutoSave(gameState: GameState, enabledOverride?: boolean) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSaveAtRef = useRef<number>(0);
   const isSavingRef = useRef(false);
+  const prevPhaseRef = useRef<GamePhase>(gameState.phase);
 
   const saveNow = async () => {
     if (isSavingRef.current) return;
@@ -59,6 +66,37 @@ export function useAutoSave(gameState: GameState, enabledOverride?: boolean) {
       isSavingRef.current = false;
     }
   };
+
+  // One-shot pre-combat checkpoint: when the player crosses from an exploration
+  // phase into combat, snapshot the (still-exploration) GameState to the autosave
+  // slot. Combat itself never autosaves, so this checkpoint becomes the resume
+  // point if the player refreshes or closes mid-fight. The loader heals the
+  // checkpoint's phase back to PLAYING.
+  useEffect(() => {
+    const prevPhase = prevPhaseRef.current;
+    prevPhaseRef.current = gameState.phase;
+
+    if (!enabled) return;
+    if (isCombatPhase(gameState.phase) && isGameplayPhase(prevPhase)) {
+      const state = latestStateRef.current;
+      if (!state.party || state.party.length === 0) return;
+      if (isSavingRef.current) return;
+      isSavingRef.current = true;
+      void (async () => {
+        try {
+          const result = await SaveLoadService.saveGame(
+            state,
+            SaveLoadService.AUTO_SAVE_SLOT_KEY,
+            undefined,
+            { displayName: 'Pre-Combat Checkpoint', isAutoSave: true },
+          );
+          if (result.success) lastSaveAtRef.current = Date.now();
+        } finally {
+          isSavingRef.current = false;
+        }
+      })();
+    }
+  }, [enabled, gameState.phase]);
 
   useEffect(() => {
     if (!eligible) return undefined;

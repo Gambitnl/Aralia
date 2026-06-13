@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Conversation Panel
 slug: conversation-panel
-status: active
-last_updated: "2026-06-08"
+Status: partial
+last_updated: 2026-06-12
 iteration: 3
 source_agent: "Codex / gpt-5.3-codex-spark (MCP-subagent)"
 target_agent: next cold-start agent
@@ -19,8 +19,8 @@ gaps: docs/projects/conversation-panel/GAPS.md
 ---
 # Conversation Panel Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-08
+Status: partial
+Last updated: 2026-06-12
 
 Shared workflow:
 docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
@@ -43,7 +43,7 @@ docs/projects/conversation-panel/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Conversation Panel
 Project folder: docs/projects/conversation-panel
-Iteration: 3
+iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md

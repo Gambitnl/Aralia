@@ -6,10 +6,11 @@ category: Feature/Systems Projects
 main_category: "Content & Rules"
 subcategory: "Rules, Spells & Source Data"
 status: active
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: medium
 evidence: docs/projects/racial-mechanics
-gap_signal: Open items remain in glossary sync, long-rest choice follow-up, and adjacent parser/UI debt.
+gap_signal: "16 open gaps; RM-038, RM-SYNC-001, RM-ORC-002, RM-040 through RM-045, RM-GG5/GG6/GG7/GG9, RM-LR-CHOICE-003, and RM-SAVE-001/RM-SAVE-002 remain open or untriaged"
 protocol: living project doc set
 next_step: Keep RM-032 moving by auditing Character Creator choice coverage against every race and recording any skipped steps.
 agent_comments: ""
@@ -39,7 +40,7 @@ human_decision_required: "no"
 ---
 # Racial Mechanics / Race Hierarchy North Star
 
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 Purpose and scope
 This project is the single source for race-mechanics runtime behavior in the character stack: parser extraction, state materialization, combat math integration, user-facing sheet visibility for race traits, and glossary entry alignment with 2024 standards.
@@ -52,7 +53,7 @@ Category: Feature/Systems Projects
 Status: active
 Confidence: medium
 Evidence: docs/projects/racial-mechanics
-Gap signal: Open items remain in glossary sync, long-rest choice follow-up, and adjacent parser/UI debt.
+Gap signal: 16 open gaps; RM-038, RM-SYNC-001, RM-ORC-002, RM-040 through RM-045, RM-GG5/GG6/GG7/GG9, RM-LR-CHOICE-003, and RM-SAVE-001/RM-SAVE-002 remain open or untriaged
 Protocol: living project doc set
 Next step: Keep RM-032 moving by auditing Character Creator choice coverage against every race and recording any skipped steps.
 Required verification: docs_consistency

@@ -6,10 +6,11 @@ category: Service Systems
 main_category: "Game & Simulation"
 subcategory: "Combat & Encounters"
 status: active
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: medium
 evidence: docs/projects/gemini-service
-gap_signal: "5 tracked gaps; G1 and G2 are the priority follow-ups"
+gap_signal: "5 open gaps; 5 tracked gaps, with G1 and G2 as priority follow-ups"
 protocol: living project doc set
 next_step: Start with G2 in src/services/gemini/encounters.ts, then re-check G1 and G3.
 agent_comments: ""
@@ -39,7 +40,7 @@ human_decision_required: "no"
 # NORTH_STAR: Gemini Service
 
 Status: active  
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Purpose And Scope
 

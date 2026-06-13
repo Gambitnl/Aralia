@@ -170,7 +170,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Blinded through the row's always-on status scaffold for 10 minutes.",
+      "description": "Applies Blinded for 10 minutes to creatures affected by the sand wall effect.",
       "conditionalEndings": []
     }
   ],

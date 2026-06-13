@@ -1,7 +1,7 @@
 # Tiered Autosave Living Tracker
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Status Vocabulary
 
@@ -20,19 +20,10 @@ Last updated: 2026-06-10
 - **Current Outcome Level:** partial
 - **Primary risk:** checkpoint automation is not yet wired through app runtime.
 
-## Completed Work
-- `[done]` Added IndexedDB storage service with async payload operations.
-- `[done]` Switched `saveLoadService` to IDB-first payload storage with localStorage fallback.
-- `[done]` Added migration path from legacy localStorage save payload keys.
-- `[done]` Added emergency save key path and recovery helper in `saveLoadService`.
-- `[done]` Added checkpoint slot constants and metadata support (`isCheckpoint`, `slotId` prefixes).
-- `[done]` **A1** (2026-06-10): Wired `initializeStorage()` into App.tsx startup effect. Also fixed `buildSlotIndex` ghost mitigation to trust the metadata index when IDB is active (post-migration payloads live in IDB, not localStorage). Wired `emergencySaveSync` into `beforeunload` handler in `useAutoSave.ts` (GAP-004).
-
 ## Active Work Queue
 
 | ID | Status | Task | Owner | Evidence | Next Action | Next Check |
 |---|---|---|---|---|---|---|
-| A1 | done | Call `initializeStorage()` during app startup and remove startup race gaps between migration and UI rendering | Project owner | `src/App.tsx`, `src/services/saveLoadService.ts`, `src/hooks/useAutoSave.ts` | Wired into App.tsx useEffect; fixed ghost mitigation for IDB mode; wired emergencySaveSync into beforeunload | Verified via typecheck; runtime proof pending |
 | A2 | active | Implement checkpoint copy runner for defined tiers | Project owner | `src/services/saveLoadService.ts` tier config; missing `useCheckpointSaves.ts` | Create and wire checkpoint timer hook from autosave snapshots | Confirm checkpoints appear as expected in slot list |
 | A3 | active | Separate checkpoint presentation in `LoadGameModal` and guard deletion for non-manual slots | Project owner | `src/components/SaveLoad/LoadGameModal.tsx` | Add checkpoint section and disable delete action for checkpoint slots | Manual UI test for checkpoint list and action behavior |
 | A4 | active | Update save/load docs to match IndexedDB behavior | Project owner | `src/services/saveLoad.README.md` | Replace localStorage-first text with current design | Add note on IDB fallback and emergency save |
@@ -50,13 +41,12 @@ Last updated: 2026-06-10
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | active | Normalize this tracker to the living-project workflow contract | future agent | 2026-06-10 | docs/projects/PROJECT_CARD_SCHEMA.md; docs/agent-workflows/living-project-task-protocol/templates/LIVING_TRACKER.md | Replace this seeded row with the current real project task during the next iteration | Project tracker has at least one current active/waiting/done row with evidence and next proof |
+| T1 | active | Wire checkpoint tier runner and keep autosave docs aligned | future agent | 2026-06-12 | `NORTH_STAR.md`; `GAPS.md` GAP-002 through GAP-006; `src/services/saveLoadService.ts`; `src/components/SaveLoad/LoadGameModal.tsx` | Implement or explicitly defer checkpoint timer wiring, then update UI/test/docs follow-ups to match the chosen path. | Checkpoint tiers either write to slots through runtime proof or the project records a deliberate defer decision with updated gaps. |
 
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | not_started | adjacent_follow_up | future agent | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization | Replace this seeded gap row with project-specific findings if any remain after the next bounded gap sweep | docs/agent-workflows/living-project-task-protocol/templates/GAPS.md | The workflow requires durable gaps to have a consistent table shape and evidence path | Perform a bounded gap sweep and either update this row or close it as no longer applicable | Updated GAPS.md and TRACKER.md agree on the project gap state |
 
 ## Update Rules
 

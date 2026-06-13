@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Logbook
 slug: logbook
-status: active
-last_updated: "2026-06-10"
+Status: active
+last_updated: 2026-06-10
 iteration: 3
 source_agent: Qoder CLI
 target_agent: next cold-start agent
@@ -46,7 +46,7 @@ docs/projects/logbook/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Logbook Project
 Project folder: docs/projects/logbook
-Iteration: 3
+iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -60,7 +60,7 @@ Iteration 2 carried forward all Logbook gaps with a source-code-backed scan,
 defined the G1 retention policy implementation slice (cap at
 MAX_DISCOVERY_LOG_ENTRIES, prune oldest, adjust unread count, saveLoadService
 load-time prune), and registered two new gaps: G5 (unread count drift on quest
-updates — bug) and G6 (quest update content accumulation without bounds). T2
+updates â€” bug) and G6 (quest update content accumulation without bounds). T2
 was closed and T3 was created as the new active task: implement G1 and fix G5.
 No code changes were made; this was a docs-and-design pass.
 
@@ -101,7 +101,7 @@ updates, and save/load round-trip with >200 entries. Run via vitest.
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs. The quest-entry exemption question in G1 is
-a deferred sub-decision — if it blocks implementation, record as
+a deferred sub-decision â€” if it blocks implementation, record as
 `blocked_human_decision`.
 
 Recent progress:

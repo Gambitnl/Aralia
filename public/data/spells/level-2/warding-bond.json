@@ -183,7 +183,7 @@
         "noShield": false,
         "targetSelf": false
       },
-      "description": "Applies the row's first always-on defensive bond effect for 60 minutes.",
+      "description": "Applies one 60-minute defensive bond effect to the target.",
       "conditionalEndings": []
     },
     {
@@ -290,7 +290,7 @@
         "noShield": false,
         "targetSelf": false
       },
-      "description": "Applies the row's second always-on defensive bond effect for 60 minutes.",
+      "description": "Applies the second 60-minute defensive bond effect to the target.",
       "conditionalEndings": []
     },
     {

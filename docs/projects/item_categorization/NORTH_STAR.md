@@ -6,10 +6,11 @@ category: Feature/UI Projects
 main_category: "Content & Rules"
 subcategory: "Items & Content Pipelines"
 status: review-required
-last_updated: ""
+last_updated: 2026-06-12
+iteration: 3
 confidence: high
 evidence: docs/projects/item_categorization
-gap_signal: "5 open project gaps; itemGroup semantics is now gated on taxonomy review"
+gap_signal: "5 open gaps; itemGroup taxonomy decision, registry validation, magic-items coverage, duplicate converters, and rebuild command contract remain open"
 protocol: living project doc set
 next_step: Await human/product decision on whether itemGroup becomes a first-class grouping primitive.
 agent_comments: ""
@@ -38,6 +39,8 @@ human_decision_required: "yes"
 ---
 # NORTH STAR: Item Categorization
 
+Last updated: 2026-06-12
+
 ## Dashboard Card Schema
 Project: Item Categorization
 Slug: item_categorization
@@ -45,7 +48,7 @@ Category: Feature/UI Projects
 Status: review-required
 Confidence: high
 Evidence: docs/projects/item_categorization
-Gap signal: 5 open project gaps; itemGroup semantics is now gated on taxonomy review
+Gap signal: 5 open gaps; itemGroup taxonomy decision, registry validation, magic-items coverage, duplicate converters, and rebuild command contract remain open
 Protocol: living project doc set
 Next step: Await human/product decision on whether `itemGroup` becomes a first-class grouping primitive.
 Required verification: docs_consistency, build_typecheck

@@ -1,4 +1,4 @@
-# Planar System Living Tracker
+﻿# Planar System Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -17,8 +17,6 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Convert Planar project to living format with scope and evidence files | Planar Spark | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md` | Capture Planar state and gaps in this project folder | `docs/projects/planar/NORTH_STAR.md`, `TRACKER.md`, `GAPS.md` |
-| T2 | done | Build concrete file map for Planar systems and utility integration points | Planar Spark | 2026-05-31 | `src/systems/planar`, `src/utils/planar`, `src/commands`, `src/hooks` | Keep the map as the source of truth in `NORTH_STAR.md` | Verify all listed files still exist |
 | T3 | active | Prioritize handoff-safe gap registry for first execution slice | Planar Spark | 2026-06-05 | `src/systems/planar/PlanarService.ts`, `PortalSystem.ts`, `InfernalMechanics.ts`, `PlanarHazardSystem.ts`, `rest.ts`, `docs/projects/planar/*` | Keep `GAPS.md` rows limited to in-project, evidence-backed gaps | Start with `GAPS.md` row `P1` when the next implementation slice begins |
 
 ## Update Rules

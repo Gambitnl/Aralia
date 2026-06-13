@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/06/2026, 11:58:59
+ * Last Sync: 12/06/2026, 08:04:57
  * Dependents: utils/core/index.ts, utils/factories.ts
  * Imports: 7 files
  *
@@ -570,6 +570,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isNavalDashboardVisible: false,
       isNobleHouseListVisible: false,
       isTradeRouteDashboardVisible: false,
+      isInvestmentBoardVisible: false,
       isEconomyLedgerVisible: false,
       isCourierPouchVisible: false,
       activeDialogueSession: null,
@@ -616,6 +617,12 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       townEntryDirection: null,
       worldViewMode: 'atlas',
       playerWorldPos: null,
+      // Ground-mode resume positions use tile-local meters and begin unset in
+      // tests unless a specific renderer or save scenario overrides them.
+      playerGroundPos: null,
+      // Worldforge plot edits start empty in test states; reducers append JSON-safe
+      // deltas here so save/load tests do not need a live generator.
+      worldforgeDeltas: [],
 
       // TODO: Fix TS2322 - missing or incompatible archivedBanters
       archivedBanters: [],
@@ -729,6 +736,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isNavalDashboardVisible: false,
       isNobleHouseListVisible: false,
       isTradeRouteDashboardVisible: false,
+      isInvestmentBoardVisible: false,
       isEconomyLedgerVisible: false,
       isCourierPouchVisible: false,
       activeDialogueSession: null,
@@ -758,7 +766,11 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       townState: null,
       townEntryDirection: null,
       worldViewMode: 'atlas',
-      playerWorldPos: null
+      playerWorldPos: null,
+      // Keep the tile-local ground resume field present even in fallback states.
+      playerGroundPos: null,
+      // Keep the fallback GameState structurally complete even if factory setup fails.
+      worldforgeDeltas: []
     };
   }
 }

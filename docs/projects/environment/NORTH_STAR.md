@@ -6,10 +6,11 @@ category: "Gameplay & World Systems"
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: partial
-last_updated: 2026-06-09
+last_updated: 2026-06-12
+iteration: 6
 confidence: medium
 evidence: docs/projects/environment
-gap_signal: 0 open project gaps
+gap_signal: 0 open gaps; 0 open project gaps
 protocol: living project doc set
 next_step: Wait for the next Environment gap or re-route an adjacent slice if product asks for more terrain coverage.
 agent_comments: ""
@@ -45,7 +46,7 @@ human_decision_required: "no"
 # Environment System North Star
 
 Status: partial
-Last updated: 2026-06-09
+Last updated: 2026-06-12
 
 ## Why this project exists
 The Environment System is a partial gameplay domain with a defined file surface but incomplete runtime integration. This doc set preserves the current evidence, names the live blockers, and gives the next agent a direct resume path instead of forcing another cold re-discovery pass.
@@ -130,3 +131,16 @@ Workflow gaps reviewed: 2026-06-09
 4. Re-check `docs/projects/PROJECT_TRACKER.md` and `docs/projects/GLOBAL_GAPS.md` if the next slice needs scope validation.
 5. Re-open source evidence in `src/systems/environment/*`, `src/types/environment.ts`, `src/state/initialState.ts`, `src/state/reducers/worldReducer.ts`, `src/state/reducers/navalReducer.ts`, `src/systems/world/WorldEventManager.ts`, and `src/systems/naval/VoyageManager.ts`.
 6. Continue only after a fresh Environment gap is opened or an adjacent slice is explicitly re-routed here.
+
+## Required Review Brief
+
+Title: Environment partial but currently idle of gaps
+Question: Should Environment receive another forward iteration now?
+Issue: The project is partial even though GAPS.md currently lists no open project gaps.
+Current behavior: The North Star says to wait for the next Environment gap or re-route an adjacent terrain slice if product asks for more terrain coverage.
+Why blocked: Without a real open gap or product request, another worker would likely invent work rather than move the project safely.
+Option A: Keep partial and wait for a source-backed Environment gap.
+Option B: Promote to active only when a concrete terrain/weather/environment slice is selected.
+Evidence: NORTH_STAR.md gap_signal and next_step; GAPS.md resolved G1-G3 rows.
+Decision owner: Environment owner or human operator if new coverage is requested
+Proof after decision: A new gap row or tracker row names the concrete Environment slice and verification path.

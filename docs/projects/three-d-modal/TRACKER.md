@@ -1,4 +1,4 @@
-# Three D Modal Living Tracker
+﻿# Three D Modal Living Tracker
 
 Status: merged-reference (merged into World 3D UI per D5, 2026-06-10; forward work routes through docs/projects/world-3d-ui)
 Last updated: 2026-06-10
@@ -17,11 +17,7 @@ Last updated: 2026-06-10
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Read required root instructions and protocol docs before edits | Worker B | 2026-05-31 | AGENTS.md, docs/agent-workflows/LIVING_PROJECT_TASK_PROTOCOL.md | None | Notes added to final package |
-| T2 | done | Produce implementation-grounded docs from existing ThreeD Modal runtime state | Worker B | 2026-05-31 | `src/components/ThreeDModal/ThreeDModal.tsx`, `src/components/layout/GameModals.tsx` | Verify `TRACKER.md` and `NORTH_STAR.md` include file map and state wiring | Manual diff review |
-| T3 | done | Document integration boundaries to World3D and battle map systems | Worker B | 2026-05-31 | `src/components/World3D/World3DScene.tsx`, `src/components/BattleMap/BattleMap3D.tsx`, `src/components/Combat/CombatView.tsx` | Confirm distinct integration paths in NORTH_STAR.md | No code edits required |
 | T4 | active | Align gap tracking with concrete evidence and next checks | Worker B | 2026-05-31 | `src/components/Submap/SubmapPane.tsx`, `src/state/reducers/uiReducer.ts`, `src/components/Submap/__tests__/SubmapPane.test.tsx` | Fill GAPS.md with specific, actionable follow-ups | Add a next-check line and evidence for each gap |
-| T5 | done | Verify scope restriction to docs folder only | Worker B | 2026-05-31 | Git working tree, edit history | Keep only three docs changed |
 
 ## Gap Log
 

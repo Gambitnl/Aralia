@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/05/2026, 14:09:08
- * Dependents: components/BattleMap/BattleMap.tsx
+ * Last Sync: 12/06/2026, 22:40:15
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx
  * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
@@ -183,6 +183,10 @@ export function useBattleMap(
           type: 'move',
           cost: moveActionCost,
           targetPosition: tile.coordinates,
+          // Preserve the exact path found by the map click so spell zones that
+          // react to movement through an area can count walked tiles instead of
+          // only seeing the start and destination squares.
+          movementPath: path.map(pathTile => pathTile.coordinates),
           timestamp: Date.now()
         })) {
           clearMovementState();

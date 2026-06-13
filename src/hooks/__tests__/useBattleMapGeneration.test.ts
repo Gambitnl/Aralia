@@ -43,6 +43,31 @@ describe('useBattleMapGeneration', () => {
         expect(results.size).toBe(1);
     });
 
+    // Spell object targeting depends on live maps publishing object facts, not
+    // later systems guessing from decorative tiles. Generated obstacles are
+    // fixed map features, so the generator should expose them as explicit
+    // object candidates while still marking them as fixed-to-surface.
+    it('publishes generated obstacles as explicit fixed map object candidates', () => {
+        const { mapData } = generateBattleSetup('forest', 24680, []);
+
+        const decoratedTiles = [...mapData.tiles.values()].filter(tile => tile.decoration);
+        const targetableObjects = mapData.targetableObjects ?? [];
+
+        expect(decoratedTiles.length).toBeGreaterThan(0);
+        expect(targetableObjects.length).toBe(decoratedTiles.length);
+        expect(targetableObjects.every(targetObject => targetObject.isFixedToSurface)).toBe(true);
+        expect(targetableObjects.every(targetObject => targetObject.isWornOrCarried === false)).toBe(true);
+        expect(targetableObjects.every(targetObject => targetObject.isMagical === false)).toBe(true);
+
+        for (const targetObject of targetableObjects) {
+            const sourceTile = mapData.tiles.get(`${targetObject.position.x}-${targetObject.position.y}`);
+
+            expect(sourceTile?.decoration).not.toBeNull();
+            expect(targetObject.id).toContain(sourceTile!.id);
+            expect(targetObject.name).toContain(sourceTile!.decoration!.replace('_', ' '));
+        }
+    });
+
     // Battle-map G6 / GOAL #64 (task 74): spawns prefer tactically valuable
     // terrain — high ground and cover-adjacent tiles — over open ground.
     it('places characters on tiles scoring at least the zone average (tactical spawn scoring)', () => {

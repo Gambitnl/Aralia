@@ -1,4 +1,4 @@
-# Travel Living Tracker
+﻿# Travel Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -17,7 +17,6 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Create and refresh Travel living project scaffold files with concrete evidence. | Worker A | 2026-05-31 | `docs/projects/travel/NORTH_STAR.md`, `docs/projects/travel/GAPS.md` | Keep docs aligned with implementation discoveries. | Confirm all file links resolve. |
 | T2 | active | Establish end-to-end travel implementation gaps from runtime code. | Worker A | 2026-05-31 | `src/hooks/actions/handleMovement.ts`, `src/systems/travel/TravelNavigation.ts`, `src/systems/travel/TravelCalculations.ts`, `src/components/Submap/useQuickTravel.ts` | Resolve G1, G2, and G3 as in-scope next steps before mechanics rewrites. | Add movement-level regression checks for forced march, drift, and time-cost alignment. |
 | T3 | not_started | Build a stable acceptance matrix for quick-travel vs movement cost model. | Worker A | 2026-05-31 | `src/services/travelService.ts`, `src/hooks/actions/handleMovement.ts`, `src/components/Submap/useQuickTravel.ts` | Define one contract and annotate all dependent handlers. | Confirm no contradictory assumptions in tests. |
 

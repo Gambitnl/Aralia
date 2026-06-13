@@ -5,8 +5,9 @@ slug: action-pane
 category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
-status: active
-last_updated: 2026-06-10
+status: idle
+last_updated: 2026-06-12
+iteration: 6
 confidence: medium
 evidence: docs/projects/action-pane
 gap_signal: 0 open gaps
@@ -42,9 +43,8 @@ human_decision_required: "no"
 ---
 # Action Pane North Star
 
-Status: active
-Last updated: 2026-06-09
-
+status: idle
+Last updated: 2026-06-12
 ## Why This Project Exists
 
 The Action Pane exists as the primary player command surface in the PLAYING layout. This project preserves current behavior and action contracts so cold starts do not lose the established UI-to-state wiring.
@@ -71,7 +71,7 @@ Capture a concrete, implementation-grounded snapshot of:
 Project: Action Pane
 Slug: action-pane
 Category: Feature/UI Projects
-Status: active
+status: idle
 Confidence: medium
 Evidence: docs/projects/action-pane
 Gap signal: 0 open gaps
@@ -199,3 +199,16 @@ Avoid adding ad hoc runtime logs, screenshots, or process notes that do not affe
 2. Read [docs/projects/action-pane/TRACKER.md](docs/projects/action-pane/TRACKER.md) and [docs/projects/action-pane/GAPS.md](docs/projects/action-pane/GAPS.md).
 3. Confirm no imported gaps are needed in [docs/projects/GLOBAL_GAPS.md](docs/projects/GLOBAL_GAPS.md) and recheck [docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md](docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md).
 4. Resume work when a new gap is logged or recorded.
+
+## Required Review Brief
+
+Title: Action Pane idle with stable contracts
+Question: Should Action Pane receive another forward iteration now?
+Issue: The project reports 0 open gaps and all action-contract gaps are resolved.
+Current behavior: Action contracts are stable; future work should start only when new action types or dispatch paths are added.
+Why blocked: Launching an agent now would likely invent work rather than advance a source-backed gap.
+Option A: Keep idle and monitor future action-contract changes.
+Option B: Reopen active only when a new source-backed Action Pane gap is registered.
+Evidence: NORTH_STAR.md gap_signal and next_step; GAPS.md G1-G4 resolved.
+Decision owner: Action Pane owner
+Proof after decision: A new tracker or gap row names the concrete action path and verification.

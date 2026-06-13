@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/06/2026, 03:54:07
- * Dependents: components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/vfx/VFXSystem.tsx, hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts, utils/combat/resistanceUtils.ts
+ * Last Sync: 12/06/2026, 22:59:07
+ * Dependents: commands/effects/MovementCommand.ts, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/vfx/VFXSystem.tsx, hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts, utils/combat/resistanceUtils.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -124,6 +124,8 @@ export interface ProcessedEffect {
     dice?: string;
     damageType?: string;
     statusName?: string;
+    /** Original status duration so delayed/area trigger consumers do not invent timing. */
+    duration?: SpellEffect['duration'];
     requiresSave?: boolean;
     saveType?: string;
     saveEffect?: string;
@@ -363,6 +365,107 @@ export function processAreaEntryTriggers(
 }
 
 /**
+ * Process on_move_in_area triggers while a character moves inside a zone.
+ *
+ * Spike Growth-style effects care about distance traveled through the zone, so
+ * this helper emits one trigger result per tile moved while both the old and new
+ * positions are inside the same area. AreaEffectTracker delegates here so
+ * movement-within effects share filtering, frequency gates, and source context
+ * with entry, exit, and end-turn area triggers.
+ */
+export function processAreaMoveWithinTriggers(
+    zones: ActiveSpellZone[],
+    character: CombatCharacter,
+    newPosition: Position,
+    previousPosition: Position,
+    movementPath?: Position[]
+): TriggerResult[] {
+    const results: TriggerResult[] = [];
+
+    for (const zone of zones) {
+        if (!zone.areaOfEffect) continue;
+
+        const distanceInTiles = countMovementTilesInsideZone(zone, newPosition, previousPosition, movementPath);
+
+        if (distanceInTiles > 0) {
+            const moveEffects = zone.effects.filter(effect =>
+                effect.trigger?.type === 'on_move_in_area'
+            );
+
+            for (let i = 0; i < distanceInTiles; i++) {
+                for (const effect of moveEffects) {
+                    // DEBT: Cast trigger to any to probe optional frequency property without complex typing in this handler.
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
+                        continue;
+                    }
+
+                    if (!matchesTargetFilter(effect.condition?.targetFilter, character)) {
+                        continue;
+                    }
+
+                    results.push({
+                        triggered: true,
+                        effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
+                        triggerType: 'on_move_in_area'
+                    });
+                }
+            }
+        }
+    }
+
+    return results;
+}
+
+function countMovementTilesInsideZone(
+    zone: ActiveSpellZone,
+    newPosition: Position,
+    previousPosition: Position,
+    movementPath?: Position[]
+): number {
+    if (movementPath && movementPath.length >= 2) {
+        let traveledInsideTiles = 0;
+
+        // A supplied path is authoritative. Count only complete segments whose
+        // start and end points are already inside the zone so outside crossing
+        // movement does not invent partial-tile damage without explicit steps.
+        for (let i = 1; i < movementPath.length; i++) {
+            const from = movementPath[i - 1];
+            const to = movementPath[i];
+            const startsInside = isPositionInArea(from, zone.position, zone.areaOfEffect!, zone.direction);
+            const endsInside = isPositionInArea(to, zone.position, zone.areaOfEffect!, zone.direction);
+
+            if (!startsInside || !endsInside) {
+                continue;
+            }
+
+            traveledInsideTiles += getChebyshevTileDistance(from, to);
+        }
+
+        return traveledInsideTiles;
+    }
+
+    const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect!, zone.direction);
+    const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect!, zone.direction);
+
+    if (!wasInZone || !isNowInZone) {
+        return 0;
+    }
+
+    return getChebyshevTileDistance(previousPosition, newPosition);
+}
+
+function getChebyshevTileDistance(from: Position, to: Position): number {
+    // Aralia's grid uses one tile as five feet. Chebyshev distance matches the
+    // existing diagonal movement model, so a diagonal move across three tiles
+    // pays for three five-foot steps, not six.
+    const dx = Math.abs(to.x - from.x);
+    const dy = Math.abs(to.y - from.y);
+
+    return Math.max(dx, dy);
+}
+
+/**
  * Process on_target_move triggers when a character with a movement debuff moves
  * 
  * @param debuffs - Active movement-triggered debuffs
@@ -558,6 +661,7 @@ export function convertSpellEffectToProcessed(
                     repeatSave?: RepeatSave;
                     escapeCheck?: EscapeCheck;
                     breakTriggers?: ConditionBreakTrigger[];
+                    duration?: SpellEffect['duration'];
                 };
                 condition?: {
                     type?: string;
@@ -577,6 +681,7 @@ export function convertSpellEffectToProcessed(
                 // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
                 // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
                 statusName: statusEffect.statusCondition?.name,
+                duration: statusEffect.statusCondition?.duration ?? effect.duration,
                 requiresSave: statusEffect.condition?.type === 'save',
                 saveType: statusEffect.condition?.saveType,
                 saveEffect: statusEffect.condition?.saveEffect,

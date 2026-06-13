@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 12/06/2026, 09:06:27
+ * Dependents: components/Worldforge/AtlasDemo.tsx, components/Worldforge/AtlasMapView.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * This file contains the pure drawing functions that render the FMG world map onto a 2D canvas context.
  *
@@ -12,8 +28,8 @@
  * 4. River discharge width-scaled polylines
  * 5. Optional graticule grid lines (latitude & longitude dashed curves/lines)
  * 6. Alternating miles/feet scale bar inside a translucent background box
- * 7. Optional political overlay:
- *    - Territory color tint blending (state color blended over biomes at 0.45 opacity)
+ * 7. Optional atlas overlays:
+ *    - Territory color tint blending for state, culture, religion, or province ownership
  *    - Crisp state border strokes (dark-purple boundaries along shared Voronoi edges)
  *    - Route networks (roads as solid brown, trails as thin dashed stone-grey, sea routes as dashed light-blue)
  *    - Burg markers (capitals as larger double red/white circles, towns as small white circles)
@@ -38,6 +54,8 @@ export interface AtlasView {
   showScaleBar?: boolean; // Default true
   showGraticule?: boolean; // Default false
   showPolitical?: boolean; // Default false
+  /** Cell tint mode for atlas territory overlays. Political remains the default FMG view. */
+  overlayMode?: AtlasOverlayMode;
   /** Points of interest (pack.markers — Markers.generate port). Default false. */
   showMarkers?: boolean;
   /** Event/danger areas (pack.zones — Zones.generate port). Default false. */
@@ -51,6 +69,7 @@ export interface CacheView {
   seed: string;
   showGraticule?: boolean;
   showPolitical?: boolean;
+  overlayMode?: AtlasOverlayMode;
   showMarkers?: boolean;
   showZones?: boolean;
   showMilitary?: boolean;
@@ -63,13 +82,23 @@ interface BBox {
   maxY: number;
 }
 
+export type AtlasOverlayMode = "political" | "culture" | "religion" | "province";
+
+interface AtlasOverlayEntity {
+  i?: number;
+  name?: string;
+  fullName?: string;
+  color?: string;
+  removed?: boolean;
+}
+
 // ============================================================================
 // Helpers
 // ============================================================================
 
 /**
  * Checks whether a cached render is still valid for the current rendering request.
- * If the user switches political/physical modes or toggles graticules, the cache is invalidated.
+ * If the user switches atlas tint modes or toggles static layers, the cache is invalidated.
  */
 export function isCacheValid(
   cacheView: CacheView | null,
@@ -79,7 +108,8 @@ export function isCacheValid(
   nextShowPolitical?: boolean,
   nextShowMarkers?: boolean,
   nextShowZones?: boolean,
-  nextShowMilitary?: boolean
+  nextShowMilitary?: boolean,
+  nextOverlayMode?: AtlasOverlayMode
 ): boolean {
   if (!cacheView) return false;
   return (
@@ -89,7 +119,8 @@ export function isCacheValid(
     cacheView.showPolitical === nextShowPolitical &&
     cacheView.showMarkers === nextShowMarkers &&
     cacheView.showZones === nextShowZones &&
-    cacheView.showMilitary === nextShowMilitary
+    cacheView.showMilitary === nextShowMilitary &&
+    cacheView.overlayMode === nextOverlayMode
   );
 }
 
@@ -111,6 +142,98 @@ export function parseHexColor(hex: string): { r: number; g: number; b: number } 
     g: (num >> 8) & 255,
     b: num & 255,
   };
+}
+
+/**
+ * Confirms that a generated FMG color is safe to parse as a canvas hex color.
+ * Some ported entities can be present before the color field is populated, so
+ * overlay drawing must not depend on the upstream color always existing.
+ */
+function isHexColor(value: string | undefined): value is string {
+  return typeof value === "string" && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value);
+}
+
+/**
+ * Produces a deterministic fallback color from an entity's kind, id and name.
+ * This preserves visual distinctions for unfinished or partially generated FMG
+ * records without adding random colors that would change between renders.
+ */
+function stableHashColor(
+  kind: AtlasOverlayMode,
+  id: number,
+  entity?: AtlasOverlayEntity
+): { r: number; g: number; b: number } {
+  const text = `${kind}:${id}:${entity?.fullName ?? entity?.name ?? ""}`;
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  const hue = Math.abs(hash) % 360;
+  const saturation = 0.58;
+  const lightness = 0.52;
+  const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
+  const huePrime = hue / 60;
+  const x = chroma * (1 - Math.abs((huePrime % 2) - 1));
+  let r1 = 0;
+  let g1 = 0;
+  let b1 = 0;
+
+  if (huePrime < 1) {
+    r1 = chroma;
+    g1 = x;
+  } else if (huePrime < 2) {
+    r1 = x;
+    g1 = chroma;
+  } else if (huePrime < 3) {
+    g1 = chroma;
+    b1 = x;
+  } else if (huePrime < 4) {
+    g1 = x;
+    b1 = chroma;
+  } else if (huePrime < 5) {
+    r1 = x;
+    b1 = chroma;
+  } else {
+    r1 = chroma;
+    b1 = x;
+  }
+
+  const m = lightness - chroma / 2;
+  return {
+    r: Math.round((r1 + m) * 255),
+    g: Math.round((g1 + m) * 255),
+    b: Math.round((b1 + m) * 255),
+  };
+}
+
+/**
+ * Looks up the selected per-cell overlay assignment and returns the entity tint.
+ * Cell id 0 / neutral assignments intentionally return null so the base biome
+ * terrain remains visible for wildlands, no-religion, and no-province cells.
+ */
+function getOverlayColor(
+  atlas: FmgAtlasResult,
+  cellId: number,
+  mode: AtlasOverlayMode
+): { r: number; g: number; b: number } | null {
+  const { pack } = atlas;
+  const cells = pack.cells;
+  const overlaySources = {
+    political: { ids: cells.state, entities: pack.states as AtlasOverlayEntity[] | undefined },
+    culture: { ids: cells.culture, entities: pack.cultures as AtlasOverlayEntity[] | undefined },
+    religion: { ids: cells.religion, entities: pack.religions as AtlasOverlayEntity[] | undefined },
+    province: { ids: cells.province, entities: pack.provinces as AtlasOverlayEntity[] | undefined },
+  };
+  const source = overlaySources[mode];
+  const entityId = source.ids?.[cellId] ?? 0;
+  if (entityId <= 0) return null;
+
+  const entity = source.entities?.[entityId];
+  if (entity?.removed) return null;
+  if (isHexColor(entity?.color)) return parseHexColor(entity.color);
+  return stableHashColor(mode, entityId, entity);
 }
 
 /**
@@ -286,6 +409,7 @@ export function drawAtlas(
 
   const canvasWidth = ctx.canvas?.width ?? 960;
   const canvasHeight = ctx.canvas?.height ?? 540;
+  const overlayMode = view.overlayMode ?? "political";
 
   // --------------------------------------------------------------------------
   // Layer 0: Radial Ocean Depth Gradient Background
@@ -348,18 +472,14 @@ export function drawAtlas(
     let gFinal = g;
     let bFinal = b;
 
-    // Blend political layer color if political mode is active
-    if (view.showPolitical && pack.cells.state) {
-      const stateId = pack.cells.state[i];
-      if (stateId > 0 && pack.states && pack.states[stateId]) {
-        const stateColorHex = pack.states[stateId].color;
-        if (stateColorHex) {
-          const sColor = parseHexColor(stateColorHex);
-          rFinal = r * 0.55 + sColor.r * 0.45;
-          gFinal = g * 0.55 + sColor.g * 0.45;
-          bFinal = b * 0.55 + sColor.b * 0.45;
-        }
-      }
+    // Blend the selected atlas overlay into the terrain tint. Political,
+    // culture, religion and province all color the same cell surface, so only
+    // one can be active at a time; neutral id 0 deliberately keeps biome color.
+    const overlayColor = getOverlayColor(atlas, i, overlayMode);
+    if (overlayColor) {
+      rFinal = r * 0.55 + overlayColor.r * 0.45;
+      gFinal = g * 0.55 + overlayColor.g * 0.45;
+      bFinal = b * 0.55 + overlayColor.b * 0.45;
     }
 
     // Elevation tint (relief pass, 2026-06-11): highlands lift toward

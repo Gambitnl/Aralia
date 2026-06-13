@@ -1,4 +1,4 @@
-# Logic System Living Tracker
+﻿# Logic System Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -17,8 +17,6 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| L1 | done | Create the initial logic project scaffold docs and link project registry evidence. | Worker A | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md` row + prior `logic` docs | Keep the project slice bounded. | Three docs exist and remain within `docs/projects/logic/`. |
-| L2 | done | Convert the logic scaffold into a concrete cold-start doc surface with implementation map, integration gaps, and checks. | Worker A | 2026-06-05 | `docs/projects/logic/NORTH_STAR.md`, `docs/projects/logic/GAPS.md`, `docs/projects/logic/COLD_START_AGENT_PROMPT.md` | Preserve the refreshed handoff as the current source of truth. | North Star carries the dashboard card schema and the project docs stay internally aligned. |
 | L3 | active | Prepare implementation decision on where `ConditionEvaluator` is first called. | Worker A | 2026-06-05 | `src/systems/logic/ConditionEvaluator.ts`, `src/types/logic.ts`, `src/systems/spells/targeting/TargetValidationUtils.ts`, `src/systems/spells/effects/AreaEffectTracker.ts` | Decide whether the evaluator enters through trigger handling, spell filtering, or AI condition routing first. | Record the chosen callsite and required schema bridge in `GAPS.md` or the task notes before wiring code. |
 
 ## Gap Log

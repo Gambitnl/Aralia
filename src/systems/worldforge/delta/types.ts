@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/06/2026, 03:10:02
- * Dependents: systems/worldforge/delta/applyDeltas.ts, systems/worldforge/delta/serialize.ts
- * Imports: 2 files
+ * Last Sync: 12/06/2026, 03:51:17
+ * Dependents: systems/worldforge/delta/applyDeltas.ts, systems/worldforge/delta/serialize.ts, systems/worldforge/world/worldStore.ts
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -25,6 +25,7 @@
  */
 import type { LocalFeature } from '../artifacts';
 import type { SeedPath } from '../seedPath';
+import type { Feet } from '../units';
 
 // ---------------------------------------------------------------------------
 // Version constants
@@ -52,12 +53,18 @@ export type JsonValue =
   | JsonValue[]
   | { [key: string]: JsonValue };
 
+export type JsonObject = { [key: string]: JsonValue };
+
 // ---------------------------------------------------------------------------
 // Operation union
 // ---------------------------------------------------------------------------
 // Extension rule: add a new operation kind instead of changing the meaning of
 // an existing one. If an existing operation needs incompatible behavior, bump
 // WORLD_DELTA_OPERATION_VERSION so older readers skip it with a warning.
+// B7 amends the very young, unshipped B6 `add-building` shape in place: it now
+// carries the same role/storeys/footprint facts the L4 interior generator needs
+// instead of an opaque params bag. No shipped saves exist yet, so version 1 can
+// remain the pre-release contract without stranding any player data.
 // ---------------------------------------------------------------------------
 
 export type WorldDeltaOperation =
@@ -74,6 +81,36 @@ export type WorldDeltaOperation =
   | {
       kind: 'add-feature';
       feature: LocalFeature;
+    }
+  | {
+      kind: 'modify-plot';
+      plotId: number;
+      role?: string;
+      storeys?: number;
+    }
+  | {
+      kind: 'remove-plot';
+      plotId: number;
+    }
+  | {
+      kind: 'add-building';
+      plotId: number;
+      buildingId: number;
+      role: string;
+      storeys: number;
+      /**
+       * Optional world-feet quad. If absent, replay reuses an existing plot's
+       * footprint or creates a rectangle from x/y/widthFt/depthFt below.
+       */
+      footprint?: Array<[Feet, Feet]>;
+      /** Center point for a default rectangle when no plot footprint exists. */
+      x?: Feet;
+      y?: Feet;
+      /** Default rectangle size when footprint is omitted; 40x40 ft fallback. */
+      widthFt?: Feet;
+      depthFt?: Feet;
+      /** Extra marker data for render/UI systems; interiors use the plot fields. */
+      featureData?: JsonObject;
     };
 
 // ---------------------------------------------------------------------------

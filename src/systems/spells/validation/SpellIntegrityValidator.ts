@@ -28,6 +28,36 @@ import { Spell } from '../../../types/spells';
 
 export class SpellIntegrityValidator {
   /**
+   * Returns the restricted-filter mismatches that are known semantic exceptions,
+   * not direct data omissions.
+   *
+   * These rows stay visible here because their spell-level filter describes a
+   * different thing than a normal direct effect target: plant or object
+   * eligibility, a chosen aura source, a later repair target, an ongoing area
+   * rule, or a form-choice rule. The validator and the corpus regression both
+   * use this list so spell JSON validation and tests do not drift apart.
+   */
+  static getClassifiedRestrictedFilterMismatchKeys(): string[] {
+    return [
+      'plant-growth:0:creatureTypes',
+      'plant-growth:1:creatureTypes',
+      'speak-with-plants:0:creatureTypes',
+      'awaken:1:creatureTypes',
+      'simulacrum:1:creatureTypes',
+      'antipathy-sympathy:0:sizes',
+      'antipathy-sympathy:1:sizes',
+      'antipathy-sympathy:2:sizes',
+      'antipathy-sympathy:3:sizes',
+      'tsunami:0:sizes',
+      'tsunami:1:sizes',
+      'tsunami:2:sizes',
+      'tsunami:3:sizes',
+      'shapechange:0:excludeCreatureTypes',
+      'shapechange:1:excludeCreatureTypes'
+    ];
+  }
+
+  /**
    * Validates a spell against systematic integrity rules.
    * Returns a list of error message strings. An empty array means the spell
    * passed all checks.
@@ -193,6 +223,28 @@ export class SpellIntegrityValidator {
     // instead of using placeholders like "See description.".
     const genericEffectDescriptions = new Set(['see description', 'see description.', 'varies', 'varies.', 'special', 'special.']);
 
+    // These phrases describe migration internals rather than player-visible or
+    // runtime-visible spell behavior. They appeared during blank-description
+    // repair batches as cautious placeholders, but they still force UI, logs,
+    // and future audits to understand importer history instead of the effect.
+    const internalScaffoldPhrases = [
+      'row\'s current hit-based resolution',
+      'row\'s current always-on',
+      'row\'s always-on',
+      'row\'s summoning effect',
+      'row\'s scaling formula',
+      'row\'s special duration',
+      'current row preserves',
+      'current row records',
+      'current terrain scaffold',
+      'current escape-check metadata',
+      'always-on damage scaffold',
+      'always-on healing scaffold',
+      'always-on status scaffold',
+      'always-on summoning scaffold',
+      'per ray hit'
+    ];
+
     const effects = Array.isArray(spell.effects) ? spell.effects : [];
 
     effects.forEach((effect, index) => {
@@ -206,7 +258,79 @@ export class SpellIntegrityValidator {
       if (genericEffectDescriptions.has(effectDescription.toLowerCase())) {
         errors.push(`Effect Description Placeholder: effect ${index} uses generic placeholder "${effectDescription}"`);
       }
+
+      // Reject importer-facing descriptions even when they are non-empty. The
+      // effect text should say what the spell does in game terms, not which
+      // transitional data row or scaffold produced it.
+      const scaffoldPhrase = internalScaffoldPhrases.find(phrase =>
+        effectDescription.toLowerCase().includes(phrase.toLowerCase())
+      );
+
+      if (scaffoldPhrase) {
+        errors.push(`Effect Description Internal Scaffold: effect ${index} uses importer-facing wording "${scaffoldPhrase}"`);
+      }
     });
+
+    // =========================================================================
+    // Rule 6: Effect Target Filter Completeness
+    // =========================================================================
+    // Some spells restrict the legal target at the spell picker level, for
+    // example "only Humanoids" or "only Beasts". When a direct effect later
+    // acts on that same target, the effect payload should repeat the restriction
+    // so command creation, delayed execution, logs, and future audit tooling can
+    // understand the legal target without re-reading the top-level targeting
+    // object.
+    //
+    // Not every mismatch is a bug. Some top-level filters describe a plant or
+    // object selected as a source, a chosen form, a later repair target, or an
+    // ongoing area rule. Those rows stay explicitly classified here until their
+    // dedicated semantic models exist, preventing broad blind filter copying.
+    const restrictedFilterKeys = ['creatureTypes', 'excludeCreatureTypes', 'sizes', 'alignments'] as const;
+    type RestrictedFilterKey = typeof restrictedFilterKeys[number];
+
+    const classifiedRestrictedFilterMismatches = new Set<string>(
+      SpellIntegrityValidator.getClassifiedRestrictedFilterMismatchKeys()
+    );
+
+    const normalizeFilterValues = (value: unknown): string[] => (
+      Array.isArray(value)
+        ? value.filter(item => item !== 'not_applicable').map(String).sort()
+        : []
+    );
+
+    const sameFilterValues = (left: unknown, right: unknown): boolean => {
+      const normalizedLeft = normalizeFilterValues(left);
+      const normalizedRight = normalizeFilterValues(right);
+
+      return normalizedLeft.length === normalizedRight.length
+        && normalizedLeft.every((value, index) => value === normalizedRight[index]);
+    };
+
+    const spellFilter = spell.targeting?.filter as Partial<Record<RestrictedFilterKey, unknown>> | undefined;
+    const restrictedKeys = restrictedFilterKeys.filter(key =>
+      normalizeFilterValues(spellFilter?.[key]).length > 0
+    );
+
+    if (restrictedKeys.length > 0) {
+      effects.forEach((effect, index) => {
+        const effectFilter = effect.condition?.targetFilter as Partial<Record<RestrictedFilterKey, unknown>> | undefined;
+
+        if (!effectFilter) {
+          return;
+        }
+
+        restrictedKeys.forEach(key => {
+          const mismatchKey = `${spell.id}:${index}:${key}`;
+
+          if (
+            !classifiedRestrictedFilterMismatches.has(mismatchKey)
+            && !sameFilterValues(spellFilter?.[key], effectFilter[key])
+          ) {
+            errors.push(`Effect Target Filter Gap: effect ${index} does not repeat spell-level ${key} restriction`);
+          }
+        });
+      });
+    }
 
     return errors;
   }

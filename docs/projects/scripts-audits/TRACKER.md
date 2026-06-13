@@ -1,6 +1,6 @@
-# Scripts: Audits Living Tracker
+﻿# Scripts: Audits Living Tracker
 
-Status: active — S4 decision recorded 2026-06-10; implementation lane open
+Status: active â€” S4 decision recorded 2026-06-10; implementation lane open
 Last updated: 2026-06-10
 
 ## Status Vocabulary
@@ -17,10 +17,8 @@ Last updated: 2026-06-10
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Document project continuity for `scripts/audits` in project docs | User-facing maintainer | 2026-06-05 | `docs/projects/scripts-audits/NORTH_STAR.md` | Keep tracker and gap registry aligned to this state | `docs/projects/scripts-audits` files exist and match the current map |
 | T2 | active | Validate command and report paths against live docs references | User-facing maintainer | 2026-06-05 | `docs/projects/scripts-audits/NORTH_STAR.md`, `docs/projects/scripts-audits/GAPS.md` | Confirm the command/report paths named in the North Star still resolve or record any stale references explicitly | Run the next checks in `NORTH_STAR.md` and update evidence paths |
 | T3 | active | Capture durable unresolved audit-project gaps | User-facing maintainer | 2026-06-05 | `docs/projects/scripts-audits/GAPS.md` | Keep the durable gap list compact, actionable, and aligned with the tracker | One follow-up entry per gap with proof path |
-| T4 | done | Decide mandatory CI gates versus optional/manual audit workflow | project owner | 2026-06-10 | `docs/projects/scripts-audits/GAPS.md` S4; `docs/guides/RACE_ENRICHMENT_WORKFLOW.md`; `docs/portraits/race_portrait_regen_handoff.md`; **decision recorded 2026-06-10 (Remy, `docs/projects/DECISION_BLITZ_2026-06-10.md` D20): audits stay optional/manual, no CI gates this cycle; CMA-G19 unblocked under the manual policy** | Forward automation work proceeds under the optional/manual policy; revisit gating when the audit suite stabilizes | `DECISIONS.md` D2 records the policy; re-open only on a new gating proposal |
 
 ## Gap Log
 
@@ -29,7 +27,6 @@ Last updated: 2026-06-10
 | G1 | active | support_needed_now | scripts-audits maintainer | scripts/audits execution | docs scan + current docs refresh | No canonical full-audit entrypoint is documented | `GAPS.md` S1; `package.json` exposes separate audit commands | Hard to reproduce end-to-end checks consistently | Document the ordered local audit path and keep it in the North Star | Next agent can run the listed checks in order without guessing |
 | G2 | active | adjacent_follow_up | scripts-audits maintainer | scripts/audits/qa-batches | docs scan + current docs refresh | Old dated QA batch files can be mistaken for active output | `GAPS.md` S2; dated files under `scripts/audits/qa-batches` | Stale evidence can hide regressions | Add a retention or refresh rule in the project docs | Latest batch id is called out in the refreshed handoff |
 | G3 | active | support_needed_now | scripts-audits maintainer | audit/report cadence | docs scan + current docs refresh | Generated reports do not define freshness policy | `GAPS.md` S3; `base-trait-coverage.report.json`, `base-trait-key-coverage.report.json`, `race-image-byte-audit.json`, `slice-of-life-settings.json` | Owners may trust stale snapshots as live truth | Add run cadence and ownership in this tracker or North Star | Reports have named freshness guidance before reuse |
-| G4 | done | blocked_human_decision | project owner | audit policy | docs scan + current docs refresh | The project still has no decision on mandatory CI checks versus optional/manual audits | `GAPS.md` S4; `docs/guides/RACE_ENRICHMENT_WORKFLOW.md`; `docs/portraits/race_portrait_regen_handoff.md`; `docs/projects/DECISION_BLITZ_2026-06-10.md` (D20) | Automation scope can block contributors or miss regressions | **Decided 2026-06-10:** audits stay optional/manual, no CI gates this cycle (DECISIONS.md D2); revisit when the audit suite stabilizes | Decision recorded 2026-06-10; re-open only on a new gating proposal |
 
 ## Update Rules
 

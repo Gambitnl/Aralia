@@ -1,0 +1,58 @@
+{"at":1781275172641,"kind":"spawn","id":"as-mqb18vkt-155a29","agent":"shell","title":"cockpit smoke test"}
+{"at":1781275173698,"kind":"exit","id":"as-mqb18vkt-155a29","agent":"shell","title":"cockpit smoke test","status":"exited","exitCode":255,"runtimeMs":1125}
+{"at":1781285780589,"kind":"spawn","id":"probe-gemini-mqb7k8rw","agent":"gemini","title":"usage probe · gemini","external":true}
+{"at":1781285795530,"kind":"exit","id":"probe-gemini-mqb7k8rw","agent":"gemini","title":"usage probe · gemini","status":"exited","exitCode":0,"runtimeMs":14941,"external":true}
+{"at":1781287407676,"kind":"spawn","id":"probe-claude-mqb8j48s","agent":"claude","title":"usage probe · claude","external":true}
+{"at":1781287467966,"kind":"exit","id":"probe-claude-mqb8j48s","agent":"claude","title":"usage probe · claude","status":"exited","exitCode":1,"runtimeMs":60290,"external":true}
+{"at":1781287506373,"kind":"spawn","id":"probe-claude-mqb8l8ed","agent":"claude","title":"usage probe · claude","external":true}
+{"at":1781287566739,"kind":"exit","id":"probe-claude-mqb8l8ed","agent":"claude","title":"usage probe · claude","status":"exited","exitCode":1,"runtimeMs":60366,"external":true}
+{"at":1781287566745,"kind":"spawn","id":"probe-codex-mqb8mizd","agent":"codex","title":"usage probe · codex","external":true}
+{"at":1781287571916,"kind":"exit","id":"probe-codex-mqb8mizd","agent":"codex","title":"usage probe · codex","status":"exited","exitCode":0,"runtimeMs":5171,"external":true}
+{"at":1781287571922,"kind":"spawn","id":"probe-agy-mqb8mmz6","agent":"agy","title":"usage probe · agy","external":true}
+{"at":1781287578417,"kind":"exit","id":"probe-agy-mqb8mmz6","agent":"agy","title":"usage probe · agy","status":"exited","exitCode":0,"runtimeMs":6495,"external":true}
+{"at":1781287578421,"kind":"spawn","id":"probe-qoder-mqb8mrzp","agent":"qoder","title":"usage probe · qoder","external":true}
+{"at":1781287590169,"kind":"exit","id":"probe-qoder-mqb8mrzp","agent":"qoder","title":"usage probe · qoder","status":"exited","exitCode":0,"runtimeMs":11748,"external":true}
+{"at":1781287590175,"kind":"spawn","id":"probe-qoder-cranenre-mqb8n127","agent":"qoder-cranenre","title":"usage probe · qoder-cranenre","external":true}
+{"at":1781287601642,"kind":"spawn","id":"probe-qoder-cranenre-mqb8n9wq","agent":"qoder-cranenre","title":"usage probe · qoder-cranenre","external":true}
+{"at":1781287632228,"kind":"exit","id":"probe-qoder-cranenre-mqb8n9wq","agent":"qoder-cranenre","title":"usage probe · qoder-cranenre","status":"exited","exitCode":1,"runtimeMs":30586,"external":true}
+{"at":1781287632230,"kind":"exit","id":"probe-qoder-cranenre-mqb8n127","agent":"qoder-cranenre","title":"usage probe · qoder-cranenre","status":"exited","exitCode":1,"runtimeMs":42055,"external":true}
+{"at":1781287645877,"kind":"spawn","id":"probe-qoder-cranenre-mqb8o81h","agent":"qoder-cranenre","title":"usage probe · qoder-cranenre","external":true}
+{"at":1781287676928,"kind":"exit","id":"probe-qoder-cranenre-mqb8o81h","agent":"qoder-cranenre","title":"usage probe · qoder-cranenre","status":"exited","exitCode":1,"runtimeMs":31051,"external":true}
+{"at":1781287691141,"kind":"spawn","id":"probe-claude-mqb8p6yt","agent":"claude","title":"usage probe · claude","external":true}
+{"at":1781287721639,"kind":"exit","id":"probe-claude-mqb8p6yt","agent":"claude","title":"usage probe · claude","status":"exited","exitCode":0,"runtimeMs":30498,"external":true}
+{"at":1781287800278,"kind":"spawn","id":"probe-claude-mqb8rj6e","agent":"claude","title":"usage probe · claude","external":true}
+{"at":1781287832327,"kind":"exit","id":"probe-claude-mqb8rj6e","agent":"claude","title":"usage probe · claude","status":"exited","exitCode":0,"runtimeMs":32049,"external":true}
+{"at":1781288045407,"kind":"spawn","id":"probe-claude-mqb8wsbi","agent":"claude","title":"usage probe · claude","external":true}
+{"at":1781288072485,"kind":"exit","id":"probe-claude-mqb8wsbi","agent":"claude","title":"usage probe · claude","status":"exited","exitCode":0,"runtimeMs":27078,"external":true}
+{"at":1781301661803,"kind":"spawn","id":"as-mqbh0mr0-6f8fe1","agent":"shell","title":"small-mode test 1"}
+{"at":1781301661951,"kind":"spawn","id":"as-mqbh0mut-40bf96","agent":"shell","title":"small-mode test 2"}
+{"at":1781301662132,"kind":"spawn","id":"as-mqbh0mx2-167eb9","agent":"shell","title":"small-mode test 3"}
+{"at":1781301682044,"kind":"exit","id":"as-mqbh0mr0-6f8fe1","agent":"shell","title":"small-mode test 1","status":"exited","exitCode":0,"runtimeMs":20304}
+{"at":1781301682198,"kind":"exit","id":"as-mqbh0mut-40bf96","agent":"shell","title":"small-mode test 2","status":"exited","exitCode":0,"runtimeMs":20321}
+{"at":1781301682385,"kind":"exit","id":"as-mqbh0mx2-167eb9","agent":"shell","title":"small-mode test 3","status":"exited","exitCode":0,"runtimeMs":20427}
+{"at":1781302525962,"kind":"spawn","id":"probe-qoder-mqbhj5kj","agent":"qoder","title":"usage probe · qoder","external":true}
+{"at":1781302538716,"kind":"exit","id":"probe-qoder-mqbhj5kj","agent":"qoder","title":"usage probe · qoder","status":"exited","exitCode":0,"runtimeMs":12753,"external":true}
+{"at":1781302739599,"kind":"spawn","id":"probe-qoder-cranenre-mqbhnqfj","agent":"qoder-cranenre","title":"usage probe · qoder-cranenre","external":true}
+{"at":1781302847853,"kind":"exit","id":"probe-qoder-cranenre-mqbhnqfj","agent":"qoder-cranenre","title":"usage probe · qoder-cranenre","status":"exited","exitCode":0,"runtimeMs":108254,"external":true}
+{"at":1781303049871,"kind":"spawn","id":"as-mqbhudqs-5a582b","agent":"shell","title":"expand test"}
+{"at":1781303054836,"kind":"exit","id":"as-mqbhudqs-5a582b","agent":"shell","title":"expand test","status":"killed","exitCode":-1073741510,"runtimeMs":5088}
+{"at":1781303062112,"kind":"spawn","id":"as-mqbhun43-e44b34","agent":"qoder","title":"worldforge read"}
+{"at":1781303063936,"kind":"exit","id":"as-mqbhun43-e44b34","agent":"qoder","title":"worldforge read","status":"exited","exitCode":1,"runtimeMs":2045}
+{"at":1781303235027,"kind":"spawn","id":"as-mqbhyc1r-7a6335","agent":"copilot","title":"LOGIN � Copilot � type /login, code appears, enter it at github.com/login/device"}
+{"at":1781303236058,"kind":"spawn","id":"as-mqbhyd69-3df186","agent":"kilo","title":"LOGIN � Kilo � pick Kilo Gateway in the menu, browser flow follows"}
+{"at":1781303250477,"kind":"spawn","id":"as-mqbhyo4s-b48b08","agent":"cursor","title":"LOGIN � Cursor � follow the printed URL (browser may auto-open)"}
+{"at":1781303256825,"kind":"exit","id":"as-mqbhyo4s-b48b08","agent":"cursor","title":"LOGIN � Cursor � follow the printed URL (browser may auto-open)","status":"exited","exitCode":1,"runtimeMs":6989}
+{"at":1781304676826,"kind":"spawn","id":"probe-gemini-mqbit97d","agent":"gemini","title":"usage probe · gemini","external":true}
+{"at":1781304698324,"kind":"exit","id":"probe-gemini-mqbit97d","agent":"gemini","title":"usage probe · gemini","status":"exited","exitCode":0,"runtimeMs":21498,"external":true}
+{"at":1781304698326,"kind":"spawn","id":"probe-qoder-mqbitpsm","agent":"qoder","title":"usage probe · qoder","external":true}
+{"at":1781304712232,"kind":"exit","id":"probe-qoder-mqbitpsm","agent":"qoder","title":"usage probe · qoder","status":"exited","exitCode":0,"runtimeMs":13906,"external":true}
+{"at":1781304745568,"kind":"spawn","id":"as-mqbiuq2d-7375a2","agent":"gemini","title":"streets visibility (ground)"}
+{"at":1781304760156,"kind":"exit","id":"as-mqbiuq2d-7375a2","agent":"gemini","title":"streets visibility (ground)","status":"exited","exitCode":1,"runtimeMs":14822}
+{"at":1781304774153,"kind":"spawn","id":"as-mqbivbzu-65053f","agent":"qoder","title":"worldmap modal dead-zone"}
+{"at":1781304774417,"kind":"spawn","id":"as-mqbivcbp-cb4a23","agent":"qoder","title":"tree variety (ground)"}
+{"at":1781304789765,"kind":"exit","id":"as-mqbivcbp-cb4a23","agent":"qoder","title":"tree variety (ground)","status":"exited","exitCode":1,"runtimeMs":15584}
+{"at":1781305241459,"kind":"exit","id":"as-mqbivbzu-65053f","agent":"qoder","title":"worldmap modal dead-zone","status":"exited","exitCode":1,"runtimeMs":467705}
+{"at":1781305556257,"kind":"spawn","id":"as-mqbjc3hu-e868e3","agent":"gemini","title":"streets visibility v2"}
+{"at":1781305556400,"kind":"spawn","id":"as-mqbjc3sk-1c89f1","agent":"qoder","title":"tree variety v2"}
+{"at":1781305573918,"kind":"exit","id":"as-mqbjc3hu-e868e3","agent":"gemini","title":"streets visibility v2","status":"exited","exitCode":1,"runtimeMs":18028}
+{"at":1781305831309,"kind":"exit","id":"as-mqbjc3sk-1c89f1","agent":"qoder","title":"tree variety v2","status":"exited","exitCode":1,"runtimeMs":275033}

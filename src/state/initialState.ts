@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 04:34:01
+ * Last Sync: 12/06/2026, 08:04:57
  * Dependents: App.tsx, state/appState.ts
  * Imports: 14 files
  *
@@ -317,4 +317,13 @@ export const initialGameState: GameState = {
     // 3D World Transition (world-3d-ui)
     worldViewMode: 'atlas' as const,
     playerWorldPos: null,
+    // Ground-mode resume anchor
+    // This stays null until the 3D ground renderer reports tile-local meters.
+    // It must remain separate from playerWorldPos, which stores continent meters.
+    playerGroundPos: null,
+
+    // Worldforge replay log
+    // Fresh games have no plot edits yet. Runtime actions append deltas here so
+    // regenerated village geometry can replay saved player/world changes.
+    worldforgeDeltas: [],
 };

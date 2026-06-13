@@ -7,6 +7,7 @@ main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: active
 last_updated: 2026-06-05
+iteration: 1
 confidence: medium
 evidence: docs/projects/crime-ui
 gap_signal: 5 open gaps, including 1 adjacent_follow_up and 4 active blockers/support gaps

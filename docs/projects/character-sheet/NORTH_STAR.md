@@ -6,13 +6,14 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 10
 confidence: high
 evidence: docs/projects/character-sheet
-gap_signal: "1 open gap (G5); G7 decided 2026-06-10 (D16, Option A) — implementation lane open; 3 untriaged gaps (G8, G9, G10); G3 resolved; G4 README drift closed; G6 intentional placeholder verified and closed"
+gap_signal: "5 open gaps; G5, G7, G8, G9, and G10 remain open; G3 resolved; G4 README drift closed; G6 intentional placeholder verified and closed"
 protocol: living project doc set
 next_step: "Implement G7 per D16 (Option A): add durable acquiredAt acquisition-timestamp semantics to the item model, backfill/migrate inventory data, then implement food expiration from that source with a focused InventoryList render test."
-agent_comments: "README drift audit closed; journal payload omission is intentional and render-tested; the Skills expertise column remains visible but intentionally zero until the character model exposes expertise state; food freshness timestamp decision recorded 2026-06-10 (D16, Option A) — acquiredAt semantics approved."
+agent_comments: "README drift audit closed; journal payload omission is intentional and render-tested; the Skills expertise column remains visible but intentionally zero until the character model exposes expertise state; food freshness timestamp decision recorded 2026-06-10 (D16, Option A) â€” acquiredAt semantics approved."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -31,7 +32,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-08
 workflow_gaps_reviewed: 2026-06-08
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -41,7 +42,7 @@ human_decision_required: "no"
 # Character Sheet North Star
 
 Status: active (decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Why This Project Exists
 
@@ -57,7 +58,7 @@ Character Sheet is an implemented UI feature with modal and tabbed character dat
 
 - Verify the README-described tab and component surfaces against the runtime implementation in `src/components/CharacterSheet`.
 - Record any real mismatch in `docs/projects/character-sheet/GAPS.md` with source-backed evidence.
-- Keep `TRACKER.md` and this handoff aligned on the current open slice; G3 and G6 are resolved, and G7 is now review-required pending a timestamp decision. (Update 2026-06-10: G7 decided — D16, Option A; implementation lane open.)
+- Keep `TRACKER.md` and this handoff aligned on the current open slice; G3 and G6 are resolved, and G7 is now review-required pending a timestamp decision. (Update 2026-06-10: G7 decided â€” D16, Option A; implementation lane open.)
 
 ## Dashboard Card Schema
 
@@ -67,7 +68,7 @@ Category: Feature/UI Projects
 Status: active (decision recorded 2026-06-10; implementation lane open)
 Confidence: high
 Evidence: docs/projects/character-sheet
-Gap signal: 1 open gap (G5); G7 decided 2026-06-10 (D16, Option A) — implementation lane open; 3 untriaged gaps (G8, G9, G10); G3 journal contract resolved; G6 skills expertise placeholder verified intentional
+Gap signal: 5 open gaps; G5, G7, G8, G9, and G10 remain open; G3 resolved; G4 README drift closed; G6 intentional placeholder verified and closed
 Protocol: living project doc set  
 Next step: Implement G7 per D16 (Option A): add durable `acquiredAt` acquisition-timestamp semantics, backfill/migrate inventory data, then implement food expiration from that source with a focused InventoryList render test.
 Required verification: docs_consistency
@@ -187,12 +188,12 @@ Status: decision recorded 2026-06-10; implementation lane open.
 - Action payload typing and casing consistency for item use/management actions was normalized to `USE_ITEM` in the shared action contract.
 - Component README intent notes were realigned in T4, but future tab or window changes still need a spot check before expansion.
 - The Skills expertise column is intentionally present but remains zero until the character model gains expertise state.
-- Remaining gap states are `G5` open and `G7` review-required. (Update 2026-06-10: `G7` is decided — D16, Option A — and is now an open implementation lane.)
+- Remaining gap states are `G5` open and `G7` review-required. (Update 2026-06-10: `G7` is decided â€” D16, Option A â€” and is now an open implementation lane.)
 
 ## Next Checks for Cold Start
 
 1. Verify `character` shapes against `src/types` across Overview, Details, Spells, and Family tabs; the journal fallback contract is already test-covered.
-2. Keep the remaining adjacent gap (`G5`) and the review-required gap (`G7`) linked to evidence in `TRACKER.md` before expanding adjacent work. (`G7` decided 2026-06-10 — D16, Option A — implement `acquiredAt` semantics, backfill, then expiration.)
+2. Keep the remaining adjacent gap (`G5`) and the review-required gap (`G7`) linked to evidence in `TRACKER.md` before expanding adjacent work. (`G7` decided 2026-06-10 â€” D16, Option A â€” implement `acquiredAt` semantics, backfill, then expiration.)
 3. Carry unresolved schema alignment into project work tracking and keep this folder as the owning handoff point.
 
 ## Anchor Files

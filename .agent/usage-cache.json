@@ -1,0 +1,142 @@
+{
+  "codex": {
+    "agent": "codex",
+    "at": 1781287571915,
+    "ok": true,
+    "data": {
+      "account": "cranenre@gmail.com (Plus)",
+      "limits": [
+        {
+          "window": "5h",
+          "pctLeft": 46,
+          "resets": "20:21"
+        },
+        {
+          "window": "Weekly",
+          "pctLeft": 79,
+          "resets": "02:39 on 18 Jun"
+        },
+        {
+          "window": "5h",
+          "pctLeft": 100,
+          "resets": "01:06 on 13 Jun"
+        },
+        {
+          "window": "Weekly",
+          "pctLeft": 0,
+          "resets": "03:54 on 15 Jun"
+        }
+      ],
+      "lines": [
+        "gpt-5.5 · gpt-5.5 default · F:\\Repos\\Aralia · Aralia · Context 100% left · Context 0% used",
+        "master · Context 100% left · Contxt 0% used q",
+        "· 5h 46% left q",
+        "gpt-5.5 · gpt-5.5 high · F:\\Repos\\Aralia · Aralia · master · Context 100% left · Context 0% used · 5h 46% left",
+        "│ 5h limit: [█████████░░░░░░░░░░░] 46% left (resets 20:21) │",
+        "│ Weekly limit: [████████████████░░░░] 79% left (resets 02:39 on 18 Jun) │",
+        "│ 5h limit: [████████████████████] 100% left (resets 01:06 on 13 Jun) │",
+        "│ Weekly limit: [░░░░░░░░░░░░░░░░░░░░] 0% left (resets 03:54 on 15 Jun) │",
+        "gpt-5.5 · gpt-5.5 high · F:\\Repos\\Aralia · Aralia · master · Context 100% left · Context 0% used · 5h 46% left qwr,"
+      ]
+    }
+  },
+  "agy": {
+    "agent": "agy",
+    "at": 1781287578416,
+    "ok": true,
+    "data": {
+      "models": [
+        {
+          "model": "Gemini 3.5 Flash (Medium)",
+          "pct": 100
+        },
+        {
+          "model": "Gemini 3.5 Flash (High)",
+          "pct": 100
+        },
+        {
+          "model": "Gemini 3.5 Flash (Low)",
+          "pct": 100
+        },
+        {
+          "model": "Gemini 3.1 Pro (Low)",
+          "pct": 100
+        },
+        {
+          "model": "Gemini 3.1 Pro (High)",
+          "pct": 100
+        },
+        {
+          "model": "Claude Sonnet 4.6 (Thinking)",
+          "pct": 0
+        },
+        {
+          "model": "Claude Opus 4.6 (Thinking)",
+          "pct": 0
+        },
+        {
+          "model": "GPT-OSS 120B (Medium)",
+          "pct": 0
+        }
+      ],
+      "lines": [
+        "███████████ ███████████ ███████████ ███████████ ███████████ 100%",
+        "░░░░░░░░░░░ ░░░░░░░░░░░ ░░░░░░░░░░░ ░░░░░░░░░░░ ░░░░░░░░░░░ 0%"
+      ]
+    }
+  },
+  "gemini": {
+    "agent": "gemini",
+    "at": 1781304698323,
+    "ok": true,
+    "data": {
+      "quotaUsedPct": 9,
+      "lines": [
+        "F:\\Repos\\Aralia masterXno sandboxXgemini-3.1-pro-previewX9% usedX0% usedX353d7f49 DESKTOP-HP0DR6I google",
+        "F:\\Repos\\Aralia masterXno sandbox gemini-3.1-pro-preview 9% usedX444.3 MB 0% used 353d7f49 DESKTOP-HP0DR6I cranenre@gmail.com",
+        "F:\\Repos\\Aralia masterXno sandbox gemini-3.1-pro-preview 9% usedX331.7 MB 0% used 353d7f49 DESKTOP-HP0DR6I cranenre@gmail.com"
+      ]
+    }
+  },
+  "qoder": {
+    "agent": "qoder",
+    "at": 1781304712231,
+    "ok": true,
+    "data": {
+      "plan": "personal_standard",
+      "quotaUsedPct": 0,
+      "credits": "0/0 credits",
+      "exceeded": true,
+      "lines": [
+        "plan personal_standard · credits 0/0 · plan credits exhausted (free 200/day Qwen promo unaffected)"
+      ]
+    }
+  },
+  "claude": {
+    "agent": "claude",
+    "at": 1781288117881,
+    "ok": true,
+    "data": {
+      "summary": "5h block 35.1M tok · ~$90 API-equiv · resets 10:00 PM",
+      "blockTokens": 35134626,
+      "resetAt": "2026-06-12T20:00:00.000Z",
+      "lines": [
+        "5h block 35.1M tok · ~$90 API-equiv · resets 10:00 PM"
+      ]
+    }
+  },
+  "qoder-cranenre": {
+    "agent": "qoder-cranenre",
+    "at": 1781302847852,
+    "ok": true,
+    "data": {
+      "plan": "personal_standard",
+      "quotaUsedPct": 0,
+      "credits": "0/0 credits",
+      "exceeded": true,
+      "lines": [
+        "plan personal_standard · credits 0/0 · plan credits exhausted (free 200/day Qwen promo unaffected)"
+      ]
+    }
+  }
+}

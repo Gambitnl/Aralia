@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { MovementCommand } from '../MovementCommand';
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories';
-import { MovementEffect } from '@/types/spells';
+import { MovementEffect, SpellEffect } from '@/types/spells';
 import { CommandContext } from '../../base/SpellCommand';
 
 describe('MovementCommand - Reaction Usage', () => {
@@ -162,6 +162,190 @@ describe('MovementCommand - terrain and hazard landing effects', () => {
     expect(updatedTarget.position).toEqual({ x: 2, y: 0 });
     expect(updatedTarget.statusEffects.some(status => status.name === 'Restrained')).toBe(true);
     expect(movementLog.message).toContain('through mud');
+  });
+});
+
+// ----------------------------------------------------------------------------
+// Forced Movement Through Spell Zones
+// ----------------------------------------------------------------------------
+// Forced spell movement should still interact with persistent area hazards.
+// This keeps push/pull movement from bypassing Spike Growth-style zones just
+// because the movement came from a command instead of a normal move action.
+// ----------------------------------------------------------------------------
+describe('MovementCommand - spell-zone forced movement triggers', () => {
+  it('applies on_move_in_area zone damage when a pushed target travels through the zone', () => {
+    const caster = createMockCombatCharacter({ id: 'caster', name: 'Caster', position: { x: 0, y: 0 } });
+    const target = createMockCombatCharacter({
+      id: 'target',
+      name: 'Target',
+      position: { x: 1, y: 0 },
+      currentHP: 20,
+      maxHP: 20
+    });
+    const tiles = new Map();
+    for (let x = 0; x <= 15; x += 1) {
+      tiles.set(`${x}-0`, { id: `${x}-0`, coordinates: { x, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] });
+    }
+    const zoneEffect: SpellEffect = {
+      type: 'DAMAGE',
+      trigger: { type: 'on_move_in_area' },
+      condition: { type: 'always' },
+      damage: { dice: '1d1', type: 'Piercing' }
+    } as unknown as SpellEffect;
+    const state = createMockCombatState({
+      characters: [caster, target],
+      mapData: { id: 'zone-push-map', name: 'Zone Push Map', dimensions: { width: 16, height: 1 }, tiles } as any,
+      spellZones: [{
+        id: 'spike-growth-style-zone',
+        spellId: 'spike-growth-style',
+        casterId: 'zone-caster',
+        position: { x: 8, y: 0 },
+        areaOfEffect: { shape: 'cube', size: 30 },
+        effects: [zoneEffect],
+        triggeredThisTurn: new Set(),
+        triggeredEver: new Set()
+      } as any],
+      turnState: { currentTurn: 0, turnOrder: [], currentCharacterId: 'caster', phase: 'planning', actionsThisTurn: [] }
+    });
+    const effect: MovementEffect = {
+      type: 'MOVEMENT',
+      movementType: 'push',
+      distance: 70,
+      duration: { type: 'instantaneous' },
+      trigger: { type: 'immediate', frequency: 'every_time', movementType: 'forced' },
+      condition: { type: 'always' }
+    };
+    const context: CommandContext = {
+      spellId: 'force-through-zone',
+      spellName: 'Force Through Zone',
+      castAtLevel: 1,
+      caster,
+      targets: [target],
+      gameState: createMockGameState()
+    };
+
+    const nextState = new MovementCommand(effect, context).execute(state);
+    const updatedTarget = nextState.characters.find(character => character.id === 'target')!;
+
+    expect(updatedTarget.currentHP).toBeLessThan(target.currentHP);
+    expect(nextState.combatLog.some(entry => entry.message.includes('takes') && entry.message.includes('zone effect'))).toBe(true);
+  });
+
+  it('applies on_move_in_area zone healing when a pushed target travels through the zone', () => {
+    const caster = createMockCombatCharacter({ id: 'caster', name: 'Caster', position: { x: 0, y: 0 } });
+    const target = createMockCombatCharacter({
+      id: 'target',
+      name: 'Target',
+      position: { x: 1, y: 0 },
+      currentHP: 5,
+      maxHP: 20
+    });
+    const tiles = new Map();
+    for (let x = 0; x <= 15; x += 1) {
+      tiles.set(`${x}-0`, { id: `${x}-0`, coordinates: { x, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] });
+    }
+    const zoneEffect: SpellEffect = {
+      type: 'HEALING',
+      trigger: { type: 'on_move_in_area' },
+      condition: { type: 'always' },
+      healing: { dice: '1d1' }
+    } as unknown as SpellEffect;
+    const state = createMockCombatState({
+      characters: [caster, target],
+      mapData: { id: 'zone-heal-push-map', name: 'Zone Heal Push Map', dimensions: { width: 16, height: 1 }, tiles } as any,
+      spellZones: [{
+        id: 'healing-zone',
+        spellId: 'healing-zone',
+        casterId: 'zone-caster',
+        position: { x: 8, y: 0 },
+        areaOfEffect: { shape: 'cube', size: 30 },
+        effects: [zoneEffect],
+        triggeredThisTurn: new Set(),
+        triggeredEver: new Set()
+      } as any],
+      turnState: { currentTurn: 0, turnOrder: [], currentCharacterId: 'caster', phase: 'planning', actionsThisTurn: [] }
+    });
+    const effect: MovementEffect = {
+      type: 'MOVEMENT',
+      movementType: 'push',
+      distance: 70,
+      duration: { type: 'instantaneous' },
+      trigger: { type: 'immediate', frequency: 'every_time', movementType: 'forced' },
+      condition: { type: 'always' }
+    };
+    const context: CommandContext = {
+      spellId: 'force-through-healing-zone',
+      spellName: 'Force Through Healing Zone',
+      castAtLevel: 1,
+      caster,
+      targets: [target],
+      gameState: createMockGameState()
+    };
+
+    const nextState = new MovementCommand(effect, context).execute(state);
+    const updatedTarget = nextState.characters.find(character => character.id === 'target')!;
+
+    expect(updatedTarget.currentHP).toBeGreaterThan(target.currentHP);
+    expect(nextState.combatLog.some(entry => entry.message.includes('heals') && entry.message.includes('zone effect'))).toBe(true);
+  });
+
+  it('applies on_move_in_area zone status conditions when a pushed target travels through the zone', () => {
+    const caster = createMockCombatCharacter({ id: 'caster', name: 'Caster', position: { x: 0, y: 0 } });
+    const target = createMockCombatCharacter({
+      id: 'target',
+      name: 'Target',
+      position: { x: 1, y: 0 },
+      statusEffects: []
+    });
+    const tiles = new Map();
+    for (let x = 0; x <= 15; x += 1) {
+      tiles.set(`${x}-0`, { id: `${x}-0`, coordinates: { x, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] });
+    }
+    const zoneEffect: SpellEffect = {
+      type: 'STATUS_CONDITION',
+      trigger: { type: 'on_move_in_area' },
+      condition: { type: 'always' },
+      statusCondition: { name: 'Restrained', duration: { type: 'rounds', value: 3 } }
+    } as unknown as SpellEffect;
+    const state = createMockCombatState({
+      characters: [caster, target],
+      mapData: { id: 'zone-status-push-map', name: 'Zone Status Push Map', dimensions: { width: 16, height: 1 }, tiles } as any,
+      spellZones: [{
+        id: 'status-zone',
+        spellId: 'status-zone',
+        casterId: 'zone-caster',
+        position: { x: 8, y: 0 },
+        areaOfEffect: { shape: 'cube', size: 30 },
+        effects: [zoneEffect],
+        triggeredThisTurn: new Set(),
+        triggeredEver: new Set()
+      } as any],
+      turnState: { currentTurn: 0, turnOrder: [], currentCharacterId: 'caster', phase: 'planning', actionsThisTurn: [] }
+    });
+    const effect: MovementEffect = {
+      type: 'MOVEMENT',
+      movementType: 'push',
+      distance: 70,
+      duration: { type: 'instantaneous' },
+      trigger: { type: 'immediate', frequency: 'every_time', movementType: 'forced' },
+      condition: { type: 'always' }
+    };
+    const context: CommandContext = {
+      spellId: 'force-through-status-zone',
+      spellName: 'Force Through Status Zone',
+      castAtLevel: 1,
+      caster,
+      targets: [target],
+      gameState: createMockGameState()
+    };
+
+    const nextState = new MovementCommand(effect, context).execute(state);
+    const updatedTarget = nextState.characters.find(character => character.id === 'target')!;
+    const restrainedStatus = updatedTarget.statusEffects.find(status => status.name === 'Restrained');
+
+    expect(restrainedStatus).toBeDefined();
+    expect(restrainedStatus?.duration).toEqual({ type: 'rounds', value: 3 });
+    expect(nextState.combatLog.some(entry => entry.message.includes('Restrained') && entry.message.includes('zone effect'))).toBe(true);
   });
 });
 

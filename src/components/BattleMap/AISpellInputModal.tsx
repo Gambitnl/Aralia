@@ -1,5 +1,21 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 12/06/2026, 23:13:57
+ * Dependents: components/Combat/CombatView.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useEffect, useRef, useState } from 'react';
-import { Spell } from '../../types/spells';
+import { Spell, UtilityEffect } from '../../types/spells';
 import { detectSuspiciousInput } from '../../utils/securityUtils';
 
 /**
@@ -27,13 +43,26 @@ const AISpellInputModal: React.FC<AISpellInputModalProps> = ({ spell, onSubmit, 
     const modeChoice = spell.modeChoice;
     const perTargetChoice = spell.targeting.perTargetChoice;
     const perTargetChoicePromptTargetName = (spell as Spell & { perTargetChoicePromptTargetName?: string }).perTargetChoicePromptTargetName;
+    const controlChoiceOptions = spell.effects.flatMap(effect => {
+        // Command-style spells keep their selectable words on the utility
+        // effect payload instead of `modeChoice`. Rendering them here lets
+        // the same modal handle Command without inventing a second prompt UI.
+        if (effect.type !== 'UTILITY') {
+            return [];
+        }
+
+        return ((effect as UtilityEffect).controlOptions ?? []).map(option => ({
+            label: option.name,
+            summary: option.details || `Command the target to ${option.effect}.`
+        }));
+    });
     const choiceOptions = modeChoice?.options.map(option => ({
         label: option.label,
         summary: option.summary || 'Choose this spell mode.'
     })) ?? perTargetChoice?.options.map(option => ({
         label: option,
         summary: perTargetChoice.notes || 'Choose this option for the target.'
-    })) ?? [];
+    })) ?? controlChoiceOptions;
     const isStructuredChoice = choiceOptions.length > 0;
 
     useEffect(() => {

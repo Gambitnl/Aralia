@@ -2,7 +2,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useActionExecutor } from '../useActionExecutor';
-import { CombatCharacter, CombatAction, TurnState, Ability } from '../../../types/combat';
+import { CombatCharacter, CombatAction, TurnState, Ability, Position } from '../../../types/combat';
+import type { ActiveSpellZone } from '../../../systems/spells/effects/triggerHandler';
+import type { SpellEffect } from '../../../types/spells';
 
 /**
  * This file protects the combat action executor, which is the runtime path that
@@ -12,7 +14,9 @@ import { CombatCharacter, CombatAction, TurnState, Ability } from '../../../type
  * The hook sits between the turn manager and lower-level combat utilities, so
  * these tests focus on small rules slices where a regression would change live
  * gameplay. New coverage for Sentinel keeps the opportunity-attack stop effect
- * tied to a successful hit without widening into the battle-map renderer.
+ * tied to a successful hit without widening into the battle-map renderer, and
+ * Armor of Agathys coverage protects the retaliation target contract for
+ * reactive spell damage.
  *
  * Called by: Vitest combat hook checks
  * Depends on: useActionExecutor.ts and shared combat types
@@ -117,6 +121,447 @@ describe('useActionExecutor', () => {
         mockProcessTileEffects.mockReturnValue(mockCharacter);
         mockHandleDamage.mockReturnValue(mockCharacter);
         mockProcessRepeatSaves.mockReturnValue(mockCharacter);
+    });
+
+    it('should apply on-target-attack reactive damage to the attacker instead of the protected target', async () => {
+        // Armor of Agathys-style retaliation belongs on the creature that made
+        // the triggering attack. This attack ability is intentionally small so
+        // the test only proves the reactive target routing, not hit chance or
+        // melee filtering, which remain separate open gates.
+        const meleeAttack: Ability = {
+            id: 'claw',
+            name: 'Claw',
+            description: 'A simple melee attack used to trigger retaliation.',
+            type: 'attack',
+            cost: { type: 'action' },
+            targeting: 'single_enemy',
+            range: 1,
+            effects: [{ type: 'damage', value: 1, damageType: 'physical', dice: '1' }]
+        };
+        const attacker: CombatCharacter = {
+            ...mockCharacter,
+            id: 'frostbitten_attacker',
+            name: 'Frostbitten Attacker',
+            position: { x: 1, y: 0 },
+            abilities: [meleeAttack]
+        };
+        const protectedCaster: CombatCharacter = {
+            ...mockCharacter,
+            id: 'protected_caster',
+            name: 'Protected Caster',
+            position: { x: 0, y: 0 },
+            abilities: []
+        };
+        const armorRetaliation: SpellEffect = {
+            type: 'DAMAGE',
+            trigger: {
+                type: 'on_target_attack',
+                frequency: 'every_time',
+                consumption: 'unlimited'
+            },
+            condition: { type: 'always' },
+            damage: { dice: '5', type: 'Cold' },
+            description: 'A creature that hits the protected caster takes cold damage.'
+        };
+
+        // The executor spends the attacker's action first, then resolves the
+        // reactive effect after the action log. Returning the attacker keeps
+        // that post-spend identity stable for the reactive event pass.
+        mockConsumeAction.mockReturnValue(attacker);
+        mockHandleDamage.mockImplementation((character: CombatCharacter, amount: number) => ({
+            ...character,
+            currentHP: character.currentHP - amount
+        }));
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [attacker, protectedCaster],
+            reactiveTriggers: [{
+                id: 'armor-of-agathys-retaliation',
+                sourceEffect: armorRetaliation,
+                casterId: protectedCaster.id,
+                targetId: protectedCaster.id,
+                createdTurn: 1
+            }]
+        }));
+
+        const action: CombatAction = {
+            id: 'claw-protected-caster',
+            characterId: attacker.id,
+            type: 'ability',
+            abilityId: meleeAttack.id,
+            targetCharacterIds: [protectedCaster.id],
+            targetPosition: protectedCaster.position,
+            cost: { type: 'action' },
+            timestamp: Date.now()
+        };
+
+        const success = await result.current.executeAction(action);
+
+        expect(success).toBe(true);
+        expect(mockHandleDamage).toHaveBeenCalledWith(
+            expect.objectContaining({ id: attacker.id }),
+            5,
+            'reactive effect',
+            'Cold'
+        );
+        expect(mockHandleDamage).not.toHaveBeenCalledWith(
+            expect.objectContaining({ id: protectedCaster.id }),
+            expect.any(Number),
+            'reactive effect',
+            'Cold'
+        );
+    });
+
+    it('should not trigger melee-filtered on-target-attack damage for a ranged attack', async () => {
+        // Armor of Agathys only retaliates against melee attack rolls. This
+        // ranged attack proves the reactive runtime reads the spell-data
+        // attack filter instead of treating every attack-like ability the same.
+        const rangedAttack: Ability = {
+            id: 'shortbow',
+            name: 'Shortbow',
+            description: 'A ranged weapon attack used to test melee filtering.',
+            type: 'attack',
+            cost: { type: 'action' },
+            targeting: 'single_enemy',
+            range: 12,
+            weapon: { id: 'shortbow_item', name: 'Shortbow', description: 'A shortbow', type: 'weapon', properties: ['ranged'] },
+            effects: [{ type: 'damage', value: 1, damageType: 'physical', dice: '1' }]
+        };
+        const archer: CombatCharacter = {
+            ...mockCharacter,
+            id: 'ranged_attacker',
+            name: 'Ranged Attacker',
+            position: { x: 6, y: 0 },
+            abilities: [rangedAttack]
+        };
+        const protectedCaster: CombatCharacter = {
+            ...mockCharacter,
+            id: 'protected_caster',
+            name: 'Protected Caster',
+            position: { x: 0, y: 0 },
+            abilities: []
+        };
+        const meleeOnlyRetaliation: SpellEffect = {
+            type: 'DAMAGE',
+            trigger: {
+                type: 'on_target_attack',
+                frequency: 'every_time',
+                consumption: 'unlimited',
+                attackFilter: {
+                    weaponType: 'melee',
+                    attackType: 'any'
+                }
+            },
+            condition: { type: 'always' },
+            damage: { dice: '5', type: 'Cold' },
+            description: 'Only melee attacks against the protected caster should cause cold retaliation.'
+        };
+
+        // The attack itself is still a valid action. The assertion below only
+        // cares that the reactive retaliation path stays quiet for a ranged
+        // trigger mismatch.
+        mockConsumeAction.mockReturnValue(archer);
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [archer, protectedCaster],
+            reactiveTriggers: [{
+                id: 'armor-of-agathys-melee-filter',
+                sourceEffect: meleeOnlyRetaliation,
+                casterId: protectedCaster.id,
+                targetId: protectedCaster.id,
+                createdTurn: 1
+            }]
+        }));
+
+        const action: CombatAction = {
+            id: 'shortbow-protected-caster',
+            characterId: archer.id,
+            type: 'ability',
+            abilityId: rangedAttack.id,
+            targetCharacterIds: [protectedCaster.id],
+            targetPosition: protectedCaster.position,
+            cost: { type: 'action' },
+            timestamp: Date.now()
+        };
+
+        const success = await result.current.executeAction(action);
+
+        expect(success).toBe(true);
+        expect(mockHandleDamage).not.toHaveBeenCalled();
+        expect(mockAddDamageNumber).not.toHaveBeenCalled();
+    });
+
+    it('should not trigger weapon-filtered on-target-attack damage for a spell attack', async () => {
+        // Some reactive effects are weapon-only riders. This spell attack uses
+        // the same action-executor event path as attack-roll spells, proving
+        // the runtime can reject spell-vs-weapon mismatches before applying
+        // reactive damage.
+        const spellAttack: Ability = {
+            id: 'frost_ray',
+            name: 'Frost Ray',
+            description: 'A spell attack used to test weapon-only filtering.',
+            type: 'spell',
+            cost: { type: 'action', spellSlotLevel: 1 },
+            targeting: 'single_enemy',
+            range: 12,
+            spell: {
+                id: 'frost_ray',
+                name: 'Frost Ray',
+                description: 'A ranged spell attack.',
+                attackType: 'ranged'
+            } as NonNullable<Ability['spell']>,
+            effects: [{ type: 'damage', value: 1, damageType: 'cold', dice: '1' }]
+        };
+        const spellAttacker: CombatCharacter = {
+            ...mockCharacter,
+            id: 'spell_attacker',
+            name: 'Spell Attacker',
+            position: { x: 6, y: 0 },
+            abilities: [spellAttack]
+        };
+        const protectedCaster: CombatCharacter = {
+            ...mockCharacter,
+            id: 'protected_caster',
+            name: 'Protected Caster',
+            position: { x: 0, y: 0 },
+            abilities: []
+        };
+        const weaponOnlyRetaliation: SpellEffect = {
+            type: 'DAMAGE',
+            trigger: {
+                type: 'on_target_attack',
+                frequency: 'every_time',
+                consumption: 'unlimited',
+                attackFilter: {
+                    weaponType: 'any',
+                    attackType: 'weapon'
+                }
+            },
+            condition: { type: 'always' },
+            damage: { dice: '5', type: 'Cold' },
+            description: 'Only weapon attacks against the protected caster should cause retaliation.'
+        };
+
+        // The action remains valid and should still be recorded; only the
+        // weapon-filtered reactive damage should be suppressed.
+        mockConsumeAction.mockReturnValue(spellAttacker);
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [spellAttacker, protectedCaster],
+            reactiveTriggers: [{
+                id: 'weapon-only-reactive-filter',
+                sourceEffect: weaponOnlyRetaliation,
+                casterId: protectedCaster.id,
+                targetId: protectedCaster.id,
+                createdTurn: 1
+            }]
+        }));
+
+        const action: CombatAction = {
+            id: 'frost-ray-protected-caster',
+            characterId: spellAttacker.id,
+            type: 'ability',
+            abilityId: spellAttack.id,
+            targetCharacterIds: [protectedCaster.id],
+            targetPosition: protectedCaster.position,
+            cost: { type: 'action', spellSlotLevel: 1 },
+            timestamp: Date.now()
+        };
+
+        const success = await result.current.executeAction(action);
+
+        expect(success).toBe(true);
+        expect(mockHandleDamage).not.toHaveBeenCalled();
+        expect(mockAddDamageNumber).not.toHaveBeenCalled();
+    });
+
+    it('should not trigger temp-HP-bound retaliation when the protected target only has unrelated temp HP', async () => {
+        // Armor of Agathys ends when its own temporary HP is gone. This proof
+        // prevents the runtime from using a generic tempHP number supplied by a
+        // different feature as permission to keep the spell retaliation alive.
+        const meleeAttack: Ability = {
+            id: 'claw',
+            name: 'Claw',
+            description: 'A melee attack used against a target with unrelated temp HP.',
+            type: 'attack',
+            cost: { type: 'action' },
+            targeting: 'single_enemy',
+            range: 1,
+            effects: [{ type: 'damage', value: 1, damageType: 'physical', dice: '1' }]
+        };
+        const attacker: CombatCharacter = {
+            ...mockCharacter,
+            id: 'temp_hp_attacker',
+            name: 'Temp HP Attacker',
+            position: { x: 1, y: 0 },
+            abilities: [meleeAttack]
+        };
+        const protectedCaster: CombatCharacter = {
+            ...mockCharacter,
+            id: 'protected_caster',
+            name: 'Protected Caster',
+            position: { x: 0, y: 0 },
+            tempHP: 4,
+            temporaryHitPointSource: {
+                spellId: 'heroism',
+                spellName: 'Heroism',
+                casterId: 'ally_bard'
+            },
+            abilities: []
+        };
+        const armorRetaliation: SpellEffect = {
+            type: 'DAMAGE',
+            trigger: {
+                type: 'on_target_attack',
+                frequency: 'every_time',
+                consumption: 'unlimited',
+                attackFilter: {
+                    weaponType: 'melee',
+                    attackType: 'weapon'
+                }
+            },
+            condition: { type: 'always' },
+            conditionalEndings: [{
+                trigger: 'temporary_hit_points_depleted',
+                scope: 'spell',
+                description: 'The spell ends when its own temporary hit points are gone.'
+            }],
+            damage: { dice: '5', type: 'Cold' },
+            description: 'The armor retaliates only while its own temporary HP remains.'
+        };
+
+        // The attack should still succeed as an action; only the expired
+        // Armor-specific reactive damage should stay silent.
+        mockConsumeAction.mockReturnValue(attacker);
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [attacker, protectedCaster],
+            reactiveTriggers: [{
+                id: 'armor-retaliation-with-unrelated-temp-hp',
+                sourceEffect: armorRetaliation,
+                sourceSpellId: 'armor-of-agathys',
+                sourceSpellName: 'Armor of Agathys',
+                casterId: protectedCaster.id,
+                targetId: protectedCaster.id,
+                createdTurn: 1
+            }]
+        }));
+
+        const action: CombatAction = {
+            id: 'claw-protected-caster-with-other-temp-hp',
+            characterId: attacker.id,
+            type: 'ability',
+            abilityId: meleeAttack.id,
+            targetCharacterIds: [protectedCaster.id],
+            targetPosition: protectedCaster.position,
+            cost: { type: 'action' },
+            timestamp: Date.now()
+        };
+
+        const success = await result.current.executeAction(action);
+
+        expect(success).toBe(true);
+        expect(mockHandleDamage).not.toHaveBeenCalled();
+        expect(mockAddDamageNumber).not.toHaveBeenCalled();
+    });
+
+    it('should not trigger on-target-attack reactive damage when the attack result says the target was missed', async () => {
+        // Armor of Agathys only retaliates after a creature hits the protected
+        // caster. The action envelope can carry per-target attack results, and
+        // an explicit miss must suppress the reactive damage for that target.
+        const meleeAttack: Ability = {
+            id: 'claw',
+            name: 'Claw',
+            description: 'A melee attack that misses the protected caster.',
+            type: 'attack',
+            cost: { type: 'action' },
+            targeting: 'single_enemy',
+            range: 1,
+            effects: [{ type: 'damage', value: 1, damageType: 'physical', dice: '1' }]
+        };
+        const attacker: CombatCharacter = {
+            ...mockCharacter,
+            id: 'missing_attacker',
+            name: 'Missing Attacker',
+            position: { x: 1, y: 0 },
+            abilities: [meleeAttack]
+        };
+        const protectedCaster: CombatCharacter = {
+            ...mockCharacter,
+            id: 'protected_caster',
+            name: 'Protected Caster',
+            position: { x: 0, y: 0 },
+            tempHP: 5,
+            temporaryHitPointSource: {
+                spellId: 'armor-of-agathys',
+                spellName: 'Armor of Agathys',
+                casterId: 'protected_caster'
+            },
+            abilities: []
+        };
+        const armorRetaliation: SpellEffect = {
+            type: 'DAMAGE',
+            trigger: {
+                type: 'on_target_attack',
+                frequency: 'every_time',
+                consumption: 'unlimited',
+                attackFilter: {
+                    weaponType: 'melee',
+                    attackType: 'weapon'
+                }
+            },
+            condition: { type: 'always' },
+            conditionalEndings: [{
+                trigger: 'temporary_hit_points_depleted',
+                scope: 'spell',
+                description: 'The spell ends when its own temporary hit points are gone.'
+            }],
+            damage: { dice: '5', type: 'Cold' },
+            description: 'The armor retaliates only after a hit.'
+        };
+
+        // The action remains valid and spends the attacker's action, but the
+        // reactive damage should see the explicit miss and stay silent.
+        mockConsumeAction.mockReturnValue(attacker);
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [attacker, protectedCaster],
+            reactiveTriggers: [{
+                id: 'armor-retaliation-on-missed-attack',
+                sourceEffect: armorRetaliation,
+                sourceSpellId: 'armor-of-agathys',
+                sourceSpellName: 'Armor of Agathys',
+                casterId: protectedCaster.id,
+                targetId: protectedCaster.id,
+                createdTurn: 1
+            }]
+        }));
+
+        const action = {
+            id: 'claw-misses-protected-caster',
+            characterId: attacker.id,
+            type: 'ability' as const,
+            abilityId: meleeAttack.id,
+            targetCharacterIds: [protectedCaster.id],
+            targetPosition: protectedCaster.position,
+            attackResults: [{
+                targetId: protectedCaster.id,
+                isHit: false
+            }],
+            cost: { type: 'action' as const },
+            timestamp: Date.now()
+        };
+
+        const success = await result.current.executeAction(action);
+
+        expect(success).toBe(true);
+        expect(mockHandleDamage).not.toHaveBeenCalled();
+        expect(mockAddDamageNumber).not.toHaveBeenCalled();
     });
 
     it('should handle end_turn action', async () => {
@@ -228,6 +673,75 @@ describe('useActionExecutor', () => {
         expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
             message: expect.stringContaining('Blocker is in the way')
         }));
+    });
+
+    it('should pass explicit movement paths to spell-zone movement triggers', async () => {
+        const spikeGrowthStyleEffect: SpellEffect = {
+            type: 'DAMAGE',
+            trigger: { type: 'on_move_in_area' },
+            condition: { type: 'always' },
+            damage: { dice: '1d1', type: 'Piercing' }
+        } as unknown as SpellEffect;
+        const zone: ActiveSpellZone = {
+            id: 'zone-spike-growth',
+            spellId: 'spike-growth-style-zone',
+            casterId: 'caster',
+            position: { x: 0, y: 0 },
+            areaOfEffect: { shape: 'cube', size: 30 },
+            effects: [spikeGrowthStyleEffect],
+            triggeredThisTurn: new Set(),
+            triggeredEver: new Set()
+        };
+        const movementPath: Position[] = [
+            { x: -7, y: 0 },
+            { x: -6, y: 0 },
+            { x: -5, y: 0 },
+            { x: -4, y: 0 },
+            { x: -3, y: 0 },
+            { x: -2, y: 0 },
+            { x: -1, y: 0 },
+            { x: 0, y: 0 },
+            { x: 1, y: 0 },
+            { x: 2, y: 0 },
+            { x: 3, y: 0 },
+            { x: 4, y: 0 },
+            { x: 5, y: 0 },
+            { x: 6, y: 0 },
+            { x: 7, y: 0 }
+        ];
+        const pathingMover = { ...mockCharacter, position: movementPath[0] };
+        mockConsumeAction.mockReturnValue(pathingMover);
+        mockProcessTileEffects.mockImplementation((char) => char);
+        mockHandleDamage.mockImplementation((char) => char);
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [pathingMover],
+            spellZones: [zone]
+        }));
+
+        // The move starts and ends outside the zone, so endpoint-only area
+        // checks miss it. The explicit path records the walked tiles that
+        // passed through the zone interior.
+        const action = {
+            id: 'move-through-zone',
+            characterId: pathingMover.id,
+            type: 'move' as const,
+            targetPosition: movementPath[movementPath.length - 1],
+            movementPath,
+            cost: { type: 'movement-only' as const, movementCost: 70 },
+            timestamp: Date.now()
+        } as CombatAction;
+
+        const success = await result.current.executeAction(action);
+
+        expect(success).toBe(true);
+        expect(mockHandleDamage).toHaveBeenCalledWith(
+            expect.objectContaining({ id: pathingMover.id }),
+            expect.any(Number),
+            'zone effect',
+            'Piercing'
+        );
     });
 
     it('should let Dash spend an action and add current-turn movement without making an attack', async () => {

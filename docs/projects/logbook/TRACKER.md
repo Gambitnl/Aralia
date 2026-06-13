@@ -1,4 +1,4 @@
-# Logbook Living Tracker
+﻿# Logbook Living Tracker
 
 Status: active
 Last updated: 2026-06-10
@@ -17,8 +17,6 @@ Last updated: 2026-06-10
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Refresh Logbook project docs (NORTH_STAR/TRACKER/GAPS) after implementation scan | Current thread | 2026-05-31 | `docs/projects/logbook/*.md` | None for this docs pass | Confirm new docs include scope, file map, state, integrations, gaps |
-| T2 | done | Carry forward Logbook gaps before implementation | Current thread | 2026-06-10 | `docs/projects/logbook/GAPS.md` (G1-G6), `docs/projects/logbook/NORTH_STAR.md` | Implementation slice for G1 defined; G5 identified as co-priority bug | Implement G1 retention policy in logReducer + saveLoadService | Unit test for cap + unread count adjustment |
 | T3 | active | Implement discovery log retention policy (G1) and fix unread count drift (G5) | Current thread | 2026-06-10 | `src/state/reducers/logReducer.ts`, `src/services/saveLoadService.ts` | Add MAX_DISCOVERY_LOG_ENTRIES constant, slice after prepend, fix unread drift in UPDATE_QUEST_IN_DISCOVERY_LOG | Run unit tests for retention cap, unread accuracy, and save/load round-trip |
 
 ## Gap Log

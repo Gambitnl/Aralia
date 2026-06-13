@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 17:58:48
+ * Last Sync: 12/06/2026, 17:45:59
  * Dependents: components/World3D/World3DScene.tsx
  * Imports: 5 files
  *
@@ -65,6 +65,9 @@ const NAMEPLATE_CONFIG: NameplateConfig = {
   maxVisible: 12,
 };
 
+/** Keep building labels above the roof volume instead of buried in the slab. */
+const ROOF_CLEAR = 3.5;
+
 interface World3DNameplatesProps {
   /** Loaded chunks owned by the streamer. */
   loaded: LoadedChunk[];
@@ -119,14 +122,30 @@ function makeNameplates(
       const dx = worldPos.x - refX;
       const dz = worldPos.z - refZ;
       const distanceSq = dx * dx + dz * dz;
-      if (distanceSq > maxDistanceSq) continue;
+      // Occupant labels can opt into a tighter walking-distance gate while
+      // towns, dungeons, and older sites keep using the global nameplate range.
+      const siteMaxDistance =
+        typeof site.labelRangeM === 'number' && Number.isFinite(site.labelRangeM)
+          ? Math.max(0, site.labelRangeM)
+          : config.maxWorldDistance;
+      const siteMaxDistanceSq = site.labelRangeM === undefined
+        ? maxDistanceSq
+        : siteMaxDistance * siteMaxDistance;
+      if (distanceSq > siteMaxDistanceSq) continue;
 
       const sceneX = worldPos.x - sceneOrigin.x;
       const sceneZ = worldPos.z - sceneOrigin.z;
+      // Buildings report boxHeight in meters, so their label anchor can clear
+      // the roof directly. Legacy radius-only sites keep the older center-cube
+      // label height so continent markers do not move.
+      const labelY =
+        typeof site.boxHeight === 'number'
+          ? site.surfaceY + site.boxHeight + ROOF_CLEAR
+          : site.surfaceY + site.radius;
       candidates.push({
         key: `${chunk.cx}|${chunk.cy}|${site.id}`,
-        text: buildSiteLabelText(site.kind, site.id),
-        position: [sceneX, site.surfaceY + site.radius, sceneZ],
+        text: site.name ?? buildSiteLabelText(site.kind, site.id),
+        position: [sceneX, labelY, sceneZ],
         distanceSq,
         kind: site.kind,
       });

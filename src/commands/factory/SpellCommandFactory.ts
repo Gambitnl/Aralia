@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/04/2026, 17:39:30
- * Dependents: commands/factory/AbilityCommandFactory.ts, commands/index.ts
- * Imports: 21 files
+ * Last Sync: 12/06/2026, 23:08:53
+ * Dependents: commands/index.ts
+ * Imports: 22 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,7 +15,7 @@
 // @dependencies-end
 
 import { Spell, SpellEffect, TargetConditionFilter, isDamageEffect, isHealingEffect, StatusConditionEffect, isUtilityEffect } from '@/types/spells'
-import { CombatCharacter } from '@/types/combat'
+import { CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 
 import { SpellCommand, CommandContext } from '../base/SpellCommand'
 import { DamageCommand } from '../effects/DamageCommand'
@@ -52,7 +52,8 @@ export class SpellCommandFactory {
     gameState: GameState,
     playerInput?: string,
     currentPlane?: Plane,
-    requestReaction?: (attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_take_damage', options: any[]) => Promise<string | null>
+    requestReaction?: (attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_take_damage', options: any[]) => Promise<string | null>,
+    selectedSpellTargets?: SelectedSpellTarget[]
   ): Promise<SpellCommand[]> {
     const commands: SpellCommand[] = []
 
@@ -78,6 +79,12 @@ export class SpellCommandFactory {
       castAtLevel: effectiveCastLevel, // Updated below
       caster,
       targets,
+      // Keep command context ready for object and point spells while preserving
+      // the existing creature-target array that current commands execute from.
+      selectedSpellTargets: selectedSpellTargets ?? this.createCreatureTargetRefs(targets),
+      // Preserve the already-collected UI/AI choice for commands that need to
+      // choose among structured options at execution time, such as Command.
+      playerInput,
       gameState,
       effectDuration: spell.duration.type === 'timed' && spell.duration.unit
         ? {
@@ -289,7 +296,14 @@ export class SpellCommandFactory {
       // if deeply nested mutable properties are ever added to CommandContext.
       // Consider passing `targets` explicitly to constructors instead of relying on mutable context if this complexity grows.
       if (filteredTargets.length !== context.targets.length) {
-        context = { ...context, targets: filteredTargets };
+        context = {
+          ...context,
+          targets: filteredTargets,
+          // If a creature filter removes targets, mirror that reduction in the
+          // rich target envelope so future object/point commands do not see stale
+          // creature refs that legacy command execution already rejected.
+          selectedSpellTargets: this.filterSelectedTargetsForCreatures(context.selectedSpellTargets, filteredTargets)
+        };
       }
     }
 
@@ -477,5 +491,38 @@ export class SpellCommandFactory {
 
     const newCount = baseDice.count + (bonusDice.count * multiplier)
     return `${newCount}d${baseDice.size}`
+  }
+
+  /**
+   * Build the rich target envelope for the current creature-only command path.
+   *
+   * Object and point refs enter through the optional factory argument, but most
+   * existing callers still pass only CombatCharacter targets. This adapter keeps
+   * those callers visible to future command code without changing their behavior.
+   */
+  private static createCreatureTargetRefs(targets: CombatCharacter[]): SelectedSpellTarget[] {
+    return targets.map(target => ({ kind: 'creature', id: target.id }))
+  }
+
+  /**
+   * Keep selected creature refs aligned with filtered command targets.
+   *
+   * Filters such as "Undead only" apply to creature targets. Non-creature refs
+   * are preserved because object and point eligibility belongs to the object
+   * targeting resolver, not creature taxonomy filters.
+   */
+  private static filterSelectedTargetsForCreatures(
+    selectedSpellTargets: SelectedSpellTarget[] | undefined,
+    filteredTargets: CombatCharacter[]
+  ): SelectedSpellTarget[] | undefined {
+    if (!selectedSpellTargets) {
+      return undefined
+    }
+
+    const filteredCreatureIds = new Set(filteredTargets.map(target => target.id))
+
+    return selectedSpellTargets.filter(selectedTarget =>
+      selectedTarget.kind !== 'creature' || filteredCreatureIds.has(selectedTarget.id)
+    )
   }
 }

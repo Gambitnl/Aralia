@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 10/06/2026, 22:29:00
+ * Last Sync: 12/06/2026, 23:13:45
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
- * Imports: 22 files
+ * Imports: 23 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -25,12 +25,12 @@
  *   Getters (isValidTarget) remain reactive to props for render correctness.
  */
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
-import { CombatCharacter, Position, CombatAction, BattleMapData, CombatState, CombatLogEntry, ReactiveTrigger, Ability, LightSource, PocketedSummon, SpellDeliveryVisual } from '../types/combat';
+import { CombatCharacter, Position, CombatAction, BattleMapData, CombatState, CombatLogEntry, ReactiveTrigger, Ability, LightSource, PocketedSummon, SpellDeliveryVisual, SelectedSpellTarget } from '../types/combat';
 
 import { SpellMovementVisualInput } from './movementUtils';
 export type { SpellMovementVisualInput };
 import { GameState } from '../types';
-import type { Spell, SpellEffect, MovementEffect, TerrainEffect } from '../types/spells';
+import type { Spell, SpellEffect, MovementEffect, TerrainEffect, UtilityEffect } from '../types/spells';
 import { resolveScalableNumber } from '../types/spells';
 import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
@@ -95,6 +95,27 @@ import {
   resolveMultiTargetIds
 } from './actionUtils';
 import { TargetResolver } from '../systems/spells/targeting/TargetResolver';
+import { buildSelectedSpellTargetsForPosition } from '../systems/spells/targeting/selectedSpellTargets';
+
+/**
+ * Pull the selectable command words out of structured utility effects.
+ *
+ * Command-style spells keep the legal words inside the effect payload instead
+ * of using `modeChoice`. The hook needs this small adapter so it can reuse the
+ * existing player-input modal before command execution reaches UtilityCommand.
+ */
+const getSpellControlOptions = (spell: Spell): NonNullable<UtilityEffect['controlOptions']> => {
+  return spell.effects.flatMap(effect => {
+    // Only utility effects can carry command-control options. Other effect
+    // families are ignored so damage, status, and movement spells keep their
+    // current execution path.
+    if (effect.type !== 'UTILITY') {
+      return [];
+    }
+
+    return (effect as UtilityEffect).controlOptions ?? [];
+  });
+};
 
 interface UseAbilitySystemProps {
   characters: CombatCharacter[];
@@ -194,7 +215,7 @@ export const useAbilitySystem = ({
   const {
     isValidTarget,
     getTargetValidation,
-    getValidTargets,
+    getValidTargets: getBaseValidTargets,
     getCharacterAtPosition
   } = useTargetValidator({ characters, mapData });
   const [pendingReaction, setPendingReaction] = useState<PendingReaction | null>(null);
@@ -227,6 +248,56 @@ export const useAbilitySystem = ({
     });
   }, []);
 
+  const getValidTargets = useCallback((ability: Ability, caster: CombatCharacter): Position[] => {
+    const baseTargets = getBaseValidTargets(ability, caster);
+
+    if (!ability.spell?.targeting.validTargets.includes('objects')) {
+      return baseTargets;
+    }
+
+    const currentCharacters = charactersRef.current;
+    const currentMapData = mapDataRef.current;
+    const currentState: CombatState = {
+      isActive: true,
+      characters: currentCharacters,
+      turnState: {
+        currentTurn: 0,
+        turnOrder: [],
+        currentCharacterId: null,
+        phase: 'planning',
+        actionsThisTurn: []
+      },
+      selectedCharacterId: null,
+      selectedAbilityId: null,
+      actionMode: 'select',
+      validTargets: [],
+      validMoves: [],
+      combatLog: [],
+      reactiveTriggers: reactiveTriggersRef.current || [],
+      activeLightSources: activeLightSources || [],
+      mapData: currentMapData ?? undefined
+    };
+    const seenTargetKeys = new Set(baseTargets.map(position => `${position.x}-${position.y}`));
+    const objectTargets = (currentMapData?.targetableObjects ?? [])
+      .filter(targetObject => TargetResolver.isValidObjectTarget(
+        ability.spell!.targeting,
+        caster,
+        targetObject,
+        currentState
+      ))
+      .map(targetObject => targetObject.position)
+      .filter(position => {
+        const key = `${position.x}-${position.y}`;
+        if (seenTargetKeys.has(key)) {
+          return false;
+        }
+        seenTargetKeys.add(key);
+        return true;
+      });
+
+    return [...baseTargets, ...objectTargets];
+  }, [getBaseValidTargets, activeLightSources]);
+
   // --- Refs for Stability (Actions Only) ---
   // We use Refs to access the latest props inside event handlers (actions)
   // to prevent them from causing re-renders.
@@ -254,7 +325,8 @@ export const useAbilitySystem = ({
       castAtLevel: number,
       playerInput?: string,
       resourceSnapshot?: CombatCharacter,
-      zoneRegistration?: { areaOfEffect: { shape: string }; aoeParams: AoEParams }
+      zoneRegistration?: { areaOfEffect: { shape: string }; aoeParams: AoEParams },
+      selectedSpellTargets?: SelectedSpellTarget[]
     ) {
       // RALPH: Stability Pattern.
       // We access `charactersRef.current` instead of `characters` from props to avoid re-creating this function on every render.
@@ -276,7 +348,7 @@ export const useAbilitySystem = ({
             // creation, because SpellCommandFactory uses that label to keep
             // only the chosen effect branch. Re-enter the same execution path
             // after the UI supplies the choice.
-            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot, zoneRegistration);
+            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot, zoneRegistration, selectedSpellTargets);
           });
           return;
         }
@@ -293,6 +365,35 @@ export const useAbilitySystem = ({
             characterId: caster.id,
             targetIds: targets.map(target => target.id),
             data: { spellId: spell.id, pendingGap: 'SSO-MODECHOICE-UI-INPUT-001' }
+          });
+        }
+        return;
+      }
+
+      const controlOptions = getSpellControlOptions(spell);
+      if (controlOptions.length > 1 && !playerInput) {
+        if (onRequestInput) {
+          onRequestInput(spell, (input) => {
+            // Command-control spells store their menu inside the utility
+            // effect, but the selected word should travel through the same
+            // playerInput bridge that mode-choice spells already use.
+            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot, zoneRegistration, selectedSpellTargets);
+          });
+          return;
+        }
+
+        const message = `${spell.name} needs a command option before it can be cast.`;
+        console.warn(message);
+        if (onNotification) onNotification(message, 'error');
+        if (onLogEntry) {
+          onLogEntry({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'action',
+            message,
+            characterId: caster.id,
+            targetIds: targets.map(target => target.id),
+            data: { spellId: spell.id, pendingGap: 'SSO-CONTROL-OPTION-SELECTION-001' }
           });
         }
         return;
@@ -372,7 +473,8 @@ export const useAbilitySystem = ({
           commandGameState,
           playerInput,
           activePlane,
-          requestReaction
+          requestReaction,
+          selectedSpellTargets
         );
 
         // 3. Execute
@@ -561,7 +663,8 @@ export const useAbilitySystem = ({
     caster: CombatCharacter,
     targetPosition: Position,
     targetCharacterIds: string[],
-    playerInput?: string
+    playerInput?: string,
+    selectedSpellTargets?: SelectedSpellTarget[]
   ) => {
     // Access latest data from refs
     const currentCharacters = charactersRef.current;
@@ -591,7 +694,7 @@ export const useAbilitySystem = ({
             // selected option belongs to that one target and is passed into
             // command creation as playerInput. Multi-target casts use the
             // sequential assignment flow below instead.
-            executeAbilityInternal(ability, caster, targetPosition, targetCharacterIds, input);
+            executeAbilityInternal(ability, caster, targetPosition, targetCharacterIds, input, selectedSpellTargets);
           });
           return;
         }
@@ -605,7 +708,7 @@ export const useAbilitySystem = ({
             executeAbilityInternal({
               ...ability,
               spell: addPerTargetChoicesToSpell(ability.spell, choicesByTargetId)
-            } as Ability, caster, targetPosition, targetCharacterIds);
+            } as Ability, caster, targetPosition, targetCharacterIds, undefined, selectedSpellTargets);
           });
           return;
         }
@@ -650,7 +753,7 @@ export const useAbilitySystem = ({
         return;
       }
 
-      const action = buildAbilityCombatAction(ability, liveCaster, targetPosition, targetCharacterIds);
+      const action = buildAbilityCombatAction(ability, liveCaster, targetPosition, targetCharacterIds, selectedSpellTargets);
 
       if (!await onExecuteAction(action)) {
         cancelTargeting();
@@ -721,7 +824,8 @@ export const useAbilitySystem = ({
         spellForExecution.level,
         playerInput,
         casterAfterCost,
-        zoneRegistration
+        zoneRegistration,
+        selectedSpellTargets
       );
       cancelTargeting();
       return;
@@ -732,7 +836,7 @@ export const useAbilitySystem = ({
     // Verify economy costs before command effects run. The turn manager remains
     // the authoritative executor, while the local resource snapshot protects
     // command results from restoring a stale caster.
-    const action = buildAbilityCombatAction(ability, liveCaster, targetPosition, targetCharacterIds);
+    const action = buildAbilityCombatAction(ability, liveCaster, targetPosition, targetCharacterIds, selectedSpellTargets);
 
     if (!await onExecuteAction(action)) {
       cancelTargeting();
@@ -1015,7 +1119,44 @@ export const useAbilitySystem = ({
     // WHY: Manual combat should not silently ignore a clicked enemy. The action
     // still does not execute, and targeting remains active so the player can
     // pick a legal target without reselecting the ability.
-    const validation = getTargetValidation(selectedAbility, caster, targetPosition);
+    const selectedSpellTargets = buildSelectedSpellTargetsForPosition({
+      position: targetPosition,
+      characters: charactersRef.current,
+      mapData: mapDataRef.current,
+      pointPurpose: 'ground_target'
+    });
+    const selectedObjectTarget = selectedSpellTargets.find((target): target is Extract<SelectedSpellTarget, { kind: 'object' }> =>
+      target.kind === 'object'
+    );
+    const objectTargetIsValid = !!selectedObjectTarget?.object && !!selectedAbility.spell && TargetResolver.isValidObjectTarget(
+      selectedAbility.spell.targeting,
+      caster,
+      selectedObjectTarget.object,
+      {
+        isActive: true,
+        characters: charactersRef.current,
+        turnState: {
+          currentTurn: 0,
+          turnOrder: [],
+          currentCharacterId: null,
+          phase: 'planning',
+          actionsThisTurn: []
+        },
+        selectedCharacterId: null,
+        selectedAbilityId: null,
+        actionMode: 'select',
+        validTargets: [],
+        validMoves: [],
+        combatLog: [],
+        reactiveTriggers: reactiveTriggersRef.current || [],
+        activeLightSources: activeLightSources || [],
+        mapData: mapDataRef.current ?? undefined
+      }
+    );
+
+    const validation = objectTargetIsValid
+      ? { isValid: true }
+      : getTargetValidation(selectedAbility, caster, targetPosition);
     if (!validation.isValid) {
       if (onNotification) onNotification(validation.reason ?? `${caster.name} cannot use ${selectedAbility.name} there.`, 'error');
       if (onLogEntry) {
@@ -1102,7 +1243,7 @@ export const useAbilitySystem = ({
       return false;
     }
 
-    executeAbility(selectedAbility, caster, targetPosition, targetCharacterIds);
+    executeAbility(selectedAbility, caster, targetPosition, targetCharacterIds, undefined, selectedSpellTargets);
     return true;
   }, [selectedAbility, pendingTeleportAssignment, executeAbility, getTargetValidation, getCharacterAtPosition, getValidTargets, isTeleportDestination, previewTeleportDestinations, cancelTargeting, onLogEntry, onNotification]);
 

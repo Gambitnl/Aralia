@@ -1,7 +1,7 @@
-# Code Modularization Audit Living Tracker
+﻿# Code Modularization Audit Living Tracker
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Status Vocabulary
 
@@ -16,13 +16,6 @@ Last updated: 2026-06-10
 
 | ID | Status | Owner | Task | Evidence | Next proof |
 |---|---|---|---|---|---|
-| CMA-T1 | done | Codex coordinator | Create the living project and seed the initial line-count candidate list. | `NORTH_STAR.md`; `GAPS.md`; line-count scan 2026-06-08 | `npm run projects:audit` prompt/schema summary |
-| CMA-T2 | done | next agent | Score the top human-maintained candidates by coupling, owner, test boundary, and split safety. | `GAPS.md` rows CMA-G1 through CMA-G6 | Scored owner-routing matrix captured in `GAPS.md` |
-| CMA-T3 | done | next agent | Decide whether generated/corpus-heavy files need generator sharding gaps rather than modularization rows. | `src/data/monsters.generated.ts`; `src/data/items/generatedGlossaryItems.ts` | Generated-data policy note and routing decision captured in `GAPS.md` |
-| CMA-T4 | done | Codex coordinator | Refresh owning project trackers/gaps with routing outcomes and keep this project in scoring-only posture until owners own implementation. | Routes recorded 2026-06-08 in `roadmap-maintenance`, `glossary-ui`, `design-preview`, `battle-map`, `submap`, `creatures`, `item_categorization`, `providers`, `layout`, and `combat`. | Owner-local gap rows exist before any forward code movement |
-| CMA-T5 | done | Codex coordinator | Add second-tranche source-size candidates after the initial routes were propagated. | `rg --files src` line-count scan 2026-06-08; `GAPS.md` rows CMA-G8 through CMA-G13 | Second tranche is recorded as candidates/routing signals, not implementation approval |
-| CMA-T6 | done | Codex coordinator | Propagate second-tranche candidates into owner-local project gaps. | CMA-G8 through CMA-G13 rows plus owner docs: character-creator, character-sheet, spells, saveload, party-ui, glossary-ui, companions, dialogue, conversation-panel, crafting, crafting-ui | Owner-local gap rows exist before any code movement |
-| CMA-T7 | done | Codex coordinator | Scan the next tranche of large human-maintained source files and route the best modularization candidates without source edits. | `GAPS.md` rows CMA-G14 through CMA-G19; line-count scan 2026-06-08 | Owner acceptance and future split plans for the new clusters |
 
 ## Status Notes
 
@@ -43,14 +36,12 @@ Continue scoring new candidates only after owner projects have consumed these ro
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Normalize this tracker to the living-project workflow contract | Amazon Q (iteration 4) | 2026-06-10 | docs/projects/PROJECT_CARD_SCHEMA.md; docs/agent-workflows/living-project-task-protocol/templates/LIVING_TRACKER.md | Completed: owner-acceptance scan run for CMA-G14..G19; no owner has accepted any route; project stays in routing/evidence posture | Re-run acceptance check when any of the six owning projects (three-d-modal, battle-map, submap, layout, combat, scripts-audits) records a gap row for their respective CMA-G14..G19 route |
 | T2 | waiting | Monitor owner acceptance of CMA-G14..G19 candidate routes | future agent | 2026-06-10 | CMA-G14..G19 rows in GAPS.md; all six owner GAPS files now contain a stub row (not_started, adjacent_follow_up) as of iteration 6; no owner has changed status to accepted/active | Check each owner GAPS.md for a row whose status has changed from not_started to accepted/active; when one appears and the owner project is not review-gated, create a bounded owner-local split plan with preservation tests | Owner GAPS.md row status changes to accepted/active and that owner project is not review-gated |
 
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | not_started | adjacent_follow_up | future agent | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization | Replace this seeded gap row with project-specific findings if any remain after the next bounded gap sweep | docs/agent-workflows/living-project-task-protocol/templates/GAPS.md | The workflow requires durable gaps to have a consistent table shape and evidence path | Perform a bounded gap sweep and either update this row or close it as no longer applicable | Updated GAPS.md and TRACKER.md agree on the project gap state |
 
 ## Update Rules
 

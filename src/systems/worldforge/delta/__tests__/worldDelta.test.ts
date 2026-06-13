@@ -8,7 +8,7 @@
  * contract future generated local maps will use.
  */
 import { describe, expect, it } from 'vitest';
-import type { LocalArtifact, LocalFeature } from '../../artifacts';
+import type { LocalArtifact, LocalFeature, TownPlan } from '../../artifacts';
 import { childSeedPath, rootSeedPath } from '../../seedPath';
 import { applyDeltas } from '../applyDeltas';
 import {
@@ -58,6 +58,42 @@ function makeLocalArtifact(): LocalArtifact {
       makeFeature(1, 'tree'),
       makeFeature(2, 'poi'),
     ],
+  };
+}
+
+// Small TownPlan fixture for B6/B7 town deltas. It keeps plot ids, footprints,
+// roles, and storeys explicit so replay expectations are easy to inspect.
+function makeTownPlan(): TownPlan {
+  return {
+    burgId: 77,
+    streets: [
+      {
+        id: 1,
+        centerline: [[0, 50], [100, 50]],
+        widthFt: 20,
+      },
+    ],
+    plots: [
+      {
+        id: 1,
+        footprint: [[10, 10], [50, 10], [50, 40], [10, 40]],
+        role: 'house',
+        storeys: 1,
+      },
+      {
+        id: 2,
+        footprint: [[60, 10], [100, 10], [100, 40], [60, 40]],
+        role: 'market',
+        storeys: 2,
+      },
+    ],
+  };
+}
+
+function makeLocalArtifactWithTown(): LocalArtifact {
+  return {
+    ...makeLocalArtifact(),
+    townPlan: makeTownPlan(),
   };
 }
 
@@ -182,6 +218,149 @@ describe('world delta application', () => {
       visited: true,
     });
   });
+
+  it('applies town plot and building deltas deterministically regardless of insertion order', () => {
+    const townDeltas: WorldDelta[] = [
+      delta('003-add-building', 30, 'plot:1', {
+        kind: 'add-building',
+        plotId: 1,
+        buildingId: 9001,
+        role: 'market',
+        storeys: 3,
+        featureData: { roof: 'tile' },
+      }),
+      delta('001-modify-plot', 10, 'plot:1', {
+        kind: 'modify-plot',
+        plotId: 1,
+        role: 'shop',
+        storeys: 3,
+      }),
+      delta('002-remove-plot', 20, 'plot:2', {
+        kind: 'remove-plot',
+        plotId: 2,
+      }),
+    ];
+
+    const forward = applyDeltas(makeLocalArtifactWithTown(), townDeltas);
+    const reversed = applyDeltas(makeLocalArtifactWithTown(), [...townDeltas].reverse());
+
+    expect(forward.warnings).toEqual([]);
+    expect(reversed.warnings).toEqual([]);
+    expect(forward.artifact).toEqual(reversed.artifact);
+    expect(forward.artifact.townPlan?.plots).toEqual([
+      {
+        id: 1,
+        footprint: [[10, 10], [50, 10], [50, 40], [10, 40]],
+        role: 'market',
+        storeys: 3,
+      },
+    ]);
+    expect(forward.artifact.features).toContainEqual({
+      id: 9001,
+      kind: 'building',
+      x: 30,
+      y: 25,
+      data: {
+        plotId: 1,
+        role: 'market',
+        storeys: 3,
+        roof: 'tile',
+      },
+    });
+  });
+
+  it('materializes add-building as an interior-ready TownPlan plot when the plot is new', () => {
+    const addedBuilding = delta('add-new-interior-plot', 1, 'plot:44', {
+      kind: 'add-building',
+      plotId: 44,
+      buildingId: 9044,
+      role: 'market',
+      storeys: 2,
+      footprint: [[120, 80], [180, 80], [180, 130], [120, 130]],
+      featureData: { sign: 'silver-scale' },
+    });
+
+    const result = applyDeltas(makeLocalArtifactWithTown(), [addedBuilding]);
+
+    expect(result.warnings).toEqual([]);
+    expect(result.artifact.townPlan?.plots.find((plot) => plot.id === 44)).toEqual({
+      id: 44,
+      footprint: [[120, 80], [180, 80], [180, 130], [120, 130]],
+      role: 'market',
+      storeys: 2,
+    });
+    expect(result.artifact.features).toContainEqual({
+      id: 9044,
+      kind: 'building',
+      x: 150,
+      y: 105,
+      data: {
+        plotId: 44,
+        role: 'market',
+        storeys: 2,
+        sign: 'silver-scale',
+      },
+    });
+  });
+
+  it('rejects malformed town operations with warnings and leaves the town plan unchanged', () => {
+    const malformedShape = delta('bad-modify-plot-shape', 1, 'plot:1', {
+      kind: 'modify-plot',
+      plotId: 1,
+      role: 44,
+      storeys: 'two',
+    } as unknown as WorldDelta['operation']);
+
+    const result = applyDeltas(makeLocalArtifactWithTown(), [malformedShape]);
+
+    expect(result.artifact).toEqual(makeLocalArtifactWithTown());
+    expect(result.warnings).toEqual([
+      {
+        deltaId: 'bad-modify-plot-shape',
+        message: 'Skipped modify-plot delta because role/storeys values are malformed.',
+      },
+    ]);
+  });
+
+  it('rejects malformed add-building operations before they can create orphan interior plots', () => {
+    const malformedShape = delta('bad-add-building-shape', 1, 'plot:3', {
+      kind: 'add-building',
+      plotId: 3,
+      buildingId: 9003,
+      role: 42,
+      storeys: 'two',
+      footprint: [[0, 0], [50, 0], [50, 50]],
+    } as unknown as WorldDelta['operation']);
+
+    const result = applyDeltas(makeLocalArtifactWithTown(), [malformedShape]);
+
+    expect(result.artifact).toEqual(makeLocalArtifactWithTown());
+    expect(result.warnings).toEqual([
+      {
+        deltaId: 'bad-add-building-shape',
+        message: 'Skipped add-building delta because building values are malformed.',
+      },
+    ]);
+  });
+
+  it('rejects missing plot town operations with warnings and leaves the town plan unchanged', () => {
+    const malformed = delta('bad-modify-plot', 1, 'plot:missing', {
+      kind: 'modify-plot',
+      plotId: 999,
+      role: 'shop',
+      storeys: 2,
+    });
+
+    const result = applyDeltas(makeLocalArtifactWithTown(), [malformed]);
+
+    expect(result.artifact).toEqual(makeLocalArtifactWithTown());
+    expect(result.warnings).toEqual([
+      {
+        deltaId: 'bad-modify-plot',
+        message: 'Skipped modify-plot delta because plot 999 does not exist.',
+      },
+    ]);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -199,6 +378,30 @@ describe('world delta serialization', () => {
 
     expect(parsed.warnings).toEqual([]);
     expect(parsed.deltas).toEqual(goldenDeltas());
+  });
+
+  it('round-trips town operation deltas through JSON without changing their meaning', () => {
+    const townDeltas: WorldDelta[] = [
+      delta('modify-plot-json', 1, 'plot:1', {
+        kind: 'modify-plot',
+        plotId: 1,
+        role: 'inn',
+        storeys: 2,
+      }),
+      delta('add-building-json', 2, 'plot:1', {
+        kind: 'add-building',
+        plotId: 1,
+        buildingId: 44,
+        role: 'inn',
+        storeys: 2,
+        featureData: { sign: 'blue-lantern' },
+      }),
+    ];
+
+    const parsed = deserializeDeltas(serializeDeltas(townDeltas));
+
+    expect(parsed.warnings).toEqual([]);
+    expect(parsed.deltas).toEqual(townDeltas);
   });
 
   it('rejects unsupported serialized schema versions with a warning', () => {

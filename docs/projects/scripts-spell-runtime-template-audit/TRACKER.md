@@ -1,6 +1,6 @@
-# Scripts: Spell Runtime Template Audit Living Tracker
+﻿# Scripts: Spell Runtime Template Audit Living Tracker
 
-Status: active — SRTA-001 decision recorded 2026-06-10; implementation lane open
+Status: active â€” SRTA-001 decision recorded 2026-06-10; implementation lane open
 Last updated: 2026-06-10
 
 ## Status Vocabulary
@@ -17,7 +17,6 @@ Last updated: 2026-06-10
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Create protocol files in `docs/projects/scripts-spell-runtime-template-audit/` | Worker C | 2026-05-31 | [docs/projects/PROJECT_TRACKER.md](docs/projects/PROJECT_TRACKER.md) | Keep files aligned and add active remediations | `Test-Path docs/projects/scripts-spell-runtime-template-audit/{NORTH_STAR.md,TRACKER.md,GAPS.md}` |
 | T2 | active | Resolve recurring warning follow-up by deciding the schema path for `Recurring Mechanics` labels and documenting execution handoff | Worker C | 2026-06-10 | `docs/tasks/spells/SPELL_RUNTIME_TEMPLATE_AUDIT_REPORT.md`; **decision recorded 2026-06-10 (Remy, `docs/projects/DECISION_BLITZ_2026-06-10.md` D22): register both labels in the strict vocabulary with migration notes** | Implement the decided path: add `Recurring Mechanics` and `Recurring Mechanic Timing` to `scripts/spellRuntimeTemplateAudit/vocabulary.ts` with migration notes, reflect in `GAPS.md`, then rerun the audit | Re-run `npm run audit:spell-template` and confirm the 28-warning family clears |
 
 ## Gap Log

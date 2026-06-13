@@ -1,7 +1,7 @@
 # Iteration Agent Workflow
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 This is the shared workflow for every agent that performs an iteration pass on a
 living project. Project-specific context belongs in
@@ -192,6 +192,10 @@ Before ending the iteration, update or explicitly report on:
 1. `NORTH_STAR.md`: current state, scope changes, resume path, key evidence,
    and the structured dashboard schema from
    `docs/projects/PROJECT_CARD_SCHEMA.md`.
+   Keep `gap_signal` dashboard-readable: it must begin with `0 open gaps`,
+   `1 open gap`, or `<N> open gaps` before any explanatory details. Do not
+   replace the count with prose such as "all gaps resolved" or "open gaps
+   remain"; those phrases can follow the parseable count after a semicolon.
 2. `TRACKER.md`: task status, owner/actor, last updated date, blockers, next
    action, evidence or next proof.
 3. `GAPS.md`: opened, closed, imported, routed, or reclassified gaps. When this

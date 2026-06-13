@@ -6,10 +6,11 @@ category: active project
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: unknown
 evidence: "docs/projects/types-ui/TRACKER.md; docs/projects/types-ui/GAPS.md"
-gap_signal: present
+gap_signal: "2 open gaps; component type registry strategy and ui declaration parity remain unresolved"
 protocol: living-project
 next_step: Resume from TRACKER.md and keep the gap log aligned.
 agent_comments: ""
@@ -26,7 +27,7 @@ required_verification:
   - docs consistency
 completed_verification:
   - docs refresh
-last_proof: 2026-06-05
+last_proof: 2026-06-12
 workflow_gaps_reviewed: ""
 compaction_status: not_needed
 lifecycle_status: active
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # types UI North Star
 
 Status: active  
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 
@@ -50,12 +51,12 @@ Last updated: 2026-06-05
 | Status | active |
 | Confidence | unknown |
 | Evidence | docs/projects/types-ui/TRACKER.md; docs/projects/types-ui/GAPS.md |
-| Gap signal | present |
+| Gap signal | 2 open gaps; component type registry strategy and ui declaration parity remain unresolved |
 | Protocol | living-project |
 | Next step | Resume from TRACKER.md and keep the gap log aligned. |
 | Required verification | docs consistency |
 | Completed verification | docs refresh |
-| Last proof | 2026-06-05 docs refresh |
+| Last proof | 2026-06-12 docs normalization |
 | Workflow gaps reviewed | yes |
 
 ## Why this exists

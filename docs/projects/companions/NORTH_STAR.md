@@ -6,10 +6,11 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 2
 confidence: medium
 evidence: docs/projects/companions/NORTH_STAR.md
-gap_signal: "G1/G2/G3/G4/G5/G7/G8/G9 resolved; G6 decision recorded 2026-06-10 (hysteresis romance exit) — implementation lane open"
+gap_signal: "1 open gap; G6 remains open after the romance hysteresis decision"
 protocol: living project doc set
 next_step: Implement the G6 hysteresis romance-exit policy in RelationshipManager (specify threshold + sustained-duration in the slice) with a focused romance-to-hostile regression.
 agent_comments: "G6 Required Review Brief resolved 2026-06-10 (Option C: hysteresis). See docs/projects/DECISION_BLITZ_2026-06-10.md D10."
@@ -40,7 +41,7 @@ human_decision_required: "no"
 # Companions System North Star
 
 Status: active (G6 decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Why This Project Exists
 The project tracker already marks Companions as implemented (`docs/projects/PROJECT_TRACKER.md`), but ownership context was still scaffold-only. This project now captures the current behavior and risk surface so future agents can continue without re-deriving intent.
@@ -94,7 +95,7 @@ Last proof: 2026-06-08
 Workflow gaps reviewed: 2026-06-08
 
 Dashboard lifecycle: active
-Assignment rule: Do not assign forward iteration agents until the romance downgrade policy is decided or a fresh source-backed scan finds a non-G6 gap. Update (2026-06-10): the policy is decided (hysteresis — DECISION_BLITZ D10); the G6 implementation slice is assignable.
+Assignment rule: Do not assign forward iteration agents until the romance downgrade policy is decided or a fresh source-backed scan finds a non-G6 gap. Update (2026-06-10): the policy is decided (hysteresis â€” DECISION_BLITZ D10); the G6 implementation slice is assignable.
 
 ## Required Review Brief
 
@@ -112,7 +113,7 @@ Proof after decision: Update G6, encode the chosen policy in `RelationshipManage
 
 ### Decision (2026-06-10)
 
-Outcome: **Option C — hysteresis romance exit.** Romance survives temporary approval dips but exits after sustained low approval. The specific threshold and sustained-duration values are to be specified as the first step of the implementation slice.
+Outcome: **Option C â€” hysteresis romance exit.** Romance survives temporary approval dips but exits after sustained low approval. The specific threshold and sustained-duration values are to be specified as the first step of the implementation slice.
 Decider: Remy (project owner), batched decision session.
 Record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D10).
 Effect: the G6 review gate is lifted. Next slice: encode the hysteresis policy in `RelationshipManager` and add the focused regression that drops approval from romance to hostile and verifies the exit only fires after the sustained-low-approval condition.
@@ -127,7 +128,7 @@ Effect: the G6 review gate is lifted. Next slice: encode the hysteresis policy i
 | Stop condition | G1/G2/G3/G4/G5/G7/G8/G9 are implemented or contract-locked, tested or documented, and reflected in the companion docs. |
 | Verification | Focused reaction-system, reaction-queue, relationship-manager, companion-card, and banter-hook tests plus updated docs reference explicit source files/tests and project trackers; the G5 and G8 contracts are documented at the reducer, hook, and split-plan edges. |
 | Owner | Worker A |
-| Next action | Use `TRACKER.md` + `GAPS.md` to prioritize the next execution slice; avoid `G6` until its human decision clears, and use the documented G8 split contract when the later code pass starts extracting helpers. Update (2026-06-10): the G6 decision has cleared (hysteresis exit, DECISION_BLITZ D10) — G6 is now the next execution slice. |
+| Next action | Use `TRACKER.md` + `GAPS.md` to prioritize the next execution slice; avoid `G6` until its human decision clears, and use the documented G8 split contract when the later code pass starts extracting helpers. Update (2026-06-10): the G6 decision has cleared (hysteresis exit, DECISION_BLITZ D10) â€” G6 is now the next execution slice. |
 
 ## Scope Boundaries
 
@@ -207,7 +208,7 @@ Check the global gap tracker before creating this project surface:
 3. Read `docs/projects/companions/GAPS.md`.
 4. Verify evidence by opening referenced `src` files + tests.
 5. Continue from the highest-priority open gap row: avoid `G6` until the relationship-policy decision clears, and treat `G8` as the documented companion-banter split contract for the next code pass.
-6. Update (2026-06-10): the G6 relationship-policy decision has cleared (hysteresis exit — `docs/projects/DECISION_BLITZ_2026-06-10.md` D10). G6 is now the highest-priority open implementation slice.
+6. Update (2026-06-10): the G6 relationship-policy decision has cleared (hysteresis exit â€” `docs/projects/DECISION_BLITZ_2026-06-10.md` D10). G6 is now the highest-priority open implementation slice.
 
 ## Cold-Start Gap Routing
 

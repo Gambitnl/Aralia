@@ -148,6 +148,42 @@ describe('DefensiveCommand', () => {
     expect(result.combatLog.at(-1)?.message).toContain('temporary HP');
   });
 
+  it('records which spell granted temporary HP when the grant is accepted', async () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 });
+    const target = {
+      ...makeCharacter('target', { x: 1, y: 0 }),
+      tempHP: 0
+    };
+    const state = makeState([caster, target]);
+
+    const effect: DefensiveEffect = {
+      type: 'DEFENSIVE',
+      defenseType: 'temporary_hp',
+      value: 5,
+      duration: { type: 'rounds', value: 1 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' }
+    };
+
+    const command = new DefensiveCommand(effect, {
+      ...makeContext(caster, [target]),
+      spellId: 'armor-of-agathys',
+      spellName: 'Armor of Agathys'
+    });
+    const result = await command.execute(state);
+
+    const updated = result.characters.find(c => c.id === 'target');
+    expect(updated?.tempHP).toBe(5);
+    // Armor-style retaliation needs to know whether the remaining temporary
+    // HP came from that same spell, not from a generic racial trait or another
+    // defensive effect.
+    expect(updated?.temporaryHitPointSource).toEqual({
+      spellId: 'armor-of-agathys',
+      spellName: 'Armor of Agathys',
+      casterId: caster.id
+    });
+  });
+
   it('calculates set_base_ac correctly including Dexterity modifier', async () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
     const target = makeCharacter('target', { x: 1, y: 0 });

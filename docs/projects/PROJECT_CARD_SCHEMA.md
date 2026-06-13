@@ -1,7 +1,7 @@
 # Project Dashboard Schema
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 This file documents how top-level Project Tracker cards get their content and
 what agents must keep current when they finish a project iteration.
@@ -45,7 +45,7 @@ status: active
 last_updated: 2026-06-04
 confidence: medium
 evidence: docs/projects/readable-project-name
-gap_signal: "3 open gaps"
+gap_signal: "3 open gaps; short source-backed summary"
 protocol: living project doc set
 next_step: Define the next concrete handoff action.
 agent_comments: "Optional note outside the normal flow; keep empty when not needed."
@@ -119,7 +119,7 @@ Status: active
 Last updated: 2026-06-04
 Confidence: medium
 Evidence: docs/projects/readable-project-name
-Gap signal: 3 open gaps
+Gap signal: 3 open gaps; short source-backed summary
 Protocol: living project doc set
 Next step: Define the next concrete handoff action.
 Agent comments: Optional note outside the normal flow; keep empty when not needed.
@@ -170,7 +170,7 @@ Field meanings:
 | Last updated | Date the project docs were last intentionally refreshed. Prefer the North Star `Last updated` date. |
 | Confidence | Low/medium/high confidence in the current handoff state. |
 | Evidence | Primary durable source path for the card. |
-| Gap signal | Compact summary from `GAPS.md`; do not hide open gaps. |
+| Gap signal | Dashboard-readable summary from `GAPS.md`; do not hide open gaps. Start with a parseable open-gap count such as `0 open gaps`, `1 open gap`, or `5 open gaps`, then add short context after a semicolon if useful. If the project is reference-only, archived, or merged but still has unresolved historical gaps, keep the count honest and explain the lifecycle state after the count. |
 | Protocol | Whether the living-project protocol is implemented and current. |
 | Next step | One concrete action for the next agent. |
 | Required verification | Comma-separated verification types from `PROJECT_VERIFICATION_SCHEMA.md`. |
@@ -199,7 +199,7 @@ Field meanings:
   "lastUpdated": "2026-06-04",
   "confidence": "medium",
   "evidence": "docs/projects/readable-project-name",
-  "gapSignal": "3 open gaps",
+  "gapSignal": "3 open gaps; short source-backed summary",
   "protocol": "living project doc set",
   "nextStep": "Define the next concrete handoff action.",
   "requiredVerification": ["scoped_tests", "docs_consistency"],

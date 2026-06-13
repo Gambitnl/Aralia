@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Planar System
 slug: planar
-status: active
-last_updated: "2026-06-06"
+Status: partial
+last_updated: 2026-06-12
 iteration: 2
 source_agent: Not recorded
 target_agent: next cold-start agent
@@ -19,8 +19,8 @@ gaps: docs/projects/planar/GAPS.md
 ---
 # Planar System Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-06
+Status: partial
+Last updated: 2026-06-12
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -45,7 +45,7 @@ docs/projects/planar/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Planar System
 Project folder: docs/projects/planar
-Iteration: 2
+iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -102,7 +102,7 @@ Key files to touch:
 - docs/projects/planar/RUNBOOK.md
 - docs/projects/PROJECT_CARD_SCHEMA.md
 - docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
+- docs/projects/planar plus source/docs named by the active tracker task
 
 Optional docs to check when present or named by tracker:
 - tasks/

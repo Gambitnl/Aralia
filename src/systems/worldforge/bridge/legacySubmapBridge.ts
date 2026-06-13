@@ -1,4 +1,20 @@
-﻿/**
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 12/06/2026, 07:53:07
+ * Dependents: components/Submap/SubmapPane.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+/**
  * @file legacySubmapBridge.ts â€” the seam between the LEGACY game world and
  * the Worldforge world (Remy's 2026-06-11 focus, slice 2: Azgaar â†’ submap).
  *
@@ -28,7 +44,11 @@ import { generateRegion } from "../region/generateRegion";
 import { generateLocal } from "../local/generateLocal";
 import { rootSeedPath } from "../seedPath";
 import { FEET_PER_FMG_PIXEL } from "../adapter/atlasArtifact";
+import { LOCAL_SIZE_FT } from "../units";
 import type { LocalArtifact, RegionArtifact } from "../artifacts";
+import type { Burg } from "../fmg/burgs-generator";
+import { NamesGenerator } from "../fmg/names-generator";
+import Alea from "alea";
 
 /** FMG canvas the bridge generates against (the demo's standard frame). */
 const FMG_WIDTH = 960;
@@ -40,10 +60,63 @@ const FMG_TEMPLATE = "continents";
 const atlasCache = new Map<string, FmgWorldResult>();
 const regionCache = new Map<string, RegionArtifact>();
 const localCache = new Map<string, LocalArtifact>();
+const townTileCache = new Map<string, TownTileEntry[]>();
+const namerCache = new Map<string, NamesGenerator>();
+
+export interface TownTileEntry {
+  x: number;
+  y: number;
+  burgId: number;
+  name: string;
+}
+
+type LiveBurg = Burg & { i: number };
 
 /** Deterministic seed string for the FMG world from the game's worldSeed. */
 export function worldforgeSeedString(worldSeed: number): string {
   return `aralia-${worldSeed}`;
+}
+
+/**
+ * Culture-true person namer for a burg's roster (SPEC: AI/procedural names
+ * per culture). FMG's Markov name chains draw from the GLOBAL Math.random
+ * (see fmg/utils/probabilityUtils RNG CONTRACT), so each call swaps in an
+ * Alea stream seeded from the caller's own seeded rng and restores the
+ * original in `finally` — no other system ever sees the swapped stream
+ * (name generation is fully synchronous). Returns null when the burg or
+ * its culture can't be resolved; callers keep their fallback namer.
+ */
+export function getBurgNamer(
+  worldSeed: number,
+  burgId: number,
+): ((rng: { next(): number }) => string) | null {
+  try {
+    const atlas = getBridgeAtlas(worldSeed);
+    const burg = atlas.pack.burgs?.[burgId] as Burg | undefined;
+    const cultureId = burg?.culture ?? 0;
+    if (!atlas.pack.cultures?.[cultureId]) return null;
+
+    const key = worldforgeSeedString(worldSeed);
+    let names = namerCache.get(key);
+    if (!names) {
+      names = new NamesGenerator(atlas.nameBases);
+      names.pack = atlas.pack;
+      namerCache.set(key, names);
+    }
+    const generator = names;
+
+    return (rng) => {
+      const saved = Math.random;
+      (Math as { random: () => number }).random = Alea(`${key}:occupant:${rng.next()}`);
+      try {
+        return generator.getCulture(cultureId);
+      } finally {
+        Math.random = saved;
+      }
+    };
+  } catch {
+    return null;
+  }
 }
 
 export function getBridgeAtlas(worldSeed: number): FmgWorldResult {
@@ -151,10 +224,184 @@ export function getWorldforgeLocalForLocation(
   return { local, region, anchorCellId, biomeId };
 }
 
+// ============================================================================
+// Town Tile Inverse Mapping
+// ============================================================================
+// This section answers the opposite question from getWorldforgeLocalForLocation:
+// given a legacy grid size, which tiles will open onto at least one FMG burg?
+// It keeps the same proportional tile-center convention and confirms every
+// candidate with legacyTileToAtlasCell so water-to-land snapping cannot drift.
+// ============================================================================
+
+function townHalfExtentFt(burg: Burg): number {
+  // Region generation sizes every town envelope from population with the same
+  // clamp. Mirroring that formula here lets the inverse include tiles where
+  // only part of a town envelope overlaps the local ground window.
+  const population = burg.population ?? 10;
+  return Math.max(400, Math.min(4000, Math.sqrt(population) * 80));
+}
+
+function isLiveBurg(burg: Burg | undefined): burg is LiveBurg {
+  // FMG index 0 is a placeholder and editor-deleted burgs stay in the array.
+  // Ground mode only receives burgs with a real id and no removal flag.
+  return Boolean(burg?.i && !burg.removed);
+}
+
+function projectedTileForAtlasPoint(
+  atlasX: number,
+  atlasY: number,
+  cols: number,
+  rows: number,
+): { x: number; y: number } {
+  // This is the algebraic inverse of the forward tile-center projection:
+  // px = ((x + 0.5) / cols) * FMG_WIDTH. Flooring the atlas proportion finds
+  // the tile whose center is closest before the nearest-land snap is checked.
+  return {
+    x: Math.floor((atlasX / FMG_WIDTH) * cols),
+    y: Math.floor((atlasY / FMG_HEIGHT) * rows),
+  };
+}
+
+function clampedTileRange(center: number, radius: number, limit: number): [number, number] {
+  // Bounded neighborhoods can spill past the map edge. Clamping preserves edge
+  // tiles without inventing negative or out-of-grid legacy coordinates.
+  return [
+    Math.max(0, center - radius),
+    Math.min(Math.max(0, limit - 1), center + radius),
+  ];
+}
+
+function nearestLandNeighborDistancePx(
+  atlas: FmgWorldResult,
+  cellId: number,
+  cache: Map<number, number>,
+): number {
+  // The candidate tile search radius scales with local cell spacing. This
+  // avoids a full-grid brute-force pass while still covering fine legacy grids
+  // where many tile centers can fall inside one land cell's snap territory.
+  const cached = cache.get(cellId);
+  if (cached !== undefined) return cached;
+
+  const { cells } = atlas.pack;
+  const origin = cells.p[cellId];
+  let best = Infinity;
+  for (let i = 0; i < cells.h.length; i++) {
+    if (i === cellId || cells.h[i] < 20) continue;
+    const point = cells.p[i];
+    if (!point) continue;
+    const dx = point[0] - origin[0];
+    const dy = point[1] - origin[1];
+    const distance = Math.hypot(dx, dy);
+    if (distance < best) best = distance;
+  }
+
+  // A missing neighbor would mean a one-cell land world. The normal atlas has
+  // thousands of land cells, but the fallback keeps the inverse bounded.
+  const distance = Number.isFinite(best) ? best : Math.max(FMG_WIDTH, FMG_HEIGHT);
+  cache.set(cellId, distance);
+  return distance;
+}
+
+function anchorCanShowBurg(atlas: FmgWorldResult, anchorCellId: number, burg: Burg): boolean {
+  // A local window is centered on the snapped anchor cell. The town appears if
+  // its envelope overlaps that 3,000 ft local square. The region window is much
+  // larger, so any local overlap also satisfies the region's burg-center gate.
+  const anchor = atlas.pack.cells.p[anchorCellId];
+  const halfReachFt = LOCAL_SIZE_FT / 2 + townHalfExtentFt(burg);
+  const dxFt = Math.abs((burg.x - anchor[0]) * FEET_PER_FMG_PIXEL);
+  const dyFt = Math.abs((burg.y - anchor[1]) * FEET_PER_FMG_PIXEL);
+  return dxFt <= halfReachFt && dyFt <= halfReachFt;
+}
+
+function candidateAnchorCellsForBurg(atlas: FmgWorldResult, burg: Burg): number[] {
+  // Burg positions live in FMG pixels. We invert the local-overlap test against
+  // land cell centers to find every snapped anchor cell that could show this
+  // town before checking which legacy tiles actually snap there.
+  const reachPx = (LOCAL_SIZE_FT / 2 + townHalfExtentFt(burg)) / FEET_PER_FMG_PIXEL;
+  const out: number[] = [];
+  const { cells } = atlas.pack;
+  for (let cellId = 0; cellId < cells.h.length; cellId++) {
+    if (cells.h[cellId] < 20) continue;
+    const point = cells.p[cellId];
+    if (!point) continue;
+    if (
+      Math.abs(point[0] - burg.x) <= reachPx &&
+      Math.abs(point[1] - burg.y) <= reachPx
+    ) {
+      out.push(cellId);
+    }
+  }
+  return out;
+}
+
+export function getTownTilesForGrid(
+  worldSeed: number,
+  cols: number,
+  rows: number,
+): TownTileEntry[] {
+  const safeCols = Math.max(1, Math.floor(cols));
+  const safeRows = Math.max(1, Math.floor(rows));
+  const cacheKey = `${worldforgeSeedString(worldSeed)}|${safeCols}x${safeRows}`;
+  const cached = townTileCache.get(cacheKey);
+  if (cached) return cached.map((entry) => ({ ...entry }));
+
+  const atlas = getBridgeAtlas(worldSeed);
+  const tileHits = new Map<string, TownTileEntry>();
+  const neighborDistanceCache = new Map<number, number>();
+  const verifiedTileAnchors = new Map<string, number>();
+
+  for (const burg of atlas.pack.burgs ?? []) {
+    if (!isLiveBurg(burg)) continue;
+
+    for (const anchorCellId of candidateAnchorCellsForBurg(atlas, burg)) {
+      const anchor = atlas.pack.cells.p[anchorCellId];
+      const projected = projectedTileForAtlasPoint(anchor[0], anchor[1], safeCols, safeRows);
+      const tileStepPx = Math.min(FMG_WIDTH / safeCols, FMG_HEIGHT / safeRows);
+      const snapRadiusPx = nearestLandNeighborDistancePx(
+        atlas,
+        anchorCellId,
+        neighborDistanceCache,
+      );
+      const searchRadius = Math.max(2, Math.ceil(snapRadiusPx / Math.max(tileStepPx, 1e-6)) + 2);
+      const [minX, maxX] = clampedTileRange(projected.x, searchRadius, safeCols);
+      const [minY, maxY] = clampedTileRange(projected.y, searchRadius, safeRows);
+
+      for (let y = minY; y <= maxY; y++) {
+        for (let x = minX; x <= maxX; x++) {
+          const tileKey = `${x},${y}`;
+          let snappedAnchor = verifiedTileAnchors.get(tileKey);
+          if (snappedAnchor === undefined) {
+            snappedAnchor = legacyTileToAtlasCell(atlas, x, y, safeCols, safeRows);
+            verifiedTileAnchors.set(tileKey, snappedAnchor);
+          }
+          if (snappedAnchor !== anchorCellId) continue;
+          if (!anchorCanShowBurg(atlas, snappedAnchor, burg)) continue;
+
+          // One entry per burg per tile preserves future large-town overlaps:
+          // callers can group by tile, but no burg identity is lost.
+          tileHits.set(`${tileKey}|${burg.i}`, {
+            x,
+            y,
+            burgId: burg.i,
+            name: burg.name ?? `Burg ${burg.i}`,
+          });
+        }
+      }
+    }
+  }
+
+  const result = [...tileHits.values()].sort((a, b) =>
+    a.y - b.y || a.x - b.x || a.burgId - b.burgId,
+  );
+  townTileCache.set(cacheKey, result);
+  return result.map((entry) => ({ ...entry }));
+}
+
 /** Test/dev hook: drop all cached worlds (e.g. between seeds in a session). */
 export function clearBridgeCaches(): void {
   atlasCache.clear();
   regionCache.clear();
   localCache.clear();
+  townTileCache.clear();
 }
 

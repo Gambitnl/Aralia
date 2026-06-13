@@ -1,4 +1,4 @@
-# Naval System Gap Registry
+﻿# Naval System Gap Registry
 
 Status: active
 Last updated: 2026-06-05
@@ -8,7 +8,6 @@ Use this file for durable unresolved findings that are too important or too larg
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| G1 | done | support_needed_now | Worker A | `docs/projects/naval/TRACKER.md` | Baseline scan | `NAVAL_REPAIR_SHIP` is declared but not handled by `navalReducer`. | `src/state/actionTypes.ts`, `src/state/reducers/navalReducer.ts` | UI/logic can dispatch an action that produces no state change, masking feature gaps as implemented behavior. | Add reducer case or remove/rename action contract if no repair flow exists. | Update action coverage and add reducer test asserting state change. |
 | G2 | active | support_needed_now | Worker A | `docs/projects/naval/TRACKER.md` | Baseline scan | Water movement is blocked in movement action flow, so voyage start is not naturally reachable from travel UX. | `src/hooks/actions/handleMovement.ts`, `src/systems/naval/VoyageManager.ts`, `src/state/actionTypes.ts` | Naval content can run only through direct actions; world travel flow does not produce consistent voyage states. | Add a supported sea-transition path from movement/port selection into `NAVAL_START_VOYAGE`. | Create an end-to-end test that moves into water/sea travel and receives a voyage state update. |
 | G3 | active | support_needed_now | Worker A | `docs/projects/naval/TRACKER.md` | Baseline scan | Voyage events can set voyage status to `Combat`, but no downstream combat handoff consumes this status. | `src/data/naval/voyageEvents/index.ts`, `src/systems/naval/VoyageManager.ts`, `src/state/reducers/navalReducer.ts` | Player can enter a non-terminal combat state with no next action, producing dead-end simulation. | Define a handoff contract to an encounter or naval-combat pipeline. | Trigger a combat-class voyage event in test and verify next reducer/system transition. |
 | G4 | active | support_needed_now | Worker A | `docs/projects/naval/TRACKER.md` | Bounded scan | Two voyage event catalogs exist with divergent definitions. | `src/data/naval/voyageEvents.ts`, `src/data/naval/voyageEvents/index.ts` | Import path differences can alter behavior across callers and break event balancing. | Consolidate to one canonical catalog and migration-safe source file. | Confirm no remaining callers to the deprecated catalog and single-source test fixture exists. |

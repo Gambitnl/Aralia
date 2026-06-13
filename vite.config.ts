@@ -24,6 +24,27 @@ import {
 
 import { codexRunManager, codexChatManager } from './scripts/vite-plugins/codexManagers';
 import { ptyTerminalManager, shellTerminalManager } from './scripts/vite-plugins/ptyTerminalManager';
+
+// Lazy wrapper: keeps agentUsageProbe.ts OUT of vite's config-dependency watch
+// list, so editing probe recipes doesn't restart the dev server (and kill PTY
+// sessions / in-flight probes). See skill: vite-dynamic-import-config-deps.
+const agentUsageProbe = () => ({
+  name: 'agent-usage-probe-lazy',
+  async configureServer(server: unknown) {
+    const mod = await import('./scripts/vite-plugins/agentUsageProbe');
+    return (mod.agentUsageProbe() as { configureServer: (s: unknown) => void }).configureServer(server);
+  },
+});
+
+// Same lazy pattern: agent-session tiles plugin stays out of the config watch
+// list so editing it doesn't restart the server and kill live agent PTYs.
+const agentSessionManager = () => ({
+  name: 'agent-session-manager-lazy',
+  async configureServer(server: unknown) {
+    const mod = await import('./scripts/vite-plugins/agentSessionManager');
+    return (mod.agentSessionManager() as { configureServer: (s: unknown) => void }).configureServer(server);
+  },
+});
 import { portraitApiManager } from './scripts/vite-plugins/portraitApiManager';
 
 import {
@@ -75,6 +96,17 @@ export default defineConfig(async ({ mode, command }) => {
   const imageTarget = 'http://localhost:3001';
 
   const mainDevRoadmapWatchIgnored = [
+    // CRASH FIX (2026-06-12): chokidar holds one OS handle per watched file.
+    // The .agent tree is agent working-state (captures, logs, probe caches,
+    // trackers) that NOTHING served by vite imports, yet it's written
+    // constantly during agent/orchestration work. Watching it accumulated
+    // ~1 handle per file with no upper bound across a session, exhausting the
+    // process handle budget and killing the dev server silently in ~30-60 min.
+    // Empirically verified: writing 400 files into .agent added exactly 401
+    // handles. Ignore the whole transient tree (supersets the roadmap globs
+    // below) plus the vendored .tmp source. Source under src/ is unaffected.
+    '**/.agent/**',
+    '**/.tmp/**',
     '**/.agent/roadmap/**',
     '**/.agent/roadmap-local/**',
     '**/devtools/roadmap/**'
@@ -100,7 +132,9 @@ export default defineConfig(async ({ mode, command }) => {
     codexRunManager(),
     codexChatManager(),
     ptyTerminalManager(),
-    shellTerminalManager()
+    shellTerminalManager(),
+    agentUsageProbe(),
+    agentSessionManager()
   ];
   const roadmapOnlyPlugins = [react(), roadmapManager()];
   const hubOnlyPlugins = [
@@ -119,7 +153,9 @@ export default defineConfig(async ({ mode, command }) => {
     codexRunManager(),
     codexChatManager(),
     ptyTerminalManager(),
-    shellTerminalManager()
+    shellTerminalManager(),
+    agentUsageProbe(),
+    agentSessionManager()
   ];
 
   const plugins = isRoadmapOnlyDev ? roadmapOnlyPlugins : isHubOnlyDev ? hubOnlyPlugins : mainPlugins;

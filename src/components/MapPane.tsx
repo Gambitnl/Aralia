@@ -212,6 +212,16 @@ const MapPane: React.FC<MapPaneProps> = ({
               try { el.style.pointerEvents = 'none'; el.style.opacity = '0.45'; } catch (e) {}
               try { el.title = 'Disabled in Aralia embed'; } catch (e) {}
             });
+
+            // Force the SVG to stretch-fill the iframe viewport instead of
+            // letterboxing via the default preserveAspectRatio="xMidYMid meet"
+            // (the black dead-zone Remy hit 2026-06-12; CSS on the SVG element
+            // cannot fix this — it is viewBox-to-viewport mapping). Cell
+            // targeting is normalized over overlay bounds, so stretch is safe.
+            var mapSvg = document.getElementById('map');
+            if (mapSvg) {
+              mapSvg.setAttribute('preserveAspectRatio', 'none');
+            }
           } catch (e) {
             // ignore
           }

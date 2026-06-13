@@ -1,4 +1,4 @@
-# Rituals System Living Tracker
+﻿# Rituals System Living Tracker
 
 Status: active  
 Last updated: 2026-06-05  
@@ -18,8 +18,6 @@ Owning docs: `NORTH_STAR.md`, `GAPS.md`
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| RIT-1 | done | Replace ritual project scaffold with source-anchored North Star details, file map, and scope boundaries. | Worker A | 2026-05-31 | `src/systems/rituals`, `src/state/reducers/ritualReducer.ts`, `src/utils/core/spellTimeUtils.ts` | Keep docs synchronized with current source and move to gap extraction. | Confirm NORTH_STAR references only owner-scoped files under `src/systems/rituals` and `src/state`. |
-| RIT-2 | done | Convert `TRACKER.md` and `GAPS.md` into concrete evidence-backed tasks instead of placeholders. | Worker A | 2026-05-31 | `docs/projects/rituals/TRACKER.md`, `docs/projects/rituals/GAPS.md`, relevant source/tests/docs | Keep `RITUAL`-scoped gaps and remove scaffold-only rows. | All tracked rows should include file evidence and status. |
 | RIT-3 | active | Capture and verify ritual execution coupling between combat spell casting and ritual start flow. | Worker A | 2026-06-05 | `src/hooks/combat/useActionExecutor.ts` TODO block, `src/systems/rituals/RitualManager.ts`, `docs/projects/rituals/GAPS.md` RG-1 | Keep the live caller-chain evidence in sync with RG-1 and the combat executor TODO. | Search for live `startRitual(...)` usage outside tests and capture the final call chain. |
 | RIT-4 | active | Verify ritual typing, event shape, and duplication cleanup path (`ritual.ts` vs `rituals.ts`). | Worker A | 2026-06-05 | `src/types/ritual.ts`, `src/types/rituals.ts`, `src/state/actionTypes.ts`, `src/state/reducers/ritualReducer.ts`, `docs/projects/rituals/GAPS.md` RG-2/RG-6 | Keep the canonical type path and action payload contract aligned; close or merge `ritual.ts` only after imports are confirmed. | Confirm whether any imports resolve to `ritual.ts` after finalization. |
 

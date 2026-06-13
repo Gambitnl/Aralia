@@ -1,4 +1,4 @@
-# Underdark Living Tracker
+﻿# Underdark Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -17,7 +17,6 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Convert Underdark project scaffold into a concrete evidence-backed living pack. | Worker A | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md` | Refresh `NORTH_STAR.md`, `GAPS.md`, and confirm all file paths exist. | Confirm each referenced file resolves. |
 | T2 | active | Consolidate the active Underdark implementation boundary (system vs service logic). | Worker A | 2026-05-31 | `src/systems/underdark/UnderdarkMechanics.ts`, `src/services/underdarkService.ts` | Confirm source-of-truth and document acceptance choice in TRACKER + GAPS. | Add a tracked decision note plus a regression test target list. |
 | T3 | not_started | Trace and wire geography/faction ownership updates into live runtime. | Worker A | 2026-05-31 | `src/state/reducers/worldReducer.ts`, `src/utils/world/encounterUtils.ts`, `src/data/travelEvents.ts` | Define where `currentDepth`, `currentBiomeId`, and `currentTerritoryFactionId` are written in production flow. | Add proof check from a travel/time contract test. |
 

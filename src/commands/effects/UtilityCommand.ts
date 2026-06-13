@@ -1,9 +1,26 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 12/06/2026, 23:31:50
+ * Dependents: commands/factory/SpellCommandFactory.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { UtilityEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, StatusEffect, LightSource } from '@/types/combat'
 import { generateId } from '../../utils/idGenerator'
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem'
+import { applyCommandAreaMovementEffects } from './commandAreaMovementEffects'
 
 
 export class UtilityCommand extends BaseEffectCommand {
@@ -101,9 +118,10 @@ export class UtilityCommand extends BaseEffectCommand {
                 data: { controlOptions }
             })
 
-            // TODO: Accept a selected control option from UI/AI instead of always auto-picking the first.
-            // Execute a basic fallback: pick the first option provided.        
-            const chosen = controlOptions[0]
+            // Prefer the selected UI/AI option when it matches a declared
+            // Command menu entry. If no choice was provided, keep the old first
+            // option fallback so unfinished data remains playable.
+            const chosen = this.resolveControlOption(controlOptions)
             const targets = this.getTargets(newState)
             for (const target of targets) {
                 newState = this.applyControlOption(newState, target, chosen)
@@ -154,23 +172,40 @@ export class UtilityCommand extends BaseEffectCommand {
     ): CombatState {
         switch (option.effect) {
             case 'approach':
-                return this.moveRelative(state, target, 'toward', 'approach')
+                return this.addCommandMovementDirective(
+                    this.moveRelative(state, target, 'toward', 'approach'),
+                    target.id,
+                    'Command: Approach',
+                    'approach',
+                    'The target must move toward the command caster on its next turn.',
+                    'is commanded to approach'
+                )
             case 'flee':
-                return this.moveRelative(state, target, 'away', 'flee')
+                return this.addCommandMovementDirective(
+                    this.moveRelative(state, target, 'away', 'flee'),
+                    target.id,
+                    'Command: Flee',
+                    'flee',
+                    'The target must move away from the command caster on its next turn.',
+                    'is commanded to flee from'
+                )
             case 'drop':
-                return this.addLogEntry(state, {
+                return this.addCommandSkipTurnDirective(this.addLogEntry(state, {
                     type: 'action',
                     message: `${target.name} drops what it is holding`,
                     characterId: target.id
-                })
+                }), target, 'Command: Drop', 'drop', 'The target drops what it is holding and takes no action on its next turn.', `${target.name} is commanded to drop what it is holding on its next turn`)
             case 'grovel':
-                return this.addStatus(state, target, 'Prone', `${target.name} falls prone (grovel)`)
+                return this.addCommandGrovelDirective(state, target)
             case 'halt':
-                return this.addLogEntry(state, {
-                    type: 'action',
-                    message: `${target.name} halts and takes no action`,
-                    characterId: target.id
-                })
+                return this.addCommandSkipTurnDirective(
+                    state,
+                    target,
+                    'Command: Halt',
+                    'halt',
+                    'The target halts and takes no action on its next turn.',
+                    `${target.name} is commanded to halt on its next turn`
+                )
             default:
                 return this.addLogEntry(state, {
                     type: 'action',
@@ -178,6 +213,126 @@ export class UtilityCommand extends BaseEffectCommand {
                     characterId: target.id
                 })
         }
+    }
+
+    private resolveControlOption(
+        controlOptions: NonNullable<UtilityEffect['controlOptions']>
+    ): NonNullable<UtilityEffect['controlOptions']>[number] {
+        // Player input is stored as a menu label or effect key by the caller.
+        // Match either form so UI labels like "Flee" and compact keys like
+        // "flee" both resolve to the same command behavior.
+        const selectedOption = this.context.playerInput?.trim().toLowerCase()
+        if (selectedOption) {
+            const matchingOption = controlOptions.find(option =>
+                option.name.toLowerCase() === selectedOption ||
+                option.effect.toLowerCase() === selectedOption
+            )
+
+            if (matchingOption) {
+                return matchingOption
+            }
+        }
+
+        // Keep the old data-order fallback for AI-generated, scripted, or
+        // unfinished casts where no selected command option has been provided.
+        return controlOptions[0]
+    }
+
+    private addCommandSkipTurnDirective(
+        state: CombatState,
+        target: CombatCharacter,
+        statusName: string,
+        directive: string,
+        description: string,
+        message: string
+    ): CombatState {
+        // Halt and Grovel both consume the target's next turn. The readable
+        // status name keeps the UI understandable, while the skip-turn effect
+        // gives AI planning a stable mechanical signal to obey.
+        const status: StatusEffect = {
+            id: generateId(),
+            name: statusName,
+            type: 'debuff',
+            duration: 1,
+            source: this.context.spellName,
+            sourceCasterId: this.context.caster.id,
+            description,
+            effect: { type: 'skip_turn' }
+        }
+
+        const updated = this.updateCharacter(state, target.id, {
+            statusEffects: [
+                ...target.statusEffects.filter(existing => existing.name !== status.name),
+                status
+            ]
+        })
+
+        return this.addLogEntry(updated, {
+            type: 'status',
+            message,
+            characterId: target.id,
+            data: { controlDirective: directive, sourceSpellId: this.context.spellId }
+        })
+    }
+
+    private addCommandGrovelDirective(state: CombatState, target: CombatCharacter): CombatState {
+        // Preserve the existing immediate Prone marker, then add the missing
+        // next-turn directive so AI-controlled targets do not stand up and act
+        // normally during the turn Command was supposed to consume.
+        const proneState = this.addStatus(state, target, 'Prone', `${target.name} falls prone (grovel)`)
+        const liveTarget = proneState.characters.find(character => character.id === target.id) ?? target
+
+        return this.addCommandSkipTurnDirective(
+            proneState,
+            liveTarget,
+            'Command: Grovel',
+            'grovel',
+            'The target grovels, remains prone, and takes no action on its next turn.',
+            `${target.name} is commanded to grovel on its next turn`
+        )
+    }
+
+    private addCommandMovementDirective(
+        state: CombatState,
+        targetId: string,
+        statusName: string,
+        directive: string,
+        description: string,
+        messageFragment: string
+    ): CombatState {
+        // Approach and Flee already have immediate movement fallbacks in this
+        // command path. The status below preserves the richer next-turn
+        // instruction so AI creatures can continue obeying the command instead
+        // of falling back to ordinary tactical scoring.
+        const liveTarget = state.characters.find(character => character.id === targetId)
+        if (!liveTarget) {
+            return state
+        }
+
+        const status: StatusEffect = {
+            id: generateId(),
+            name: statusName,
+            type: 'debuff',
+            duration: 1,
+            source: this.context.spellName,
+            sourceCasterId: this.context.caster.id,
+            description,
+            effect: { type: 'condition' }
+        }
+
+        const updated = this.updateCharacter(state, targetId, {
+            statusEffects: [
+                ...liveTarget.statusEffects.filter(existing => existing.name !== status.name),
+                status
+            ]
+        })
+
+        return this.addLogEntry(updated, {
+            type: 'status',
+            message: `${liveTarget.name} ${messageFragment} ${this.context.caster.name}`,
+            characterId: targetId,
+            data: { controlDirective: directive, sourceSpellId: this.context.spellId }
+        })
     }
 
     private applyTaunt(state: CombatState, target: CombatCharacter, effect: UtilityEffect): CombatState {
@@ -231,16 +386,47 @@ export class UtilityCommand extends BaseEffectCommand {
 
         const newX = target.position.x + Math.round((dx / magnitude) * tiles)
         const newY = target.position.y + Math.round((dy / magnitude) * tiles)
+        const movementPath = this.buildStraightMovementPath(target.position, dx, dy, magnitude, tiles)
 
         const updatedState = this.updateCharacter(state, target.id, {
             position: { x: newX, y: newY }
         })
+        const zoneState = applyCommandAreaMovementEffects(
+            updatedState,
+            target.id,
+            target.position,
+            { x: newX, y: newY },
+            movementPath
+        )
 
-        return this.addLogEntry(updatedState, {
+        return this.addLogEntry(zoneState, {
             type: 'action',
             message: `${target.name} moves ${direction} ${speed} ft (${reason})`,
             characterId: target.id
         })
+    }
+
+    private buildStraightMovementPath(
+        start: CombatCharacter['position'],
+        dx: number,
+        dy: number,
+        magnitude: number,
+        tiles: number
+    ): CombatCharacter['position'][] {
+        const path: CombatCharacter['position'][] = [start]
+
+        for (let step = 1; step <= tiles; step += 1) {
+            const next = {
+                x: start.x + Math.round((dx / magnitude) * step),
+                y: start.y + Math.round((dy / magnitude) * step)
+            }
+            const previous = path[path.length - 1]
+            if (previous.x !== next.x || previous.y !== next.y) {
+                path.push(next)
+            }
+        }
+
+        return path
     }
 
     private addStatus(state: CombatState, target: CombatCharacter, name: string, message: string): CombatState {

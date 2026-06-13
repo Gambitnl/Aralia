@@ -145,7 +145,7 @@
         "bonusPerLevel": "+1 die (d8 or d12)",
         "customFormula": "1d8 (or 1d12 if damaged) at level 1; increases by 1 die at levels 5, 11, and 17"
       },
-      "description": "One target within 60 feet makes a Wisdom save against Necrotic damage, using d8 or d12 dice per the row's scaling formula and cantrip tiers.",
+      "description": "One target within 60 feet makes a Wisdom save against Necrotic damage; the damage uses d8s or d12s based on the target's injury state and scales at cantrip tiers.",
       "conditionalEndings": [],
       "soundEmission": {
         "audibleRadius": 10,

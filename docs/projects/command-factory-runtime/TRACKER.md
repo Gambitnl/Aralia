@@ -1,4 +1,4 @@
-# Command Factory Runtime Living Tracker
+﻿# Command Factory Runtime Living Tracker
 
 Status: active  
 Last updated: 2026-06-08
@@ -17,7 +17,6 @@ Last updated: 2026-06-08
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Refresh project docs to capture command-factory role, file map, integrations, and gap list | Worker C | 2026-05-31 | `src/commands/factory`, `src/hooks/useAbilitySystem.ts`, `src/commands/index.ts` | Keep project docs source-anchored and watch for drift | Review this runtime on next factory edit |
 | T2 | active | Monitor drift after source edits and keep gaps updated | Worker C | 2026-06-08 | `docs/projects/command-factory-runtime/NORTH_STAR.md`, `src/commands/factory/AbilityCommandFactory.ts`, `src/systems/spells/targeting/TargetValidationUtils.ts` | Confirm the shared validator now covers ability-side attacker filters, then update `GAPS.md` if drift or a blocker appears | `Select-String -Path src\\commands\\factory\\*.ts,src\\hooks\\useAbilitySystem.ts -Pattern 'SpellCommandFactory\\.matchesFilter|TargetValidationUtils\\.matchesFilter'` and relevant factory tests |
 
 ## Gap Log

@@ -146,7 +146,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 4d8 Necrotic damage through the row's always-on damage scaffold; slot scaling adds +1d8.",
+      "description": "Deals 4d8 Necrotic damage to the caster as the spell's life-transfer cost; each slot level above 3rd adds +1d8.",
       "conditionalEndings": []
     }
   ],

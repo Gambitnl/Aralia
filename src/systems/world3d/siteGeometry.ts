@@ -1,9 +1,9 @@
-﻿// @dependencies-start
+// @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 04:31:32
+ * Last Sync: 12/06/2026, 07:07:09
  * Dependents: systems/world3d/chunkBundle.ts
  * Imports: 2 files
  *
@@ -69,9 +69,16 @@ export function buildSiteMeshes(data: ChunkData): ChunkSite[] {
       population: s.population,
       radius: clampRadius(estimateRadius(s)),
       walled: s.walled,
+      // Label metadata passes through untouched so HUD behavior can change
+      // without asking the mesh builder to understand roster semantics.
+      name: s.name,
+      labelRangeM: s.labelRangeM,
       colorHex: s.colorHex,
       unlabeled: s.unlabeled,
       markerOnly: s.markerOnly,
+      parts: s.parts,
+      wallWidthM: s.wallWidthM,
+      wallDepthM: s.wallDepthM,
     };
 
     // Oriented-box footprint (Worldforge ground mode, 2026-06-11): a
@@ -104,5 +111,4 @@ export function buildSiteMeshes(data: ChunkData): ChunkSite[] {
     return site;
   });
 }
-
 

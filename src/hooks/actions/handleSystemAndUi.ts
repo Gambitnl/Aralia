@@ -20,6 +20,18 @@ export async function handleSaveGame({
   dispatch,
   addMessage,
 }: Omit<HandleSystemAndUiProps, 'action'>): Promise<void> {
+  // Combat runtime is hook-local and never serialized, so a manual save during a
+  // fight would silently drop the encounter and resume on the exploration
+  // surface. Block it and point the player at the pre-combat checkpoint instead.
+  if (gameState.phase === GamePhase.COMBAT || gameState.phase === GamePhase.BATTLE_MAP_DEMO) {
+    addMessage("You can't save during combat. Your progress was checkpointed before the fight.", 'system');
+    dispatch({
+      type: 'ADD_NOTIFICATION',
+      payload: { type: 'warning', message: "Saving is disabled during combat." },
+    });
+    return;
+  }
+
   dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Saving your progress..." } });
   const result = await SaveLoadService.saveGame(gameState);
   if (result.success) {

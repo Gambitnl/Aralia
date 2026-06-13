@@ -6,12 +6,13 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 5
 confidence: high
 evidence: docs/projects/character-creator
-gap_signal: "open gaps remain (G1, G3-G8); G2 resolved 2026-06-08 (permissive navigation intentional) — no review hold"
+gap_signal: "13 open gaps; G1, G3-G8, and G14-G19 remain open after G2 and G9-G13 resolution"
 protocol: living project doc set
-next_step: G2 resolved - permissive navigation is intentional. Proceed to reconcile documentation drift (T4) or address adjacent gaps (G3-G5).
+next_step: T4 resolved - documentation drift reconciled. Proceed to address adjacent gaps (G3-G5) or implement rest choice and validation fixes (G18-G19).
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # Character Creator North Star
 
 Status: active (G2 resolved 2026-06-08; no pending review hold)
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 
@@ -48,17 +49,17 @@ Category: Feature/UI Projects
 Status: active (G2 resolved 2026-06-08; no pending review hold)
 Confidence: high
 Evidence: docs/projects/character-creator
-Gap signal: open gaps remain (G1, G3-G8); G2 resolved 2026-06-08 (permissive navigation intentional)
+Gap signal: 13 open gaps; G1, G3-G8, and G14-G19 remain open after G2 and G9-G13 resolution
 Protocol: living project doc set
-Next step: Human/product decision: keep permissive sidebar navigation with locked placeholders, or move to strict sequential gating. (Stale — resolved 2026-06-08; see the line below and the Required Review Brief resolution.)
+Next step: T4 resolved - documentation drift reconciled. Proceed to address adjacent gaps (G3-G5) or implement rest choice and validation fixes (G18-G19).
 Required verification: docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-08 review-gate classification
 Workflow gaps reviewed: 2026-06-08
 
 Dashboard lifecycle: reviewed (G2 resolved)
-Next step: G2 resolved - permissive navigation is intentional. Proceed to reconcile documentation drift (T4) or address adjacent gaps (G3-G5).
-Housekeeping note (2026-06-10): the 2026-06-10 decision blitz (`docs/projects/DECISION_BLITZ_2026-06-10.md`, "Items converted to work") confirmed G2 was already resolved on 2026-06-08 — no decision was pending, and this project should not be read as review-blocked.
+Next step: T4 resolved - documentation drift reconciled. Proceed to address adjacent gaps (G3-G5) or implement rest choice and validation fixes (G18-G19).
+Housekeeping note (2026-06-10): the 2026-06-10 decision blitz (`docs/projects/DECISION_BLITZ_2026-06-10.md`, "Items converted to work") confirmed G2 was already resolved on 2026-06-08 â€” no decision was pending, and this project should not be read as review-blocked.
 
 ## Required Review Brief
 
@@ -105,7 +106,7 @@ The live flow is implemented as a single reducer-driven flow with these `Creatio
 
 The flow is non-destructively navigable, and the reducer intentionally supports in-flow backtracking.
 Treat G2 in `TRACKER.md` / `GAPS.md` as a human-review blocker before assigning forward implementation.
-(Stale instruction — G2 was resolved 2026-06-08 as intentional permissive navigation; it is no longer a blocker. Confirmed in the 2026-06-10 decision blitz housekeeping pass.)
+(Stale instruction â€” G2 was resolved 2026-06-08 as intentional permissive navigation; it is no longer a blocker. Confirmed in the 2026-06-10 decision blitz housekeeping pass.)
 
 ### Persisted/Runtime Behavior
 
@@ -151,7 +152,7 @@ Treat G2 in `TRACKER.md` / `GAPS.md` as a human-review blocker before assigning 
 ## Open Questions (for next agent)
 
 - Is `featStepSkipped` intended as a final behavior or transitional UX design?
-- Should sidebar completion visuals remain loose (free navigation + lock messaging) or move to strict sequential gating? (Answered 2026-06-08: remain loose — permissive navigation with locked placeholders is the intentional design; see Required Review Brief resolution.)
+- Should sidebar completion visuals remain loose (free navigation + lock messaging) or move to strict sequential gating? (Answered 2026-06-08: remain loose â€” permissive navigation with locked placeholders is the intentional design; see Required Review Brief resolution.)
 - Which Character Creator docs should be treated as canonical if old historical notes conflict with current flow files?
 
 ## Cold-Start Gap Routing

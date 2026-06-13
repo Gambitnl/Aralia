@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Economy UI
 slug: economy-ui
-status: active
-last_updated: "2026-06-10"
+Status: active
+last_updated: 2026-06-10
 iteration: 6
 source_agent: Claude Opus 4.6 (Thinking) / Antigravity CLI
 target_agent: next cold-start agent
@@ -46,7 +46,7 @@ docs/projects/economy-ui/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Economy UI
 Project folder: docs/projects/economy-ui
-Iteration: 6
+iteration: 6
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -144,3 +144,37 @@ Final response must report:
 - assumptions made
 - next safe resume action
 ---END NEXT AGENT HANDOFF---
+
+## Project Prompt Conformance Notes
+
+Last updated: 2026-06-10
+
+This section aligns older cold-start prompts with the shared living-project workflow without replacing the project-specific handoff above. The original handoff remains authoritative for project context; this section records the universal prompt shape that every next agent must honor.
+
+Conformance issues repaired on 2026-06-12: missing_iteration_ledger.
+
+Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
+
+Agent identity / runtime:
+Before selecting work, identify yourself and the surface you are running through. Use one of: CLI agent, application agent, browser/app-embedded agent, MCP/subagent, or unknown. Mark the classification as certain, inferred, or unknown and name the clue used.
+
+### Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| pre-standardization | not recorded | unknown | unknown | before 2026-06-12 | Original economy-ui handoff predates the ledger requirement. |
+
+### Required project docs to account for
+
+- docs/projects/economy-ui/NORTH_STAR.md
+- docs/projects/economy-ui/TRACKER.md
+- docs/projects/economy-ui/GAPS.md
+- docs/projects/economy-ui/COLD_START_AGENT_PROMPT.md
+- docs/projects/economy-ui/DECISIONS.md
+- docs/projects/economy-ui/AUDIT_OR_PROOF.md
+- docs/projects/economy-ui/RUNBOOK.md
+
+Closeout reminder:
+Before ending an iteration, refresh or explicitly report on every required project doc above. If a supporting doc is not relevant to the current slice, say why instead of silently ignoring it.

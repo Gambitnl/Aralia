@@ -1,4 +1,4 @@
-# Submap Gap Registry
+﻿# Submap Gap Registry
 
 Status: active
 Last updated: 2026-06-10
@@ -14,7 +14,6 @@ separate world/town/navigation owner.
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | done | adjacent_follow_up | Codex | `docs/projects/submap/TRACKER.md` | protocol refresh | UI contract for generated output was implicit and required formalization. | `src/components/Submap/SubmapPane.tsx`, `src/components/Submap/useSubmapProceduralData.ts` | Prevents UI from inventing assumptions about generated tile semantics. | Split into G2 and G3 with explicit payload/render ownership questions. | Confirm G2 and G3 tracked in `TRACKER.md`. |
 | G2 | active | support_needed_now | Cursor / Composer | `docs/projects/submap/TRACKER.md` | contract extraction | Formalize and prove the quick-travel and inspect payload contract between Submap UI and action handler pipeline before component deprecation. | `src/utils/spatial/submapActionContracts.ts`, `src/utils/spatial/__tests__/submapActionContracts.test.ts`, `DEPENDENCY_CONTRACT.md` | Module and tests exist; SubmapPane still duplicates payload assembly inline. | Wire SubmapPane through shared helpers (G7). | Contract tests green after SubmapPane wiring; handler behavior unchanged. |
 | G3 | active | support_needed_now | Cursor / Composer | `docs/projects/submap/TRACKER.md` | dependent-system inventory | All Submap dependents need retain/extract/replace/retire classification. | `DEPENDENCY_CONTRACT.md` matrix (18 rows), `rg` scan 2026-06-10 | Primary surfaces classified; secondary callers may still appear in future scans. | Spot-check matrix against new `rg` hits each extraction pass. | Matrix row count and owner routing stay current. |
 | G4 | active | support_needed_now | Cursor / Composer | `docs/projects/submap/TRACKER.md` | generation modularization | Submap generation rules are mixed with React/UI projection and may be reusable elsewhere. | `GENERATION_MODULARIZATION.md`, `useSubmapProceduralData.ts` | Plan names extraction path; core module not yet created. | Extract `generateLocalTerrainData` (G8). | Fixture parity for plains/cave/wetland. |

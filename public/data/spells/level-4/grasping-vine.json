@@ -142,7 +142,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 4d8 Bludgeoning damage on the row's current hit-based resolution.",
+      "description": "Deals 4d8 Bludgeoning damage when the hit-based vine effect resolves.",
       "conditionalEndings": []
     },
     {
@@ -212,7 +212,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Grappled on the row's current hit-based resolution for 1 minute; current escape-check metadata is preserved.",
+      "description": "Applies Grappled for 1 minute when the hit-based vine effect resolves; the target can use the modeled escape check to break free.",
       "conditionalEndings": []
     },
     {

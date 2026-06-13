@@ -6,10 +6,11 @@ category: active project
 main_category: "Content & Rules"
 subcategory: "Items & Content Pipelines"
 status: active
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: unknown
 evidence: "docs/projects/town-description-system/TRACKER.md; docs/projects/town-description-system/GAPS.md"
-gap_signal: present
+gap_signal: 4 open gaps; generator, schema, and adjacent content follow-ups remain open
 protocol: living-project
 next_step: Resume from TRACKER.md and keep the gap log aligned.
 agent_comments: ""
@@ -43,7 +44,7 @@ human_decision_required: "no"
 # Town Description System North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 

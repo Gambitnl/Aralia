@@ -7,6 +7,7 @@ main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
 last_updated: 2026-06-10
+iteration: 3
 confidence: medium
 evidence: docs/projects/logbook
 gap_signal: 6 open gaps (G1-G6)
@@ -155,11 +156,11 @@ Out of scope:
 
 ## Gaps And Uncertainties
 
-- G1 (active): Retention policy for `discoveryLog` — implementation slice defined.
+- G1 (active): Retention policy for `discoveryLog` â€” implementation slice defined.
 - G2: No pagination for discovery or dossier lists.
 - G3: Dedupe only covers `LOCATION_DISCOVERY`; other entry types can duplicate.
 - G4: Dossier data has no defined retention lifecycle.
-- G5 (new, bug): `unreadDiscoveryCount` drifts on quest updates — marks all matching entries unread but only increments count by 0 or 1.
+- G5 (new, bug): `unreadDiscoveryCount` drifts on quest updates â€” marks all matching entries unread but only increments count by 0 or 1.
 - G6 (new): Quest update content appends without bound, growing entry strings indefinitely.
 
 ## Evidence And Proof

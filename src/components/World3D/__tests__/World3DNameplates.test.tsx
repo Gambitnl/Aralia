@@ -7,7 +7,7 @@ import { render, screen } from '@testing-library/react';
 import type { PlayerWorldPosition } from '../../../types';
 import type { LoadedChunk } from '@/systems/world3d/types';
 import type { SceneOrigin } from '@/systems/world3d/sceneOrigin';
-import World3DNameplates from '../World3DNameplates';
+import World3DNameplates, { makeNameplates } from '../World3DNameplates';
 
 vi.mock('@react-three/drei', () => ({
   Html: ({ children, style, 'data-kind': kind, 'data-testid': testId }: any) => (
@@ -101,5 +101,77 @@ describe('World3DNameplates', () => {
     expect(screen.getByText('Town - near-1')).toBeInTheDocument();
     expect(screen.queryByText('Town - near-2')).not.toBeInTheDocument();
     expect(screen.queryByText('Town - far-1')).not.toBeInTheDocument();
+  });
+
+  it('uses explicit site names and keeps the fallback for unnamed sites', () => {
+    const loaded: LoadedChunk[] = [
+      makeChunk(0, 0, 'full', [
+        makeSiteData({ id: 'named-occupant', kind: 'landmark', localX: 64, localZ: 64, name: 'Mara Fen' }),
+        makeSiteData({ id: 'plain-town', kind: 'town', localX: 80, localZ: 64 }),
+      ]),
+    ];
+
+    const labels = makeNameplates(loaded, sceneOrigin, playerPos, {
+      allowedLods: ['full', 'mid'],
+      maxWorldDistance: 400,
+      maxVisible: 12,
+    });
+
+    expect(labels.map((label) => label.text)).toEqual([
+      'Mara Fen',
+      'Town - plain-town',
+    ]);
+  });
+
+  it('uses per-site label ranges before the global distance gate', () => {
+    const loaded: LoadedChunk[] = [
+      makeChunk(0, 0, 'full', [
+        makeSiteData({ id: 'inside-site-range', localX: 70, localZ: 64, labelRangeM: 12 }),
+        makeSiteData({ id: 'outside-site-range', localX: 90, localZ: 64, labelRangeM: 12 }),
+        makeSiteData({ id: 'plain-global-range', localX: 90, localZ: 64 }),
+      ]),
+    ];
+
+    const labels = makeNameplates(loaded, sceneOrigin, playerPos, {
+      allowedLods: ['full', 'mid'],
+      maxWorldDistance: 400,
+      maxVisible: 12,
+    });
+
+    expect(labels.map((label) => label.text)).toEqual([
+      'Town - inside-site-range',
+      'Town - plain-global-range',
+    ]);
+  });
+
+  it('anchors building labels above their roof clearance while plain sites keep radius height', () => {
+    const loaded: LoadedChunk[] = [
+      makeChunk(0, 0, 'full', [
+        makeSiteData({
+          id: 'enterable-building',
+          localX: 64,
+          localZ: 64,
+          radius: 30,
+          surfaceY: 5,
+          boxHeight: 4,
+        }),
+        makeSiteData({
+          id: 'plain-town',
+          localX: 80,
+          localZ: 64,
+          radius: 12,
+          surfaceY: 20,
+        }),
+      ]),
+    ];
+
+    const labels = makeNameplates(loaded, sceneOrigin, playerPos, {
+      allowedLods: ['full', 'mid'],
+      maxWorldDistance: 400,
+      maxVisible: 12,
+    });
+
+    expect(labels.find((label) => label.text === 'Town - enterable-building')?.position[1]).toBe(12.5);
+    expect(labels.find((label) => label.text === 'Town - plain-town')?.position[1]).toBe(32);
   });
 });

@@ -8,6 +8,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as THREE from 'three';
 import World3DScene from '../World3DScene';
 import type { ChunkLoader } from '@/systems/world3d/types';
 
@@ -66,6 +67,24 @@ vi.mock('../useChunkStreaming', () => ({
               radius: 6,
               population: 120,
               walled: false,
+            },
+            {
+              id: 'enterable-building',
+              kind: 'town',
+              localX: 16,
+              localZ: 20,
+              surfaceY: 16,
+              radius: 6,
+              population: 8,
+              walled: false,
+              boxWidth: 12,
+              boxDepth: 10,
+              boxHeight: 4,
+              wallWidthM: 6,
+              wallDepthM: 5,
+              parts: [
+                { x: 0, z: 0, w: 6, d: 0.4, h: 3, colorHex: '#b09a72' },
+              ],
             },
           ],
           vegetation: undefined,
@@ -161,5 +180,27 @@ describe('World3DScene lifecycle proof', () => {
       expect.any(Function),
       false,
     );
+  });
+
+  it('sizes enterable-building roofs from wall envelopes and lights their underside', async () => {
+    const { container } = render(
+      <World3DScene
+        loader={makeLoader()}
+        start={[512, 40, 256]}
+        startSurfaceY={40}
+      />,
+    );
+
+    await waitFor(() => expect(mockUpdate).toHaveBeenCalledWith(512, 256));
+
+    const roofGeometry = container.querySelector('conegeometry[args="0.7071067811865476,1,4"]');
+    const roofMesh = roofGeometry?.parentElement;
+    const roofMaterial = roofMesh?.querySelector('meshstandardmaterial');
+
+    // Enterable buildings use a smaller interior wall envelope than the
+    // reserved plot. The roof must cover that wall envelope plus a tight eave
+    // instead of spreading across the whole plot and leaving a visible gap.
+    expect(roofMesh).toHaveAttribute('scale', '6.9,2.95,5.9');
+    expect(roofMaterial).toHaveAttribute('side', String(THREE.DoubleSide));
   });
 });

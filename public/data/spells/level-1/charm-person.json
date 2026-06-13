@@ -238,7 +238,9 @@
       "condition": {
         "type": "always",
         "targetFilter": {
-          "creatureTypes": [],
+          "creatureTypes": [
+            "Humanoid"
+          ],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],

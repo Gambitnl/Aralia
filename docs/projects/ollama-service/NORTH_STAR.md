@@ -6,10 +6,11 @@ category: Service / AI Integration
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: partial
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: medium
 evidence: docs/projects/ollama-service
-gap_signal: "4 open project gaps; local/remote boundary and /api/ollama ownership remain unresolved"
+gap_signal: "4 open gaps; 4 open project gaps; local/remote boundary and /api/ollama ownership remain unresolved"
 protocol: living project doc set
 next_step: Confirm the shared provider adapter and /api/ollama owner, then record the verification path in the tracker.
 agent_comments: ""
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # NORTH_STAR: Ollama Service
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Why This Project Exists
 
@@ -135,3 +136,16 @@ The next cold-start agent must:
 - identify and register 2 additional real project gaps tied to this project in `GAPS.md`
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
+
+## Required Review Brief
+
+Title: Ollama Service partial due to provider boundary gaps
+Question: Who owns /api/ollama and the shared local/remote provider adapter?
+Issue: The project has unresolved gaps around provider fallback normalization, model fallback order, and endpoint ownership.
+Current behavior: GAPS.md lists two in-scope provider/model rows and one blocked_external_state row for /api/ollama ownership.
+Why blocked: Without a clear adapter and endpoint owner, features can route to different models or fallback behavior without visible policy.
+Option A: Confirm a shared provider adapter and consolidate fallback model policy.
+Option B: Document intentionally split routing if different feature profiles are required.
+Evidence: NORTH_STAR.md next_step; GAPS.md provider fallback, model fallback, and /api/ollama rows.
+Decision owner: Ollama/runtime service owner or dev-server endpoint owner
+Proof after decision: One runtime path uses the shared adapter and a documented endpoint owner exists.

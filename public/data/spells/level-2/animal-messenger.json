@@ -109,9 +109,13 @@
         "saveType": "Charisma",
         "saveEffect": "negates_condition",
         "targetFilter": {
-          "creatureTypes": [],
+          "creatureTypes": [
+            "Beast"
+          ],
           "excludeCreatureTypes": [],
-          "sizes": [],
+          "sizes": [
+            "Tiny"
+          ],
           "alignments": [],
           "hasCondition": [],
           "isNativeToPlane": false,

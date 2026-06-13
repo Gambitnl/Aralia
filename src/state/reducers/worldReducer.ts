@@ -66,6 +66,42 @@ const resolveBiomeId = (state: GameState): string => {
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
+    case 'SET_PLAYER_GROUND_POS': {
+      // Ground mode reports camera anchors in tile-local meters. Store them in
+      // their own field so atlas/world travel never consumes them as continent
+      // meters from playerWorldPos.
+      const nextPosition = action.payload.position;
+
+      // Null is the explicit clear signal for stale ground anchors after leaving
+      // or invalidating a tile-scoped ground view.
+      if (nextPosition === null) {
+        return { playerGroundPos: null };
+      }
+
+      // Replace the entire anchor and copy it so later mutations to the dispatch
+      // payload cannot silently alter the persisted resume point.
+      return {
+        playerGroundPos: { ...nextPosition },
+      };
+    }
+
+    case 'APPLY_WORLDFORGE_DELTA': {
+      const currentDeltas = state.worldforgeDeltas ?? [];
+
+      // Deltas can be replayed by load/generation bridges, so the id is treated
+      // as the stable event key. Returning the same array for duplicates keeps
+      // replay idempotent and avoids accidental save growth.
+      if (currentDeltas.some(delta => delta.id === action.payload.delta.id)) {
+        return { worldforgeDeltas: currentDeltas };
+      }
+
+      // Append instead of sorting so the saved log preserves the exact causal
+      // order in which gameplay systems accepted the edits.
+      return {
+        worldforgeDeltas: [...currentDeltas, action.payload.delta],
+      };
+    }
+
     case 'SET_MAP_DATA': {
       const mapDataPayload = (action as Extract<AppAction, { type: 'SET_MAP_DATA' }>).payload;
       const mapPayload = mapDataPayload as { width?: number; height?: number } | null;

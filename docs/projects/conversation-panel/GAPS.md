@@ -1,4 +1,4 @@
-# Conversation Panel Gap Registry
+﻿# Conversation Panel Gap Registry
 
 Status: active  
 Last updated: 2026-06-08
@@ -11,9 +11,6 @@ Current backlog after this slice: CP-001/002/003 are resolved in this pass; CP-0
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| CP-001 | done | adjacent_follow_up | Project owner | `docs/projects/conversation-panel/TRACKER.md` | Documentation harvest + code sweep | `START_CONVERSATION` had no gameplay dispatch path | `src/hooks/actions/handleNpcInteraction.ts`, `src/hooks/useConversation.ts` | Without an action callsite, companion `talk` could not open the panel flow | resolved by dispatching `START_CONVERSATION` for companion targets in `handleTalk` | verify `rg -n "START_CONVERSATION" src` still shows handler path + action path |
-| CP-002 | done | in_scope_now | Project owner | `src/hooks/useConversation.ts` + `src/components/ConversationPanel/ConversationPanel.tsx` | Implementation | Turn gating was not used in UI + send path | `src/state/reducers/conversationReducer.ts`, `src/hooks/useConversation.ts`, `src/components/ConversationPanel/ConversationPanel.tsx` | Could allow user input while waiting on NPC/AI response | resolved by `isInteractionLocked` and `isPlayerTurn` checks | add focused turn-sequencing check in a conversation scenario |
-| CP-003 | done | support_needed_now | Project owner | `src/state/appState.ts` + `src/state/initialState.ts` | Implementation + startup review | `activeConversation` was optional and not reset on phase/load/move boundaries | `src/state/initialState.ts`, `src/state/appState.ts` | Stale open conversation state can persist through navigation/session transitions | resolved by seeding `activeConversation: null` in initial state and clearing on phase/move/load | document startup/load transition proof |
 | CP-004 | active | adjacent_follow_up | Codex | `docs/projects/code-modularization-audit/CMA-G12` | Code modularization audit routing | Companion banter and interactive conversation lanes can overlap without policy | `src/hooks/useCompanionBanter.ts`, `src/hooks/useConversation.ts`, `src/state/reducers/conversationReducer.ts`, `src/state/reducers/dialogueReducer.ts` | Conversation panel UX and turn semantics need clear exclusivity contract | require boundary note and sequencing policy in `CMA-G12` before any expansion | keep policy proof in cross-project handoff |
 
 ## Classification Reference

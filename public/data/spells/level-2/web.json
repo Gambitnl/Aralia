@@ -177,7 +177,7 @@
         },
         "depositDistance": 0
       },
-      "description": "Creates the row's always-on web terrain effect for 60 minutes using the current terrain scaffold.",
+      "description": "Creates a 60-minute webbed terrain area that anchors the spell's restraint and difficult-terrain effects.",
       "conditionalEndings": [
         {
           "trigger": "unsupported_area_collapses_next_turn",
@@ -384,7 +384,7 @@
         "dice": "",
         "type": ""
       },
-      "description": "The webs are Difficult Terrain.",
+      "description": "The webbed area counts as Difficult Terrain.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

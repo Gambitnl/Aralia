@@ -17,17 +17,11 @@ Last updated: 2026-06-10 (script-tests merge recorded)
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Create protocol surface files in `docs/projects/scripts-quality/` | Worker C | 2026-05-31 | [docs/projects/PROJECT_TRACKER.md](docs/projects/PROJECT_TRACKER.md) | Keep docs aligned and linked to registry evidence | `Test-Path docs/projects/scripts-quality/NORTH_STAR.md` |
-| T2 | done | Document quality script map and policy integration for `scripts/quality` | Worker C | 2026-05-31 | [scripts/quality/debt-summary.cjs](F:/Repos/Aralia/scripts/quality/debt-summary.cjs), [package.json](F:/Repos/Aralia/package.json), [scripts/git/pre-push-aralia.sh](F:/Repos/Aralia/scripts/git/pre-push-aralia.sh) | Keep scope and integration boundaries explicit | `Get-Content docs/projects/scripts-quality/NORTH_STAR.md` |
-| T3 | done | Capture quality-monitoring gaps and define next checks | Worker C | 2026-06-08 | [docs/projects/scripts-quality/GAPS.md](F:/Repos/Aralia/docs/projects/scripts-quality/GAPS.md), [docs/DEVELOPMENT_GUIDE.md](F:/Repos/Aralia/docs/DEVELOPMENT_GUIDE.md), [docs/projects/scripts-quality/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-quality/NORTH_STAR.md), [scripts/quality/debt-summary.cjs](F:/Repos/Aralia/scripts/quality/debt-summary.cjs) | Keep unresolved monitoring gaps visible and bounded | `npm run quality:debt` once, compare output shape to this map, and document scope rationale |
-| T4 | done | Add repeatable quality-debt checkpoint convention | Codex | 2026-06-08 | [docs/projects/scripts-quality/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-quality/NORTH_STAR.md), [docs/projects/scripts-quality/GAPS.md](F:/Repos/Aralia/docs/projects/scripts-quality/GAPS.md) | Convention recorded: capture one compact `npm run quality:debt` summary only when quality scope, lint scope, or push policy changes | `npm run quality:debt` passed as a non-blocking debt snapshot: TS 73 diagnostics; ESLint 15 errors / 1706 warnings; areas `src`, `scripts`, `tests` |
 | T5 | active | Maintain routed quality checkpoint and keep scripts-git follow-up explicit | Codex | 2026-06-08 | [docs/projects/scripts-quality/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-quality/NORTH_STAR.md), [docs/projects/scripts-quality/GAPS.md](F:/Repos/Aralia/docs/projects/scripts-quality/GAPS.md), [docs/projects/scripts-quality/COLD_START_AGENT_PROMPT.md](F:/Repos/Aralia/docs/projects/scripts-quality/COLD_START_AGENT_PROMPT.md) | Keep the routed follow-up out of this project and refresh the checkpoint note only when quality scope, lint scope, or push policy changes | `npm run quality:debt` summary plus docs consistency on the next quality-scope change |
 | T6 | not_started | Own the merged script-tests support surface (`scripts/__tests__` continuity + inherited ST-GAP-001..004) | scripts-quality maintainer | 2026-06-10 | `docs/projects/DECISION_BLITZ_2026-06-10.md` (D21); `docs/projects/script-tests/` (merged-reference support surface); `docs/projects/scripts-quality/GAPS.md` G4 | Close ST-GAP-001 first (deterministic `spellFieldInventory` fixture test), then continue per the inherited gap list; mirror status into the support-surface registry | `npx vitest run scripts/__tests__/spellFieldInventory.test.ts` plus the focused tests for each inherited gap |
 
 ## Gap Log
 
-- `G1` is resolved and recorded as done in `docs/projects/scripts-quality/GAPS.md`.
-- `G2` is resolved and recorded as done in `docs/projects/scripts-quality/GAPS.md`.
 - `G3` is adjacent_follow_up and routed to the broader scripts quality + scripts-git interface in `docs/projects/scripts-quality/GAPS.md`.
 - The routed follow-up is explicitly cross-project now; scripts-quality keeps the checkpoint convention and debt snapshot cadence only.
 
@@ -40,7 +34,6 @@ Last updated: 2026-06-10 (script-tests merge recorded)
 | `scripts/git/pre-push-aralia.sh` runs strict quality debt only in `ARALIA_PRE_PUSH_STRICT=1` mode | confirmed | Worker C | 2026-05-31 |
 | Project docs now include file map, integrations, scope boundaries, gap log, and dashboard card schema | updated | Worker C | 2026-06-05 |
 | `npm run quality:debt` output was reviewed and confirmed to match scoped map assumptions (`src`, `scripts`, `tests` areas; TS 73 diagnostics; ESLint 15 errors / 1706 warnings) | confirmed | Codex | 2026-06-08 |
-| Repeatable checkpoint convention added: record a compact debt snapshot only on quality-scope, lint-scope, or push-policy changes | done | Codex | 2026-06-08 |
 | Routed follow-up remains cross-project and is explicitly limited to the scripts-git interface | confirmed | Codex | 2026-06-08 |
 
 ## Next Check Cycle

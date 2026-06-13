@@ -6,7 +6,8 @@ category: Gameplay Systems
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: partial
-last_updated: 2026-06-09
+last_updated: 2026-06-12
+iteration: 6
 confidence: medium
 evidence: docs/projects/memory
 gap_signal: 4 open gaps (3 active, 1 in_progress)
@@ -43,7 +44,7 @@ human_decision_required: "no"
 # Memory System North Star
 
 Status: partial
-Last updated: 2026-06-09
+Last updated: 2026-06-12
 Owner: Worker A
 
 ## Dashboard Card Schema
@@ -152,3 +153,16 @@ The next cold-start agent must:
 - identify and register 2 additional real project gaps tied to this project in `GAPS.md`
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
+
+## Required Review Brief
+
+Title: Memory partial due to schema and ownership gaps
+Question: Which memory model and runtime owner should become canonical?
+Issue: The project has active gaps for memory schema normalization, MemorySystem ownership, and save/load migration policy.
+Current behavior: GAPS.md lists G1, G2, and G3 as active; the next step says schema choice may be prerequisite to the remaining action-to-memory branches.
+Why blocked: Continuing feature wiring before resolving the canonical shape risks more casts and silent save/load drift.
+Option A: Resolve the canonical memory shape first, then continue G4 action-to-memory branches.
+Option B: Choose a thin adapter policy if full migration is too broad for the next slice.
+Evidence: NORTH_STAR.md next_step; GAPS.md G1-G3.
+Decision owner: Memory system owner
+Proof after decision: Reducer/save-load tests compile without shape-cast workarounds and the tracker records the chosen owner.

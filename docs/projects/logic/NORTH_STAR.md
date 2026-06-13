@@ -6,10 +6,11 @@ category: Systems
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: partial
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: high
 evidence: docs/projects/logic
-gap_signal: 5 open gaps (1 active, 2 support-needed, 2 adjacent follow-up)
+gap_signal: "6 open gaps; L-G1 through L-G6 remain open"
 protocol: living project doc set
 next_step: Decide the first runtime callsite for ConditionEvaluator, then bridge the predicate contract and status source.
 agent_comments: ""
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # Logic System North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 
@@ -48,7 +49,7 @@ Category: Systems
 Status: partial
 Confidence: high
 Evidence: `docs/projects/logic`
-Gap signal: 5 open gaps (1 active, 2 support-needed, 2 adjacent follow-up)
+Gap signal: 6 open gaps; L-G1 through L-G6 remain open
 Protocol: living project doc set
 Next step: Decide the first runtime callsite for `ConditionEvaluator`, then bridge the predicate contract and status source.
 Required verification: docs_consistency
@@ -156,3 +157,16 @@ The next cold-start agent must:
 - identify and register 2 additional real project gaps tied to this project in `GAPS.md`
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
+
+## Required Review Brief
+
+Title: Logic partial due to runtime integration gaps
+Question: Which runtime callsite should become the first ConditionEvaluator integration?
+Issue: The project has five open gaps, led by deciding the first production callsite for ConditionEvaluator.
+Current behavior: GAPS.md lists L-G1 as in_scope_now and L-G2/L-G3 as support-needed contract/type work.
+Why blocked: The rule engine exists but should not be broadly wired until predicate mapping and typed lookups are safe.
+Option A: Start with one bounded callsite and add the predicate contract before broad usage.
+Option B: Delay implementation and first document the evaluator-to-spell/trigger mapping.
+Evidence: NORTH_STAR.md next_step; GAPS.md L-G1, L-G2, L-G3.
+Decision owner: Logic system owner
+Proof after decision: One source-to-evaluator call path and one translated condition are verified without semantic loss.

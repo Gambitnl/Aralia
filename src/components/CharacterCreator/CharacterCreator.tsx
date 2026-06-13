@@ -80,6 +80,7 @@ import type { RacialChoiceData } from './Race/RaceDetailPane';
 import VisualsSelection from './VisualsSelection';
 import NameAndReview from './NameAndReview';
 import CreationSidebar from './CreationSidebar';
+import { randomizeCreation } from './randomizeCreation';
 import {
   CreationStep,
   characterCreatorReducer,
@@ -371,6 +372,27 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
 
   const goBack = useCallback(() => dispatch({ type: 'GO_BACK' }), [dispatch]);
   const handleNavigateToStep = useCallback((step: CreationStep) => dispatch({ type: 'NAVIGATE_TO_STEP', payload: step }), [dispatch]);
+  const handleStartOver = useCallback(() => {
+    SafeStorage.removeItem(STORAGE_KEY);
+    dispatch({ type: 'RESET_CREATOR' });
+  }, [dispatch]);
+
+  const handleAutoFillRandom = useCallback(() => {
+    if (!allSpells) return;
+
+    // This button deliberately dispatches the creator's normal reducer actions
+    // instead of building a finished character object. The first action is a
+    // full reset, so re-clicking produces a fresh legal draft over any dirty
+    // in-progress state.
+    const plan = randomizeCreation({
+      allSpells,
+      rng: Math.random,
+    });
+
+    for (const action of plan.actions) {
+      dispatch(action);
+    }
+  }, [allSpells, dispatch]);
 
   /**
    * Shown when a step is navigated to via the sidebar but prerequisites aren't yet met.
@@ -557,14 +579,26 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       onClose={onExitToMainMenu}
       storageKey={WINDOW_KEYS.CHARACTER_CREATOR}
       headerActions={
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowSidebar(!showSidebar)}
-          title={showSidebar ? 'Hide Sidebar' : 'Show Sidebar'}
-        >
-          {showSidebar ? '◧' : '☐'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleAutoFillRandom}
+            disabled={!allSpells}
+            title="Auto-fill the creator with legal random choices"
+            className="border border-amber-500/40 bg-amber-900/20 text-amber-200 hover:bg-amber-800/30 hover:text-amber-100"
+          >
+            Auto-Fill (Random)
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowSidebar(!showSidebar)}
+            title={showSidebar ? 'Hide Sidebar' : 'Show Sidebar'}
+          >
+            {showSidebar ? '◧' : '☐'}
+          </Button>
+        </div>
       }
     >
       <div className="flex h-full bg-gray-900 text-gray-200">
@@ -574,6 +608,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
             currentStep={state.step}
             state={state}
             onNavigateToStep={handleNavigateToStep}
+            onStartOver={handleStartOver}
           />
         )}
 

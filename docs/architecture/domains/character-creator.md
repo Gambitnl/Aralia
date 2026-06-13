@@ -51,7 +51,7 @@ That older explanation should not be treated as the current implementation guide
 
 - The creator should stay isolated from live game state until character submission.
 - The flow depends on race, class, feat, and spell data, but it should remain the orchestration layer rather than the owner of those upstream datasets.
-- The reducer-driven step flow and step gating are part of the current architecture and should be documented as such rather than collapsed into a simple linear wizard.
+- The reducer-driven step flow and permissive navigation with locked placeholders are part of the current architecture and should be documented as such rather than collapsed into a simple linear wizard.
 - The creator now persists in-progress state locally, so docs should not imply a purely ephemeral modal flow anymore.
 
 ## What Is Materially Implemented
@@ -80,6 +80,6 @@ The older claims about src/utils/__tests__/characterUtils.test.ts, characterVali
 
 ## Open Follow-Through Questions
 
-- Which creator docs should explain the current step-gating rules more explicitly?
+- Which creator docs should explain the resolved permissive navigation with locked placeholders more explicitly?
 - How should the repo document the relationship between the live creator subtree and the older bridge-style helper files that still exist outside it?
 - Which portrait-generation and preview-character details belong in creator docs versus broader character-system references?

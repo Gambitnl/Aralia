@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 09/06/2026, 07:25:51
+ * Last Sync: 12/06/2026, 08:04:57
  * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/ConversationPanel/ConversationPanel.tsx, components/layout/GameModals.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleMovement.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDialogueSystem.ts, hooks/useGameActions.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useOllamaCheck.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, types/index.ts, utils/context/entityIntegrationUtils.ts
  * Imports: None
  *
@@ -29,7 +29,7 @@
  * 
  * @file src/state/actionTypes.ts
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices, PlayerWorldPosition, WorldViewMode, WorldHistory } from '../types/index.js';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices, PlayerWorldPosition, PlayerGroundPosition, WorldViewMode, WorldHistory } from '../types/index.js';
 import { RitualState } from '../types/rituals.js';
 // TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
@@ -37,6 +37,7 @@ import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './
 import { DialogueSession } from '../types/dialogue.js';
 import { WorldHistoryEvent } from '../types/history.js';
 import { CrewRole } from '../types/naval.js';
+import type { WorldDelta } from '../systems/worldforge/delta/types.js';
 import {
   CastSpellPayload,
   InspectSubmapTilePayload,
@@ -170,6 +171,13 @@ export type AppAction =
   | { type: 'REMOVE_LOCATION_RESIDUE'; payload: RemoveLocationResiduePayload }
   | { type: 'REGISTER_DYNAMIC_ENTITY'; payload: { entityType: 'location', entity: Location } | { entityType: 'faction', entity: Faction } | { entityType: 'npc', entity: NPC } }
   | { type: 'ADD_WORLD_HISTORY_EVENT'; payload: { event: WorldHistoryEvent } }
+  // Worldforge deltas are append-only save records. Replaying the same delta can
+  // happen during generation/load handoffs, so reducers treat the id as the
+  // durable de-duplication key.
+  | { type: 'APPLY_WORLDFORGE_DELTA'; payload: { delta: WorldDelta } }
+  // Ground positions are tile-local meter anchors for village ground mode. They
+  // intentionally do not reuse playerWorldPos because that field uses continent meters.
+  | { type: 'SET_PLAYER_GROUND_POS'; payload: { position: PlayerGroundPosition | null } }
   // Gemini Intelligence Action
   | { type: 'ANALYZE_SITUATION' }
   // Dynamic Actions

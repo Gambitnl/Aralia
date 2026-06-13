@@ -147,7 +147,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 5d10 Radiant damage through the row's always-on damage scaffold.",
+      "description": "Deals 5d10 Radiant damage through the spell's always-applied ward damage effect.",
       "conditionalEndings": []
     }
   ],

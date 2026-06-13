@@ -6,10 +6,11 @@ category: active project
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: merged-reference
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 2
 confidence: unknown
 evidence: "docs/projects/three-d-modal/TRACKER.md; docs/projects/three-d-modal/GAPS.md"
-gap_signal: present (open gaps now route through docs/projects/world-3d-ui)
+gap_signal: "5 open gaps; G1 through G4 and CMA-G14 remain routed through World 3D UI after merge"
 protocol: living-project
 next_step: "Merged into World 3D UI (D5, 2026-06-10): World 3D UI is the single owner of all 3D entrypoints (modal launch, phase transition, close/focus policy). Route forward work through docs/projects/world-3d-ui; this folder is merged-reference."
 agent_comments: ""
@@ -28,9 +29,9 @@ completed_verification:
   - docs refresh
 last_proof: 2026-06-05
 workflow_gaps_reviewed: 2026-06-08
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: merged-reference
-deprecation_confidence: confirmed
+deprecation_confidence: strong
 deprecation_reason: merged_into_world_3d_ui_per_D5_2026-06-10
 canonical_owner: "docs/projects/world-3d-ui"
 human_decision_required: "no"
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # ThreeD Modal North Star
 
 Status: merged-reference (decision recorded 2026-06-10; merged into World 3D UI)
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 
@@ -73,9 +74,9 @@ Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D5 
   policy.
 - **These docs become merged-reference.** All content below is preserved as the
   implementation record of the ThreeD modal surface (`src/components/ThreeDModal/*`,
-  its `GameModals`/`SubmapPane` entry paths, and state wiring), but forward work —
+  its `GameModals`/`SubmapPane` entry paths, and state wiring), but forward work Ã¢â‚¬â€
   including the open gaps in `GAPS.md` (G1/G2/G4 entry/close/movement contracts,
-  CMA-G14 split routing) — is owned and scheduled through World 3D UI.
+  CMA-G14 split routing) Ã¢â‚¬â€ is owned and scheduled through World 3D UI.
 - The "should this merge with World 3D UI" review question that held this project at
   `human-review-required` is thereby closed.
 
@@ -228,7 +229,7 @@ Keep durable intent, decisions, and unresolved gaps here. Do not move test logs,
 3. Read `docs/projects/three-d-modal/GAPS.md`.
 4. Verify linked runtime files in `src/components/ThreeDModal`, `src/components/layout/GameModals.tsx`, `src/components/Submap/SubmapPane.tsx`, and `src/state`.
 5. Continue from the highest-priority open gap.
-6. Update 2026-06-10: this project is merged-reference (D5). Do not pick up forward work from here — route it through `docs/projects/world-3d-ui`, which now owns all 3D entrypoint contracts.
+6. Update 2026-06-10: this project is merged-reference (D5). Do not pick up forward work from here Ã¢â‚¬â€ route it through `docs/projects/world-3d-ui`, which now owns all 3D entrypoint contracts.
 
 
 ## Cold-Start Gap Routing
@@ -239,3 +240,16 @@ The next cold-start agent must:
 - identify and register 2 additional real project gaps tied to this project in `GAPS.md`
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
+
+## Required Review Brief
+
+Title: Three D Modal merged into World 3D UI
+Question: Should 3D entrypoint work be assigned here or to World 3D UI?
+Issue: This project is marked merged-reference because D5 made World 3D UI the single owner of 3D entrypoints.
+Current behavior: The folder preserves modal launch and callback context; open gaps now route through docs/projects/world-3d-ui.
+Why blocked: Forward work here would duplicate phase-transition, close/focus, and modal ownership policy.
+Option A: Keep this as merged-reference and route modal/entrypoint work through world-3d-ui.
+Option B: Reopen only if the 3D modal becomes a separate product surface again.
+Evidence: NORTH_STAR.md frontmatter; GAPS.md G1-G3; canonical_owner docs/projects/world-3d-ui.
+Decision owner: World 3D UI owner or human operator if reopening is desired
+Proof after decision: World 3D UI docs contain the active modal/entrypoint work and this folder is not assigned directly.

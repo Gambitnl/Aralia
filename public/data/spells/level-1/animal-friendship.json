@@ -107,7 +107,9 @@
         "saveType": "Wisdom",
         "saveEffect": "negates_condition",
         "targetFilter": {
-          "creatureTypes": [],
+          "creatureTypes": [
+            "Beast"
+          ],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 04:59:05
- * Dependents: commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts
- * Imports: 9 files
+ * Last Sync: 12/06/2026, 23:03:21
+ * Dependents: commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -29,6 +29,7 @@ import { findPath } from '../../utils/pathfinding'
 import { calculatePathMovementCost } from '../../utils/combat/movementUtils'
 import { getTerrainHazards, getTerrainMovementCost } from '../../systems/environment/EnvironmentSystem'
 import { evaluateHazard } from '../../systems/environment/hazards'
+import { applyCommandAreaMovementEffects } from './commandAreaMovementEffects'
 
 /**
  * Command responsible for applying movement effects to characters.
@@ -111,6 +112,7 @@ export class MovementCommand extends BaseEffectCommand {
         // Iterate tiles to find furthest valid position
         let bestX = target.position.x
         let bestY = target.position.y
+        const movementPath: Position[] = [target.position]
 
         for (let i = 1; i <= tiles; i++) {
             const nextX = target.position.x + Math.round((dx / magnitude) * i)
@@ -119,6 +121,9 @@ export class MovementCommand extends BaseEffectCommand {
             if (this.validatePosition(state, { x: nextX, y: nextY }, target.id)) {
                 bestX = nextX
                 bestY = nextY
+                if (movementPath[movementPath.length - 1].x !== nextX || movementPath[movementPath.length - 1].y !== nextY) {
+                    movementPath.push({ x: nextX, y: nextY })
+                }
             } else {
                 // Blocked or off-map, stop pushing
                 break
@@ -138,9 +143,10 @@ export class MovementCommand extends BaseEffectCommand {
             position: { x: bestX, y: bestY }
         })
         const landingState = this.applyLandingTerrainEffects(updatedState, target.id, { x: bestX, y: bestY })
+        const zoneState = applyCommandAreaMovementEffects(landingState, target.id, target.position, { x: bestX, y: bestY }, movementPath)
         const distanceMoved = Math.round(Math.sqrt(Math.pow(bestX - target.position.x, 2) + Math.pow(bestY - target.position.y, 2)) * 5)
 
-        return this.addLogEntry(landingState, {
+        return this.addLogEntry(zoneState, {
             type: 'action',
             message: `${target.name} is pushed ${distanceMoved} feet${this.describeLandingTerrain(state, { x: bestX, y: bestY })}`,
             characterId: target.id
@@ -172,6 +178,7 @@ export class MovementCommand extends BaseEffectCommand {
 
         let bestX = target.position.x
         let bestY = target.position.y
+        const movementPath: Position[] = [target.position]
 
         for (let i = 1; i <= tiles; i++) {
             const nextX = target.position.x + Math.round((dx / magnitude) * i)
@@ -185,6 +192,9 @@ export class MovementCommand extends BaseEffectCommand {
             if (this.validatePosition(state, { x: nextX, y: nextY }, target.id)) {
                 bestX = nextX
                 bestY = nextY
+                if (movementPath[movementPath.length - 1].x !== nextX || movementPath[movementPath.length - 1].y !== nextY) {
+                    movementPath.push({ x: nextX, y: nextY })
+                }
             } else {
                 break
             }
@@ -202,9 +212,10 @@ export class MovementCommand extends BaseEffectCommand {
             position: { x: bestX, y: bestY }
         })
         const landingState = this.applyLandingTerrainEffects(updatedState, target.id, { x: bestX, y: bestY })
+        const zoneState = applyCommandAreaMovementEffects(landingState, target.id, target.position, { x: bestX, y: bestY }, movementPath)
         const distanceMoved = Math.round(Math.sqrt(Math.pow(bestX - target.position.x, 2) + Math.pow(bestY - target.position.y, 2)) * 5)
 
-        return this.addLogEntry(landingState, {
+        return this.addLogEntry(zoneState, {
             type: 'action',
             message: `${target.name} is pulled ${distanceMoved} feet${this.describeLandingTerrain(state, { x: bestX, y: bestY })}`,
             characterId: target.id
@@ -382,8 +393,9 @@ export class MovementCommand extends BaseEffectCommand {
                 distanceFeet
             )
 
-            let bestX = routedDestination?.x ?? target.position.x
-            let bestY = routedDestination?.y ?? target.position.y
+            let bestX = routedDestination?.position.x ?? target.position.x
+            let bestY = routedDestination?.position.y ?? target.position.y
+            const movementPath: Position[] = routedDestination?.path ?? [target.position]
 
             if (!routedDestination) {
                 for (let i = 1; i <= tiles; i++) {
@@ -393,6 +405,9 @@ export class MovementCommand extends BaseEffectCommand {
                     if (this.validatePosition(nextState, { x: nextX, y: nextY }, target.id)) {
                         bestX = nextX
                         bestY = nextY
+                        if (movementPath[movementPath.length - 1].x !== nextX || movementPath[movementPath.length - 1].y !== nextY) {
+                            movementPath.push({ x: nextX, y: nextY })
+                        }
                     } else {
                         break
                     }
@@ -411,8 +426,9 @@ export class MovementCommand extends BaseEffectCommand {
                 position: { x: bestX, y: bestY }
             })
             const landingState = this.applyLandingTerrainEffects(updatedState, nextTarget.id, { x: bestX, y: bestY })
+            const zoneState = applyCommandAreaMovementEffects(landingState, nextTarget.id, target.position, { x: bestX, y: bestY }, movementPath)
 
-            return this.addLogEntry(landingState, {
+            return this.addLogEntry(zoneState, {
                 type: 'action',
                 message: `${target.name} is forced to move ${distanceFeet} ft ${dir.replace('_', ' ')}${this.describeLandingTerrain(nextState, { x: bestX, y: bestY })}`,
                 characterId: target.id,
@@ -594,7 +610,7 @@ export class MovementCommand extends BaseEffectCommand {
         caster: CombatCharacter,
         direction: string,
         distanceFeet: number
-    ): Position | null {
+    ): { position: Position; path: Position[] } | null {
         if (!state.mapData || distanceFeet <= 0) {
             return null
         }
@@ -620,6 +636,7 @@ export class MovementCommand extends BaseEffectCommand {
             })
 
         let bestDestination: Position | null = null
+        let bestPath: Position[] | null = null
         let bestDirectionalDistance = startDistance
         let bestPathCost = Number.POSITIVE_INFINITY
 
@@ -641,12 +658,13 @@ export class MovementCommand extends BaseEffectCommand {
 
             if (isBetterDirection || (candidateDistance === bestDirectionalDistance && pathCost < bestPathCost)) {
                 bestDestination = candidateTile.coordinates
+                bestPath = path.map(tile => tile.coordinates)
                 bestDirectionalDistance = candidateDistance
                 bestPathCost = pathCost
             }
         }
 
-        return bestDestination
+        return bestDestination && bestPath ? { position: bestDestination, path: bestPath } : null
     }
 
     /**

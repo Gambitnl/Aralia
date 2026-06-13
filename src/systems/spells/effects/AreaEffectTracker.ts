@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/06/2026, 22:38:35
+ * Last Sync: 12/06/2026, 22:33:25
  * Dependents: hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionExecutor.ts
  * Imports: 3 files
  *
@@ -31,13 +31,11 @@
 
 import { combatEvents } from '../../events/CombatEvents';
 import {
-    convertSpellEffectToProcessed,
-    shouldTriggerForFrequency,
-    matchesTargetFilter,
     isPositionInArea,
     processAreaEntryTriggers,
     processAreaExitTriggers,
     processAreaEndTurnTriggers,
+    processAreaMoveWithinTriggers,
     ActiveSpellZone,
     TriggerResult
 } from './triggerHandler';
@@ -72,7 +70,8 @@ export class AreaEffectTracker {
         character: CombatCharacter,
         newPosition: Position,
         previousPosition: Position,
-        currentRound: number
+        currentRound: number,
+        movementPath?: Position[]
     ): TriggerResult[] {
         const results: TriggerResult[] = [];
 
@@ -85,7 +84,7 @@ export class AreaEffectTracker {
         results.push(...entryResults);
 
         // Process Movement Within third
-        const movementResults = this.processMovementWithin(character, newPosition, previousPosition);
+        const movementResults = this.processMovementWithin(character, newPosition, previousPosition, movementPath);
         results.push(...movementResults);
 
         return results;
@@ -99,53 +98,13 @@ export class AreaEffectTracker {
     public processMovementWithin(
         character: CombatCharacter,
         newPosition: Position,
-        previousPosition: Position
+        previousPosition: Position,
+        movementPath?: Position[]
     ): TriggerResult[] {
-        const results: TriggerResult[] = [];
-
-        for (const zone of this.zones) {
-            if (!zone.areaOfEffect) continue;
-
-            const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect, zone.direction);
-            const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect, zone.direction);
-
-            // Trigger if moving *within* the zone (start and end are both in)
-            if (wasInZone && isNowInZone) {
-                const moveEffects = zone.effects.filter(effect =>
-                    // DEBT: Cast trigger to any to probe optional type property without complex typing in this tracker.
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    (effect.trigger as any)?.type === 'on_move_in_area'
-                );
-
-                // Calculate Chebyshev distance (tiles moved)
-                const dx = Math.abs(newPosition.x - previousPosition.x);
-                const dy = Math.abs(newPosition.y - previousPosition.y);
-                const distanceInTiles = Math.max(dx, dy);
-
-                // Trigger once per tile (5 feet) moved
-                for (let i = 0; i < distanceInTiles; i++) {
-                    for (const effect of moveEffects) {
-                        // DEBT: Cast trigger to any to probe optional frequency property without complex typing in this tracker.
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
-                            continue;
-                        }
-
-                        if (!matchesTargetFilter(effect.condition?.targetFilter, character)) {
-                            continue;
-                        }
-
-                        results.push({
-                            triggered: true,
-                            effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
-                            triggerType: 'on_move_in_area'
-                        });
-                    }
-                }
-            }
-        }
-
-        return results;
+        // Movement-within effects now share the same triggerHandler decision
+        // path as entry, exit, and end-turn effects. This keeps per-tile damage,
+        // frequency gates, target filters, and source context from drifting.
+        return processAreaMoveWithinTriggers(this.zones, character, newPosition, previousPosition, movementPath);
     }
 
     /**

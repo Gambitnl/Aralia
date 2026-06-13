@@ -228,8 +228,9 @@ export function useGameInitialization({
     if (result.success && result.data) {
       // Restore the entire game state from the save file.
       dispatch({ type: 'LOAD_GAME_SUCCESS', payload: result.data });
-      // Confirm success in both the chat log and a toast notification.
-      addMessage("Game loaded successfully.", "system");
+      // Confirm success via toast only. Do NOT append to the persistent
+      // message log: `messages` is serialized into save slots, so a chat
+      // entry here would accumulate one duplicate per load cycle.
       dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'success', message: result.message || "Game loaded successfully." } });
     } else {
       // Load failed: notify the player and return them to the main menu.

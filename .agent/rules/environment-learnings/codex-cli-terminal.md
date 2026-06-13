@@ -93,6 +93,25 @@ Multi-line Python snippets are easy for PowerShell to misparse. Prefer:
 Get-Content src\\file.ts | Select-Object -Skip 100 -First 40
 ```
 
+### Use `.cmd` Node Tool Shims When PowerShell Script Execution Is Disabled
+On this Windows host, direct `npm` or `npx` can resolve to `npm.ps1` / `npx.ps1`
+and fail with:
+`File C:\Program Files\nodejs\npx.ps1 cannot be loaded because running scripts is disabled on this system.`
+
+Safer pattern:
+- Use `npm.cmd run ...` instead of `npm run ...`.
+- Use `npx.cmd ...` instead of `npx ...`.
+- For large TypeScript snippets, pipe a PowerShell here-string into `npx.cmd tsx`
+  instead of fighting nested `tsx --eval` quote escaping.
+
+```powershell
+npm.cmd run sync-check
+npx.cmd vitest run src/systems/worldforge/
+@'
+console.log("quotes stay intact here");
+'@ | npx.cmd tsx
+```
+
 Identity & Environment Checklist
 - Agent ID:
 - Host/Tool (terminal, VS Code extension, etc.):

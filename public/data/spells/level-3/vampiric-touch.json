@@ -141,7 +141,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "Deals 3d6 Necrotic damage on the row's current hit-based resolution; slot scaling adds +1d6.",
+      "description": "Deals 3d6 Necrotic damage when the hit-based melee spell attack resolves; each slot level above 3rd adds +1d6.",
       "conditionalEndings": []
     },
     {

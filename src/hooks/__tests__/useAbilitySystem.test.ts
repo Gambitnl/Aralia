@@ -578,6 +578,197 @@ describe('useAbilitySystem - allocated spell command targets', () => {
     });
 });
 
+
+describe('useAbilitySystem - selected object target refs', () => {
+    it('passes registered map object refs into the combat action and spell command factory', async () => {
+        vi.clearAllMocks();
+        const { SpellCommandFactory } = await import('../../commands');
+        const caster = {
+            id: 'object-caster',
+            name: 'Object Caster',
+            team: 'player',
+            position: { x: 0, y: 0 },
+            actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
+            spellSlots: { 1: { used: 0, total: 1 } },
+            statusEffects: []
+        } as unknown as CombatCharacter;
+        const looseStone = {
+            id: 'loose-stone',
+            name: 'Loose Stone',
+            position: { x: 1, y: 0 },
+            size: 'Tiny',
+            weightPounds: 2,
+            isWornOrCarried: false,
+            isMagical: false,
+            isFixedToSurface: false
+        };
+        const mapData: BattleMapData = {
+            dimensions: { width: 3, height: 3 },
+            tiles: new Map([
+                ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'floor', decoration: null, blocksMovement: false, blocksLoS: false, movementCost: 1, elevation: 0, effects: [] }],
+                ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'floor', decoration: null, blocksMovement: false, blocksLoS: false, movementCost: 1, elevation: 0, effects: [] }]
+            ]),
+            theme: 'dungeon',
+            seed: 13,
+            targetableObjects: [looseStone]
+        };
+        const objectSpell: Spell = {
+            id: 'catapult-object-ref-test',
+            name: 'Catapult Object Ref Test',
+            level: 1,
+            school: 'Transmutation',
+            classes: ['Wizard'],
+            description: 'Targets a loose object without pretending it is a creature.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 60 },
+            components: { verbal: false, somatic: true, material: false },
+            duration: { type: 'instantaneous' },
+            targeting: {
+                type: 'single',
+                range: 60,
+                validTargets: ['objects'],
+                lineOfSight: false
+            },
+            effects: [{
+                type: 'UTILITY',
+                utilityType: 'object_interaction',
+                description: 'Launches the selected object.',
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        } as unknown as Spell;
+        const objectAbility = {
+            id: objectSpell.id,
+            name: objectSpell.name,
+            type: 'spell',
+            targeting: 'single_any',
+            range: 60,
+            cost: { type: 'action' },
+            effects: [],
+            spell: objectSpell
+        } as unknown as Ability;
+        const onExecuteAction = vi.fn(() => true);
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [caster],
+            mapData,
+            onExecuteAction,
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onNotification: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        act(() => {
+            result.current.startTargeting(objectAbility, caster);
+        });
+
+        let didSelect = false;
+        await act(async () => {
+            didSelect = result.current.selectTarget(looseStone.position, caster);
+        });
+
+        await _waitFor(() => expect(SpellCommandFactory.createCommands).toHaveBeenCalled());
+
+        const expectedSelectedTargets = [{
+            kind: 'object',
+            id: 'loose-stone',
+            name: 'Loose Stone',
+            position: looseStone.position,
+            object: looseStone
+        }];
+
+        expect(didSelect).toBe(true);
+        expect(onExecuteAction).toHaveBeenCalledWith(expect.objectContaining({
+            targetCharacterIds: [],
+            selectedSpellTargets: expectedSelectedTargets
+        }));
+        expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[2]).toEqual([]);
+        expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[8]).toEqual(expectedSelectedTargets);
+    });
+
+    it('surfaces registered map object positions as valid spell targets', () => {
+        vi.clearAllMocks();
+        const caster = {
+            id: 'object-highlight-caster',
+            name: 'Object Highlight Caster',
+            team: 'player',
+            position: { x: 0, y: 0 },
+            actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
+            spellSlots: { 1: { used: 0, total: 1 } },
+            statusEffects: []
+        } as unknown as CombatCharacter;
+        const looseStone = {
+            id: 'highlight-stone',
+            name: 'Highlight Stone',
+            position: { x: 1, y: 0 },
+            size: 'Tiny',
+            weightPounds: 2,
+            isWornOrCarried: false,
+            isMagical: false,
+            isFixedToSurface: false
+        };
+        const mapData: BattleMapData = {
+            dimensions: { width: 3, height: 3 },
+            tiles: new Map([
+                ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'floor', decoration: null, blocksMovement: false, blocksLoS: false, movementCost: 1, elevation: 0, effects: [] }],
+                ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'floor', decoration: null, blocksMovement: false, blocksLoS: false, movementCost: 1, elevation: 0, effects: [] }]
+            ]),
+            theme: 'dungeon',
+            seed: 17,
+            targetableObjects: [looseStone]
+        };
+        const objectSpell: Spell = {
+            id: 'catapult-highlight-test',
+            name: 'Catapult Highlight Test',
+            level: 1,
+            school: 'Transmutation',
+            classes: ['Wizard'],
+            description: 'Highlights a loose object target.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 60 },
+            components: { verbal: false, somatic: true, material: false },
+            duration: { type: 'instantaneous' },
+            targeting: {
+                type: 'single',
+                range: 60,
+                validTargets: ['objects'],
+                lineOfSight: false
+            },
+            effects: [{
+                type: 'UTILITY',
+                utilityType: 'object_interaction',
+                description: 'Launches the selected object.',
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        } as unknown as Spell;
+        const objectAbility = {
+            id: objectSpell.id,
+            name: objectSpell.name,
+            type: 'spell',
+            targeting: 'single_any',
+            range: 60,
+            cost: { type: 'action' },
+            effects: [],
+            spell: objectSpell
+        } as unknown as Ability;
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [caster],
+            mapData,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onNotification: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        expect(result.current.getValidTargets(objectAbility, caster)).toContainEqual(looseStone.position);
+    });
+
+});
+
 // ============================================================================
 // Immediate Forced-Movement Repeat Saves
 // ============================================================================
@@ -792,6 +983,92 @@ describe('useAbilitySystem - mode-choice input', () => {
         expect(onRequestInput).toHaveBeenCalledWith(modeSpell, expect.any(Function));
         await _waitFor(() => expect(SpellCommandFactory.createCommands).toHaveBeenCalled());
         expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[5]).toBe('Deafness');
+    });
+
+    it('collects a Command control option before creating spell commands', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+        const caster = {
+            id: 'caster-command-choice',
+            name: 'Command Caster',
+            team: 'player',
+            position: { x: 0, y: 0 },
+            actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
+            spellSlots: { 1: { used: 0, total: 2 } }
+        } as unknown as CombatCharacter;
+        const target = {
+            id: 'target-command-choice',
+            name: 'Command Target',
+            team: 'enemy',
+            position: { x: 1, y: 0 },
+            actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
+            spellSlots: {}
+        } as unknown as CombatCharacter;
+        const commandSpell: Spell = {
+            id: 'command',
+            name: 'Command',
+            level: 1,
+            school: 'Enchantment',
+            classes: ['Cleric'],
+            description: 'Choose one command word for the target.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 60 },
+            components: { verbal: true, somatic: false, material: false },
+            duration: { type: 'instantaneous', value: 0, unit: 'round' },
+            targeting: { type: 'single', range: 60, validTargets: ['enemies'], lineOfSight: false },
+            effects: [{
+                type: 'UTILITY',
+                utilityType: 'control',
+                description: 'On a failed save, the target obeys the selected command word.',
+                trigger: { type: 'immediate' },
+                condition: { type: 'save' },
+                controlOptions: [
+                    { name: 'Approach', effect: 'approach' },
+                    { name: 'Flee', effect: 'flee' },
+                    { name: 'Grovel', effect: 'grovel' }
+                ]
+            }]
+        } as unknown as Spell;
+        const commandAbility: Ability = {
+            id: commandSpell.id,
+            name: commandSpell.name,
+            description: commandSpell.description,
+            type: 'spell',
+            cost: { type: 'action', spellSlotLevel: 1 },
+            range: 12,
+            targeting: 'single_enemy',
+            effects: [],
+            spell: commandSpell
+        } as unknown as Ability;
+        const onRequestInput = vi.fn((_spell: Spell, onConfirm: (input: string) => void) => {
+            onConfirm('Flee');
+        });
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [caster, target],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn(),
+            onRequestInput
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                commandAbility,
+                caster,
+                target.position,
+                [target.id]
+            );
+        });
+
+        // Command is authored as one utility effect with several control words.
+        // The hook should request the chosen word and pass it through the same
+        // playerInput bridge used by mode choices, rather than letting command
+        // execution fall back to first-listed Approach.
+        expect(onRequestInput).toHaveBeenCalledWith(commandSpell, expect.any(Function));
+        await _waitFor(() => expect(SpellCommandFactory.createCommands).toHaveBeenCalled());
+        expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[5]).toBe('Flee');
     });
 });
 

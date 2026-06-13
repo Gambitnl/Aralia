@@ -12,6 +12,10 @@ export const ptyTerminalManager = () => ({
   configureServer(server: any) {
     const wss = new WebSocketServer({ port: 0 });
 
+    wss.on('error', (err: Error) => {
+      server.config.logger.error(`[pty] WebSocket server error: ${err.message}`);
+    });
+
     wss.on('listening', () => {
       const addr = wss.address() as { port: number };
       _ptyWssPort = addr.port;
@@ -41,7 +45,9 @@ export const ptyTerminalManager = () => ({
           _ptyOutputBuffer = _ptyOutputBuffer.slice(-PTY_BUFFER_CHARS);
         }
         for (const client of _ptyClients) {
-          if (client.readyState === WebSocket.OPEN) client.send(data);
+          try {
+            if (client.readyState === WebSocket.OPEN) client.send(data);
+          } catch { /* client torn down mid-send */ }
         }
       });
 
@@ -72,8 +78,13 @@ export const ptyTerminalManager = () => ({
           if (d.type === 'input')  _stickyPtyProc.write(d.data);
           if (d.type === 'resize') _stickyPtyProc.resize(Math.max(2, d.cols), Math.max(2, d.rows));
         } catch {
-          _stickyPtyProc.write(msg.toString());
+          try { _stickyPtyProc.write(msg.toString()); } catch { /* pty already dead */ }
         }
+      });
+
+      ws.on('error', (err: Error) => {
+        server.config.logger.warn(`[pty] client socket error: ${err.message}`);
+        _ptyClients.delete(ws);
       });
 
       ws.on('close', () => {
@@ -101,6 +112,10 @@ export const shellTerminalManager = () => ({
   name: 'shell-terminal-manager',
   configureServer(server: any) {
     const wss = new WebSocketServer({ port: 0 });
+
+    wss.on('error', (err: Error) => {
+      server.config.logger.error(`[shell-pty] WebSocket server error: ${err.message}`);
+    });
 
     wss.on('listening', () => {
       const addr = wss.address() as { port: number };
@@ -131,7 +146,9 @@ export const shellTerminalManager = () => ({
           _shellPtyOutputBuffer = _shellPtyOutputBuffer.slice(-PTY_BUFFER_CHARS);
         }
         for (const client of _shellPtyClients) {
-          if (client.readyState === WebSocket.OPEN) client.send(data);
+          try {
+            if (client.readyState === WebSocket.OPEN) client.send(data);
+          } catch { /* client torn down mid-send */ }
         }
       });
 
@@ -162,8 +179,13 @@ export const shellTerminalManager = () => ({
           if (d.type === 'input')  _stickyShellPtyProc.write(d.data);
           if (d.type === 'resize') _stickyShellPtyProc.resize(Math.max(2, d.cols), Math.max(2, d.rows));
         } catch {
-          _stickyShellPtyProc.write(msg.toString());
+          try { _stickyShellPtyProc.write(msg.toString()); } catch { /* pty already dead */ }
         }
+      });
+
+      ws.on('error', (err: Error) => {
+        server.config.logger.warn(`[shell-pty] client socket error: ${err.message}`);
+        _shellPtyClients.delete(ws);
       });
 
       ws.on('close', () => {

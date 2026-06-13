@@ -7,6 +7,7 @@ main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
 last_updated: 2026-06-10
+iteration: 3
 confidence: medium
 evidence: docs/projects/dialogue
 gap_signal: "6 open gaps; DIAL-001 adjacent, DIAL-002 through DIAL-005 active follow-ups, DIAL-006 routed from code-modularization audit"

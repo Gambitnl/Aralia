@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Submap
 slug: submap
-status: active
-last_updated: "2026-06-10"
+Status: active
+last_updated: 2026-06-12
 iteration: 5
 source_agent: Cursor / Composer
 target_agent: next cold-start agent
@@ -20,7 +20,7 @@ gaps: docs/projects/submap/GAPS.md
 # Submap Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-12
 
 Shared workflow:
 docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
@@ -53,7 +53,7 @@ docs/projects/submap/NORTH_STAR.md
 ## Active Task
 
 Task:
-Continue T3/T5 extraction — wire SubmapPane through `submapActionContracts`
+Continue T3/T5 extraction â€” wire SubmapPane through `submapActionContracts`
 and extract `generateLocalTerrainData` from `useSubmapProceduralData`.
 
 Acceptance criteria:
@@ -95,7 +95,7 @@ then extract generation core (G8) before any deprecation talk.
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Submap
 Project folder: docs/projects/submap
-Iteration: 5
+iteration: 5
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -112,7 +112,7 @@ SubmapPane is not yet wired through the shared module.
 ## Current Mission
 
 Active task:
-G7 + G8 — Wire SubmapPane through `submapActionContracts`, then extract
+G7 + G8 â€” Wire SubmapPane through `submapActionContracts`, then extract
 `generateLocalTerrainData` from `useSubmapProceduralData`.
 
 Acceptance criteria:
@@ -148,4 +148,54 @@ consumer candidate for the extracted generation core.
 Required closeout reminders:
 - Keep NORTH_STAR, TRACKER, GAPS, and this handoff aligned.
 - Keep the handoff compact; only the latest iteration ledger row should remain.
+Required docs to account for before closeout:
+- NORTH_STAR.md
+- TRACKER.md
+- GAPS.md
+- COLD_START_AGENT_PROMPT.md
+- DECISIONS.md
+- AUDIT_OR_PROOF.md
+- RUNBOOK.md
+- docs/projects/PROJECT_CARD_SCHEMA.md
+- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+
+Optional docs to check when present or named by tracker:
+- tasks/
+- architecture notes
+- migration notes
+- project-specific proof or design notes
 ---END NEXT AGENT HANDOFF---
+
+## Project Prompt Conformance Notes
+
+Last updated: 2026-06-12
+
+This section aligns older cold-start prompts with the shared living-project workflow without replacing the project-specific handoff above. The original handoff remains authoritative for project context; this section records the universal prompt shape that every next agent must honor.
+
+Conformance issues repaired on 2026-06-12: missing_iteration_ledger, missing_decisions_reference, missing_runbook_reference.
+
+Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
+
+Agent identity / runtime:
+Before selecting work, identify yourself and the surface you are running through. Use one of: CLI agent, application agent, browser/app-embedded agent, MCP/subagent, or unknown. Mark the classification as certain, inferred, or unknown and name the clue used.
+
+### Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| pre-standardization | not recorded | unknown | unknown | before 2026-06-12 | Original submap handoff predates the ledger requirement. |
+
+### Required project docs to account for
+
+- docs/projects/submap/NORTH_STAR.md
+- docs/projects/submap/TRACKER.md
+- docs/projects/submap/GAPS.md
+- docs/projects/submap/COLD_START_AGENT_PROMPT.md
+- docs/projects/submap/DECISIONS.md
+- docs/projects/submap/AUDIT_OR_PROOF.md
+- docs/projects/submap/RUNBOOK.md
+
+Closeout reminder:
+Before ending an iteration, refresh or explicitly report on every required project doc above. If a supporting doc is not relevant to the current slice, say why instead of silently ignoring it.

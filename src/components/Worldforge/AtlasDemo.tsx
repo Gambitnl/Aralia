@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/06/2026, 09:54:02
+ * Last Sync: 12/06/2026, 09:06:27
  * Dependents: App.tsx
- * Imports: 11 files
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -41,7 +41,7 @@ import { generateLocal } from "../../systems/worldforge/local/generateLocal";
 import { rootSeedPath } from "../../systems/worldforge/seedPath";
 import { FEET_PER_FMG_PIXEL } from "../../systems/worldforge/adapter/atlasArtifact";
 import type { LocalArtifact, RegionArtifact } from "../../systems/worldforge/artifacts";
-import type { AtlasView } from "./atlasDraw";
+import type { AtlasOverlayMode, AtlasView } from "./atlasDraw";
 import AtlasMapView from "./AtlasMapView";
 import RegionMapView from "./RegionMapView";
 import LocalMapView from "./LocalMapView";
@@ -75,7 +75,10 @@ const AtlasDemo: React.FC = () => {
   // Render options (L0 viewport)
   const [showScaleBar, setShowScaleBar] = useState<boolean>(true);
   const [showGraticule, setShowGraticule] = useState<boolean>(false);
-  const [showPolitical, setShowPolitical] = useState<boolean>(false);
+  // The atlas base tint can show only one cell-owned domain at a time. The
+  // radio keeps state/culture/religion/province colors mutually exclusive,
+  // while markers, zones and military remain independent detail layers above.
+  const [overlayMode, setOverlayMode] = useState<AtlasOverlayMode>("political");
   // Detail-density layers (2026-06-11): the ported Markers/Zones/Military
   // data finally drawn. Markers + zones default ON — they are the "Azgaar
   // richness" Remy asked after; military badges are opt-in (72 diamonds
@@ -255,9 +258,11 @@ const AtlasDemo: React.FC = () => {
     }, 50);
   };
 
-  // Trigger world civilization generation when political mode is toggled on, if not already generated
+  // Trigger world civilization generation when a generated overlay is selected,
+  // if a caller ever supplies an atlas-only artifact. The demo normally uses
+  // generateFmgWorld already, but this keeps the old lazy-generation safety net.
   useEffect(() => {
-    if (showPolitical && atlas && !atlas.pack.states) {
+    if (atlas && !atlas.pack.states) {
       setIsGenerating(true);
       setTimeout(() => {
         const t0 = performance.now();
@@ -278,7 +283,7 @@ const AtlasDemo: React.FC = () => {
         }
       }, 50);
     }
-  }, [showPolitical, atlas, seed, cellsDesired, template]);
+  }, [atlas, seed, cellsDesired, template]);
 
   // Click handler to descend into region (L0 -> L1)
   const handleCellClick = (cellId: number) => {
@@ -639,23 +644,39 @@ const AtlasDemo: React.FC = () => {
                   </div>
                 </label>
 
-                <label className="flex items-center justify-between cursor-pointer group py-1">
+                <div className="flex flex-col gap-2 py-1">
                   <div className="flex flex-col">
-                    <span className="text-xs font-semibold text-gray-300 group-hover:text-white transition-colors">
-                      Display Political Overlay
-                    </span>
-                    <span className="text-[10px] text-gray-500">State territories, borders, routes & burgs</span>
+                    <span className="text-xs font-semibold text-gray-300">Atlas Cell Tint</span>
+                    <span className="text-[10px] text-gray-500">State, culture, religion or province ownership</span>
                   </div>
-                  <div className="relative">
-                    <input
-                      type="checkbox"
-                      checked={showPolitical}
-                      onChange={(e) => setShowPolitical(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-8 h-4 bg-gray-950 rounded-full border border-gray-800 peer-checked:bg-indigo-600 transition-colors after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-gray-400 after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:after:translate-x-4 peer-checked:after:bg-white" />
+                  <div className="grid grid-cols-4 gap-1 bg-gray-950 p-1 rounded-lg border border-gray-800">
+                    {([
+                      ["political", "State"],
+                      ["culture", "Culture"],
+                      ["religion", "Faith"],
+                      ["province", "Province"],
+                    ] as Array<[AtlasOverlayMode, string]>).map(([mode, label]) => (
+                      <label
+                        key={mode}
+                        className={`cursor-pointer rounded-md px-2 py-1 text-center text-[10px] font-semibold transition-all ${
+                          overlayMode === mode
+                            ? "bg-indigo-600 text-white shadow-md"
+                            : "text-gray-500 hover:bg-gray-900/50 hover:text-gray-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="atlasOverlayMode"
+                          value={mode}
+                          checked={overlayMode === mode}
+                          onChange={() => setOverlayMode(mode)}
+                          className="sr-only"
+                        />
+                        {label}
+                      </label>
+                    ))}
                   </div>
-                </label>
+                </div>
 
                 <label className="flex items-center justify-between cursor-pointer group py-1">
                   <div className="flex flex-col">
@@ -844,7 +865,8 @@ const AtlasDemo: React.FC = () => {
                   height={mapSize.height}
                   showScaleBar={showScaleBar}
                   showGraticule={showGraticule}
-                  showPolitical={showPolitical}
+                  showPolitical={overlayMode === "political"}
+                  overlayMode={overlayMode}
                   showMarkers={showMarkers}
                   showZones={showZones}
                   showMilitary={showMilitary}

@@ -1,0 +1,4 @@
+Warning: True color (24-bit) support not detected. Using a terminal with true color enabled will result in a better visual experience.
+Ripgrep is not available. Falling back to GrepTool.
+MCP issues detected. Run /mcp list for status.
+Failed to compile MCP tool output schema (<no $id>): can't resolve reference #/$defs/ScreenInstance from id #. Skipping output validation for this tool.

@@ -6,10 +6,11 @@ category: Tools, Automation, and Infrastructure
 main_category: "Runtime & Services"
 subcategory: "Commands & Runtime Support"
 status: partial
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 3
 confidence: medium
 evidence: docs/projects/scripts-workflows
-gap_signal: 2 open project gaps (G1 command matrix, G2 env-var matrix)
+gap_signal: 2 open gaps; 2 open project gaps (G1 command matrix, G2 env-var matrix)
 protocol: living project doc set
 next_step: Consolidate the canonical command matrix in project-owned docs, then normalize env-var defaults if the slice stays stable.
 agent_comments: ""
@@ -28,7 +29,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-05
 workflow_gaps_reviewed: 2026-06-05
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -38,7 +39,7 @@ human_decision_required: "no"
 # NORTH_STAR: Scripts: Workflows
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Why this project exists
 
@@ -213,3 +214,16 @@ Keep durable state in this project doc surface and tracker. Exclude raw logs, ru
   - start with `TRACKER.md` row T3 and keep T4 queued behind it
   - keep the command matrix and env-var defaults in one project-owned reference
   - only add new project gaps when they are real, evidence-backed, and not duplicates of the shared workflow-path issue already tracked in `WORKFLOW_GAPS.md`
+
+## Required Review Brief
+
+Title: Scripts: Workflows partial due to command/env matrix gaps
+Question: Where should operators find the canonical workflow command and environment matrix?
+Issue: The project has open gaps for distributed command examples and scattered env-var tuning.
+Current behavior: The next step says to consolidate the canonical command matrix, then normalize env-var defaults.
+Why blocked: Operators can otherwise follow stale launch patterns and hit brittle CDP/image-generation behavior.
+Option A: Create one project-owned command matrix and point legacy docs to it.
+Option B: Start with the env-var matrix if runtime fragility is the immediate blocker.
+Evidence: NORTH_STAR.md next_step; GAPS.md G1 and G2.
+Decision owner: Scripts/Workflow tooling owner
+Proof after decision: Project docs and package scripts point to the same command/env matrix.

@@ -2,14 +2,41 @@
  * @file battleMapGenerator.ts
  * Service for procedurally generating battle maps.
  */
-import { BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration } from '../types/combat';
+import { BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration, TargetableMapObject } from '../types/combat';
 import { PerlinNoise } from '../utils/perlinNoise';
 import { SeededRandom } from '@/utils/random';
+
+type GeneratedBattleMapDecoration = Exclude<BattleMapDecoration, null>;
+
+// ============================================================================
+// Generated Obstacle Object Facts
+// ============================================================================
+// This section translates obstacles created by this generator into explicit
+// spell-targetable map objects. The generator is the safe owner for these facts:
+// it knows when an obstacle is created, so later spell systems do not need to
+// guess object targetability from visual decoration data alone.
+// ============================================================================
+
+const GENERATED_OBSTACLE_SIZES: Record<GeneratedBattleMapDecoration, string> = {
+  tree: 'Large',
+  boulder: 'Medium',
+  stalagmite: 'Medium',
+  pillar: 'Large',
+  cactus: 'Medium',
+  mangrove: 'Large',
+  fallen_log: 'Medium',
+  stump: 'Small',
+  bush: 'Small'
+};
+
+const formatDecorationName = (decoration: GeneratedBattleMapDecoration): string =>
+  decoration.replace('_', ' ');
 
 export class BattleMapGenerator {
   private width: number;
   private height: number;
   private tiles: Map<string, BattleMapTile> = new Map();
+  private targetableObjects: TargetableMapObject[] = [];
   private random!: SeededRandom;
   private elevationNoise!: PerlinNoise;
 
@@ -20,6 +47,7 @@ export class BattleMapGenerator {
 
   public generate(biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp', seed: number): BattleMapData {
     this.tiles.clear();
+    this.targetableObjects = [];
     this.random = new SeededRandom(seed);
     this.elevationNoise = new PerlinNoise(this.random.next());
     
@@ -33,6 +61,7 @@ export class BattleMapGenerator {
     return {
       dimensions: { width: this.width, height: this.height },
       tiles: this.tiles,
+      targetableObjects: [...this.targetableObjects],
       theme: biome,
       seed: seed
     };
@@ -144,6 +173,37 @@ export class BattleMapGenerator {
     } else {
         tile.blocksMovement = true;
     }
+
+    // Generated obstacles are fixed battlefield features, not loose inventory
+    // items. Publishing them here gives object-aware spells real map objects to
+    // target while preserving Catapult-style exclusions for fixed objects.
+    if (type) {
+      this.registerGeneratedObstacleTarget(tile, type);
+    }
+  }
+
+  private registerGeneratedObstacleTarget(tile: BattleMapTile, decoration: GeneratedBattleMapDecoration) {
+    const objectName = formatDecorationName(decoration);
+
+    this.targetableObjects.push({
+      id: `generated-obstacle-${tile.id}-${decoration}`,
+      name: `Generated ${objectName}`,
+      position: tile.coordinates,
+      size: GENERATED_OBSTACLE_SIZES[decoration],
+      isWornOrCarried: false,
+      isMagical: false,
+      isFixedToSurface: true
+    });
+  }
+
+  private removeGeneratedObstacleTarget(tile: BattleMapTile) {
+    // Cave and dungeon connectivity carving can erase an obstacle after it was
+    // placed. Keep the explicit object registry synchronized so spell targeting
+    // never sees a stale object on a tile that was turned back into open floor.
+    this.targetableObjects = this.targetableObjects.filter(targetObject =>
+      targetObject.position.x !== tile.coordinates.x ||
+      targetObject.position.y !== tile.coordinates.y
+    );
   }
   
   private ensureConnectivity() {
@@ -263,6 +323,7 @@ export class BattleMapGenerator {
   // Reset carved tiles to ordinary floor so they are actually traversable by
   // movement, targeting, and pathfinding consumers.
   private carveTile(tile: BattleMapTile) {
+    this.removeGeneratedObstacleTarget(tile);
     tile.terrain = 'floor';
     tile.movementCost = 5;
     tile.blocksLoS = false;

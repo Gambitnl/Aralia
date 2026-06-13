@@ -6,10 +6,11 @@ category: tools
 main_category: "Tools, Docs & Agents"
 subcategory: "Scripts & Automation"
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
+iteration: 6
 confidence: high
 evidence: "docs/projects/code-modularization-audit/GAPS.md; repo line-count scans run 2026-06-08; owner-acceptance scan iteration 6 confirmed all six stub rows present"
-gap_signal: "CMA-G14..G19 stub rows now exist in all six owner GAPS files; no owner has accepted/activated their route; project stays in routing/evidence posture"
+gap_signal: "18 open gaps; CMA-G1 through CMA-G6 and CMA-G8 through CMA-G19 remain routed or narrowed after CMA-G7 closure"
 protocol: living-project-task-protocol
 next_step: wait for owning projects to accept the routed candidate clusters, then create bounded split plans with preservation tests
 agent_comments: ""
@@ -39,7 +40,7 @@ human_decision_required: "no"
 # Code Modularization Audit North Star
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-12
 
 ## Dashboard Card Schema
 

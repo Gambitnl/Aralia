@@ -1,4 +1,4 @@
-# Physics System Living Tracker
+﻿# Physics System Living Tracker
 
 Status: review-required
 Last updated: 2026-06-05
@@ -17,9 +17,6 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Replace placeholder project docs with concrete physics state map and evidence. | Physics worker | 2026-05-31 | `src/systems/physics`, `src/utils/combat/physicsUtils.ts`, `src/hooks/combat` | Track runtime integration assumptions and unresolved paths in GAPS.md. | Confirm no edits to non-specified files.
-| T2 | done | Verify terrain/environment and movement integration points for handoff continuity. | Physics worker | 2026-05-31 | `src/commands/effects/TerrainCommand.ts`, `src/hooks/combat/engine/useCombatEngine.ts`, `src/hooks/combat/useTurnManager.ts` | Keep gap list current for next implementation slice. | Cross-check with TRACKER row in `docs/projects/PROJECT_TRACKER.md`.
-| T3 | done | Validate physics gap priorities and decide routing for each gap type. | Physics worker | 2026-06-05 | `docs/projects/physics/GAPS.md`, `docs/projects/physics/NORTH_STAR.md`, `docs/projects/physics/COLD_START_AGENT_PROMPT.md` | Use the routed gaps as the next handoff source instead of re-deriving scope. | Confirm no workflow-level gap was opened in `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md`.
 | T4 | active | Wire elemental state transitions into damage/status command flow and add one focused proof check. | Physics worker | 2026-06-05 | `docs/projects/physics/GAPS.md` (G2), `src/commands/effects/DamageCommand.ts`, `src/commands/effects/StatusConditionCommand.ts`, `src/types/elemental.ts`, `src/types/combat.ts` | Implement the command-level state mapping and add one regression path for a physical effect flow. | Add targeted Vitest coverage for the elemental transition path.
 
 ## Gap Log

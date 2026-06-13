@@ -1,15 +1,29 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import { SpellCommandFactory } from '../factory/SpellCommandFactory'
 import { DamageCommand } from '../effects/DamageCommand'
 import { DamageEffect, Spell, SpellSchool } from '@/types/spells'
-import type { CombatCharacter } from '@/types/combat'
+import type { CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import { createMockGameState } from '@/utils/factories'
+
+/**
+ * This file protects command creation for structured spell effects.
+ *
+ * The factory is the bridge between spell JSON and executable combat commands:
+ * it applies scaling, narrows choice-driven effects, filters creature targets,
+ * and now keeps rich selected-target refs available for object and point spells.
+ *
+ * Called by: focused SpellCommandFactory Vitest runs.
+ * Depends on: SpellCommandFactory, command context types, and the lightweight
+ * mock game-state factories used by command tests.
+ */
 
 // Mocks
 const mockCaster = { id: 'c1', name: 'Caster', level: 5 } as CombatCharacter
 const mockTarget = { id: 't1', name: 'Target' } as CombatCharacter
 const getContextTargets = (command: unknown): CombatCharacter[] =>
   (command as { context: { targets: CombatCharacter[] } }).context.targets
+const getContextSelectedTargets = (command: unknown): SelectedSpellTarget[] | undefined =>
+  (command as { context: { selectedSpellTargets?: SelectedSpellTarget[] } }).context.selectedSpellTargets
 
 const createMockSpell = (id: string, overrides: Partial<Spell> = {}): Spell => ({
   id,
@@ -235,6 +249,79 @@ describe('SpellCommandFactory', () => {
       expect(contextTargets[0].id).toBe('frozen');
     })
 
+
+    it('preserves selected object and point targets in command context without creature targets', async () => {
+      const spell = createMockSpell('object-context-test', {
+        targeting: { type: 'single', range: 60, validTargets: ['objects', 'point'] },
+        effects: [{
+          type: 'UTILITY',
+          utilityType: 'object_interaction',
+          description: 'Moves a loose object from a chosen point.',
+          trigger: { type: 'immediate' },
+          condition: { type: 'always' }
+        }]
+      })
+      const selectedSpellTargets: SelectedSpellTarget[] = [
+        {
+          kind: 'object',
+          id: 'loose-stone',
+          name: 'Loose Stone',
+          position: { x: 2, y: 1 },
+          object: {
+            id: 'loose-stone',
+            name: 'Loose Stone',
+            position: { x: 2, y: 1 },
+            weightPounds: 3,
+            isWornOrCarried: false
+          }
+        },
+        { kind: 'point', position: { x: 3, y: 1 }, purpose: 'ground_target' }
+      ]
+
+      const commands = await SpellCommandFactory.createCommands(
+        spell,
+        mockCaster,
+        [],
+        1,
+        createMockGameState(),
+        undefined,
+        undefined,
+        undefined,
+        selectedSpellTargets
+      )
+
+      expect(commands).toHaveLength(1)
+      expect(getContextTargets(commands[0])).toEqual([])
+      expect(getContextSelectedTargets(commands[0])).toEqual(selectedSpellTargets)
+    })
+
+    it('keeps selected creature refs aligned when target filtering removes creatures', async () => {
+      const spell = createMockSpell('filtered-creature-context-test', {
+        effects: [{
+          type: 'DAMAGE',
+          damage: { dice: '1d6', type: 'Radiant' },
+          trigger: { type: 'immediate' },
+          condition: {
+            type: 'hit',
+            targetFilter: { creatureTypes: ['Undead'] }
+          }
+        }]
+      })
+      const undeadTarget = { ...mockTarget, id: 'undead', creatureTypes: ['Undead'] }
+      const humanTarget = { ...mockTarget, id: 'human', creatureTypes: ['Humanoid'] }
+
+      const commands = await SpellCommandFactory.createCommands(
+        spell,
+        mockCaster,
+        [undeadTarget, humanTarget],
+        1,
+        createMockGameState()
+      )
+
+      expect(commands).toHaveLength(1)
+      expect(getContextTargets(commands[0]).map(target => target.id)).toEqual(['undead'])
+      expect(getContextSelectedTargets(commands[0])).toEqual([{ kind: 'creature', id: 'undead' }])
+    })
     it('should not create immediate commands for persistent area-zone triggers', async () => {
       // Area-zone effects are registered into ActiveSpellZone by useAbilitySystem.
       // The command factory must not also create an immediate DamageCommand for
@@ -283,3 +370,4 @@ describe('SpellCommandFactory', () => {
     })
   })
 })
+

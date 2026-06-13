@@ -6,10 +6,11 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 3
 confidence: medium
 evidence: docs/projects/organization
-gap_signal: "5 open project gaps; permissions and persistence remain the current blockers"
+gap_signal: "5 open gaps; 5 open project gaps; permissions and persistence remain the current blockers"
 protocol: living project doc set
 next_step: Resolve the org permission and persistence boundary before the next implementation slice.
 agent_comments: ""
@@ -41,7 +42,7 @@ human_decision_required: "no"
 # Organization North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Purpose And Scope
 

@@ -6,7 +6,8 @@ category: Gameplay / World Systems
 main_category: "Game & Simulation"
 subcategory: "Combat & Encounters"
 status: partial
-last_updated: 2026-06-05
+last_updated: 2026-06-12
+iteration: 2
 confidence: high
 evidence: docs/projects/naval/NORTH_STAR.md
 gap_signal: "6 open gaps; voyage coupling, combat handoff, action wiring, and legacy ownership remain unresolved."
@@ -29,7 +30,7 @@ completed_verification:
   - docs_consistency
 last_proof: 2026-06-05
 workflow_gaps_reviewed: 2026-06-05
-compaction_status: not_needed
+compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -39,7 +40,7 @@ human_decision_required: "no"
 # Naval System North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-12
 
 ## Why This Project Exists
 
@@ -209,3 +210,16 @@ The next cold-start agent must:
 - identify and register 2 additional real project gaps tied to this project in `GAPS.md`
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
+
+## Required Review Brief
+
+Title: Naval partial due to travel/combat handoff gaps
+Question: What is the next supported path from normal travel into naval voyage and combat?
+Issue: The project has six open gaps around water movement, combat handoff, action wiring, and legacy ownership.
+Current behavior: GAPS.md marks G2 and G3 active support-needed items after G1 repair handling was resolved.
+Why blocked: The project should remain partial until sea travel and voyage-combat transitions are not dead-end states.
+Option A: Wire sea travel into movement first, then route combat handoff.
+Option B: Define the combat handoff contract before movement starts producing voyage states.
+Evidence: NORTH_STAR.md next_step; GAPS.md G2 and G3.
+Decision owner: Naval system owner
+Proof after decision: A focused flow proves water/sea travel starts a voyage and combat-class voyage events transition to a valid next system.

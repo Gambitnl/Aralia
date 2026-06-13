@@ -3,8 +3,8 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Memory System
 slug: memory
-status: active
-last_updated: "2026-06-09"
+Status: partial
+last_updated: 2026-06-12
 iteration: 6
 source_agent: Helmholtz / gpt-5.4-mini high
 target_agent: next cold-start agent
@@ -19,8 +19,8 @@ gaps: docs/projects/memory/GAPS.md
 ---
 # Memory System Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-09
+Status: partial
+Last updated: 2026-06-12
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -48,7 +48,7 @@ agent_comments: none
 
 Project: Memory System
 Project folder: docs/projects/memory
-Iteration: 6
+iteration: 6
 
 Previous agent context:
 - Iteration 3 closed G5 by routing active Gemini formatting to `src/utils/world/memoryUtils.ts`.
@@ -133,3 +133,37 @@ Final response must report:
 - assumptions made
 - next safe resume action
 ---END NEXT AGENT HANDOFF---
+
+## Project Prompt Conformance Notes
+
+Last updated: 2026-06-12
+
+This section aligns older cold-start prompts with the shared living-project workflow without replacing the project-specific handoff above. The original handoff remains authoritative for project context; this section records the universal prompt shape that every next agent must honor.
+
+Conformance issues repaired on 2026-06-12: missing_iteration_ledger.
+
+Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
+
+Agent identity / runtime:
+Before selecting work, identify yourself and the surface you are running through. Use one of: CLI agent, application agent, browser/app-embedded agent, MCP/subagent, or unknown. Mark the classification as certain, inferred, or unknown and name the clue used.
+
+### Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| pre-standardization | not recorded | unknown | unknown | before 2026-06-12 | Original memory handoff predates the ledger requirement. |
+
+### Required project docs to account for
+
+- docs/projects/memory/NORTH_STAR.md
+- docs/projects/memory/TRACKER.md
+- docs/projects/memory/GAPS.md
+- docs/projects/memory/COLD_START_AGENT_PROMPT.md
+- docs/projects/memory/DECISIONS.md
+- docs/projects/memory/AUDIT_OR_PROOF.md
+- docs/projects/memory/RUNBOOK.md
+
+Closeout reminder:
+Before ending an iteration, refresh or explicitly report on every required project doc above. If a supporting doc is not relevant to the current slice, say why instead of silently ignoring it.

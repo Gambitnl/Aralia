@@ -1,4 +1,6 @@
 # Racial Spell Parser Audit
+
+Last updated: 2026-06-12
 Generated: 2026-05-31T23:09:10.972Z
 
 Races scanned: 111

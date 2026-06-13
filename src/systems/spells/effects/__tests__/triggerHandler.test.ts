@@ -6,6 +6,7 @@ import {
   processAreaEndTurnTriggers,
   processAreaEntryTriggers,
   processAreaExitTriggers,
+  processAreaMoveWithinTriggers,
   processMovementTriggers,
   resetZoneTurnTracking,
   type ActiveSpellZone,
@@ -221,6 +222,74 @@ describe('processAreaEntryTriggers', () => {
 
     expect(processAreaEntryTriggers([zone], mover, { x: -2, y: 0 }, { x: -3, y: 0 }, 1)).toHaveLength(0)
     expect(processAreaEntryTriggers([zone], mover, { x: 2, y: 0 }, { x: -2, y: 0 }, 1)).toHaveLength(1)
+  })
+})
+
+describe('processAreaMoveWithinTriggers', () => {
+  it('fires once per tile moved inside a zone and preserves source context', () => {
+    // Movement-inside effects such as Spike Growth need the same shared trigger
+    // path as entry, exit, and end-turn effects. This keeps per-tile movement
+    // damage from drifting away from source spell/caster/saveDC handling.
+    const effect = {
+      type: 'DAMAGE',
+      trigger: { type: 'on_move_in_area', frequency: 'every_time' },
+      condition: { type: 'always' },
+      damage: { dice: '1d4', type: 'Piercing' }
+    } as unknown as SpellEffect
+    const zone: ActiveSpellZone = {
+      ...makeZone([effect]),
+      spellId: 'spike-growth',
+      casterId: 'druid-caster',
+      saveDC: 16,
+      areaOfEffect: { shape: 'cube', size: 30 }
+    }
+
+    const results = processAreaMoveWithinTriggers(
+      [zone],
+      makeCharacter({ x: 4, y: 1 }),
+      { x: 4, y: 1 },
+      { x: 1, y: 1 }
+    )
+
+    expect(results).toHaveLength(3)
+    expect(results.every(result => result.triggerType === 'on_move_in_area')).toBe(true)
+    expect(results.every(result => result.effects[0].sourceContext?.spellId === 'spike-growth')).toBe(true)
+    expect(results.every(result => result.effects[0].sourceContext?.casterId === 'druid-caster')).toBe(true)
+    expect(results.every(result => result.effects[0].sourceContext?.saveDC === 16)).toBe(true)
+  })
+
+  it('uses an explicit movement path for zone-crossing movement that starts and ends outside', () => {
+    // Endpoint-only movement cannot prove how a creature crossed the map. When
+    // a caller supplies the actual stepped path, the trigger helper should count
+    // only the segments that were traveled while already inside the zone.
+    const effect = {
+      type: 'DAMAGE',
+      trigger: { type: 'on_move_in_area', frequency: 'every_time' },
+      condition: { type: 'always' },
+      damage: { dice: '1d4', type: 'Piercing' }
+    } as unknown as SpellEffect
+    const zone: ActiveSpellZone = {
+      ...makeZone([effect]),
+      areaOfEffect: { shape: 'cube', size: 30 }
+    }
+
+    const results = processAreaMoveWithinTriggers(
+      [zone],
+      makeCharacter({ x: 7, y: 0 }),
+      { x: 7, y: 0 },
+      { x: -7, y: 0 },
+      [
+        { x: -7, y: 0 },
+        { x: 1, y: 1 },
+        { x: 2, y: 1 },
+        { x: 3, y: 1 },
+        { x: 4, y: 1 },
+        { x: 7, y: 0 }
+      ]
+    )
+
+    expect(results).toHaveLength(3)
+    expect(results.every(result => result.triggerType === 'on_move_in_area')).toBe(true)
   })
 })
 

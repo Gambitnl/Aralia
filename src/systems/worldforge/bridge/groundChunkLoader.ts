@@ -1,4 +1,20 @@
-﻿/**
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 12/06/2026, 07:04:58
+ * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+/**
  * @file groundChunkLoader.ts â€” walking-scale ChunkData producer + loader for
  * Worldforge ground mode (slice 3b of Azgaar â†’ submap â†’ 3D world mode).
  *
@@ -15,18 +31,33 @@
  * axis (CHUNK_WORLD_SIZE = 128 m). Vertices beyond the artifact clamp to its
  * edge values (flat continuation), mirroring chunkSampler's clamping.
  */
-import type { ChunkData, ChunkMeshBundle } from "../../world3d/types";
+import type { ChunkData, ChunkMeshBundle, VegetationScatter } from "../../world3d/types";
 import { buildChunkBundle } from "../../world3d/chunkBundle";
 import { WORLD3D_CONFIG, heightToMeters } from "../../world3d/config";
 import { biomeColor } from "../../world3d/terrainColor";
 import type { LocalArtifact, RegionArtifact } from "../artifacts";
 import { localArtifactToWorldData, GROUND_METERS_PER_CELL } from "./groundWorldAdapter";
 import { generateTownPlan } from "../town/generateTownPlan";
+import { buildInteriorParts, interiorEnvelopeM, type SitePart } from "./interiorParts";
+import { generateTownRoster } from "../roster/generateTownRoster";
+import type { TownRoster, Occupant } from "../roster/types";
+import { localWithDeltas } from "./groundDeltas";
+import type { WorldDelta } from "../delta/types";
+import { getBurgNamer } from "./legacySubmapBridge";
 
 /** A polyline in ground world-meters with a uniform width (meters). */
 interface GroundPolyline {
   points: Array<{ x: number; z: number }>;
   widthM: number;
+}
+
+/** A roster person resolved to the plot center where their figure is rendered. */
+interface GroundOccupantSite {
+  burgId: number;
+  occupantId: number;
+  name: string;
+  xM: number;
+  zM: number;
 }
 
 /** An artifact feature in ground meters (world space, origin = artifact NW). */
@@ -64,7 +95,19 @@ export interface GroundWorld {
     /** Building height, meters (storeys × 3). */
     heightM: number;
     role: string;
+    /** Interior wall envelope, meters (≤ plot; roofs/floors fit THIS). */
+    wallWidthM: number;
+    wallDepthM: number;
+    /** L4 interior: walls + furnishings as site-local boxes (seamless). */
+    parts: SitePart[];
   }>;
+  /** Occupant rosters per town (L4 — future UI/schedules consume these). */
+  rosters: TownRoster[];
+  /**
+   * Roster occupants resolved to their current plot center. The figure boxes
+   * already live inside building parts; these entries are marker-only labels.
+   */
+  occupants: GroundOccupantSite[];
 }
 
 const FEET_TO_METERS = 0.3048;
@@ -94,13 +137,35 @@ function regionPolylinesToGround(
   return out;
 }
 
+export interface MakeGroundWorldOptions {
+  /** In-game hour 0–23: working adults stand at their work plot during
+   * business hours (8–18), at home otherwise. Default noon. */
+  hour?: number;
+  /** Saved world deltas (B6/B7 plot edits) — replayed onto each town plan
+   * before buildings/interiors/rosters derive from it, so the 3D village
+   * reflects player edits. */
+  deltas?: WorldDelta[];
+}
+
 export function makeGroundWorld(
   local: LocalArtifact,
   seed: number,
   region?: RegionArtifact,
+  opts: MakeGroundWorldOptions = {},
 ): GroundWorld {
   const wd = localArtifactToWorldData(local, seed);
-  const townContent = groundTowns(local, region);
+  const townContent = groundTowns(local, region, opts.hour ?? 12, opts.deltas ?? [], seed);
+
+  // Each makeGroundWorld call receives a freshly allocated height array from
+  // localArtifactToWorldData. Flattening mutates only that per-call array, so
+  // the LocalArtifact terrain and any future makeGroundWorld calls stay clean.
+  flattenBuildingTerrainPads(
+    wd.heights,
+    wd.gridSize.cols,
+    wd.gridSize.rows,
+    townContent.buildings,
+  );
+
   const features: GroundFeature[] = local.features.map((f) => ({
     id: f.id,
     kind: f.kind,
@@ -123,8 +188,172 @@ export function makeGroundWorld(
     ],
     towns: townContent.towns,
     buildings: townContent.buildings,
+    rosters: townContent.rosters,
+    occupants: townContent.occupants,
   };
 }
+
+/**
+ * Flatten building plots directly into the encoded terrain grid.
+ *
+ * Buildings, their interior parts, and occupant markers all ask the same
+ * GroundWorld for surface height later in the loader. Leveling this one height
+ * array keeps every consumer in agreement without adding building-specific
+ * exceptions to the chunk sampler or renderer.
+ */
+function flattenBuildingTerrainPads(
+  heights: number[],
+  cols: number,
+  rows: number,
+  buildings: GroundWorld["buildings"],
+): void {
+  // Pad heights are sampled from the original terrain before any plot changes.
+  // This avoids construction order affecting nearby buildings.
+  const originalHeights = heights.slice();
+  const footprintPads = new Map<number, number>();
+  const skirtPads = new Map<number, number[]>();
+
+  for (const building of buildings) {
+    if (building.cornersM.length < 3) continue;
+
+    // The plot centroid is the construction elevation. Keeping it in the
+    // 0..100 encoded domain avoids unit conversions and matches the ground
+    // sampler's later input.
+    const centroid = {
+      x: building.cornersM.reduce((sum, corner) => sum + corner.x, 0) / building.cornersM.length,
+      z: building.cornersM.reduce((sum, corner) => sum + corner.z, 0) / building.cornersM.length,
+    };
+    const padHeight = sampleEncodedHeight(
+      originalHeights,
+      cols,
+      rows,
+      centroid.x,
+      centroid.z,
+    );
+    const footprintIndexes = buildingFootprintCells(cols, rows, building.cornersM);
+    const footprintSet = new Set(footprintIndexes);
+
+    // Every cell whose center falls inside the plot is made perfectly level.
+    for (const index of footprintIndexes) {
+      footprintPads.set(index, padHeight);
+    }
+
+    // A one-cell ring around the plot is blended halfway toward the pad. The
+    // ring softens the join to the natural slope without widening the actual
+    // level building footprint.
+    for (const index of footprintIndexes) {
+      const col = index % cols;
+      const row = Math.floor(index / cols);
+      for (let dz = -1; dz <= 1; dz++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dz === 0) continue;
+          const neighborCol = col + dx;
+          const neighborRow = row + dz;
+          if (neighborCol < 0 || neighborCol >= cols || neighborRow < 0 || neighborRow >= rows) continue;
+          const neighborIndex = neighborRow * cols + neighborCol;
+          if (footprintSet.has(neighborIndex)) continue;
+          const pads = skirtPads.get(neighborIndex) ?? [];
+          pads.push(padHeight);
+          skirtPads.set(neighborIndex, pads);
+        }
+      }
+    }
+  }
+
+  // Footprints win over skirts so a neighboring building cannot slope another
+  // building's interior. Overlapping skirt pads average their target height,
+  // keeping the result deterministic if close plots share a transition cell.
+  for (const [index, padHeight] of footprintPads) {
+    heights[index] = padHeight;
+  }
+  for (const [index, padHeights] of skirtPads) {
+    if (footprintPads.has(index)) continue;
+    const averagePadHeight = padHeights.reduce((sum, height) => sum + height, 0) / padHeights.length;
+    heights[index] = originalHeights[index] + (averagePadHeight - originalHeights[index]) * 0.5;
+  }
+}
+
+function buildingFootprintCells(
+  cols: number,
+  rows: number,
+  corners: Array<{ x: number; z: number }>,
+): number[] {
+  // The bounds trim the scan to the plot's neighborhood; the quad test below
+  // remains the source of truth for rotated or skewed footprints.
+  const minCol = Math.max(0, Math.floor(Math.min(...corners.map((corner) => corner.x)) / GROUND_METERS_PER_CELL) - 1);
+  const maxCol = Math.min(cols - 1, Math.ceil(Math.max(...corners.map((corner) => corner.x)) / GROUND_METERS_PER_CELL) + 1);
+  const minRow = Math.max(0, Math.floor(Math.min(...corners.map((corner) => corner.z)) / GROUND_METERS_PER_CELL) - 1);
+  const maxRow = Math.min(rows - 1, Math.ceil(Math.max(...corners.map((corner) => corner.z)) / GROUND_METERS_PER_CELL) + 1);
+  const indexes: number[] = [];
+
+  for (let row = minRow; row <= maxRow; row++) {
+    for (let col = minCol; col <= maxCol; col++) {
+      const center = {
+        x: (col + 0.5) * GROUND_METERS_PER_CELL,
+        z: (row + 0.5) * GROUND_METERS_PER_CELL,
+      };
+      if (pointInsideConvexQuad(center, corners)) indexes.push(row * cols + col);
+    }
+  }
+
+  return indexes;
+}
+
+function pointInsideConvexQuad(point: { x: number; z: number }, corners: Array<{ x: number; z: number }>): boolean {
+  // Generated plot corners form convex quads. A point inside the plot stays on
+  // the same side of every directed edge.
+  let sign = 0;
+  for (let i = 0; i < corners.length; i++) {
+    const a = corners[i];
+    const b = corners[(i + 1) % corners.length];
+    const cross = (b.x - a.x) * (point.z - a.z) - (b.z - a.z) * (point.x - a.x);
+    if (Math.abs(cross) < 1e-9) continue;
+    const nextSign = Math.sign(cross);
+    if (sign !== 0 && nextSign !== sign) return false;
+    sign = nextSign;
+  }
+  return true;
+}
+
+function sampleEncodedHeight(
+  heights: number[],
+  cols: number,
+  rows: number,
+  wxM: number,
+  wzM: number,
+): number {
+  // This mirrors groundSurfaceY's encoded-grid interpolation but intentionally
+  // stops before heightToMeters because terrain pads are stored in 0..100.
+  const clampX = (v: number) => Math.max(0, Math.min(cols - 1, v));
+  const clampY = (v: number) => Math.max(0, Math.min(rows - 1, v));
+  const gx = clampX(wxM / GROUND_METERS_PER_CELL);
+  const gy = clampY(wzM / GROUND_METERS_PER_CELL);
+  const x0 = Math.floor(gx);
+  const y0 = Math.floor(gy);
+  const x1 = clampX(x0 + 1);
+  const y1 = clampY(y0 + 1);
+  const fx = gx - x0;
+  const fy = gy - y0;
+  const h = (xx: number, yy: number) => heights[yy * cols + xx] ?? 0;
+  const top = h(x0, y0) * (1 - fx) + h(x1, y0) * fx;
+  const bottom = h(x0, y1) * (1 - fx) + h(x1, y1) * fx;
+  return top * (1 - fy) + bottom * fy;
+}
+
+/**
+ * Deterministic v0 person namer for rosters: two seeded syllables + suffix.
+ * The FMG culture-aware NamesGenerator needs live pack state and the global
+ * FMG PRNG — wiring that here risks cross-contaminating generation seeds, so
+ * culture names wait for the occupant-UI slice (names are not rendered yet).
+ */
+const NAME_ONSETS = ['bel', 'dor', 'fen', 'gal', 'hil', 'jor', 'kas', 'lin', 'mar', 'nor', 'pel', 'ros', 'tam', 'ven', 'wil', 'yse'];
+const NAME_CODAS = ['a', 'an', 'el', 'i', 'ia', 'in', 'is', 'o', 'or', 'ric', 'ta', 'wen'];
+function syllableName(rng: { next(): number }): string {
+  const a = NAME_ONSETS[Math.floor(rng.next() * NAME_ONSETS.length)];
+  const b = NAME_CODAS[Math.floor(rng.next() * NAME_CODAS.length)];
+  return a.charAt(0).toUpperCase() + a.slice(1) + b;
+}
+
 
 /**
  * Town content for the ground window: the site marker (label + keep box),
@@ -134,11 +363,16 @@ export function makeGroundWorld(
  */
 function groundTowns(
   local: LocalArtifact,
-  region?: RegionArtifact,
+  region: RegionArtifact | undefined,
+  hour: number,
+  deltas: WorldDelta[],
+  worldSeed: number,
 ): {
   towns: GroundWorld["towns"];
   buildings: GroundWorld["buildings"];
   planStreets: GroundPolyline[];
+  rosters: TownRoster[];
+  occupants: GroundOccupantSite[];
 } {
   const exX = local.bounds.width * FEET_TO_METERS;
   const exZ = local.bounds.height * FEET_TO_METERS;
@@ -146,6 +380,8 @@ function groundTowns(
   const towns: GroundWorld["towns"] = [];
   const buildings: GroundWorld["buildings"] = [];
   const planStreets: GroundPolyline[] = [];
+  const rosters: TownRoster[] = [];
+  const occupants: GroundOccupantSite[] = [];
 
   for (const t of region?.townSites ?? []) {
     const xM = (t.envelope.x + t.envelope.width / 2 - local.bounds.x) * FEET_TO_METERS;
@@ -155,34 +391,87 @@ function groundTowns(
 
     towns.push({ burgId: t.burgId, xM, zM, halfM });
 
-    const plan = generateTownPlan(t, region!.seedPath);
+    // Player edits replay over the regenerated plan (GROUND-DELTA-1): a
+    // modified plot changes its interior, a removed one vanishes, an added
+    // building appears — deterministic base + delta layer (decision #14).
+    const basePlan = generateTownPlan(t, region!.seedPath);
+    const plan = deltas.length
+      ? (localWithDeltas(local, basePlan, deltas).townPlan ?? basePlan)
+      : basePlan;
     for (const s of plan.streets) {
       planStreets.push({
         points: s.centerline.map(([fx, fy]) => ({
           x: (fx - local.bounds.x) * FEET_TO_METERS,
           z: (fy - local.bounds.y) * FEET_TO_METERS,
         })),
-        widthM: Math.max(1.5, s.widthFt * FEET_TO_METERS),
+        // 2.5 m floor: thinner ribbons vanish against grass at walking
+        // scale (Remy shot-1 review) — a village lane reads at ~8 ft.
+        widthM: Math.max(2.5, s.widthFt * FEET_TO_METERS),
       });
     }
+    // Occupants live where the floor plans say they can (ROSTER-1), and
+    // stand at work during business hours (time-of-day v0).
+    // Culture-true names when the burg's culture resolves (FMG Markov
+    // chains under a scoped PRNG swap in getBurgNamer); deterministic
+    // syllables otherwise.
+    const nameFor = getBurgNamer(worldSeed, t.burgId) ?? syllableName;
+    const roster = generateTownRoster(plan, region!.seedPath, { nameFor });
+    rosters.push(roster);
+    const byPlot = new Map<number, Array<Occupant & { atWork: boolean; resolvedPlotId: number }>>();
+    for (const o of roster.occupants) {
+      const atWork = o.workPlotId !== undefined && isAtWork(o.id, hour);
+      const placeAt = atWork ? o.workPlotId! : o.homePlotId;
+      byPlot.set(placeAt, [...(byPlot.get(placeAt) ?? []), { ...o, atWork, resolvedPlotId: placeAt }]);
+    }
+
     for (const p of plan.plots) {
       const cx = p.footprint.reduce((a, q) => a + q[0], 0) / p.footprint.length;
       const cy = p.footprint.reduce((a, q) => a + q[1], 0) / p.footprint.length;
+      const xM = (cx - local.bounds.x) * FEET_TO_METERS;
+      const zM = (cy - local.bounds.y) * FEET_TO_METERS;
+      const heightM = Math.max(1, (p.storeys ?? 1)) * 3;
+
+      // The same byPlot map that feeds figure placement also feeds
+      // nameplates, so home/work resolution cannot drift between systems.
+      for (const occupant of byPlot.get(p.id) ?? []) {
+        occupants.push({
+          burgId: t.burgId,
+          occupantId: occupant.id,
+          name: occupant.name,
+          xM,
+          zM,
+        });
+      }
+
+      const plotInput = { id: p.id, footprint: p.footprint, role: p.role ?? 'house', storeys: p.storeys ?? 1 };
+      // Wall envelope (≤ plot footprint): roofs/floors must fit THESE dims,
+      // not the plot, or eaves float past the walls (construction v2).
+      const envelope = interiorEnvelopeM(plotInput, region!.seedPath);
       buildings.push({
         id: `wf-plot-${t.burgId}-${p.id}`,
-        xM: (cx - local.bounds.x) * FEET_TO_METERS,
-        zM: (cy - local.bounds.y) * FEET_TO_METERS,
+        xM,
+        zM,
         cornersM: p.footprint.map(([fx, fy]) => ({
           x: (fx - local.bounds.x) * FEET_TO_METERS,
           z: (fy - local.bounds.y) * FEET_TO_METERS,
         })),
-        heightM: Math.max(1, (p.storeys ?? 1)) * 3,
+        heightM,
         role: p.role ?? 'house',
+        wallWidthM: envelope.wallWidthM,
+        wallDepthM: envelope.wallDepthM,
+        // Seamless interior (L4): same seed path the town plan used, so the
+        // plan, the shell, the rooms AND the household all agree.
+        parts: buildInteriorParts(
+          plotInput,
+          region!.seedPath,
+          heightM,
+          byPlot.get(p.id) ?? [],
+        ),
       });
     }
   }
 
-  return { towns, buildings, planStreets };
+  return { towns, buildings, planStreets, rosters, occupants };
 }
 
 /** Encoded-height bilinear sample at world meters → true meters via heightToMeters. */
@@ -204,6 +493,17 @@ function groundSurfaceY(ground: GroundWorld, wxM: number, wzM: number): number {
   return heightToMeters(enc);
 }
 
+/**
+ * Per-occupant work hours (schedules v2): start 7–9, end 16–19, seeded by
+ * occupant id — shops open and close staggered instead of the whole town
+ * teleporting between home and work at 8:00 sharp.
+ */
+export function isAtWork(occupantId: number, hour: number): boolean {
+  const start = 7 + ((Math.imul(occupantId + 11, 2654435761) >>> 8) % 3);
+  const end = 16 + ((Math.imul(occupantId + 29, 2246822519) >>> 8) % 4);
+  return hour >= start && hour < end;
+}
+
 /** Deterministic 0..1 from a feature id (scale/rotation jitter). */
 function fhash01(id: number, salt: number): number {
   let h = Math.imul(id + 374761393, 668265263) ^ (salt | 0);
@@ -223,27 +523,67 @@ export function buildGroundVegetation(
   ground: GroundWorld,
   cx: number,
   cy: number,
-): { positions: Float32Array; scales: Float32Array; rotations: Float32Array; cacheKey: string } {
+): { trees: VegetationScatter; bushes: VegetationScatter } {
   const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
   const minX = cx * S;
   const minZ = cy * S;
-  const positions: number[] = [];
-  const scales: number[] = [];
-  const rotations: number[] = [];
+  const tPos: number[] = [];
+  const tScl: number[] = [];
+  const tRot: number[] = [];
+  const tCol: number[] = [];
+  const bPos: number[] = [];
+  const bScl: number[] = [];
+  const bRot: number[] = [];
+  const bCol: number[] = [];
+
+  // Species palettes (tree-variety dispatch, 2026-06-12): 3 green variants
+  // per kind picked by id hash — deterministic, instanced-friendly.
+  const TREE_PALETTE: Array<[number, number, number]> = [
+    [0.12, 0.3, 0.17],
+    [0.18, 0.42, 0.25],
+    [0.24, 0.48, 0.23],
+  ];
+  const BUSH_PALETTE: Array<[number, number, number]> = [
+    [0.29, 0.42, 0.16],
+    [0.35, 0.5, 0.25],
+    [0.24, 0.55, 0.22],
+  ];
 
   for (const f of ground.features) {
     if (f.kind !== "tree" && f.kind !== "bush") continue;
     if (f.xM < minX || f.xM >= minX + S || f.zM < minZ || f.zM >= minZ + S) continue;
-    positions.push(f.xM - minX, groundSurfaceY(ground, f.xM, f.zM), f.zM - minZ);
-    scales.push(f.kind === "tree" ? 0.9 + fhash01(f.id, 7) * 0.6 : 0.35 + fhash01(f.id, 7) * 0.2);
-    rotations.push(fhash01(f.id, 11) * Math.PI * 2);
+    const surfaceY = groundSurfaceY(ground, f.xM, f.zM);
+    const rot = fhash01(f.id, 11) * Math.PI * 2;
+    if (f.kind === "tree") {
+      tPos.push(f.xM - minX, surfaceY, f.zM - minZ);
+      tScl.push(0.7 + fhash01(f.id, 7) * 1.1);
+      tRot.push(rot);
+      const tc = TREE_PALETTE[Math.floor(fhash01(f.id, 23) * 3)];
+      tCol.push(tc[0], tc[1], tc[2]);
+    } else {
+      bPos.push(f.xM - minX, surfaceY, f.zM - minZ);
+      bScl.push(0.35 + fhash01(f.id, 7) * 0.25);
+      bRot.push(rot);
+      const bc = BUSH_PALETTE[Math.floor(fhash01(f.id, 23) * 3)];
+      bCol.push(bc[0], bc[1], bc[2]);
+    }
   }
 
   return {
-    positions: new Float32Array(positions),
-    scales: new Float32Array(scales),
-    rotations: new Float32Array(rotations),
-    cacheKey: `ground|${cx}|${cy}|${positions.length}`,
+    trees: {
+      positions: new Float32Array(tPos),
+      scales: new Float32Array(tScl),
+      rotations: new Float32Array(tRot),
+      colors: new Float32Array(tCol),
+      cacheKey: `ground-tree|${cx}|${cy}|${tPos.length}`,
+    },
+    bushes: {
+      positions: new Float32Array(bPos),
+      scales: new Float32Array(bScl),
+      rotations: new Float32Array(bRot),
+      colors: new Float32Array(bCol),
+      cacheKey: `ground-bush|${cx}|${cy}|${bPos.length}`,
+    },
   };
 }
 
@@ -375,6 +715,27 @@ export function sampleGroundChunk(
           colorHex: b.role === 'market' ? '#c8923f' : '#b09a72',
           // One label per settlement (the town marker) — not one per house.
           unlabeled: true,
+          // Seamless interior parts (meters, site-local) — when present the
+          // renderer builds walls instead of a solid box.
+          parts: b.parts,
+          wallWidthM: b.wallWidthM,
+          wallDepthM: b.wallDepthM,
+        })),
+      ...ground.occupants
+        .filter((o) => inChunk(o.xM, o.zM, cx, cy))
+        .map((o) => ({
+          id: `wf-occ-${o.burgId}-${o.occupantId}`,
+          kind: "landmark" as const,
+          position: pseudoGrid(o.xM, o.zM),
+          footprint: [],
+          walled: false,
+          population: undefined,
+          surfaceY: groundSurfaceY(ground, o.xM, o.zM),
+          // Occupant bodies are already rendered as interior parts. This
+          // marker carries only the close-range roster nameplate.
+          markerOnly: true,
+          name: o.name,
+          labelRangeM: 12,
         })),
     ],
   };
@@ -462,8 +823,9 @@ export function createGroundChunkLoader(
   local: LocalArtifact,
   seed: number,
   region?: RegionArtifact,
+  opts: MakeGroundWorldOptions = {},
 ) {
-  const ground = makeGroundWorld(local, seed, region);
+  const ground = makeGroundWorld(local, seed, region, opts);
   return {
     ground,
     loader: async (cx: number, cy: number): Promise<ChunkMeshBundle> => {
@@ -471,14 +833,14 @@ export function createGroundChunkLoader(
         sampleGroundChunk(ground, cx, cy, WORLD3D_CONFIG.HEIGHTFIELD_RESOLUTION),
       );
       // Artifact features replace the generic per-vertex scatter (see
-      // buildGroundVegetation — determinism + no lattice banding).
-      const vegetation = buildGroundVegetation(ground, cx, cy);
+      // buildGroundVegetation — determinism + no lattice banding). Trees
+      // and bushes are separate instanced layers (variety dispatch).
+      const { trees, bushes } = buildGroundVegetation(ground, cx, cy);
       return {
         ...bundle,
-        vegetation: vegetation.positions.length > 0 ? vegetation : undefined,
+        vegetation: trees.positions.length > 0 ? trees : undefined,
+        bushes: bushes.positions.length > 0 ? bushes : undefined,
       };
     },
   };
 }
-
-

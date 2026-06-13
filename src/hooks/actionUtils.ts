@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/06/2026, 11:58:02
+ * Last Sync: 12/06/2026, 21:39:59
  * Dependents: hooks/useAbilitySystem.ts
  * Imports: 6 files
  *
@@ -14,7 +14,7 @@
  */
 // @dependencies-end
 
-import { Ability, CombatCharacter, Position, CombatAction, BattleMapData } from '../types/combat';
+import { Ability, CombatCharacter, Position, CombatAction, BattleMapData, SelectedSpellTarget } from '../types/combat';
 import { resolveScalableNumber } from '../types/spells';
 import { AoEParams } from '../utils/combat/aoeCalculations';
 import { GameState } from '../types';
@@ -25,14 +25,23 @@ export const buildAbilityCombatAction = (
   ability: Ability,
   caster: CombatCharacter,
   targetPosition: Position,
-  targetCharacterIds: string[]
+  targetCharacterIds: string[],
+  selectedSpellTargets?: SelectedSpellTarget[]
 ): CombatAction => ({
+  // Legacy action identity stays unchanged so turn management, logs, and action
+  // economy keep recognizing this as the same ability execution event.
   id: generateId(),
   characterId: caster.id,
   type: 'ability',
   abilityId: ability.id,
+  // The clicked position remains the old map-coordinate handoff. Point spells
+  // and teleport destinations still rely on it until command creation consumes
+  // the richer selectedSpellTargets envelope directly.
   targetPosition,
   targetCharacterIds,
+  // Creature-only spells get a compatible envelope automatically. Object and
+  // ground-target callers can pass explicit refs without fabricating creature IDs.
+  selectedSpellTargets: selectedSpellTargets ?? targetCharacterIds.map(id => ({ kind: 'creature', id })),
   cost: ability.cost,
   timestamp: Date.now()
 });

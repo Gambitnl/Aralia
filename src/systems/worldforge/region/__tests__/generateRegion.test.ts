@@ -475,6 +475,130 @@ function hashSamples(samples: Float32Array): number {
   return hash >>> 0;
 }
 
+/**
+ * Build a tiny atlas whose river path makes one hard right-angle bend inside
+ * the fixed region window. The non-river variant keeps every other input the
+ * same, so subtracting the two heightfields isolates only the carve pass.
+ */
+function makeBentRiverAtlas(withRiver: boolean): FmgAtlasResult {
+  const cellPoints: Array<[number, number]> = [
+    [12.5, 12.5],
+    [2.5, 2.5],
+    [2.5, 22.5],
+    [22.5, 22.5],
+    [22.5, 2.5],
+  ];
+
+  return {
+    seed: SEED,
+    grid: {} as FmgAtlasResult['grid'],
+    pack: {
+      cells: {
+        h: Uint8Array.from([70, 70, 70, 70, 70]),
+        c: [
+          [1, 2, 3, 4],
+          [0, 2],
+          [0, 1, 3],
+          [0, 2, 4],
+          [0, 3],
+        ],
+        p: cellPoints,
+        r: Uint16Array.from(withRiver ? [1, 1, 1, 0, 0] : [0, 0, 0, 0, 0]),
+      },
+      rivers: withRiver
+        ? [{ i: 1, cells: [1, 2, 3], discharge: 25, width: 0, source: 1, mouth: 3 }]
+        : [],
+    },
+  } as unknown as FmgAtlasResult;
+}
+
+/**
+ * Identify heightfield samples changed by river carving by comparing two
+ * otherwise identical generated regions. Coordinates are returned in feet so
+ * they can be measured against raw and smoothed river polylines.
+ */
+function collectLoweredSamples(
+  carved: RegionArtifact,
+  baseline: RegionArtifact,
+): Array<[number, number]> {
+  const lowered: Array<[number, number]> = [];
+  const { width, resolutionFt } = carved.heightfield;
+  for (let i = 0; i < carved.heightfield.samples.length; i++) {
+    const drop = baseline.heightfield.samples[i] - carved.heightfield.samples[i];
+    if (drop <= 0.005) continue;
+    const row = Math.floor(i / width);
+    const col = i % width;
+    lowered.push([
+      carved.bounds.x + col * resolutionFt,
+      carved.bounds.y + row * resolutionFt,
+    ]);
+  }
+  return lowered;
+}
+
+/**
+ * Test-local copy of the intended renderer smoothing. It exists only to state
+ * the WF-G5 expectation before production exposes a shared helper.
+ */
+function chaikinSmoothForTest(
+  pts: Array<[number, number]>,
+  iterations: number,
+): Array<[number, number]> {
+  let current = pts;
+  for (let iter = 0; iter < iterations; iter++) {
+    const smoothed: Array<[number, number]> = [];
+    for (let i = 0; i < current.length - 1; i++) {
+      const [ax, ay] = current[i];
+      const [bx, by] = current[i + 1];
+      smoothed.push([ax * 0.75 + bx * 0.25, ay * 0.75 + by * 0.25]);
+      smoothed.push([ax * 0.25 + bx * 0.75, ay * 0.25 + by * 0.75]);
+    }
+    current = smoothed;
+  }
+  return current;
+}
+
+/**
+ * Average the closest distance from a set of heightfield sample positions to
+ * a candidate river path. WF-G5 uses an aggregate metric because exact sample
+ * cells can shift by one grid step without changing the visible fix.
+ */
+function meanDistanceToLine(
+  samples: Array<[number, number]>,
+  line: Array<[number, number]>,
+): number {
+  let total = 0;
+  for (const [x, y] of samples) {
+    let best = Infinity;
+    for (let i = 0; i < line.length - 1; i++) {
+      const [ax, ay] = line[i];
+      const [bx, by] = line[i + 1];
+      best = Math.min(best, distanceToSegmentForTest(x, y, ax, ay, bx, by));
+    }
+    total += best;
+  }
+  return total / Math.max(1, samples.length);
+}
+
+/**
+ * Measure sample-to-segment distance for the aggregate carve alignment test.
+ */
+function distanceToSegmentForTest(
+  px: number,
+  py: number,
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+): number {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq < 0.01) return Math.hypot(px - ax, py - ay);
+  const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / lenSq));
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+
 // ---------------------------------------------------------------------------
 // WF-G3 regression (2026-06-11, orchestrator fix): region bounds must stay
 // clamped for ANY land anchor — the live demo found anchors (#1928, #2275)
@@ -584,5 +708,39 @@ describe('generateRegion — WF-G4 canonical-scale contract', () => {
       expect(region.bounds.width).toBe(25_000);
       expect(region.bounds.height).toBe(25_000);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// WF-G5 regression (2026-06-12): river carving must follow the same smoothed
+// band the region renderer draws. The test builds a sharp L-bend where the raw
+// polyline and the Chaikin-smoothed line are far enough apart to measure.
+// ---------------------------------------------------------------------------
+describe('generateRegion — WF-G5 smoothed river carve', () => {
+  it('carves lowered samples closer to the smoothed bend than the raw centerline', () => {
+    const atlasWithRiver = makeBentRiverAtlas(true);
+    const atlasWithoutRiver = makeBentRiverAtlas(false);
+    const worldPath = rootSeedPath(WORLD_SEED);
+    const opts = { feetPerPixel: 1000, resolutionFt: 250 };
+
+    const carved = generateRegion(atlasWithRiver, 0, worldPath, opts);
+    const baseline = generateRegion(atlasWithoutRiver, 0, worldPath, opts);
+    const river = carved.rivers[0];
+    expect(river).toBeDefined();
+
+    const rawLine: Array<[number, number]> = [
+      [2500, 2500],
+      [2500, 22500],
+      [22500, 22500],
+    ];
+    const smoothedLine = chaikinSmoothForTest(rawLine, 3);
+    const carvedSamples = collectLoweredSamples(carved, baseline);
+
+    // The synthetic bend has enough lowered cells to make an aggregate
+    // distance stable while still catching the raw-vs-smoothed channel shift.
+    expect(carvedSamples.length).toBeGreaterThan(10);
+    expect(meanDistanceToLine(carvedSamples, smoothedLine)).toBeLessThan(
+      meanDistanceToLine(carvedSamples, rawLine),
+    );
   });
 });

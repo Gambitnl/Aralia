@@ -5,6 +5,7 @@ import { GameState, GamePhase, NotificationType as _NotificationType } from '../
 // TODO(lint-intent): 'simpleHash' is unused in this test; use it in the assertion path or remove it.
 import { simpleHash as _simpleHash } from '../../utils/hashUtils';
 import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
+import type { WorldDelta } from '../../systems/worldforge/delta/types';
 
 // Mock NotificationSystem callback
 const mockNotify = vi.fn();
@@ -65,6 +66,29 @@ const mockGameState: GameState = {
     isQuestLogVisible: false,
     notifications: []
 } as unknown as GameState;
+
+// ============================================================================
+// Worldforge Save Fixtures
+// ============================================================================
+// These fixtures are intentionally plain JSON-safe objects. They prove the save
+// service can carry Worldforge's durable edit log without importing generation
+// code or applying special serializer behavior.
+// ============================================================================
+
+const createWorldforgeDelta = (id: string, sequence: number): WorldDelta => ({
+    id,
+    schemaVersion: 1,
+    opVersion: 1,
+    artifactSeedPath: 'wf:456/cell:save/village:test',
+    entityKey: `plot:${sequence}`,
+    sequence,
+    operation: {
+        kind: 'modify-plot',
+        plotId: sequence,
+        role: sequence === 1 ? 'market' : 'home',
+        storeys: sequence + 1,
+    },
+});
 
 describe('SaveLoadService', () => {
     beforeEach(() => {
@@ -248,6 +272,107 @@ describe('SaveLoadService', () => {
 
             expect(result.success).toBe(true);
             expect(result.data?.worldHistory).toEqual({ events: [] });
+        });
+
+        it('round-trips worldforgeDeltas and playerGroundPos byte-equal through the real save service path', async () => {
+            const worldforgeDeltas = [
+                createWorldforgeDelta('wf-save-1', 1),
+                createWorldforgeDelta('wf-save-2', 2),
+            ];
+            const playerGroundPos = { tileX: 44, tileY: 18, xM: 321.25, zM: 654.5 };
+            const stateWithDeltas = {
+                ...mockGameState,
+                worldforgeDeltas,
+                playerGroundPos,
+            };
+
+            await SaveLoadService.saveGame(stateWithDeltas, 'worldforge_delta_slot');
+            const result = await SaveLoadService.loadGame('worldforge_delta_slot');
+
+            expect(result.success).toBe(true);
+            expect(JSON.stringify(result.data?.worldforgeDeltas)).toBe(JSON.stringify(worldforgeDeltas));
+            expect(JSON.stringify(result.data?.playerGroundPos)).toBe(JSON.stringify(playerGroundPos));
+        });
+
+        it('round-trips open player-facing overlays (map/submap/journal) so resume reopens them', async () => {
+            const stateWithOverlays = {
+                ...mockGameState,
+                isMapVisible: false,
+                isSubmapVisible: true,
+                isDiscoveryLogVisible: true,
+            };
+            await SaveLoadService.saveGame(stateWithOverlays as GameState, 'overlay_open_slot');
+
+            const result = await SaveLoadService.loadGame('overlay_open_slot');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.isMapVisible).toBe(false);
+            expect(result.data?.isSubmapVisible).toBe(true);
+            expect(result.data?.isDiscoveryLogVisible).toBe(true);
+        });
+
+        it('still forces dev/debug surfaces closed across save+load', async () => {
+            const stateWithDevSurfaces = {
+                ...mockGameState,
+                isDevMenuVisible: true,
+                isGeminiLogViewerVisible: true,
+                characterSheetModal: { isOpen: true, character: null },
+            };
+            await SaveLoadService.saveGame(stateWithDevSurfaces as GameState, 'dev_surfaces_slot');
+
+            const result = await SaveLoadService.loadGame('dev_surfaces_slot');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.isDevMenuVisible).toBe(false);
+            expect(result.data?.isGeminiLogViewerVisible).toBe(false);
+            expect(result.data?.characterSheetModal?.isOpen).toBe(false);
+        });
+
+        it('heals non-boolean overlay flags from hand-edited or legacy saves to closed', async () => {
+            await SaveLoadService.saveGame(mockGameState, 'overlay_heal_slot');
+            const key = SaveLoadService.getSlotStorageKey('overlay_heal_slot');
+            const payload = JSON.parse(localStorage.getItem(key)!);
+            payload.state.isSubmapVisible = 'yes';
+            payload.state.isMapVisible = 1;
+            delete payload.state.isDiscoveryLogVisible;
+            delete payload.checksum; // hand-edit scenario: checksum intentionally absent
+            localStorage.setItem(key, JSON.stringify(payload));
+
+            const result = await SaveLoadService.loadGame('overlay_heal_slot');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.isSubmapVisible).toBe(false);
+            expect(result.data?.isMapVisible).toBe(false);
+            expect(result.data?.isDiscoveryLogVisible).toBe(false);
+        });
+
+        it('heals a save written mid-combat back to PLAYING and announces the pre-combat checkpoint', async () => {
+            const combatState = { ...mockGameState, phase: GamePhase.COMBAT };
+            await SaveLoadService.saveGame(combatState as GameState, 'combat_checkpoint_slot');
+
+            const result = await SaveLoadService.loadGame('combat_checkpoint_slot', mockNotify);
+
+            expect(result.success).toBe(true);
+            expect(result.data?.phase).toBe(GamePhase.PLAYING);
+            expect(mockNotify).toHaveBeenCalledWith({
+                message: 'Resumed from pre-combat checkpoint.',
+                type: 'info',
+            });
+        });
+
+        it('round-trips a cleared playerGroundPos through the real save service path', async () => {
+            const stateWithClearedGroundPosition = {
+                ...mockGameState,
+                playerGroundPos: null,
+            };
+
+            // Null is meaningful because it clears stale ground camera anchors
+            // without implying the player has a tile-local resume point.
+            await SaveLoadService.saveGame(stateWithClearedGroundPosition, 'ground_position_null_slot');
+            const result = await SaveLoadService.loadGame('ground_position_null_slot');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.playerGroundPos).toBeNull();
         });
     });
 

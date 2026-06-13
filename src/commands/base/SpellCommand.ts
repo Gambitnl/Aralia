@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 12/06/2026, 23:08:42
+ * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, commands/index.ts, utils/core/factories.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * ARCHITECTURAL CONTEXT:
  * This file defines the 'Game Command Pattern'. It is the foundation 
@@ -13,7 +29,7 @@
  * @file src/commands/base/SpellCommand.ts
  */
 
-import { CombatState, CombatCharacter } from '@/types/combat'
+import { CombatState, CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import { GameState } from '@/types'
 import { EffectDuration, SpellAttackType, MagicSchool, ConditionalEnding } from '@/types/spells'
 import { Plane } from '@/types/planes'
@@ -102,6 +118,18 @@ export interface CommandContext {
    * Command execution should resolve each target by `id` against current state.
    */
   targets: CombatCharacter[]
+  /**
+   * Rich target refs selected for this spell cast.
+   * Creature commands keep using `targets`, while object-aware and point-aware
+   * commands can inspect this envelope without pretending objects are creatures.
+   */
+  selectedSpellTargets?: SelectedSpellTarget[]
+  /**
+   * Optional player choice captured by the spell UI before command execution.
+   * Mode-choice and Command-style spells use this to preserve the selected menu
+   * label while still keeping every possible option available in spell data.
+   */
+  playerInput?: string
   /** Reference to global game state (for environmental checks, etc.) */
   gameState: GameState
   /** Duration of the effect (if applicable) */
