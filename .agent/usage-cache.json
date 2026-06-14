@@ -1,25 +1,25 @@
 {
   "codex": {
     "agent": "codex",
-    "at": 1781287571915,
+    "at": 1781349911439,
     "ok": true,
     "data": {
       "account": "cranenre@gmail.com (Plus)",
       "limits": [
         {
           "window": "5h",
-          "pctLeft": 46,
-          "resets": "20:21"
+          "pctLeft": 0,
+          "resets": "15:11"
         },
         {
           "window": "Weekly",
-          "pctLeft": 79,
+          "pctLeft": 48,
           "resets": "02:39 on 18 Jun"
         },
         {
           "window": "5h",
           "pctLeft": 100,
-          "resets": "01:06 on 13 Jun"
+          "resets": "18:25"
         },
         {
           "window": "Weekly",
@@ -30,13 +30,12 @@
       "lines": [
         "gpt-5.5 · gpt-5.5 default · F:\\Repos\\Aralia · Aralia · Context 100% left · Context 0% used",
         "master · Context 100% left · Contxt 0% used q",
-        "· 5h 46% left q",
-        "gpt-5.5 · gpt-5.5 high · F:\\Repos\\Aralia · Aralia · master · Context 100% left · Context 0% used · 5h 46% left",
-        "│ 5h limit: [█████████░░░░░░░░░░░] 46% left (resets 20:21) │",
-        "│ Weekly limit: [████████████████░░░░] 79% left (resets 02:39 on 18 Jun) │",
-        "│ 5h limit: [████████████████████] 100% left (resets 01:06 on 13 Jun) │",
-        "│ Weekly limit: [░░░░░░░░░░░░░░░░░░░░] 0% left (resets 03:54 on 15 Jun) │",
-        "gpt-5.5 · gpt-5.5 high · F:\\Repos\\Aralia · Aralia · master · Context 100% left · Context 0% used · 5h 46% left qwr,"
+        "· 5h 0% left q",
+        "gpt-5.5 · gpt-5.5 default · F:\\Repos\\Aralia · Aralia · master · Context 100% left · Context 0% used · 5h 0% left",
+        "│ 5h limit: [░░░░░░░░░░░░░░░░░░░░] 0% left (resets 15:11) │",
+        "│ Weekly limit: [██████████░░░░░░░░░░] 48% left (resets 02:39 on 18 Jun) │",
+        "│ 5h limit: [████████████████████] 100% left (resets 18:25) │",
+        "│ Weekly limit: [░░░░░░░░░░░░░░░░░░░░] 0% left (resets 03:54 on 15 Jun) │"
       ]
     }
   },
@@ -114,14 +113,14 @@
   },
   "claude": {
     "agent": "claude",
-    "at": 1781288117881,
+    "at": 1781352235026,
     "ok": true,
     "data": {
-      "summary": "5h block 35.1M tok · ~$90 API-equiv · resets 10:00 PM",
-      "blockTokens": 35134626,
-      "resetAt": "2026-06-12T20:00:00.000Z",
+      "summary": "5h block 34.4M tok · ~$29 API-equiv · resets 04:00 PM",
+      "blockTokens": 34412948,
+      "resetAt": "2026-06-13T14:00:00.000Z",
       "lines": [
-        "5h block 35.1M tok · ~$90 API-equiv · resets 10:00 PM"
+        "5h block 34.4M tok · ~$29 API-equiv · resets 04:00 PM"
       ]
     }
   },

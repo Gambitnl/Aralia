@@ -133,7 +133,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Choose one: reshape appearance (same limb layout, +/-1 foot height/size); gain magical natural weapons (1d6, choose damage type) using spellcasting ability; or gain swim speed = walk speed and breathe underwater. Physical inspection can reveal the illusion.",
+      "description": "Aquatic Adaptation lets the caster breathe underwater and gives a Swim Speed equal to their normal Speed for the duration.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -222,7 +222,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Choose one: reshape appearance (same limb layout, +/-1 foot height/size); gain magical natural weapons (1d6, choose damage type) using spellcasting ability; or gain swim speed = walk speed and breathe underwater. Physical inspection can reveal the illusion.",
+      "description": "Change Appearance reshapes the caster's look while keeping the same basic body layout and game statistics; physical inspection can reveal the disguise.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -311,7 +311,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Choose one: reshape appearance (same limb layout, +/-1 foot height/size); gain magical natural weapons (1d6, choose damage type) using spellcasting ability; or gain swim speed = walk speed and breathe underwater. Physical inspection can reveal the illusion.",
+      "description": "Natural Weapons grows claws, fangs, horns, or hooves that make Unarmed Strikes deal 1d6 of the chosen physical damage type using the spellcasting ability.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

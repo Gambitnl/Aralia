@@ -195,7 +195,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "A wave of healing energy washes over one creature you can see within range. The target regains all its Hit Points. If the creature has the Charmed , Frightened , Paralyzed , Poisoned , or Stunned condition, the condition ends. If the creature has the Prone condition, it can use its Reaction to stand up.",
+      "description": "Choose one visible creature within 60 feet. The target regains all Hit Points, ends Charmed, Frightened, Paralyzed, Poisoned, and Stunned, and if Prone can use its Reaction to stand.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

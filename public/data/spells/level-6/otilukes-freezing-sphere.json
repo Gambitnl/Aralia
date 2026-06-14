@@ -239,7 +239,7 @@
         "hp": 0,
         "ac": 0
       },
-      "description": "If the globe strikes a body of water, it freezes the water to a depth of 6 inches over a 30-foot square area for 1 minute.",
+      "description": "If the globe strikes water, it freezes a 30-foot-square area 6 inches deep for 1 minute.",
       "conditionalEndings": []
     },
     {
@@ -304,7 +304,7 @@
           "actionCost": "action"
         }
       },
-      "description": "Creatures swimming on the surface of the frozen water are trapped in the ice and have the Restrained condition; a trapped creature can use an action to make a Strength (Athletics) check against the caster's spell save DC to break free.",
+      "description": "Creatures swimming on the frozen surface are Restrained in the ice and can use an action to make a Strength (Athletics) check against the caster spell save DC to break free.",
       "conditionalEndings": []
     },
     {
@@ -328,7 +328,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
-      "description": "The caster can refrain from firing the globe after casting, creating a sling-bullet-sized globe in hand. It can be thrown 40 feet, hurled with a sling, set down without shattering, or allowed to explode after 1 minute if it has not already shattered.",
+      "description": "The caster may hold the sling-bullet-sized globe instead of firing it. The globe can be thrown 40 feet, hurled with a sling, set down safely, or left to explode after 1 minute if it has not shattered.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+1d6",

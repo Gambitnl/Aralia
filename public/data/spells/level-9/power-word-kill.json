@@ -198,7 +198,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You compel one creature you can see within range to die. If the target has 100 Hit Points or fewer, it dies. Otherwise, it takes 12d12 Psychic damage.",
+      "description": "Choose one visible creature within 60 feet. If the target has 100 Hit Points or fewer, it dies; if it has more than 100 Hit Points, it survives the death word and takes the spell fallback damage instead.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

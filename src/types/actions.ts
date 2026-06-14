@@ -21,7 +21,7 @@ import { TempPartyMember, PlayerCharacter, HitPointDiceSpendMap } from './charac
 import { Faction } from './factions.js';
 import { DialogueSession } from './dialogue.js';
 import type { Lock } from '../systems/puzzles/types.js';
-import type { CombatCharacter } from './combat.js';
+import type { CombatCharacter, BattleMapData } from './combat.js';
 
 // -----------------------------------------------------------------------------
 // Actions & payloads
@@ -254,6 +254,12 @@ export interface StartBattleMapEncounterPayload {
    * the main-menu startup path.
    */
   combatants?: CombatCharacter[];
+  /**
+   * Optional pre-extracted 3D battle map. When entering combat from ground mode,
+   * the local terrain is extracted and stored here to bypass procedural generation
+   * of the battle map.
+   */
+  extractedBattleMap?: BattleMapData;
 }
 
 export interface QuickTravelPayload {

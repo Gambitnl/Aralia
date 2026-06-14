@@ -166,7 +166,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Charmed unless the target succeeds on a Wisdom save for 1 minute; repeat Wisdom save on damage can end the condition; save modifiers are preserved from the current row.",
+      "description": "Applies Charmed for up to 1 minute unless the Beast succeeds on the Wisdom save; damage can trigger the configured repeat save to end the condition.",
       "conditionalEndings": []
     }
   ],

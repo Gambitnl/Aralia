@@ -26,6 +26,9 @@ export interface SitePart {
   d: number;
   h: number;
   colorHex: string;
+  /** Base elevation in meters (default 0 = on the floor). Lets a part float
+   * above the ground — e.g. an occupant's head atop their body. */
+  baseY?: number;
 }
 
 const FT = 0.3048;
@@ -43,6 +46,7 @@ export const INTERIOR_WALL_COLOR = '#cfc7b8';
  * identity the solid shells used to carry. */
 export const PERIMETER_WALL_COLORS: Record<string, string> = {
   market: '#c8923f',
+  workshop: '#b09a72', // same as house for now, or maybe slightly different
   house: '#b09a72',
 };
 
@@ -253,14 +257,30 @@ export function buildInteriorParts(
     const angle = (Math.PI * 2 * slotInRoom) / totalInRoom + room.id * 0.37;
     const offsetXFt = (Math.cos(angle) * ringRadiusM) / FT;
     const offsetYFt = (Math.sin(angle) * ringRadiusM) / FT;
-    const h = o.ageBand === 'child' ? 1.05 : o.ageBand === 'elder' ? 1.6 : 1.7;
+    const total = o.ageBand === 'child' ? 1.05 : o.ageBand === 'elder' ? 1.6 : 1.7;
+    const px = toX(centerX + offsetXFt);
+    const pz = toZ(centerY + offsetYFt);
+    // A villager reads as a person, not a crate: a clothed body box under a
+    // skin-toned head box. Heads vary by id so a crowd isn't uniform.
+    const headH = Math.min(0.28, total * 0.18);
+    const bodyH = total - headH;
+    const SKIN = ['#c79a6b', '#a9764b', '#e0b48c', '#8a5a36'];
     parts.push({
-      x: toX(centerX + offsetXFt),
-      z: toZ(centerY + offsetYFt),
-      w: 0.45,
+      x: px,
+      z: pz,
+      w: 0.42,
       d: 0.3,
-      h,
+      h: bodyH,
       colorHex: CLOTHING[o.id % CLOTHING.length],
+    });
+    parts.push({
+      x: px,
+      z: pz,
+      w: 0.26,
+      d: 0.24,
+      h: headH,
+      baseY: bodyH,
+      colorHex: SKIN[o.id % SKIN.length],
     });
   });
 

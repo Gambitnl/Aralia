@@ -134,7 +134,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Three illusory duplicates appear in your space, move with you, and mimic your actions. Each time a creature hits you with an attack roll, roll a d6 for each remaining duplicate. If any d6 rolls 3 or higher, one duplicate is hit instead and destroyed. The duplicates ignore all other damage and effects. The spell ends when all three duplicates are destroyed. A creature is unaffected if it has the Blinded condition, Blindsight, or Truesight.",
+      "description": "Create three illusory duplicates in the caster's space for 1 minute; they move with the caster and mimic their actions. When a creature hits the caster with an attack roll, roll one d6 for each remaining duplicate; if any die rolls 3 or higher, one duplicate is hit and destroyed instead. Duplicates ignore all other damage and effects, the spell ends when all three are destroyed, and creatures with Blinded, Blindsight, or Truesight ignore this protection.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

@@ -140,7 +140,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Choose a creature that you can see within range. The target must succeed on a Wisdom saving throw or have the Paralyzed condition for the duration. At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.",
+      "description": "Records the Hold Monster control wrapper while the separate Paralyzed effect carries the Wisdom save, repeat save, and condition duration.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

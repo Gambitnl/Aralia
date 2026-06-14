@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { defineConfig, loadEnv } from 'vite';
 import type { ProxyOptions } from 'vite';
+import type { IncomingMessage, ServerResponse } from 'http';
 import react from '@vitejs/plugin-react';
 
 import {
@@ -60,6 +61,12 @@ import { formatProxyTarget } from './scripts/vite-plugins/utils';
 
 /**
  * Helper to add diagnostic hints to Vite proxy errors.
+ *
+ * The main game treats Ollama as an optional local dependency at startup. When
+ * the startup heartbeat asks for `/api/ollama/tags` and Ollama is not running,
+ * the proxy should answer with an empty model list instead of a browser-visible
+ * 500. Generation and chat requests still fail loudly so real AI work does not
+ * look successful when the local service is offline.
  */
 function addProxyDiagnostics(
   route: string,
@@ -69,11 +76,22 @@ function addProxyDiagnostics(
   return {
     ...config,
     configure: (proxy, _options) => {
-      proxy.on('error', (err, _req, _res) => {
+      proxy.on('error', (err, req: IncomingMessage, res: ServerResponse) => {
         const target = formatProxyTarget(config.target);
         if (err.message.includes('ECONNREFUSED')) {
           console.error(`\n[proxy] ${route} -> ${target} connection refused.`);
           console.error(`[proxy] Hint: ${hint}\n`);
+        }
+
+        // Let the startup dependency check fail softly. This keeps the browser
+        // console from reporting an internal server error for an optional local
+        // service, while the client still sees "no models available" and opens
+        // the existing Ollama dependency modal.
+        if (route === '/api/ollama' && req.url === '/tags' && !res.headersSent) {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ models: [] }));
+          return;
         }
       });
     }

@@ -616,6 +616,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       townState: null,
       townEntryDirection: null,
       worldViewMode: 'atlas',
+      mapSurface: 'classic',
       playerWorldPos: null,
       // Ground-mode resume positions use tile-local meters and begin unset in
       // tests unless a specific renderer or save scenario overrides them.
@@ -766,6 +767,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       townState: null,
       townEntryDirection: null,
       worldViewMode: 'atlas',
+      mapSurface: 'classic',
       playerWorldPos: null,
       // Keep the tile-local ground resume field present even in fallback states.
       playerGroundPos: null,

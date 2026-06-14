@@ -119,6 +119,8 @@ const World3DDemo = lazy(() => import('./components/World3D/World3DDemo'));
 const WorldforgeAtlasDemo = lazy(() => import('./components/Worldforge/AtlasDemo'));
 const TransitionController = lazy(() => import('./components/World3D/TransitionController'));
 const World3DWrapper = lazy(() => import('./components/World3D/World3DWrapper'));
+// Classic ↔ Worldforge 2D-surface toggle (small, eager — no generation stack).
+const MapSurfaceToggle = lazy(() => import('./components/Worldforge/MapSurfaceToggle'));
 // Combat Messaging Demo handles mock logging events to visualize unified messages in dev mode.
 const CombatMessagingDemo = lazy(() => import('./components/demo/CombatMessagingDemo').then(module => ({ default: module.CombatMessagingDemo })));
 // --- Decoupled Developer Tools Registry ---
@@ -1168,26 +1170,44 @@ const App: React.FC = () => {
     // Render the Main Game Layout (Exploration Mode)
     // <GameLayout> extracts the complexity of the Compass, Action, World, and Minimap panes.
     // When worldViewMode === '3d', render the 3D world instead of the 2D atlas.
-    const atlasContent = (
-      <GameLayout
-        currentLocation={currentLocationData}
-        subMapCoordinates={gameState.subMapCoordinates}
-        mapData={gameState.mapData}
-        gameTime={gameState.gameTime}
-        messages={gameState.messages}
-        npcsInLocation={npcs}
-        itemsInLocation={itemsInCurrentLocation}
-        party={gameState.party}
-        geminiGeneratedActions={gameState.geminiGeneratedActions}
-        unreadDiscoveryCount={gameState.unreadDiscoveryCount}
-        hasNewRateLimitError={gameState.hasNewRateLimitError}
-        worldSeed={gameState.worldSeed}
-        isDevModeEnabled={gameState.isDevModeEnabled ?? false}
-        autoSaveEnabled={autoSaveEnabled}
-        disabled={!isUIInteractive}
-        onAction={processAction}
-        playerWorldPos={gameState.playerWorldPos}
-      />
+    // mapSurface ('classic' | 'worldforge') swaps the 2D surface between the
+    // legacy GameLayout and the native ported-FMG Worldforge cartographer.
+    const useWorldforgeSurface = (gameState.mapSurface ?? 'classic') === 'worldforge';
+
+    const atlasContent = useWorldforgeSurface ? (
+      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <WorldforgeAtlasDemo />
+        </Suspense>
+        <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 40 }}>
+          <MapSurfaceToggle />
+        </div>
+      </div>
+    ) : (
+      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <GameLayout
+          currentLocation={currentLocationData}
+          subMapCoordinates={gameState.subMapCoordinates}
+          mapData={gameState.mapData}
+          gameTime={gameState.gameTime}
+          messages={gameState.messages}
+          npcsInLocation={npcs}
+          itemsInLocation={itemsInCurrentLocation}
+          party={gameState.party}
+          geminiGeneratedActions={gameState.geminiGeneratedActions}
+          unreadDiscoveryCount={gameState.unreadDiscoveryCount}
+          hasNewRateLimitError={gameState.hasNewRateLimitError}
+          worldSeed={gameState.worldSeed}
+          isDevModeEnabled={gameState.isDevModeEnabled ?? false}
+          autoSaveEnabled={autoSaveEnabled}
+          disabled={!isUIInteractive}
+          onAction={processAction}
+          playerWorldPos={gameState.playerWorldPos}
+        />
+        <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 40 }}>
+          <MapSurfaceToggle />
+        </div>
+      </div>
     );
 
     // Entry position: use saved 3D position, or default to current location center.

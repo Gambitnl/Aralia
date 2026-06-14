@@ -466,7 +466,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Eight rays of light flash from you in a 60-foot Cone . Each creature in the Cone makes a Dexterity saving throw. For each target, roll 1d8 to determine which color ray affects it, consulting the Prismatic Rays table.",
+      "description": "Emit eight rays in a 60-foot cone, with each creature in the cone making a Dexterity save before rolling 1d8 to determine its Prismatic Rays table color. A result of 8 strikes the target with two rays instead, rolling twice and rerolling any further 8s.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

@@ -144,7 +144,7 @@
         "bonusPerLevel": "+1d10",
         "customFormula": ""
       },
-      "description": "Initial Wisdom save. On a failed save, the target takes Psychic damage and gains the spell's disadvantage rider; on a successful save, the target takes half damage and the spell ends.",
+      "description": "The target makes an initial Wisdom save, taking 4d10 Psychic damage and gaining the spell's disadvantage rider on a failed save, or taking half damage and ending the spell on a success.",
       "conditionalEndings": [
         {
           "trigger": "initial_save_success",

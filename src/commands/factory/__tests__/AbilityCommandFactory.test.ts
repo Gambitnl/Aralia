@@ -6,11 +6,12 @@
  * protect the important split: attacks create attack commands, but Dash-style
  * movement does not masquerade as a weapon attack.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Ability } from '../../../types/combat';
 import { GameState } from '../../../types';
 import { createMockCombatCharacter } from '../../../utils/factories';
 import { AbilityCommandFactory, WeaponAttackCommand } from '../AbilityCommandFactory';
+import { combatEvents } from '../../../systems/events/CombatEvents';
 
 // ============================================================================
 // Ability Translation
@@ -87,6 +88,75 @@ describe('AbilityCommandFactory', () => {
 });
 
 describe('WeaponAttackCommand Proficiency Penalties', () => {
+  it('emits structured miss results for attack-event subscribers', async () => {
+    // Armor of Agathys-style and other attack-result consumers cannot safely
+    // read prose combat logs. The command-side weapon attack roll already knows
+    // whether the target was hit, so it should publish that result on the
+    // combat event bus for runtime subscribers.
+    combatEvents.clearForTest();
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    try {
+      const attacker = createMockCombatCharacter({
+        id: 'attacker',
+        name: 'Attacker',
+        stats: {
+          baseInitiative: 0,
+          speed: 30,
+          cr: '0',
+          strength: 10,
+          dexterity: 10,
+          constitution: 10,
+          intelligence: 10,
+          wisdom: 10,
+          charisma: 10
+        }
+      });
+      const target = createMockCombatCharacter({
+        id: 'target',
+        name: 'Target',
+        armorClass: 30
+      });
+      const attack: Ability = {
+        id: 'miss_event_attack',
+        name: 'Miss Event Attack',
+        description: 'A weapon attack that is forced to miss for event proof.',
+        type: 'attack',
+        cost: { type: 'action' },
+        targeting: 'single_enemy',
+        range: 1,
+        isProficient: false,
+        effects: [{ type: 'damage', value: 4, damageType: 'physical' }]
+      };
+
+      const command = new WeaponAttackCommand(attack, attacker, [target], {
+        spellId: attack.id,
+        spellName: attack.name,
+        castAtLevel: 0,
+        caster: attacker,
+        targets: [target],
+        gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
+      });
+
+      await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+
+      expect(combatEvents.getDispatchLog()).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          type: 'unit_attack',
+          attackerId: attacker.id,
+          targetId: target.id,
+          isHit: false,
+          isCrit: false,
+          attackType: 'weapon',
+          weaponType: 'melee'
+        })
+      ]));
+    } finally {
+      randomSpy.mockRestore();
+      combatEvents.clearForTest();
+    }
+  });
+
   it('omits proficiency bonus when attacking with a non-proficient weapon', async () => {
     const attacker = createMockCombatCharacter({
       id: 'attacker',
@@ -286,6 +356,10 @@ describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
       targeting: 'single_enemy',
       range: 1,
       isProficient: true,
+      // This proof is about Sneak Attack with Advantage, not random accuracy.
+      // Keep the base strike deterministic so the Sneak Attack branch is what
+      // the test actually exercises.
+      attackBonus: 99,
       weapon: {
         id: 'rapier',
         name: 'Rapier',
@@ -358,6 +432,10 @@ describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
       targeting: 'single_enemy',
       range: 1,
       isProficient: true,
+      // This proof is about the adjacent-ally Sneak Attack gate, not random
+      // accuracy. Keep the strike deterministic so the test does not fail just
+      // because the weapon attack missed before the Sneak Attack branch.
+      attackBonus: 99,
       weapon: {
         id: 'rapier',
         name: 'Rapier',

@@ -125,39 +125,82 @@ const getSpawnTiles = (mapData: BattleMapData, config: SpawnConfig, rng: SeededR
     return { playerTiles: spreadTiles(playerSpawnTiles, 20), enemyTiles: spreadTiles(enemySpawnTiles, 20) };
 }
 
+// ============================================================================
+// Walkable Tile Search for Preset Maps
+// ============================================================================
+// Finds the closest tile to a target coordinate that is walkable and not yet
+// claimed by another character. Used to position teams near their relative
+// starting spots on pre-extracted ground maps.
+// ============================================================================
+function findNearestWalkableTile(
+    mapData: BattleMapData,
+    targetX: number,
+    targetY: number,
+    occupied: Set<string>
+): BattleMapTile | null {
+    let bestTile: BattleMapTile | null = null;
+    let bestDist = Infinity;
+
+    for (const tile of mapData.tiles.values()) {
+        const key = `${tile.coordinates.x}-${tile.coordinates.y}`;
+        if (tile.blocksMovement || occupied.has(key)) {
+            continue;
+        }
+        const dist = Math.hypot(tile.coordinates.x - targetX, tile.coordinates.y - targetY);
+        if (dist < bestDist) {
+            bestDist = dist;
+            bestTile = tile;
+        }
+    }
+    return bestTile;
+}
+
 export const generateBattleSetup = (
     biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp',
     seed: number,
-    initialCharacters: CombatCharacter[]
+    initialCharacters: CombatCharacter[],
+    presetMapData?: BattleMapData
 ): { mapData: BattleMapData, positionedCharacters: CombatCharacter[] } => {
-    const generator = new BattleMapGenerator(BATTLE_MAP_DIMENSIONS.width, BATTLE_MAP_DIMENSIONS.height);
-    const mapData = generator.generate(biome, seed);
+    // Use the preset map directly if provided (from ground-mode handoff);
+    // otherwise, generate a new procedural map using the biome and seed.
+    const mapData = presetMapData || new BattleMapGenerator(BATTLE_MAP_DIMENSIONS.width, BATTLE_MAP_DIMENSIONS.height).generate(biome, seed);
     const rng = new SeededRandom(seed);
 
     const newPositions = new Map<string, CharacterPosition>();
+    const occupied = new Set<string>();
 
-    // Choose a random spawn configuration
+    // For procedural maps, choose a random spawn configuration and get spawn zones
     const spawnConfigs: SpawnConfig[] = ['left-right', 'top-bottom', 'corners-tl-br', 'corners-tr-bl'];
     const randomConfig = spawnConfigs[Math.floor(rng.next() * spawnConfigs.length)];
-
-    // Get spawn tiles based on the random configuration
     const { playerTiles, enemyTiles } = getSpawnTiles(mapData, randomConfig, rng);
 
     let playerSpawnIndex = 0;
     let enemySpawnIndex = 0;
 
-    // TODO: If spawn tiles run out, re-roll config or fall back to nearest walkable tiles so characters never start with undefined positions on dense maps.
     const positionedCharacters = initialCharacters.map(char => {
-        let spawnTile;
-        if(char.team === 'player' && playerSpawnIndex < playerTiles.length) {
-            spawnTile = playerTiles[playerSpawnIndex++];
-        } else if (char.team === 'enemy' && enemySpawnIndex < enemyTiles.length) {
-            spawnTile = enemyTiles[enemySpawnIndex++];
+        let spawnTile: BattleMapTile | null = null;
+
+        if (presetMapData) {
+            // For ground mode handoffs, place players near the center (20, 15)
+            // and enemies near (24, 18) (approx. 5 meters northeast) to reflect
+            // their walking positions.
+            const targetX = char.team === 'player' ? 20 : 24;
+            const targetY = char.team === 'player' ? 15 : 18;
+            spawnTile = findNearestWalkableTile(mapData, targetX, targetY, occupied);
+        } else {
+            // Standard procedural mapping uses zone-based spawn configurations
+            if (char.team === 'player' && playerSpawnIndex < playerTiles.length) {
+                spawnTile = playerTiles[playerSpawnIndex++];
+            } else if (char.team === 'enemy' && enemySpawnIndex < enemyTiles.length) {
+                spawnTile = enemyTiles[enemySpawnIndex++];
+            }
         }
 
-        if(spawnTile) {
+        if (spawnTile) {
+            const key = `${spawnTile.coordinates.x}-${spawnTile.coordinates.y}`;
+            occupied.add(key);
             newPositions.set(char.id, { characterId: char.id, coordinates: spawnTile.coordinates });
-            return {...char, position: spawnTile.coordinates};
+            return { ...char, position: spawnTile.coordinates };
         }
         return char;
     });

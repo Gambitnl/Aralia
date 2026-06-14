@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 23:54:23
+ * Last Sync: 13/06/2026, 10:45:41
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 10 files
  *
@@ -780,23 +780,37 @@ export const useActionExecutor = ({
         for (const trigger of triggers) {
           const effect = trigger.sourceEffect;
           const attackFilter = effect.trigger.attackFilter;
+          const explicitAttackResult = action.attackResults?.find(result => result.targetId === targetId);
 
           // Armor of Agathys stores its "melee attack only" rule in the
           // trigger's attack filter. The executor already has the triggering
-          // ability in hand, so reject obvious melee/ranged mismatches before
-          // rolling retaliation damage. This is intentionally range-based to
-          // match the existing opportunity-attack melee convention in this
-          // hook. Hit/miss payloads and source temp-HP ownership remain
-          // separate gates for the broader reactive contract.
-          if (attackFilter?.weaponType === 'melee' && ability.range > 2) continue;
-          if (attackFilter?.weaponType === 'ranged' && ability.range <= 2) continue;
+          // ability in hand, but command-side attack results can now carry the
+          // resolved melee/ranged family directly. Prefer that explicit result
+          // because it reflects the attack that actually rolled; keep the range
+          // fallback for older callers that have not populated attackResults.
+          const resolvedWeaponType = explicitAttackResult?.weaponType;
+          if (
+            attackFilter?.weaponType === 'melee'
+            && (resolvedWeaponType ? resolvedWeaponType !== 'melee' : ability.range > 2)
+          ) continue;
+          if (
+            attackFilter?.weaponType === 'ranged'
+            && (resolvedWeaponType ? resolvedWeaponType !== 'ranged' : ability.range <= 2)
+          ) continue;
 
           // Spell data can also say whether a reactive rider belongs to weapon
           // attacks or spell attacks. The action executor's ability shape is
-          // coarse, so "weapon" currently means the normal attack ability path,
-          // while "spell" means an ability carrying spell attack metadata.
-          const isSpellAttack = ability.type === 'spell' || (ability.spell?.attackType !== undefined && ability.spell.attackType !== 'none');
-          const isWeaponAttack = ability.type === 'attack';
+          // coarse, so explicit attackResults win when present. Without that
+          // payload, keep the legacy interpretation: normal attack abilities
+          // are weapon-like, and spell abilities or spell attack metadata are
+          // spell-like.
+          const resolvedAttackType = explicitAttackResult?.attackType;
+          const isSpellAttack = resolvedAttackType
+            ? resolvedAttackType === 'spell'
+            : ability.type === 'spell' || (ability.spell?.attackType !== undefined && ability.spell.attackType !== 'none');
+          const isWeaponAttack = resolvedAttackType
+            ? resolvedAttackType === 'weapon'
+            : ability.type === 'attack';
           if (attackFilter?.attackType === 'weapon' && !isWeaponAttack) continue;
           if (attackFilter?.attackType === 'spell' && !isSpellAttack) continue;
 
@@ -819,7 +833,6 @@ export const useActionExecutor = ({
           // not let hit-only retaliation fire. Callers that do not yet provide
           // attackResults keep the legacy behavior until the broader battle-map
           // attack-result handoff is wired into every producer.
-          const explicitAttackResult = action.attackResults?.find(result => result.targetId === targetId);
           if (explicitAttackResult && !explicitAttackResult.isHit) continue;
 
           if (effect.type === 'DAMAGE' && effect.damage) {
@@ -878,6 +891,15 @@ export const useActionExecutor = ({
 
     const startCharacter = characters.find(c => c.id === action.characterId);
     if (!startCharacter) return false;
+
+    // Post-command reactive replays use the same action envelope after attack
+    // commands have emitted hit/miss facts. They should not spend resources,
+    // move the actor, or record a second normal action; they only let reactive
+    // effects read the resolved attackResults payload.
+    if (action.reactiveEventsOnly) {
+      handleAbilityEvents(action, startCharacter);
+      return true;
+    }
 
     // Pre-move occupancy check (guard before resource spend)
     if (action.type === 'move' && action.targetPosition) {
@@ -973,8 +995,13 @@ export const useActionExecutor = ({
     });
     followUpActionLogs.forEach(entry => onLogEntry(entry));
 
-    // Post-update ability side effects: event emission + reactive triggers
-    handleAbilityEvents(action, updatedCharacter);
+    // Post-update ability side effects: event emission + reactive triggers.
+    // Command-backed attacks can suppress this first pass because their hit or
+    // miss is not known until commands execute. useAbilitySystem replays a
+    // reactive-only action with the resolved attackResults afterward.
+    if (!action.suppressAbilityEvents) {
+      handleAbilityEvents(action, updatedCharacter);
+    }
 
     return true;
   }, [

@@ -213,7 +213,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On the same modeled hit, the target gains the Poisoned condition for 1 round.",
+      "description": "On the same ranged spell attack hit, the target gains the Poisoned condition until the end of the caster's next turn.",
       "conditionalEndings": [],
       "tags": [
         "poisoned",

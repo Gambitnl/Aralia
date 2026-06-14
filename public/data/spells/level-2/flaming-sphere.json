@@ -202,7 +202,7 @@
         "dice": "2d6",
         "type": "Fire"
       },
-      "description": "Creatures ending their turn within 5 feet of the sphere take 2d6 Fire damage on a Dexterity save, or half as much on a success.",
+      "description": "A creature that ends its turn within 5 feet of the sphere makes a Dexterity save, taking 2d6 Fire damage on a failed save or half as much on a success.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+1d6",
@@ -266,7 +266,7 @@
         "dice": "2d6",
         "type": "Fire"
       },
-      "description": "As a Bonus Action, move the sphere up to 30 feet; if it enters a creature's space, the creature makes the save and the sphere stops moving.",
+      "description": "As a Bonus Action, the caster can move the sphere up to 30 feet; if it enters a creature's space, that creature makes a Dexterity save against 2d6 Fire damage and the sphere stops moving for the turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+1d6",

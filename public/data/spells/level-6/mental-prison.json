@@ -276,7 +276,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "If the target is moved out of the illusion, makes a melee attack through it, or reaches any part of its body through it, the target takes 10d10 Psychic damage and the spell ends.",
+      "description": "Escape-trigger damage deals 10d10 Psychic if the target leaves, attacks through, or reaches through the illusion, then ends the spell.",
       "conditionalEndings": []
     },
     {

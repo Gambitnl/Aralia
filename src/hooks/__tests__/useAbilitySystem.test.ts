@@ -6,6 +6,7 @@ import { CombatCharacter, Ability, BattleMapData, LightSource } from '../../type
 import { Spell } from '../../types/spells';
 import { Item } from '../../types';
 import * as savingThrowUtils from '../../utils/savingThrowUtils';
+import { combatEvents } from '../../systems/events/CombatEvents';
 
 // Mock dependencies
 vi.mock('../combat/useTargeting', async () => {
@@ -248,6 +249,68 @@ describe('useAbilitySystem - Reactions', () => {
         // Check that CommandExecutor was called
         const { CommandExecutor } = await import('../../commands');
         expect(CommandExecutor.execute).toHaveBeenCalled();
+    });
+
+    it('defers ability reactive events until command attack results are available', async () => {
+        const { CommandExecutor } = await import('../../commands');
+        combatEvents.clearForTest();
+        vi.mocked(CommandExecutor.execute).mockImplementationOnce(() => {
+            combatEvents.emit({
+                type: 'unit_attack',
+                attackerId: attacker.id,
+                targetId: defender.id,
+                isHit: false,
+                isCrit: false,
+                attackType: 'weapon',
+                weaponType: 'melee'
+            });
+
+            return {
+                success: true,
+                finalState: {
+                    characters: [attacker, defender],
+                    combatLog: [],
+                    reactiveTriggers: [],
+                    activeLightSources: []
+                }
+            } as any;
+        });
+
+        const localExecuteAction = vi.fn(() => true);
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [attacker, defender],
+            mapData: null,
+            onExecuteAction: localExecuteAction,
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                basicAttack,
+                attacker,
+                defender.position,
+                [defender.id]
+            );
+        });
+
+        expect(localExecuteAction).toHaveBeenCalledTimes(2);
+        expect(localExecuteAction.mock.calls[0][0]).toEqual(expect.objectContaining({
+            suppressAbilityEvents: true
+        }));
+        expect(localExecuteAction.mock.calls[1][0]).toEqual(expect.objectContaining({
+            reactiveEventsOnly: true,
+            attackResults: [{
+                targetId: defender.id,
+                isHit: false,
+                isCritical: false,
+                attackType: 'weapon',
+                weaponType: 'melee'
+            }]
+        }));
+
+        combatEvents.clearForTest();
     });
 
     it('should log why a selected target cannot be used instead of failing silently', async () => {

@@ -143,6 +143,9 @@ export const initialGameState: GameState = {
 
     // Battle Map State
     currentEnemies: null,
+    // Pre-extracted 3D battle map data to override procedural generation.
+    // Captured from ground mode terrain centered around player-hostile collision.
+    extractedBattleMap: null,
 
     // Fields for save/load
     saveVersion: undefined,
@@ -316,6 +319,7 @@ export const initialGameState: GameState = {
 
     // 3D World Transition (world-3d-ui)
     worldViewMode: 'atlas' as const,
+    mapSurface: 'classic' as const,
     playerWorldPos: null,
     // Ground-mode resume anchor
     // This stays null until the 3D ground renderer reports tile-local meters.

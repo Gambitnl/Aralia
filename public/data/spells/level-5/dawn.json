@@ -152,7 +152,7 @@
         "bonusPerLevel": "+1d10",
         "customFormula": ""
       },
-      "description": "When the cylinder appears, each creature in it makes a Constitution save, taking half damage on a success.",
+      "description": "When the cylinder appears, each creature in it makes a Constitution save, taking 4d10 Radiant damage on a failed save or half on a success.",
       "conditionalEndings": []
     },
     {
@@ -216,7 +216,7 @@
         "bonusPerLevel": "+1d10",
         "customFormula": ""
       },
-      "description": "A creature that ends its turn in the cylinder makes a Constitution save, taking half damage on a success.",
+      "description": "A creature that ends its turn in the cylinder makes a Constitution save, taking 4d10 Radiant damage on a failed save or half on a success.",
       "conditionalEndings": []
     },
     {
@@ -270,7 +270,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "light",
-      "description": "The 30-foot-radius, 40-foot-high cylinder is bright light and sunlight.",
+      "description": "Create a 30-foot-radius, 40-foot-high cylinder of bright sunlight for up to 1 minute with concentration; while within 60 feet of the cylinder, the caster can move it up to 60 feet as a Bonus Action.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

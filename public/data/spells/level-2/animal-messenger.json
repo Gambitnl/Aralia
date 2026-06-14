@@ -151,7 +151,7 @@
         ]
       },
       "utilityType": "communication",
-      "description": "Instruct a Tiny beast to carry and deliver your spoken message to a designated creature at a described location; travels ~25 miles in 24 hours (50 miles if it can fly for that duration). Duration extends with higher slots.",
+      "description": "Choose a visible Tiny Beast within 30 feet to carry a message of up to 25 words to a described recipient at a visited location. The Beast makes a Charisma save to resist, with non-CR-0 Beasts automatically succeeding; on failure it travels about 25 miles per 24 hours, or 50 miles if it can fly, and the message is lost if it does not arrive before the spell ends. Higher slots extend the duration by 48 hours per slot level above 2nd.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+48 hours duration",

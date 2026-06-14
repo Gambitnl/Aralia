@@ -143,7 +143,7 @@
         "bonusPerLevel": "+1d12",
         "customFormula": ""
       },
-      "description": "On a ranged spell hit, one target takes 2d12 Lightning damage, increasing by 1d12 per slot level above 1st.",
+      "description": "On a ranged spell attack hit, the target takes 2d12 Lightning damage from the initial crackling beam.",
       "conditionalEndings": [],
       "tags": [
         "lightning-damage",
@@ -210,7 +210,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "While you maintain concentration, you can use a Bonus Action on later turns to automatically deal 1d12 Lightning damage to the target, even if the first attack missed.",
+      "description": "While concentration holds, the caster can use a later-turn Bonus Action to automatically deal 1d12 Lightning damage to the target, even if the first attack missed; the spell ends if the target leaves range or has Total Cover from the caster.",
       "conditionalEndings": [
         {
           "trigger": "target_outside_spell_range",

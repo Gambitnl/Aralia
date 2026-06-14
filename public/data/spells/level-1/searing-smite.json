@@ -232,7 +232,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The same target gains the Ignited condition for up to 1 minute as the modeled burning rider.",
+      "description": "On the same melee weapon hit, the target gains the Ignited condition for up to 1 minute; at the start of each of its turns, it takes 1d6 Fire damage and then makes a Constitution save that ends the spell on a success.",
       "conditionalEndings": [],
       "tags": [
         "ignited",

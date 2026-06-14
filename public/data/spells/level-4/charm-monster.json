@@ -156,7 +156,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Charmed unless the target succeeds on a Wisdom save for 60 minutes; save modifiers are preserved from the current row.",
+      "description": "Applies Charmed for up to 60 minutes unless the target succeeds on the Wisdom save; configured save modifiers still apply.",
       "conditionalEndings": [
         {
           "trigger": "caster_or_ally_damages_target",

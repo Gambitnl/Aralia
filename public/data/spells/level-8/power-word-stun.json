@@ -140,7 +140,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "You overwhelm the mind of one creature you can see within range. If the target has 150 Hit Points or fewer, it has the Stunned condition. Otherwise, its Speed is 0 until the start of your next turn. The Stunned target makes a Constitution saving throw at the end of each of its turns, ending the condition on itself on a success.",
+      "description": "Choose one visible creature within 60 feet. If the target has 150 Hit Points or fewer, it is Stunned and repeats Constitution saves at the end of each turn; if it has more than 150 Hit Points, its Speed becomes 0 until the start of the caster next turn.",
       "utilityType": "other",
       "grantedActions": [],
       "attackAugments": [],

@@ -224,7 +224,7 @@
         "direction": "away_from_caster",
         "maxDistance": ""
       },
-      "description": "On the same hit, the target is affected by the spell's movement-control slow rider as modeled by the movement effect.",
+      "description": "On the same ranged spell hit, the target's Speed is reduced by 10 feet until the start of the caster's next turn.",
       "conditionalEndings": [],
       "tags": [
         "speed-reduction",

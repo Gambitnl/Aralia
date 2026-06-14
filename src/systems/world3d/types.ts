@@ -61,7 +61,11 @@ export interface ChunkData {
   /** Sites whose center falls within this chunk (grid space). */
   sites: {
     id: string;
-    kind: 'town' | 'dungeon' | 'ruin' | 'landmark';
+    /**
+     * The type of site. Extended to include 'monster' to support rendering
+     * hostile creatures as site-like markers in 3D ground mode.
+     */
+    kind: 'town' | 'dungeon' | 'ruin' | 'landmark' | 'monster';
     position: { x: number; y: number };
     footprint: { x: number; y: number }[];
     walled: boolean;
@@ -103,7 +107,7 @@ export interface ChunkData {
      * ground). When present the renderer draws these walls/furnishings
      * instead of the solid footprint box — the building is enterable.
      */
-    parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string }>;
+    parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string; baseY?: number }>;
     /**
      * Interior wall envelope in meters (≤ plot footprint). Roofs and floor
      * slabs must size to THIS, not the footprint box — the plot is up to
@@ -143,7 +147,11 @@ export interface ClippedPolyline {
 /** A site contained in a chunk, with chunk-local placement for geometry. */
 export interface ChunkSite {
   id: string;
-  kind: 'town' | 'dungeon' | 'ruin' | 'landmark';
+  /**
+   * The type of site. Extended to include 'monster' to support rendering
+   * hostile creatures as site-like markers in 3D ground mode.
+   */
+  kind: 'town' | 'dungeon' | 'ruin' | 'landmark' | 'monster';
   localX: number;
   localZ: number;
   /** Surface Y in world-space meters (heightToMeters applied), matching terrain exaggeration. */
@@ -173,7 +181,7 @@ export interface ChunkSite {
   /** Render no mesh — nameplate only (see ChunkData.sites.markerOnly). */
   markerOnly?: boolean;
   /** Seamless-interior boxes, site-local meters (see ChunkData.sites.parts). */
-  parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string }>;
+  parts?: Array<{ x: number; z: number; w: number; d: number; h: number; colorHex: string; baseY?: number }>;
   /** Interior wall envelope, meters (see ChunkData.sites.wallWidthM). */
   wallWidthM?: number;
   wallDepthM?: number;

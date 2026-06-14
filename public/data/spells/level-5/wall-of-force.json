@@ -184,7 +184,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
-      "description": "Creates an invisible wall, dome, globe, or panel arrangement of magical force that blocks physical passage for the duration and is immune to damage except specific magic that destroys it.",
+      "description": "Create an invisible magical-force barrier for up to 10 minutes with concentration as a 10-foot-radius dome or globe, or as up to ten contiguous 10-foot panels. If the wall cuts through a creature space when it appears, the caster chooses which side the creature is pushed to; nothing physically passes through the wall, it is immune to damage and Dispel Magic, Disintegrate destroys it, and it blocks Ethereal travel.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

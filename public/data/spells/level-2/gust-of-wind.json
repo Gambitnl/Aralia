@@ -153,7 +153,7 @@
         "maxDistance": "15 ft",
         "usesReaction": false
       },
-      "description": "Creatures in the Line that start their turn there or enter it must make a Strength save or be pushed 15 feet away along the Line.",
+      "description": "Creatures in the 60-foot by 10-foot Line make a Strength save against being pushed 15 feet away from the caster along the Line when the wind affects them.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -218,7 +218,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Disperses gas/vapor and extinguishes unprotected flames in the Line.",
+      "description": "The Line disperses gas or vapor, extinguishes candles and similar unprotected flames, makes protected flames dance with a 50 percent extinguish chance, and grants the caster a later-turn Bonus Action to change the Line direction.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

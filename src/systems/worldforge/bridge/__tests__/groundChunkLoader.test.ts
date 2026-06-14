@@ -16,7 +16,7 @@ import {
 import type { LocalArtifact, RegionArtifact } from '../../artifacts';
 import { rootSeedPath } from '../../seedPath';
 import type { GroundWorld } from '../groundChunkLoader';
-import { makeGroundWorld, sampleGroundChunk } from '../groundChunkLoader';
+import { makeGroundWorld, sampleGroundChunk, extractLocalTerrainPatch, groundSurfaceY } from '../groundChunkLoader';
 import { GROUND_METERS_PER_CELL, localArtifactToWorldData } from '../groundWorldAdapter';
 
 // ============================================================================
@@ -39,6 +39,7 @@ function makeGroundWorldFixture(overrides: Partial<GroundWorld> = {}): GroundWor
     extentMetersX: cols,
     extentMetersZ: rows,
     features: [],
+    hostiles: [],
     rivers: [],
     roads: [],
     towns: [],
@@ -344,5 +345,159 @@ describe('makeGroundWorld building terrain pads', () => {
     // Pad construction must be pure and deterministic: no random jitter, and
     // no shared artifact mutation leaking between makeGroundWorld calls.
     expect(second.heights).toEqual(first.heights);
+  });
+
+  it('correctly maps worldBusinesses and NPC owner names to buildings and keepers', () => {
+    const local = makeLocalArtifact();
+    const region = makeRegionArtifact();
+    const deltas = [makeMarketDelta(1)]; // makes plot 1 a market
+
+    const burgId = 7;
+    const plotId = 1;
+    const bizId = `biz_burg_${burgId}_plot_${plotId}`;
+    const npcId = `npc_burg_${burgId}_plot_${plotId}`;
+
+    const mockNpc: any = {
+      id: npcId,
+      name: 'Olaf the Keeper',
+      role: 'merchant',
+      biography: { level: 3, age: 34, backgroundId: 'merchant', classId: 'merchant', family: [] },
+      stats: { hp: 10, maxHp: 10, armorClass: 10, speed: 30, initiativeBonus: 0, passivePerception: 10, proficiencyBonus: 2 },
+    };
+
+    const mockBusiness: any = {
+      id: bizId,
+      name: 'The Rusty Anvil',
+      locationId: 'coord_0_0',
+      ownerId: npcId,
+      ownerType: 'npc',
+      burgId,
+      plotId,
+      businessType: 'smithy',
+      metrics: { customerSatisfaction: 80, reputation: 80, competitorPressure: 10, supplyChainHealth: 80, staffEfficiency: 80 },
+    };
+
+    const ground = makeGroundWorld(local, 42, region, {
+      hour: 12,
+      deltas,
+      worldBusinesses: { [bizId]: mockBusiness },
+      generatedNpcs: { [npcId]: mockNpc },
+    });
+
+    // Verify building for plot 1 got the business name
+    const building = ground.buildings.find((b) => b.id === `wf-plot-${burgId}-${plotId}`);
+    expect(building).toBeDefined();
+    expect(building?.name).toBe('The Rusty Anvil');
+    expect(building?.unlabeled).toBe(false);
+
+    // Find the worker assigned to plot 1 and check that name matches NPC owner
+    const worker = ground.rosters[0].occupants.find((o) => o.workPlotId === plotId);
+    expect(worker).toBeDefined();
+    expect(worker?.name).toBe('Olaf the Keeper');
+
+    // Check that the ground occupant site got Olaf's name
+    const occupant = ground.occupants.find((o) => o.occupantId === worker!.id);
+    expect(occupant).toBeDefined();
+    expect(occupant?.name).toBe('Olaf the Keeper');
+  });
+});
+
+// ============================================================================
+// Terrain Patch Extraction
+// ============================================================================
+// This section verifies that extractLocalTerrainPatch extracts a 40x30 local
+// patch matching the spot's ground heights, biomes, features, and buildings.
+// ============================================================================
+describe('extractLocalTerrainPatch', () => {
+  it('extracts a 40x30 terrain patch matching the heights, biomes, and buildings of the ground world', () => {
+    // 1. Create a fixture ground world with custom height, biome, feature, and building
+    const cols = 100;
+    const rows = 100;
+    
+    // Create a terrain height map that rises linearly
+    const heights = new Array(cols * rows).fill(0).map((_, idx) => {
+      const col = idx % cols;
+      const row = Math.floor(idx / cols);
+      return (col + row) * 0.5; // encoded height
+    });
+    
+    // Create a biome map (desert in top-left, plains elsewhere)
+    const biomeIds = new Array(cols * rows).fill(0).map((_, idx) => {
+      const col = idx % cols;
+      const row = Math.floor(idx / cols);
+      return (col < 20 && row < 20) ? 'desert' : 'plains';
+    });
+
+    const buildingId = 'wf-plot-test-building';
+    const buildings = [
+      {
+        id: buildingId,
+        xM: 50,
+        zM: 50,
+        cornersM: [
+          { x: 45, z: 45 },
+          { x: 55, z: 45 },
+          { x: 55, z: 55 },
+          { x: 45, z: 55 },
+        ],
+        heightM: 6,
+        role: 'house',
+        wallWidthM: 8,
+        wallDepthM: 8,
+        parts: [
+          { x: 0, z: 0, w: 8, d: 8, h: 0.12, colorHex: '#9a8a72' }, // floor
+          { x: 0, z: 4, w: 8, d: 0.3, h: 3, colorHex: '#cfc7b8' }, // wall
+        ],
+      },
+    ];
+
+    const features = [
+      { id: 99, kind: 'tree', xM: 40, zM: 40 },
+    ];
+
+    const ground = makeGroundWorldFixture({
+      cols,
+      rows,
+      heights,
+      biomeIds,
+      extentMetersX: cols * GROUND_METERS_PER_CELL,
+      extentMetersZ: rows * GROUND_METERS_PER_CELL,
+      buildings,
+      features,
+    });
+
+    // 2. Perform the extraction centered near player position
+    // Player is at (40, 40)
+    const playerX = 40;
+    const playerZ = 40;
+    const patch = extractLocalTerrainPatch(ground, playerX, playerZ, 'forest', 42);
+
+    expect(patch.dimensions).toEqual({ width: 40, height: 30 });
+    expect(patch.tiles.size).toBe(40 * 30);
+
+    // 3. Verify player center tile at (20, 15) maps to the player's position
+    const centerTile = patch.tiles.get('20-15');
+    expect(centerTile).toBeDefined();
+    expect(centerTile?.coordinates).toEqual({ x: 20, y: 15 });
+    
+    // Verify elevation maps correctly: realHeightM / 0.3
+    const expectedHeightM = groundSurfaceY(ground, playerX, playerZ);
+    expect(centerTile?.elevation).toBeCloseTo(expectedHeightM / 0.3, 4);
+
+    // 4. Verify feature mapping (tree feature is at (40, 40) which matches center tile (20, 15))
+    expect(centerTile?.decoration).toBe('tree');
+    expect(centerTile?.blocksMovement).toBe(true);
+    expect(centerTile?.blocksLoS).toBe(true);
+
+    // 5. Verify building and part mapping
+    // Building center is at (50, 50).
+    // dx = 50 - 40 = 10 meters, dz = 50 - 40 = 10 meters.
+    // Tile offset: tx = 20 + 10 / 1.524 = 26.56 -> tile 27.
+    // ty = 15 + 10 / 1.524 = 21.56 -> tile 22.
+    // Let's test a tile inside the building (e.g. tile 27, 22)
+    const buildingTile = patch.tiles.get('27-22');
+    expect(buildingTile).toBeDefined();
+    // It should be mapped to floor or wall
+    expect(['floor', 'wall']).toContain(buildingTile?.terrain);
   });
 });

@@ -299,7 +299,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You create a sword-shaped plane of force that hovers within range. It lasts for the duration. When the sword appears, you make a melee spell attack against a target of your choice within 5 feet of the sword. On a hit, the target takes 3d10 Force damage. Until the spell ends, you can use a bonus action on each of your turns to move the sword up to 20 feet to a spot you can see and repeat this attack against the same target or a different one.",
+      "description": "Create a hovering sword-shaped plane of force within range for up to 1 minute with concentration. When it appears, the caster makes a melee spell attack against a target within 5 feet of the sword, and on later turns can use a Bonus Action to move the sword up to 20 feet and repeat the attack against the same or a different target.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

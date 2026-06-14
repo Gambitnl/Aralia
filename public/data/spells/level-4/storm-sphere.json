@@ -151,7 +151,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "Each creature in the sphere when it appears makes a Strength save, taking no damage on a success.",
+      "description": "Each creature in the sphere when it appears makes a Strength save, taking 2d6 Bludgeoning damage on a failed save or no damage on a success.",
       "conditionalEndings": []
     },
     {
@@ -215,7 +215,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "A creature that ends its turn in the sphere makes a Strength save, taking no damage on a success.",
+      "description": "A creature that ends its turn in the sphere makes a Strength save, taking 2d6 Bludgeoning damage on a failed save or no damage on a success.",
       "conditionalEndings": []
     },
     {

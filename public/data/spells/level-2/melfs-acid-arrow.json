@@ -141,7 +141,7 @@
         "bonusPerLevel": "+1d4",
         "customFormula": ""
       },
-      "description": "Initial acid damage on a hit; on a miss, target takes half initial damage and no delayed damage.",
+      "description": "A ranged spell attack deals 4d4 Acid damage on a hit; on a miss, the target takes half of this initial Acid damage and no delayed damage.",
       "conditionalEndings": []
     },
     {
@@ -203,7 +203,7 @@
         "bonusPerLevel": "+1d4",
         "customFormula": ""
       },
-      "description": "Delayed acid damage at the end of the target's next turn (only on a hit).",
+      "description": "On a hit, the target takes 2d4 Acid damage at the end of its next turn.",
       "conditionalEndings": []
     }
   ],

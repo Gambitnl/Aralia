@@ -43,6 +43,10 @@ interface InWorldHUDProps {
   onOpenMap: () => void;
   /** Callback when "Exit to Menu" is clicked — returns to main menu. */
   onExitToMenu: () => void;
+  /** Whether we are currently in Ground/Village mode (vs Continent mode). */
+  isGroundMode?: boolean;
+  /** Callback to toggle between Ground and Continent views. */
+  onToggleGroundMode?: () => void;
 }
 
 const InWorldHUD: React.FC<InWorldHUDProps> = ({
@@ -55,6 +59,8 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
   streamerStats,
   onOpenMap,
   onExitToMenu,
+  isGroundMode = false,
+  onToggleGroundMode,
 }) => {
   return (
     <div
@@ -89,15 +95,48 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
         <HUDControlPanel onOpenMap={onOpenMap} onExitToMenu={onExitToMenu} />
       </div>
 
-      {/* Bottom right: view mode toggle */}
+      {/* Bottom right: Enter Village / Ascend toggle + View Mode toggle */}
       <div
         style={{
           position: 'absolute',
           bottom: '12px',
           right: '12px',
+          display: 'flex',
+          gap: '8px',
+          alignItems: 'center',
           pointerEvents: 'auto',
         }}
       >
+        {onToggleGroundMode && (
+          <button
+            type="button"
+            data-testid="hud-toggle-ground-mode"
+            onClick={onToggleGroundMode}
+            style={{
+              padding: '6px 12px',
+              fontSize: '12px',
+              fontFamily: 'Outfit, sans-serif',
+              fontWeight: 600,
+              color: 'var(--text-primary, #e8e8e8)',
+              backgroundColor: 'var(--bg-surface-alt, #1e2e3e)',
+              border: '1px solid var(--border-color, #3a4a5a)',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--bg-active, #3a5a7a)';
+              e.currentTarget.style.borderColor = 'var(--text-secondary, #8a9aaa)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--bg-surface-alt, #1e2e3e)';
+              e.currentTarget.style.borderColor = 'var(--border-color, #3a4a5a)';
+            }}
+          >
+            {isGroundMode ? 'Ascend to Continent' : 'Enter Village'}
+          </button>
+        )}
         <ViewModeToggle onOpenMap={onOpenMap} />
       </div>
 

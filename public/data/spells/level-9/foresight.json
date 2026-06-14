@@ -138,7 +138,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "You touch a willing creature and bestow a limited ability to see into the immediate future. For the duration, the target has Advantage on D20 Tests , and other creatures have Disadvantage on attack rolls against it. The spell ends early if you cast it again.",
+      "description": "Touch a willing creature and give it limited future sight for 8 hours. The target gains broad D20-test advantage, attacks more accurately, is harder to hit, and the spell ends early if the caster casts it again.",
       "utilityType": "other",
       "grantedActions": [],
       "attackAugments": [],

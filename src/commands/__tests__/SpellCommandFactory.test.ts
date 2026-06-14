@@ -3,7 +3,8 @@ import { SpellCommandFactory } from '../factory/SpellCommandFactory'
 import { DamageCommand } from '../effects/DamageCommand'
 import { DamageEffect, Spell, SpellSchool } from '@/types/spells'
 import type { CombatCharacter, SelectedSpellTarget } from '@/types/combat'
-import { createMockGameState } from '@/utils/factories'
+import { combatEvents } from '@/systems/events/CombatEvents'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
 
 /**
  * This file protects command creation for structured spell effects.
@@ -60,6 +61,66 @@ describe('SpellCommandFactory', () => {
 
       expect(commands).toHaveLength(1)
       expect(commands[0]).toBeInstanceOf(DamageCommand)
+    })
+
+    it('emits structured spell attack hit events when hit-conditioned spell damage resolves', async () => {
+      // Armor-style reactive effects need the same machine-readable attack
+      // facts for spell attacks that weapon attacks already publish. This
+      // proves the full factory-created command path instead of testing the
+      // event bus in isolation.
+      combatEvents.clearForTest()
+
+      try {
+        const caster = createMockCombatCharacter({
+          id: 'spell-caster',
+          name: 'Spell Caster'
+        })
+        const target = createMockCombatCharacter({
+          id: 'spell-target',
+          name: 'Spell Target',
+          currentHP: 20,
+          maxHP: 20
+        })
+        const spellAttack = createMockSpell('chromatic-orb-event-test', {
+          attackType: 'ranged',
+          effects: [{
+            type: 'DAMAGE',
+            damage: { dice: '1d8', type: 'Fire' },
+            trigger: { type: 'immediate' },
+            condition: { type: 'hit' }
+          }]
+        })
+
+        const commands = await SpellCommandFactory.createCommands(
+          spellAttack,
+          caster,
+          [target],
+          1,
+          createMockGameState()
+        )
+
+        let currentState = createMockCombatState({
+          characters: [caster, target],
+          combatLog: []
+        })
+        for (const command of commands) {
+          currentState = await command.execute(currentState)
+        }
+
+        expect(combatEvents.getDispatchLog()).toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            type: 'unit_attack',
+            attackerId: caster.id,
+            targetId: target.id,
+            isHit: true,
+            isCrit: false,
+            attackType: 'spell',
+            weaponType: 'ranged'
+          })
+        ]))
+      } finally {
+        combatEvents.clearForTest()
+      }
     })
 
     it('should apply slot level scaling for Damage', async () => {

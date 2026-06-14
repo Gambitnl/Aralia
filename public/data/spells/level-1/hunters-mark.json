@@ -143,7 +143,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a hit against the marked target, the spell adds 1d6 Force damage as the modeled tracking damage rider.",
+      "description": "When the caster hits the marked target with a weapon attack, the spell adds 1d6 Force damage.",
       "conditionalEndings": [],
       "tags": [
         "force-rider",
@@ -202,7 +202,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "information",
-      "description": "You have advantage on any Wisdom (Perception) or Wisdom (Survival) check you make to find the target.",
+      "description": "The caster has Advantage on Wisdom (Perception or Survival) checks to find the marked target, and if it drops to 0 Hit Points before the spell ends, the caster can use a Bonus Action to move the mark to a new visible creature within range.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

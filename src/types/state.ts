@@ -133,6 +133,15 @@ export interface ShortRestTracker {
 /** View mode within PLAYING phase: 'atlas' (2D map) or '3d' (3D world). */
 export type WorldViewMode = 'atlas' | '3d';
 
+/**
+ * Which 2D cartographic surface backs the exploration view:
+ * - 'classic'    — the legacy GameLayout (MapPane iframe + Submap).
+ * - 'worldforge' — the native ported-FMG Worldforge cartographer
+ *                  (L0 atlas → L1 region → L2 local zoom chain).
+ * Independent of WorldViewMode (3D vs 2D). Defaults to 'classic'.
+ */
+export type MapSurface = 'classic' | 'worldforge';
+
 /** 3D world position in world meters. Used as game-state anchor for transition and marker sync. */
 export interface PlayerWorldPosition {
   x: number;  // world meters (X axis)
@@ -204,6 +213,11 @@ export interface GameState {
   encounterError: string | null;
 
   currentEnemies: import('./combat.js').CombatCharacter[] | null;
+  /**
+   * Pre-extracted 3D battle map data to override procedural generation.
+   * Captured from ground mode terrain centered around player-hostile collision.
+   */
+  extractedBattleMap?: import('./combat.js').BattleMapData | null;
 
   saveVersion?: string;
   saveTimestamp?: number;
@@ -343,6 +357,8 @@ export interface GameState {
   // 3D World Transition (world-3d-ui)
   /** Current view mode within PLAYING phase. Defaults to 'atlas'. */
   worldViewMode: WorldViewMode;
+  /** Which 2D cartographic surface backs exploration. Defaults to 'classic'. */
+  mapSurface: MapSurface;
   /** Player's 3D world position (null when not in 3D mode). */
   playerWorldPos: PlayerWorldPosition | null;
   /** Player's ground-mode camera anchor in tile-local meters, or null when unset. */

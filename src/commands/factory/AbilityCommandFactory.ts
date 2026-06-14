@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 08:08:04
+ * Last Sync: 13/06/2026, 10:33:22
  * Dependents: commands/index.ts
- * Imports: 15 files
+ * Imports: 16 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -47,6 +47,7 @@ import { VisibilitySystem } from '@/systems/visibility';
 import { DismissFamiliarToPocketCommand, RecallFamiliarFromPocketCommand } from '../effects/FamiliarPocketCommands';
 import { FamiliarSharedSensesCommand } from '../effects/FamiliarSharedSensesCommand';
 import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidationUtils';
+import { combatEvents } from '@/systems/events/CombatEvents';
 
 /**
  * Command for executing a weapon attack.
@@ -291,6 +292,23 @@ export class WeaponAttackCommand implements SpellCommand {
       // Resolve Attack
       const { isHit, isCritical, isAutoMiss } = resolveAttack(d20, modifiers, targetAC);
       const attackRoll = d20 + modifiers;
+
+      // Publish the structured attack result at the same point the command
+      // knows the real hit/miss outcome. Reactive systems and future action
+      // envelope bridges should consume this event instead of scraping prose
+      // combat-log messages for whether the target was actually hit.
+      combatEvents.emit({
+        type: 'unit_attack',
+        attackerId: this.caster.id,
+        targetId: currentTarget.id,
+        isHit,
+        isCrit: isCritical,
+        // Preserve the same weapon/spell and melee/ranged classification used
+        // by rider matching so event-driven reactive spells can enforce their
+        // attack filters without duplicating ability inspection elsewhere.
+        attackType: this.ability.type === 'attack' ? 'weapon' : 'spell',
+        weaponType: (this.ability.range || 5) <= 5 ? 'melee' : 'ranged'
+      });
 
       // Log Attack Roll
       newState.combatLog.push({

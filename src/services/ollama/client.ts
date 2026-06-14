@@ -141,7 +141,12 @@ export class OllamaClient {
     async isAvailable(): Promise<boolean> {
         if (typeof window === 'undefined') return false;
         const models = await this.listModels();
-        return models !== null;
+        // The dev proxy returns an empty list when Ollama is not running so the
+        // startup heartbeat can fail as a normal optional-dependency state
+        // instead of a browser-visible 500. A reachable server with no usable
+        // models should still open the setup modal, so availability requires at
+        // least one installed model.
+        return models !== null && models.length > 0;
     }
 
     /**

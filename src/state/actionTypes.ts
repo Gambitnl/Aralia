@@ -29,7 +29,7 @@
  * 
  * @file src/state/actionTypes.ts
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices, PlayerWorldPosition, PlayerGroundPosition, WorldViewMode, WorldHistory } from '../types/index.js';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices, PlayerWorldPosition, PlayerGroundPosition, WorldViewMode, MapSurface, WorldHistory } from '../types/index.js';
 import { RitualState } from '../types/rituals.js';
 // TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
@@ -336,4 +336,5 @@ export type AppAction =
   // 3D World Transition (world-3d-ui)
   | { type: 'SET_PLAYER_WORLD_POS'; payload: PlayerWorldPosition }
   | { type: 'CLEAR_PLAYER_WORLD_POS' }
-  | { type: 'SET_WORLD_VIEW_MODE'; payload: WorldViewMode };
+  | { type: 'SET_WORLD_VIEW_MODE'; payload: WorldViewMode }
+  | { type: 'SET_MAP_SURFACE'; payload: MapSurface };

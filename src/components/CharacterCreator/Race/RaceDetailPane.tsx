@@ -659,7 +659,7 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
                                 <h4 className="text-sm font-semibold text-slate-300">Specialized Design - Choose a Skill</h4>
                                 <p className="text-xs text-gray-400 mt-1">You gain one skill proficiency of your choice.</p>
                             </div>
-                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto custom-scrollbar">
+                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 {Object.values(SKILLS_DATA).sort((a, b) => a.name.localeCompare(b.name)).map((skill) => {
                                     const isSelected = racialSkillChoices.includes(skill.id);
                                     return (
@@ -688,7 +688,7 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
                                 <h4 className="text-sm font-semibold text-rose-300">Skill Versatility - Choose Two Skills</h4>
                                 <p className="text-xs text-gray-400 mt-1">You gain proficiency in two skills of your choice.</p>
                             </div>
-                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto custom-scrollbar">
+                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 {Object.values(SKILLS_DATA).sort((a, b) => a.name.localeCompare(b.name)).map((skill) => {
                                     const isSelected = racialSkillChoices.includes(skill.id);
                                     const isMaxed = racialSkillChoices.length >= 2;
@@ -731,7 +731,7 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
                                         : 'You gain proficiency with one type of artisan\'s tools of your choice.'}
                                 </p>
                             </div>
-                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto custom-scrollbar">
+                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 {([
                                     { id: 'alchemists_supplies', name: 'Alchemist\'s Supplies' },
                                     { id: 'brewers_supplies', name: 'Brewer\'s Supplies' },
@@ -826,7 +826,7 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
                                 <h4 className="text-sm font-semibold text-slate-300">Specialized Design - Choose a Tool</h4>
                                 <p className="text-xs text-gray-400 mt-1">You gain one tool proficiency of your choice.</p>
                             </div>
-                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto custom-scrollbar">
+                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 {([
                                     { id: 'alchemists_supplies', name: 'Alchemist\'s Supplies' },
                                     { id: 'brewers_supplies', name: 'Brewer\'s Supplies' },
@@ -883,7 +883,7 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
                                         : 'Pick one cantrip from the Wizard spell list.'}
                                 </p>
                             </div>
-                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto custom-scrollbar">
+                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 {(race.id === 'astral_elf' 
                                     ? [
                                         { id: 'dancing-lights', name: 'Dancing Lights' },

@@ -53,6 +53,8 @@ export interface WorldBusiness extends Omit<BusinessState, 'strongholdId'> {
     ownerId: string;
     ownerType: 'npc' | 'player';
     strongholdId?: string;
+    burgId?: number;
+    plotId?: number;
     npcOwnerProfile?: NpcBusinessProfile;
     daysSinceManaged: number;
     managerId?: string;

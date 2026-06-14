@@ -164,7 +164,7 @@
         "dice": "10d4",
         "type": "Acid"
       },
-      "description": "You point at a location within range, and a glowing, 1-foot-diameter ball of acid streaks there and explodes in a 20-foot-radius Sphere. Each creature in that area makes a Dexterity saving throw. On a failed save, a creature takes 10d4 Acid damage and another 5d4 Acid damage at the end of its next turn. On a successful save, a creature takes half the initial damage only.",
+      "description": "Each creature in the 20-foot-radius acid explosion makes a Dexterity save, taking 10d4 Acid damage on a failed save or half as much on a success.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+2d4",
@@ -226,7 +226,7 @@
         "dice": "5d4",
         "type": "Acid"
       },
-      "description": "A creature that failed the initial Dexterity save takes another 5d4 Acid damage at the end of its next turn.",
+      "description": "A creature that failed the initial Dexterity save takes 5d4 Acid damage at the end of its next turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

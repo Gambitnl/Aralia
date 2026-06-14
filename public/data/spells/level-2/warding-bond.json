@@ -183,7 +183,7 @@
         "noShield": false,
         "targetSelf": false
       },
-      "description": "Applies one 60-minute defensive bond effect to the target.",
+      "description": "The willing touched target gains a +1 bonus to AC for 1 hour while the Warding Bond link persists.",
       "conditionalEndings": []
     },
     {
@@ -290,7 +290,7 @@
         "noShield": false,
         "targetSelf": false
       },
-      "description": "Applies the second 60-minute defensive bond effect to the target.",
+      "description": "The willing touched target has Resistance to all damage for 1 hour while it remains within 60 feet of the caster.",
       "conditionalEndings": []
     },
     {

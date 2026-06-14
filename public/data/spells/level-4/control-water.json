@@ -141,7 +141,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Controls water in a 100-foot cube through one active option at a time: Flood, Part Water, Redirect Flow, or Whirlpool; later Magic actions repeat or replace the chosen option.",
+      "description": "Control water in a 100-foot cube for up to 10 minutes with concentration. Choose one active mode at a time: Flood, Part Water, Redirect Flow, or Whirlpool. Later Magic actions can repeat the current mode or switch to a different mode.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

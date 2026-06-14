@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 13/06/2026, 11:08:05
+ * Dependents: None (Orphan)
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import { Spell } from '../../../types/spells';
 
@@ -28,6 +43,91 @@ import { Spell } from '../../../types/spells';
 
 export class SpellIntegrityValidator {
   /**
+   * Returns classified restricted-filter mismatches with the explanation needed
+   * by future audit, validation, and UI/debug surfaces.
+   *
+   * Each detail names the exact spell/effect/filter row, groups it into a
+   * semantic family, and explains why copying the spell-level target filter
+   * would be misleading until a more specific model exists. Keeping this in the
+   * validator makes the executable rule and the human-facing reason share one
+   * source of truth.
+   */
+  static getClassifiedRestrictedFilterMismatchDetails(): Array<{ key: string; category: string; reason: string }> {
+    return [
+      {
+        key: 'plant-growth:0:creatureTypes',
+        category: 'plant/terrain target semantics',
+        reason: 'Plant Growth mixes normal vegetation, plant creatures, and terrain conversion, so the Plant filter needs a plant-target model before it can be copied onto this effect.'
+      },
+      {
+        key: 'plant-growth:1:creatureTypes',
+        category: 'plant/terrain target semantics',
+        reason: 'Plant Growth mixes normal vegetation, plant creatures, and terrain conversion, so the Plant filter needs a plant-target model before it can be copied onto this effect.'
+      },
+      {
+        key: 'speak-with-plants:0:creatureTypes',
+        category: 'plant/terrain target semantics',
+        reason: 'Speak with Plants can affect ordinary plants and plant creatures, so the Plant filter needs a plant-target model before it can be treated as a direct creature target filter.'
+      },
+      {
+        key: 'awaken:1:creatureTypes',
+        category: 'mixed creature/object transformation',
+        reason: 'Awaken can target Beast or Plant creatures and natural plants that are not creatures, so a creature-only effect filter would hide the non-creature plant path until object/plant eligibility is modeled.'
+      },
+      {
+        key: 'simulacrum:1:creatureTypes',
+        category: 'created-creature repair target',
+        reason: 'The Simulacrum repair row acts on the created simulacrum later, not on the original Beast or Humanoid creature used for creation.'
+      },
+      {
+        key: 'antipathy-sympathy:0:sizes',
+        category: 'chosen-kind aura',
+        reason: 'The Huge-or-smaller gate describes the target or source object/creature, while this aura effect applies to creatures of a chosen kind approaching that source.'
+      },
+      {
+        key: 'antipathy-sympathy:1:sizes',
+        category: 'chosen-kind aura',
+        reason: 'The Huge-or-smaller gate describes the target or source object/creature, while this aura effect applies to creatures of a chosen kind approaching that source.'
+      },
+      {
+        key: 'antipathy-sympathy:2:sizes',
+        category: 'chosen-kind aura',
+        reason: 'The Huge-or-smaller gate describes the target or source object/creature, while this aura effect applies to creatures of a chosen kind approaching that source.'
+      },
+      {
+        key: 'antipathy-sympathy:3:sizes',
+        category: 'chosen-kind aura',
+        reason: 'The Huge-or-smaller gate describes the target or source object/creature, while this aura effect applies to creatures of a chosen kind approaching that source.'
+      },
+      {
+        key: 'tsunami:0:sizes',
+        category: 'ongoing wave-size semantics',
+        reason: 'Tsunami size text applies to ongoing wall movement damage, not the initial wall appearance or utility rows. Effect 2 is handled by concrete size normalization instead.'
+      },
+      {
+        key: 'tsunami:1:sizes',
+        category: 'ongoing wave-size semantics',
+        reason: 'Tsunami size text applies to ongoing wall movement damage, not the initial wall appearance or utility rows. Effect 2 is handled by concrete size normalization instead.'
+      },
+      {
+        key: 'tsunami:3:sizes',
+        category: 'ongoing wave-size semantics',
+        reason: 'Tsunami size text applies to ongoing wall movement damage, not the movement row itself. Effect 2 is handled by concrete size normalization instead.'
+      },
+      {
+        key: 'shapechange:0:excludeCreatureTypes',
+        category: 'form-choice eligibility',
+        reason: 'Shapechange excludes Construct and Undead as chosen form options, not as caster targets, so this needs a form-choice eligibility model before the exclusion is copied onto the effect target.'
+      },
+      {
+        key: 'shapechange:1:excludeCreatureTypes',
+        category: 'form-choice eligibility',
+        reason: 'Shapechange excludes Construct and Undead as chosen form options, not as caster targets, so this needs a form-choice eligibility model before the exclusion is copied onto the effect target.'
+      }
+    ];
+  }
+
+  /**
    * Returns the restricted-filter mismatches that are known semantic exceptions,
    * not direct data omissions.
    *
@@ -38,23 +138,9 @@ export class SpellIntegrityValidator {
    * use this list so spell JSON validation and tests do not drift apart.
    */
   static getClassifiedRestrictedFilterMismatchKeys(): string[] {
-    return [
-      'plant-growth:0:creatureTypes',
-      'plant-growth:1:creatureTypes',
-      'speak-with-plants:0:creatureTypes',
-      'awaken:1:creatureTypes',
-      'simulacrum:1:creatureTypes',
-      'antipathy-sympathy:0:sizes',
-      'antipathy-sympathy:1:sizes',
-      'antipathy-sympathy:2:sizes',
-      'antipathy-sympathy:3:sizes',
-      'tsunami:0:sizes',
-      'tsunami:1:sizes',
-      'tsunami:2:sizes',
-      'tsunami:3:sizes',
-      'shapechange:0:excludeCreatureTypes',
-      'shapechange:1:excludeCreatureTypes'
-    ];
+    return SpellIntegrityValidator
+      .getClassifiedRestrictedFilterMismatchDetails()
+      .map(detail => detail.key);
   }
 
   /**
@@ -236,6 +322,8 @@ export class SpellIntegrityValidator {
       'row\'s special duration',
       'current row preserves',
       'current row records',
+      'preserved from the current row',
+      'current data keeps',
       'current terrain scaffold',
       'current escape-check metadata',
       'always-on damage scaffold',
@@ -246,6 +334,8 @@ export class SpellIntegrityValidator {
     ];
 
     const effects = Array.isArray(spell.effects) ? spell.effects : [];
+    const longDescriptionOwners = new Map<string, number>();
+    const normalizedSpellDescription = (spell.description || '').replace(/[\s\W_]+/g, '').toLowerCase();
 
     effects.forEach((effect, index) => {
       const effectDescription = (effect.description || '').trim();
@@ -268,6 +358,35 @@ export class SpellIntegrityValidator {
 
       if (scaffoldPhrase) {
         errors.push(`Effect Description Internal Scaffold: effect ${index} uses importer-facing wording "${scaffoldPhrase}"`);
+      }
+
+      // A long description repeated across multiple effect rows usually means
+      // the whole spell or mode menu was pasted into each row. That makes UI
+      // rows and runtime logs unable to explain which specific effect fired.
+      if (effectDescription.length >= 160) {
+        const normalizedLongDescription = effectDescription.replace(/[\s\W_]+/g, '').toLowerCase();
+        const firstEffectIndex = longDescriptionOwners.get(normalizedLongDescription);
+
+        if (firstEffectIndex !== undefined) {
+          errors.push(`Effect Description Duplicate: effects ${firstEffectIndex} and ${index} share the same long description`);
+        } else {
+          longDescriptionOwners.set(normalizedLongDescription, index);
+        }
+
+        // Damage rows should explain their own dice/save/trigger payload rather
+        // than repeat the whole spell prose. Non-damage utility rows can still
+        // be broad narrative scaffolds until their mechanics are split later.
+        if (
+          effect.type === 'DAMAGE' &&
+          normalizedSpellDescription &&
+          (
+            normalizedLongDescription === normalizedSpellDescription ||
+            normalizedSpellDescription.includes(normalizedLongDescription) ||
+            normalizedLongDescription.includes(normalizedSpellDescription)
+          )
+        ) {
+          errors.push(`Effect Description Copied Spell Prose: damage effect ${index} duplicates the top-level spell description`);
+        }
       }
     });
 
@@ -292,15 +411,33 @@ export class SpellIntegrityValidator {
       SpellIntegrityValidator.getClassifiedRestrictedFilterMismatchKeys()
     );
 
-    const normalizeFilterValues = (value: unknown): string[] => (
-      Array.isArray(value)
-        ? value.filter(item => item !== 'not_applicable').map(String).sort()
-        : []
-    );
+    const normalizeFilterValues = (value: unknown, key?: RestrictedFilterKey): string[] => {
+      if (!Array.isArray(value)) {
+        return [];
+      }
 
-    const sameFilterValues = (left: unknown, right: unknown): boolean => {
-      const normalizedLeft = normalizeFilterValues(left);
-      const normalizedRight = normalizeFilterValues(right);
+      // The spell data sometimes records "Huge or smaller" as explanatory
+      // source text while the effect payload stores the actual creature sizes.
+      // Treat those as the same filter for validation so rows like Tsunami's
+      // ongoing wave damage do not need a permanent semantic exception.
+      const expandedValues = value.flatMap(item => {
+        if (
+          key === 'sizes'
+          && typeof item === 'string'
+          && item.toLowerCase().startsWith('huge or smaller')
+        ) {
+          return ['Huge', 'Large', 'Medium', 'Small', 'Tiny'];
+        }
+
+        return item;
+      });
+
+      return expandedValues.filter(item => item !== 'not_applicable').map(String).sort();
+    };
+
+    const sameFilterValues = (left: unknown, right: unknown, key?: RestrictedFilterKey): boolean => {
+      const normalizedLeft = normalizeFilterValues(left, key);
+      const normalizedRight = normalizeFilterValues(right, key);
 
       return normalizedLeft.length === normalizedRight.length
         && normalizedLeft.every((value, index) => value === normalizedRight[index]);
@@ -324,7 +461,7 @@ export class SpellIntegrityValidator {
 
           if (
             !classifiedRestrictedFilterMismatches.has(mismatchKey)
-            && !sameFilterValues(spellFilter?.[key], effectFilter[key])
+            && !sameFilterValues(spellFilter?.[key], effectFilter[key], key)
           ) {
             errors.push(`Effect Target Filter Gap: effect ${index} does not repeat spell-level ${key} restriction`);
           }

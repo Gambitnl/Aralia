@@ -33,7 +33,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import FreeRoamCameraController from './FreeRoamCameraController';
 import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
@@ -171,90 +171,123 @@ const ROOFLESS =
   typeof window !== 'undefined' &&
   new URLSearchParams(window.location.search).get('wf_roofless') === '1';
 
+/**
+ * One footprint-true building (Worldforge town plan): rotated walls/parts +
+ * hip roof + door/windows. The roof AUTO-HIDES when the camera moves inside
+ * the building so the player can look around an interior without the
+ * clip-through-the-wall hack — converting the camera into the group's local
+ * frame each frame makes the inside-test rotation-correct.
+ */
+const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> = ({ site: s }) => {
+  const groupRef = useRef<THREE.Group>(null);
+  const roofRef = useRef<THREE.Mesh>(null);
+  const localCam = useRef(new THREE.Vector3());
+
+  useFrame(({ camera }) => {
+    const roof = roofRef.current;
+    const group = groupRef.current;
+    if (!roof || !group) return;
+    if (ROOFLESS && s.parts) {
+      roof.visible = false;
+      return;
+    }
+    // Camera in the building's local frame (origin at the wall base center).
+    localCam.current.copy(camera.position);
+    group.worldToLocal(localCam.current);
+    const halfW = ((s.wallWidthM ?? s.boxWidth ?? 0) / 2) + 0.5;
+    const halfD = ((s.wallDepthM ?? s.boxDepth ?? 0) / 2) + 0.5;
+    const inside =
+      !!s.parts &&
+      Math.abs(localCam.current.x) <= halfW &&
+      Math.abs(localCam.current.z) <= halfD &&
+      localCam.current.y <= (s.boxHeight ?? 0) + 1.0;
+    roof.visible = !inside;
+  });
+
+  const roof = roofFootprint(s);
+  const rHeight = roofHeight(roof.width, roof.depth);
+
+  return (
+    <group ref={groupRef} position={[s.localX, s.surfaceY, s.localZ]} rotation={[0, s.rotationY ?? 0, 0]}>
+      {s.parts ? (
+        // Seamless interior (Worldforge L4): perimeter + room walls with real
+        // door gaps, plus furnishing blocks. Parts use +z = inward-from-street;
+        // doorZSign maps that onto whichever face the street actually is.
+        s.parts.map((p, i) => (
+          <mesh
+            key={`part-${i}`}
+            position={[p.x, (p.baseY ?? 0) + p.h * 0.5, p.z * -(s.doorZSign ?? -1)]}
+            castShadow={SHADOWS}
+          >
+            <boxGeometry args={[p.w, p.h, p.d]} />
+            <meshStandardMaterial color={p.colorHex} />
+          </mesh>
+        ))
+      ) : (
+        <mesh position={[0, (s.boxHeight ?? 0) * 0.5, 0]} castShadow={SHADOWS}>
+          <boxGeometry args={[s.boxWidth, s.boxHeight, s.boxDepth]} />
+          <meshStandardMaterial color={s.colorHex ?? '#b09a72'} />
+        </mesh>
+      )}
+      {/* Hip roof: a 4-segment cone is a pyramid whose base square is
+          45°-rotated, so the extra π/4 yaw realigns its edges with the walls.
+          visible is driven per-frame by the camera-inside test above. */}
+      <mesh
+        ref={roofRef}
+        position={[0, (s.boxHeight ?? 0) + rHeight * 0.5, 0]}
+        rotation={[0, Math.PI / 4, 0]}
+        scale={[roof.width, rHeight, roof.depth]}
+        castShadow={SHADOWS}
+      >
+        <coneGeometry args={[Math.SQRT1_2, 1, 4]} />
+        <meshStandardMaterial color="#7a4a32" flatShading side={THREE.DoubleSide} />
+      </mesh>
+      {/* Door slab + windows only dress the SOLID shell; with interior parts
+          the entry gap in the perimeter wall is the door. */}
+      {!s.parts && (
+        <mesh
+          position={[0, Math.min(2.2, (s.boxHeight ?? 0) * 0.8) / 2, (s.doorZSign ?? -1) * (s.boxDepth ?? 0) * 0.5]}
+        >
+          <boxGeometry args={[1.3, Math.min(2.2, (s.boxHeight ?? 0) * 0.8), 0.4]} />
+          <meshStandardMaterial color="#4a3220" />
+        </mesh>
+      )}
+      {!s.parts &&
+        (s.boxWidth ?? 0) >= 5 &&
+        ([-1, 1] as const).flatMap((sideX) =>
+          ([-1, 1] as const).map((sideZ) => (
+            <mesh
+              key={`w${sideX}${sideZ}`}
+              position={[sideX * s.boxWidth! * 0.27, 1.6, sideZ * s.boxDepth! * 0.5]}
+            >
+              <boxGeometry args={[0.9, 1.0, 0.3]} />
+              <meshStandardMaterial color="#2f3a4d" />
+            </mesh>
+          )),
+        )}
+    </group>
+  );
+};
+
 const SitePieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
   return (
     <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
       {chunk.bundle.sites.map((s) =>
         s.markerOnly ? null : s.boxWidth && s.boxDepth && s.boxHeight ? (
-          // Footprint-true building (Worldforge town plans): rotated box
-          // sized by the plot's actual edges, walls warm plaster-and-timber
-          <group
-            key={`${chunk.cx}|${chunk.cy}|${s.id}`}
-            position={[s.localX, s.surfaceY, s.localZ]}
-            rotation={[0, s.rotationY ?? 0, 0]}
-          >
-            {s.parts ? (
-              // Seamless interior (Worldforge L4): perimeter + room walls
-              // with real door gaps, plus furnishing blocks — the camera can
-              // enter. Parts use +z = inward-from-street; doorZSign maps
-              // that onto whichever face of this rotated group the street
-              // actually is (plots wind oppositely across a street).
-              s.parts.map((p, i) => (
-                <mesh
-                  key={`part-${i}`}
-                  position={[p.x, p.h * 0.5, p.z * -(s.doorZSign ?? -1)]}
-                  castShadow={SHADOWS}
-                >
-                  <boxGeometry args={[p.w, p.h, p.d]} />
-                  <meshStandardMaterial color={p.colorHex} />
-                </mesh>
-              ))
-            ) : (
-              <mesh position={[0, s.boxHeight * 0.5, 0]} castShadow={SHADOWS}>
-                <boxGeometry args={[s.boxWidth, s.boxHeight, s.boxDepth]} />
-                <meshStandardMaterial color={s.colorHex ?? '#b09a72'} />
-              </mesh>
-            )}
-            {/* Hip roof: a 4-segment cone is a pyramid whose base square is
-                45°-rotated, so the extra π/4 yaw realigns its edges with the
-                walls; 1.08 base scale gives a small eave overhang. Hidden on
-                interior-bearing buildings when ?wf_roofless=1 (debug). */}
-            {!(ROOFLESS && s.parts) && (
-              (() => {
-                const roof = roofFootprint(s);
-                const height = roofHeight(roof.width, roof.depth);
-
-                return (
-                  <mesh
-                    position={[0, s.boxHeight + height * 0.5, 0]}
-                    rotation={[0, Math.PI / 4, 0]}
-                    scale={[roof.width, height, roof.depth]}
-                    castShadow={SHADOWS}
-                  >
-                    <coneGeometry args={[Math.SQRT1_2, 1, 4]} />
-                    <meshStandardMaterial color="#7a4a32" flatShading side={THREE.DoubleSide} />
-                  </mesh>
-                );
-              })()
-            )}
-            {/* Door slab + windows only dress the SOLID shell; with interior
-                parts the entry gap in the perimeter wall is the door. */}
-            {!s.parts && (
-              <mesh
-                position={[0, Math.min(2.2, s.boxHeight * 0.8) / 2, (s.doorZSign ?? -1) * s.boxDepth * 0.5]}
-              >
-                <boxGeometry args={[1.3, Math.min(2.2, s.boxHeight * 0.8), 0.4]} />
-                <meshStandardMaterial color="#4a3220" />
-              </mesh>
-            )}
-            {!s.parts &&
-              s.boxWidth >= 5 &&
-              ([-1, 1] as const).flatMap((sideX) =>
-                ([-1, 1] as const).map((sideZ) => (
-                  <mesh
-                    key={`w${sideX}${sideZ}`}
-                    position={[sideX * s.boxWidth! * 0.27, 1.6, sideZ * s.boxDepth! * 0.5]}
-                  >
-                    <boxGeometry args={[0.9, 1.0, 0.3]} />
-                    <meshStandardMaterial color="#2f3a4d" />
-                  </mesh>
-                )),
-              )}
-          </group>
+          <SiteBuilding key={`${chunk.cx}|${chunk.cy}|${s.id}`} site={s} />
         ) : (
+          // Renders a simple primitive cube for legacy sites that don't have detailed
+          // oriented-box footprints or enterable parts.
           <mesh key={`${chunk.cx}|${chunk.cy}|${s.id}`} position={[s.localX, s.surfaceY + s.radius * 0.5, s.localZ]} castShadow={SHADOWS}>
             <boxGeometry args={[s.radius, s.radius, s.radius]} />
-            <meshStandardMaterial color={s.kind === 'town' ? '#caa46a' : s.kind === 'dungeon' ? '#555555' : '#888888'} />
+            {/* 
+              Choose the mesh color based on the site kind:
+              - Town: Goldish sand color (#caa46a)
+              - Dungeon: Dark stone grey (#555555)
+              - Monster: High-contrast red (#d9534f) to highlight hostiles in ground mode
+              - Other: Neutral light grey (#888888)
+            */}
+            <meshStandardMaterial color={s.kind === 'town' ? '#caa46a' : s.kind === 'dungeon' ? '#555555' : s.kind === 'monster' ? '#d9534f' : '#888888'} />
           </mesh>
         ),
       )}

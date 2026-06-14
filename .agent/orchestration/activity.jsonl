@@ -56,3 +56,16 @@
 {"at":1781305556400,"kind":"spawn","id":"as-mqbjc3sk-1c89f1","agent":"qoder","title":"tree variety v2"}
 {"at":1781305573918,"kind":"exit","id":"as-mqbjc3hu-e868e3","agent":"gemini","title":"streets visibility v2","status":"exited","exitCode":1,"runtimeMs":18028}
 {"at":1781305831309,"kind":"exit","id":"as-mqbjc3sk-1c89f1","agent":"qoder","title":"tree variety v2","status":"exited","exitCode":1,"runtimeMs":275033}
+{"at":1781349901654,"kind":"spawn","id":"probe-codex-mqc9qkwl","agent":"codex","title":"usage probe · codex","external":true}
+{"at":1781349911441,"kind":"exit","id":"probe-codex-mqc9qkwl","agent":"codex","title":"usage probe · codex","status":"exited","exitCode":0,"runtimeMs":9787,"external":true}
+{"at":1781350044323,"kind":"spawn","id":"as-mqc9tlx2-394683","agent":"shell","title":"expand test"}
+{"at":1781350053131,"kind":"exit","id":"as-mqc9tlx2-394683","agent":"shell","title":"expand test","status":"exited","exitCode":0,"runtimeMs":10197}
+{"at":1781350091178,"kind":"spawn","id":"as-mqc9umu8-7db437","agent":"shell","title":"expand demo"}
+{"at":1781350111510,"kind":"exit","id":"as-mqc9umu8-7db437","agent":"shell","title":"expand demo","status":"exited","exitCode":0,"runtimeMs":20726}
+{"at":1781351424696,"kind":"spawn","id":"as-mqcan7xq-1aac07","agent":"shell","title":"btn test"}
+{"at":1781351436980,"kind":"exit","id":"as-mqcan7xq-1aac07","agent":"shell","title":"btn test","status":"exited","exitCode":0,"runtimeMs":12486}
+{"at":1781351466314,"kind":"spawn","id":"as-mqcao3q8-6932c3","agent":"shell","title":"render alpha"}
+{"at":1781351466687,"kind":"spawn","id":"as-mqcao47q-325996","agent":"shell","title":"render beta"}
+{"at":1781351488720,"kind":"exit","id":"as-mqcao3q8-6932c3","agent":"shell","title":"render alpha","status":"killed","exitCode":-1073741510,"runtimeMs":23023}
+{"at":1781351490846,"kind":"exit","id":"as-mqcao47q-325996","agent":"shell","title":"render beta","status":"killed","exitCode":-1073741510,"runtimeMs":24520}
+{"at":1781355557954,"kind":"spawn","id":"as-mqcd3soi-a41e27","agent":"claude","title":"Claude Desktop · terminal"}

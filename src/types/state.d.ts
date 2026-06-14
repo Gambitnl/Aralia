@@ -145,6 +145,7 @@ export interface GameState {
     encounterSources: GroundingChunk[] | null;
     encounterError: string | null;
     currentEnemies: import('./combat.js').CombatCharacter[] | null;
+    extractedBattleMap?: import('./combat.js').BattleMapData | null;
     saveVersion?: string;
     saveTimestamp?: number;
     lastInteractedNpcId: string | null;

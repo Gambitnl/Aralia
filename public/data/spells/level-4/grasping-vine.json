@@ -142,7 +142,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 4d8 Bludgeoning damage when the hit-based vine effect resolves.",
+      "description": "On a melee spell attack hit from the vine, the target takes 4d8 Bludgeoning damage.",
       "conditionalEndings": []
     },
     {
@@ -212,7 +212,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Grappled for 1 minute when the hit-based vine effect resolves; the target can use the modeled escape check to break free.",
+      "description": "On the same hit, a Huge or smaller target gains the Grappled condition for up to 1 minute and can use an action to make the spell-save-DC escape check.",
       "conditionalEndings": []
     },
     {

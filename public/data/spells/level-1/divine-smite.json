@@ -209,7 +209,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Adds the modeled extra 1d8 Radiant damage rider on qualifying melee smite hits.",
+      "description": "If the melee hit target is a Fiend or Undead, it takes an additional 1d8 Radiant damage.",
       "conditionalEndings": [],
       "tags": [
         "radiant-rider",

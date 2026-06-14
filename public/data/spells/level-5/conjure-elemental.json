@@ -159,7 +159,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 8d8 variable elemental damage through a Dexterity-save damage effect; each slot level above 5th adds +1d8, and no reduced-success damage is modeled.",
+      "description": "A creature forced to save against the elemental spirit makes a Dexterity save, taking 8d8 damage of the chosen element on a failed save or no damage on a success; each slot level above 5th adds 1d8 to this initial damage.",
       "conditionalEndings": []
     }
   ],

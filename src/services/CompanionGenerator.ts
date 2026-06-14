@@ -86,6 +86,33 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
     return soulCache.get(cacheKey) || null;
   }
 
+  // Bypass the slow/offline Ollama API in test/dev environments or when explicitly requested
+  // via the URL param ?wf_mock_companions=1. This ensures UI verification is fast and reliable.
+  const useMock = typeof window !== 'undefined' && 
+    (new URLSearchParams(window.location.search).get('wf_mock_companions') === '1' || 
+     window.location.search.includes('wf_ground') || 
+     window.location.search.includes('wf_legacy'));
+
+  if (useMock) {
+    const mockName = `${skeleton.gender === 'female' ? 'Vala' : 'Kaelen'} the ${skeleton.race.name} ${skeleton.class.name}`;
+    const mockSoul: CompanionSoul = {
+      name: mockName,
+      physicalDescription: `A tall, imposing ${skeleton.race.name} ${skeleton.class.name} with weathered features.`,
+      personality: {
+        values: ["loyalty", "pragmatism", "courage"],
+        fears: ["failure", "darkness"],
+        quirks: ["constantly checks weapons", "speaks in a low whisper"]
+      },
+      goals: [
+        { description: "Protect the party and find a way home", isSecret: false },
+        { description: "Flee from a past family shame", isSecret: true }
+      ],
+      reactionStyle: "pragmatic"
+    };
+    soulCache.set(cacheKey, mockSoul);
+    return mockSoul;
+  }
+
   const client = new OllamaClient();
 
   // Use mistral:instruct specifically for character generation (better at structured JSON output)

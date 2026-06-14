@@ -18,6 +18,9 @@ let lastCanvasDomElement: { addEventListener: ReturnType<typeof vi.fn> } | null 
 
 // Mock the R3F canvas so the scene can be tested in JSDOM without a WebGL context.
 vi.mock('@react-three/fiber', () => ({
+  // SiteBuilding subscribes to the frame loop for roof auto-hide; the
+  // structural proof does not run a render loop, so a no-op is sufficient.
+  useFrame: vi.fn(),
   Canvas: ({ children, camera, onCreated }: any) => {
     React.useEffect(() => {
       const domElement = { addEventListener: vi.fn() };

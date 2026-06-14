@@ -288,7 +288,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You endow yourself with endurance and martial prowess fueled by magic. Until the spell ends, you can't cast spells, and you gain the following benefits:",
+      "description": "Records Tenser's Transformation wrapper facts: the caster cannot cast spells and gains martial-proficiency, weapon-advantage, save-proficiency, and extra-attack benefits while sibling rows carry temporary Hit Points, force damage, and Exhaustion.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

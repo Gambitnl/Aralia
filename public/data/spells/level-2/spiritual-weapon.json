@@ -136,7 +136,7 @@
         "dice": "1d8+spellcasting_mod",
         "type": "Force"
       },
-      "description": "Initial melee spell attack when the weapon appears.",
+      "description": "When the spectral weapon appears, the caster can make one melee spell attack against a creature within 5 feet of it for 1d8 plus spellcasting modifier Force damage on a hit.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -198,7 +198,7 @@
         "dice": "1d8+spellcasting_mod",
         "type": "Force"
       },
-      "description": "Bonus action each turn to move the weapon up to 20 ft and attack.",
+      "description": "On later turns, the caster can use the granted Bonus Action to move the spectral weapon up to 20 feet and repeat the melee spell attack against a creature within 5 feet of it.",
       "scaling": {
         "type": "custom",
         "customFormula": "Damage increases by 1d8 at slots 3/4, and another 1d8 at 5/6, etc.",

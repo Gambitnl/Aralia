@@ -421,10 +421,13 @@ function generatePlots(
         if (rng.next() > density) continue;
 
         const isMarket = distFromCenter < marketRadius;
-        const plotFrontage = isMarket ? MARKET_FRONTAGE_FT : frontage;
+        const isWorkshop = !isMarket && distFromCenter < marketRadius * 2.2 && rng.next() > 0.4;
+        
+        const isBiz = isMarket || isWorkshop;
+        const plotFrontage = isMarket ? MARKET_FRONTAGE_FT : (isWorkshop ? (MARKET_FRONTAGE_FT + PLOT_FRONTAGE_FT) / 2 : frontage);
         const plotDepth = isMarket
           ? MARKET_DEPTH_FT
-          : PLOT_DEPTH_MIN_FT + rng.next() * (PLOT_DEPTH_MAX_FT - PLOT_DEPTH_MIN_FT);
+          : (isWorkshop ? (MARKET_DEPTH_FT + PLOT_DEPTH_MIN_FT) / 2 : PLOT_DEPTH_MIN_FT + rng.next() * (PLOT_DEPTH_MAX_FT - PLOT_DEPTH_MIN_FT));
 
         // Place on both sides of street
         for (const side of [-1, 1] as const) {
@@ -488,8 +491,8 @@ function generatePlots(
           plotCenters.push([plotCx, plotCy]);
           acceptedFootprints.push(footprint);
 
-          const storeys = isMarket ? 2 : (distRatio < 0.4 ? 2 + Math.floor(rng.next() * 2) : 1);
-          const role = isMarket ? 'market' : 'house';
+          const storeys = isBiz ? 2 : (distRatio < 0.4 ? 2 + Math.floor(rng.next() * 2) : 1);
+          const role = isMarket ? 'market' : (isWorkshop ? 'workshop' : 'house');
 
           plots.push({
             id: plotId++,

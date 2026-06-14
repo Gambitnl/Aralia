@@ -124,13 +124,14 @@ it('places occupant figures inside the envelope with stable heights', () => {
   ];
   const base = buildInteriorParts(plot(), SEED_PATH, 3);
   const withPeople = buildInteriorParts(plot(), SEED_PATH, 3, occupants);
-  expect(withPeople.length).toBe(base.length + 3);
+  // Each villager is now two parts: a clothed body box + a skin-toned head.
+  expect(withPeople.length).toBe(base.length + occupants.length * 2);
   const figures = withPeople.slice(base.length);
   const plan = generateInterior(plot(), SEED_PATH);
   const hw = (plan.widthFt / 2) * FT;
   const hd = (plan.depthFt / 2) * FT;
   const bad = figures.filter(
-    (f) => Math.abs(f.x) > hw || Math.abs(f.z) > hd || f.h < 1 || f.h > 1.8,
+    (f) => Math.abs(f.x) > hw || Math.abs(f.z) > hd || f.h <= 0 || f.h > 1.8,
   );
   expect(bad).toEqual([]);
 

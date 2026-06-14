@@ -193,7 +193,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 6d6 Bludgeoning damage through a Dexterity-save damage effect; no reduced-success damage is modeled.",
+      "description": "If a pillar is blocked by a ceiling or other obstacle, a creature on the pillar makes a Dexterity save, taking 6d6 Bludgeoning damage on a failed save or no damage on a success.",
       "conditionalEndings": []
     }
   ],

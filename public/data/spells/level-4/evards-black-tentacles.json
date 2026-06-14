@@ -149,7 +149,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 3d6 Bludgeoning damage to targets that fail the Strength-save resolution; the data does not model reduced damage on a successful save.",
+      "description": "Each creature in the 20-foot square makes a Strength save, taking 3d6 Bludgeoning damage on a failed save or no damage on a success.",
       "conditionalEndings": []
     },
     {
@@ -223,7 +223,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Restrained for 1 minute unless the target succeeds on a Strength save; the target can use the modeled escape check to break free.",
+      "description": "A creature that fails the Strength save gains the Restrained condition for up to 1 minute and can use an action to make the spell-save-DC Strength (Athletics) escape check.",
       "conditionalEndings": []
     },
     {

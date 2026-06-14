@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 12/06/2026, 23:13:45
+ * Last Sync: 13/06/2026, 10:45:48
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
- * Imports: 23 files
+ * Imports: 24 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -94,6 +94,7 @@ import {
   buildCommandGameState,
   resolveMultiTargetIds
 } from './actionUtils';
+import { combatEvents } from '../systems/events/CombatEvents';
 import { TargetResolver } from '../systems/spells/targeting/TargetResolver';
 import { buildSelectedSpellTargetsForPosition } from '../systems/spells/targeting/selectedSpellTargets';
 
@@ -836,7 +837,10 @@ export const useAbilitySystem = ({
     // Verify economy costs before command effects run. The turn manager remains
     // the authoritative executor, while the local resource snapshot protects
     // command results from restoring a stale caster.
-    const action = buildAbilityCombatAction(ability, liveCaster, targetPosition, targetCharacterIds, selectedSpellTargets);
+    const action: CombatAction = {
+      ...buildAbilityCombatAction(ability, liveCaster, targetPosition, targetCharacterIds, selectedSpellTargets),
+      suppressAbilityEvents: true
+    };
 
     if (!await onExecuteAction(action)) {
       cancelTargeting();
@@ -879,10 +883,32 @@ export const useAbilitySystem = ({
 
     const commands = AbilityCommandFactory.createCommands(ability, casterAfterCost, targets, commandGameState);
 
+    // Snapshot the event trace immediately before command execution. Weapon
+    // attack commands emit structured hit/miss events during execution; after
+    // commands finish, those events can be projected into attackResults for
+    // the reactive-only action replay below.
+    const attackEventSequenceStart = combatEvents.createReplaySnapshot().nextSequence;
+
     // Execute
     const result = await CommandExecutor.execute(commands, currentState);
 
     if (result.success) {
+      const attackResults = combatEvents.getAttackResultsSince(attackEventSequenceStart, {
+        attackerId: liveCaster.id,
+        targetIds: targetCharacterIds
+      });
+
+      if (attackResults.length > 0) {
+        await onExecuteAction({
+          ...action,
+          id: `${action.id}-reactive-results`,
+          cost: { type: 'free' },
+          reactiveEventsOnly: true,
+          suppressAbilityEvents: false,
+          attackResults
+        });
+      }
+
       const finalCharacters = result.finalState.characters.map(finalChar =>
         finalChar.id === liveCaster.id
           ? applyResourceSnapshotToCaster(finalChar, casterAfterCost)

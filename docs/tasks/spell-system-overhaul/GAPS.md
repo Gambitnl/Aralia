@@ -1,4 +1,4 @@
-﻿# Structured Spell Execution Gaps
+# Structured Spell Execution Gaps
 
 Status: active
 Last updated: 2026-06-13
@@ -7,11 +7,2776 @@ Legacy name / folder slug: Spell System Overhaul (`docs/tasks/spell-system-overh
 
 ## Gap Log
 
+## 2026-06-13 - Wall of Force barrier utility description
+
+### SSO-HIGH-IMPACT-BARRIER-DESCRIPTION-011 - force-wall row now exposes shape, push, and blocking facts
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-5/wall-of-force.json has one UTILITY effect row whose prior description summarized a magical-force barrier but omitted key player-facing wrapper facts: 10-minute concentration duration, dome/globe/panel limits, caster side-choice when cutting through a creature space, Dispel Magic immunity, Disintegrate destruction, and Ethereal blocking.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects Wall of Force's single utility row to carry the barrier shape and blocking facts without copying the full card.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Wall of Force still used the older under-specified utility description.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-5/wall-of-force.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Wall of Force placement, orientation, panel contiguity validation, dome or globe shaping, creature-side push choice, physical passage blocking, damage immunity enforcement, Dispel Magic immunity, Disintegrate destruction, Ethereal blocking, concentration upkeep, or duration cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Animal Messenger communication utility description
+
+### SSO-HIGH-IMPACT-COMMUNICATION-DESCRIPTION-010 - messenger row now exposes save, delivery, and lost-message outcome
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-2/animal-messenger.json had a UTILITY description that summarized delivery speed and slot scaling but omitted the visible Tiny Beast range, 25-word message limit, Charisma save, non-CR-0 auto-success override, visited-location requirement, and lost-message failure case.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects Animal Messenger's utility row to carry the communication setup, current save behavior, travel pace, failure outcome, and duration scaling without copying the full card.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Animal Messenger still used the older incomplete communication utility description.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-2/animal-messenger.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Animal Messenger target selection, Beast visibility checks, Charisma-save execution, non-CR-0 auto-success adjudication, message-entry UI, visited-location validation, described-recipient matching, travel simulation, flying-speed branch, arrival delivery, lost-message cleanup, return-to-cast-location behavior, or slot-duration scaling execution beyond current structured data and row text.
+
+## 2026-06-13 - Aura of Purity aura and defensive row descriptions
+
+### SSO-HIGH-IMPACT-DEFENSIVE-DESCRIPTION-009 - aura wrapper no longer duplicates defensive payload rows
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-4/aura-of-purity.json had a UTILITY row that repeated disease prevention, Poison resistance, and saving-throw Advantage even though the latter two already have sibling DEFENSIVE rows.
+- public/data/spells/level-4/aura-of-purity.json had a Poison resistance row that used lower-case "resistance" while nearby structured defensive rows use the game-term casing "Resistance."
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects Aura of Purity's utility row to focus on aura radius, movement, duration, concentration, and disease prevention, while sibling defensive rows carry Poison Resistance and condition-save Advantage.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Aura of Purity still used the older duplicated utility wording and lower-case resistance wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-4/aura-of-purity.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Aura of Purity aura rendering, nonhostile-creature filtering, disease prevention enforcement, Poison Resistance application, condition-causing-effect classification, saving-throw Advantage routing, concentration upkeep, or duration cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Control Water mode-selection utility description
+
+### SSO-HIGH-IMPACT-MODE-DESCRIPTION-008 - water-control wrapper now exposes duration and mode switching
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-4/control-water.json has one UTILITY effect row and separate modeChoice summaries for Flood, Part Water, Redirect Flow, and Whirlpool.
+- The UTILITY row already avoided full card prose, but omitted the 10-minute concentration duration and could be clearer that later Magic actions repeat the current mode or switch to a different mode.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects Control Water's visible effect row to carry only the shared mode-selection wrapper while preserving modeChoice as the detailed per-mode surface.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Control Water still used the older mode-selection utility wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-4/control-water.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Control Water Flood, Part Water, Redirect Flow, or Whirlpool execution; standing-water elevation; wave travel; vehicle carry or capsizing; trench creation; redirected flow pathing; whirlpool placement; creature pull; Strength-save execution; Bludgeoning damage; swim-away Athletics checks; later Magic-action mode switching; concentration upkeep; or duration cleanup beyond current structured data, modeChoice summaries, and row text.
+
+## 2026-06-13 - Dawn damage timing and sunlight movement descriptions
+
+### SSO-HIGH-IMPACT-DAMAGE-DESCRIPTION-007 - dawn cylinder rows now carry explicit Radiant outcomes and movement wrapper
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-5/dawn.json had two DAMAGE rows for cylinder appearance and end-turn timing, but both only said the target took half damage on a success and omitted the 4d10 Radiant failed-save branch.
+- public/data/spells/level-5/dawn.json had a UTILITY row that identified bright sunlight but omitted the one-minute concentration duration and later-turn Bonus Action movement wrapper.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects Dawn's two damage rows to carry explicit 4d10 Radiant save outcomes and its utility row to carry the sunlight cylinder plus movement wrapper.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Dawn still used incomplete damage descriptions and a minimal sunlight utility row.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-5/dawn.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Dawn cylinder placement, bright-light or sunlight rendering, Constitution-save execution, Radiant damage application, end-turn scheduling, Bonus Action movement, 60-foot caster-distance gating, concentration upkeep, or duration cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Feather Fall falling-control utility description
+
+### SSO-UTILITY-DESCRIPTION-006 - falling-control row no longer duplicates card ending prose
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-1/feather-fall.json had a UTILITY description that nearly duplicated the top-level card text and repeated the per-target landing-ending fact already present in conditional ending data.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects Feather Fall's utility row to focus on target count, 60-foot range, 60-feet-per-round descent, 1-minute duration, and no falling damage on landing.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Feather Fall still used the older card-like utility description.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-1/feather-fall.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Feather Fall reaction timing, falling-creature detection, five-target selection, descent-speed enforcement, landing detection, fall-damage prevention, per-target ending cleanup, or duration expiry beyond current structured data and row text.
+
+## 2026-06-13 - Otiluke's Freezing Sphere water and held-globe descriptions
+
+### SSO-HIGH-IMPACT-MECHANICS-DESCRIPTION-005 - water-freeze, restraint, and held-globe rows now stay focused
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-6/otilukes-freezing-sphere.json had a focused Cold DAMAGE row, but its water-freeze TERRAIN row, Restrained STATUS_CONDITION row, and held-globe UTILITY row still carried longer card-prose phrasing.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects Otiluke's Freezing Sphere to keep the Cold blast, water-freeze terrain, frozen-surface restraint, and held-globe delivery rows distinct and short.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Otiluke's Freezing Sphere still used the older water-freeze, restraint, and held-globe descriptions.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-6/otilukes-freezing-sphere.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Otiluke's Freezing Sphere globe targeting, blast placement, Constitution-save execution, Cold damage application, water-surface detection, ice terrain creation, swimming-creature matching, Restrained application, Athletics escape execution, held-globe handoff, thrown or sling delivery, safe set-down handling, delayed explosion timing, shatter-on-impact routing, or slot-scaling execution beyond current structured data and row text.
+
+## 2026-06-13 - Cloudkill damage timing and fog wrapper descriptions
+
+### SSO-HIGH-IMPACT-DAMAGE-DESCRIPTION-004 - poison fog timing rows now carry explicit save outcomes
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-5/cloudkill.json had three DAMAGE rows for fog appearance, entry or fog movement, and end-turn timing, but those rows either omitted the 5d8 Poison failed-save branch or used vague "this save" wording.
+- public/data/spells/level-5/cloudkill.json had a UTILITY row that only said the fog was Heavily Obscured, leaving wind dispersal and start-turn drift visible only in top-level prose.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects Cloudkill's three damage rows to carry explicit 5d8 Poison save outcomes and its utility row to carry only the fog wrapper facts.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Cloudkill still used incomplete damage descriptions and a minimal fog utility description.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-5/cloudkill.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Cloudkill fog placement, Heavily Obscured rendering, strong-wind dispersal, start-turn drift, once-per-turn damage throttling, Constitution-save execution, Poison damage application, concentration upkeep, or slot-scaling execution beyond current structured data and row text.
+
+## 2026-06-13 - Symbol and Psychic Scream wrapper descriptions
+
+### SSO-HIGH-IMPACT-WRAPPER-DESCRIPTION-003 - glyph routing and head-explosion wrappers no longer overpack sibling mechanics
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/symbol.json had a UTILITY description that correctly avoided copied full-card prose but still packed glyph placement, trigger exclusions, light, activation timing, and once-per-turn routing into a dense sentence.
+- public/data/spells/level-9/psychic-scream.json had a UTILITY description that repeated the Stunned row's end-turn Intelligence repeat-save mechanics even though the separate status row already carries that payload.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects Symbol's wrapper row to stay focused on placement, trigger, light sphere, and once-per-turn activation routing, and Psychic Scream's wrapper row to omit Stunned repeat-save prose.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Symbol and Psychic Scream still used the older overpacked utility descriptions.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-7/symbol.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-9/psychic-scream.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Symbol glyph placement, trigger authoring UI, Perception discovery, exclusion matching, Dim Light rendering, activation scheduling, once-per-turn throttling, payload selection, save execution, or any Death, Discord, Fear, Pain, Sleep, and Stunning payload execution beyond current structured data and row text. It also does not claim full runtime parity for Psychic Scream target selection, Intelligence-floor filtering, damage execution, head-explosion rendering, Stunned application, repeat-save scheduling, or cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Otiluke, Scatter, and Wind Walk copied utility descriptions
+
+### SSO-COPIED-UTILITY-DESCRIPTION-002 - barrier, teleport, and cloud-form wrappers no longer copy full card prose
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-4/otilukes-resilient-sphere.json had a UTILITY description that copied the top-level spell prose even though a sibling defensive row carries the sphere's own damage immunity.
+- public/data/spells/level-6/scatter.json had a UTILITY description that copied the top-level spell prose even though a sibling movement row carries the teleport relocation payload.
+- public/data/spells/level-6/wind-walk.json had a UTILITY description that copied the top-level spell prose even though sibling movement, status, and defensive rows carry fly speed, Stunned reversion, Prone immunity, and weapon-damage resistance.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now has focused real-data expectations for all three rows.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Otiluke's Resilient Sphere, Scatter, and Wind Walk still used copied full-card utility descriptions.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-4/otilukes-resilient-sphere.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-6/scatter.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-6/wind-walk.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Resilient Sphere containment placement, Dexterity-save execution, barrier pass-through enforcement, rolling or pickup movement, Disintegrate destruction, Scatter multi-target selection, Wisdom-save execution, destination validation, teleport movement execution, Wind Walk cloud-form state, fly speed and hover execution, action restrictions, reversion timing, Stunned application, resistance and immunity execution, safe descent, or falling cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Magnificent Mansion and Mighty Fortress utility descriptions
+
+### SSO-LEVEL7-8-MANSION-FORTRESS-UTILITY-DESCRIPTION-002 - construction and extradimensional dwelling wrappers now avoid importer language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/mordenkainens-magnificent-mansion.json still had a UTILITY description beginning "Records Mordenkainen's Magnificent Mansion wrapper facts" and routing servant summoning and end-of-spell expulsion through sibling rows.
+- public/data/spells/level-8/mighty-fortress.json still had a UTILITY description beginning "Records Mighty Fortress wrapper facts" and routing one hundred invisible servants through the sibling summoning row.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects both utility rows to describe player-facing gameplay facts without importer-oriented routing language.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Mordenkainen's Magnificent Mansion and Mighty Fortress still used "Records ..." wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-7/mordenkainens-magnificent-mansion.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-8/mighty-fortress.json passed.
+- npm run test:types passed.
+- Bounded public/data level 7-8 importer-text scan returned no remaining "Records ... wrapper facts", "sibling rows carry", "points to sibling rows", or "while sibling" hits.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Mansion door placement, designated-entry UI, door open/close state, imperceptible-door rendering, floor-plan validation, servant behavior, end-of-spell expulsion placement, Mighty Fortress structure-free placement, creature lifting, fortress layout generation, object crumbling, stone-section damage modeling, collapse adjudication, 7-day teardown, same-spot permanence tracking, or invisible servant behavior beyond current structured data and row text.
+
+## 2026-06-13 - Animal Shapes, Demiplane, and Regenerate utility descriptions
+
+### SSO-LEVEL7-8-TRANSFORM-SPACE-REGEN-UTILITY-DESCRIPTION-002 - transformation, demiplane, and regrowth wrappers now avoid importer language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-8/animal-shapes.json still had a UTILITY description beginning "Records Animal Shapes wrapper facts" and routing first-form Temporary Hit Points through the sibling healing row.
+- public/data/spells/level-8/demiplane.json still had a UTILITY description beginning "Records Demiplane wrapper facts" and routing optional shunt Prone payload through a sibling row.
+- public/data/spells/level-7/regenerate.json still had a UTILITY description beginning "Records Regenerate wrapper facts" and routing immediate and recurring healing through sibling healing rows.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects all three utility rows to describe player-facing gameplay facts without importer-oriented routing language.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Animal Shapes, Demiplane, and Regenerate still used "Records ..." wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-8/animal-shapes.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-8/demiplane.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-7/regenerate.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Animal Shapes Beast lookup, Challenge Rating validation, multi-target form assignment, Magic-action re-transform UI, retained-stat handling, equipment merging, Bonus Action ending, Temporary Hit Point lifecycle, Demiplane door placement, room creation, previous or known demiplane matching, optional shunt choice, Prone placement, Regenerate healing execution, start-turn recovery scheduling, body-part regrowth timing, or duration cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Illusory Dragon, Incendiary Cloud, and Plane Shift utility descriptions
+
+### SSO-LEVEL7-8-DRAGON-CLOUD-PLANE-UTILITY-DESCRIPTION-002 - illusion, hazard, and planar wrappers now avoid importer language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-8/illusory-dragon.json still had a UTILITY description beginning "Records Illusory Dragon wrapper facts" and routing Frightened, 7d6 cone damage, save advantage for discerners, and 60-foot movement through sibling rows.
+- public/data/spells/level-8/incendiary-cloud.json still had a UTILITY description beginning "Records Incendiary Cloud wrapper facts" and routing 10d8 Fire damage triggers and 10-foot cloud movement through sibling rows.
+- public/data/spells/level-7/plane-shift.json still had a UTILITY description beginning "Records Plane Shift wrapper facts" and routing planar teleport movement through the sibling movement row.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects all three utility rows to describe player-facing gameplay facts without importer-oriented routing language.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Illusory Dragon, Incendiary Cloud, and Plane Shift still used "Records ..." wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-8/illusory-dragon.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-8/incendiary-cloud.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-7/plane-shift.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Illusory Dragon placement, Frightened application, repeat-save cleanup, breath damage type selection, cone targeting, bonus-action movement execution, illusion discernment, save advantage for discerners, illusion immunity enforcement, Incendiary Cloud area rendering, Heavily Obscured visibility, strong-wind dispersal, once-per-turn save throttling, Fire damage execution, cloud movement, Plane Shift component attunement, linked-hand targeting, general destination adjudication, known-circle validation, spillover placement, or planar teleport execution beyond current structured data and row text.
+
+## 2026-06-13 - Arcane Sword, Mind Blank, and Power Word Stun utility descriptions
+
+### SSO-LEVEL7-8-SWORD-MIND-STUN-UTILITY-DESCRIPTION-002 - combat and mental-shield wrappers now avoid importer language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/arcane-sword.json still had a UTILITY description beginning "Records Arcane Sword wrapper facts" and routing Force damage and 20-foot sword movement through sibling rows.
+- public/data/spells/level-8/mind-blank.json still had a UTILITY description beginning "Records Mind Blank wrapper facts" and routing Psychic damage and Charmed immunity through the sibling defensive row.
+- public/data/spells/level-8/power-word-stun.json still had a UTILITY description beginning "Records Power Word Stun wrapper facts" and routing the Stunned and Speed-0 branches through sibling rows.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects all three utility rows to describe player-facing gameplay facts without importer-oriented routing language.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Arcane Sword, Mind Blank, and Power Word Stun still used "Records ..." wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-7/arcane-sword.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-8/mind-blank.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-8/power-word-stun.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Arcane Sword creation placement, melee spell attack execution, Force damage execution, Bonus Action movement, retargeting UI, Mind Blank emotion and alignment sensing blocks, thought-reading blocks, magical location detection, information gathering, remote observation, mind-control prevention, Wish interaction, Psychic immunity execution, Charmed immunity execution, Power Word Stun Hit Point threshold evaluation, Stunned application, repeat-save scheduling, or over-threshold Speed-0 cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Power Word Pain, Holy Aura, and Maddening Darkness utility descriptions
+
+### SSO-LEVEL7-8-PAIN-AURA-DARKNESS-UTILITY-DESCRIPTION-002 - threshold, aura, and darkness wrappers now avoid importer language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/power-word-pain.json still had a UTILITY description beginning "Records Power Word Pain wrapper facts" and routing the pain state, speed cap, and disadvantage payloads through sibling rows.
+- public/data/spells/level-8/holy-aura.json still had a UTILITY description beginning "Records Holy Aura wrapper facts" and routing saving throw advantage, incoming attack-roll disadvantage, and Blinded retaliation through sibling rows.
+- public/data/spells/level-8/maddening-darkness.json still had a UTILITY description beginning "Records Maddening Darkness wrapper facts" and routing start-turn Wisdom saves and Psychic damage through the sibling damage row.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects all three utility rows to describe player-facing gameplay facts without importer-oriented routing language.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Power Word Pain, Holy Aura, and Maddening Darkness still used "Records ..." wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-7/power-word-pain.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-8/holy-aura.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-8/maddening-darkness.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Power Word Pain Hit Point threshold evaluation, Charmed-immunity checks, crippling pain state execution, speed-cap enforcement, disadvantage routing, spellcasting interruption, Constitution-save execution, repeat-save scheduling, Holy Aura chosen-creature UI, saving-throw advantage execution, incoming attack disadvantage execution, Fiend or Undead melee-hit trigger detection, Blinded retaliation, Maddening Darkness area rendering, corner spread, darkvision blocking, light suppression, audible madness cues, start-turn Wisdom saves, or Psychic damage execution beyond current structured data and row text.
+
+## 2026-06-13 - Sequester and Antipathy/Sympathy utility descriptions
+
+### SSO-SEQUESTER-ANTIPATHY-UTILITY-DESCRIPTION-002 - concealment and mode-choice wrappers now avoid importer language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/sequester.json still had a UTILITY description beginning "Records Sequester wrapper facts" and routing Invisible and Unconscious suspended-animation states through sibling status rows.
+- public/data/spells/level-8/antipathy-sympathy.json still had a UTILITY description beginning "Records Antipathy/Sympathy wrapper facts" and routing Frightened, Charmed, and safest-route forced movement through sibling rows.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects both utility rows to describe player-facing gameplay facts without importer-oriented routing language.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Sequester and Antipathy/Sympathy still used "Records ..." wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-7/sequester.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-8/antipathy-sympathy.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Sequester component consumption, object-or-willing-creature targeting, Divination targeting blocks, magic detection suppression, remote-viewing suppression, creature aging and needs suspension, custom end-condition monitoring, damage-ending cleanup, Invisible or Unconscious application, Antipathy/Sympathy mode selection UI, chosen-kind matching, Wisdom-save execution, repeat-save scheduling, immunity-window tracking, Sympathy movement lockout, target-damage ending saves, or safest-route forced movement beyond current structured data and row text.
+
+## 2026-06-13 - Level 8 control and sunlight utility descriptions
+
+### SSO-LEVEL8-CONTROL-SUNLIGHT-UTILITY-DESCRIPTION-002 - Dominate Monster, Feeblemind, and Sunburst wrappers now avoid importer language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-8/dominate-monster.json still had a UTILITY description beginning "Records Dominate Monster wrapper facts" and routing the Wisdom save, repeat save, and Charmed payload through a sibling row.
+- public/data/spells/level-8/feeblemind.json still had a UTILITY description beginning "Records Feeblemind wrapper facts" and routing Psychic damage and Feebleminded status through sibling rows.
+- public/data/spells/level-8/sunburst.json still had a UTILITY description beginning "Records Sunburst wrapper facts" and routing Constitution save, Radiant damage, repeat save, and Blinded duration through sibling rows.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects all three utility rows to describe player-facing gameplay facts without importer-oriented routing language.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Dominate Monster, Feeblemind, and Sunburst still used "Records ..." wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-8/dominate-monster.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-8/feeblemind.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-8/sunburst.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Dominate Monster save advantage, Wisdom-save execution, Charmed application, repeat-save scheduling, telepathic command UI, commanded Reaction spending, Feeblemind Psychic damage execution, Intelligence-save execution, ability-score mutation, long-term 30-day save scheduling, Greater Restoration or Heal ending hooks, Sunburst sphere rendering, Constitution-save execution, Radiant damage execution, Blinded application, repeat-save cleanup, or Darkness dispel execution beyond current structured data and row text.
+
+## 2026-06-13 - Level 9 foresight and heal utility descriptions
+
+### SSO-LEVEL9-FORESIGHT-HEAL-UTILITY-DESCRIPTION-002 - Foresight, Mass Heal, and Power Word Heal wrappers now avoid importer language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-9/foresight.json still had a UTILITY description beginning "Records Foresight wrapper facts" and routing saving-throw advantage, outgoing attack-roll advantage, and incoming attack-roll disadvantage through sibling rows.
+- public/data/spells/level-9/mass-heal.json still had a UTILITY description beginning "Records Mass Heal wrapper facts" and routing the 700-Hit-Point pool through a sibling healing row.
+- public/data/spells/level-9/power-word-heal.json still had a UTILITY description beginning "Records Power Word Heal wrapper facts" and routing all-Hit-Point restoration and Prone movement-state ending through sibling rows.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects all three utility rows to describe player-facing gameplay facts without importer-oriented routing language.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Foresight, Mass Heal, and Power Word Heal still used "Records ..." wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-9/foresight.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-9/mass-heal.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-9/power-word-heal.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Foresight willing-touch targeting, D20-test advantage routing, outgoing attack-roll advantage execution, incoming attack-roll disadvantage execution, recast-ending cleanup, Mass Heal allocation UI, healing distribution execution, condition-removal execution, Power Word Heal all-Hit-Point restoration, condition-ending execution, Prone reaction prompts, Reaction spending, or stand-up movement beyond current structured data and row text.
+
+## 2026-06-13 - Level 9 blade and transformation utility descriptions
+
+### SSO-LEVEL9-BLADE-SHAPECHANGE-UTILITY-DESCRIPTION-002 - Blade of Disaster and Shapechange wrappers now avoid importer language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-9/blade-of-disaster.json still had a UTILITY description beginning "Records Blade of Disaster wrapper facts" and routing force damage and blade movement through sibling rows.
+- public/data/spells/level-9/shapechange.json still had a UTILITY description beginning "Records Shapechange wrapper facts" and routing first-form temporary Hit Points through a sibling defensive row.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects both utility rows to describe their wrapper-only gameplay facts without importer-oriented routing language.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Blade of Disaster and Shapechange still used "Records ..." wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-9/blade-of-disaster.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-9/shapechange.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Blade of Disaster blade placement, melee spell attack execution, bonus-action movement execution, critical-hit threshold handling, barrier pass-through adjudication, Shapechange form lookup, Challenge Rating validation, retained-stat handling, equipment handling, Spellcasting checks, temporary Hit Point lifecycle, Magic-action re-forming, concentration upkeep, or transformation rendering beyond current structured data and row text.
+
+## 2026-06-13 - Level 9 illusion and death-word utility descriptions
+
+### SSO-LEVEL9-ILLUSION-DEATH-UTILITY-DESCRIPTION-002 - Weird and Power Word Kill wrappers now avoid importer language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-9/weird.json still had a UTILITY description beginning "Records Weird wrapper facts" and routing damage, Frightened, repeat-save damage, and per-target ending through sibling rows.
+- public/data/spells/level-9/power-word-kill.json still had a UTILITY description beginning "Records Power Word Kill wrapper facts" and routing the over-threshold fallback through the sibling damage row.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects both utility rows to describe their wrapper-only gameplay facts without importer-oriented routing language.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Weird and Power Word Kill still used "Records ..." wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-9/weird.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-9/power-word-kill.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Weird area rendering, chosen-creature filtering, Wisdom-save execution, Frightened application, repeat-save scheduling, repeat Psychic damage, per-target ending, Power Word Kill Hit Point threshold evaluation, instant-death execution, fallback Psychic damage execution, or death-word UI beyond current structured data and row text.
+
+## 2026-06-13 - Level 9 damage/control utility descriptions
+
+### SSO-LEVEL9-DAMAGE-CONTROL-UTILITY-DESCRIPTION-002 - Meteor Swarm and Psychic Scream wrappers now avoid importer language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-9/meteor-swarm.json still had a UTILITY description beginning "Records Meteor Swarm wrapper facts" and ending with sibling-row routing language for Fire and Bludgeoning damage rows.
+- public/data/spells/level-9/psychic-scream.json still had a UTILITY description beginning "Records Psychic Scream wrapper facts" and routing repeat-save handling through the Stunned row.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects both utility rows to describe their wrapper-only gameplay facts without importer-oriented routing language.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Meteor Swarm and Psychic Scream still used "Records ..." wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-9/meteor-swarm.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-9/psychic-scream.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Meteor Swarm impact-point placement, overlap suppression, object eligibility, object ignition, Fire or Bludgeoning save execution, Psychic Scream Intelligence-floor filtering, head-explosion rendering, Psychic damage execution, Stunned application, repeat-save scheduling, or stun cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Revive-family resurrection utility descriptions
+
+### SSO-REVIVE-UTILITY-DESCRIPTION-002 - resurrection wrappers now avoid sibling-row routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-9/true-resurrection.json still had a UTILITY description beginning "Records True Resurrection wrapper facts" and ending with sibling-row routing language for all-Hit-Point revival and new-body placement rows.
+- public/data/spells/level-7/resurrection.json still had a UTILITY description beginning "Records Resurrection wrapper facts" and ending with sibling-row routing language for full-Hit-Point return and ordeal penalty rows.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects both revive utility rows to describe eligibility and restoration gates without importer-oriented routing language.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because True Resurrection and Resurrection still used "Records ..." wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description changes.
+- npm run validate:spells -- --spell public/data/spells/level-9/true-resurrection.json passed.
+- npm run validate:spells -- --spell public/data/spells/level-7/resurrection.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for death-age validation, old-age exclusion, Undead eligibility or restoration, component consumption, poison/contagion/curse/body restoration execution, new-body creation, spoken-name matching, 10-foot placement selection, all-Hit-Point restoration, ordeal penalty lifecycle, 365-day caster tax, spellcasting lockout, or caster D20 Disadvantage beyond current structured data and row text.
+
+## 2026-06-13 - Project Image illusion-projection utility description
+
+### SSO-PROJECT-IMAGE-UTILITY-DESCRIPTION-002 - illusion wrapper now avoids sibling-row routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/project-image.json still had a UTILITY description beginning "Records Project Image wrapper facts" and ending with sibling-row routing language for Magic-action 60-foot image movement and behavior control.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Project Image utility row to describe the 5+ GP self-statuette component, 1-day concentration duration, previously seen location within 500 miles, obstacle bypass, intangible image, damage-ending, remote sight/hearing, mannerism mimicry, physical and Study-action discovery, and hollow/transparent discernment without importer-oriented routing language.
+- The Project Image utility description now keeps illusion-projection facts readable for runtime/UI text while leaving Magic-action image movement and behavior control with the existing MOVEMENT row.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Project Image still used "Records Project Image wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-7/project-image.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for seen-location validation, 500-mile placement, obstacle-bypass placement, component validation, concentration upkeep, illusion rendering, damage-to-end execution, remote sight/hearing UI, mannerism mimicry, physical-interaction discovery, Study-action check execution, hollow-noise rendering, transparency rendering, or Magic-action movement/control beyond current structured data and row text.
+
+## 2026-06-13 - Reverse Gravity gravity-zone utility description
+
+### SSO-REVERSE-GRAVITY-UTILITY-DESCRIPTION-002 - gravity wrapper now avoids sibling-row routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/reverse-gravity.json still had a UTILITY description beginning "Records Reverse Gravity wrapper facts" and ending with sibling-row routing language for upward movement, collision falling damage, and end-of-spell downward fall.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Reverse Gravity utility row to describe the 50-foot-radius, 100-foot-high Cylinder, 1-minute concentration duration, unanchored upward pull, reachable fixed-object Dexterity save, and hover-at-top shell without importer-oriented routing language.
+- The Reverse Gravity utility description now keeps the gravity-zone shell readable for runtime/UI text while leaving upward forced movement, upward collision falling damage, and end-of-spell downward fall with the existing MOVEMENT and DAMAGE rows.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Reverse Gravity still used "Records Reverse Gravity wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-7/reverse-gravity.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for cylinder placement/rendering, unanchored-object detection, fixed-object reach checks, Dexterity-save execution, upward forced movement, upward collision detection, falling damage calculation, hover state tracking, concentration upkeep, end-of-spell downward fall, or environmental anchor interaction beyond current structured data and row text.
+
+## 2026-06-13 - Prismatic Wall wall-shell utility description
+
+### SSO-PRISMATIC-WALL-UTILITY-DESCRIPTION-002 - wall wrapper now avoids sibling-row routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-9/prismatic-wall.json still had a UTILITY description beginning "Records Prismatic Wall wrapper facts" and ending with sibling-row routing language for near-wall Blinded saves and blocking terrain.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Prismatic Wall utility row to describe the wall or globe choice, 10-minute duration, occupied-space failure, multicolored light, designated-safe passage, seven colored layers, ordered layer destruction, Antimagic Field immunity, and violet-only Dispel Magic interaction without importer-oriented routing language.
+- The Prismatic Wall utility description now keeps wall-shell and layer-order facts readable for runtime/UI text while leaving near-wall Blinded saves and opaque blocking terrain with the existing STATUS_CONDITION and TERRAIN rows.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Prismatic Wall still used "Records Prismatic Wall wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-9/prismatic-wall.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for wall/globe placement UI, occupied-space failure execution, designated-safe creature storage, Bright/Dim Light rendering, near-wall trigger scheduling, Constitution-save execution, layer-by-layer Dexterity saves, layer damage/status/teleport payloads, ordered destruction enforcement, layer-specific destruction conditions, Antimagic Field immunity, violet-only Dispel Magic targeting, or missing first-class per-layer table rows beyond current structured data and row text.
+
+## 2026-06-13 - Astral Projection astral-travel utility description
+
+### SSO-ASTRAL-PROJECTION-UTILITY-DESCRIPTION-002 - astral wrapper now avoids sibling-row routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-9/astral-projection.json still had a UTILITY description beginning "Records Astral Projection wrapper facts" and ending with sibling-row routing language for suspended Unconscious bodies.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Astral Projection utility row to describe the caster plus up to eight willing creatures, Astral Plane fail case, body suspension shell, silver-cord travel, cord-cut death, body/astral-form damage and effect separation, planar re-entry, 0 Hit Point ending, and Magic-action dismissal without importer-oriented routing language.
+- The Astral Projection utility description now keeps astral-travel lifecycle facts readable for runtime/UI text while leaving suspended-body Unconscious with the existing STATUS_CONDITION row.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Astral Projection still used "Records Astral Projection wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-9/astral-projection.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for 1-hour casting orchestration, consumed per-target components, willing-target selection, already-on-Astral fail resolution, astral body creation, body suspension needs/no-aging enforcement, silver-cord rendering, cord-cut death execution, body/astral damage isolation, planar re-entry placement, 0 Hit Point ending, Magic-action dismissal, or suspended-body cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Mass Polymorph transformation utility description
+
+### SSO-MASS-POLYMORPH-UTILITY-DESCRIPTION-002 - transformation wrapper now avoids sibling-row routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-9/mass-polymorph.json still had a UTILITY description beginning "Records Mass Polymorph wrapper facts" and ending with sibling-row routing language for the temporary Hit Points defensive row.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Mass Polymorph utility row to describe up to ten visible targets within 120 feet, 1-hour concentration, Wisdom saves for unwilling targets, shapechanger auto-success, seen-Beast CR or half-level eligibility, retained Hit Points/alignment/personality, form-stat replacement, action/speech/spellcasting/hands/gear limits, and reversion timing without importer-oriented routing language.
+- The Mass Polymorph utility description now keeps transformation rules readable for runtime/UI text while leaving non-replaceable Beast-form temporary Hit Points with the existing DEFENSIVE row.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Mass Polymorph still used "Records Mass Polymorph wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-9/mass-polymorph.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Beast lookup, caster-seen form validation, CR or half-level comparison, unwilling-target Wisdom saves, shapechanger auto-success execution, statistics replacement, retained Hit Point handling, non-replaceable temporary Hit Point lifecycle, action/speech/spellcasting/hands restrictions, gear melding, death reversion, concentration cleanup, or target reversion beyond current structured data and row text.
+
+## 2026-06-13 - Prismatic Spray ray-selection utility description
+
+### SSO-PRISMATIC-SPRAY-UTILITY-DESCRIPTION-002 - ray-selection wrapper now avoids sibling-row routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/prismatic-spray.json still had a UTILITY description beginning "Records Prismatic Spray wrapper facts" and ending with sibling-row routing language for damage, condition, petrification, and teleport rows.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Prismatic Spray utility row to describe the 60-foot cone, per-creature Dexterity save, 1d8 Prismatic Rays table color roll, and special two-ray result without importer-oriented routing language.
+- The Prismatic Spray utility description now keeps ray-selection facts readable for runtime/UI text while leaving 12d6 ray damage, indigo Restrained tracking, indigo Petrified aftermath, violet Blinded tracking, and violet planar teleport with the existing DAMAGE, STATUS_CONDITION, and MOVEMENT rows.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Prismatic Spray still used "Records Prismatic Spray wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-7/prismatic-spray.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for cone targeting beyond current area data, per-creature resolution despite current maxTargets value, Dexterity-save execution, 1d8 table rolling, ray color substitution, special two-ray reroll handling, indigo Constitution save tracking, petrification transition, violet start-of-next-turn Wisdom save scheduling, planar teleport adjudication, or payload cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Divine Word table-routing utility description
+
+### SSO-DIVINE-WORD-UTILITY-DESCRIPTION-002 - table wrapper now avoids sibling-row routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/divine-word.json still had a UTILITY description beginning "Records Divine Word wrapper facts" and ending with sibling-row routing language for HP-band condition rows and planar-return movement.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Divine Word utility row to describe 30-foot creature choice, Charisma save routing, the 50 Hit Point table threshold, Celestial/Elemental/Fey/Fiend plane return, and 24-hour Wish-only return exception without importer-oriented routing language.
+- The Divine Word utility description now keeps table and planar-routing facts readable for runtime/UI text while leaving Dead, Blinded, Deafened, Stunned, and planar forced return payloads with the existing STATUS_CONDITION and MOVEMENT rows.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Divine Word still used "Records Divine Word wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-7/divine-word.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for multi-creature choice despite the current maxTargets value, hearing or divine-word audibility checks, Charisma-save execution, Hit Point threshold lookup, simultaneous HP-band status application, planar-origin detection, forced return placement, 24-hour return blocking, Wish override handling, or condition cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Tsunami water-wall utility description
+
+### SSO-TSUNAMI-UTILITY-DESCRIPTION-002 - water-wall wrapper now avoids sibling-row routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-8/tsunami.json still had a UTILITY description beginning "Records Tsunami wrapper facts" and ending with sibling-row routing language for initial damage, ongoing Huge-or-smaller damage, and forced wall movement rows.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Tsunami utility row to describe the 1-mile placement point, 300-foot by 300-foot by 50-foot water wall, 6-round concentration duration, later caster-turn 50-foot movement, turn-end height and damage decay, 0-foot-height ending, Strength (Athletics) swimming check, and fall-out behavior without importer-oriented routing language.
+- The Tsunami utility description now keeps water-wall lifecycle facts readable for runtime/UI text while leaving 6d10 initial Bludgeoning damage, 5d10 ongoing Huge-or-smaller Bludgeoning damage, and forced 50-foot wall movement with the existing DAMAGE and MOVEMENT rows.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Tsunami still used "Records Tsunami wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-8/tsunami.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for minute-long casting orchestration, wall placement/rendering, concentration upkeep, initial Strength-save execution, recurring caster-turn movement scheduling, once-per-round ongoing damage suppression, height decay, damage decay, Huge-or-smaller gating, swim-check execution, fall handling, forced movement execution, or spell-end cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Earthquake tremor-zone utility description
+
+### SSO-EARTHQUAKE-UTILITY-DESCRIPTION-002 - tremor wrapper now avoids sibling-row routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-8/earthquake.json still had a UTILITY description beginning "Records Earthquake wrapper facts" and ending with sibling-row routing language for Prone, Buried, structure damage, and collapse damage rows.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Earthquake utility row to describe the visible ground point, 100-foot tremor zone, Difficult Terrain, 1-minute concentration duration, grounded-creature Dexterity save cadence, Concentration break, fissure timing and constraints, and repeated structure damage/collapse checks without importer-oriented routing language.
+- The Earthquake utility description now keeps the tremor and structure-collapse wrapper readable for runtime/UI text while leaving Prone, Buried, 50 Bludgeoning structure damage, and 12d6 collapse damage with the existing STATUS_CONDITION and DAMAGE rows.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Earthquake still used "Records Earthquake wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-8/earthquake.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for 100-foot zone rendering, Difficult Terrain execution, grounded-creature detection, repeated Dexterity-save scheduling, Concentration break execution, fissure count rolling, fissure placement and no-structure validation, fissure depth/width rendering, creature fall-in handling, structure HP/damage tracking, collapse detection, collapse-radius targeting, Prone and Buried application, DC 20 escape checks, or Bludgeoning damage application beyond current structured data and row text.
+
+## 2026-06-13 - Storm of Vengeance cloud-schedule utility description
+
+### SSO-STORM-OF-VENGEANCE-UTILITY-DESCRIPTION-002 - storm wrapper now points to schedule without importer language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-9/storm-of-vengeance.json still had a UTILITY description beginning "Records Storm of Vengeance wrapper facts" and ending with sibling-row routing language for damage, Deafened, terrain, and schedule rows.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Storm of Vengeance utility row to describe the 300-foot-radius cloud, visible 1-mile point, 1-minute concentration duration, initial thunder/Deafened resolution, later caster-turn schedule, ranged-weapon lockout, and strong wind without importer-oriented routing language.
+- The Storm utility description now keeps the cloud and schedule wrapper readable for runtime/UI text while leaving Thunder, Deafened, Acid, Lightning, Bludgeoning, Cold, Difficult Terrain, Heavily Obscured, and effectSchedule payloads with their existing rows.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Storm of Vengeance still used "Records Storm of Vengeance wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-9/storm-of-vengeance.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for cloud placement, 300-foot radius rendering, concentration upkeep, initial Constitution save execution, Deafened duration, later-turn scheduler execution, acid rain, six distinct lightning targets, Dexterity half damage, hailstone damage, freezing-rain damage, Difficult Terrain, Heavily Obscured rendering, ranged weapon attack lockout, strong wind, or staged effect cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Simulacrum copy-lifecycle utility description
+
+### SSO-SIMULACRUM-UTILITY-DESCRIPTION-002 - lifecycle wrapper now avoids sibling-row routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/simulacrum.json still had a UTILITY description beginning "Records Simulacrum wrapper facts" and ending with sibling-row routing language for Construct-copy statistics, half Hit Point maximum, and 100 GP per Hit Point repair.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Simulacrum utility row to describe the 12-hour consumed-ruby casting, Beast or Humanoid presence requirement, ice-or-snow body, friendly commanded simulacrum lifecycle, action turn, no-Simulacrum/no-level/no-rest limits, 0 HP snow reversion, and recast destruction without importer-oriented routing language.
+- The Simulacrum utility description now keeps copy setup and lifecycle information visible for runtime/UI text while leaving Construct-copy statistics, half Hit Point maximum, and Long Rest repair costs with the existing SUMMONING and HEALING rows.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Simulacrum still used "Records Simulacrum wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-7/simulacrum.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for 12-hour casting orchestration, 1,500 GP component consumption, original Beast/Humanoid presence tracking, ice-or-snow body validation, Construct-copy stat replacement, half-Hit-Point maximum calculation, command AI, turn sharing, Simulacrum spell lockout, level-gain prevention, Short/Long Rest prevention, repair cost and proximity execution, 0 HP snow reversion, or recast destruction beyond current structured data and row text.
+
+## 2026-06-13 - Magic Jar soul-container utility description
+
+### SSO-MAGIC-JAR-UTILITY-DESCRIPTION-002 - possession wrapper now avoids sibling-row routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-6/magic-jar.json still had a UTILITY description beginning "Records Magic Jar wrapper facts" and ending with sibling-row routing language for trapped-soul Incapacitated and caster-container movement/reaction suppression.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Magic Jar utility row to describe soul-container entry, projection, possession eligibility, Charisma-save possession, repeat-attempt lockout, host statistic replacement, return-to-container action, host-death return, container destruction, soul return, and container cleanup without importer-oriented routing language.
+- The Magic Jar utility description now keeps possession routing visible for runtime/UI text while leaving trapped-soul Incapacitated and caster-container movement/reaction suppression with the existing STATUS_CONDITION and MOVEMENT rows.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Magic Jar still used "Records Magic Jar wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-6/magic-jar.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for catatonic caster-body state, container perception, 100-foot projection checks, Humanoid targeting, Protection from Evil and Good or Magic Circle ward detection, Charisma-save possession execution, 24-hour repeat-attempt lockout, host-stat replacement, trapped-host-soul Incapacitated state, Magic-action return, host-death save routing, container destruction, soul return or death resolution, spell-end container cleanup, or first-class reaction suppression beyond current structured data and row text.
+
+## 2026-06-13 - Temple of the Gods sanctuary utility description
+
+### SSO-TEMPLE-OF-THE-GODS-UTILITY-DESCRIPTION-002 - sanctuary shell text no longer routes sibling mechanics
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/temple-of-the-gods.json still had a UTILITY description beginning "Records Temple of the Gods wrapper facts" and ending with sibling-row routing language for opposed entry denial, d4 penalties, and healing bonus mechanics.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Temple of the Gods utility row to describe the created sanctuary shell, appearance choices, magical-force protections, Disintegrate destruction, and year-long same-spot permanence without importer-oriented routing language.
+- The Temple utility description now leaves opposed-creature entry denial, opposed-creature d4 penalties, and spell-healing bonuses with the existing STATUS_CONDITION, ATTACK_ROLL_MODIFIER, and HEALING rows.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Temple of the Gods still used "Records Temple of the Gods wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-7/temple-of-the-gods.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for 1-hour casting orchestration, unoccupied 120-foot cube validation, temple appearance UI, designated-door permissions, illumination rendering, incense or temperature presentation, opposed creature-type selection, Charisma save entry denial, d4 penalty application, Divination sensor and targeting blocks, healing bonus application, Ethereal travel blocking, physical collision, Dispel Magic or Antimagic Field immunity, Disintegrate destruction, or daily same-spot permanence tracking beyond current structured data and row text.
+
+## 2026-06-13 - Teleport outcome-table utility description
+
+### SSO-TELEPORT-UTILITY-DESCRIPTION-002 - outcome wrapper now avoids importer routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/teleport.json still had a UTILITY description beginning "Records Teleport wrapper facts" and ending with sibling-row routing language for the same-plane movement and Mishap damage rows.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Teleport utility row to describe target eligibility, same-plane destination requirement, and the familiarity-driven d100 outcome table without exposing importer-oriented wrapper language.
+- The Teleport utility description now keeps the destination/outcome decision visible for runtime/UI text while leaving same-plane transport and Mishap 3d10 Force damage ownership with the existing MOVEMENT and DAMAGE rows.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Teleport still used "Records Teleport wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-7/teleport.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for willing-creature selection, object held-or-carried checks, known-destination validation, same-plane enforcement, d100 outcome-table rolling, Permanent Circle or Linked Object shortcuts, Similar Area placement, Off Target 2d12-mile and d8-direction placement, On Target arrival, Mishap damage application, reroll chaining, or actual teleport movement beyond current structured data and row text.
+
+## 2026-06-13 - Wish mode and stress utility description
+
+### SSO-WISH-UTILITY-DESCRIPTION-002 - choice menu and stress wrapper now avoid sibling-row routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-9/wish.json still had a UTILITY description beginning "Records Wish wrapper facts" and ending with routing language for sibling healing, defensive, and damage rows.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Wish utility row to describe spell duplication, non-duplication mode choices, and Wish stress without exposing importer-oriented wrapper language.
+- The Wish utility description now leaves Instant Health, Resistance, Spell Immunity, and stress-casting Necrotic damage ownership with the existing HEALING, DEFENSIVE, and DAMAGE rows while making the mode/stress choice readable in runtime/UI text.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Wish still used "Records Wish wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-9/wish.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for duplicated-spell lookup and requirement bypass, costly-component bypass, Object Creation placement/value/size validation, Greater Restoration effect removal, permanent Resistance choice, 8-hour spell immunity, feat replacement eligibility, Roll Redo timing and advantage/disadvantage routing, Reshape Reality adjudication, Wish stress state persistence, Strength reduction duration recovery, future-Wish lockout rolling, or irreducible stress damage scheduling beyond current structured data and row text.
+
+## 2026-06-13 - True Polymorph mode-selection utility description
+
+### SSO-TRUE-POLYMORPH-UTILITY-DESCRIPTION-002 - transformation wrapper row now reads as player-facing mode text
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-9/true-polymorph.json still had a UTILITY description beginning "Records True Polymorph wrapper facts" and ending with sibling-row routing language for the temporary-Hit-Point defensive row.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the True Polymorph utility row to describe the three transformation modes, unwilling Wisdom save, full-hour concentration permanence, CR/level and object-size limits, worn-or-carried eligibility, object-creature control, retained creature identity fields, action/speech/spellcasting/gear limits, and no-memory object form.
+- The True Polymorph utility description now keeps mode-selection and eligibility information visible for runtime/UI text while leaving the existing DEFENSIVE temporary-Hit-Point row as the owner of creature-to-creature temporary HP.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because True Polymorph still used "Records True Polymorph wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-9/true-polymorph.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for form lookup, CR or level validation, object worn/carried enforcement, size comparison, unwilling Wisdom-save execution, concentration-to-until-dispelled conversion, stat-block replacement, retained hit point and Hit Die handling, action/anatomy restrictions, speech and spellcasting locks, gear melding, object-creature initiative and command AI, control loss after one hour, no-memory restoration, or temporary-Hit-Point lifecycle beyond current structured data and row text.
+
+## 2026-06-13 - Imprisonment restraint-option utility description
+
+### SSO-IMPRISONMENT-UTILITY-DESCRIPTION-002 - restraint wrapper row no longer exposes importer routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-9/imprisonment.json still had a UTILITY description beginning "Records Imprisonment wrapper facts" and describing sibling-row routing instead of the player-facing imprisonment choice and ending rules.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now expects the Imprisonment utility row to describe the failed Wisdom save, 24-hour successful-save immunity, imprisoned upkeep, Divination and teleport blocks, option menu, observable ending trigger, and ninth-level Dispel Magic ending route.
+- The Imprisonment utility description now preserves the existing sibling Imprisoned, Restrained, Unconscious, and MOVEMENT rows while replacing importer-oriented wrapper language with runtime-facing text.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Imprisonment still used "Records Imprisonment wrapper facts" wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed after the JSON description change.
+- npm run validate:spells -- --spell public/data/spells/level-9/imprisonment.json passed.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for 24-hour immunity tracking, no-breath/eat/drink/age upkeep, Divination invisibility, teleport blocking, Burial containment, Chaining immovability, Hedged Prison planar warding, Minimus Containment object rules, Slumber wake prevention, observable ending-trigger adjudication, or ninth-level Dispel Magic enforcement beyond current structured data and row text.
+
+## 2026-06-13 - Mirror Image duplicate redirect description
+
+### SSO-MIRROR-IMAGE-UTILITY-DESCRIPTION-001 - defensive utility row now reads as ordered duplicate-redirection text
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-2/mirror-image.json had a single UTILITY description that copied long duplicate behavior prose and made the attack-hit redirect sequence harder to scan in runtime/UI text.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now has a real-data proof that Mirror Image keeps its one-row defensive utility model focused on the ordered duplicate redirect sequence.
+- The Mirror Image utility description now names three duplicates in the caster's space, 1-minute duration, mimic movement/actions, attack-roll hit interception, one d6 per remaining duplicate, 3+ redirect threshold, duplicate destruction, immunity to non-attack damage/effects, all-duplicates-destroyed ending, and Blinded / Blindsight / Truesight exceptions while preserving targeting, duration, conditional ending metadata, and the current one-row utility model.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Mirror Image still used long duplicate behavior prose.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed 107 tests.
+- npm run validate:spells -- --spell public/data/spells/level-2/mirror-image.json reported 459 valid / 0 invalid.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for duplicate instance tracking, attack-hit interception, d6 redirect rolling, duplicate destruction, target replacement, sensory exception enforcement, all-duplicates ending execution, or rendered duplicate visualization beyond current structured data and row text.
+## 2026-06-13 - Booming Blade melee-hit and movement-trigger descriptions
+
+### SSO-BOOMING-BLADE-DAMAGE-DESCRIPTION-001 - hit and delayed movement rows now expose separate runtime triggers
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-0/booming-blade.json had two DAMAGE rows whose descriptions repeated casting-action prose and generic  scaling with level wording instead of cleanly separating the melee-hit row from the delayed willing-movement trigger row.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now has a real-data proof that Booming Blade keeps the melee weapon hit row and willing-move Thunder trigger row distinct.
+- The Booming Blade descriptions now name the melee weapon attack hit, booming-energy sheath duration, hit-scaling Thunder dice at character levels 5 / 11 / 17, willing movement of 5 feet or more before the caster's next turn, movement-trigger Thunder damage, spell ending, and movement-damage scaling while preserving triggers, targeting, material component, duration, damage dice fields, character-level scaling formulas, legacy flag, and tags.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Booming Blade still used casting-action wrapper prose and generic scaling wording.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed 106 tests.
+- npm run validate:spells -- --spell public/data/spells/level-0/booming-blade.json reported 459 valid / 0 invalid.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for melee weapon attack construction, spell-failure handling when no attack is made, hit detection, booming-energy state persistence, willing-movement detection, 5-foot movement threshold enforcement, start-of-next-turn expiry, spell-end cleanup, or character-level scaling execution beyond current structured data and row text.
+## 2026-06-13 - Summon Lesser Demons utility description
+
+### SSO-SUMMON-LESSER-DEMONS-UTILITY-DESCRIPTION-001 - summon table and hostile demon behavior now read as compact runtime text
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-3/summon-lesser-demons.json had a single UTILITY description that copied long spell-card prose beginning  You utter foul words and buried the d6 summon table, placement, demon hostility, group initiative, nearest-non-demon behavior, and optional blood-circle protection in one wall of text.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now has a real-data proof that Summon Lesser Demons keeps its one-row utility model focused on summon-table and hostile-demon behavior.
+- The Summon Lesser Demons utility description now names the d6 table outcomes, GM demon choice, caster placement in visible unoccupied spaces within 60 feet, disappearance at 0 HP or spell end, hostility to every creature, group initiative, nearest-non-demon pursuit, and the optional blood circle that blocks crossing, harm, and targeting while consuming the material component at spell end.
+
+Verification:
+- Red run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Summon Lesser Demons still used long copied spell-card prose.
+- Green run: npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed 105 tests.
+- npm run validate:spells -- --spell public/data/spells/level-3/summon-lesser-demons.json reported 459 valid / 0 invalid.
+- npm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for random summon-count rolling, demon stat selection, demon placement UI, demon ownership/AI hostility, grouped initiative insertion, nearest-non-demon pursuit targeting, 0 HP cleanup, concentration cleanup, optional blood-circle placement, blood-circle collision/targeting protection, or material-component consumption beyond current structured data and row text.
+## 2026-06-13 - Symbol glyph-trigger utility description
+
+### SSO-SYMBOL-UTILITY-DESCRIPTION-001 - glyph wrapper row now exposes trigger cadence without importer routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/symbol.json had a UTILITY description that began  Records Symbol wrapper facts and routed the six Symbol payloads to sibling rows instead of focusing the wrapper row on glyph placement, trigger setup, and activation cadence.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now has a real-data proof that Symbol keeps its utility row focused on glyph trigger facts while preserving separate Death, Discord, Fear, Pain, Sleep, and Stunning payload rows.
+- The Symbol utility description now names the nearly imperceptible glyph, surface or closable-object placement, 10-foot-diameter coverage, moved-object break condition, trigger refinement and exclusions, 60-foot-radius Dim Light activation sphere, 10-minute active window, activation / first-entry / end-turn cadence, and once-per-turn targeting limit while preserving targeting, spatial metadata, conditional endings, control options, consumed diamond component, duration, and all six payload rows.
+
+Verification:
+- Red run: 
+pm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Symbol still used Records Symbol wrapper facts and sibling-row routing wording.
+- Green run: 
+pm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed 104 tests.
+- 
+pm run validate:spells -- --spell public/data/spells/level-7/symbol.json reported 459 valid / 0 invalid.
+- 
+pm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for glyph placement, surface/object eligibility, object-movement break tracking, Perception discovery, trigger-condition UI, creature-type trigger filtering, password exclusions, activation timing, once-per-turn targeting suppression, Dim Light rendering, 10-minute expiry, or execution of Death, Discord, Fear, Pain, Sleep, and Stunning payloads beyond current structured data and row text.
+## 2026-06-13 - Whirlwind vortex utility description
+
+### SSO-WHIRLWIND-UTILITY-DESCRIPTION-001 - vortex wrapper row now avoids importer-facing routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/whirlwind.json had a UTILITY description that began  Records Whirlwind wrapper facts and routed major behavior to sibling rows instead of reading as player-facing vortex control text.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now has a real-data proof that Whirlwind keeps its utility row focused on visible vortex and object-suction facts while movement rows carry action movement, upward pull, spell-end falling, and escape hurling.
+- The Whirlwind utility description now names the 10-foot-radius, 30-foot-high whirlwind, visible ground point within 300 feet, up-to-1-minute concentration duration, ground movement, unsecured Medium-or-smaller object suction, and preserved separate rows for creature damage, restraint, upward pull, falling, and escape hurling while preserving targeting, area metadata, damage row, status row, movement rows, control options, concentration duration, and tags.
+
+Verification:
+- Red run: 
+pm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Whirlwind still used Records Whirlwind wrapper facts and sibling-row routing wording.
+- Green run: 
+pm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed 103 tests.
+- 
+pm run validate:spells -- --spell public/data/spells/level-7/whirlwind.json reported 459 valid / 0 invalid.
+- 
+pm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for cylinder placement, terrain-ground validation, object suction, once-per-turn entry/overlap damage suppression, Dexterity-save execution, Strength-save restraint execution, action-cost vortex movement, restrained-creature carry behavior, upward pull, fall damage, escape-check execution, random hurl distance/direction, concentration upkeep, or rendered vortex visualization beyond current structured data and row text.
+## 2026-06-13 - Forcecage prison utility description
+
+### SSO-FORCECAGE-UTILITY-DESCRIPTION-001 - hard-control wrapper row now avoids importer-facing routing language
+
+Status: verified.
+
+Evidence added this pass:
+- public/data/spells/level-7/forcecage.json had a UTILITY description that began  Records Forcecage wrapper facts and ended by routing push-out behavior to a sibling movement row.
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts now has a real-data proof that Forcecage keeps its prison-control utility row player-facing while the MOVEMENT row carries the partial-or-too-large push-out text.
+- The Forcecage utility description now names the invisible immobile magical-force prison, 20-foot barred cage form, 10-foot solid box form, trapped enclosed creatures, push-out for partial or too-large creatures, nonmagical exit block, Charisma-save teleport or interplanar escape gate, Ethereal travel block, and Dispel Magic immunity while preserving targeting, spatial form metadata, control options, movement row, consumed ruby-dust component, concentration duration, and spell tags.
+
+Verification:
+- Red run: 
+pm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts failed because Forcecage still used Records Forcecage wrapper facts and sibling-row routing wording.
+- Green run: 
+pm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts passed 102 tests.
+- 
+pm run validate:spells -- --spell public/data/spells/level-7/forcecage.json reported 459 valid / 0 invalid.
+- 
+pm run test:types passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for cage-vs-box form choice UI, exact prison placement, enclosed-creature detection, partial-overlap push vector selection, too-large fit checks, matter/spell blocking, nonmagical exit enforcement, teleport/interplanar escape gating, Charisma-save execution, Ethereal Plane blocking, Dispel Magic immunity enforcement, concentration upkeep, or consumed-component accounting beyond current structured data and row text.
+## 2026-06-13 - Gate portal utility description
+
+### SSO-GATE-UTILITY-DESCRIPTION-001 - portal wrapper row now avoids importer-facing routing language
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/gate.json` had a `UTILITY` description that began "Records Gate wrapper facts" and ended by routing transport behavior to a sibling row.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Gate keeps its portal wrapper row player-facing while the sibling `MOVEMENT` row carries actual front-of-portal planar transport.
+- The Gate utility description now names the visible 5-to-20-foot portal, chosen orientation, front/back travel rules, destination visibility, planar-ruler opening blocks, optional true-name creature pull, and lack of special control while preserving targeting, spatial metadata, control options, movement row, material cost, concentration duration, player-input prompt, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Gate still used "Records Gate wrapper facts" and sibling-row routing wording.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 101 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/gate.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for destination-plane choice UI, portal orientation, portal-front collision, planar-ruler vetoes, true-name matching, creature pull placement, transported-creature agency, concentration upkeep, or cross-plane teleport execution beyond current structured data and row text.
+
+## 2026-06-13 - Invulnerability self-cast utility description
+
+### SSO-INVULNERABILITY-UTILITY-DESCRIPTION-001 - self-cast wrapper row now avoids importer-facing wording
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/invulnerability.json` had a `UTILITY` description that began "Records Invulnerability wrapper facts," exposing importer-facing row-routing language.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Invulnerability keeps the self-only / concentration / consumed-component utility row player-facing while the sibling `DEFENSIVE` row carries all-damage immunity.
+- The Invulnerability utility description now names self-only targeting, up-to-10-minute concentration, consumed 500 GP adamantine, and all-damage immunity routing while preserving the defensive immunity row, material cost and consumption metadata, concentration duration, targeting, control option, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Invulnerability still used "Records Invulnerability wrapper facts" wording.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 100 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/invulnerability.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for consumed-component accounting, concentration upkeep, all-damage immunity enforcement, immunity UI rendering, or spell-end cleanup beyond current structured data and row text.
+
+## 2026-06-13 - Evard's Black Tentacles damage and Restrained descriptions
+
+### SSO-EVARDS-BLACK-TENTACLES-DAMAGE-STATUS-DESCRIPTION-001 - Strength-save rows now name damage, restraint, and escape outcomes
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-4/evards-black-tentacles.json` had a `DAMAGE` description that said "the data does not model reduced damage" and a `STATUS_CONDITION` description that said "modeled escape check," exposing importer-facing wording in two player/runtime rows.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Evard's Black Tentacles keeps its Strength-save damage row, Restrained row, and Difficult Terrain row distinct.
+- The Evard's Black Tentacles descriptions now name the 20-foot square, Strength save, 3d6 Bludgeoning failed-save damage, no-damage success branch, Restrained condition, and action-cost spell-save-DC Strength (Athletics) escape check while preserving targeting, save metadata, damage dice, damage type, status payload, escape-check metadata, terrain row, concentration duration, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Evard's Black Tentacles still used "the data does not model" and "modeled escape check" wording.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 99 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-4/evards-black-tentacles.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for once-per-turn area damage suppression, enters-area versus ends-turn-there scheduling, Strength-save execution, Restrained application, escape-check execution, Difficult Terrain rendering, concentration upkeep, or the top-level typo "ends it turn there" beyond current structured data and row text.
+
+## 2026-06-13 - Otto's Irresistible Dance utility wrapper focus
+
+### SSO-OTTOS-IRRESISTIBLE-DANCE-UTILITY-DESCRIPTION-001 - utility row no longer copies the full spell card
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-6/ottos-irresistible-dance.json` had a `UTILITY` description that copied the full spell-card behavior even though sibling rows already carry Charmed, movement lock, attack Disadvantage / attacker Advantage, and repeat-save behavior.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Otto's Irresistible Dance keeps its utility row focused on wrapper facts.
+- The utility description now keeps visible target selection, comic-dance flavor, Charmed immunity, and sibling-row routing while preserving the Charmed status row, movement row, defensive row including its explicit runtime-gap note, utility control options, concentration duration, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Otto's Irresistible Dance still copied full spell-card prose in the utility row.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 98 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-6/ottos-irresistible-dance.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Charmed immunity checks, Wisdom-save execution, action-cost repeat saves, all-movement dance enforcement, Dexterity-save Disadvantage, attack Disadvantage, attacker Advantage, concentration upkeep, or the already-noted missing first-class attacker-advantage-against-target field.
+
+## 2026-06-13 - Conjure Elemental Dexterity-save damage description
+
+### SSO-CONJURE-ELEMENTAL-DAMAGE-DESCRIPTION-001 - elemental spirit damage row now names save outcomes
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-5/conjure-elemental.json` had a `DAMAGE` description that said "no reduced-success damage is modeled," exposing importer-facing save-branch wording.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Conjure Elemental keeps its elemental-spirit Dexterity-save damage row player-facing.
+- The Conjure Elemental damage description now names the elemental spirit save, Dexterity save, 8d8 chosen-element failed-save damage, no-damage success branch, and +1d8 per slot level above 5th while preserving targeting, save metadata, variable damage type, recurring restrained-target damage metadata, slot scaling, concentration duration, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Conjure Elemental still used "no reduced-success damage is modeled" wording.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 97 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-5/conjure-elemental.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for elemental choice UI, damage-type substitution, spirit placement, one-restrained-creature gating, entry/start-turn trigger scheduling, Restrained application, repeated start-turn saves, recurring 4d8 damage, success ending restraint, concentration upkeep, or slot-scaling execution beyond current structured data and row text.
+
+## 2026-06-13 - Bones of the Earth Dexterity-save damage description
+
+### SSO-BONES-OF-THE-EARTH-DAMAGE-DESCRIPTION-001 - blocked-pillar damage row now names failed and successful save branches
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-6/bones-of-the-earth.json` had a `DAMAGE` description that said "no reduced-success damage is modeled," exposing importer-facing save-branch wording.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Bones of the Earth keeps its blocked-pillar Dexterity-save damage row player-facing.
+- The Bones of the Earth damage description now names the blocked pillar / obstacle context, creature on the pillar, Dexterity save, 6d6 Bludgeoning failed-save damage, and no-damage success branch while preserving targeting, pillar spatial metadata, save metadata, damage dice, damage type, higher-slot pillar-count scaling text, instantaneous duration, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Bones of the Earth still used "no reduced-success damage is modeled" wording.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 96 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-6/bones-of-the-earth.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for pillar placement, up-to-six pillar selection, Medium-or-smaller creature targeting, lift choice, ceiling collision detection, Restrained application, escape-check execution, rubble terrain creation, rubble clearing, pillar hit points, or higher-slot pillar-count execution beyond current structured data and row text.
+
+## 2026-06-13 - Ray of Frost speed-reduction rider description
+
+### SSO-RAY-OF-FROST-MOVEMENT-DESCRIPTION-001 - speed rider row now names the penalty and duration
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-0/ray-of-frost.json` had a `MOVEMENT` description that said the target was affected "as modeled by the movement effect," exposing importer-facing wording instead of the slow rider.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Ray of Frost keeps its Cold damage row and same-hit Speed reduction row distinct.
+- The Ray of Frost movement description now names the same ranged spell hit, 10-foot Speed reduction, and start-of-caster-next-turn duration while preserving targeting, hit condition, damage row, Cold damage dice, cantrip-tier scaling, movement payload, speed-change metadata, duration metadata, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Ray of Frost still used "as modeled by the movement effect" wording.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 95 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-0/ray-of-frost.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for ranged spell attack construction, hit detection, Speed mutation, start-of-next-turn expiry, cantrip-tier scaling execution, or movement-control UI rendering beyond current structured data and row text.
+
+## 2026-06-13 - Divine Smite Fiend/Undead rider description
+
+### SSO-DIVINE-SMITE-DAMAGE-DESCRIPTION-001 - extra Radiant rider row now names target family and payload
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-1/divine-smite.json` had a second `DAMAGE` description that said "Adds the modeled extra 1d8 Radiant damage rider," exposing importer-facing wording and hiding the Fiend/Undead target-family gate.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Divine Smite keeps its base Radiant damage row and Fiend/Undead extra Radiant rider row distinct.
+- The Divine Smite rider description now names the melee hit, Fiend or Undead target gate, and additional 1d8 Radiant damage while preserving targeting, hit conditions, effect-level Fiend/Undead filter, base damage row, damage dice, Radiant damage type, +1d8 slot scaling on the base row, instantaneous duration, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Divine Smite still used "modeled extra 1d8 Radiant damage rider" wording.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 94 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-1/divine-smite.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for smite arming, melee hit detection, combining base and Fiend/Undead rider damage, target-family taxonomy matching, slot-scaling caps, or resource/spell-slot consumption beyond current structured data and row text.
+
+## 2026-06-13 - Searing Smite Ignited rider description
+
+### SSO-SEARING-SMITE-STATUS-DESCRIPTION-001 - Ignited rider row now exposes the recurring burn loop
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-1/searing-smite.json` had a `STATUS_CONDITION` description that called the Ignited row "the modeled burning rider," hiding the start-turn Fire damage and Constitution-save ending loop.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Searing Smite keeps its first-hit Fire damage row and Ignited recurring-burn row distinct.
+- The Searing Smite Ignited description now names the same melee weapon hit, Ignited condition, up-to-1-minute duration, start-turn 1d6 Fire damage, and Constitution save that ends the spell on success while preserving targeting, trigger type, first-hit consumption, melee weapon attack filter, damage row, recurring mechanics payload, status payload, duration, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Searing Smite still used "modeled burning rider" wording.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 93 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-1/searing-smite.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for bonus-action smite arming, first-hit consumption, melee weapon hit detection, recurring start-turn damage scheduling, Constitution-save execution, spell ending, higher-slot all-damage scaling, or concentration/tag mismatch resolution beyond current structured data and row text.
+
+## 2026-06-13 - Ray of Sickness Poisoned rider description
+
+### SSO-RAY-OF-SICKNESS-STATUS-DESCRIPTION-001 - Poisoned rider row now avoids importer-facing hit wording
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-1/ray-of-sickness.json` had a `STATUS_CONDITION` description that said "On the same modeled hit," exposing importer-facing wording in a player/runtime row.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Ray of Sickness keeps its Poison damage row and same-hit Poisoned rider row distinct.
+- The Ray of Sickness rider description now names the same ranged spell attack hit, Poisoned condition, and end-of-next-turn duration while preserving targeting, hit condition, damage row, damage dice, Poison damage type, +1d8 slot scaling, status payload, instantaneous duration, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Ray of Sickness still used "On the same modeled hit" wording.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 92 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-1/ray-of-sickness.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for ranged spell attack construction, hit detection, Poison damage application, Poisoned condition application, end-of-next-turn expiry, slot-scaling execution, or Poison immunity/resistance handling beyond current structured data and row text.
+
+## 2026-06-13 - Color Spray Blinded status description
+
+### SSO-COLOR-SPRAY-STATUS-DESCRIPTION-001 - Blinded row now avoids importer-facing repeat-save wording
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-1/color-spray.json` had a `STATUS_CONDITION` description that said the "modeled turn-end repeat save is the condition's escape path," exposing importer-facing wording in a player/runtime row.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Color Spray keeps its Constitution-save Blinded row player-facing.
+- The Color Spray description now names the 15-foot Cone, Constitution save, Blinded condition, and end-of-next-turn duration while preserving targeting, save metadata, status payload, repeat-save metadata, material component, instantaneous duration, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Color Spray still used "modeled turn-end repeat save" wording.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 91 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-1/color-spray.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for cone targeting from self, per-creature Constitution-save execution, Blinded application, end-of-next-turn expiry, repeat-save scheduling, material presentation, or visibility/rendering behavior beyond current structured data and row text.
+
+## 2026-06-13 - Grasping Vine hit damage and Grappled descriptions
+
+### SSO-GRASPING-VINE-DAMAGE-STATUS-DESCRIPTION-001 - hit damage and Grappled rows now expose player-facing attack results
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-4/grasping-vine.json` had `DAMAGE` and `STATUS_CONDITION` descriptions that used importer-facing phrases: "hit-based vine effect" and "modeled escape check."
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Grasping Vine keeps its melee spell attack damage row, Grappled row, and forced-pull row distinct.
+- The Grasping Vine descriptions now name the melee spell attack hit, 4d8 Bludgeoning damage, Huge-or-smaller Grappled gate, up-to-1-minute condition duration, action-cost spell-save-DC escape check, and existing 30-foot pull row while preserving targeting, trigger types, hit conditions, damage dice, damage type, status payload, escape-check metadata, forced movement metadata, concentration duration, higher-slot grapple scaling text, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Grasping Vine's damage and Grappled rows still used importer-facing "hit-based vine effect" / "modeled escape check" wording.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 90 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-4/grasping-vine.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for vine placement, surface eligibility, melee spell attack construction, Huge-or-smaller condition gating, one-creature grapple capacity, no-action release, later-turn Bonus Action repeat attacks, escape-check execution, forced pull pathing, concentration upkeep, or higher-slot grapple-count execution beyond current structured data and row text.
+
+## 2026-06-13 - Incendiary Cloud damage-trigger description split
+
+### SSO-INCENDIARY-CLOUD-DAMAGE-DESCRIPTION-001 - appearance, entry, and end-turn fire rows now name save outcomes
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/incendiary-cloud.json` had three `DAMAGE` descriptions for the cloud's appearance, movement / entry trigger, and end-turn trigger, but the rows either said only "for Fire damage" or "makes the save" without naming the 10d8 failed-save damage and half-success branch.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Incendiary Cloud keeps its wrapper row, three Fire damage trigger rows, and 10-foot cloud movement row distinct.
+- The Incendiary Cloud damage rows now name the 20-foot cloud context, Dexterity save, 10d8 Fire failed-save damage, half damage on success, cloud-moves-into-space / creature-enters trigger, and end-turn trigger while preserving targeting, trigger types, damage dice, Fire damage type, Heavily Obscured wrapper facts, once-per-turn save note, start-turn movement row, concentration duration, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Incendiary Cloud's three damage rows omitted full save-outcome wording.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 89 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/incendiary-cloud.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Heavily Obscured rendering, strong-wind dispersal, once-per-turn damage suppression, cloud movement direction choice, movement collision detection, end-turn scheduling, Dexterity-save execution, or concentration upkeep beyond current structured data and row text.
+
+## 2026-06-13 - Hunter's Mark weapon-rider and mark-transfer descriptions
+
+### SSO-HUNTERS-MARK-DAMAGE-UTILITY-DESCRIPTION-001 - weapon damage rider and tracking utility rows now expose player-facing behavior
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-1/hunters-mark.json` had a `DAMAGE` description that used importer-facing "modeled tracking damage rider" wording, and its `UTILITY` description omitted the current mark-transfer conditional ending.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Hunter's Mark keeps its weapon-attack Force damage rider row and tracking / mark-transfer utility row distinct.
+- The Hunter's Mark descriptions now name the marked target, weapon-attack hit trigger, 1d6 Force damage, Wisdom (Perception or Survival) Advantage, target dropping to 0 Hit Points, and Bonus Action mark transfer to a new visible creature within range while preserving targeting, duration, concentration, weapon attack filter, conditional ending, damage dice, damage type, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Hunter's Mark's damage row used "modeled tracking damage rider" wording and its utility row omitted mark transfer.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 88 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-1/hunters-mark.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for mark state tracking, weapon-attack source matching, tracking-check Advantage enforcement, mark transfer targeting, Bonus Action availability, visible-creature selection, or higher-slot concentration duration upgrades beyond current structured data and row text.
+
+## 2026-06-13 - Hex damage-rider and curse-transfer descriptions
+
+### SSO-HEX-DAMAGE-UTILITY-DESCRIPTION-001 - damage rider and curse utility rows now expose player-facing behavior
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-1/hex.json` had a `DAMAGE` description that used importer-facing "modeled curse damage rider" wording, and its `UTILITY` description omitted the current conditional-ending transfer behavior.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Hex keeps its Necrotic attack-hit rider row and chosen-ability disadvantage / curse-transfer utility row distinct.
+- The Hex descriptions now name the cursed target, attack-roll hit trigger, 1d6 Necrotic damage, caster-chosen ability-check Disadvantage, target dropping to 0 Hit Points, and later-turn Bonus Action transfer while preserving targeting, duration, concentration, higher-level duration scaling, control options, conditional ending, damage dice, damage type, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Hex's damage row used "modeled curse damage rider" wording and its utility row omitted curse transfer.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 87 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-1/hex.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for curse state tracking, attack-hit source matching, chosen ability UI, ability-check disadvantage enforcement, curse transfer targeting, later-turn Bonus Action availability, or higher-slot concentration duration upgrades beyond current structured data and row text.
+
+## 2026-06-13 - Witch Bolt initial/sustained damage description split
+
+### SSO-WITCH-BOLT-DAMAGE-DESCRIPTION-001 - initial and sustained lightning rows now separate scaling and ending facts
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-1/witch-bolt.json` had an initial `DAMAGE` description that repeated slot-scaling prose already carried by structured scaling metadata, and a sustained `DAMAGE` description that omitted the modeled range and Total Cover ending conditions.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Witch Bolt keeps its initial ranged spell attack Lightning row and sustained later-turn automatic Lightning row distinct.
+- The Witch Bolt descriptions now name the initial 2d12 Lightning ranged spell attack hit, sustained later-turn Bonus Action 1d12 automatic Lightning damage, current modeled "even if the first attack missed" behavior, and range / Total Cover endings while preserving targeting, damage dice, Lightning damage type, +1d12 initial-damage slot scaling, concentration duration, conditional endings, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Witch Bolt's initial row repeated scaling prose and its sustained row omitted ending conditions.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 86 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-1/witch-bolt.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It preserves the current data's unusual claim that later automatic damage can apply even if the first attack missed; it does not claim full runtime parity for hit-gated arc creation, automatic damage eligibility, range checks, Total Cover checks, concentration upkeep, or slot scaling execution beyond current structured data and row text.
+
+## 2026-06-13 - Gust of Wind movement-utility description split
+
+### SSO-GUST-OF-WIND-MOVEMENT-UTILITY-DESCRIPTION-001 - forced movement and wind utility rows now expose core line effects
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-2/gust-of-wind.json` had a compressed `MOVEMENT` description and a terse `UTILITY` description even though the current data carries a 60-foot by 10-foot Line, Strength-save 15-foot forced movement, gas / vapor dispersal, unprotected flame extinguishing, protected flame disturbance, and a granted later-turn direction-change Bonus Action.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Gust of Wind keeps its forced movement row and environmental wind / direction-change utility row distinct.
+- The Gust of Wind descriptions now name the Line dimensions, Strength save, 15-foot push away from the caster along the Line, gas and vapor dispersal, candle / unprotected flame extinguishing, protected-flame 50 percent extinguish chance, and later-turn Bonus Action direction change while preserving existing targeting, trigger model, forcedMovement metadata, duration, concentration, granted action, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Gust of Wind's movement and utility descriptions compressed or omitted key Line behavior.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 85 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-2/gust-of-wind.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for initial-entry versus start/end-turn timing, line direction UI, approach-cost movement tax, gas/vapor classification, flame protection checks, 50 percent protected-flame rolls, or actual Bonus Action direction-change execution beyond current structured data and row text.
+
+## 2026-06-13 - Flaming Sphere damage-description split
+
+### SSO-FLAMING-SPHERE-DAMAGE-DESCRIPTION-001 - heat and movement rows now name Dexterity-save Fire damage
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-2/flaming-sphere.json` had two `DAMAGE` descriptions with unclear save/damage phrasing: the end-turn row said creatures take damage "on a Dexterity save," and the movement row said only "makes the save" without naming the 2d6 Fire damage.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Flaming Sphere keeps its end-turn heat damage row, bonus-action movement collision damage row, and movement utility wrapper distinct.
+- The Flaming Sphere damage descriptions now name the 5-foot heat radius, Dexterity save, 2d6 Fire failed-save damage, half damage on success, 30-foot Bonus Action movement, creature-space collision save, and sphere stopping for the turn while preserving existing targeting, area details, damage dice, Fire damage type, +1d6 slot scaling, granted action, light metadata, concentration duration, and utility movement row.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Flaming Sphere's two damage rows had unclear save/damage branch wording.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 84 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-2/flaming-sphere.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for unoccupied ground placement, 30-foot rolling pathing, stopping on creature-space collision, barrier and pit movement, flammable-object ignition, light emission, Dexterity-save resolution, or +1d6 slot scaling beyond current structured data and row text.
+
+## 2026-06-13 - Storm Sphere Strength-save description split
+
+### SSO-STORM-SPHERE-DAMAGE-DESCRIPTION-001 - Strength-save rows now name failed-save Bludgeoning damage
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-4/storm-sphere.json` had two `DAMAGE` descriptions that named the Strength save and no-damage success branch but omitted the 2d6 Bludgeoning failed-save damage from the immediate sphere-appearance row and the end-turn-in-area row.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Storm Sphere keeps its immediate Strength-save row, end-turn Strength-save row, lightning attack row, difficult terrain row, and listening-disadvantage row distinct.
+- The Storm Sphere Strength-save descriptions now name 2d6 Bludgeoning failed-save damage and no damage on success while preserving targeting, 20-foot-radius sphere, Strength save metadata, Bludgeoning damage type, +1d6 slot scaling, lightning attack row, terrain row, utility row, concentration duration, and tags.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Storm Sphere's first two Strength-save rows omitted the failed-save 2d6 Bludgeoning damage.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 83 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-4/storm-sphere.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for sphere placement, per-creature Strength-save resolution, difficult-terrain movement costs, lightning attack targeting from the sphere center, advantage checks for targets inside the sphere, listening-disadvantage enforcement, concentration upkeep, or +1d6 scaling across all effects beyond current structured data and row text.
+
+## 2026-06-13 - Phantasmal Killer initial-save description focus
+
+### SSO-PHANTASMAL-KILLER-DAMAGE-DESCRIPTION-001 - initial Wisdom-save row now describes failed and successful branches
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-4/phantasmal-killer.json` had a note-like initial `DAMAGE` description even though the row is structured as a Wisdom save with 4d10 Psychic damage, half damage on success, spell ending on success, and a failed-save disadvantage rider.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Phantasmal Killer keeps its initial Wisdom-save row and repeated end-turn Wisdom-save row distinct.
+- The Phantasmal Killer initial row now names the initial Wisdom save, 4d10 Psychic failed-save damage, disadvantage rider, half damage on success, and spell ending on success while preserving the repeat-save row, damage dice, Psychic damage type, +1d10 slot scaling, concentration duration, and conditional ending metadata.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the initial Phantasmal Killer row still used "Initial Wisdom save" note wording and omitted the 4d10 value.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 82 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-4/phantasmal-killer.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for nightmare illusion rendering, disadvantage-rider execution, concentration upkeep, repeated end-turn Wisdom-save scheduling, spell ending on successful saves, or applying +1d10 scaling to both damage rows beyond current structured data and row text.
+
+## 2026-06-13 - Vitriolic Sphere damage-description split
+
+### SSO-VITRIOLIC-SPHERE-DAMAGE-DESCRIPTION-001 - acid burst rows now separate save and delayed failed-save damage
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-4/vitriolic-sphere.json` had a scaffold-like immediate `DAMAGE` description that bundled the Dexterity save, initial Acid damage, and slot scaling into one row, while the delayed damage row used a slightly redundant "another 5d4" phrasing.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Vitriolic Sphere keeps its immediate Dexterity-save Acid burst row and failed-save delayed Acid row distinct.
+- The Vitriolic Sphere descriptions now name the 20-foot-radius acid explosion, Dexterity save, 10d4 Acid failed-save damage, half damage on success, and 5d4 Acid delayed damage at the end of the failed target's next turn while preserving targeting, spatial details, damage dice, Acid damage type, save metadata, instantaneous duration, and +2d4 initial-damage slot scaling.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Vitriolic Sphere still used the old scaffold-like immediate explosion text and redundant delayed damage text.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 81 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-4/vitriolic-sphere.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for acid projectile travel, area placement, per-creature Dexterity save resolution, half-damage application, failed-save-only delayed scheduling, end-of-next-turn timing, or applying +2d4 slot scaling only to the initial damage beyond current structured data and row text.
+
+## 2026-06-13 - Melf's Acid Arrow damage-description split
+
+### SSO-MELFS-ACID-ARROW-DAMAGE-DESCRIPTION-001 - acid rows now describe hit, miss, and delayed damage branches
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-2/melfs-acid-arrow.json` had two scaffold-like `DAMAGE` descriptions even though the first row is the immediate ranged spell attack damage with hit / miss branching, and the second row is the hit-only delayed end-of-next-turn Acid damage.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Melf's Acid Arrow keeps its initial hit/miss damage row and delayed damage row distinct.
+- The Melf's Acid Arrow descriptions now name the ranged spell attack, 4d4 Acid hit damage, half initial Acid damage on a miss, no delayed damage on a miss, and 2d4 Acid damage at the end of the target's next turn on a hit while preserving existing targeting, damage dice, Acid damage type, +1d4 slot scaling for both rows, and instantaneous duration.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the two Melf's Acid Arrow damage descriptions still read like scaffold notes.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 80 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-2/melfs-acid-arrow.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for ranged spell attack roll construction, miss half-damage application, suppressing delayed damage on a miss, end-of-next-turn scheduling, or applying the +1d4 slot scaling to both initial and later damage beyond the current structured data and row text.
+
+## 2026-06-13 - Spiritual Weapon damage-description split
+
+### SSO-SPIRITUAL-WEAPON-DAMAGE-DESCRIPTION-001 - weapon attack rows now describe initial and later-turn attacks
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-2/spiritual-weapon.json` had two terse `DAMAGE` descriptions even though the first row is the immediate melee spell attack when the spectral weapon appears, and the second row is the later-turn repeated melee spell attack after moving the weapon.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Spiritual Weapon keeps its initial attack, later-turn attack, and movement utility wrapper rows distinct.
+- The Spiritual Weapon damage descriptions now name the spectral weapon, immediate melee spell attack, 5-foot reach from the weapon, 1d8 plus spellcasting modifier Force damage on a hit, later-turn granted Bonus Action, 20-foot movement, and repeated melee spell attack while preserving existing targeting, damage dice, Force damage type, custom slot scaling, utility row, and granted-action metadata.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Spiritual Weapon's two damage rows still used terse scaffold text for the initial and later-turn attacks.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 79 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-2/spiritual-weapon.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for spectral-weapon placement, weapon-shape choice, non-creature space targeting, melee spell attack roll construction, concentration/duration tracking, later-turn Bonus Action availability, 20-foot movement pathing, 5-foot adjacency after movement, or every-slot 1d8 scaling step beyond current structured data and row text.
+
+## 2026-06-13 - Heat Metal damage-description split
+
+### SSO-HEAT-METAL-DAMAGE-DESCRIPTION-001 - damage rows now describe initial and repeat heating triggers
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-2/heat-metal.json` had two note-like `DAMAGE` descriptions even though the first row is immediate 2d8 Fire damage from contact with the heated metal object, and the second row is the granted later-turn Bonus Action repeat damage.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Heat Metal keeps its initial damage, repeated damage, and drop/disadvantage rider rows distinct.
+- The Heat Metal damage descriptions now name physical contact with the red-hot metal object, 2d8 Fire damage, cast-time timing, later-turn Bonus Action repeat timing, and within-range prerequisite while preserving existing dice, Fire damage type, +1d8 slot scaling, targeting, concentration, utility control row, granted action metadata, and save/disadvantage text.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Heat Metal's two damage rows still used importer-like "Initial heating" and "Bonus Action on later turns" notes.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 78 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-2/heat-metal.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for manufactured-metal object eligibility, metal armor / weapon examples, physical-contact detection, object range tracking after casting, recurring Bonus Action availability, Constitution save resolution, forced drop inventory mutation, or attack-roll / ability-check Disadvantage application beyond the current structured data and row text.
+
+## 2026-06-13 - Warding Bond defensive-description split
+
+### SSO-WARDING-BOND-DEFENSIVE-DESCRIPTION-001 - generic defensive bond rows now name AC and resistance payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-2/warding-bond.json` had two generic `DEFENSIVE` descriptions even though the first row is structured as `defenseType: "ac_bonus"` with `value: 1`, and the second row is structured as `defenseType: "resistance"` with `damageType: ["All"]`.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Warding Bond keeps the +1 AC row, all-damage Resistance row, and shared-damage utility row distinct.
+- The Warding Bond defensive descriptions now name the willing touched target, +1 AC, all-damage Resistance, 1-hour duration, 60-foot link requirement, and existing shared-damage row while preserving the current targeting, material component, duration, defensive payloads, linked-damage metadata, and conditional endings.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because Warding Bond's first two defensive rows still said only "defensive bond effect" and did not name AC or Resistance.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 77 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-2/warding-bond.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for enforcing worn platinum rings, saving throw bonus application, caster-target distance updates, post-mitigation linked damage routing, spell recast cleanup on either connected creature, or ending on either creature dropping to 0 Hit Points beyond the existing structured data.
+
+## 2026-06-13 - Cloud of Daggers damage-description split
+
+### SSO-CLOUD-OF-DAGGERS-DAMAGE-DESCRIPTION-001 - duplicate area-damage rows now describe distinct triggers
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-2/cloud-of-daggers.json` had two later `DAMAGE` rows with identical descriptions even though their structured triggers are different: one is `on_enter_area` with first-per-turn frequency, and the other is `on_end_turn_in_area`.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Cloud of Daggers keeps cast-time, enter / moved-into-space, and end-turn damage descriptions distinct.
+- The Cloud of Daggers damage descriptions now preserve the existing 4d4 Slashing damage, +2d4 slot scaling, 5-foot Cube, concentration duration, and trigger split while making each runtime/UI row readable without changing dice, targeting, saves, duration, or scaling.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the second and third Cloud of Daggers damage rows still shared the same combined trigger sentence.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 76 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-2/cloud-of-daggers.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for teleporting the Cube up to 30 feet with a later Magic action, enforcing the once-per-turn damage cap across all Cloud of Daggers trigger rows, or resolving how the movement of the Cube should be represented beyond the current `on_enter_area` row text and existing structured trigger.
+
+## 2026-06-13 - Simulacrum utility-description focus
+
+### SSO-SIMULACRUM-UTILITY-DESCRIPTION-001 - copy-lifecycle utility wrapper now points to sibling summoning and repair rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/simulacrum.json` had a copied `UTILITY` row even though separate `SUMMONING` and `HEALING` rows already carry Construct-copy statistics / half Hit Point maximum and the 100 GP per Hit Point Long Rest repair mechanic.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Simulacrum keeps the utility row focused on casting setup, copy limits, lifecycle, and recast-destruction wrapper facts instead of repeating full spell card prose.
+- The Simulacrum utility description now names the 12-hour casting, consumed 1,500+ GP powdered ruby, Beast or Humanoid remaining within 10 feet, same-size ice or snow pile, friendly commanded simulacrum acting on the caster turn, cannot-cast-Simulacrum limit, no level gain, no Short or Long Rests, 0-Hit-Point snow reversion / melting, and instant destruction of any existing simulacrum from recasting while preserving existing summoning row, repair healing row, target filters, control options, material cost / consumption, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Simulacrum utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 75 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/simulacrum.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for 12-hour casting proximity checks, same-size ice or snow validation, stat-block copying, Construct conversion, half-Hit-Point maximum calculation, command routing, shared-turn scheduling, spellcasting prohibition, level-gain prevention, rest prevention, repair during caster Long Rest, repair component accounting, 5-foot repair proximity, 0-Hit-Point snow reversion, melt cleanup, or prior-simulacrum destruction beyond current structured data and control options.
+
+## 2026-06-13 - Sequester utility-description focus
+
+### SSO-SEQUESTER-UTILITY-DESCRIPTION-001 - hidden-suspension utility wrapper now points to sibling status rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/sequester.json` had a copied `UTILITY` row even though separate `STATUS_CONDITION` rows already carry the target's Invisible state and creature Unconscious suspended-animation state.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Sequester keeps the utility row focused on divination / magic detection shielding, no-aging / no-needs, early-ending, damage-ending, and consumed-component wrapper facts instead of repeating full spell card prose.
+- The Sequester utility description now names touch, consumed 5,000+ GP gem dust, one object or willing creature, until-dispelled duration, Divination targeting block, magic detection block, remote magical viewing block, creature no-aging / no food / no water / no air facts, caster-chosen early end condition within 1 mile, and target-damage ending while preserving existing status rows, control options, targeting, material cost / consumption, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Sequester utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 74 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/sequester.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for willing-creature confirmation, object eligibility, consumed gem-dust accounting, Invisible enforcement, Divination targeting block, magic detection block, remote magical viewing block, suspended-animation lifecycle, no-aging clock, no food / water / air needs, arbitrary early-end condition authoring, 1-mile condition visibility checks, target-damage ending, or wake/restore ordering beyond current structured data and control options.
+
+## 2026-06-13 - Regenerate utility-description focus
+
+### SSO-REGENERATE-UTILITY-DESCRIPTION-001 - body-regrowth utility wrapper now points to sibling healing rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/regenerate.json` had a copied `UTILITY` row even though separate `HEALING` rows already carry the immediate 4d8 + 15 Hit Point restoration and the recurring 1 Hit Point start-turn recovery.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Regenerate keeps the utility row focused on severed-body-part regrowth wrapper facts instead of repeating healing payloads.
+- The Regenerate utility description now names the touched creature, 1-hour prayer-wheel transmutation, and severed body parts regrowing after 2 minutes while preserving existing healing rows, control options, targeting, material component, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Regenerate utility row still repeated the healing rows.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 73 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/regenerate.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for severed-body-part state tracking, 2-minute regrowth scheduling, body-part attachment versus regrowth choices, prayer-wheel material presentation, immediate healing application, recurring start-turn healing scheduling, duration expiration, or healing-over-time interaction ordering beyond current structured data and control options.
+
+## 2026-06-13 - Project Image utility-description focus
+
+### SSO-PROJECT-IMAGE-UTILITY-DESCRIPTION-001 - illusion-projection utility wrapper now points to sibling image-movement row
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/project-image.json` had a copied `UTILITY` row even though a separate `MOVEMENT` row already carries Magic-action 60-foot image movement and behavior control.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Project Image keeps the utility row focused on illusion placement, sensing, intangibility, reveal, Study check, and discerned-image facts instead of repeating full spell card prose.
+- The Project Image utility description now names the 5+ GP self-statuette, 1-day concentration, previously seen location within 500 miles, obstacle-ignoring placement, caster-like appearance and sound, intangibility, damage-ending behavior, remote sight and hearing, perfect mannerism mimicry, physical-interaction reveal, Study / Intelligence (Investigation) identification against spell save DC, and see-through / hollow-sound discerned state while preserving existing movement row, control options, targeting, material cost, duration, concentration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Project Image utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 72 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/project-image.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for prior-location memory validation, 500-mile placement lookup, obstacle-ignoring projection, duplicate appearance/audio rendering, image damage hooks, concentration ending, remote senses, Magic-action behavior orchestration, mannerism mimicry, physical-interaction reveal, Study action resolution, per-creature discerned state, see-through rendering, or hollow-sound audio treatment beyond current structured data and control options.
+
+## 2026-06-13 - Plane Shift utility-description focus
+
+### SSO-PLANE-SHIFT-UTILITY-DESCRIPTION-001 - planar-destination utility wrapper now points to sibling movement row
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/plane-shift.json` had a copied `UTILITY` row even though a separate `MOVEMENT` row already carries actual different-plane teleport movement for the current willing-travel data.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Plane Shift keeps the utility row focused on attuned-rod, linked-circle, destination, known-circle, and spillover wrapper facts instead of repeating the transport row.
+- The Plane Shift utility description now names the 250+ GP forked metal rod attuned to a plane, caster plus up to eight willing creatures linking hands in a circle, general different-plane destination with DM-determined near arrival, known sigil sequence to a teleportation circle on another plane, and too-small-circle spillover to closest unoccupied spaces while preserving existing movement row, control options, targeting, material cost, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Plane Shift utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 71 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/plane-shift.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup over the current willing-travel data. It does not claim full runtime parity for planar rod attunement validation, linked-hand formation checks, willing-creature confirmation, general-destination adjudication, known-circle sigil matching, too-small-circle spillover placement, cross-plane destination lookup, arrival collision handling, or any hostile Plane Shift branch not present in the current spell JSON / top-level description.
+
+## 2026-06-13 - Mordenkainen's Magnificent Mansion utility-description focus
+
+### SSO-MORDENKAINENS-MAGNIFICENT-MANSION-UTILITY-DESCRIPTION-001 - extradimensional dwelling utility wrapper now points to sibling servant and expulsion rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/mordenkainens-magnificent-mansion.json` had a copied `UTILITY` row even though separate `MOVEMENT` and `SUMMONING` rows already carry end-of-spell expulsion and the 100 near-transparent servants.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Mordenkainen's Magnificent Mansion keeps the utility row focused on door, access, dwelling, food, and object-export wrapper facts instead of repeating full spell card prose.
+- The Mansion utility description now names the 5-foot-wide / 10-foot-tall shimmering door, 300-foot range, 24-hour duration, clean / fresh / warm extradimensional dwelling, designated entrant access, no-action open/close within 30 feet, imperceptible closed door, up to 50 contiguous 10-foot cubes, caster-chosen furnishing and decoration, nine-course banquet for up to 100 people, and created-object smoke dissipation while preserving existing movement row, summoning row, control options, targeting, spatial details, material cost, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Mansion utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 70 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/mordenkainens-magnificent-mansion.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for extradimensional-space creation, door visibility / open / close state, designated entrant access, 30-foot caster proximity checks, floor-plan layout, contiguous cube validation, furnishing or decoration UI, banquet inventory, created-object smoke dissipation, servant command routing, servant invulnerability, servant harm restrictions, servant dwelling lock-in, end-of-spell expulsion placement, or object / creature handling inside the mansion beyond current structured data and control options.
+
+## 2026-06-13 - Mighty Fortress utility-description focus
+
+### SSO-MIGHTY-FORTRESS-UTILITY-DESCRIPTION-001 - fortress utility wrapper now points to sibling servant-summoning row
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/mighty-fortress.json` had a copied `UTILITY` row even though a separate `SUMMONING` row already carries the one hundred invisible servants.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Mighty Fortress keeps the utility row focused on fortress footprint, layout, durability, food/object, teardown, and permanence rules instead of repeating full spell card prose.
+- The Mighty Fortress utility description now names the consumed 500 GP diamond, visible 120-foot-square structure-free ground within 1 mile, harmless creature lift, four 20-foot-square 30-foot-tall turrets, 80-foot wall runs, 10-foot by 20-foot panels, up to four outer stone doors, 50-foot-square three-floor keep, 10-foot ceilings, 6-inch keep walls, 5-foot minimum rooms, stairs, doors or archways, furnishings, decoration, daily nine-course food for up to 100 people, removed-object crumbling, stone-section AC / Hit Points / Poison and Psychic immunity, collapse risk, safe crumble after 7 days or recasting elsewhere, and once-every-7-days same-spot year-long permanence while preserving existing summoning row, spatial details, measured details, control options, targeting, material cost / consumption, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Mighty Fortress utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 69 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/mighty-fortress.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for ground structure-exclusion validation, creature lift placement, full fortress geometry construction, turret/wall/panel adjacency, door placement UI, keep room layout, stair/archway choices, furnishing and food lifecycle, removed-object crumbling, invisible-servant command routing, stone section hit point tracking, immunity enforcement, connected-section collapse adjudication, safe seven-day teardown, recast-elsewhere teardown, or same-spot yearly permanence tracking beyond current structured data and control options.
+
+## 2026-06-13 - Magic Jar utility-description focus
+
+### SSO-MAGIC-JAR-UTILITY-DESCRIPTION-001 - soul-container utility wrapper now points to sibling incapacitation and movement-lock rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-6/magic-jar.json` had a copied `UTILITY` row even though separate `STATUS_CONDITION` and `MOVEMENT` rows already carry the trapped soul's Incapacitated state and caster-container movement / reaction suppression.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Magic Jar keeps the utility row focused on soul-container, possession, host-stat, death-return, and cleanup routing instead of repeating full spell card prose.
+- The Magic Jar utility description now names the 500+ GP container, caster-body catatonia, container perception, 100-foot projection, return-to-body or visible-Humanoid possession attempt, Protection from Evil and Good / Magic Circle ward exclusions, target Charisma save, failed-save host possession and host-soul trapping, 24-hour repeat-attempt lockout on success, host-stat replacement fields, Magic-action return to nearby container, host-death caster save, container-destruction and spell-ending soul return / death conditions, and spell-end container destruction while preserving existing status row, movement row, control options, material cost, duration, end cleanup, targeting, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Magic Jar utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 68 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-6/magic-jar.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for container object tracking, caster-body catatonia state, soul-location state, perception origin switching, reaction suppression beyond the existing movement-row note, Humanoid eligibility, ward detection, possession Charisma save branching, repeat-attempt lockout persistence, host-stat replacement, host-control action routing, host-soul container perspective, Magic-action return, host-death save handling, caster-body distance/death checks, container destruction routing, stranded-soul death handling, spell-ending cleanup, or material-container destruction beyond current structured data and control options.
+
+## 2026-06-13 - Temple of the Gods utility-description focus
+
+### SSO-TEMPLE-OF-THE-GODS-UTILITY-DESCRIPTION-001 - sanctuary utility wrapper now points to sibling entry, penalty, and healing rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/temple-of-the-gods.json` had a copied `UTILITY` row even though separate `STATUS_CONDITION`, `ATTACK_ROLL_MODIFIER`, and `HEALING` rows already carry opposed-creature entry denial, opposed-creature d4 penalties, and spell-healing bonus mechanics.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Temple of the Gods keeps the utility row focused on sanctuary-shell wrapper facts instead of repeating full spell card prose.
+- The Temple of the Gods utility description now names the 1-hour casting, visible ground within 120 feet, unoccupied 120-foot cube footprint, dedication and appearance choices, floor / walls / roof / door / windows / idol-or-altar interior, illumination / incense / mild temperature, opaque magical-force shell, Ethereal travel and physical passage blocking, divination sensor and targeting blocks, Dispel Magic and Antimagic Field immunity, Disintegrate destruction, and year-long same-spot permanence while preserving existing entry-denial row, d4 penalty row, healing row, control options, targeting, spatial form, material cost, duration, duration progression, and conditional ending data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Temple of the Gods utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 67 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/temple-of-the-gods.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for temple placement validation, unoccupied 120-foot cube fitting, deity / pantheon / philosophy dedication UI, appearance configuration, door permission state, window/light/interior rendering, opposed-creature type selection, entry-denial persistence, d4 penalty application to all affected d20 rolls, divination sensor blocking, divination target blocking, healing-bonus source filtering, opaque magical-force collision, Ethereal travel blocking, physical passage blocking, Dispel Magic immunity, Antimagic Field immunity, Disintegrate teardown, or daily same-spot permanence tracking beyond current structured data and control options.
+
+## 2026-06-13 - Teleport utility-description focus
+
+### SSO-TELEPORT-UTILITY-DESCRIPTION-001 - outcome-table utility wrapper now points to sibling movement and mishap rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/teleport.json` had a copied `UTILITY` row even though separate `MOVEMENT` and `DAMAGE` rows already carry actual same-plane teleport movement and Mishap 3d10 Force damage with reroll.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Teleport keeps the utility row focused on target eligibility and outcome-table wrapper facts instead of repeating full spell card prose.
+- The Teleport utility description now names caster plus up to eight willing visible creatures within 10 feet, one visible Large-or-smaller object not held or carried by an unwilling creature, known same-plane destination, d100 familiarity table routing, Permanent Circle and Linked Object on-target shortcuts, Very Familiar / Seen Casually / Viewed Once or Described / False Destination rows, and Similar Area / Off Target / On Target routing while preserving existing movement row, Mishap damage row, control options, targeting, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Teleport utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 66 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/teleport.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for willingness enforcement, object carried-by-unwilling checks, known-destination validation, same-plane validation, familiarity classification, d100 table lookup, Permanent Circle or Linked Object automatic success, Similar Area selection, Off Target 2d12-mile and d8-direction placement, On Target placement, Mishap reroll loops, or multi-target arrival collision handling beyond current structured data and control options.
+
+## 2026-06-13 - Whirlwind utility-description focus
+
+### SSO-WHIRLWIND-UTILITY-DESCRIPTION-001 - vortex utility wrapper now points to sibling damage, restraint, movement, fall, and escape rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/whirlwind.json` had a copied `UTILITY` row even though separate `DAMAGE`, `STATUS_CONDITION`, and `MOVEMENT` rows already carry entry/overlap damage, Large-or-smaller restraint, caster-directed ground movement, start-turn upward pull, spell-end falling, and escape-hurl behavior.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Whirlwind keeps the utility row focused on visible ground-point vortex and loose-object wrapper facts instead of repeating every mechanical row.
+- The Whirlwind utility description now names the 10-foot-radius, 30-foot-high cylinder, visible ground point within 300 feet, 1-minute concentration duration, and Medium-or-smaller unsecured object pickup while preserving existing damage row, status row, movement rows, control options, targeting, material component, duration, concentration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Whirlwind utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 65 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/whirlwind.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for persistent vortex collision, once-per-turn entry/overlap gating, Dexterity-save damage scheduling, Large-or-smaller size filtering, Strength-save restraint branching, carried-creature movement, caster-directed ground movement, 5-foot vertical lift, top-of-cylinder ceiling behavior, spell-end fall handling, escape action checks, random hurl distance/direction, loose-object pickup, or falling-damage integration beyond current structured data and control options.
+
+## 2026-06-13 - Forcecage utility-description focus
+
+### SSO-FORCECAGE-UTILITY-DESCRIPTION-001 - containment utility wrapper now points to sibling push-out row
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/forcecage.json` had a copied `UTILITY` row even though a separate `MOVEMENT` row already carries partial-or-too-large creature push-out.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Forcecage keeps the utility row focused on containment wrapper facts instead of repeating full spell card prose.
+- The Forcecage utility description now names invisible immobile cube-shaped magical-force prison creation within 100 feet, cage and solid-box forms, half-inch cage bars and spacing, matter/spell blocking for the solid box, trapped completely enclosed creatures, blocked nonmagical exit, Charisma save for teleportation or interplanar escape, wasted escape effect on failure, Ethereal Plane extension, and Dispel Magic immunity while preserving existing movement row, spatial forms, measured bar details, control options, targeting, material cost / consumption, duration, concentration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Forcecage utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 64 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/forcecage.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for cage/box geometry, invisible barrier rendering, partial-containment collision, too-large fit checks, nonmagical exit blocking, teleport/interplanar Charisma save gating, wasted escape effects, Ethereal Plane travel blocking, spell-line blocking, Dispel Magic immunity, or material-consumption enforcement beyond current structured data and control options.
+
+## 2026-06-13 - Mind Blank utility-description focus
+
+### SSO-MIND-BLANK-UTILITY-DESCRIPTION-001 - mental-shield utility wrapper now points to sibling immunity row
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/mind-blank.json` had a copied `UTILITY` row even though a separate `DEFENSIVE` row already carries Psychic damage and Charmed condition immunity.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Mind Blank keeps the utility row focused on mental-shield wrapper facts instead of repeating full spell card prose.
+- The Mind Blank utility description now names the willing touched creature, 24-hour shield, emotion and alignment sensing block, thought-reading block, magical location detection block, information-gathering block, remote observation block, and mind-control block including Wish while preserving existing defensive row, control options, targeting, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Mind Blank utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 63 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/mind-blank.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for psychic immunity enforcement, Charmed immunity enforcement, emotion/alignment sensing blockers, thought-reading blockers, location detection blockers, remote observation blockers, information-gathering blockers, Wish-specific override handling, or mind-control prevention beyond current structured data and control options.
+
+## 2026-06-13 - Animal Shapes utility-description focus
+
+### SSO-ANIMAL-SHAPES-UTILITY-DESCRIPTION-001 - transformation utility wrapper now points to sibling temporary-HP row
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/animal-shapes.json` had a copied `UTILITY` row even though a separate `HEALING` row already carries first-form Temporary Hit Points.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Animal Shapes keeps the utility row focused on transformation wrapper facts instead of repeating full spell card prose.
+- The Animal Shapes utility description now names any-number willing visible targets within 30 feet, Large-or-smaller Beast forms with Challenge Rating 4 or lower, different forms per target, later Magic-action re-transforms, retained identity/stat facts, no spellcasting, Beast anatomy limits, equipment merging, and Bonus Action ending while preserving existing healing row, granted Magic action, control options, unlimited target sentinel, targeting, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Animal Shapes utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 62 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/animal-shapes.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Beast-form lookup, CR filtering, per-target form choice, repeated Magic-action re-transform orchestration, retained-stat merging, anatomy action limits, spellcasting suppression, equipment merging, Bonus Action self-ending, or temporary-HP lifecycle beyond current structured data and control options.
+
+## 2026-06-13 - Maddening Darkness utility-description focus
+
+### SSO-MADDENING-DARKNESS-UTILITY-DESCRIPTION-001 - darkness-zone utility wrapper now points to sibling Psychic damage row
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/maddening-darkness.json` had a copied `UTILITY` row even though a separate `DAMAGE` row already carries start-turn Wisdom saves and 8d8 Psychic damage.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Maddening Darkness keeps the utility row focused on darkness-zone wrapper facts instead of repeating full spell card prose.
+- The Maddening Darkness utility description now names the visible point within 150 feet, 60-foot-radius sphere, 10-minute concentration, darkness spreading around corners, darkvision blocking, nonmagical and 8th-level-or-lower spell light suppression, and audible shrieks / gibbering / mad laughter while preserving existing damage row, control options, targeting, material component, duration, concentration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Maddening Darkness utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 61 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/maddening-darkness.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for magical darkness rendering, around-corner fill, darkvision blocking, light-source suppression by spell level, audible zone presentation, start-turn scheduling, or Psychic damage application beyond current structured data and control options.
+
+## 2026-06-13 - Holy Aura utility-description focus
+
+### SSO-HOLY-AURA-UTILITY-DESCRIPTION-001 - aura-selection utility wrapper now points to sibling defensive, attack, and status rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/holy-aura.json` had a copied `UTILITY` row even though separate `DEFENSIVE`, `ATTACK_ROLL_MODIFIER`, and `STATUS_CONDITION` rows already carry saving throw advantage, incoming attack-roll disadvantage, and Fiend / Undead Blinded retaliation.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Holy Aura keeps the utility row focused on aura-selection wrapper facts instead of repeating full spell card prose.
+- The Holy Aura utility description now names the 30-foot self-centered Emanation, 1-minute concentration, caster-chosen affected creatures, and Fiend / Undead melee-hit retaliation routing while preserving existing defensive row, attack modifier row, status row, creature filter, control options, targeting, material cost, duration, concentration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Holy Aura utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 60 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/holy-aura.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for aura membership selection, moving Emanation updates, chosen-creature persistence, saving throw advantage coverage, incoming attack disadvantage targeting, Fiend / Undead melee-hit detection, Blinded duration timing, or retaliation save scheduling beyond current structured data and control options.
+
+## 2026-06-13 - Tsunami utility-description focus
+
+### SSO-TSUNAMI-UTILITY-DESCRIPTION-001 - water-wall utility wrapper now points to sibling damage and movement rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/tsunami.json` had a copied `UTILITY` row even though separate `DAMAGE` and `MOVEMENT` rows already carry initial 6d10 damage, ongoing Huge-or-smaller 5d10 damage, and forced wall movement.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Tsunami keeps the utility row focused on water-wall wrapper facts instead of repeating full spell card prose.
+- The Tsunami utility description now names the 1-mile point, concentration water wall, 300-foot length / height and 50-foot thickness, 6-round duration, 50-foot start-turn movement, 50-foot end-turn height decay, 1d10 later-damage decay, 0-foot-height ending, Strength (Athletics) swimming restriction, and falling when leaving the wall while preserving existing damage rows, movement row, control options, size filter, targeting, duration, concentration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Tsunami utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 59 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/tsunami.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for persistent wall geometry, start-turn wall movement, moving caught creatures, once-per-round ongoing damage suppression, per-round damage decay, wall-height decay, swimming checks, fall-out handling, 0-foot-height ending, or full water-wall collision beyond current structured data and control options.
+
+## 2026-06-13 - Antipathy/Sympathy utility-description focus
+
+### SSO-ANTIPATHY-SYMPATHY-UTILITY-DESCRIPTION-001 - mode and trigger utility wrapper now points to sibling status and movement rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/antipathy-sympathy.json` had a copied `UTILITY` row even though separate `STATUS_CONDITION` and `MOVEMENT` rows already carry Frightened, Charmed, and safest-route forced movement.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Antipathy/Sympathy keeps the utility row focused on mode and trigger wrapper facts instead of repeating full spell card prose.
+- The Antipathy/Sympathy utility description now names Antipathy/Sympathy mode choice, Huge-or-smaller creature/object target, named affected creature kind, 120-foot Wisdom-save trigger, turn-end repeat save when more than 120 feet away, 1-minute immunity after a successful save, Sympathy's 5-foot no-willing-away rule, and target-damage ending save while preserving existing status rows, movement row, control options, target filter, AI prompt, component, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Antipathy/Sympathy utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 58 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/antipathy-sympathy.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for creature-kind matching, 120-foot aura trigger detection, mode-specific condition branching, safest-route movement pathing, 5-foot Sympathy lock behavior, target-damage ending saves, turn-end distance checks, or 1-minute immunity persistence beyond current structured data and control options.
+
+## 2026-06-13 - Illusory Dragon utility-description focus
+
+### SSO-ILLUSORY-DRAGON-UTILITY-DESCRIPTION-001 - illusion-control utility wrapper now points to sibling fear, breath, and movement rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/illusory-dragon.json` had a copied `UTILITY` row even though separate `STATUS_CONDITION`, `DAMAGE`, and `MOVEMENT` rows already carry Frightened, 7d6 breath damage, save advantage for discerners, and 60-foot bonus-action movement.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Illusory Dragon keeps the utility row focused on illusion-control wrapper facts instead of repeating full spell card prose.
+- The Illusory Dragon utility description now names the Huge tangible shadow-dragon illusion, unoccupied visible space within 120 feet, 1-minute concentration, chosen breath damage type, bonus-action move-and-breath option, automatic attack misses, saving throw success, damage / condition immunity, and Intelligence (Investigation) discernment action while preserving existing status, damage, movement, granted action, control option, save-modifier, targeting, AI prompt, component, duration, concentration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Illusory Dragon utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 57 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/illusory-dragon.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for illusion occupying space, enemy visibility detection, repeat Frightened saves gated by line of sight, bonus-action movement orchestration, breath cone placement during movement, selected damage-type enforcement, automatic attack misses, illusion immunity, Investigation discernment state, or save-advantage application beyond current structured data and control options.
+
+## 2026-06-13 - Earthquake utility-description focus
+
+### SSO-EARTHQUAKE-UTILITY-DESCRIPTION-001 - tremor-zone utility wrapper now points to sibling status and damage rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/earthquake.json` had a copied `UTILITY` row even though separate `STATUS_CONDITION` and `DAMAGE` rows already carry Prone, Buried, structure damage, and collapse damage.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Earthquake keeps the utility row focused on tremor-zone wrapper facts instead of repeating full spell card prose.
+- The Earthquake utility description now names the visible ground point, 500-foot range, 100-foot-radius concentration tremor zone, Difficult Terrain, cast/end-turn Dexterity save timing, failed-save Concentration break, 1d6 caster-placed fissures, fissure dimensions, and repeated structure damage / collapse checks while preserving existing status rows, damage rows, control options, targeting, material component, duration, concentration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Earthquake utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 56 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/earthquake.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for persistent tremor zones, Difficult Terrain rendering, repeated end-turn save scheduling, Concentration break enforcement, fissure placement/geometry, fall-into-fissure movement, structure hit point tracking, collapse radius calculation, rubble escape actions, or turn-by-turn structure damage orchestration beyond current structured data and control options.
+
+## 2026-06-13 - Symbol utility-description focus
+
+### SSO-SYMBOL-UTILITY-DESCRIPTION-001 - glyph trigger utility wrapper now points to sibling payload rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/symbol.json` had a copied `UTILITY` row even though separate `DAMAGE`, `STATUS_CONDITION`, and `ATTACK_ROLL_MODIFIER` rows already carry Death damage, Fear / Pain / Sleep / Stunning conditions, and Discord disadvantage.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Symbol keeps the utility row focused on glyph placement, trigger, light, and once-per-turn targeting wrapper facts instead of repeating full spell card prose.
+- The Symbol utility description now names surface or closable-object glyph placement, 10-foot glyph diameter, object movement break distance, imperceptibility, trigger refinement with creature-type or password exclusions, 60-foot dim-light sphere, 10-minute triggered duration, and once-per-turn targeting while preserving existing damage, status, attack modifier, control option, targeting, spatial, material cost / consumption, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Symbol utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 55 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/symbol.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for glyph placement persistence, hidden-glyph perception checks, trigger condition authoring, creature-type/password trigger exclusions, triggered light rendering, once-per-turn zone targeting, or per-symbol payload selection beyond current structured data and control options.
+
+## 2026-06-13 - Wish utility-description focus
+
+### SSO-WISH-UTILITY-DESCRIPTION-001 - mode and stress utility wrapper now points to sibling payload rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/wish.json` had a copied `UTILITY` row even though separate `HEALING`, `DEFENSIVE`, and `DAMAGE` rows already carry Instant Health, permanent Resistance, 8-hour Spell Immunity, and irreducible post-stress Necrotic damage.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Wish keeps the utility row focused on mode and stress routing facts instead of repeating full spell card prose.
+- The Wish utility description now names level-8-or-lower spell duplication, the non-duplication mode menu, Wish stress, Strength reduction, rest-based recovery reduction, and the 33 percent future-Wish lockout chance while preserving existing healing, defensive, damage, control option, AI prompt, targeting, duration, component, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Wish utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 54 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/wish.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for duplicated spell selection/application, object creation, Greater Restoration effect removal, permanent resistance persistence, spell-immunity matching, feat replacement eligibility, reroll rewinding, DM-adjudicated reality reshaping, Wish-stress long-rest hooks, Strength recovery scheduling, or future-Wish lockout persistence beyond current structured data and control options.
+
+## 2026-06-13 - True Polymorph utility-description focus
+
+### SSO-TRUE-POLYMORPH-UTILITY-DESCRIPTION-001 - mode-selection utility wrapper now points to creature-form temporary-HP payload
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/true-polymorph.json` had a copied `UTILITY` row even though a separate `DEFENSIVE` row already carries creature-to-creature temporary Hit Points.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that True Polymorph keeps the utility row focused on mode-selection wrapper facts instead of repeating full spell card prose.
+- The True Polymorph utility description now names single visible creature or nonmagical object targeting, creature-to-creature / creature-to-object / object-to-creature modes, unwilling Wisdom saves, full-hour concentration permanence, CR or level limits, object-size and worn/carried eligibility, control and friendliness, retained identity facts, action / speech / spellcasting / gear limits, and no-memory object form while preserving existing defensive row, control options, AI prompt, targeting, duration, concentration, component, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the True Polymorph utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 53 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/true-polymorph.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for mode-specific transformation application, stat-block replacement, object eligibility enforcement, sustained-concentration permanence, friendly/controlled object-creature behavior, post-hour control release, equipment melding, temporary-HP lifecycle, or no-memory restoration beyond current structured data and control options.
+
+## 2026-06-13 - Mass Polymorph utility-description focus
+
+### SSO-MASS-POLYMORPH-UTILITY-DESCRIPTION-001 - transformation utility wrapper now points to beast-form temporary-HP payload
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/mass-polymorph.json` had a copied `UTILITY` row even though a separate `DEFENSIVE` row already carries non-replaceable temporary Hit Points from the new beast form.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Mass Polymorph keeps the utility row focused on transformation wrapper facts instead of repeating full spell card prose.
+- The Mass Polymorph utility description now names up to ten visible targets, Wisdom saves and shapechanger auto-success for unwilling targets, seen-Beast CR or half-level form limits, retained hit points / alignment / personality, stat and action limitations, gear access loss, and reversion timing while preserving existing defensive row, control options, AI prompt, targeting, duration, concentration, component, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Mass Polymorph utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 52 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/mass-polymorph.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for multi-target beast-form selection, shapechanger auto-success enforcement, creature-form stat replacement, action/speech/hand restrictions, gear melding, temporary-HP lifecycle, or reversion timing beyond current structured data and control options.
+
+## 2026-06-13 - Invulnerability utility-description focus
+
+### SSO-INVULNERABILITY-UTILITY-DESCRIPTION-001 - self-only utility wrapper now points to damage-immunity payload
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/invulnerability.json` had a copied `UTILITY` row even though a separate `DEFENSIVE` row already carries immunity to all damage until the spell ends.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Invulnerability keeps the utility row focused on self-only defensive wrapper facts instead of repeating the defensive payload.
+- The Invulnerability utility description now names self targeting, 10-minute concentration, and consumed adamantine component while preserving existing defensive row, control option, targeting, material cost and consumption, duration, concentration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Invulnerability utility row still repeated the all-damage-immunity payload.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 51 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/invulnerability.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for all-damage immunity enforcement, concentration break behavior, or immunity interaction ordering beyond current structured data and control options.
+
+## 2026-06-13 - Astral Projection utility-description focus
+
+### SSO-ASTRAL-PROJECTION-UTILITY-DESCRIPTION-001 - astral-travel utility wrapper now points to suspended-body status payload
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/astral-projection.json` had a copied `UTILITY` row even though a separate `STATUS_CONDITION` row already carries suspended-body Unconscious.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Astral Projection keeps the utility row focused on astral-travel wrapper facts instead of repeating full spell card prose.
+- The Astral Projection utility description now names projection for the caster and up to eight willing creatures, the already-on-Astral-Plane failure, suspended bodies, body/astral-form damage and effect separation, silver-cord death, planar re-entry, and Magic-action dismissal while preserving existing status row, granted action, control options, targeting, consumed material cost, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Astral Projection utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 50 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/astral-projection.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for Astral Plane travel, duplicate-plane casting failure, silver-cord visibility/cutting, body/astral-form damage separation, planar re-entry, per-target 0-HP ending, dismissal routing, or suspended-body upkeep beyond current structured data and control options.
+
+## 2026-06-13 - Shapechange utility-description focus
+
+### SSO-SHAPECHANGE-UTILITY-DESCRIPTION-001 - transformation utility wrapper now points to first-form temporary-HP payload
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/shapechange.json` had a copied `UTILITY` row even though a separate `DEFENSIVE` row already carries first-form temporary Hit Points.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Shapechange keeps the utility row focused on transformation wrapper facts instead of repeating full spell card prose.
+- The Shapechange utility description now names seen non-Construct / non-Undead form eligibility, Challenge Rating eligibility, Magic-action reshaping, retained identity/stat/proficiency/communication/Spellcasting facts, and equipment handling while preserving existing defensive row, granted action, control options, targeting filters, AI prompt, material cost, duration, concentration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Shapechange utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 49 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/shapechange.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for creature form lookup, stat-block replacement, retained-stat merging, Spellcasting preservation, repeat Magic-action transformation, equipment conversion/drop handling, or temporary-HP lifecycle beyond current structured data and control options.
+
+## 2026-06-13 - Mass Heal utility-description focus
+
+### SSO-MASS-HEAL-UTILITY-DESCRIPTION-001 - allocation utility wrapper now points to 700-HP healing payload
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/mass-heal.json` had a copied `UTILITY` row even though a separate `HEALING` row already carries the 700-Hit-Point restoration pool.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Mass Heal keeps the utility row focused on allocation and condition wrapper facts instead of repeating full spell card prose.
+- The Mass Heal utility description now names dividing healing among any number of visible creatures within 60 feet and Blinded / Deafened / Poisoned removal on healed creatures while preserving existing healing row, allocation prompt, control options, targeting, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Mass Heal utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 48 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/mass-heal.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for allocation UI, per-target healing distribution, overheal prevention, or removing Blinded, Deafened, and Poisoned as separate status-condition effect rows beyond current structured data and control options.
+
+## 2026-06-13 - Power Word Heal utility-description focus
+
+### SSO-POWER-WORD-HEAL-UTILITY-DESCRIPTION-001 - healing utility wrapper now points to full-HP and prone-standing payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/power-word-heal.json` had a copied `UTILITY` row even though a separate `HEALING` row already carries all-Hit-Point restoration and a separate `MOVEMENT` row already carries ending the Prone movement state by standing.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Power Word Heal keeps the utility row focused on condition and reaction wrapper facts instead of repeating full spell card prose.
+- The Power Word Heal utility description now names the visible target, Charmed / Frightened / Paralyzed / Poisoned / Stunned condition removal, and Prone reaction-to-stand permission while preserving existing healing row, movement row, granted reaction, control options, targeting, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Power Word Heal utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 47 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/power-word-heal.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for removing Charmed, Frightened, Paralyzed, Poisoned, or Stunned as separate status-condition effect rows, Prone reaction timing, reaction availability checks, or full status lifecycle integration beyond current structured data and control options.
+
+## 2026-06-13 - True Resurrection utility-description focus
+
+### SSO-TRUE-RESURRECTION-UTILITY-DESCRIPTION-001 - resurrection utility wrapper now points to healing and placement payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/true-resurrection.json` had a copied `UTILITY` row even though a separate `HEALING` row already carries all-Hit-Point revival and a separate `MOVEMENT` row already carries new-body placement within 10 feet.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that True Resurrection keeps the utility row focused on resurrection wrapper facts instead of repeating full spell card prose.
+- The True Resurrection utility description now names the 200-year and no-old-age eligibility gates, wound / poison / magical-contagion / curse restoration, organ and limb replacement, Undead form restoration, and spoken-name new-body creation while preserving existing healing row, movement row, control options, targeting, material cost and consumption, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the True Resurrection utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 46 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/true-resurrection.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for 200-year death eligibility, old-age death exclusion, poison / magical contagion / curse restoration, organ and limb restoration, Undead form restoration, spoken-name identity matching, or new-body placement adjudication beyond current structured data and control options.
+
+## 2026-06-13 - Foresight utility-description focus
+
+### SSO-FORESIGHT-UTILITY-DESCRIPTION-001 - future-sight utility wrapper now points to defensive and attack-roll payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/foresight.json` had a copied `UTILITY` row even though a separate `DEFENSIVE` row already carries saving-throw advantage and separate `ATTACK_ROLL_MODIFIER` rows already carry outgoing attack-roll advantage and incoming attack-roll disadvantage.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Foresight keeps the utility row focused on future-sight wrapper facts instead of repeating full spell card prose.
+- The Foresight utility description now names the willing touch target, 8-hour future-sight shell, recast ending, and current ability-check-advantage limitation while preserving existing defensive row, attack-roll modifier rows, control options, targeting, duration, material component, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Foresight utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 45 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/foresight.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for ability-check advantage, complete D20 Test coverage, recast ending enforcement, or all future-sight narrative consequences beyond current structured data and control options.
+
+## 2026-06-13 - Gate utility-description focus
+
+### SSO-GATE-UTILITY-DESCRIPTION-001 - portal-routing utility wrapper now points to planar movement payload
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/gate.json` had a copied `UTILITY` row even though a separate `MOVEMENT` row already carries front-of-portal planar transport to the nearest unoccupied space.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Gate keeps the utility row focused on portal-routing wrapper facts instead of repeating full spell card prose.
+- The Gate utility description now names the visible 5-to-20-foot portal, chosen orientation, front/back travel rule, planar-ruler block, optional true-name creature pull, and no-control boundary while preserving existing movement row, destination prompt, portal sizing metadata, material cost, targeting, duration, concentration, control options, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Gate utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 44 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/gate.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for planar destination lookup, portal facing/collision, planar-ruler veto enforcement, named-creature true-name matching, creature pull placement, or post-arrival creature behavior beyond current structured data and control options.
+
+## 2026-06-13 - Imprisonment utility-description focus
+
+### SSO-IMPRISONMENT-UTILITY-DESCRIPTION-001 - restraint-option utility wrapper now points to status and teleport-block payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/imprisonment.json` had a copied `UTILITY` row even though separate `STATUS_CONDITION` rows already carry the Imprisoned, Restrained, and Unconscious payloads, and a separate `MOVEMENT` row already carries the teleport and planar-travel block.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Imprisonment keeps the utility row focused on restraint-option wrapper facts instead of repeating full spell card prose.
+- The Imprisonment utility description now names the Wisdom save, 24-hour successful-save immunity, imprisoned upkeep and divination invisibility, Burial / Chaining / Hedged Prison / Minimus Containment / Slumber routing, observable ending trigger, and ninth-level Dispel Magic route while preserving existing status rows, movement row, control options, targeting, material cost, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Imprisonment utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 43 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/imprisonment.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for 24-hour immunity tracking, divination invisibility, Burial / Hedged Prison spatial containment, Minimus Containment size/object rules, trigger adjudication, or ninth-level Dispel Magic enforcement beyond current structured data and control options.
+
+## 2026-06-13 - Prismatic Wall utility-description focus
+
+### SSO-PRISMATIC-WALL-UTILITY-DESCRIPTION-001 - wall-shell utility wrapper now points to blinded and terrain payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/prismatic-wall.json` had a copied `UTILITY` row even though a separate `STATUS_CONDITION` row already carries the near-wall Constitution save / Blinded payload and a separate `TERRAIN` row already carries the blocking wall terrain payload.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Prismatic Wall keeps the utility row focused on wall-shell wrapper facts instead of repeating full spell card prose.
+- The Prismatic Wall utility description now names the wall/globe choice, occupied-space failure, multicolored light, designated safe creatures, and seven-layer destruction/magic-interaction routing while preserving existing Blinded status, terrain, light, control options, targeting, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Prismatic Wall utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 42 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/prismatic-wall.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for full Prismatic Layers table effects, layer-by-layer destruction prerequisites, Antimagic Field / Dispel Magic enforcement, occupied-space placement cancellation, safe-creature passage, or near-wall vision checks beyond current structured data and control options.
+
+## 2026-06-13 - Reverse Gravity utility-description focus
+
+### SSO-REVERSE-GRAVITY-UTILITY-DESCRIPTION-001 - gravity-zone utility wrapper now points to movement and collision payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/reverse-gravity.json` had a copied `UTILITY` row even though separate `MOVEMENT` rows already carry the upward forced movement and end-of-spell downward fall, and a separate `DAMAGE` row already carries upward collision falling damage.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Reverse Gravity keeps the utility row focused on gravity-zone wrapper facts instead of repeating full spell card prose.
+- The Reverse Gravity utility description now names the 50-foot-radius, 100-foot-high Cylinder, reachable-object Dexterity save, hover-at-top duration shell, and sibling movement/damage payload routing while preserving existing movement rows, damage row, control options, targeting, duration, concentration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Reverse Gravity utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 41 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/reverse-gravity.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for gravity inversion physics, anchored object reach checks, hover state, upward/downward falling damage calculation, or end-of-spell fall orchestration beyond current structured data and control options.
+
+## 2026-06-13 - Power Word Pain utility-description focus
+
+### SSO-POWER-WORD-PAIN-UTILITY-DESCRIPTION-001 - threshold and spellcasting utility wrapper now points to condition, movement, and modifier payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/power-word-pain.json` had a copied `UTILITY` row even though separate `STATUS_CONDITION`, `MOVEMENT`, and `ATTACK_ROLL_MODIFIER` rows already carry the Crippling Pain state, speed cap, disadvantage package, repeat Constitution save, and spellcasting interruption metadata.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Power Word Pain keeps the utility row focused on threshold, immunity, spellcasting, and ending wrapper facts instead of repeating full spell card prose.
+- The Power Word Pain utility description now names the 100 Hit Point threshold, Charmed immunity exclusion, spellcasting Constitution save/wasted-spell branch, and end-turn Constitution save ending while preserving existing status, movement, attack-modifier, recurring spellcasting-save metadata, control options, targeting, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Power Word Pain utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 40 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/power-word-pain.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for current-HP threshold gating, Charmed-immunity exclusion, spellcasting interruption/wasted-spell behavior, non-Constitution save disadvantage, or speed-cap lifecycle beyond current structured data and control options.
+
+## 2026-06-13 - Incendiary Cloud utility-description focus
+
+### SSO-INCENDIARY-CLOUD-UTILITY-DESCRIPTION-001 - cloud wrapper now points to damage and movement payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/incendiary-cloud.json` had a copied `UTILITY` row even though separate `DAMAGE` rows already carry immediate, enter-area, and end-turn 10d8 Fire damage saves, and a separate `MOVEMENT` row already carries the 10-foot start-turn cloud movement.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Incendiary Cloud keeps the utility row focused on cloud wrapper facts instead of repeating full spell card prose.
+- The Incendiary Cloud utility description now names the 20-foot Heavily Obscured ember-smoke sphere, concentration/strong-wind duration boundary, and once-per-turn save limit while preserving existing damage rows, movement row, control options, targeting, duration, concentration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Incendiary Cloud utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 39 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/incendiary-cloud.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for persistent cloud zones, heavy-obscurement rendering, strong-wind dispersal, once-per-turn damage suppression, or start-turn cloud movement beyond current structured data and control options.
+
+## 2026-06-13 - Divine Word utility-description focus
+
+### SSO-DIVINE-WORD-UTILITY-DESCRIPTION-001 - HP-band table utility wrapper now points to status and planar payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/divine-word.json` had a copied `UTILITY` row even though separate `STATUS_CONDITION` rows already carry the HP-band Dead/Blinded/Deafened/Stunned payloads and a separate `MOVEMENT` row already carries planar return for Celestial, Elemental, Fey, and Fiend targets.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Divine Word keeps the utility row focused on table routing and return-block wrapper facts instead of repeating full spell card prose.
+- The Divine Word utility description now names chosen creatures, Charisma save, 50-HP-or-lower table routing, and 24-hour return block except by Wish while preserving existing HP-band status rows, planar movement row, creature-type filter, control options, targeting, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Divine Word utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 38 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/divine-word.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for current-HP band branching, multi-target chosen-creature selection, planar-origin detection, 24-hour return-block enforcement, or Wish bypass behavior beyond current structured data and control options.
+
+## 2026-06-13 - Arcane Sword utility-description focus
+
+### SSO-ARCANE-SWORD-UTILITY-DESCRIPTION-001 - sword-control utility wrapper now points to damage and movement payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/arcane-sword.json` had a copied `UTILITY` row even though separate `DAMAGE` rows already carry initial and bonus-action 3d10 Force melee spell attacks, and a separate `MOVEMENT` row already carries the 20-foot bonus-action sword movement.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Arcane Sword keeps the utility row focused on sword-control wrapper facts instead of repeating full spell card prose.
+- The Arcane Sword utility description now names the hovering sword-shaped plane of force, initial target-within-5-feet attack, and bonus-action retargeting while preserving existing damage rows, movement row, material cost, targeting, control options, duration, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Arcane Sword utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 37 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/arcane-sword.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for controlled sword state, bonus-action retargeting orchestration, repeated melee spell attacks, or visible-spot movement beyond current structured data and control options.
+
+## 2026-06-13 - Power Word Stun utility-description focus
+
+### SSO-POWER-WORD-STUN-UTILITY-DESCRIPTION-001 - threshold utility wrapper now points to status and movement payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/power-word-stun.json` had a copied `UTILITY` row even though a separate `STATUS_CONDITION` row already carries the Stunned condition and repeat Constitution save, and a separate `MOVEMENT` row already carries the over-150-HP Speed-0 branch.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Power Word Stun keeps the utility row focused on threshold routing instead of repeating full spell card prose.
+- The Power Word Stun utility description now names the 150 Hit Point threshold and routes to sibling status/movement payloads while preserving existing Stunned repeat-save metadata, Speed-0 movement, threshold control options, targeting, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Power Word Stun utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 36 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/power-word-stun.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for current-HP threshold branching or Speed-0 condition lifecycle beyond the current structured data and control options.
+
+## 2026-06-13 - Demiplane utility-description focus
+
+### SSO-DEMIPLANE-UTILITY-DESCRIPTION-001 - door and room utility wrapper now points to shunt payload
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/demiplane.json` had a copied `UTILITY` row even though a separate `STATUS_CONDITION` row already carries the optional Prone shunt payload when a creature exits through the vanishing door.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Demiplane keeps the utility row focused on door, room, persistence, and connection wrapper facts instead of repeating full spell card prose.
+- The Demiplane utility description now names the openable shadowy Medium door, 30-foot wood-or-stone room, object/unshunted-creature persistence, and new/previous/known demiplane connection choices while preserving existing Prone status payload, spatial details, AI prompt, control options, duration, targeting, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Demiplane utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 35 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/demiplane.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim runtime parity for persistent demiplane storage, object inventory, creature containment, cross-casting demiplane lookup, known-other-demiplane routing, or nearest-space shunt placement beyond current structured data and control options.
+
+## 2026-06-13 - Resurrection utility-description focus
+
+### SSO-RESURRECTION-UTILITY-DESCRIPTION-001 - resurrection eligibility utility wrapper now points to healing and ordeal payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/resurrection.json` had a copied `UTILITY` row even though a separate `HEALING` row already carries the full-Hit-Point return and a separate `STATUS_CONDITION` row already carries the Resurrection Ordeal D20 Test penalty.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Resurrection keeps the utility row focused on eligibility/restoration wrapper facts instead of repeating full spell card prose.
+- The Resurrection utility description now names touch revival eligibility, no-old-age/no-Undead gates, death-time poison neutralization, wound closure, missing body part restoration, and the 365-day caster tax while preserving existing healing, status, material cost, control options, targeting, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Resurrection utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 34 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/resurrection.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for corpse age validation, old-age death checks, Undead-at-death checks, poison neutralization, missing-body restoration, or the 365-day caster spellcasting/disadvantage tax beyond current structured data and control options.
+
+## 2026-06-13 - Dominate Monster utility-description focus
+
+### SSO-DOMINATE-MONSTER-UTILITY-DESCRIPTION-001 - command-control utility wrapper now points to Charmed payload
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/dominate-monster.json` had a copied `UTILITY` row even though a separate `STATUS_CONDITION` row already carries the Wisdom save, combat-advantage save modifier, Charmed duration, and on-damage repeat save.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Dominate Monster keeps the utility row focused on command-control wrapper facts instead of repeating full spell card prose.
+- The Dominate Monster utility description now names the same-plane telepathic link, no-action commands, caster Reaction cost for commanded Reactions, and self-directed behavior after completed orders while preserving existing status payload, granted reaction action, control options, higher-level text, targeting, and scaling.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Dominate Monster utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 33 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/dominate-monster.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime or AI parity for dominated-target command obedience, commanded Reactions, caster command UI, or self-directed fallback behavior beyond the current structured data and control options.
+
+## 2026-06-13 - Prismatic Spray utility-description focus
+
+### SSO-PRISMATIC-SPRAY-UTILITY-DESCRIPTION-001 - ray-selection utility wrapper now points to structured payload rows
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-7/prismatic-spray.json` had a copied `UTILITY` row even though sibling rows already carry the shared ray damage payload, indigo/violet status tracks, petrification, and teleport movement.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Prismatic Spray keeps the utility row focused on ray-selection wrapper facts instead of repeating spell-card prose.
+- The Prismatic Spray utility description now names the 60-foot cone, per-target Dexterity save, 1d8 ray-color selection, Prismatic Rays table lookup, and special two-ray result while preserving existing damage, status, petrification, teleport, targeting, control options, and scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Prismatic Spray utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 32 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-7/prismatic-spray.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for per-target random ray selection, two-ray rerolls, color-specific damage typing, indigo progression, violet planar destination choice, or table UI beyond the current structured data and control options.
+
+## 2026-06-13 - Blade of Disaster utility-description focus
+
+### SSO-BLADE-OF-DISASTER-UTILITY-DESCRIPTION-001 - blade-control utility wrapper now points to damage and movement payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/blade-of-disaster.json` had a copied `UTILITY` row even though separate `DAMAGE` rows already carry normal and critical Force damage and a separate `MOVEMENT` row carries the 30-foot bonus-action blade move.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Blade of Disaster keeps the utility row focused on blade-control wrapper facts instead of repeating full spell card prose.
+- The Blade of Disaster utility description now names the 3-foot planar blade, cast-time and post-move attack cadence, 18+ critical threshold, and barrier passage while preserving existing attack type, damage dice, spatial details, granted action, movement row, targeting, control options, and scaling.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Blade of Disaster utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 31 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/blade-of-disaster.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a row-interpretability cleanup. It does not claim full runtime parity for controlled summoned blade state, repeated melee spell attacks, object/structure attack targeting, or barrier traversal beyond the current structured data and control options.
+
+## 2026-06-13 - Power Word Kill utility-description focus
+
+### SSO-POWER-WORD-KILL-UTILITY-DESCRIPTION-001 - death-threshold utility wrapper now points to damage branch payload
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/power-word-kill.json` had a copied `UTILITY` row even though a separate `DAMAGE` row already carries the over-100-HP 12d12 Psychic damage fallback.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Power Word Kill keeps the utility row focused on death-threshold routing instead of repeating full spell card prose.
+- The Power Word Kill utility description now names the 100 Hit Point instant-death threshold and the over-threshold route to the sibling damage row without changing modeled damage dice, targeting, control options, or scaling.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Power Word Kill utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 30 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/power-word-kill.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a focused row-text cleanup. It does not claim a broader runtime implementation audit for instant death, current HP threshold branching, or death-state side effects beyond the existing structured spell data.
+
+## 2026-06-13 - Feeblemind and Sunburst utility-description focus
+
+### SSO-L8-COMPACT-UTILITY-WRAPPER-DESCRIPTION-001 - compact damage/status utility wrappers now point to structured payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-8/feeblemind.json` had a copied `UTILITY` row even though separate `DAMAGE` and `STATUS_CONDITION` rows already carry the 4d6 Psychic damage, Intelligence save, and Feebleminded status payload.
+- `public/data/spells/level-8/sunburst.json` had a copied `UTILITY` row even though separate `DAMAGE` and `STATUS_CONDITION` rows already carry the Constitution save, 12d6 Radiant damage, Blinded condition, repeat-save metadata, and condition duration.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has real-data proofs that Feeblemind and Sunburst keep utility rows focused on wrapper-only facts instead of repeating full spell card prose.
+- Feeblemind's utility description now names spellcasting, magic-item, language, and communication lockouts, friend recognition, 30-day repeat save, and Greater Restoration/Heal/Wish endings without changing modeled damage, save, status, targeting, or scaling.
+- Sunburst's utility description now names the 60-foot sunlight burst and Darkness dispel while preserving modeled damage, save, Blinded status, repeat-save metadata, targeting, and scaling.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because both Feeblemind and Sunburst utility rows still repeated top-level spell descriptions.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 29 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/feeblemind.json` reported 459 valid / 0 invalid.
+- `npm run validate:spells -- --spell public/data/spells/level-8/sunburst.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This handles two compact level-8 damage/status wrappers. Larger copied utility rows from the bounded audit, including Earthquake, Illusory Dragon, Symbol, Wish, Prismatic Wall, and other high-complexity spells, still need separate proof-first classification because some may expose missing schedule, choice, object, movement, terrain, or special-ending models rather than safe wording-only cleanup.
+
+## 2026-06-13 - Tenser's Transformation utility-description focus
+
+### SSO-TENSERS-TRANSFORMATION-UTILITY-DESCRIPTION-001 - copied intro utility prose now points to structured buff payloads
+
+Status: verified.
+
+Evidence added this pass:
+- A bounded remaining-corpus audit found 58 copied `UTILITY` rows with structured sibling effects still present after the focused level-9 wrapper batch.
+- `public/data/spells/level-6/tensers-transformation.json` was selected as the next small high-impact candidate because it combines `HEALING`, `DAMAGE`, `STATUS_CONDITION`, and `UTILITY` rows without requiring a giant effect-splitting rewrite.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Tenser's Transformation keeps the utility description focused on the martial wrapper benefits instead of copying the spell intro.
+- The Tenser's Transformation utility description now points to spellcasting lockout, martial proficiency, weapon advantage, save proficiency, and extra attack while preserving sibling rows for 50 temporary Hit Points, weapon-hit 2d12 Force damage, and post-spell Exhaustion.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Tenser's Transformation utility row still repeated copied intro prose.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 27 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-6/tensers-transformation.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- The bounded audit still found many copied utility rows with structured siblings. Large spells such as Earthquake, Illusory Dragon, Symbol, Wish, Prismatic Wall, and other level-7/8/9 rows should be handled in separate proof-first slices because their utility prose may represent missing choice, object, movement, schedule, or terrain modeling rather than a safe one-line wrapper cleanup.
+
+## 2026-06-13 - Meteor Swarm and Storm of Vengeance utility-description focus
+
+### SSO-L9-UTILITY-WRAPPER-DESCRIPTION-001 - remaining audited level-9 copied utility wrappers now point to structured payloads
+
+Status: verified for the four audited level-9 copied utility-wrapper candidates.
+
+Evidence added this pass:
+- `public/data/spells/level-9/meteor-swarm.json` had a copied `UTILITY` row even though separate `DAMAGE` rows already carry the 20d6 Fire and 20d6 Bludgeoning Dexterity-save payloads.
+- `public/data/spells/level-9/storm-of-vengeance.json` had a copied `UTILITY` row even though separate `DAMAGE`, `STATUS_CONDITION`, `TERRAIN`, and `effectSchedule` structures already carry the staged Thunder, Deafened, Acid, Lightning, Bludgeoning, Cold, Difficult Terrain, and Heavily Obscured payloads.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has real-data proofs that Meteor Swarm and Storm of Vengeance keep utility rows focused on wrapper-only facts instead of repeating full spell card prose.
+- Meteor Swarm's utility description now names four visible impact points, once-only overlap handling, object damage, and flammable ignition without changing the modeled damage rows, Dexterity save, targeting, AI prompt, or scaling.
+- Storm of Vengeance's utility description now names the cloud wrapper, staged later-turn schedule, ranged weapon attack lockout, and strong wind without changing modeled damage rows, saves, Deafened status, terrain rows, effect schedule, duration, targeting, or scaling.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because both Meteor Swarm and Storm of Vengeance utility rows still repeated their top-level spell descriptions.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 26 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/meteor-swarm.json` reported 459 valid / 0 invalid.
+- `npm run validate:spells -- --spell public/data/spells/level-9/storm-of-vengeance.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This closes the focused four-spell level-9 utility-wrapper batch found in the bounded audit: Meteor Swarm, Psychic Scream, Storm of Vengeance, and Weird. It still does not promote a broad UTILITY copied-prose validator gate; lower-level or narrative utility rows may need effect splitting, object targeting, schedule modeling, or dedicated semantic classification before a global rule is safe.
+
+## 2026-06-13 - Weird utility-description focus
+
+### SSO-WEIRD-UTILITY-DESCRIPTION-001 - copied utility prose now points to structured damage/status payloads
+
+Status: verified.
+
+Evidence added this pass:
+- `public/data/spells/level-9/weird.json` had a copied `UTILITY` row even though separate rows already carry initial 10d10 Psychic damage, Frightened, the end-turn Wisdom repeat save, failed-repeat 5d10 Psychic damage, and per-target ending.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Weird's utility row stays focused on area illusion wrapper facts instead of repeating the full spell card prose.
+- The Weird utility description now points reviewers to the structured damage and Frightened rows without changing the modeled Wisdom saves, damage dice, Frightened condition, repeat-save metadata, duration, targeting, or scaling.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Weird utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 24 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/weird.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a focused real-data cleanup, not a broad UTILITY copied-prose gate. Meteor Swarm and Storm of Vengeance were cleaned in the follow-up focused level-9 utility-wrapper batch, but lower-level copied utility prose still needs separate audit before any global rule is safe.
+
+## 2026-06-13 - Psychic Scream utility-description focus
+
+### SSO-PSYCHIC-SCREAM-UTILITY-DESCRIPTION-001 - copied utility prose now points to structured damage/status payloads
+
+Status: verified.
+
+Evidence added this pass:
+- A bounded utility-wrapper audit found current copied top-level prose on Meteor Swarm, Psychic Scream, Storm of Vengeance, and Weird.
+- `public/data/spells/level-9/psychic-scream.json` was selected first because its copied `UTILITY` row sits beside structured `DAMAGE` and `STATUS_CONDITION` rows for the same spell.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Psychic Scream's utility row stays focused on wrapper-only facts instead of repeating the full spell card prose.
+- The Psychic Scream utility description now names target-count visibility, Intelligence 2-or-lower immunity, head-explosion cleanup, and repeat-save handoff while preserving the existing modeled 14d6 Psychic damage, Intelligence save, Stunned condition, repeat-save metadata, targeting, and scaling.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Psychic Scream utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 23 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/psychic-scream.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a focused real-data cleanup, not a broad UTILITY copied-prose gate. Meteor Swarm and Storm of Vengeance were cleaned in the follow-up focused level-9 utility-wrapper batch, but lower-level copied utility prose still needs separate audit before any global rule is safe.
+
+## 2026-06-13 - Hold Monster utility-description focus
+
+### SSO-HOLD-MONSTER-UTILITY-DESCRIPTION-001 - copied utility prose now points to the structured Paralyzed payload
+
+Status: verified.
+
+Evidence added this pass:
+- A bounded audit found no current `STATUS_CONDITION`, `HEALING`, `DEFENSIVE`, or `ATTACK_ROLL_MODIFIER` effect rows that duplicate their top-level spell descriptions.
+- `public/data/spells/level-5/hold-monster.json` still had a mechanics-rich `UTILITY` row duplicating the top-level spell prose even though the separate `STATUS_CONDITION` row already carries the Wisdom save, repeat save, Paralyzed condition, and duration.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a real-data proof that Hold Monster's utility row remains focused on its wrapper role instead of copying top-level prose.
+- The Hold Monster utility description now points reviewers to the structured Paralyzed effect row without changing the modeled save, repeat-save, condition, duration, targeting, or scaling data.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because the Hold Monster utility row still repeated the top-level spell description.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 22 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-5/hold-monster.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- This is a focused real-data cleanup, not a broad UTILITY copied-prose gate. Many narrative UTILITY rows still need effect splitting or dedicated modeling decisions before broad validation rules are safe.
+
+## 2026-06-13 - Damage effect copied-prose cleanup
+
+### SSO-DAMAGE-EFFECT-COPIED-SPELL-PROSE-001 - damage rows no longer copy whole top-level spell descriptions
+
+Status: verified for the audited DAMAGE effect family.
+
+Evidence added this pass:
+- `src/systems/spells/validation/SpellIntegrityValidator.ts` now rejects DAMAGE effect descriptions that duplicate the top-level spell description.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a failing-first unit proof for copied top-level prose on a DAMAGE row.
+- `public/data/spells/level-4/vitriolic-sphere.json` now describes the initial acid explosion row in terms of its own 10d4 damage, Dexterity save, half-on-success result, area, and slot scaling.
+- `public/data/spells/level-6/mental-prison.json` now describes the escape-trigger damage row in terms of its own 10d10 Psychic damage and ending trigger.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because copied top-level DAMAGE prose was not rejected.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 21 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-4/vitriolic-sphere.json` reported 459 valid / 0 invalid.
+- `npm run validate:spells -- --spell public/data/spells/level-6/mental-prison.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+- Required dependency sync completed for `src/systems/spells/validation/SpellIntegrityValidator.ts`.
+
+Remaining boundary:
+- This deliberately gates only DAMAGE rows. Many long UTILITY rows still mirror top-level spell prose and should be handled through effect splitting or dedicated utility-family modeling rather than a broad blind rewrite.
+
+## 2026-06-13 - Duplicate long effect-description cleanup
+
+### SSO-EFFECT-DESCRIPTION-DUPLICATE-LONG-PROSE-001 - mode-choice effect rows no longer repeat whole choice menus
+
+Status: verified for the audited duplicate-description family.
+
+Evidence added this pass:
+- `src/systems/spells/validation/SpellIntegrityValidator.ts` now rejects duplicated long descriptions across multiple effect rows in the same spell.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a failing-first proof for duplicated long effect prose, and the all-spell description corpus gate covers current data.
+- `public/data/spells/level-2/alter-self.json` now gives Aquatic Adaptation, Change Appearance, and Natural Weapons separate effect-specific descriptions.
+- `public/data/spells/level-2/enlarge-reduce.json` now gives Enlarge and Reduce separate effect-specific descriptions.
+- `public/data/spells/level-3/plant-growth.json` now gives Overgrowth and Enrichment separate effect-specific descriptions.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because duplicated long effect descriptions were not rejected.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 20 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-2/alter-self.json` reported 459 valid / 0 invalid.
+- `npm run validate:spells -- --spell public/data/spells/level-2/enlarge-reduce.json` reported 459 valid / 0 invalid.
+- `npm run validate:spells -- --spell public/data/spells/level-3/plant-growth.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+- Required dependency sync completed for `src/systems/spells/validation/SpellIntegrityValidator.ts`.
+
+Remaining boundary:
+- This slice improves effect-row interpretability for copied mode-choice prose. It does not claim that Alter Self, Enlarge/Reduce, or Plant Growth have complete runtime mechanics for every option; those remain governed by the broader choice execution, object targeting, terrain, and effect-splitting gaps.
+
+## 2026-06-13 - Current-row effect-description wording cleanup
+
+### SSO-EFFECT-DESCRIPTION-INTERNAL-SCAFFOLD-001 - current-row/current-data wording is now gated and cleaned
+
+Status: verified for the audited phrase family.
+
+Evidence added this pass:
+- `src/systems/spells/validation/SpellIntegrityValidator.ts` now rejects remaining importer-facing effect-description phrases that say mechanics are `preserved from the current row` or that `current data keeps` deferred behavior.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a failing-first unit proof for `preserved from the current row`, plus the existing all-spell description corpus gate covers the cleaned data.
+- `public/data/spells/level-3/conjure-animals.json`, `public/data/spells/level-4/charm-monster.json`, and `public/data/spells/level-4/dominate-beast.json` now use player/runtime-facing effect descriptions while preserving their existing modeled saves, duration, target restrictions, scaling, and deferred mechanics.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because `preserved from the current row` was not rejected.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 19 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-3/conjure-animals.json` reported 459 valid / 0 invalid.
+- `npm run validate:spells -- --spell public/data/spells/level-4/charm-monster.json` reported 459 valid / 0 invalid.
+- `npm run validate:spells -- --spell public/data/spells/level-4/dominate-beast.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+- Required dependency sync completed for `src/systems/spells/validation/SpellIntegrityValidator.ts`.
+
+Remaining boundary:
+- This closes only the audited current-row/current-data phrase family. Long single-effect prose and intentionally broad narrative utility effects remain tracked separately under monolithic/effect-splitting work rather than being rewritten in this description cleanup.
+
+## 2026-06-13 - Spell attack hit-event producer parity
+
+### SSO-ARMOR-OF-AGATHYS-RETALIATION-GATE-001 - hit-conditioned spell attacks now publish structured hit events
+
+Status: verified for factory-created hit-conditioned spell attack damage; true spell-attack miss-roll producer remains open.
+
+Evidence added this pass:
+- `src/commands/effects/DamageCommand.ts` now emits a structured `unit_attack` event when a damage row is both hit-conditioned and backed by a melee/ranged spell attack marker from `CommandContext.attackType`.
+- The emitted event carries `attackType: spell`, the spell attack's melee/ranged `weaponType`, `isHit: true`, and the current critical flag, matching the event facts that Armor-style reactive consumers already use for weapon attacks.
+- The bridge deliberately does not invent spell-attack miss rolls. It only records confirmed spell hits at the shared damage-resolution point until a dedicated spell attack roll command exists.
+- `src/commands/__tests__/SpellCommandFactory.test.ts` now proves the real `SpellCommandFactory -> DamageCommand.execute(...)` path emits a ranged spell `unit_attack` event for a Chromatic Orb-style hit-conditioned damage row.
+
+Verification:
+- Red run: `npm run test -- src/commands/__tests__/SpellCommandFactory.test.ts` failed because `combatEvents.getDispatchLog()` was `[]` after the spell attack damage command resolved.
+- Green run: `npm run test -- src/commands/__tests__/SpellCommandFactory.test.ts` passed 12 tests.
+- Combined proof: `npm run test -- src/commands/__tests__/SpellCommandFactory.test.ts src/commands/__tests__/DamageCommand.test.ts src/systems/events/__tests__/CombatEvents.test.ts src/commands/factory/__tests__/AbilityCommandFactory.test.ts src/hooks/combat/__tests__/useActionExecutor.test.ts src/hooks/__tests__/useAbilitySystem.test.ts` passed 63 tests with 2 skipped.
+- `npm run test:types` passed.
+- Required dependency sync completed for `src/commands/effects/DamageCommand.ts`.
+
+Remaining boundary:
+- This narrows broader attack producer parity but does not claim true spell-attack miss handling. Current spell attack damage rows only publish confirmed hits after they resolve; a future spell attack roll producer should emit both hits and misses if/when the runtime models spell attack accuracy before damage.
+
+## 2026-06-13 - Order-safe Armor reactive handoff
+
+### SSO-ARMOR-OF-AGATHYS-RETALIATION-GATE-001 - command attack results now replay into reactive executor path
+
+Status: verified for current command-backed weapon attack handoff; broader spell/attack producer parity remains open.
+
+Evidence added this pass:
+- `src/types/combat.ts` now has `CombatAction.suppressAbilityEvents` and `CombatAction.reactiveEventsOnly` flags so command-backed attacks can spend/record once, then replay only reactive effects after attack rolls are known.
+- `src/hooks/combat/useActionExecutor.ts` now skips premature ability reactive events when `suppressAbilityEvents` is set, and supports `reactiveEventsOnly` actions that do not spend resources or record a second normal action.
+- `src/hooks/useAbilitySystem.ts` now suppresses the first ability-reactive pass for command-backed ability execution, snapshots the combat event trace before command execution, projects command-emitted `unit_attack` events into `attackResults`, and sends a reactive-only action carrying those results after commands finish.
+- `src/hooks/__tests__/useAbilitySystem.test.ts` now proves the hook sends the first action with `suppressAbilityEvents: true`, then sends a second `reactiveEventsOnly` action with projected hit/miss plus attack filter facts.
+
+Verification:
+- Red run: `npm run test -- src/hooks/__tests__/useAbilitySystem.test.ts` failed because only the pre-command action was sent.
+- Green run: `npm run test -- src/hooks/__tests__/useAbilitySystem.test.ts` passed 19 tests with 2 skipped.
+- Combined proof: `npm run test -- src/hooks/__tests__/useAbilitySystem.test.ts src/hooks/combat/__tests__/useActionExecutor.test.ts src/systems/events/__tests__/CombatEvents.test.ts src/commands/factory/__tests__/AbilityCommandFactory.test.ts` passed 49 tests with 2 skipped.
+- `npm run test:types` passed.
+- Required dependency sync completed for `src/hooks/useAbilitySystem.ts`, `src/hooks/combat/useActionExecutor.ts`, and `src/types/combat.ts`.
+
+Remaining boundary:
+- The current command-backed weapon attack handoff is now order-safe for Armor-style hit-only retaliation. Keep the broader row open only for parity checks on other attack producers, especially spell-attack producers or future systems that emit `unit_attack` events outside `WeaponAttackCommand`.
+
+## 2026-06-13 - Reactive consumer prefers explicit attack-result filter facts
+
+### SSO-ARMOR-OF-AGATHYS-RETALIATION-GATE-001 - action executor now honors enriched attackResults before ability fallback
+
+Status: narrowed; final hook-order attachment remains open.
+
+Evidence added this pass:
+- `src/hooks/combat/useActionExecutor.ts` now looks up a target's explicit `attackResults` entry before applying `on_target_attack` reactive filters.
+- When `attackResults.weaponType` or `attackResults.attackType` is present, those facts win over the legacy ability range/type fallback for melee/ranged and weapon/spell filtering.
+- Legacy callers that do not provide enriched `attackResults` keep the existing fallback behavior.
+- `src/hooks/combat/__tests__/useActionExecutor.test.ts` now proves a hit result marked `weaponType: ranged` does not trigger melee-only Armor of Agathys-style retaliation, even when the legacy ability shape has melee range.
+- The two Sneak Attack proofs in the touched command-factory suite are now deterministic so random misses no longer block unrelated attack-event/reactive proof.
+
+Verification:
+- Red run: `npm run test -- src/hooks/combat/__tests__/useActionExecutor.test.ts` failed because melee-only retaliation still fired from fallback ability range despite `attackResults.weaponType: ranged`.
+- Green run: `npm run test -- src/hooks/combat/__tests__/useActionExecutor.test.ts` passed 18 tests.
+- Combined proof: `npm run test -- src/systems/events/__tests__/CombatEvents.test.ts src/commands/factory/__tests__/AbilityCommandFactory.test.ts src/hooks/combat/__tests__/useActionExecutor.test.ts` passed 30 tests.
+- `npm run test:types` passed.
+- Required dependency sync completed for `src/hooks/combat/useActionExecutor.ts`.
+
+Remaining boundary:
+- `SSO-ARMOR-OF-AGATHYS-RETALIATION-GATE-001` remains open for the final order-safe attachment from command-side events/results into the action executor path. The consumer now honors enriched payloads correctly once it receives them.
+
+## 2026-06-13 - Attack-result projection preserves filter facts
+
+### SSO-ARMOR-OF-AGATHYS-RETALIATION-GATE-001 - projected attackResults now carry hit/miss plus attack filter facts
+
+Status: narrowed; final reactive consumer bridge remains open.
+
+Evidence added this pass:
+- `src/systems/events/CombatEvents.ts` now preserves `attackType` and `weaponType` when `getAttackResultsSince(...)` projects structured `unit_attack` events into attack-result payloads.
+- `src/types/combat.ts` now allows `CombatAction.attackResults` entries to carry those same `attackType` and `weaponType` facts.
+- `src/systems/events/__tests__/CombatEvents.test.ts` now proves a missed melee weapon event projects to an attack result with `isHit: false`, `isCritical: false`, `attackType: weapon`, and `weaponType: melee`.
+
+Verification:
+- Red run: `npm run test -- src/systems/events/__tests__/CombatEvents.test.ts` failed because the projection dropped `attackType` and `weaponType`.
+- Green run: `npm run test -- src/systems/events/__tests__/CombatEvents.test.ts` passed 1 test.
+- Combined proof: `npm run test -- src/systems/events/__tests__/CombatEvents.test.ts src/commands/factory/__tests__/AbilityCommandFactory.test.ts src/hooks/combat/__tests__/useActionExecutor.test.ts` passed 29 tests.
+- `npm run test:types` passed.
+- Required dependency sync completed for `src/systems/events/CombatEvents.ts` and `src/types/combat.ts`.
+
+Remaining boundary:
+- This still does not close `SSO-ARMOR-OF-AGATHYS-RETALIATION-GATE-001`. The structured attack-result payload now has the facts a consumer needs, but `useAbilitySystem` and/or the reactive executor still need the final order-safe handoff so Armor-style hit-only retaliation consumes those results before applying damage.
+
+## 2026-06-13 - Attack-result event filter facts
+
+### SSO-ARMOR-OF-AGATHYS-RETALIATION-GATE-001 - attack events now carry weapon/spell and melee/ranged facts
+
+Status: narrowed; broader reactive consumer bridge remains open.
+
+Evidence added this pass:
+- `src/systems/events/CombatEvents.ts` now allows `unit_attack` events to carry `attackType` (`weapon`, `spell`, or `any`) and `weaponType` (`melee`, `ranged`, or `any`).
+- `src/commands/factory/AbilityCommandFactory.ts` now emits those fields from `WeaponAttackCommand` using the same ability classification already used by attack-rider matching.
+- `src/commands/factory/__tests__/AbilityCommandFactory.test.ts` now proves a forced missed melee weapon attack emits `isHit: false`, `isCrit: false`, `attackType: weapon`, and `weaponType: melee`.
+- The adjacent-ally Sneak Attack proof in the touched test file is now deterministic for the actual adjacent-ally case, preventing random misses from blocking unrelated command/event proof.
+
+Verification:
+- Red run: `npm run test -- src/commands/factory/__tests__/AbilityCommandFactory.test.ts` failed because the structured attack event lacked `attackType` and `weaponType`.
+- Green run: `npm run test -- src/commands/factory/__tests__/AbilityCommandFactory.test.ts` passed 11 tests.
+- Combined proof: `npm run test -- src/systems/events/__tests__/CombatEvents.test.ts src/commands/factory/__tests__/AbilityCommandFactory.test.ts src/hooks/combat/__tests__/useActionExecutor.test.ts` passed 29 tests.
+- `npm run test:types` passed.
+- Required dependency sync completed for `src/systems/events/CombatEvents.ts` and `src/commands/factory/AbilityCommandFactory.ts`.
+
+Remaining boundary:
+- This still does not close `SSO-ARMOR-OF-AGATHYS-RETALIATION-GATE-001`. Event-side attack facts now include hit/miss, weapon/spell, and melee/ranged data, but `useAbilitySystem`/reactive consumers still need the final safe handoff that applies those facts before Armor-style hit-only retaliation resolves.
+
+## 2026-06-13 - Attack-result event bridge helper
+
+### SSO-ARMOR-OF-AGATHYS-RETALIATION-GATE-001 - event bus can project attack events into attackResults
+
+Status: narrowed; broader reactive handoff remains open.
+
+Evidence added this pass:
+- `src/systems/events/CombatEvents.ts` now exposes `getAttackResultsSince(...)`, which projects structured `unit_attack` events emitted after a captured sequence number into the compact `CombatAction.attackResults` shape.
+- The helper supports attacker and target filtering, so command-style attack consumers can isolate only the hit/miss facts produced by the command they just ran.
+- `src/systems/events/__tests__/CombatEvents.test.ts` now proves a missed command-style attack event becomes `{ targetId, isHit: false, isCritical: false }` without scraping combat-log prose.
+
+Verification:
+- Red run: `npm run test -- src/systems/events/__tests__/CombatEvents.test.ts` failed because `getAttackResultsSince` did not exist.
+- Green run: `npm run test -- src/systems/events/__tests__/CombatEvents.test.ts` passed 1 test.
+- Combined proof: `npm run test -- src/systems/events/__tests__/CombatEvents.test.ts src/commands/factory/__tests__/AbilityCommandFactory.test.ts src/hooks/combat/__tests__/useActionExecutor.test.ts` passed 29 tests.
+- `npm run test:types` passed.
+- Required dependency sync completed with `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync src/systems/events/CombatEvents.ts`.
+
+Remaining boundary:
+- This still does not close `SSO-ARMOR-OF-AGATHYS-RETALIATION-GATE-001`. The event bus can now turn command-side hit/miss events into `attackResults`, and weapon attacks now emit those events, but `useAbilitySystem` still needs a safe order/consumer bridge so Armor-style hit-only retaliation reads the results before applying reactive damage.
+
+## 2026-06-13 - Weapon attack-result event producer
+
+### SSO-ARMOR-OF-AGATHYS-RETALIATION-GATE-001 - command-side weapon attacks now publish hit/miss events
+
+Status: narrowed; broader attack-result handoff remains open.
+
+Evidence added this pass:
+- `src/commands/factory/AbilityCommandFactory.ts` now emits a structured `unit_attack` combat event from `WeaponAttackCommand` at the point the real weapon attack roll resolves.
+- The emitted event carries `attackerId`, `targetId`, `isHit`, and `isCrit`, so attack-result subscribers no longer need to infer hit/miss from prose combat logs for command-side weapon attacks.
+- `src/commands/factory/__tests__/AbilityCommandFactory.test.ts` now has a failing-first proof for a forced missed weapon attack publishing `isHit: false` and `isCrit: false`.
+- The existing adjacent-ally Sneak Attack proof in the same touched test file is now deterministic by forcing the base attack to hit; this preserves the adjacent-ally gate assertion without depending on random attack accuracy.
+
+Verification:
+- Red run: `npm run test -- src/commands/factory/__tests__/AbilityCommandFactory.test.ts` failed because no `unit_attack` event was emitted for the command-side missed attack.
+- Green run: `npm run test -- src/commands/factory/__tests__/AbilityCommandFactory.test.ts` passed 11 tests after the event emission.
+- Combined proof: `npm run test -- src/commands/factory/__tests__/AbilityCommandFactory.test.ts src/hooks/combat/__tests__/useActionExecutor.test.ts` passed 28 tests.
+- `npm run test:types` passed.
+- Required dependency sync completed with `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync src/commands/factory/AbilityCommandFactory.ts`.
+
+Remaining boundary:
+- This does not yet close `SSO-ARMOR-OF-AGATHYS-RETALIATION-GATE-001`. Command-side weapon attacks now publish structured hit/miss facts, but the broader handoff still needs those facts to be bridged consistently into `CombatAction.attackResults` or equivalent reactive consumers before Armor-style hit-only retaliation can be claimed end-to-end for every live attack path.
+
+## 2026-06-13 - Restricted-filter classification reason metadata
+
+### SSO-SPELL-FILTER-DATA-COMPLETENESS-001 - validator exceptions now carry category and reason details
+
+Status: verified.
+
+Evidence added this pass:
+- `src/systems/spells/validation/SpellIntegrityValidator.ts` now exposes `getClassifiedRestrictedFilterMismatchDetails()` with a key, category, and reason for every current classified restricted-filter semantic exception.
+- `getClassifiedRestrictedFilterMismatchKeys()` now derives from those detail rows, so the production validator and corpus guard still share one validator-owned source instead of maintaining a second key-only list.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now proves the detail API explains Shapechange's Construct/Undead mismatch as `form-choice eligibility` rather than a direct effect-target omission.
+
+Verification:
+- Red run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` failed because `getClassifiedRestrictedFilterMismatchDetails()` did not exist.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 18 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-9/shapechange.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+- Required dependency sync completed with `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync src/systems/spells/validation/SpellIntegrityValidator.ts`.
+
+Remaining boundary:
+- `SSO-SPELL-FILTER-DATA-COMPLETENESS-001` remains open for the actual semantic models: plant/object target eligibility, chosen-kind aura targeting, form-choice eligibility, created-creature repair targeting, and ongoing area size semantics. This pass made the exceptions explainable and executable; it did not copy filters onto rows whose target semantics are still different.
+
+## 2026-06-13 - Tsunami size-filter normalization
+
+### SSO-SPELL-FILTER-DATA-COMPLETENESS-001 - Huge-or-smaller text now matches concrete size filters
+
+Status: verified.
+
+Evidence added this pass:
+- `src/systems/spells/validation/SpellIntegrityValidator.ts` now normalizes size-filter text that starts with `Huge or smaller` to the concrete creature sizes `Huge`, `Large`, `Medium`, `Small`, and `Tiny`.
+- `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now has a focused regression proving that spell-level `Huge or smaller ...` text and effect-level concrete sizes are treated as equivalent.
+- `tsunami:2:sizes` was removed from `getClassifiedRestrictedFilterMismatchKeys()` because the ongoing wall-movement damage row already carries the concrete size gate and no longer needs to be classified as unresolved debt.
+
+Verification:
+- Red run: the new validator test failed because `Huge or smaller` text was not normalized.
+- Green run: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 17 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-8/tsunami.json` reported 459 valid / 0 invalid.
+- `npm run test:types` passed.
+
+Remaining boundary:
+- `SSO-SPELL-FILTER-DATA-COMPLETENESS-001` remains open for the other classified semantic rows, but the Tsunami ongoing damage size-normalization case is no longer one of them.
+
 ## 2026-06-13 - Restricted-filter classification helper refactor
 
 ### SSO-SPELL-FILTER-DATA-COMPLETENESS-001 - validator-owned classification helper added, verification blocked
 
-Status: implemented locally; verification pending.
+Status: verified.
 
 Evidence added this pass:
 - `src/systems/spells/validation/SpellIntegrityValidator.ts` now exposes `getClassifiedRestrictedFilterMismatchKeys()` as the validator-owned source of truth for the 15 classified restricted-filter semantic exceptions.
@@ -19,13 +2784,13 @@ Evidence added this pass:
 - `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` now checks the helper is exposed, uses it in the corpus restricted-filter guard, and fails if a classified exception becomes stale after future data/modeling work.
 
 Verification status:
-- A red-focused validator run was attempted after adding the helper test, but the local Vitest process hung after startup.
-- Follow-up `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` and `npm run test:types` attempts also failed to return output in this shell session.
-- Required dependency sync for the exported validator helper has not been run yet.
+- The local runner recovered, and `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` passed 16 tests.
+- `npm run validate:spells -- --spell public/data/spells/level-2/animal-messenger.json` reported 459 valid / 0 invalid through the production validator path.
+- `npm run test:types` passed.
+- Required dependency sync completed with `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync src/systems/spells/validation/SpellIntegrityValidator.ts`.
 
 Next action:
-- In a fresh local runner, execute `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts`, `npm run test:types`, and `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync src/systems/spells/validation/SpellIntegrityValidator.ts`.
-- Only after those pass should this helper refactor be promoted to proof/pass status.
+- Keep `SSO-SPELL-FILTER-DATA-COMPLETENESS-001` open for the semantic models named in the residual classification, but treat the helper refactor itself as verified.
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -1560,7 +4325,7 @@ Evidence added this pass:
 
 Remaining work:
 - Run the schema registry/check flow and targeted spell-data validation when verification is allowed.
-- Do not reopen the broad â€œschema lacks trigger modelâ€ claim unless a future check shows a concrete drift.
+- Do not reopen the broad “schema lacks trigger model” claim unless a future check shows a concrete drift.
 
 ## 2026-06-01 - Valid target semantics status refresh
 
@@ -1764,3 +4529,9 @@ pm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.t
 pm run validate:spells -- --spell public/data/spells/level-2/animal-messenger.json reported 459 valid / 0 invalid after the production rule was added.
 - 
 pm run test:types passed.
+
+
+
+
+
+

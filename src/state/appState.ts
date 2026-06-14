@@ -594,6 +594,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             // Validate and preserve 3D view state (world-3d-ui).
             // Legacy saves may not have these fields, so provide safe defaults.
             const loadedWorldViewMode = loadedState.worldViewMode ?? 'atlas';
+            const loadedMapSurface = loadedState.mapSurface ?? 'classic';
             const loadedPlayerWorldPos = loadedState.playerWorldPos ?? null;
 
             // If loading into 3D mode, validate that position is complete —
@@ -625,6 +626,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 phase: GamePhase.LOAD_TRANSITION,
                 // Preserve 3D view state from save (with validation).
                 worldViewMode: loadedWorldViewMode,
+                mapSurface: loadedMapSurface,
                 playerWorldPos: validatedPlayerWorldPos,
                 // Streamed 3D and legacy ThreeDModal must not both be active after load (W3DUI-22).
                 isThreeDVisible:
@@ -775,6 +777,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...state,
                 phase: GamePhase.COMBAT, // Now transitions to the actual combat phase
                 currentEnemies: combatants,
+                // Store the pre-extracted battle map (if present) to bypass procedural generation
+                extractedBattleMap: encounterPayload.extractedBattleMap ?? null,
                 isEncounterModalVisible: false,
                 isLongRestModalVisible: false,
                 isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }
@@ -787,6 +791,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...state,
                 phase: GamePhase.PLAYING,
                 currentEnemies: null,
+                // Reset the pre-extracted battle map when combat ends
+                extractedBattleMap: null,
             };
 
             if (rewards && typeof rewards.xp === 'number') {
@@ -893,6 +899,11 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 worldViewMode: action.payload,
                 ...(action.payload === '3d' ? { isThreeDVisible: false } : {}),
             };
+
+        case 'SET_MAP_SURFACE':
+            // Swap the 2D cartographic surface (classic GameLayout ↔ native
+            // Worldforge cartographer). Independent of worldViewMode (3D).
+            return { ...state, mapSurface: action.payload };
 
         // 2. Delegate to slice reducers for single-domain actions
         // RALPH: Pipeline Pattern.

@@ -199,7 +199,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You and up to eight willing creatures who link hands in a circle are transported to a different plane of existence. You can specify a target destination in general terms, such as the City of Brass on the Elemental Plane of Fire or the palace of Dispater on the second level of the Nine Hells, and you appear in or near that destination, as determined by the DM. Alternatively, if you know the sigil sequence of a teleportation circle on another plane of existence, this spell can take you to that circle. If the teleportation circle is too small to hold all the creatures you transported, they appear in the closest unoccupied spaces next to the circle.",
+      "description": "Use a 250+ GP forked metal rod attuned to a plane of existence while the caster and up to eight willing creatures link hands in a circle. The destination can be a general place on another plane with near-arrival determined by the DM, or a known sigil sequence for a teleportation circle on another plane; if that circle is too small, transported creatures spill into the closest unoccupied spaces.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

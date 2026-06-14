@@ -31,6 +31,7 @@ import { WebSocket, WebSocketServer } from 'ws';
 import * as pty from 'node-pty';
 import * as fs from 'fs';
 import * as path from 'path';
+import { exec } from 'child_process';
 
 const BUFFER_CHARS = 400_000;
 const MAX_SESSIONS = 24;
@@ -52,6 +53,54 @@ const readActivity = (n: number) => {
     return [];
   }
 };
+
+interface SysProc {
+  pid: number; name: string; cmdline: string | null;
+  memMb: number; createdUtc: string | null;
+}
+
+const INTERESTING_PROCS = ['cmd', 'powershell', 'pwsh', 'WindowsTerminal', 'node', 'claude', 'codex', 'qoder', 'cursor', 'kilo', 'agy', 'opencode', 'gemini'];
+
+const querySystemTerminals = (): Promise<SysProc[]> => new Promise((resolve) => {
+  if (process.platform === 'win32') {
+    const names = INTERESTING_PROCS.map(n => `'${n}'`).join(',');
+    // Two-phase: Get-Process (instant, gives memory+StartTime) to filter candidates,
+    // then a targeted CIM query for just those PIDs to get CommandLine.
+    // String hashtable keys avoid Int32/UInt32 type mismatch in PS lookup.
+    const script = [
+      `$ProgressPreference='SilentlyContinue'`,
+      `$ErrorActionPreference='SilentlyContinue'`,
+      `$n=@(${names})`,
+      `$top=Get-Process|?{($n -contains $_.ProcessName) -and ($_.WorkingSet -gt 2MB)}|Sort WorkingSet -Desc|Select -First 20`,
+      `$ors=($top|%{"ProcessId=$($_.Id)"}) -join ' OR '`,
+      `$cim=if($ors){Get-CimInstance Win32_Process -Filter $ors}else{@()}`,
+      `$map=@{}; $cim|%{$map["$($_.ProcessId)"]=$_}`,
+      `$r=$top|%{$d=$map["$($_.Id)"];@{pid=$_.Id;name=($_.ProcessName+'.exe');cmdline=$d.CommandLine;memMb=[math]::Round($_.WorkingSet/1MB,1);createdUtc=if($_.StartTime){$_.StartTime.ToUniversalTime().ToString('o')}else{$null}}}`,
+      `if(!$r){Write-Output '[]'}else{$r|ConvertTo-Json -Compress}`,
+    ].join(';');
+    const encoded = Buffer.from(script, 'utf16le').toString('base64');
+    exec(`powershell -NoProfile -NonInteractive -EncodedCommand ${encoded}`, { timeout: 15000, maxBuffer: 4 * 1024 * 1024 }, (err, stdout) => {
+      if (!stdout || !stdout.trim()) { resolve([]); return; }
+      try {
+        // Strip any CLIXML progress preamble powershell may inject before the JSON
+        const jsonStart = stdout.search(/[\[{]/);
+        const json = jsonStart >= 0 ? stdout.slice(jsonStart) : stdout;
+        const raw = JSON.parse(json.trim());
+        resolve(Array.isArray(raw) ? raw : (raw && raw.pid ? [raw] : []));
+      } catch { resolve([]); }
+    });
+  } else {
+    const names = INTERESTING_PROCS.join('|');
+    exec(`ps -eo pid,comm,rss,lstart,args | grep -E '${names}' | grep -v grep`, { timeout: 5000 }, (err, stdout) => {
+      if (err || !stdout.trim()) { resolve([]); return; }
+      const procs: SysProc[] = stdout.split('\n').filter(Boolean).map(line => {
+        const parts = line.trim().split(/\s+/);
+        return { pid: parseInt(parts[0]), name: parts[1], memMb: Math.round(parseInt(parts[2] || '0') / 1024 * 10) / 10, cmdline: parts.slice(5).join(' '), createdUtc: null };
+      }).filter(p => !isNaN(p.pid));
+      resolve(procs);
+    });
+  }
+});
 
 interface AgentSession {
   id: string;
@@ -110,7 +159,8 @@ export const agentSessionManager = () => ({
       const cols = Math.max(20, Math.min(400, opts.cols || 120));
       const rows = Math.max(5, Math.min(200, opts.rows || 30));
       const shell = process.platform === 'win32' ? 'cmd.exe' : 'bash';
-      const shellArgs = process.platform === 'win32' ? ['/c', opts.cmd] : ['-c', opts.cmd];
+      const interactive = !opts.cmd.trim();
+      const shellArgs = interactive ? [] : (process.platform === 'win32' ? ['/c', opts.cmd] : ['-c', opts.cmd]);
 
       const session: AgentSession = {
         id,
@@ -256,7 +306,7 @@ export const agentSessionManager = () => ({
       if (req.method === 'POST' && urlPath === '/api/agent-sessions/spawn') {
         let opts: any;
         try { opts = JSON.parse(await readBody(req)); } catch { return json(res, 400, { error: 'invalid JSON body' }); }
-        if (!opts || typeof opts.cmd !== 'string' || !opts.cmd.trim()) {
+        if (!opts || typeof opts.cmd !== 'string') {
           return json(res, 400, { error: 'cmd (string) is required' });
         }
         const running = [...sessions.values()].filter(s => s.status === 'running').length;
@@ -288,6 +338,33 @@ export const agentSessionManager = () => ({
       }
 
       return json(res, 404, { error: 'unknown agent-sessions route' });
+    });
+
+    server.middlewares.use(async (req: any, res: any, next: any) => {
+      const urlPath = (req.url || '').split('?')[0];
+      if (!urlPath.startsWith('/api/system-terminals')) return next();
+
+      if (req.method === 'GET' && urlPath === '/api/system-terminals') {
+        try {
+          const procs = await querySystemTerminals();
+          return json(res, 200, { processes: procs });
+        } catch (err: any) {
+          return json(res, 500, { error: err.message, processes: [] });
+        }
+      }
+
+      const killMatch = urlPath.match(/^\/api\/system-terminals\/(\d+)\/kill$/);
+      if (req.method === 'POST' && killMatch) {
+        const pid = parseInt(killMatch[1]);
+        const cmd = process.platform === 'win32' ? `taskkill /PID ${pid} /F` : `kill -9 ${pid}`;
+        exec(cmd, { timeout: 5000 }, (err) => {
+          if (err) json(res, 500, { error: err.message });
+          else json(res, 200, { ok: true });
+        });
+        return;
+      }
+
+      return json(res, 404, { error: 'unknown system-terminals route' });
     });
   },
 });

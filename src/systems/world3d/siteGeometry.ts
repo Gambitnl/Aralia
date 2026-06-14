@@ -30,11 +30,21 @@ const MIN_RADIUS_M = 8;
 const MAX_RADIUS_M = 30;
 const MAX_POPULATION_FOR_SCALING = 5000;
 const POPULATION_BONUS_M = 8;
+// ============================================================================
+// Site Radii Constants
+// ============================================================================
+// This lookup defines the default radius (in meters) for each kind of site when
+// rendering it as a 3D box primitive. These values act as base scales which
+// may be further modified by population (for towns) or overridden by explicit
+// footprint bounds (for town buildings).
+// ============================================================================
 const BASE_RADIUS_BY_KIND: Record<ChunkSite['kind'], number> = {
   town: 16,
   dungeon: 9,
   ruin: 9,
   landmark: 11,
+  // Renders hostiles as distinct 2m boxes so they are visible and select-able
+  monster: 2,
 };
 
 function clampRadius(radius: number): number {

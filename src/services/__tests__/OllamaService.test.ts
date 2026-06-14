@@ -139,5 +139,31 @@ describe('OllamaService', () => {
         }
     });
 
-    // TODO: Add test case for 'isAvailable()' to verify it correctly handles the heartbeat check failures and success.
+    it('should treat an empty model list as unavailable', async () => {
+        // The dev proxy returns an empty model list when the optional local
+        // Ollama service is offline. That response should still open the setup
+        // modal instead of pretending AI generation is ready.
+        mockFetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ models: [] })
+        });
+
+        const isAvailable = await OllamaService.isAvailable();
+
+        expect(isAvailable).toBe(false);
+    });
+
+    it('should treat a non-empty model list as available', async () => {
+        // A model in the tags response proves that Ollama can serve at least one
+        // local generation path, which is enough for the startup dependency
+        // check to stay quiet.
+        mockFetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ models: [{ name: 'llama3' }] })
+        });
+
+        const isAvailable = await OllamaService.isAvailable();
+
+        expect(isAvailable).toBe(true);
+    });
 });

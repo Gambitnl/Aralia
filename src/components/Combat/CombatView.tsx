@@ -90,9 +90,9 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // Ensure we have spell data (guaranteed by SpellProvider, but type safety check)
   if (!allSpells) throw new Error("CombatView must be used within a SpellProvider");
 
-  // Hook into Global State for Religion
+  // Hook into Global State for Religion and pre-extracted map data
   // Note: GameProvider must be above CombatView in tree (usually is in App)
-  const { dispatch } = useGameState();
+  const { state, dispatch } = useGameState();
 
   // The combat log is persisted per encounter signature so a refresh can
   // restore the same fight without merging unrelated battles into one bucket.
@@ -138,8 +138,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     const partyCombatants = party.map(p => createPlayerCombatCharacter(p, allSpells as unknown as Record<string, Spell>));
     const initialCombatants = [...partyCombatants, ...enemies];
 
-    // 2. Generate map and positions
-    return generateBattleSetup(biome, seed, initialCombatants);
+    // 2. Generate map and positions (injecting pre-extracted battle map if it exists)
+    return generateBattleSetup(biome, seed, initialCombatants, state.extractedBattleMap || undefined);
   });
 
   // Single source of truth for map and characters
@@ -164,8 +164,9 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   const [_selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [inspectedCharId, setInspectedCharId] = useState<string | null>(null);
   const [isBattleMapExpanded, setIsBattleMapExpanded] = useState(false);
-  // [2026-05-21] 3D combat map toggle — renders BattleMap3D (R3F scene) instead of 2D grid
-  const [renderMode, setRenderMode] = useState<'2d' | '3d'>('2d');
+  // [2026-05-21] 3D combat map toggle — renders BattleMap3D (R3F scene) instead of 2D grid.
+  // Default to 3D mode if combat was entered via a pre-extracted ground mode map.
+  const [renderMode, setRenderMode] = useState<'2d' | '3d'>(state.extractedBattleMap ? '3d' : '2d');
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
 
   // Battle State managed by hook

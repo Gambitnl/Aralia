@@ -199,7 +199,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "You create an illusory copy of yourself that lasts for the duration. The copy can appear at any location within range that you have seen before, regardless of intervening obstacles. The illusion looks and sounds like you, but it is intangible. If the illusion takes any damage, it disappears, and the spell ends. You can see through the illusion's eyes and hear through its ears as if you were in its space. As a Magic action, you can move it up to 60 feet and make it gesture, speak, and behave in whatever way you choose. It mimics your mannerisms perfectly. Physical interaction with the image reveals it to be illusory, since things can pass through it. A creature that takes the Study action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image, and any noise it makes sounds hollow to the creature.",
+      "description": "Create a 1-day concentration illusory copy of the caster at a previously seen location within 500 miles, regardless of intervening obstacles, using the 5+ GP self-statuette component. The image looks and sounds like the caster but is intangible, disappears and ends the spell if damaged, lets the caster see and hear as if in its space, mimics caster mannerisms, and can be exposed by physical interaction or a Study action Intelligence (Investigation) check; discerning creatures see through it and hear its noise as hollow.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

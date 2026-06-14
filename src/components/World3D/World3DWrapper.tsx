@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 13/06/2026, 14:05:57
+ * Dependents: App.tsx
+ * Imports: 25 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/components/World3D/World3DWrapper.tsx
  * Wraps World3DScene and connects the camera position to game state dispatch.
@@ -30,7 +46,17 @@ import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
 // initial chunk (and the unit-test module graph) never pays for them; the
 // same reason AtlasDemo is lazy. Only types may be imported statically.
 import type { WorldDelta } from '../../systems/worldforge/delta/types';
+import type { GroundWorld } from '../../systems/worldforge/bridge/groundChunkLoader';
 import { LOCATIONS } from '../../data/world/locations';
+import { getBurgNamer } from '../../systems/worldforge/bridge/legacySubmapBridge';
+import { generateTownPlan } from '../../systems/worldforge/town/generateTownPlan';
+import { generateTownRoster } from '../../systems/worldforge/roster/generateTownRoster';
+import { SeededRandom } from '../../utils/random/seededRandom';
+import { generateNPC } from '../../services/npcGenerator';
+import type { NPCGenerationConfig } from '../../services/npcGenerator';
+import { generateNpcBusiness, generateBusinessName } from '../../systems/economy/NpcBusinessManager';
+import type { BusinessType } from '../../types/business';
+import { getGameDay } from '../../utils/core';
 
 // PLAYING's 3D view enters the Worldforge ground world (walking scale,
 // interiors, occupants) at the party/clicked tile BY DEFAULT — the legacy
@@ -93,6 +119,12 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
   const { setMode } = useWorldViewMode();
   const isDevModeEnabled = state.isDevModeEnabled ?? false;
 
+  // Tracks whether the player is currently exploring the walking-scale Ground Mode (true)
+  // or flying above the global-scale Continent Mode (false).
+  // Initialized from the URL parameters (?wf_legacy=1 starts in Continent Mode).
+  // Toggling this value tears down the existing scene streamer and rebuilds it dynamically.
+  const [isGroundMode, setIsGroundMode] = useState(() => wfParam('wf_legacy') !== '1');
+
   // Worker-backed loader for PLAYING — keeps chunk mesh generation off the main thread.
   // Created and disposed inside ONE effect (the React-correct disposable-resource pattern): under
   // StrictMode's dev double-mount (setup → cleanup → setup) each setup builds a fresh loader+worker
@@ -132,7 +164,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
       };
     };
 
-    if (!WF_GROUND) {
+    if (!isGroundMode) {
       activeCleanup = startLegacy();
       return () => {
         cancelled = true;
@@ -185,13 +217,100 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           const bridged = bridge.getWorldforgeLocalForLocation(
             wfSeed, coords.x, coords.y, cols, rows,
           );
+
+          // Generate/register any missing businesses/NPCs for the town(s) in the local area
+          const nameForFallback = (rng: { next(): number }) => {
+            const NAME_ONSETS = ['Ad', 'Bel', 'Car', 'Dar', 'El', 'Fa', 'Gla', 'Har', 'Is', 'Jul', 'Kel', 'Lon', 'Mor', 'Nor', 'O', 'Pan', 'Qu', 'Ro', 'Sil', 'Tor', 'Ul', 'Val', 'Wen', 'Xan', 'Yor', 'Zel'];
+            const NAME_CODAS = ['a', 'an', 'el', 'i', 'ia', 'in', 'is', 'o', 'or', 'ric', 'ta', 'wen'];
+            const a = NAME_ONSETS[Math.floor(rng.next() * NAME_ONSETS.length)];
+            const b = NAME_CODAS[Math.floor(rng.next() * NAME_CODAS.length)];
+            return a.charAt(0).toUpperCase() + a.slice(1) + b;
+          };
+
+          const helperGetBusinessTypeForPlot = (role: string, plotId: number): BusinessType => {
+            const types: BusinessType[] = role === 'market'
+              ? ['general_store', 'tavern', 'apothecary', 'trading_company', 'enchanter_shop']
+              : ['smithy', 'mine', 'farm', 'trading_company'];
+            const index = Math.abs(Math.imul(plotId + 17, 2654435761) >>> 8) % types.length;
+            return types[index];
+          };
+
+          for (const t of bridged.region?.townSites ?? []) {
+            const plan = generateTownPlan(t, bridged.region.seedPath);
+            const nameFor = getBurgNamer(wfSeed, t.burgId) ?? nameForFallback;
+            const roster = generateTownRoster(plan, bridged.region.seedPath, { nameFor });
+            
+            for (const p of plan.plots) {
+              if (p.role === 'market' || p.role === 'workshop') {
+                const npcId = `npc_burg_${t.burgId}_plot_${p.id}`;
+                const bizId = `biz_burg_${t.burgId}_plot_${p.id}`;
+                
+                // If not in state, generate and dispatch
+                if (!state.generatedNpcs?.[npcId] || !state.worldBusinesses?.[bizId]) {
+                  const seedValue = wfSeed + t.burgId + p.id;
+                  const rng = new SeededRandom(seedValue);
+                  const bizType = helperGetBusinessTypeForPlot(p.role, p.id);
+                  const bizName = generateBusinessName(bizType, rng);
+                  
+                  // Find the roster occupant assigned to this plot
+                  const occupant = roster.occupants.find(o => o.workPlotId === p.id);
+                  const finalNpcName = occupant?.name ?? nameFor(rng);
+                  
+                  const npcConfig: NPCGenerationConfig = {
+                    id: npcId,
+                    name: finalNpcName,
+                    role: 'merchant',
+                    occupation: p.role === 'market' ? 'shopkeeper' : 'artisan',
+                    level: 3,
+                  };
+                  const richNpc = generateNPC(npcConfig);
+                  richNpc.businessId = bizId;
+                  
+                  const worldBiz = generateNpcBusiness(
+                    richNpc,
+                    `coord_${coords.x}_${coords.y}`, // locationId matching the game coordinate
+                    bizType,
+                    getGameDay(state.gameTime),
+                    rng
+                  );
+                  // Override properties to match our deterministic ones
+                  worldBiz.id = bizId;
+                  worldBiz.name = bizName;
+                  worldBiz.ownerId = npcId;
+                  (worldBiz as any).burgId = t.burgId;
+                  (worldBiz as any).plotId = p.id;
+                  
+                  // Dispatch actions to register them!
+                  if (!state.generatedNpcs?.[npcId]) {
+                    dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc: richNpc } });
+                  }
+                  if (!state.worldBusinesses?.[bizId]) {
+                    dispatch({ type: 'REGISTER_WORLD_BUSINESS', payload: { business: worldBiz } });
+                  }
+                }
+              }
+            }
+          }
+
           const hour =
             state.gameTime instanceof Date ? state.gameTime.getHours() : 12;
           const deltas =
             (state as { worldforgeDeltas?: WorldDelta[] }).worldforgeDeltas ?? [];
           const { ground, loader: groundLoader } = loaderMod.createGroundChunkLoader(
-            bridged.local, wfSeed, bridged.region, { hour, deltas },
+            bridged.local, wfSeed, bridged.region, { 
+              hour, 
+              deltas,
+              worldBusinesses: state.worldBusinesses,
+              generatedNpcs: state.generatedNpcs
+            },
           );
+
+          // Store references to the active ground world and the extraction helper
+          // to make them accessible inside handleGroundPositionChange callback.
+          groundRef.current = ground;
+          extractPatchRef.current = loaderMod.extractLocalTerrainPatch;
+          combatTriggered.current = false;
+
           if (cancelled) return;
           // Spawn at the SAVED ground position when it belongs to this tile
           // (WF-STORE-2 contract item 3); else the artifact center.
@@ -216,6 +335,10 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           const exitTile = { x: coords.x, y: coords.y };
           activeCleanup = () => {
             setLoader(undefined);
+            // Clear ground and extractor references on exit to avoid memory leaks or state stale checks
+            groundRef.current = null;
+            extractPatchRef.current = null;
+            combatTriggered.current = false;
             // Exit coherence (contract item 4): the continent view resumes
             // at this tile's center; the two position fields never mix units.
             setPosition({
@@ -237,9 +360,8 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
       cancelled = true;
       activeCleanup?.();
     };
-    // state fields are stable per 3D entry; deliberate minimal deps below.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [worldData, state.currentLocationId, state.worldSeed]);
+    // Re-run the effect if the world data, location, seed, or active mode scale changes.
+  }, [worldData, state.currentLocationId, state.worldSeed, isGroundMode]);
 
   // FPS tracking state.
   const [fps, setFps] = useState(0);
@@ -290,7 +412,6 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
     }
     prevChunkCount.current = loaded;
   }, []);
-
   // Throttle state for position dispatches.
   const lastDispatchTime = useRef(0);
   const lastDispatchedPos = useRef<{ x: number; z: number }>({ x: NaN, z: NaN });
@@ -299,6 +420,12 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
   // playerGroundPos — a separate field from the continent playerWorldPos,
   // so the legacy clamp/scale never sees walking-scale numbers.
   const lastGroundDispatch = useRef(0);
+
+  // References to keep track of ground world details for combat transition
+  const groundRef = useRef<GroundWorld | null>(null);
+  const extractPatchRef = useRef<typeof import('../../systems/worldforge/bridge/groundChunkLoader').extractLocalTerrainPatch | null>(null);
+  const combatTriggered = useRef(false);
+
   const handleGroundPositionChange = useCallback(
     (x: number, z: number) => {
       const tile = wfGroundView?.tile;
@@ -310,8 +437,60 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
         type: 'SET_PLAYER_GROUND_POS',
         payload: { position: { tileX: tile.x, tileY: tile.y, xM: x, zM: z } },
       });
+
+      // Combat handoff check: walking near a hostile creature in 3D ground mode
+      // triggers combat by extracting the local 40x30 (5ft) terrain patch.
+      if (combatTriggered.current) return;
+      const ground = groundRef.current;
+      const extractPatch = extractPatchRef.current;
+
+      if (ground && extractPatch) {
+        for (const h of ground.hostiles) {
+          const dist = Math.hypot(x - h.xM, z - h.zM);
+          // If the player walks within 4 meters of a hostile monster, trigger battle!
+          if (dist < 4.0) {
+            combatTriggered.current = true;
+
+            // Run the async combat start wrapper
+            (async () => {
+              try {
+                // Dynamically import the encounter handler to keep startup bundle lightweight
+                const { handleStartBattleMapEncounter } = await import('../../hooks/actions/handleEncounter');
+
+                // Map ground hostile to a standard bestiary entry
+                const monster = {
+                  name: h.name,
+                  quantity: 1,
+                  cr: '1/4',
+                  description: 'Hostile creature from ground mode',
+                };
+
+                // Extract the 40x30 terrain patch centered around the player's collision coordinate
+                const extractedMap = extractPatch(
+                  ground,
+                  x,
+                  z,
+                  'forest', // Default combat theme mapping
+                  state.worldSeed ?? 42
+                );
+
+                // Transition to combat mode using the extracted battle map
+                await handleStartBattleMapEncounter(dispatch, {
+                  monsters: [monster],
+                  extractedBattleMap: extractedMap,
+                });
+              } catch (err) {
+                // eslint-disable-next-line no-console
+                console.error('[combat handoff] failed to enter battle:', err);
+                combatTriggered.current = false;
+              }
+            })();
+            break;
+          }
+        }
+      }
     },
-    [dispatch, wfGroundView?.tile],
+    [dispatch, wfGroundView?.tile, state.worldSeed],
   );
 
   /**
@@ -437,6 +616,8 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
         streamerStats={streamerStats}
         onOpenMap={() => setMode('atlas')}
         onExitToMenu={() => dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU })}
+        isGroundMode={isGroundMode}
+        onToggleGroundMode={() => setIsGroundMode(prev => !prev)}
       />
     </div>
   );

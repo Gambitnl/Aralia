@@ -257,7 +257,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "A creature you touch regains 4d8 + 15 Hit Points. For the duration, the target regains 1 Hit Point at the start of each of its turns, and any severed body parts regrow after 2 minutes.",
+      "description": "Touch one creature for a 1-hour prayer-wheel transmutation. Severed body parts regrow after 2 minutes while the target also receives the spell healing and start-turn recovery effects.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

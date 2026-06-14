@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 13/06/2026, 14:05:14
+ * Dependents: components/Economy/LedgerBook.tsx, components/World3D/World3DWrapper.tsx, data/economy/businessTemplates.ts, systems/economy/BusinessAcquisition.ts, systems/economy/BusinessManagement.ts, systems/economy/BusinessSimulation.ts, systems/economy/NpcBusinessManager.ts, systems/worldforge/bridge/groundChunkLoader.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/types/business.ts
  * Types for the business ownership and simulation system.
@@ -70,6 +86,8 @@ export interface WorldBusiness extends Omit<BusinessState, 'strongholdId'> {
   ownerId: string;                  // NPC ID or 'player'
   ownerType: 'npc' | 'player';
   strongholdId?: string;            // Optional — only if linked to a stronghold
+  burgId?: number;                  // ID of the Azgaar burg/town if generated
+  plotId?: number;                  // ID of the TownPlan building plot if generated
 
   npcOwnerProfile?: NpcBusinessProfile;
 

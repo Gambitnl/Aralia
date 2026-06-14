@@ -178,7 +178,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Summons creatures through the persistent summoning effect; current data keeps form/count choice and richer control behavior as separate follow-up work.",
+      "description": "Creates the summoned creature group as a persistent combat effect; form selection, creature count, and detailed command behavior are deferred to separate summoning work.",
       "conditionalEndings": []
     }
   ],

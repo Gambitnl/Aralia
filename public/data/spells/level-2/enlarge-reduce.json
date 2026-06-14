@@ -140,7 +140,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Choose Enlarge or Reduce. An unwilling creature can make a Constitution save to negate the spell. Enlarge: target size +1, Advantage on Strength checks and saves, +1d4 damage with enlarged weapons or Unarmed Strikes. Reduce: target size -1, Disadvantage on Strength checks and saves, -1d4 damage with reduced weapons or Unarmed Strikes, minimum 1 damage.",
+      "description": "Enlarge increases the target's size by one category after any required Constitution save, grants Advantage on Strength checks and saves, and adds 1d4 damage to enlarged weapon or Unarmed Strike hits.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -231,7 +231,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Choose Enlarge or Reduce. An unwilling creature can make a Constitution save to negate the spell. Enlarge: target size +1, Advantage on Strength checks and saves, +1d4 damage with enlarged weapons or Unarmed Strikes. Reduce: target size -1, Disadvantage on Strength checks and saves, -1d4 damage with reduced weapons or Unarmed Strikes, minimum 1 damage.",
+      "description": "Reduce decreases the target's size by one category after any required Constitution save, imposes Disadvantage on Strength checks and saves, and subtracts 1d4 from reduced weapon or Unarmed Strike damage to a minimum of 1.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

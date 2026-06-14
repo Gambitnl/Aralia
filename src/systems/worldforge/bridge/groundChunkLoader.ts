@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 07:04:58
+ * Last Sync: 13/06/2026, 14:09:00
  * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx
- * Imports: 12 files
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -44,6 +44,11 @@ import type { TownRoster, Occupant } from "../roster/types";
 import { localWithDeltas } from "./groundDeltas";
 import type { WorldDelta } from "../delta/types";
 import { getBurgNamer } from "./legacySubmapBridge";
+import { SeededRandom } from "../../../utils/random/seededRandom";
+import { generateBusinessName } from "../../economy/NpcBusinessManager";
+import type { BusinessType, WorldBusiness } from "../../../types/business";
+import type { RichNPC } from "../../../types/world";
+import type { BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration } from "@/types/combat";
 
 /** A polyline in ground world-meters with a uniform width (meters). */
 interface GroundPolyline {
@@ -68,6 +73,21 @@ export interface GroundFeature {
   zM: number;
 }
 
+// ============================================================================
+// Ground Hostile Creature definition
+// ============================================================================
+// This interface defines a hostile creature placed in the ground world. It
+// holds coordinate positions in meters relative to the ground world's origin
+// and the monster id matching standard bestiary entries (e.g. "Goblin").
+// ============================================================================
+export interface GroundHostile {
+  id: string;
+  name: string;
+  xM: number;
+  zM: number;
+  monsterId: string;
+}
+
 /** Pre-extracted, chunk-samplable view of a LocalArtifact. */
 export interface GroundWorld {
   cols: number;
@@ -80,6 +100,8 @@ export interface GroundWorld {
   extentMetersZ: number;
   /** The artifact's OWN placed features (trees/bushes/boulders…), meters. */
   features: GroundFeature[];
+  /** Hostile monsters placed deterministically on the ground map. */
+  hostiles: GroundHostile[];
   /** River/road centerlines crossing the artifact, ground meters. */
   rivers: GroundPolyline[];
   roads: GroundPolyline[];
@@ -100,6 +122,9 @@ export interface GroundWorld {
     wallDepthM: number;
     /** L4 interior: walls + furnishings as site-local boxes (seamless). */
     parts: SitePart[];
+    name?: string;
+    unlabeled?: boolean;
+    labelRangeM?: number;
   }>;
   /** Occupant rosters per town (L4 — future UI/schedules consume these). */
   rosters: TownRoster[];
@@ -145,6 +170,8 @@ export interface MakeGroundWorldOptions {
    * before buildings/interiors/rosters derive from it, so the 3D village
    * reflects player edits. */
   deltas?: WorldDelta[];
+  worldBusinesses?: Record<string, WorldBusiness>;
+  generatedNpcs?: Record<string, RichNPC>;
 }
 
 export function makeGroundWorld(
@@ -154,7 +181,7 @@ export function makeGroundWorld(
   opts: MakeGroundWorldOptions = {},
 ): GroundWorld {
   const wd = localArtifactToWorldData(local, seed);
-  const townContent = groundTowns(local, region, opts.hour ?? 12, opts.deltas ?? [], seed);
+  const townContent = groundTowns(local, region, opts.hour ?? 12, opts.deltas ?? [], seed, opts);
 
   // Each makeGroundWorld call receives a freshly allocated height array from
   // localArtifactToWorldData. Flattening mutates only that per-call array, so
@@ -172,14 +199,34 @@ export function makeGroundWorld(
     xM: (f.x - local.bounds.x) * FEET_TO_METERS,
     zM: (f.y - local.bounds.y) * FEET_TO_METERS,
   }));
+
+  const extentX = wd.gridSize.cols * GROUND_METERS_PER_CELL;
+  const extentZ = wd.gridSize.rows * GROUND_METERS_PER_CELL;
+  const centerX = extentX / 2;
+  const centerZ = extentZ / 2;
+
+  // Create a default hostile monster (Goblin) positioned 15 meters away from
+  // the center of the ground world. This matches the player's typical spawn point
+  // plus an offset, making it easily visible and walkable to trigger combat.
+  const hostiles: GroundHostile[] = [
+    {
+      id: "wf-hostile-goblin-default",
+      name: "Goblin",
+      xM: centerX + 15,
+      zM: centerZ + 15,
+      monsterId: "Goblin",
+    },
+  ];
+
   return {
     cols: wd.gridSize.cols,
     rows: wd.gridSize.rows,
     heights: wd.heights,
     biomeIds: wd.biomeIds,
-    extentMetersX: wd.gridSize.cols * GROUND_METERS_PER_CELL,
-    extentMetersZ: wd.gridSize.rows * GROUND_METERS_PER_CELL,
+    extentMetersX: extentX,
+    extentMetersZ: extentZ,
     features,
+    hostiles,
     rivers: region ? regionPolylinesToGround(region.rivers, local) : [],
     // Region routes + the town plan's own streets ride the same ribbon path
     roads: [
@@ -355,6 +402,14 @@ function syllableName(rng: { next(): number }): string {
 }
 
 
+function getBusinessTypeForPlot(role: string, plotId: number): BusinessType {
+  const types: BusinessType[] = role === 'market'
+    ? ['general_store', 'tavern', 'apothecary', 'trading_company', 'enchanter_shop']
+    : ['smithy', 'mine', 'farm', 'trading_company'];
+  const index = Math.abs(Math.imul(plotId + 17, 2654435761) >>> 8) % types.length;
+  return types[index];
+}
+
 /**
  * Town content for the ground window: the site marker (label + keep box),
  * and — the C3 payoff — the town's GENERATED plan: streets become road
@@ -367,6 +422,7 @@ function groundTowns(
   hour: number,
   deltas: WorldDelta[],
   worldSeed: number,
+  opts: MakeGroundWorldOptions = {},
 ): {
   towns: GroundWorld["towns"];
   buildings: GroundWorld["buildings"];
@@ -416,6 +472,34 @@ function groundTowns(
     // syllables otherwise.
     const nameFor = getBurgNamer(worldSeed, t.burgId) ?? syllableName;
     const roster = generateTownRoster(plan, region!.seedPath, { nameFor });
+
+    // Post-process the roster: map each shopkeeper/artisan to the business owner name
+    for (const o of roster.occupants) {
+      if (o.workPlotId !== undefined) {
+        const bizId = `biz_burg_${t.burgId}_plot_${o.workPlotId}`;
+        const npcId = `npc_burg_${t.burgId}_plot_${o.workPlotId}`;
+        let ownerNpc = opts.generatedNpcs?.[npcId];
+        if (!ownerNpc) {
+          const biz = opts.worldBusinesses?.[bizId];
+          if (biz) {
+            ownerNpc = opts.generatedNpcs?.[biz.ownerId];
+          }
+        }
+        if (ownerNpc) {
+          o.name = ownerNpc.name;
+        } else {
+          // Fallback deterministic name generation if not in state
+          const seedValue = worldSeed + t.burgId + o.workPlotId;
+          const rng = new SeededRandom(seedValue);
+          const pPlot = plan.plots.find(pl => pl.id === o.workPlotId);
+          if (pPlot) {
+            const tempNpcName = o.name || nameFor(rng);
+            o.name = tempNpcName;
+          }
+        }
+      }
+    }
+
     rosters.push(roster);
     const byPlot = new Map<number, Array<Occupant & { atWork: boolean; resolvedPlotId: number }>>();
     for (const o of roster.occupants) {
@@ -430,6 +514,23 @@ function groundTowns(
       const xM = (cx - local.bounds.x) * FEET_TO_METERS;
       const zM = (cy - local.bounds.y) * FEET_TO_METERS;
       const heightM = Math.max(1, (p.storeys ?? 1)) * 3;
+
+      const isBiz = p.role === 'market' || p.role === 'workshop';
+      let bizName: string | undefined;
+
+      if (isBiz) {
+        const bizId = `biz_burg_${t.burgId}_plot_${p.id}`;
+        const biz = opts.worldBusinesses?.[bizId];
+        if (biz) {
+          bizName = biz.name;
+        } else {
+          // Fallback deterministic name generation if not in state
+          const seedValue = worldSeed + t.burgId + p.id;
+          const rng = new SeededRandom(seedValue);
+          const bizType = getBusinessTypeForPlot(p.role, p.id);
+          bizName = generateBusinessName(bizType, rng);
+        }
+      }
 
       // The same byPlot map that feeds figure placement also feeds
       // nameplates, so home/work resolution cannot drift between systems.
@@ -459,6 +560,9 @@ function groundTowns(
         role: p.role ?? 'house',
         wallWidthM: envelope.wallWidthM,
         wallDepthM: envelope.wallDepthM,
+        name: bizName,
+        unlabeled: !isBiz,
+        labelRangeM: 20,
         // Seamless interior (L4): same seed path the town plan used, so the
         // plan, the shell, the rooms AND the household all agree.
         parts: buildInteriorParts(
@@ -475,7 +579,7 @@ function groundTowns(
 }
 
 /** Encoded-height bilinear sample at world meters → true meters via heightToMeters. */
-function groundSurfaceY(ground: GroundWorld, wxM: number, wzM: number): number {
+export function groundSurfaceY(ground: GroundWorld, wxM: number, wzM: number): number {
   const { cols, rows, heights: H } = ground;
   const clampX = (v: number) => Math.max(0, Math.min(cols - 1, v));
   const clampY = (v: number) => Math.max(0, Math.min(rows - 1, v));
@@ -714,14 +818,20 @@ export function sampleGroundChunk(
           heightM: b.heightM,
           colorHex: b.role === 'market' ? '#c8923f' : '#b09a72',
           // One label per settlement (the town marker) — not one per house.
-          unlabeled: true,
+          unlabeled: b.unlabeled ?? true,
+          name: b.name,
+          labelRangeM: b.labelRangeM ?? 20,
           // Seamless interior parts (meters, site-local) — when present the
           // renderer builds walls instead of a solid box.
           parts: b.parts,
           wallWidthM: b.wallWidthM,
           wallDepthM: b.wallDepthM,
         })),
-      ...ground.occupants
+      // Mapped occupants (NPCs): these show where keepers or townsfolk are
+      // standing inside their buildings during working/home hours. We guard this
+      // with a fallback to an empty array in case the ground data was mocked
+      // without rosters.
+      ...(ground.occupants || [])
         .filter((o) => inChunk(o.xM, o.zM, cx, cy))
         .map((o) => ({
           id: `wf-occ-${o.burgId}-${o.occupantId}`,
@@ -736,6 +846,22 @@ export function sampleGroundChunk(
           markerOnly: true,
           name: o.name,
           labelRangeM: 12,
+        })),
+      // Mapped hostiles: these render as high-contrast red boxes on the
+      // ground map and carry nameplates so the player can spot them easily.
+      // We guard this with a fallback to an empty array so tests modeling
+      // older or simpler ground worlds without hostile placements don't crash.
+      ...(ground.hostiles || [])
+        .filter((h) => inChunk(h.xM, h.zM, cx, cy))
+        .map((h) => ({
+          id: h.id,
+          kind: "monster" as const,
+          position: pseudoGrid(h.xM, h.zM),
+          footprint: [],
+          walled: false,
+          surfaceY: groundSurfaceY(ground, h.xM, h.zM),
+          name: h.name,
+          labelRangeM: 15,
         })),
     ],
   };
@@ -842,5 +968,155 @@ export function createGroundChunkLoader(
         bushes: bushes.positions.length > 0 ? bushes : undefined,
       };
     },
+  };
+}
+
+// ============================================================================
+// Terrain Patch Extraction
+// ============================================================================
+// This function extracts a 40x30 local region centered at the player's world
+// meters position (playerX, playerZ) from the GroundWorld object. It samples
+// elevations, determines biomes, detects obstacle collisions (features), and
+// maps buildings/seamless interiors directly onto the BattleMap 3D tiles.
+// ============================================================================
+export function extractLocalTerrainPatch(
+  ground: GroundWorld,
+  playerX: number,
+  playerZ: number,
+  biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp',
+  seed: number,
+): BattleMapData {
+  const width = 40;
+  const height = 30;
+  const tiles = new Map<string, BattleMapTile>();
+
+  // The player is placed at the center tile coordinate (20, 15) of the BattleMap.
+  const centerX = 20;
+  const centerY = 15;
+
+  for (let ty = 0; ty < height; ty++) {
+    for (let tx = 0; tx < width; tx++) {
+      const tileId = `${tx}-${ty}`;
+
+      // Compute the absolute ground world meters coordinates for this tile.
+      // One tile in a BattleMap corresponds to 5 feet (1.524 meters).
+      const dx = (tx - centerX) * GROUND_METERS_PER_CELL;
+      const dz = (ty - centerY) * GROUND_METERS_PER_CELL;
+      const wx = playerX + dx;
+      const wz = playerZ + dz;
+
+      // 1. Elevation calculation: Sample the ground surface height in meters,
+      // then convert it back to the BattleMap's internal elevation units.
+      // BattleMap renders with a vertical ELEVATION_SCALE of 0.3, so we divide
+      // the real height in meters by 0.3.
+      const realHeightM = groundSurfaceY(ground, wx, wz);
+      const elevation = realHeightM / 0.3;
+
+      // 2. Biome lookup: Sample the nearest biome from the GroundWorld grid.
+      const bx = Math.max(0, Math.min(ground.cols - 1, Math.round(wx / GROUND_METERS_PER_CELL)));
+      const by = Math.max(0, Math.min(ground.rows - 1, Math.round(wz / GROUND_METERS_PER_CELL)));
+      const groundBiome = ground.biomeIds[by * ground.cols + bx] ?? "plains";
+
+      // Map GroundWorld biome to a valid BattleMapTerrain value
+      let terrain: BattleMapTerrain = 'grass';
+      if (groundBiome === 'ocean' || groundBiome === 'water') {
+        terrain = 'water';
+      } else if (groundBiome === 'desert') {
+        terrain = 'sand';
+      } else if (groundBiome === 'swamp' || groundBiome === 'wetland') {
+        terrain = 'mud';
+      } else if (groundBiome === 'mountain' || groundBiome === 'tundra') {
+        terrain = 'rock';
+      }
+
+      // Initialize default properties for the tile
+      let blocksMovement = terrain === 'water';
+      let blocksLoS = false;
+      let decoration: BattleMapDecoration = null;
+
+      // 3. Natural obstacles: Check if this tile overlaps any trees, bushes, or boulders
+      // within reasonable collision ranges.
+      for (const f of ground.features) {
+        const dist = Math.hypot(wx - f.xM, wz - f.zM);
+        if (f.kind === 'tree' && dist < 1.2) {
+          decoration = 'tree';
+          blocksMovement = true;
+          blocksLoS = true;
+        } else if (f.kind === 'bush' && dist < 0.8) {
+          decoration = 'bush';
+        } else if (f.kind === 'boulder' && dist < 1.0) {
+          decoration = 'boulder';
+          blocksMovement = true;
+          blocksLoS = true;
+        }
+      }
+
+      // 4. Buildings and interior parts: If the tile overlaps a building plot footprint,
+      // it becomes a floor tile. If it overlaps a wall part, it blocks movement and LoS.
+      for (const b of ground.buildings) {
+        if (b.cornersM.length < 3) continue;
+
+        // Perform the convex polygon point-in-polygon check
+        if (pointInsideConvexQuad({ x: wx, z: wz }, b.cornersM)) {
+          // Inside a building boundary: make it a floor tile and remove nature decorations.
+          terrain = 'floor';
+          blocksMovement = false;
+          blocksLoS = false;
+          decoration = null;
+
+          // Convert world coords to building-local coordinate space to check walls and furniture
+          const c = b.cornersM;
+          const e1x = c[1].x - c[0].x;
+          const e1z = c[1].z - c[0].z;
+          const e2x = c[3].x - c[0].x;
+          const e2z = c[3].z - c[0].z;
+          const rotationY = -Math.atan2(e1z, e1x);
+          const cross = e1x * e2z - e1z * e2x;
+          const doorZSign = cross >= 0 ? -1 : 1;
+
+          const dxLocal = wx - b.xM;
+          const dzLocal = wz - b.zM;
+          const lx = dxLocal * Math.cos(rotationY) - dzLocal * Math.sin(rotationY);
+          const lz = dxLocal * Math.sin(rotationY) + dzLocal * Math.cos(rotationY);
+
+          // Iterate through interior parts (walls and furniture)
+          for (const p of b.parts) {
+            const lzScene = p.z * doorZSign;
+            // Add a small 0.1m tolerance buffer to ensure adjacent cells align cleanly
+            const inX = lx >= p.x - p.w / 2 - 0.1 && lx <= p.x + p.w / 2 + 0.1;
+            const inZ = lz >= lzScene - p.d / 2 - 0.1 && lz <= lzScene + p.d / 2 + 0.1;
+
+            if (inX && inZ && p.h > 0.5) {
+              blocksMovement = true;
+              // Check if this part has a wall-colored hex code to determine LoS blocking
+              const isWall = p.colorHex === '#cfc7b8' || p.colorHex === '#c8923f' || p.colorHex === '#b09a72';
+              if (isWall) {
+                terrain = 'wall';
+                blocksLoS = true;
+              }
+            }
+          }
+        }
+      }
+
+      tiles.set(tileId, {
+        id: tileId,
+        coordinates: { x: tx, y: ty },
+        terrain,
+        elevation,
+        movementCost: blocksMovement ? 0 : 1,
+        blocksLoS,
+        blocksMovement,
+        decoration,
+        effects: [],
+      });
+    }
+  }
+
+  return {
+    dimensions: { width, height },
+    tiles,
+    theme: biome,
+    seed,
   };
 }

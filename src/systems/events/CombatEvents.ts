@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 08/06/2026, 14:28:10
- * Dependents: commands/effects/ReactiveEffectCommand.ts, hooks/combat/useActionExecutor.ts, systems/spells/effects/AreaEffectTracker.ts
+ * Last Sync: 13/06/2026, 10:36:48
+ * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, hooks/combat/useActionExecutor.ts, systems/spells/effects/AreaEffectTracker.ts
  * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
@@ -42,6 +42,29 @@ export interface AttackEvent extends CombatEvent {
     isHit?: boolean;
     isCrit?: boolean;
     damage?: number;
+    /**
+     * Attack family facts preserved for reactive spell filters.
+     * Armor of Agathys-style effects need to know whether a resolved hit was a
+     * weapon or spell attack and whether it was melee or ranged without parsing
+     * combat-log text or re-reading the original ability object.
+     */
+    attackType?: 'weapon' | 'spell' | 'any';
+    weaponType?: 'melee' | 'ranged' | 'any';
+}
+
+export interface CombatAttackResult {
+    targetId: string;
+    isHit: boolean;
+    isCritical?: boolean;
+    attackType?: AttackEvent['attackType'];
+    weaponType?: AttackEvent['weaponType'];
+    rollResult?: number;
+    total?: number;
+}
+
+export interface AttackResultQuery {
+    attackerId?: string;
+    targetIds?: string[];
 }
 
 export interface CastEvent extends CombatEvent {
@@ -197,6 +220,32 @@ export class CombatEventEmitter {
         // The caller still owns where it lives; this bus only defines the shape.
         this.dispatchLog = structuredClone(snapshot.events);
         this.dispatchSequence = snapshot.nextSequence;
+    }
+
+    getAttackResultsSince(sequenceStart: number, query: AttackResultQuery = {}): CombatAttackResult[] {
+        const targetFilter = query.targetIds ? new Set(query.targetIds) : undefined;
+
+        // Attack-result consumers need a machine-readable hit/miss feed, not
+        // prose combat-log parsing. This method projects resolved attack events
+        // into the same compact result shape used by CombatAction.attackResults
+        // while letting callers isolate only the events emitted after their own
+        // command/action snapshot.
+        return this.dispatchLog
+            .filter(event => event.seq >= sequenceStart)
+            .filter((event): event is CombatEventTraceEntry & AttackEvent =>
+                event.type === 'unit_attack' && typeof event.isHit === 'boolean'
+            )
+            .filter(event => !query.attackerId || event.attackerId === query.attackerId)
+            .filter(event => !targetFilter || targetFilter.has(event.targetId))
+            .map(event => ({
+                targetId: event.targetId,
+                isHit: event.isHit,
+                isCritical: event.isCrit,
+                attackType: event.attackType,
+                weaponType: event.weaponType,
+                rollResult: undefined,
+                total: undefined
+            }));
     }
 
     clearDispatchLog(): void {

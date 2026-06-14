@@ -141,7 +141,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a hit against the marked target, the spell adds 1d6 Necrotic damage as the modeled curse damage rider.",
+      "description": "When the caster hits the cursed target with an attack roll, the spell adds 1d6 Necrotic damage.",
       "conditionalEndings": [],
       "tags": [
         "necrotic-rider",
@@ -200,7 +200,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "The target has disadvantage on ability checks made with the chosen ability.",
+      "description": "The cursed target has Disadvantage on ability checks using the caster-chosen ability, and if it drops to 0 Hit Points before the spell ends, the caster can use a later-turn Bonus Action to curse a new creature.",
       "controlOptions": [
         {
           "name": "Strength",

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 23:50:22
+ * Last Sync: 13/06/2026, 10:54:35
  * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 12 files
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -27,7 +27,7 @@
  * @file src/commands/effects/DamageCommand.ts
  */
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
-import { CombatState, StatusEffect, ActiveEffect } from '../../types/combat'
+import { CombatState, CombatCharacter, StatusEffect, ActiveEffect } from '../../types/combat'
 import { isDamageEffect } from '../../types/spells'
 import { checkConcentration } from '../../utils/concentrationUtils';
 import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/savingThrowUtils';
@@ -39,6 +39,7 @@ import { getPlanarSpellModifier } from '../../utils/planarUtils';
 import { StatusConditionCommand } from './StatusConditionCommand';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 import { applyDamageAndCheckDowned } from '../../utils/combat/deathSaveUtils';
+import { combatEvents } from '../../systems/events/CombatEvents';
 
 /** Unique key for tracking Slasher speed reduction once-per-turn usage */
 const SLASHER_SLOW_USAGE_KEY = 'slasher_slow';
@@ -105,6 +106,7 @@ export class DamageCommand extends BaseEffectCommand {
       // - Doubles dice on critical hits
       // - Applies minRoll floor from Elemental Adept
       const isCritical = this.context.isCritical || false;
+      this.emitSpellAttackHitEvent(caster, target, isCritical);
       let damageRoll = this.rollDamage(this.effect.damage.dice, isCritical, minRoll);
 
       // --- RACIAL TRAIT: Savage Attacks (Half-Orc) ---
@@ -577,6 +579,44 @@ export class DamageCommand extends BaseEffectCommand {
    */
   private rollDamage(diceString: string, isCritical: boolean, minRoll: number = 1): number {
     return rollDamageUtil(diceString, isCritical, minRoll);
+  }
+
+  /**
+   * Publishes the structured attack fact for spell attacks that already reached
+   * a hit-conditioned damage row.
+   *
+   * Weapon attacks emit their own hit/miss event at the attack-roll command.
+   * Spell attack rolls do not have an equivalent command yet, so this bridge
+   * records only confirmed spell hits without inventing miss rolls or changing
+   * the damage model.
+   */
+  private emitSpellAttackHitEvent(
+    caster: CombatCharacter,
+    target: CombatCharacter,
+    isCritical: boolean
+  ): void {
+    // Only spell damage rows with a melee/ranged spell attack marker should
+    // produce spell attack events. Save-based area damage and weapon-backed
+    // damage commands already have different trigger semantics.
+    if (
+      this.effect.condition.type !== 'hit' ||
+      !['melee', 'ranged'].includes(this.context.attackType ?? '') ||
+      this.context.weaponProperties !== undefined
+    ) {
+      return;
+    }
+
+    // Emit the same event shape as weapon attacks so reactive consumers can
+    // enforce hit-only and melee/ranged filters without reading combat-log text.
+    combatEvents.emit({
+      type: 'unit_attack',
+      attackerId: caster.id,
+      targetId: target.id,
+      isHit: true,
+      isCrit: isCritical,
+      attackType: 'spell',
+      weaponType: this.context.attackType
+    });
   }
 
   /**

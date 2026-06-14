@@ -284,8 +284,8 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                     // Individual skill selection button
                     <button
                       key={skill.id}
-                      onClick={() => setViewedSkillId(skill.id)}
-                      onDoubleClick={() => {
+                      onClick={() => {
+                        setViewedSkillId(skill.id);
                         if (!granted) toggleClassSkill(skill.id, charClass.numberOfSkillProficiencies);
                       }}
                       className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 border border-transparent flex items-center justify-between ${

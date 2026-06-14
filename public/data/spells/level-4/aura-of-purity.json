@@ -141,7 +141,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Purifying energy radiates from you in a 30-foot aura that moves with you. Nonhostile creatures in the aura can't become diseased, have resistance to Poison damage, and have Advantage on saving throws against effects that cause the Blinded, Charmed, Deafened, Frightened, Paralyzed, Poisoned, or Stunned conditions.",
+      "description": "A 30-foot aura of purifying energy radiates from the caster for up to 10 minutes with concentration, moves with the caster, and prevents nonhostile creatures in the aura from becoming diseased.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -237,7 +237,7 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "Nonhostile creatures in the aura, including the caster, have resistance to Poison damage.",
+      "description": "Nonhostile creatures in the aura, including the caster, have Resistance to Poison damage.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

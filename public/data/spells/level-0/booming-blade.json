@@ -143,7 +143,7 @@
         "customFormula": "{\"5\": \"1d8\", \"11\": \"2d8\", \"17\": \"3d8\"}",
         "bonusPerLevel": ""
       },
-      "description": "As part of the action used to cast this spell, you must make a melee attack with a weapon against one creature within the spell's range, otherwise the spell fails. On a hit, the target suffers the attack's normal effects, and then becomes sheathed in booming energy.",
+      "description": "On the melee weapon attack hit, the target suffers the attack's normal effects and is sheathed in booming energy until the start of the caster's next turn; at character levels 5, 11, and 17 this hit also adds 1d8, 2d8, or 3d8 Thunder damage.",
       "conditionalEndings": []
     },
     {
@@ -205,7 +205,7 @@
         "customFormula": "{\"5\": \"2d8\", \"11\": \"3d8\", \"17\": \"4d8\"}",
         "bonusPerLevel": ""
       },
-      "description": "If the target willingly moves before the start of your next turn, it immediately takes 1d8 thunder damage (scaling with level), and the spell ends.",
+      "description": "If the sheathed target willingly moves 5 feet or more before the start of the caster's next turn, it takes 1d8 Thunder damage and the spell ends; this movement damage becomes 2d8, 3d8, or 4d8 at character levels 5, 11, and 17.",
       "conditionalEndings": []
     }
   ],

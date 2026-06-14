@@ -4,7 +4,7 @@
  * Part of the world-3d-ui surface (Plan 4, Slice 1).
  */
 import { useGameState } from '../state/GameContext';
-import { WorldViewMode, PlayerWorldPosition } from '../types';
+import { WorldViewMode, MapSurface, PlayerWorldPosition } from '../types';
 
 /**
  * Hook for managing the 3D world view mode.
@@ -20,6 +20,27 @@ export function useWorldViewMode() {
   };
 
   return { mode, setMode };
+}
+
+/**
+ * Hook for reading and switching the 2D cartographic surface:
+ * 'classic' (legacy GameLayout) ↔ 'worldforge' (native cartographer).
+ * Falls back to 'classic' for legacy states without the field.
+ */
+export function useMapSurface() {
+  const { state, dispatch } = useGameState();
+
+  const surface: MapSurface = state.mapSurface ?? 'classic';
+
+  const setSurface = (next: MapSurface) => {
+    dispatch({ type: 'SET_MAP_SURFACE', payload: next });
+  };
+
+  const toggleSurface = () => {
+    setSurface(surface === 'classic' ? 'worldforge' : 'classic');
+  };
+
+  return { surface, setSurface, toggleSurface };
 }
 
 /**
