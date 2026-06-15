@@ -145,7 +145,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 7d8 + 30 Necrotic damage on a failed Constitution save, or half as much on success.",
+      "description": "One visible creature within 60 feet makes a Constitution save, taking 7d8 + 30 Necrotic damage on a failure or half as much on a success; if this damage kills a Humanoid, it rises at the start of the caster's next turn as a Zombie that follows the caster's verbal orders.",
       "conditionalEndings": []
     },
     {

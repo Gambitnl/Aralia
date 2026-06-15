@@ -112,7 +112,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Steal Life: the caster can use a bonus action to drain vigor from the trapped soul and regain 2d8 Hit Points.",
+      "description": "Steal Life: the caster can use a Bonus Action to spend one trapped-soul use and regain 2d8 Hit Points.",
       "conditionalEndings": []
     },
     {
@@ -166,7 +166,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "This spell snatches the soul of a humanoid as it dies and traps it inside the tiny cage you use for the material component. A stolen soul remains inside the cage until the spell ends or until you destroy the cage, which ends the spell. While you have a soul inside the cage, you can exploit it in any of the ways described below. You can use a trapped soul up to six times. Once you exploit a soul for the sixth time, it is released, and the spell ends. While a soul is trapped, the dead humanoid it came from can't be revived.",
+      "description": "Trap the soul of a Humanoid dying within 60 feet in the tiny cage component for up to 8 hours; the soul remains until the spell ends, the cage is destroyed, or the sixth exploitation releases it, the trapped soul can be exploited up to six times, and the dead Humanoid cannot be revived while its soul is trapped.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Ui Primitives
 slug: ui-primitives
-Status: active
+status: active
 last_updated: 2026-06-08
 iteration: 2
 source_agent: Not recorded

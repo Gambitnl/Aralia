@@ -175,7 +175,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 5d8 Acid/Cold/Fire/Lightning/Thunder damage on a failed Dexterity save, or half as much on success.",
+      "description": "When the explosive rune is triggered, each creature in the 20-foot-radius Sphere centered on the glyph makes a Dexterity save, taking 5d8 Acid, Cold, Fire, Lightning, or Thunder damage chosen when the glyph was created on a failure or half as much on a success; the glyph breaks harmlessly if moved more than 10 feet from where it was cast, and each slot level above 3 adds +1d8 damage.",
       "conditionalEndings": [
         {
           "trigger": "inscribed_ward_moved_beyond_distance",

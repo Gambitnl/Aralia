@@ -67,7 +67,7 @@ exports[`generateTownPlan > matches FROZEN golden values for a city (large envel
       "role": "house",
     },
   ],
-  "plotCount": 241,
+  "plotCount": 234,
   "streetCount": 23,
 }
 `;
@@ -93,7 +93,7 @@ exports[`generateTownPlan > matches FROZEN golden values for a hamlet (small env
     ],
   ],
   "firstPlotRole": "house",
-  "plotCount": 10,
+  "plotCount": 8,
   "streetCount": 5,
 }
 `;

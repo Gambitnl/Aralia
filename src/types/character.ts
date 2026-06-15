@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 11/06/2026, 01:02:58
+ * Last Sync: 14/06/2026, 20:42:18
  * Dependents: components/DesignPreview/steps/PreviewCombatSandbox.tsx, components/Town/TownCanvas.tsx, components/puzzles/LockpickingModal.tsx, hooks/combat/useSummons.ts, hooks/useCharacterAssembly.ts, services/travelService.ts, systems/crafting/craftingService.ts, systems/crime/SmugglingSystem.ts, systems/crime/fencing/FenceSystem.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/puzzles/secretDoorSystem.ts, systems/travel/TravelCalculations.ts, types/index.ts, utils/character/checkUtils.ts, utils/sandbox/quickCharacterGenerator.ts
  * Imports: None
  *
@@ -476,6 +476,7 @@ export interface RacialRestChoiceData {
   spellAbility?: AbilityScoreName;
   skillIds?: string[];
   toolIds?: string[];
+  weaponIds?: string[];
   selectedSpellIds?: string[];
 }
 

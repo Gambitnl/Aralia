@@ -139,7 +139,7 @@
         "dice": "1d8",
         "type": "Fire"
       },
-      "description": "Extra fire damage to the primary target scales with level.",
+      "description": "On a melee weapon hit, the primary target takes the weapon attack normal effects plus extra Fire damage that starts at 1d8 at character level 5, increases to 2d8 at level 11, and 3d8 at level 17.",
       "scaling": {
         "type": "character_level",
         "customFormula": "At 5th level +1d8 fire; 11th level +2d8; 17th level +3d8.",

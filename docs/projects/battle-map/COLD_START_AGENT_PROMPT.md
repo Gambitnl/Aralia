@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Battle Map
 slug: battle-map
-Status: active
+status: active
 last_updated: 2026-06-10
 iteration: 8
 source_agent: Codex / gpt-5.4-mini high

@@ -149,7 +149,7 @@
         "type": "minutes",
         "value": 1
       },
-      "description": "The 20-foot-radius sphere is Difficult Terrain for the duration.",
+      "description": "For up to 1 minute with concentration, a 20-foot-radius Sphere of magical darkness within 150 feet is Difficult Terrain and cannot be illuminated by magical or nonmagical light.",
       "conditionalEndings": []
     },
     {
@@ -215,7 +215,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Creatures fully within the sphere have the Blinded condition.",
+      "description": "Creatures fully inside the 20-foot-radius Sphere have the Blinded condition because no light can illuminate the area.",
       "conditionalEndings": []
     },
     {
@@ -277,7 +277,7 @@
         "bonusPerLevel": "",
         "customFormula": "At higher slots, choose Cold or Acid damage to increase by 1d6 per slot above 3."
       },
-      "description": "A creature that starts its turn in the area takes 2d6 Cold damage.",
+      "description": "A creature that starts its turn in the 20-foot-radius Sphere takes 2d6 Cold damage; at higher slots, either this Cold damage or the Acid end-turn damage increases by 1d6 per slot level above 3.",
       "conditionalEndings": []
     },
     {
@@ -341,7 +341,7 @@
         "bonusPerLevel": "",
         "customFormula": "At higher slots, choose Cold or Acid damage to increase by 1d6 per slot above 3."
       },
-      "description": "A creature that ends its turn in the area must succeed on a Dexterity saving throw or take 2d6 Acid damage.",
+      "description": "A creature that ends its turn in the 20-foot-radius Sphere makes a Dexterity save or takes 2d6 Acid damage from otherworldly tentacles; at higher slots, either this Acid damage or the Cold start-turn damage increases by 1d6 per slot level above 3.",
       "conditionalEndings": []
     }
   ],

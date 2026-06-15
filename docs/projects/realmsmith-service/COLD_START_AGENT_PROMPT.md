@@ -3,13 +3,13 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: RealmSmith Service
 slug: realmsmith-service
-Status: active
-last_updated: 2026-06-05
-iteration: 2
-source_agent: Not recorded
+status: active
+last_updated: 2026-06-15
+iteration: 3
+source_agent: Claude Code (Devin CLI)
 target_agent: next cold-start agent
-runtime_surface: unknown
-certainty: unknown
+runtime_surface: CLI agent (Devin)
+certainty: certain
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -41,11 +41,12 @@ docs/projects/realmsmith-service/NORTH_STAR.md
 | Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
 | 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
+| 2 | Claude Code (Devin CLI) | CLI agent (Devin) | certain | 2026-06-15 | T2: Service contract and retry policy source scan completed |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: RealmSmith Service
 Project folder: docs/projects/realmsmith-service
-iteration: 2
+iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -55,75 +56,44 @@ Gaps: docs/projects/realmsmith-service/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 1 established the initial project packet. This pass refreshed the
-dashboard schema, compacted the tracker/gap wording, and recorded the shared
-workflow path mismatch as a workflow testimony. No source or code changes were
-made.
+Iteration 2 (Claude Code / Devin CLI) completed T2 - Confirm RealmSmith service contract and retry policy before next implementation change. Source scan was performed on `RealmSmithTownGenerator.ts`, `RealmSmithAssetPainter.ts`, `useTownController.ts`, `realmsmith.ts`, and `TownCanvas.tsx`. Contract surface and retry policy were documented in NORTH_STAR.md under the new "Service Contract Documentation" section. Gaps G1 (API contract) and G2 (retry policy) were marked as resolved. No code changes were made; this was a documentation-only pass.
 
 ## Current Mission
 
-Active task:
-T2 - Confirm RealmSmith service contract and retry policy before next implementation change
+Active task: None (T2 completed)
 
-Acceptance criteria:
-- TRACKER.md and NORTH_STAR.md agree on the active contract/retry state.
-- The next agent can point to the named source files and explain the current
-  service contract surface.
-- Any new ambiguity found during source review is recorded in GAPS.md or
-  routed to the shared workflow / global gap docs.
+The project is currently idle with one adjacent follow-up gap (G3 - versioning). No active implementation task is queued. The next agent should either:
 
-Key files to touch:
-- docs/projects/realmsmith-service/NORTH_STAR.md
-- docs/projects/realmsmith-service/TRACKER.md
-- docs/projects/realmsmith-service/GAPS.md
-- docs/projects/realmsmith-service/COLD_START_AGENT_PROMPT.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md if the
-  workflow-path ambiguity recurs
-- Any source/docs named by T2
+1. Pick up G3 if biome/painter refactors are planned
+2. Register the project as idle and wait for new requirements
+3. Pick a new task from adjacent opportunities if any emerge
 
-Scoped verification:
-- Docs consistency is already refreshed.
-- The next agent should perform the source scan or documented proof named by
-  TRACKER.md / NORTH_STAR.md before claiming T2 is ready.
-
-Blocking dependencies / do-not-touch:
-- Stay inside this project's docs and source boundaries.
-- Do not broaden into sibling project docs unless a real cross-project gap is
-  found.
-
-Recent progress:
-- Dashboard Card Schema added to NORTH_STAR.md.
-- TRACKER.md and GAPS.md were compacted to the current active contract/retry
-  gap set.
-- Workflow-level path ambiguity was encountered and testified in
-  WORKFLOW_GAPS.md.
+Acceptance criteria for future tasks:
+- Maintain the documented service contract surface in NORTH_STAR.md
+- Review the "Service Contract Documentation" section before any implementation changes to generator/painter layers
+- Address G3 (versioning) when biome or painter changes are planned
 
 Key files to touch:
 - docs/projects/realmsmith-service/NORTH_STAR.md
 - docs/projects/realmsmith-service/TRACKER.md
 - docs/projects/realmsmith-service/GAPS.md
 - docs/projects/realmsmith-service/COLD_START_AGENT_PROMPT.md
-- docs/projects/realmsmith-service/DECISIONS.md
-- docs/projects/realmsmith-service/AUDIT_OR_PROOF.md
-- docs/projects/realmsmith-service/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- docs/projects/realmsmith-service plus source/docs named by the active tracker task
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
 
 Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
+- Docs consistency maintained
+- Source scan completed for T2
+- Contract surface documented
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
+- Stay inside this project's docs and source boundaries
+- Do not broaden into sibling project docs unless a real cross-project gap is found
 
 Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+- T2 completed: Service contract and retry policy documented in NORTH_STAR.md
+- G1 resolved: API contract now documented
+- G2 resolved: Retry policy now documented (hard-fail with console logging)
+- G3 remains active: Versioning of generation assumptions (adjacent follow-up)
+- Audit/proof updated with T2 completion evidence
 
 ## Required End State For This Iteration
 

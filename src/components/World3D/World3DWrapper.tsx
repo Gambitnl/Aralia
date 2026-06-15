@@ -39,6 +39,19 @@ import { useGameState } from '../../state/GameContext';
 import { GamePhase } from '../../types/core';
 import type { WorldData } from '../../services/worldSim/types';
 import type { PlayerWorldPosition } from '../../types';
+
+/**
+ * HOSTILE-1 return-from-combat contract:
+ * On encounter resolution, the player re-enters ground mode at the fight
+ * tile + position. Persisted state:
+ *   - `playerGroundPos` (GameState) — tile-scoped ground meters, set by
+ *     SET_PLAYER_GROUND_POS immediately before combat starts.
+ *   - `combatTriggered` ref — prevents exit cleanup from overwriting the
+ *     saved continent position when the player enters combat.
+ *   - `returningFromCombat` ref — signals that the ground-mode rebuild
+ *     was triggered by a combat return, so the saved ground position is
+ *     the authoritative spawn (not the continent-derived tile center).
+ */
 import { WORLD3D_CONFIG, heightToMeters } from '../../systems/world3d/config';
 import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
 // The worldforge bridge modules pull the entire FMG generation stack —
@@ -335,17 +348,23 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           const exitTile = { x: coords.x, y: coords.y };
           activeCleanup = () => {
             setLoader(undefined);
-            // Clear ground and extractor references on exit to avoid memory leaks or state stale checks
+            // Clear ground and extractor references to avoid memory leaks or stale state checks.
             groundRef.current = null;
             extractPatchRef.current = null;
+            // HOSTILE-1: when the player enters combat, skip the continent
+            // position override — their saved playerGroundPos is the return
+            // point. The combat handoff sets combatTriggered before the
+            // phase changes to BATTLE_MAP_DEMO, so this cleanup sees it.
+            if (!combatTriggered.current) {
+              // Exit coherence (contract item 4): the continent view resumes
+              // at this tile's center; the two position fields never mix units.
+              setPosition({
+                x: (exitTile.x + 0.5) * WORLD3D_CONFIG.METERS_PER_CELL,
+                y: 0,
+                z: (exitTile.y + 0.5) * WORLD3D_CONFIG.METERS_PER_CELL,
+              });
+            }
             combatTriggered.current = false;
-            // Exit coherence (contract item 4): the continent view resumes
-            // at this tile's center; the two position fields never mix units.
-            setPosition({
-              x: (exitTile.x + 0.5) * WORLD3D_CONFIG.METERS_PER_CELL,
-              y: 0,
-              z: (exitTile.y + 0.5) * WORLD3D_CONFIG.METERS_PER_CELL,
-            });
           };
           return;
         }
@@ -361,7 +380,9 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
       activeCleanup?.();
     };
     // Re-run the effect if the world data, location, seed, or active mode scale changes.
-  }, [worldData, state.currentLocationId, state.worldSeed, isGroundMode]);
+    // HOSTILE-1: also re-run on game phase change so the ground world rebuilds
+    // after a return-from-combat (BATTLE_MAP_DEMO → PLAYING transition).
+  }, [worldData, state.currentLocationId, state.worldSeed, isGroundMode, state.phase]);
 
   // FPS tracking state.
   const [fps, setFps] = useState(0);
@@ -450,6 +471,22 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           // If the player walks within 4 meters of a hostile monster, trigger battle!
           if (dist < 4.0) {
             combatTriggered.current = true;
+
+            // HOSTILE-1: persist the fight position immediately so the
+            // return-from-combat path spawns the player at this exact spot.
+            // Without this, the throttled dispatch (~10Hz) might not have
+            // captured the final step before the hostile proximity check.
+            dispatch({
+              type: 'SET_PLAYER_GROUND_POS',
+              payload: {
+                position: {
+                  tileX: tile.x,
+                  tileY: tile.y,
+                  xM: x,
+                  zM: z,
+                },
+              },
+            });
 
             // Run the async combat start wrapper
             (async () => {

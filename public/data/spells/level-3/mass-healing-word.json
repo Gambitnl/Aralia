@@ -137,7 +137,7 @@
         "dice": "2d4",
         "isTemporaryHp": false
       },
-      "description": "Up to six creatures of your choice that you can see within range regain Hit Points equal to 2d4 plus your spellcasting ability modifier.",
+      "description": "As a Bonus Action, choose up to six visible creatures within 60 feet; each regains 2d4 plus the caster spellcasting ability modifier Hit Points, with +1d4 healing per slot level above 3.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+1d4",

@@ -158,7 +158,7 @@
         "value": 0,
         "unit": "feet"
       },
-      "description": "One target within 15 feet must succeed on a Strength save or be affected by the spell's movement-control pull toward the caster.",
+      "description": "One creature within 15 feet makes a Strength save or is pulled up to 10 feet in a straight line toward the caster.",
       "conditionalEndings": [],
       "tags": [
         "forced-movement",
@@ -222,7 +222,7 @@
         "dice": "1d8",
         "type": "Lightning"
       },
-      "description": "Damage applies only if the target ends within 5 feet of you after the pull.",
+      "description": "After the failed Strength save pull, the target takes 1d8 Lightning damage only if it ends within 5 feet of the caster; damage scales to 2d8 at level 5, 3d8 at level 11, and 4d8 at level 17.",
       "scaling": {
         "type": "character_level",
         "customFormula": "Damage increases to 2d8 at 5th level, 3d8 at 11th, 4d8 at 17th.",

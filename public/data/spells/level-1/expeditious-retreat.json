@@ -134,7 +134,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "This spell allows you to move at an incredible pace. When you cast this spell, and then as a Bonus Action on each of your turns until the spell ends, you can take the Dash action.",
+      "description": "For up to 10 minutes with concentration, the caster can take the Dash action as a Bonus Action when the spell is cast and again as a Bonus Action on each later turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

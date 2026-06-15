@@ -233,7 +233,7 @@
         "direction": "away_from_caster",
         "maxDistance": ""
       },
-      "description": "The caster can move across difficult terrain made of earth or stone without spending extra movement; the runtime still needs a first-class ignore-terrain-cost field.",
+      "description": "You can move across difficult terrain made of earth or stone without spending extra movement, and you can move through solid earth or stone as if it were air without destabilizing it, but you cannot end your movement there.",
       "conditionalEndings": []
     },
     {

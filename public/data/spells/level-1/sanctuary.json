@@ -134,7 +134,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Attacker must succeed on a Wisdom save or choose a new target/lose the attack or spell. Area effects bypass this ward.",
+      "description": "Ward one creature within 30 feet for 1 minute without concentration; attackers targeting the warded creature with an attack roll or damaging spell must pass a Wisdom save or choose a new target or lose the attack or spell, and area effects bypass the ward.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -225,7 +225,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "When an attacker targets the warded creature, they must make a Wisdom saving throw. On a failed save, they must choose a new target or lose their attack.",
+      "description": "When an attacker targets the warded creature with an attack roll or damaging spell, the attacker makes a Wisdom save; on a failed save it must choose a new target or lose the attack or spell.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -314,7 +314,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "The spell ends if the warded creature makes an attack roll, casts a spell, or deals damage.",
+      "description": "The ward ends early if the warded creature makes an attack roll, casts a spell, or deals damage.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

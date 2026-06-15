@@ -1,7 +1,7 @@
 # Naval UI Runbook
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-15
 
 Use this file for repeatable project checks, safe handoff operations, and recovery steps.
 

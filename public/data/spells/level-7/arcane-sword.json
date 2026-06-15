@@ -206,7 +206,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Until the spell ends, the caster can use a bonus action each turn to repeat the sword's melee spell attack against the same target or a different one.",
+      "description": "On later turns before the spell ends, the caster can use a Bonus Action to repeat the sword's melee spell attack against a target within 5 feet of it. On a hit, the target takes 3d10 Force damage.",
       "conditionalEndings": []
     },
     {

@@ -133,7 +133,7 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "description": "Each affected creature gains 5 Temporary Hit Points for the duration.",
+      "description": "Choose up to five creatures within 60 feet that can hear the 1-minute speech; each gains 5 Temporary Hit Points for up to 1 hour, +5 Temporary Hit Points per slot level above 3, and the spell ends for a creature when those Temporary Hit Points are lost.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+5 Temporary Hit Points per slot level above 3rd",
@@ -203,7 +203,7 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "description": "Each affected creature has Advantage on Wisdom saving throws while the spell remains active for that creature.",
+      "description": "While a creature keeps the Temporary Hit Points from Motivational Speech, it has Advantage on Wisdom saving throws for up to 1 hour.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -275,7 +275,7 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "description": "After an affected creature is hit by an attack, it has Advantage on the next attack roll it makes.",
+      "description": "After a creature affected by Motivational Speech is hit by an attack, it has Advantage on the next attack roll it makes while the spell remains active for that creature.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

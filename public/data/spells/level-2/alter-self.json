@@ -133,7 +133,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Aquatic Adaptation lets the caster breathe underwater and gives a Swim Speed equal to their normal Speed for the duration.",
+      "description": "Aquatic Adaptation lets you breathe underwater and grants a Swim Speed equal to your Speed for the duration.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -222,7 +222,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Change Appearance reshapes the caster's look while keeping the same basic body layout and game statistics; physical inspection can reveal the disguise.",
+      "description": "Change Appearance alters your outward look and voice while keeping the same basic body shape and game statistics; physical inspection can reveal the disguise.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -311,7 +311,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Natural Weapons grows claws, fangs, horns, or hooves that make Unarmed Strikes deal 1d6 of the chosen physical damage type using the spellcasting ability.",
+      "description": "Natural Weapons grow claws, fangs, horns, or hooves that make your Unarmed Strikes deal 1d6 of the chosen physical damage type using your spellcasting ability for attack and damage rolls.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

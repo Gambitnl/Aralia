@@ -142,7 +142,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The target must succeed on a Constitution save or take 11d8 Necrotic damage.",
+      "description": "A creature you touch makes a Constitution save; on a failure, it takes 11d8 Necrotic damage and gains the Poisoned condition from the magical contagion.",
       "conditionalEndings": []
     },
     {
@@ -218,7 +218,7 @@
           }
         }
       },
-      "description": "On a failed Constitution save, the target has the Poisoned condition. The canonical three-success/three-failure progression and save-to-resist condition removal are still prose-only.",
+      "description": "On a failed Constitution save, the target is Poisoned and repeats the save at the end of each turn until it reaches three successes or three failures. Three successes end the spell on that target; three failures make the Poisoned condition last for 7 days, and attempts to end that Poisoned condition require another Constitution save.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -277,7 +277,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "When the spell is cast, choose one ability. While Poisoned by this spell, the target has Disadvantage on saving throws made with the chosen ability.",
+      "description": "Choose one ability when you cast Contagion; while Poisoned by this spell, the target has Disadvantage on saving throws made with that chosen ability.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

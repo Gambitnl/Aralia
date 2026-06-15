@@ -150,7 +150,7 @@
         "bonusPerLevel": "+5 hp per target",
         "customFormula": ""
       },
-      "description": "Each target's maximum and current hit points increase by 5 for the duration.",
+      "description": "Choose up to three creatures within 30 feet for 8 hours; each target increases current and maximum Hit Points by 5, plus 5 more Hit Points per slot level above 2.",
       "baseACFormula": "",
       "acMinimum": 0,
       "damageType": [],

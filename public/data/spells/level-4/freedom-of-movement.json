@@ -138,7 +138,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Protects a touched willing creature from difficult-terrain movement loss, magical speed reduction, magical Paralyzed/Restrained effects, grants a swim speed equal to Speed, and allows 5-foot automatic escape from nonmagical restraints.",
+      "description": "Touch one willing creature for 1 hour: the target ignores Difficult Terrain, cannot have Speed reduced by spells or magical effects, cannot be made Paralyzed or Restrained by magic, gains a Swim Speed equal to its Speed, and can spend 5 feet of movement to automatically escape nonmagical restraints such as manacles or mundane grapples.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+1 target per slot level above 4th",

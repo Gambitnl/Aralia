@@ -137,7 +137,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Up to ten chosen creatures can move across liquid surfaces as harmless solid ground for 1 hour, with a bonus-action transition between surface and liquid except when falling in.",
+      "description": "Choose up to ten creatures within 30 feet for 1 hour. Targets can move across liquid surfaces as harmless solid ground and can use a Bonus Action to pass between a liquid's surface and the liquid itself, while falling into the liquid bypasses that Bonus Action requirement.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

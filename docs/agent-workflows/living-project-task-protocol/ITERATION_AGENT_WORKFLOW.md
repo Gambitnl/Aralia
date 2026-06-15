@@ -1,7 +1,7 @@
 # Iteration Agent Workflow
 
 Status: active
-Last updated: 2026-06-12
+Last updated: 2026-06-15
 
 This is the shared workflow for every agent that performs an iteration pass on a
 living project. Project-specific context belongs in
@@ -10,7 +10,8 @@ whole workflow into every project handoff file.
 
 ## Start Of Iteration
 
-1. Read the project-specific `COLD_START_AGENT_PROMPT.md` first.
+1. Read the project-specific `COLD_START_AGENT_PROMPT.md` first. This is the
+   handoff index that tells you which project files own the pass.
 2. Identify yourself before selecting work. Record:
    - agent/model name if available
    - runtime surface: CLI agent, application agent, browser/app-embedded agent,
@@ -22,22 +23,33 @@ whole workflow into every project handoff file.
    If the surface cannot be determined safely, write `runtime surface:
    unknown` and record the uncertainty in the final report. Do not invent a
    specific runtime identity.
-3. Read this shared workflow and
+3. Before deeper project reading or task selection, write pass-start telemetry
+   into the project dashboard schema fields in `NORTH_STAR.md` or `TRACKER.md`
+   frontmatter when those files are available:
+   - `active_agent`: your agent/model name, or the safest available runtime
+     identity
+   - `agent_pass_status`: `in_progress`
+   - `agent_pass_started_at`: local timestamp for this pass start
+   - `agent_pass_ended_at`: empty while the pass is active
+   If the files cannot be edited yet, continue only far enough to identify the
+   blocker, then report the missing pass-start update in the final response or
+   handoff.
+4. Read this shared workflow and
    `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md`.
    Treat active workflow gaps as process-health warnings before choosing work.
-4. Follow the handoff's project paths to read `NORTH_STAR.md`, `TRACKER.md`, and
+5. Follow the handoff's project paths to read `NORTH_STAR.md`, `TRACKER.md`, and
    `GAPS.md`.
-5. Read any optional supporting files named by the handoff or tracker:
+6. Read any optional supporting files named by the handoff or tracker:
    `DECISIONS.md`, `AUDIT_OR_PROOF.md`, `RUNBOOK.md`, and task docs under
    `tasks/`.
-6. Read `docs/projects/PROJECT_CARD_SCHEMA.md` so dashboard-facing fields are
+7. Read `docs/projects/PROJECT_CARD_SCHEMA.md` so dashboard-facing fields are
    updated from the documented schema instead of guessed from prose.
-7. Read the `required_docs` and `optional_docs` lists from the project schema.
+8. Read the `required_docs` and `optional_docs` lists from the project schema.
    Account for every required doc in the final report, even when a supporting
    doc was not changed because it was not relevant this iteration.
    If `schema_version` frontmatter is missing, either add the frontmatter during
    doc-refresh work or record schema migration as a project gap.
-8. Treat `NORTH_STAR.md` as the durable scope and intent file. Treat
+9. Treat `NORTH_STAR.md` as the durable scope and intent file. Treat
    `COLD_START_AGENT_PROMPT.md` as the current handoff packet.
 
 ## Choose The Work
@@ -196,6 +208,11 @@ Before ending the iteration, update or explicitly report on:
    `1 open gap`, or `<N> open gaps` before any explanatory details. Do not
    replace the count with prose such as "all gaps resolved" or "open gaps
    remain"; those phrases can follow the parseable count after a semicolon.
+   Also update pass telemetry: keep `active_agent` and
+   `agent_pass_started_at`, set `agent_pass_status` to the true closeout state
+   (`finished`, `blocked`, `waiting`, `review_required`, `idle`, or another
+   explicit local status), and set `agent_pass_ended_at` to the local closeout
+   timestamp.
 2. `TRACKER.md`: task status, owner/actor, last updated date, blockers, next
    action, evidence or next proof.
 3. `GAPS.md`: opened, closed, imported, routed, or reclassified gaps. When this
@@ -276,7 +293,8 @@ End with a concise report covering:
 6. expansion opportunities found, routed, or explicitly not found
 7. gaps recorded
 8. workflow gaps read or updated
-9. dashboard schema fields updated
+9. dashboard schema fields updated, including active agent, pass status, start
+   time, and end time
 10. required docs accounted for
 11. optional docs touched, skipped, or not present
 12. documentation compaction performed or not needed

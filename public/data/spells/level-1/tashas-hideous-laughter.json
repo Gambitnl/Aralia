@@ -136,7 +136,7 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "description": "Target is incapacitated on a failed save; repeats Wisdom saves at end of turns and after taking damage (with Advantage if damage triggered) to end the effect.",
+      "description": "One visible creature within 30 feet that fails the Wisdom save gains Incapacitated for up to 1 minute with concentration, repeats the Wisdom save at the end of each turn and whenever it takes damage, gains Advantage on damage-triggered repeat saves, and higher-level slots add one target per slot level above 1.",
       "statusCondition": {
         "name": "Incapacitated",
         "duration": {
@@ -216,7 +216,7 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "description": "Target is prone on the same failed save and cannot end the Prone condition on itself while the spell lasts.",
+      "description": "On a failed Wisdom save, the target falls Prone and cannot end the Prone condition on itself while the spell lasts.",
       "statusCondition": {
         "name": "Prone",
         "duration": {

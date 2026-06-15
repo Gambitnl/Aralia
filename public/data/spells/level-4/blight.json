@@ -153,7 +153,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 8d8 Necrotic damage on a failed Constitution save, or half as much on success; slot scaling adds +1d8.",
+      "description": "One visible creature or plant object within 30 feet makes a Constitution save, taking 8d8 Necrotic damage on a failure or half as much on a success; Plant creatures automatically fail, nonmagical plants that are not creatures wither and die, and each slot level above 4 adds +1d8 damage.",
       "conditionalEndings": []
     },
     {

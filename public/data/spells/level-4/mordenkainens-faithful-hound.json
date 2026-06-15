@@ -144,7 +144,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "At the start of each of the caster's turns, the hound attempts to bite one enemy within 5 feet of it; that enemy takes no damage on a successful Dexterity save.",
+      "description": "At the start of each of the caster's turns, the hound attempts to bite one enemy within 5 feet of it; that enemy makes a Dexterity save, taking 4d8 Force damage on a failed save or no damage on a success, and the spell ends early if the caster and hound are more than 300 feet apart.",
       "conditionalEndings": [
         {
           "trigger": "beyond_max_distance",

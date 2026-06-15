@@ -135,7 +135,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Choose a damage type. When the creature takes that damage, reduce it by 1d4 (once per turn).",
+      "description": "Touch one creature and choose Acid, Bludgeoning, Cold, Fire, Lightning, Necrotic, Piercing, Poison, Radiant, Slashing, or Thunder for up to 1 minute with concentration.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -200,7 +200,7 @@
         "type": "minutes",
         "value": 1
       },
-      "description": "The target chooses one eligible damage type; once per turn before the spell ends, it reduces damage taken of the chosen type by 1d4.",
+      "description": "For up to 1 minute with concentration, the touched target reduces one damage instance of the chosen type by 1d4 once per turn.",
       "damageType": [
         "Acid",
         "Bludgeoning",

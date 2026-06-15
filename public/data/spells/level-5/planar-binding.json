@@ -146,7 +146,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "With this spell, you attempt to bind a Celestial, an Elemental, a Fey, or a Fiend to your service. The creature must be within range for the entire casting of the spell. (Typically, the creature is first summoned into the center of an inverted *Magic Circle* in order to keep it trapped while this spell is cast.) At the completion of the casting, the target must make a Charisma saving throw. On a failed save, it is bound to serve you for the duration. If the creature was summoned or created by another spell, that spell's duration is extended to match the duration of this spell. A bound creature must follow your instructions to the best of its ability. You might command the creature to accompany you on an adventure, to guard a location, or to deliver a message. The creature obeys the letter of your instructions, but if the creature is hostile to you, it strives to twist your words to achieve its own objectives. If the creature carries out your instructions completely before the spell ends, it travels to you to report this fact if you are on the same plane of existence. If you are on a different plane of existence, it returns to the place where you bound it and remains there until the spell ends.",
+      "description": "Bind one Celestial, Elemental, Fey, or Fiend that stays within 60 feet for the full 1-hour casting and fails the Charisma save. The bound creature serves for 24 hours, a summoned or created target has its source spell duration extended to match, hostile bound creatures obey the letter of instructions while trying to twist them, completed instructions cause same-plane targets to report back or different-plane targets to wait at the binding site, and higher slots extend the duration to 10 days, 30 days, 180 days, or a year and a day.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -253,7 +253,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A failed Charisma save binds a Celestial, Elemental, Fey, or Fiend to serve the caster for the base 24-hour duration.",
+      "description": "On a failed Charisma save, the Celestial, Elemental, Fey, or Fiend gains the Bound condition and serves the caster for the 24-hour base duration; higher slots extend Bound to 10 days at slot 6, 30 days at slot 7, 180 days at slot 8, or a year and a day at slot 9.",
       "conditionalEndings": []
     }
   ],

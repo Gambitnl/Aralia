@@ -583,11 +583,30 @@ export const devHubApiManager = () => ({
 
     const gapSignalFromGaps = (gapsContent: string, gapsFileExists: boolean) => {
       // Keep the row compact while still summarizing the live project gap file.
+      // Prefer the YAML gap registry header because it lets the dashboard read
+      // rows with project-prefixed IDs without guessing from freeform markdown.
       if (!gapsFileExists) return 'GAPS.md missing';
-      const gapRows = gapsContent.split(/\r?\n/).filter((line) => /^\|\s*G\d+/i.test(line));
-      const openRows = gapRows.filter((line) => /\b(open|active|pending|blocked)\b/i.test(stripMarkdownInline(line)));
-      if (openRows.length) return String(openRows.length) + ' open gap' + (openRows.length === 1 ? '' : 's');
-      if (gapRows.length) return String(gapRows.length) + ' tracked gap' + (gapRows.length === 1 ? '' : 's');
+      const gapSchema = markdownFrontmatterFields(gapsContent);
+      const openGapCount = Number(projectCardSchemaField(gapSchema, 'opengapcount'));
+      const gapCount = Number(projectCardSchemaField(gapSchema, 'gapcount'));
+      if (Number.isFinite(openGapCount) && Number.isFinite(gapCount)) {
+        return String(openGapCount) + ' open / ' + String(gapCount) + ' total project gap' + (gapCount === 1 ? '' : 's');
+      }
+      if (Number.isFinite(openGapCount)) return String(openGapCount) + ' open project gap' + (openGapCount === 1 ? '' : 's');
+      if (Number.isFinite(gapCount)) return String(gapCount) + ' tracked project gap' + (gapCount === 1 ? '' : 's');
+      // Some older gap files use project-prefixed IDs such as OLL-G1,
+      // WSS-005, or CMA-G19 instead of plain G1. Treat any markdown table row
+      // after the header as a countable gap so the UI does not under-report
+      // compact registries while they are being migrated.
+      const gapRows = markdownSectionContent(gapsContent, 'Gap Log').split(/\r?\n/).filter((line) => {
+        if (!line.startsWith('|')) return false;
+        const cells = line.split('|').slice(1, -1).map((cell) => stripMarkdownInline(cell).trim());
+        if (cells.length < 4) return false;
+        if (/^gap id$/i.test(cells[0]) || /^id$/i.test(cells[0]) || /^-+$/.test(cells[0].replace(/\s/g, ''))) return false;
+        return Boolean(cells[0]);
+      });
+      const openRows = gapRows.filter((line) => /\b(open|active|pending|blocked|not_started|in_progress|waiting|needs_validation|untriaged|routed|review-required|design_decision_deferred)\b/i.test(stripMarkdownInline(line)));
+      if (gapRows.length) return String(openRows.length) + ' open / ' + String(gapRows.length) + ' total project gap' + (gapRows.length === 1 ? '' : 's');
       return 'GAPS.md present';
     };
 
@@ -721,7 +740,7 @@ export const devHubApiManager = () => ({
         lastUpdated: projectCardSchemaField(dashboardSchema, 'lastupdated', 'lastUpdated') || inferredLastUpdated || '',
         confidence: projectCardSchemaField(dashboardSchema, 'confidence') || trackerFallback.confidence || 'unknown',
         evidence: projectCardSchemaField(dashboardSchema, 'evidence') || trackerFallback.evidence || 'docs/projects/' + slug,
-        gapSignal: projectCardSchemaField(dashboardSchema, 'gapsignal', 'gapSignal') || gapSignalFromGaps(gapsContent, Boolean(docs.gaps?.exists)) || trackerFallback.gapSignal || 'See project gap file',
+        gapSignal: gapSignalFromGaps(gapsContent, Boolean(docs.gaps?.exists)) || projectCardSchemaField(dashboardSchema, 'gapsignal', 'gapSignal') || trackerFallback.gapSignal || 'See project gap file',
         protocol: projectCardSchemaField(dashboardSchema, 'protocol') || trackerFallback.protocol || (docsComplete ? 'living project doc set' : 'incomplete project doc set'),
         nextStep: projectCardSchemaField(dashboardSchema, 'nextstep', 'nextStep') || trackerNextStep || resumePath || purpose || trackerFallback.nextStep || 'Add next action to TRACKER.md',
         iteration,
@@ -732,6 +751,10 @@ export const devHubApiManager = () => ({
         lastProof: projectCardSchemaField(dashboardSchema, 'lastproof', 'lastProof'),
         workflowGapsReviewed: projectCardSchemaField(dashboardSchema, 'workflowgapsreviewed', 'workflowGapsReviewed'),
         agentComments: projectCardSchemaField(dashboardSchema, 'agentcomments', 'agentComments'),
+        activeAgent: projectCardSchemaField(dashboardSchema, 'activeagent', 'activeAgent'),
+        agentPassStatus: projectCardSchemaField(dashboardSchema, 'agentpassstatus', 'agentPassStatus'),
+        agentPassStartedAt: projectCardSchemaField(dashboardSchema, 'agentpassstartedat', 'agentPassStartedAt'),
+        agentPassEndedAt: projectCardSchemaField(dashboardSchema, 'agentpassendedat', 'agentPassEndedAt'),
         requiredDocs: declaredRequiredDocs.join(', '),
         optionalDocs: declaredOptionalDocs.join(', '),
         compactionStatus: projectCardSchemaField(dashboardSchema, 'compactionstatus', 'compactionStatus'),

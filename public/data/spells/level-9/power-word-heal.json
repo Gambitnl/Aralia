@@ -138,7 +138,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The target regains all of its Hit Points.",
+      "description": "One visible creature within 60 feet regains all Hit Points, ends Charmed, Frightened, Paralyzed, Poisoned, and Stunned if present, and if Prone can use its Reaction to stand up.",
       "healing": {
         "dice": "all_hit_points"
       },

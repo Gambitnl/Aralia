@@ -161,7 +161,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Restrained unless the target succeeds on a Strength save for 1 minute; repeat Strength save at turn end can end the condition.",
+      "description": "A Large or smaller creature in the 5-foot-radius water Sphere within 90 feet can choose to fail the Strength save; on a failed save it is Restrained and engulfed for up to 1 minute with concentration, moves with the sphere, repeats the Strength save at the end of each turn to escape, and is knocked Prone where the sphere falls when the spell ends. Huge or larger creatures automatically succeed.",
       "conditionalEndings": []
     }
   ],

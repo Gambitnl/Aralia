@@ -150,7 +150,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 4d6 Slashing damage on a failed Dexterity save, or half as much on success.",
+      "description": "At the start of each caster turn, enemies within 10 feet of any tree in the 60-foot Cube make a Dexterity save, taking 4d6 Slashing damage on a failed save or half as much on a success.",
       "conditionalEndings": []
     },
     {
@@ -223,7 +223,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Restrained for 1 minute on the turn-end Strength-save effect; the target can use the modeled Athletics escape check to break free.",
+      "description": "A creature that fails the turn-end Strength save against the tree roots is Restrained for up to 1 minute and can use an action to make the Athletics escape check to break free.",
       "conditionalEndings": []
     },
     {
@@ -291,7 +291,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Prone unless the target succeeds on a Strength save for 1 minute.",
+      "description": "As a Bonus Action, the caster launches a loose rock at a visible creature in the 60-foot Cube; on the ranged spell attack hit, the target takes 3d8 Bludgeoning damage and then makes a Strength save or falls Prone.",
       "conditionalEndings": []
     }
   ],

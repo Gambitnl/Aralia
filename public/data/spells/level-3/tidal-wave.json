@@ -151,7 +151,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 4d8 Bludgeoning damage on a failed Dexterity save, or half as much on success; slot scaling adds +1d8.",
+      "description": "Each creature in the wave area up to 30 feet long, 10 feet wide, and 10 feet tall within 120 feet makes a Dexterity save, taking 4d8 Bludgeoning damage on a failure or half as much on a success; failed saves also knock creatures Prone, and the water extinguishes unprotected flames in the area and within 30 feet before vanishing.",
       "conditionalEndings": []
     },
     {
@@ -219,7 +219,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Prone unless the target succeeds on a Dexterity save; the condition uses the special duration encoded on this effect.",
+      "description": "Each creature in the wave that fails the Dexterity save is knocked Prone; creatures that succeed on the save are not knocked Prone.",
       "conditionalEndings": []
     }
   ],

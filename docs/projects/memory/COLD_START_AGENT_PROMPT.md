@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Memory System
 slug: memory
-Status: partial
+status: partial
 last_updated: 2026-06-12
 iteration: 6
 source_agent: Helmholtz / gpt-5.4-mini high

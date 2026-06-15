@@ -142,7 +142,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Make a melee spell attack against each selected target; on a hit, the target takes 6d10 Force damage.",
+      "description": "Choose up to five visible creatures within 30 feet and make a melee spell attack against each; on a hit, that target takes 6d10 Force damage, and after all attacks the caster can teleport to an unoccupied visible space within 5 feet of one target hit or missed.",
       "conditionalEndings": []
     },
     {

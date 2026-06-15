@@ -150,7 +150,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A Huge or smaller creature that fails the Strength save is Restrained until the end of the caster's next turn.",
+      "description": "For up to 10 minutes with concentration, the caster can use a Magic action each turn to affect one Huge or smaller creature or object within 60 feet: failed Strength saves let the caster move and Restrain creatures until the end of the caster's next turn, unattended objects move automatically, worn or carried objects can be pulled free on a failed save, and simple objects can be finely manipulated.",
       "conditionalEndings": []
     }
   ],

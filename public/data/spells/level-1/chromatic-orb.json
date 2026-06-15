@@ -159,7 +159,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "On a ranged spell hit, one target takes 3d8 damage of the chosen elemental type; damage increases by 1d8 per slot level above 1st.",
+      "description": "Choose Acid, Cold, Fire, Lightning, Poison, or Thunder, then make a ranged spell attack against one target within 90 feet. On a hit, the target takes 3d8 damage of the chosen type; if two or more damage dice match, the orb can leap to a different target within 30 feet and repeat the attack and damage roll, with higher slots increasing both damage and maximum leaps.",
       "conditionalEndings": [],
       "tags": [
         "chosen-damage-type",

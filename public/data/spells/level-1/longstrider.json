@@ -151,7 +151,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You touch a creature. The target's speed increases by 10 feet until the spell ends.",
+      "description": "Touch one creature for 1 hour; the target gains +10 feet to Speed, and higher slots let the caster target one additional creature per slot level above 1.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

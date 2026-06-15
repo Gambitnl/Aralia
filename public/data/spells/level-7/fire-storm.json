@@ -233,7 +233,7 @@
         "type": "rounds",
         "value": 0
       },
-      "description": "Flammable objects in the area that are not worn or carried start burning.",
+      "description": "Flammable objects in the caster-arranged area of up to ten contiguous 10-foot Cubes ignite if they are not worn or carried.",
       "conditionalEndings": []
     },
     {

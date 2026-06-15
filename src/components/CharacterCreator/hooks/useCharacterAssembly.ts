@@ -1,10 +1,9 @@
-
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 22/05/2026, 22:26:21
+ * Last Sync: 14/06/2026, 20:43:21
  * Dependents: components/CharacterCreator/CharacterCreator.tsx
  * Imports: 7 files
  *
@@ -290,10 +289,7 @@ function validateAllSelectionsMade(state: CharacterCreationState): boolean {
 
   // Check race-specific selections that have their own step
   if (selectedRace.id === 'dragonborn' && !racialSelections['dragonborn']?.choiceId) return false;
-  if (selectedRace.id === 'elf' && (!racialSelections['elf']?.choiceId || !racialSelections['elf']?.spellAbility)) return false;
   if (selectedRace.id === 'gnome' && (!racialSelections['gnome']?.choiceId || !racialSelections['gnome']?.spellAbility)) return false;
-  if (selectedRace.id === 'goliath' && !racialSelections['goliath']?.choiceId) return false;
-  if (selectedRace.id === 'tiefling' && (!racialSelections['tiefling']?.choiceId || !racialSelections['tiefling']?.spellAbility)) return false;
   if (selectedRace.id === 'centaur' && !racialSelections['centaur']?.skillIds?.[0]) return false;
   if (selectedRace.id === 'changeling' && (!racialSelections['changeling']?.skillIds || racialSelections['changeling'].skillIds.length !== 2)) return false;
 

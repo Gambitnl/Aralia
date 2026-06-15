@@ -136,7 +136,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The dead creature is revived with all Hit Points.",
+      "description": "Touch a creature dead no longer than 200 years and not from old age; it is revived with all Hit Points, wounds closed, poison neutralized, magical contagions cured, curses present at death lifted, damaged or missing organs and limbs restored, and Undead form restored to non-Undead form.",
       "healing": {
         "dice": "all_hit_points"
       },

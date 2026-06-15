@@ -1,7 +1,7 @@
 {
   "codex": {
     "agent": "codex",
-    "at": 1781349911439,
+    "at": 1781480983459,
     "ok": true,
     "data": {
       "account": "cranenre@gmail.com (Plus)",
@@ -9,78 +9,44 @@
         {
           "window": "5h",
           "pctLeft": 0,
-          "resets": "15:11"
+          "resets": "02:09"
         },
         {
           "window": "Weekly",
-          "pctLeft": 48,
-          "resets": "02:39 on 18 Jun"
+          "pctLeft": 84,
+          "resets": "21:09 on 21 Jun"
         },
         {
           "window": "5h",
           "pctLeft": 100,
-          "resets": "18:25"
+          "resets": "06:49"
         },
         {
           "window": "Weekly",
           "pctLeft": 0,
-          "resets": "03:54 on 15 Jun"
+          "resets": "03:54"
         }
       ],
       "lines": [
-        "gpt-5.5 · gpt-5.5 default · F:\\Repos\\Aralia · Aralia · Context 100% left · Context 0% used",
-        "master · Context 100% left · Contxt 0% used q",
+        "gpt-5.5 · gpt-5.5 default · F:\\Repos\\Aralia · Aralia · Context 100% left · Context 0% used q q",
         "· 5h 0% left q",
-        "gpt-5.5 · gpt-5.5 default · F:\\Repos\\Aralia · Aralia · master · Context 100% left · Context 0% used · 5h 0% left",
-        "│ 5h limit: [░░░░░░░░░░░░░░░░░░░░] 0% left (resets 15:11) │",
-        "│ Weekly limit: [██████████░░░░░░░░░░] 48% left (resets 02:39 on 18 Jun) │",
-        "│ 5h limit: [████████████████████] 100% left (resets 18:25) │",
-        "│ Weekly limit: [░░░░░░░░░░░░░░░░░░░░] 0% left (resets 03:54 on 15 Jun) │"
+        "master · Context 100% left · Contxt 0% used · 5h 0% left q",
+        "│ 5h limit: [░░░░░░░░░░░░░░░░░░░░] 0% left (resets 02:09) │",
+        "│ Weekly limit: [█████████████████░░░] 84% left (resets 21:09 on 21 Jun) │",
+        "│ 5h limit: [████████████████████] 100% left (resets 06:49) │",
+        "│ Weekly limit: [░░░░░░░░░░░░░░░░░░░░] 0% left (resets 03:54) │ q",
+        "gpt-5.5 · gpt-5.5 default · F:\\Repos\\Aralia · Aralia · master · Context 100% left · Context 0% used · 5h 0% left q"
       ]
     }
   },
   "agy": {
     "agent": "agy",
-    "at": 1781287578416,
+    "at": 1781481018669,
     "ok": true,
     "data": {
-      "models": [
-        {
-          "model": "Gemini 3.5 Flash (Medium)",
-          "pct": 100
-        },
-        {
-          "model": "Gemini 3.5 Flash (High)",
-          "pct": 100
-        },
-        {
-          "model": "Gemini 3.5 Flash (Low)",
-          "pct": 100
-        },
-        {
-          "model": "Gemini 3.1 Pro (Low)",
-          "pct": 100
-        },
-        {
-          "model": "Gemini 3.1 Pro (High)",
-          "pct": 100
-        },
-        {
-          "model": "Claude Sonnet 4.6 (Thinking)",
-          "pct": 0
-        },
-        {
-          "model": "Claude Opus 4.6 (Thinking)",
-          "pct": 0
-        },
-        {
-          "model": "GPT-OSS 120B (Medium)",
-          "pct": 0
-        }
-      ],
+      "models": [],
       "lines": [
-        "███████████ ███████████ ███████████ ███████████ ███████████ 100%",
-        "░░░░░░░░░░░ ░░░░░░░░░░░ ░░░░░░░░░░░ ░░░░░░░░░░░ ░░░░░░░░░░░ 0%"
+        "[██████████████████████████████████████████████████] 100.00%"
       ]
     }
   },
@@ -113,14 +79,14 @@
   },
   "claude": {
     "agent": "claude",
-    "at": 1781352235026,
+    "at": 1781481000580,
     "ok": true,
     "data": {
-      "summary": "5h block 34.4M tok · ~$29 API-equiv · resets 04:00 PM",
-      "blockTokens": 34412948,
-      "resetAt": "2026-06-13T14:00:00.000Z",
+      "summary": "5h block 20.3M tok · ~$26 API-equiv · resets 04:00 AM",
+      "blockTokens": 20283392,
+      "resetAt": "2026-06-15T02:00:00.000Z",
       "lines": [
-        "5h block 34.4M tok · ~$29 API-equiv · resets 04:00 PM"
+        "5h block 20.3M tok · ~$26 API-equiv · resets 04:00 AM"
       ]
     }
   },

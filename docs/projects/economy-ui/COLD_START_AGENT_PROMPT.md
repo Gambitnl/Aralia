@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Economy UI
 slug: economy-ui
-Status: active
+status: active
 last_updated: 2026-06-10
 iteration: 6
 source_agent: Claude Opus 4.6 (Thinking) / Antigravity CLI

@@ -145,7 +145,7 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "description": "Overgrowth makes normal plants in a 100-foot-radius sphere thick and overgrown, causing movement through the area to cost 4 feet for every 1 foot moved.",
+      "description": "With the Overgrowth action casting, normal plants in a 100-foot-radius sphere centered on a point within 150 feet become thick terrain where movement costs 4 feet for every 1 foot moved, while chosen areas inside the sphere can be excluded.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -236,7 +236,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Enrichment improves plants in a half-mile radius for 365 days so they yield twice the normal amount of food when harvested.",
+      "description": "With the 8-hour Enrichment casting, plants in a half-mile radius centered on a point within 150 feet are enriched for 365 days, yield twice the normal food when harvested, and cannot benefit from more than one Plant Growth per year.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

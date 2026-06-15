@@ -93,6 +93,15 @@ Follow this system as the project architecture:
 7. Preserve durable intent, decisions, evidence, and next actions; keep raw
    process exhaust external, ignored, or summarized.
 
+For iteration work on an existing living project, the agent must record pass
+ownership before deeper project reading or task selection. After reading the
+project-specific `COLD_START_AGENT_PROMPT.md` enough to identify the project
+files and after identifying itself, update the dashboard schema fields in the
+project North Star or tracker: `active_agent`, `agent_pass_status:
+in_progress`, `agent_pass_started_at`, and an empty `agent_pass_ended_at`.
+At closeout, set `agent_pass_status` to the real end state and set
+`agent_pass_ended_at`.
+
 Preflight before creating files:
 1. Read the repo or workspace instructions that govern this task.
 2. Read user/project calibration if the workspace provides one.
@@ -420,6 +429,12 @@ updated date, next action, and evidence or next proof. Rows that are `done`
 should include completion evidence. This prevents old tracker state from
 looking current.
 
+Project dashboard pass statuses are separate from product/project statuses.
+Use `agent_pass_status` for the agent's current pass state, such as
+`not_started`, `in_progress`, `blocked`, `finished`, `waiting`,
+`review_required`, or `idle`. Use the project `status` field for the project's
+actual lifecycle state.
+
 An empty or `None` active-task field is not a stop signal for an `active`
 project. It means the next iteration agent must complete the scan phase, choose
 the next actionable project/global/workflow gap if one exists, and record that
@@ -519,6 +534,8 @@ Minimum closeout for every project iteration:
 
 1. Refresh NORTH_STAR.md with current state, resume path, scope changes,
    evidence, and anything that must not be lost.
+   Also update dashboard pass telemetry: keep the pass owner and start time,
+   set the final pass status, and write the pass end time.
 2. Refresh TRACKER.md with active task status, owner or actor, last updated
    date, blockers, next action, and evidence or next proof.
 3. Refresh GAPS.md with every durable gap discovered or closed during the

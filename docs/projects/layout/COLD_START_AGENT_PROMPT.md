@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Layout Project
 slug: layout
-Status: active
+status: active
 last_updated: 2026-06-12
 iteration: 3
 source_agent: Codex / gpt-5.4-mini high

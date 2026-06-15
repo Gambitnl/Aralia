@@ -1,7 +1,7 @@
 ﻿# RealmSmith Service Living Tracker
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-15
 
 ## Status Vocabulary
 
@@ -17,14 +17,15 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T2 | active | Confirm RealmSmith service contract and retry policy before next implementation change | Codex agent | 2026-06-05 | `src/services/RealmSmithTownGenerator.ts`, `src/services/RealmSmithAssetPainter.ts`, `src/services/README.md` | source-scan the contract surface and document the chosen retry/failure policy | docs agree on the contract and retry decision |
+| T2 | done | Confirm RealmSmith service contract and retry policy before next implementation change | Claude Code (Devin CLI) | 2026-06-15 | `src/services/RealmSmithTownGenerator.ts`, `src/services/RealmSmithAssetPainter.ts`, `src/hooks/useTownController.ts`, `src/types/realmsmith.ts` | Source scan completed; contract and retry policy documented in NORTH_STAR.md "Service Contract Documentation" section | Contract and retry policy now documented; G1 and G2 resolved in GAPS.md |
 
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|
-| G1 | active | support_needed_now | pending | `docs/projects/realmsmith-service/GAPS.md` | this pass | No explicit RealmSmith API error/retry contract | `src/services/RealmSmithTownGenerator.ts`, `src/services/RealmSmithAssetPainter.ts` | implementation stability and future refactors depend on contract clarity | define the caller contract and failure shape before the next implementation change | update `NORTH_STAR.md` and `GAPS.md` |
-| G2 | active | support_needed_now | pending | `docs/projects/realmsmith-service/GAPS.md` | this pass | world content generation pipeline assumptions not versioned | `src/types/realmsmith.ts`, `src/hooks/useTownController.ts`, `src/components/Town/TownCanvas.tsx` | hidden interface drift can desync generation and rendering | add contract notes before future generator/painter refactors | add a versioned contract summary |
+| G1 | resolved | support_needed_now | Claude Code (Devin CLI) | `docs/projects/realmsmith-service/GAPS.md` | T2 source scan | No explicit RealmSmith API error/retry contract | `src/services/RealmSmithTownGenerator.ts`, `src/services/RealmSmithAssetPainter.ts`, `src/hooks/useTownController.ts`, `src/components/Town/TownCanvas.tsx` | implementation stability and future refactors depend on contract clarity | Contract now documented in NORTH_STAR.md under "Service Contract Documentation" section | review documented contract before next implementation change |
+| G2 | resolved | support_needed_now | Claude Code (Devin CLI) | `docs/projects/realmsmith-service/GAPS.md` | T2 source scan | No documented retry/backoff strategy for generation or paint path | `src/services/RealmSmithTownGenerator.ts`, `src/hooks/useTownController.ts`, project-wide retry pattern scan | failures during generation/paint could become unbounded UX breakage | Retry policy now documented in NORTH_STAR.md: hard-fail with console logging, no retry, no fallback | add retry policy acceptance checks if implementation changes are planned |
+| G3 | active | adjacent_follow_up | pending | `docs/projects/realmsmith-service/GAPS.md` | code scan and map review | World/content generation assumptions are tightly coupled and not versioned | `src/types/realmsmith.ts`, `src/data/realmsmithBiomes.ts`, `src/components/Town/TownCanvas.tsx`, `src/services/RealmSmithAssetPainter.ts` | non-versioned coupling increases chance of silent breakage in content generation and interactions | add contract notes in implementation handoff before biome/painter changes | create next check and record expected payload shape |
 
 ## Update Rules
 

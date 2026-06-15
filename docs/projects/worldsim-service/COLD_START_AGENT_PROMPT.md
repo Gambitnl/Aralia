@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Worldsim Service
 slug: worldsim-service
-Status: active
+status: active
 last_updated: 2026-06-10
 iteration: 4
 source_agent: Not recorded

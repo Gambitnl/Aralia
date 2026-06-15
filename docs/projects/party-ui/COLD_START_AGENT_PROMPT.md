@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Party UI
 slug: party-ui
-Status: partial
+status: partial
 last_updated: 2026-06-12
 iteration: 6
 source_agent: Qoder

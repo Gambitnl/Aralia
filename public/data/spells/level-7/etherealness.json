@@ -117,7 +117,7 @@
         "direction": "safest_route",
         "maxDistance": "corresponding space on the Border Ethereal"
       },
-      "description": "The caster steps into the Border Ethereal where it overlaps with the current plane for the duration, and returns to the corresponding space on the original plane when the spell ends.",
+      "description": "Step into the Border Ethereal where it overlaps your current plane for up to 8 hours, then return to the corresponding space on the original plane when the spell ends; higher slots can include up to three willing creatures within 10 feet per slot level above 7.",
       "conditionalEndings": []
     },
     {
@@ -179,7 +179,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "If the caster returns in an occupied space, the caster is shunted to the nearest unoccupied space and takes Force damage equal to twice the number of feet moved.",
+      "description": "If you return from the Border Ethereal in an occupied space, you are shunted to the nearest unoccupied space and take Force damage equal to twice the number of feet moved.",
       "conditionalEndings": []
     },
     {
@@ -233,7 +233,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "While on the Border Ethereal, the caster has special movement, limited perception of the origin plane, ethereal-only interaction, and invalid-plane early ending rules.",
+      "description": "While on the Border Ethereal, you can move in any direction with each foot up or down costing 1 extra foot, perceive the origin plane in gray out to 60 feet, interact only with Ethereal Plane creatures, objects, and effects unless another feature allows otherwise, return to the corresponding origin-plane space when the spell ends, and the spell ends instantly if cast on the Ethereal Plane or a plane that does not border it.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

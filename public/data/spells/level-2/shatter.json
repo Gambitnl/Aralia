@@ -193,7 +193,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 3d8 thunder damage on a failed Constitution save, or half as much on success; constructs have disadvantage and slot scaling adds +1d8.",
+      "description": "Each creature in the 10-foot-radius Sphere centered on a point within 60 feet makes a Constitution save, taking 3d8 Thunder damage on a failure or half as much on a success; Constructs have Disadvantage on the save, nonmagical objects that are not worn or carried also take the damage, and each slot level above 2 adds +1d8 damage.",
       "conditionalEndings": []
     }
   ],

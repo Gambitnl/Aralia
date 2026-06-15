@@ -141,7 +141,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Creates magical Darkness in a 15-foot-radius Sphere from a point, or a 15-foot Emanation from an unattended object; Darkvision cannot see through it and nonmagical light cannot illuminate it.",
+    "description": "Magical Darkness fills a 15-foot-radius Sphere from a point within 60 feet for up to 10 minutes with concentration, or fills a 15-foot Emanation from an unattended object. Darkvision cannot see through it, nonmagical light cannot illuminate it, opaque cover blocks an object-origin Darkness, and overlapping Bright Light or Dim Light from a spell of level 2 or lower is dispelled.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

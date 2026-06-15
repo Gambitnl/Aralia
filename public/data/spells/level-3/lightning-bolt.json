@@ -150,7 +150,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "Deals 8d6 Lightning damage on a failed Dexterity save, or half as much on success; slot scaling adds +1d6.",
+      "description": "Each creature in a 100-foot-long, 5-foot-wide Line from the caster makes a Dexterity save, taking 8d6 Lightning damage on a failure or half as much on a success; each slot level above 3 adds +1d6 damage.",
       "conditionalEndings": []
     }
   ],

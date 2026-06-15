@@ -4,6 +4,7 @@
  */
 
 import type { Alias, Disguise, Secret } from '../../types/identity';
+import type { LeverageGoal } from '../../systems/intrigue/LeverageSystem';
 
 /**
  * Payload for creating a new alias identity.
@@ -24,4 +25,13 @@ export interface EquipDisguisePayload {
  */
 export interface LearnSecretPayload {
   secret: Secret;
+}
+
+/**
+ * Payload for applying leverage (blackmail, favor, etc.) using a secret.
+ */
+export interface ApplyLeveragePayload {
+  secretId: string;
+  targetId: string;
+  goal: LeverageGoal;
 }

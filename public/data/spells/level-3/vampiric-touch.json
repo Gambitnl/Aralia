@@ -141,7 +141,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "Deals 3d6 Necrotic damage when the hit-based melee spell attack resolves; each slot level above 3rd adds +1d6.",
+      "description": "One creature within reach takes 3d6 Necrotic damage on a melee spell hit, the caster regains Hit Points equal to half the Necrotic damage dealt, and each slot level above 3 adds +1d6 damage.",
       "conditionalEndings": []
     },
     {

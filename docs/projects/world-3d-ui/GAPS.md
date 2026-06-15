@@ -1,4 +1,105 @@
-﻿# World 3D UI Gap Registry
+---
+schema_version: 1
+gap_schema: project_gap_registry
+project: World 3D UI
+slug: world-3d-ui
+status: active
+status_note: "Preserved as merged_reference to avoid flattening existing gap provenance. Iteration 4 monitor pass: scoped World3D suite green 25/25; seeded Gap Log row G1 closed after bounded sweep; no open project gaps."
+registry_mode: merged_reference
+last_updated: "2026-06-10"
+gap_count: 0
+open_gap_count: 0
+resolved_gap_count: 0
+routed_gap_count: 0
+imported_gap_count: 0
+decision_required_count: 0
+visual_proof_required_count: 0
+highest_severity: none
+proof_freshness: recorded
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+north_star: docs/projects/world-3d-ui/NORTH_STAR.md
+tracker: docs/projects/world-3d-ui/TRACKER.md
+global_gaps: docs/projects/GLOBAL_GAPS.md
+allowed_statuses:
+  - open
+  - active
+  - pending
+  - blocked
+  - not_started
+  - in_progress
+  - waiting
+  - needs_validation
+  - untriaged
+  - routed
+  - review-required
+  - design_decision_deferred
+  - merged-reference
+  - resolved
+  - closed
+  - done
+  - complete
+  - out_of_scope
+allowed_classifications:
+  - in_scope_now
+  - support_needed_now
+  - adjacent_follow_up
+  - out_of_scope
+  - blocked_human_decision
+  - blocked_external_state
+  - uncertainty
+  - architecture
+  - workflow
+  - execution-path
+  - typing-safety
+  - mechanics
+  - ui
+  - integration
+  - data-model
+  - test_coverage
+  - schema_normalization
+  - ownership
+  - serialization
+  - coverage
+  - globalize
+  - routed
+  - design_decision_deferred
+allowed_severities:
+  - none
+  - low
+  - medium
+  - high
+  - critical
+supported_optional_row_fields:
+  - owner_confidence
+  - source_project
+  - imported_from
+  - global_gap_id
+  - linked_gap_id
+  - routed_to
+  - decision_required
+  - decision_reference
+  - review_required
+  - visual_proof_required
+  - proof_freshness
+  - proof_date
+  - uncertainty
+  - notes
+supported_optional_sections:
+  - Current Readout
+  - Current State
+  - Purpose
+  - Summary
+  - Iteration Notes
+  - Classification Notes
+  - Global Routing
+  - Global Gap Imports
+  - Resolved Gap Log
+  - Required Review Brief
+  - Decision Visualizations
+  - Open / Uncertain Notes
+  - Appendix
+---
+# World 3D UI Gap Registry
 
 Status: active
 Last updated: 2026-06-10 (iteration 4 monitor pass: scoped World3D suite green 25/25; seeded Gap Log row G1 closed after bounded sweep â€” no open project gaps)
@@ -26,6 +127,11 @@ Use this file for durable unresolved findings that are too important or too larg
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
 
+## Schema Fit Notes
+
+| Issue | Existing content shape | Why schema does not fit | Proposed schema change |
+|---|---|---|---|
+| Non-canonical registry mode: `merged_reference` | Existing gap rows or prose carry compact, routed, merged-reference, or decision-history context. | Forcing the canonical row shape now could invent missing ownership/proof metadata or flatten provenance. | Preserve this section until a row-by-row migration can map each current field losslessly. |
 ## Classification Reference
 
 | Classification | Use when |

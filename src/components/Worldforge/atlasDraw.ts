@@ -62,6 +62,8 @@ export interface AtlasView {
   showZones?: boolean;
   /** State regiments (states[].military — Military.generate port). Default false. */
   showMilitary?: boolean;
+  /** Voronoi cell mesh — thin edges on every cell (Azgaar "Cells" layer). Default false. */
+  showCells?: boolean;
 }
 
 export interface CacheView {
@@ -73,6 +75,7 @@ export interface CacheView {
   showMarkers?: boolean;
   showZones?: boolean;
   showMilitary?: boolean;
+  showCells?: boolean;
 }
 
 interface BBox {
@@ -109,7 +112,8 @@ export function isCacheValid(
   nextShowMarkers?: boolean,
   nextShowZones?: boolean,
   nextShowMilitary?: boolean,
-  nextOverlayMode?: AtlasOverlayMode
+  nextOverlayMode?: AtlasOverlayMode,
+  nextShowCells?: boolean
 ): boolean {
   if (!cacheView) return false;
   return (
@@ -120,7 +124,8 @@ export function isCacheValid(
     cacheView.showMarkers === nextShowMarkers &&
     cacheView.showZones === nextShowZones &&
     cacheView.showMilitary === nextShowMilitary &&
-    cacheView.overlayMode === nextOverlayMode
+    cacheView.overlayMode === nextOverlayMode &&
+    cacheView.showCells === nextShowCells
   );
 }
 
@@ -531,6 +536,33 @@ export function drawAtlas(
     }
     ctx.closePath();
     ctx.fill();
+  }
+
+  // --------------------------------------------------------------------------
+  // Layer 2.5: Voronoi Cell Mesh (Azgaar "Cells" layer)
+  // --------------------------------------------------------------------------
+  // Thin edge on every cell so individual Voronoi cells are visible — the
+  // mesh the whole atlas is built from. Drawn under coastlines/borders/labels
+  // (as upstream FMG layers the Cells under map ink). One batched path; shared
+  // edges double-stroke at low alpha, which is visually indistinguishable and
+  // far cheaper than de-duplicating ~6k cells' edges.
+  if (view.showCells) {
+    ctx.beginPath();
+    for (let i = 0; i < cellsN; i++) {
+      const vIds = pack.cells.v[i];
+      if (!vIds || vIds.length < 3) continue;
+      const firstVert = verts[vIds[0]];
+      if (!firstVert) continue;
+      ctx.moveTo(tx(firstVert[0]), ty(firstVert[1]));
+      for (let k = 1; k < vIds.length; k++) {
+        const p = verts[vIds[k]];
+        if (p) ctx.lineTo(tx(p[0]), ty(p[1]));
+      }
+      ctx.closePath();
+    }
+    ctx.lineWidth = 0.5;
+    ctx.strokeStyle = "rgba(30,38,56,0.4)";
+    ctx.stroke();
   }
 
   // --------------------------------------------------------------------------

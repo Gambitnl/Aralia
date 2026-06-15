@@ -193,7 +193,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Summons a floating disk at a point within 30 feet; no slot-scaling changes are modeled for this summoning effect.",
+      "description": "Summon one temporary 3-foot-diameter floating disk of force at a point within 30 feet. The disk hovers 3 feet above the ground, carries up to 500 pounds, follows the caster to remain within 20 feet, cannot cross 10-foot elevation changes or pits, and the spell ends if overloaded or more than 100 feet from the caster.",
       "conditionalEndings": [
         {
           "trigger": "carried_weight_exceeds_limit",

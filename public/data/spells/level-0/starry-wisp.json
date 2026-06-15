@@ -143,7 +143,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": "1d8 at 1, 2d8 at 5, 3d8 at 11, 4d8 at 17"
       },
-      "description": "On a ranged spell hit, one target takes 1d8 Radiant damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "description": "One creature or object within 60 feet takes 1d8 Radiant damage on a ranged spell hit; damage increases to 2d8 at level 5, 3d8 at level 11, and 4d8 at level 17.",
       "conditionalEndings": [],
       "tags": [
         "radiant-damage",
@@ -202,7 +202,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "sensory",
-      "description": "Target sheds dim light in a 10-foot radius and cannot benefit from invisibility until end of your next turn.",
+      "description": "On the same ranged spell hit, the target sheds Dim Light in a 10-foot radius and cannot benefit from the Invisible condition until the end of the caster's next turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

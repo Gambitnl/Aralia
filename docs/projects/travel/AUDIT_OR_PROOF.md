@@ -1,7 +1,7 @@
 # Travel Audit / Proof
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-15
 
 Use this file for durable proof summaries, scoped verification notes, and acceptance evidence. Do not paste raw logs unless a short excerpt is required for later agents to understand the result.
 
@@ -10,6 +10,7 @@ Use this file for durable proof summaries, scoped verification notes, and accept
 | Date | Check | Result | Evidence |
 |---|---|---|---|
 | 2026-06-10 | Required-doc surface initialized | pass | `docs/projects/travel/NORTH_STAR.md` declares this file in `required_docs`; schema migration created the file for audit-clean doc coverage. |
+| 2026-06-15 | Travel unit tests execution | pass | Ran `npx vitest run src/systems/travel/` (27 tests passed) to verify core calculations and navigation systems remain regression-free. |
 
 ## Standing Verification Notes
 

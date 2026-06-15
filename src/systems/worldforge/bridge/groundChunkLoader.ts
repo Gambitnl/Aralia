@@ -49,6 +49,7 @@ import { generateBusinessName } from "../../economy/NpcBusinessManager";
 import type { BusinessType, WorldBusiness } from "../../../types/business";
 import type { RichNPC } from "../../../types/world";
 import type { BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration } from "@/types/combat";
+import { generateGroundHostiles } from "./groundHostiles";
 
 /** A polyline in ground world-meters with a uniform width (meters). */
 interface GroundPolyline {
@@ -205,18 +206,18 @@ export function makeGroundWorld(
   const centerX = extentX / 2;
   const centerZ = extentZ / 2;
 
-  // Create a default hostile monster (Goblin) positioned 15 meters away from
-  // the center of the ground world. This matches the player's typical spawn point
-  // plus an offset, making it easily visible and walkable to trigger combat.
-  const hostiles: GroundHostile[] = [
-    {
-      id: "wf-hostile-goblin-default",
-      name: "Goblin",
-      xM: centerX + 15,
-      zM: centerZ + 15,
-      monsterId: "Goblin",
-    },
-  ];
+  // Derive hostile spawns from region markers/zones (HOSTILE-1).
+  // Pure, deterministic, seeded. Empty when the window has no hostile
+  // context — peaceful tiles spawn nothing (hard rule: no fallback hostiles).
+  const hostiles: GroundHostile[] = generateGroundHostiles(
+    region?.markers,
+    region?.zones,
+    seed,
+    local.bounds.x,
+    local.bounds.y,
+    local.bounds.width,
+    local.bounds.height,
+  );
 
   return {
     cols: wd.gridSize.cols,

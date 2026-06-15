@@ -239,7 +239,7 @@
         ],
         "aftermath": "While Frightened, the target must move at least 30 feet away from the glyph on each of its turns if able."
       },
-      "description": "Fear symbol failed save applies Frightened for 1 minute.",
+      "description": "Fear symbol: on a failed Wisdom save, the target gains the Frightened condition for 1 minute and must move at least 30 feet away from the glyph on each of its turns if able.",
       "conditionalEndings": []
     },
     {
@@ -305,7 +305,7 @@
         ],
         "aftermath": ""
       },
-      "description": "Pain symbol failed save applies Incapacitated for 1 minute.",
+      "description": "Pain symbol: on a failed Constitution save, the target gains the Incapacitated condition for 1 minute.",
       "conditionalEndings": []
     },
     {
@@ -371,7 +371,7 @@
         ],
         "aftermath": "A creature can also wake the target by using an action to shake it awake."
       },
-      "description": "Sleep symbol failed save applies Unconscious for 10 minutes.",
+      "description": "Sleep symbol: on a failed Wisdom save, the target gains the Unconscious condition for 10 minutes, ending early if it takes damage or another creature uses an action to shake it awake.",
       "conditionalEndings": []
     },
     {
@@ -437,7 +437,7 @@
         ],
         "aftermath": ""
       },
-      "description": "Stunning symbol failed save applies Stunned for 1 minute.",
+      "description": "Stunning symbol: on a failed Wisdom save, the target gains the Stunned condition for 1 minute.",
       "conditionalEndings": []
     },
     {

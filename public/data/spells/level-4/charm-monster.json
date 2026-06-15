@@ -156,7 +156,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Charmed for up to 60 minutes unless the target succeeds on the Wisdom save; configured save modifiers still apply.",
+      "description": "One visible creature within 30 feet makes a Wisdom save, with Advantage if the caster or the caster's allies are fighting it; on a failed save, it is Charmed for up to 1 hour and the condition ends early if the caster or allies damage it.",
       "conditionalEndings": [
         {
           "trigger": "caster_or_ally_damages_target",

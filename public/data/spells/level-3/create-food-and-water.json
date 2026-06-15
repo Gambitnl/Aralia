@@ -135,7 +135,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You create 45 pounds of food and 30 gallons of fresh water on the ground or in containers within range, enough to sustain up to fifteen humanoids or five steeds for 24 hours. The food is bland but nourishing, and spoils if uneaten after 24 hours. The water is clean and doesn't go bad.",
+      "description": "Create 45 pounds of bland nourishing food and 30 gallons of clean fresh water on the ground or in containers within 30 feet; the supplies sustain up to fifteen Humanoids or five steeds for 24 hours, the food spoils if uneaten after 24 hours, and the water does not spoil.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

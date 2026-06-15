@@ -149,7 +149,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A creature that starts its turn in the maelstrom and fails a Strength save takes 6d6 Bludgeoning damage.",
+      "description": "A creature that starts its turn in the 30-foot-radius, 5-foot-deep maelstrom makes a Strength save; on a failed save, it takes 6d6 Bludgeoning damage.",
       "conditionalEndings": []
     },
     {
@@ -215,7 +215,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A creature that starts its turn in the maelstrom and fails a Strength save is pulled 10 feet toward the center.",
+      "description": "A creature that starts its turn in the 30-foot-radius, 5-foot-deep maelstrom makes the same Strength save; on a failed save, it is pulled 10 feet toward the center.",
       "conditionalEndings": []
     },
     {
@@ -248,7 +248,7 @@
         "type": "minutes",
         "value": 1
       },
-      "description": "The 30-foot-radius, 5-foot-deep water area is Difficult Terrain for the spell duration.",
+      "description": "For up to 1 minute with concentration, the 30-foot-radius, 5-foot-deep maelstrom area is Difficult Terrain.",
       "conditionalEndings": []
     },
     {
@@ -272,7 +272,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
-      "description": "A swirling mass of water appears in a 30-foot radius and is 5 feet deep.",
+      "description": "Create a swirling 30-foot-radius, 5-foot-deep mass of water centered on a ground point or body of water within 120 feet; the area carries the spell damage, pull, and Difficult Terrain rows.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

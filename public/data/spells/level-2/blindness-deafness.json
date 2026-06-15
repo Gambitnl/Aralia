@@ -166,7 +166,7 @@
         },
         "level": 0
       },
-      "description": "On a failed save, target is either Blinded (default) or Deafened (player choice) for the duration. Repeats Con save at end of each turn.",
+      "description": "On a failed Constitution save, the target gains the Blinded condition for up to 1 minute and repeats the save at the end of each turn, ending the condition on a success.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+1 target",
@@ -240,7 +240,7 @@
         },
         "level": 0
       },
-      "description": "On a failed save, target is either Blinded or Deafened (player choice) for the duration. Repeats Con save at end of each turn.",
+      "description": "On a failed Constitution save, the target gains the Deafened condition for up to 1 minute and repeats the save at the end of each turn, ending the condition on a success.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+1 target",

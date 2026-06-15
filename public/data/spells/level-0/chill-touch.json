@@ -218,7 +218,7 @@
           "useOriginalDC": true
         }
       },
-      "description": "On a hit, the target can't regain hit points until the start of your next turn.",
+      "description": "On a melee spell hit, the target gains the No Healing condition and cannot regain Hit Points until the start of the caster's next turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -296,7 +296,7 @@
           "useOriginalDC": true
         }
       },
-      "description": "If you hit an undead target, it also has disadvantage on attack rolls against you until the end of your next turn.",
+      "description": "On a melee spell hit against an Undead target, that target gains Disadvantage on attacks against the caster until the end of the caster's next turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

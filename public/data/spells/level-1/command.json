@@ -145,7 +145,7 @@
         "customFormula": ""
       },
       "utilityType": "control",
-      "description": "On a failed save, the target follows the one-word command on its next turn.",
+      "description": "One visible creature within 60 feet that fails a Wisdom save follows the chosen one-word command on its next turn only: Approach moves by the shortest direct route toward you and ends if within 5 feet, Drop releases held items and ends its turn, Flee moves away by the fastest available means, Grovel becomes Prone and ends its turn, or Halt does not move and takes no action or Bonus Action. Higher-level slots add one target per slot level above 1.",
       "controlOptions": [
         {
           "name": "Approach",

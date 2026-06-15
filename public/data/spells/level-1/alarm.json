@@ -142,7 +142,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "sensory",
-      "description": "Create a mental or audible alarm that triggers when a creature enters the warded area.",
+      "description": "Create an audible alarm on a door, window, or 20-foot Cube within range; when a creature touches or enters the warded area, the ward emits a handbell sound for 10 seconds within 60 feet.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -238,7 +238,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "sensory",
-      "description": "Create a mental or audible alarm that triggers when a creature enters the warded area.",
+      "description": "Create a mental alarm on a door, window, or 20-foot Cube within range; when a creature touches or enters the warded area, the caster receives a mental ping within 1 mile that can wake them from sleep.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

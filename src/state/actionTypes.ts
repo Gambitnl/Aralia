@@ -33,7 +33,7 @@ import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, Temp
 import { RitualState } from '../types/rituals.js';
 // TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
-import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads.js';
+import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload, ApplyLeveragePayload } from './payloads/identityPayloads.js';
 import { DialogueSession } from '../types/dialogue.js';
 import { WorldHistoryEvent } from '../types/history.js';
 import { CrewRole } from '../types/naval.js';
@@ -242,6 +242,7 @@ export type AppAction =
   | { type: 'EQUIP_DISGUISE'; payload: EquipDisguisePayload }
   | { type: 'REMOVE_DISGUISE' }
   | { type: 'LEARN_SECRET'; payload: LearnSecretPayload }
+  | { type: 'APPLY_LEVERAGE'; payload: ApplyLeveragePayload }
   // Castellan: Legacy & Stronghold Actions
   | { type: 'INIT_LEGACY'; payload: { familyName?: string } }
   | { type: 'ADD_LEGACY_TITLE'; payload: { title: string; description: string; grantedBy?: string } }

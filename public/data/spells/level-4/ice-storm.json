@@ -155,7 +155,7 @@
         "bonusPerLevel": "+1d10",
         "customFormula": ""
       },
-      "description": "Deals 2d10 Bludgeoning damage on a failed Dexterity save, or half as much on success; slot scaling adds +1d10.",
+      "description": "Each creature in the 20-foot-radius, 40-foot-high Cylinder centered on a point within 300 feet makes a Dexterity save, taking 2d10 Bludgeoning damage on a failure or half as much on a success; the Cylinder also deals Cold damage and becomes Difficult Terrain, and each slot level above 4 adds +1d10 Bludgeoning damage.",
       "conditionalEndings": []
     },
     {
@@ -219,7 +219,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 4d6 Cold damage on a failed Dexterity save, or half as much on success.",
+      "description": "The same Dexterity save also deals 4d6 Cold damage to each creature in the Cylinder on a failure, or half as much on a success.",
       "conditionalEndings": []
     },
     {

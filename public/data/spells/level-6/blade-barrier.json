@@ -179,7 +179,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 6d10 Force damage on a failed Dexterity save, or half as much on success.",
+      "description": "When the straight 100-foot-long, 20-foot-high, 5-foot-thick wall or 60-foot-diameter ring appears within 90 feet, creatures in the blade wall space make a Dexterity save, taking 6d10 Force damage on a failure or half as much on a success; the wall provides Three-Quarters Cover and its space is Difficult Terrain.",
       "conditionalEndings": []
     },
     {
@@ -243,7 +243,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A creature that enters the blade wall's space for the first time on a turn makes the same Dexterity save. The canonical spell limits this save to once per turn.",
+      "description": "A creature that enters the blade wall space for the first time on a turn makes a Dexterity save, taking 6d10 Force damage on a failure or half as much on a success; a creature makes this save only once per turn.",
       "conditionalEndings": []
     },
     {
@@ -307,7 +307,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A creature that ends its turn in the blade wall's space makes the same Dexterity save. The canonical spell limits this save to once per turn.",
+      "description": "A creature that ends its turn in the blade wall space makes a Dexterity save, taking 6d10 Force damage on a failure or half as much on a success; a creature makes this save only once per turn.",
       "conditionalEndings": []
     },
     {
@@ -341,7 +341,7 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "The blade wall's space is Difficult Terrain for the spell duration.",
+      "description": "The blade wall space is Difficult Terrain for the spell duration.",
       "conditionalEndings": []
     },
     {
@@ -365,7 +365,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
-      "description": "The spell creates a wall of whirling magical blades that provides Three-Quarters Cover.",
+      "description": "Create a straight wall of whirling magical blades up to 100 feet long, 20 feet high, and 5 feet thick, or a ringed wall up to 60 feet in diameter, 20 feet high, and 5 feet thick. The wall provides Three-Quarters Cover.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

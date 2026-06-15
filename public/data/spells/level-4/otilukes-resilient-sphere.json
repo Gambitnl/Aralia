@@ -224,7 +224,7 @@
         "type": "minutes",
         "value": 1
       },
-      "description": "The sphere itself is immune to all damage.",
+      "description": "The sphere itself is immune to all damage, but a Disintegrate spell targeting the globe destroys the sphere without harming anything inside.",
       "damageType": [
         "All"
       ],

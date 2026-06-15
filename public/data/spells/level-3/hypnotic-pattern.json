@@ -162,7 +162,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Charmed unless the target succeeds on a Wisdom save for 1 minute; break triggers: target takes damage, adjacent creature action shakes awake.",
+      "description": "Each creature in the 30-foot Cube that can see the momentary pattern makes a Wisdom save or is Charmed for up to 1 minute with concentration; the spell ends for that creature if it takes any damage or another creature uses an action to shake it awake.",
       "conditionalEndings": []
     },
     {
@@ -234,7 +234,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Incapacitated unless the target succeeds on a Wisdom save for 1 minute; break triggers: target takes damage, adjacent creature action shakes awake.",
+      "description": "While Charmed by Hypnotic Pattern, the failed-save creature is Incapacitated and has Speed 0; this derived condition ends for that creature when the Charmed row ends from damage, an adjacent creature using an action to shake it awake, or the spell ending.",
       "conditionalEndings": []
     }
   ],

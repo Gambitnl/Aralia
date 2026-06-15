@@ -135,7 +135,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "On a failed save, the target focuses on you: disadvantage on attacks against others and cannot willingly move more than 30 feet away while the spell lasts; it ends if the listed break conditions occur.",
+      "description": "One visible creature within 30 feet makes a Wisdom save; on a failure, it has Disadvantage on attacks against creatures other than the caster and cannot willingly move more than 30 feet from the caster for up to 1 minute with concentration. The spell ends if the caster attacks another creature, casts a spell on another enemy, an ally damages the target, or the caster ends a turn more than 30 feet away.",
       "taunt": {
         "disadvantageAgainstOthers": true,
         "leashRangeFeet": 30,
@@ -230,7 +230,7 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "description": "If the target attacks someone else, it makes a Wisdom saving throw. On a failed save, the target loses its attack.",
+      "description": "The compelled target has Disadvantage on attacks against creatures other than the caster while the duel remains active.",
       "utilityType": "control",
       "scaling": {
         "type": "slot_level",
@@ -319,7 +319,7 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "description": "The spell ends if you attack another creature, cast a spell on an enemy other than the target, or if you end your turn more than 30 feet away.",
+      "description": "The compelled target cannot willingly move to a space more than 30 feet from the caster while the duel remains active.",
       "utilityType": "control",
       "scaling": {
         "type": "slot_level",

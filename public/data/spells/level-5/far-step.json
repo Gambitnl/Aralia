@@ -137,7 +137,7 @@
       "duration": {
         "type": "special"
       },
-      "description": "The caster teleports up to 60 feet to an unoccupied space they can see.",
+      "description": "When the spell is cast, the caster teleports up to 60 feet to an unoccupied space they can see.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -196,7 +196,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You teleport up to 60 feet to an unoccupied space you can see. On each of your turns before the spell ends, you can use a bonus action to teleport in this way again.",
+      "description": "For up to 1 minute with concentration, the caster can use a Bonus Action on each later turn to teleport up to 60 feet again to an unoccupied visible space.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

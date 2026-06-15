@@ -97,6 +97,48 @@ const requiredTrackerSections = [
   'Gap Log',
   'Update Rules',
 ];
+const requiredGapFrontmatterFields = [
+  'schema_version',
+  'gap_schema',
+  'project',
+  'slug',
+  'status',
+  'status_note',
+  'registry_mode',
+  'last_updated',
+  'gap_count',
+  'open_gap_count',
+  'resolved_gap_count',
+  'routed_gap_count',
+  'imported_gap_count',
+  'decision_required_count',
+  'visual_proof_required_count',
+  'highest_severity',
+  'proof_freshness',
+  'workflow',
+  'north_star',
+  'tracker',
+  'global_gaps',
+  'allowed_statuses',
+  'allowed_classifications',
+  'allowed_severities',
+  'supported_optional_row_fields',
+  'supported_optional_sections',
+];
+const actionableGapStatuses = new Set([
+  'open',
+  'active',
+  'pending',
+  'blocked',
+  'not_started',
+  'in_progress',
+  'waiting',
+  'needs_validation',
+  'untriaged',
+  'routed',
+  'review-required',
+  'design_decision_deferred',
+]);
 const requiredGapSections = [
   'Gap Log',
   'Classification Reference',
@@ -147,6 +189,23 @@ const readFrontmatter = (content) => {
 };
 
 const isDirtyDate = (value) => Boolean(value) && !/^\d{4}-\d{2}-\d{2}$/.test(String(value).trim());
+const gapRowsFromContent = (content) => {
+  // Keep blank lines inside the section. A regex lookahead that treats
+  // whitespace as "end" can terminate on the first empty line after the
+  // heading and make a valid table look empty on Windows-authored markdown.
+  const lines = stripBom(content).split(/\r?\n/);
+  const start = lines.findIndex((line) => /^##\s+Gap Log\s*$/.test(line));
+  if (start === -1) return [];
+  const end = lines.findIndex((line, index) => index > start && /^##\s+/.test(line));
+  const sectionLines = lines.slice(start + 1, end === -1 ? lines.length : end);
+  return sectionLines.flatMap((line) => {
+    if (!line.startsWith('|')) return [];
+    const cells = line.split('|').slice(1, -1).map((cell) => cell.replace(/[`*]/g, '').trim());
+    if (cells.length < 4) return [];
+    if (/^gap( id)?$/i.test(cells[0]) || /^-+$/.test(cells[0].replace(/\s/g, ''))) return [];
+    return [{ id: cells[0], status: cells[1], classification: cells[2] }];
+  });
+};
 
 // ============================================================================
 // Project Folder Audit
@@ -167,9 +226,13 @@ const results = projectDirs.map((slug) => {
   const prompt = stripBom(readText(path.join(projectDir, 'COLD_START_AGENT_PROMPT.md')));
   const frontmatter = readFrontmatter(northStar);
   const promptFrontmatter = readFrontmatter(prompt);
+  const gapFrontmatter = readFrontmatter(gaps);
+  const gapRows = gapRowsFromContent(gaps);
+  const openGapRows = gapRows.filter((row) => actionableGapStatuses.has(String(row.status).toLowerCase()));
   const missingDocs = requiredDocs.filter((doc) => !fs.existsSync(path.join(projectDir, doc)));
   const missingSchemaFields = requiredSchemaFields.filter((field) => !(field in frontmatter));
   const missingPromptFrontmatter = requiredPromptFrontmatterFields.filter((field) => !(field in promptFrontmatter));
+  const missingGapFrontmatter = requiredGapFrontmatterFields.filter((field) => !(field in gapFrontmatter));
   const missingPromptNeedles = requiredPromptNeedles.filter((needle) => !prompt.includes(needle));
   const missingTrackerContract = [
     ...(!/^# .+/m.test(tracker) ? ['heading'] : []),
@@ -183,6 +246,22 @@ const results = projectDirs.map((slug) => {
     ...(!/^Last updated:\s*\d{4}-\d{2}-\d{2}/im.test(gaps) ? ['Last updated'] : []),
     ...requiredGapSections.filter((section) => !hasSection(gaps, section)),
   ];
+  if (gapFrontmatter.gap_schema !== 'project_gap_registry') {
+    missingGapFrontmatter.push('gap_schema must be project_gap_registry');
+  }
+  if (gapFrontmatter.slug && gapFrontmatter.slug !== slug) {
+    missingGapFrontmatter.push('slug must match project folder');
+  }
+  if (!/^\d+$/.test(String(gapFrontmatter.gap_count || '').trim())) {
+    missingGapFrontmatter.push('gap_count must be numeric');
+  } else if (Number(gapFrontmatter.gap_count) !== gapRows.length) {
+    missingGapFrontmatter.push('gap_count must match Gap Log rows');
+  }
+  if (!/^\d+$/.test(String(gapFrontmatter.open_gap_count || '').trim())) {
+    missingGapFrontmatter.push('open_gap_count must be numeric');
+  } else if (Number(gapFrontmatter.open_gap_count) !== openGapRows.length) {
+    missingGapFrontmatter.push('open_gap_count must match actionable Gap Log rows');
+  }
   const handoffMarkerCount = (prompt.match(/---BEGIN NEXT AGENT HANDOFF---/g) || []).length;
   const handoffEndMarkerCount = (prompt.match(/---END NEXT AGENT HANDOFF---/g) || []).length;
   if (handoffMarkerCount !== 1) {
@@ -208,6 +287,7 @@ const results = projectDirs.map((slug) => {
   }
   const dirtyDates = ['last_updated', 'workflow_gaps_reviewed', 'last_proof'].filter((field) => isDirtyDate(frontmatter[field]));
   const dirtyPromptDates = ['last_updated'].filter((field) => isDirtyDate(promptFrontmatter[field]));
+  const dirtyGapDates = ['last_updated'].filter((field) => isDirtyDate(gapFrontmatter[field]));
 
   return {
     slug,
@@ -216,10 +296,14 @@ const results = projectDirs.map((slug) => {
     missing_required_docs: missingDocs,
     missing_tracker_contract: missingTrackerContract,
     missing_gap_contract: missingGapContract,
+    missing_gap_frontmatter: missingGapFrontmatter,
     missing_prompt_frontmatter: missingPromptFrontmatter,
     missing_prompt_needles: missingPromptNeedles,
     dirty_date_fields: dirtyDates,
     dirty_prompt_date_fields: dirtyPromptDates,
+    dirty_gap_date_fields: dirtyGapDates,
+    gap_count: gapRows.length,
+    open_gap_count: openGapRows.length,
     handoff_marker_count: handoffMarkerCount,
     handoff_end_marker_count: handoffEndMarkerCount,
   };
@@ -233,9 +317,9 @@ const summary = {
   schema_valid: results.filter((result) => result.schema_status === 'valid').length,
   missing_required_docs: results.filter((result) => result.missing_required_docs.length).length,
   tracker_contract_outdated: results.filter((result) => result.missing_tracker_contract.length).length,
-  gap_contract_outdated: results.filter((result) => result.missing_gap_contract.length).length,
+  gap_contract_outdated: results.filter((result) => result.missing_gap_contract.length || result.missing_gap_frontmatter.length).length,
   prompt_outdated: results.filter((result) => result.missing_prompt_needles.length || result.missing_prompt_frontmatter.length).length,
-  dirty_machine_dates: results.filter((result) => result.dirty_date_fields.length || result.dirty_prompt_date_fields.length).length,
+  dirty_machine_dates: results.filter((result) => result.dirty_date_fields.length || result.dirty_prompt_date_fields.length || result.dirty_gap_date_fields.length).length,
   projects: results,
 };
 

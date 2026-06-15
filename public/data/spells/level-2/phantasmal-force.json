@@ -291,7 +291,7 @@
         "dice": "2d8",
         "type": "Psychic"
       },
-      "description": "Illusions with hazardous interactions can deal Psychic damage to the target while it remains affected.",
+      "description": "While the target remains affected, hazardous interactions with the illusion can deal 2d8 Psychic damage to it.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

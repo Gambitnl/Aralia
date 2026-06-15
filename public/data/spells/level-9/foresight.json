@@ -302,7 +302,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The target has Advantage on attack rolls as part of its Advantage on D20 Tests.",
+      "description": "For Foresight's 8-hour duration, the touched willing creature has Advantage on attack rolls as part of its broad Advantage on D20 Tests, and the benefit ends early if the caster casts Foresight again.",
       "attackRollModifier": {
         "modifier": "advantage",
         "direction": "outgoing",
@@ -370,7 +370,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Other creatures have Disadvantage on attack rolls against the foresight target.",
+      "description": "For Foresight's 8-hour duration, other creatures have Disadvantage on attack rolls against the touched willing target, and that protection ends early if the caster casts Foresight again.",
       "attackRollModifier": {
         "modifier": "disadvantage",
         "direction": "incoming",

@@ -151,7 +151,7 @@
         "bonusPerLevel": "+1d12",
         "customFormula": ""
       },
-      "description": "Deals 3d12 Bludgeoning damage on a failed Dexterity save, or half as much on success; slot scaling adds +1d12.",
+      "description": "Each creature in the 20-foot Cube centered on a visible ground point within 120 feet makes a Dexterity save, taking 3d12 Bludgeoning damage on a failure or half as much on a success; each slot level above 3 adds +1d12 damage.",
       "conditionalEndings": []
     },
     {

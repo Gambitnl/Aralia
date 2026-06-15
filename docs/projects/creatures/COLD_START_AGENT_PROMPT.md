@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Creatures System
 slug: creatures
-Status: idle
+status: idle
 last_updated: 2026-06-12
 iteration: 6
 source_agent: Boyle / gpt-5.4-mini high

@@ -137,7 +137,7 @@
         "type": "minutes",
         "value": 60
       },
-      "description": "Target's AC cannot be less than 17.",
+      "description": "Touch one willing creature for 1 hour; the target has AC 17 if its Armor Class would otherwise be lower.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

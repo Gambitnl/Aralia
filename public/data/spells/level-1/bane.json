@@ -163,7 +163,7 @@
         "bonusPerLevel": "+1 target",
         "customFormula": ""
       },
-      "description": "Subtracts 1d4 from attack rolls and saving throws",
+      "description": "Up to three visible creatures within 30 feet make a Charisma save; failed saves apply the Bane modifier for up to 1 minute with concentration, subtracting 1d4 from attack rolls and saving throws. Higher slots add one target per slot level above 1.",
       "conditionalEndings": [],
       "statusCondition": {
         "name": "Bane",

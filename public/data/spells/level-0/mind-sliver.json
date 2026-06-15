@@ -146,7 +146,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": "1d6 at level 1, 2d6 at level 5, 3d6 at level 11, 4d6 at level 17"
       },
-      "description": "One target within 60 feet makes an Intelligence save against 1d6 Psychic damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "description": "One visible creature within 60 feet that fails the Intelligence save takes 1d6 Psychic damage; damage increases to 2d6 at level 5, 3d6 at level 11, and 4d6 at level 17.",
       "conditionalEndings": [],
       "tags": [
         "psychic-damage",
@@ -207,7 +207,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Subtract 1d4 from the next saving throw the target makes before the end of your next turn.",
+      "description": "On a failed Intelligence save, subtract 1d4 from the next saving throw the target makes before the end of the caster's next turn.",
       "savePenalty": {
         "dice": "1d4",
         "applies": "next_save",

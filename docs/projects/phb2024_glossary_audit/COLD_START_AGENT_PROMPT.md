@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: PHB 2024 Glossary Audit
 slug: phb2024_glossary_audit
-Status: reference-only
+status: reference-only
 last_updated: 2026-06-10
 iteration: 3
 source_agent: Not recorded

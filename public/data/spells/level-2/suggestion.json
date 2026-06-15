@@ -138,7 +138,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "On failed save, target follows the reasonable suggestion for up to 8 hours; ends if target is damaged or companions harm it.",
+      "description": "One creature within 30 feet that can hear and understand the caster makes a Wisdom save; on a failure, it follows a reasonable suggestion for up to 8 hours with concentration, ending early if the caster or allies damage it or when the suggested activity is completed.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

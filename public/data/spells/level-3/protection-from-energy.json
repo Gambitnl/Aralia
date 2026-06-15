@@ -140,7 +140,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "For the duration, the willing creature you touch has Resistance to one damage type of your choice: Acid, Cold, Fire, Lightning, or Thunder.",
+      "description": "Touch one willing creature for up to 1 hour with concentration and choose Acid, Cold, Fire, Lightning, or Thunder as the protected damage type; the companion defensive row carries the chosen Resistance.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -205,7 +205,7 @@
         "type": "minutes",
         "value": 60
       },
-      "description": "For the duration, the willing creature has Resistance to one chosen damage type: Acid, Cold, Fire, Lightning, or Thunder.",
+      "description": "For up to 1 hour with concentration, the willing touched target has Resistance to the chosen Acid, Cold, Fire, Lightning, or Thunder damage type.",
       "damageType": [
         "Acid",
         "Cold",

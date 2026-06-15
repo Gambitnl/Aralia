@@ -155,7 +155,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "Chosen visible creatures in the 5-foot emanation make a Constitution save against 1d6 Radiant damage, with cantrip-tier damage scaling.",
+      "description": "Chosen visible creatures in the 5-foot Emanation make a Constitution save; on a failure they take 1d6 Radiant damage, and damage increases to 2d6 at level 5, 3d6 at level 11, and 4d6 at level 17.",
       "conditionalEndings": [],
       "tags": [
         "radiant-damage",

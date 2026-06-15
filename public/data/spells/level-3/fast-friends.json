@@ -153,7 +153,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Charmed unless the target succeeds on a Wisdom save for 60 minutes.",
+      "description": "One Humanoid within 30 feet that can see, hear, and understand the caster makes a Wisdom save or is Charmed for up to 1 hour with concentration, performs requested services in a friendly manner, can repeat the save for harmful or conflicting tasks, saves with Advantage if fighting the caster or companions, ends if asked to face certain death, and knows it was charmed when the spell ends.",
       "conditionalEndings": [
         {
           "trigger": "certain_death_activity_requested",

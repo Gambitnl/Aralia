@@ -151,7 +151,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "Creatures in the 15-foot cone make a Dexterity save against 3d6 Fire damage, taking half damage on a success; damage increases by 1d6 per slot level above 1st.",
+      "description": "Creatures in the 15-foot Cone make a Dexterity save against 3d6 Fire damage, taking half damage on a success; flammable objects in the Cone that are not worn or carried start burning, and damage increases by 1d6 per slot level above 1st.",
       "conditionalEndings": [],
       "tags": [
         "fire-damage",

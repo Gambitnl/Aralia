@@ -142,7 +142,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": "1d6 at 1, 2d6 at 5, 3d6 at 11, 4d6 at 17"
       },
-      "description": "On a ranged spell hit, one target takes 1d6 Piercing damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "description": "One creature within 30 feet takes 1d6 Piercing damage on a melee spell hit; damage increases to 2d6 at level 5, 3d6 at level 11, and 4d6 at level 17.",
       "conditionalEndings": [],
       "tags": [
         "piercing-damage",
@@ -226,7 +226,7 @@
         "direction": "toward_caster",
         "maxDistance": ""
       },
-      "description": "On the same hit, a Large or smaller target is affected by the spell's pull movement rider.",
+      "description": "On the same melee spell hit, a Large or smaller target can be pulled up to 10 feet toward the caster.",
       "conditionalEndings": [],
       "tags": [
         "forced-movement",

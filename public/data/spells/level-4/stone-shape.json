@@ -134,7 +134,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
-      "description": "Reshapes a touched Medium-or-smaller stone object or up-to-5-foot stone section into a chosen form, including simple passages, sealed doors, or objects with up to two hinges and a latch but no fine mechanical detail.",
+      "description": "Touch one Medium-or-smaller stone object or a stone section no more than 5 feet in any dimension and reshape it into a chosen form, such as a weapon, statue, coffer, passage through 5-foot-thick stone, or sealed stone door/frame; created objects can include up to two hinges and a latch but cannot have fine mechanical detail.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

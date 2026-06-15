@@ -83,18 +83,20 @@ export function worldforgeSeedString(worldSeed: number): string {
  * (see fmg/utils/probabilityUtils RNG CONTRACT), so each call swaps in an
  * Alea stream seeded from the caller's own seeded rng and restores the
  * original in `finally` — no other system ever sees the swapped stream
- * (name generation is fully synchronous). Returns null when the burg or
- * its culture can't be resolved; callers keep their fallback namer.
+ * (name generation is fully synchronous). Throws when the burg or
+ * its culture can't be resolved - no fallback namer provided.
  */
 export function getBurgNamer(
   worldSeed: number,
   burgId: number,
-): ((rng: { next(): number }) => string) | null {
+): (rng: { next(): number }) => string {
   try {
     const atlas = getBridgeAtlas(worldSeed);
     const burg = atlas.pack.burgs?.[burgId] as Burg | undefined;
     const cultureId = burg?.culture ?? 0;
-    if (!atlas.pack.cultures?.[cultureId]) return null;
+    if (!atlas.pack.cultures?.[cultureId]) {
+      throw new Error(`Cannot resolve culture ${cultureId} for burg ${burgId} in world ${worldSeed}`);
+    }
 
     const key = worldforgeSeedString(worldSeed);
     let names = namerCache.get(key);
@@ -114,8 +116,8 @@ export function getBurgNamer(
         Math.random = saved;
       }
     };
-  } catch {
-    return null;
+  } catch (error) {
+    throw new Error(`Failed to create burg namer for burg ${burgId} in world ${worldSeed}: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

@@ -209,7 +209,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 4d8 Radiant damage on a failed Constitution save, or half as much on success; slot scaling adds +1d8.",
+      "description": "When the 60-foot-long, 10-foot-high, 5-foot-thick wall appears at a point within 120 feet, each creature in the wall makes a Constitution save, taking 4d8 Radiant damage on a failure or half as much on a success; each slot level above 5 adds +1d8 damage.",
       "conditionalEndings": []
     },
     {
@@ -287,7 +287,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Blinded for 1 minute unless the target succeeds on a Constitution save; a turn-end Constitution save can end it.",
+      "description": "A creature that fails the wall's initial Constitution save is Blinded for 1 minute and can repeat the Constitution save at the end of each turn, ending the Blinded effect on a success.",
       "conditionalEndings": []
     }
   ],

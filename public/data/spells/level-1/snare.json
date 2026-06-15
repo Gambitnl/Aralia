@@ -175,7 +175,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A Small, Medium, or Large creature entering the 5-foot snare area must succeed on a Dexterity save or be Restrained for up to 8 hours.",
+      "description": "When a Small, Medium, or Large creature enters the 5-foot-radius snare area, it makes a Dexterity save or gains the Restrained condition for up to 8 hours, hanging upside down until the spell or restraint ends.",
       "conditionalEndings": [
         {
           "trigger": "no_creature_restrained_by_spell_after_trigger",
@@ -240,7 +240,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Trap is nearly invisible and can be discerned with Intelligence (Investigation) against your spell save DC. A restrained creature or another creature that can reach it can use an action to make an Intelligence (Arcana) check against your spell save DC, ending the restrained effect on a success.",
+      "description": "The snare is nearly invisible and can be found with an Intelligence (Investigation) check against the spell save DC; the Restrained creature or another creature that can reach it can use an action for an Intelligence (Arcana) check to end the restraint, and the target also repeats the Dexterity save at each turn end.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

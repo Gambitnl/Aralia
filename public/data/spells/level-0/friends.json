@@ -176,7 +176,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "One nearby creature must succeed on a Wisdom save or gain the Charmed condition for 1 minute, with existing auto-success overrides preserved for invalid social targets.",
+      "description": "One nearby Humanoid that is not fighting the caster or the caster's allies and has not been affected by this casting within the last 24 hours must succeed on a Wisdom save or gain the Charmed condition for 1 minute.",
       "conditionalEndings": [],
       "tags": [
         "charmed",

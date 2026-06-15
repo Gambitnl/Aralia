@@ -141,7 +141,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": "Primary target damage increases by 1d8 for each slot level above 3."
       },
-      "description": "Primary transformed weapon or ammunition damage: 4d8 Lightning on a hit, or half as much on a miss. This is still tied to the separate pending-attack trigger finding.",
+      "description": "As the attack hits or misses, the weapon or ammunition becomes a lightning bolt; the primary target takes 4d8 Lightning damage on a hit or half as much on a miss, with +1d8 per slot level above 3, while this remains tied to the separate pending-attack trigger finding.",
       "conditionalEndings": []
     },
     {
@@ -205,7 +205,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": "Secondary 10-foot burst damage increases by 1d8 for each slot level above 3."
       },
-      "description": "Secondary burst damage: each creature within 10 feet of the target makes a Dexterity saving throw, taking 2d8 Lightning damage on a failed save or half as much on a success.",
+      "description": "After the transformed weapon or ammunition resolves, each creature within 10 feet of the primary target makes a Dexterity save, taking 2d8 Lightning damage on a failure or half as much on a success; each slot level above 3 adds +1d8 secondary burst damage.",
       "conditionalEndings": []
     }
   ],

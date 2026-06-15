@@ -190,7 +190,7 @@
         "bonusPerLevel": "+1d10",
         "customFormula": ""
       },
-      "description": "Creatures in the Cylinder make a Constitution save; shape-shifters save with disadvantage and revert on failed save.",
+      "description": "Creatures in the 5-foot-radius, 40-foot-high Cylinder make a Constitution save, taking 2d10 Radiant damage on a failed save or half as much on a success; Shapechangers save with Disadvantage and revert on a failed save.",
       "conditionalEndings": []
     },
     {
@@ -293,7 +293,7 @@
         "bonusPerLevel": "+1d10",
         "customFormula": ""
       },
-      "description": "A creature also makes this save when the Cylinder moves into its space, when it enters the area, or when it ends its turn there.",
+      "description": "A creature makes the same Constitution save against 2d10 Radiant damage when the Cylinder moves into its space, when it enters the area for the first time on a turn, or when it ends its turn there; Shapechangers save with Disadvantage and revert on a failed save.",
       "conditionalEndings": []
     },
     {

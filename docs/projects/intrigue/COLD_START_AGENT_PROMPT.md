@@ -3,13 +3,13 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Intrigue System
 slug: intrigue
-Status: active
-last_updated: 2026-06-05
-iteration: 2
-source_agent: Not recorded
+status: active
+last_updated: 2026-06-15
+iteration: 3
+source_agent: Claude Codex
 target_agent: next cold-start agent
-runtime_surface: unknown
-certainty: unknown
+runtime_surface: CLI agent
+certainty: certain
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -20,7 +20,7 @@ gaps: docs/projects/intrigue/GAPS.md
 # Intrigue System Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-15
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -41,11 +41,13 @@ docs/projects/intrigue/NORTH_STAR.md
 | Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
 | 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
+| 2 | Not recorded | unknown | unknown | 2026-06-10 | Iteration 2 established dashboard schema, tracker, and gap alignment |
+| 3 | Claude Codex (opencode) | CLI agent | certain | 2026-06-15 | I2 executed: LeverageSystem wired into production (APPLY_LEVERAGE action, reducer case, LeverageUI, integration tests) |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Intrigue System
 Project folder: docs/projects/intrigue
-iteration: 2
+iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -55,49 +57,47 @@ Gaps: docs/projects/intrigue/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 1 established the project handoff docs and active queue. This pass
-refreshed the dashboard schema, tracker alignment, and gap registry so the next
-agent can resume directly from the active queue.
+Iteration 3 (2026-06-15, Claude Codex) executed I2 end-to-end:
+- Added `ApplyLeveragePayload` to identityPayloads.ts
+- Added `APPLY_LEVERAGE` action type to actionTypes.ts:245
+- Added APPLY_LEVERAGE case to identityReducer.ts:109 (resolves target from factions or NPCs, handles secret burning, gold rewards, faction standing changes, hostility)
+- Created `LeverageUI.tsx` component with secret/target/goal selection
+- Added 2 integration tests in LeverageSystem.test.ts (secret-burned-on-blackmail, unknown-secret-rejection)
 
 ## Current Mission
 
 Active task:
-I2 - Audit leverage chain from player-discovered secrets to actionable social consequences.
+I3 - Resolve rumor lead handling contract (lead type currently non-actionable).
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+Define payload contract and ownership target (quest/world marker/schedule) for the lead type. See GAPS.md G-002 for details.
 
 Key files to touch:
 - docs/projects/intrigue/NORTH_STAR.md
 - docs/projects/intrigue/TRACKER.md
 - docs/projects/intrigue/GAPS.md
 - docs/projects/intrigue/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+- src/systems/intrigue/TavernGossipSystem.ts
+- src/components/Town/Intrigue/RumorMill.tsx
+- src/components/Trade/MerchantModal.tsx
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+Use the verification command or evidence source named by TRACKER.md or NORTH_STAR.md. Add scoped tests for any new action/payload entrypoints.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+Stay inside this project's scope boundaries. Route sibling-project blockers instead of editing their docs.
 
 Recent progress:
-North Star now has an explicit Dashboard Card Schema, the tracker references
-the current gap registry, and the gap registry carries a short triage alignment
-note for I2/I3/I4. No source code was changed in this pass.
+I2 completed: LeverageSystem now has production wiring. APPLY_LEVERAGE action + reducer + LeverageUI component + 2 integration tests all pass. G-005 resolved. 6 open gaps remain. Gap signal updated. GAPS.md G-005 status changed to `resolved` with evidence.
 
 Key files to touch:
 - docs/projects/intrigue/NORTH_STAR.md
 - docs/projects/intrigue/TRACKER.md
 - docs/projects/intrigue/GAPS.md
 - docs/projects/intrigue/COLD_START_AGENT_PROMPT.md
-- docs/projects/intrigue/DECISIONS.md
-- docs/projects/intrigue/AUDIT_OR_PROOF.md
-- docs/projects/intrigue/RUNBOOK.md
+- docs/projects/intrigue/DECISIONS.md (not present)
+- docs/projects/intrigue/AUDIT_OR_PROOF.md (not present)
+- docs/projects/intrigue/RUNBOOK.md (not present)
 - docs/projects/PROJECT_CARD_SCHEMA.md
 - docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 - docs/projects/intrigue plus source/docs named by the active tracker task
@@ -109,7 +109,7 @@ Optional docs to check when present or named by tracker:
 - project-specific proof or design notes
 
 Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
+Run `npx vitest run src/systems/intrigue/__tests__/LeverageSystem.test.ts` to verify leverage chain integration. Full sake: `npx vitest run src/systems/intrigue/`.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.

@@ -151,7 +151,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 4d8 Bludgeoning damage on a failed Dexterity save, or half as much on success.",
+      "description": "If transmuted ceiling mud falls, each creature under the falling mud makes a Dexterity save, taking 4d8 Bludgeoning damage on a failure or half as much on a success.",
       "conditionalEndings": []
     }
   ],

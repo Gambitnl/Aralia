@@ -144,7 +144,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 4d8 Fire damage on a failed Dexterity save, or half as much on success.",
+      "description": "For up to 10 minutes with concentration, the caster can use an action to create a 15-foot-long, 5-foot-wide line of fire from them in a chosen direction; each creature in the line makes a Dexterity save, taking 4d8 Fire damage on a failure or half as much on a success.",
       "conditionalEndings": []
     },
     {
@@ -206,7 +206,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Any creature that moves within 5 feet of the caster for the first time on a turn takes 1d10 Fire damage.",
+      "description": "For up to 10 minutes with concentration, a creature takes 1d10 Fire damage the first time on a turn that it moves within 5 feet of the caster; the caster is unharmed by these flames.",
       "conditionalEndings": []
     },
     {
@@ -268,7 +268,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Any creature that ends its turn within 5 feet of the caster takes 1d10 Fire damage.",
+      "description": "For up to 10 minutes with concentration, a creature takes 1d10 Fire damage when it ends its turn within 5 feet of the caster; the caster is unharmed by these flames.",
       "conditionalEndings": []
     },
     {
@@ -299,7 +299,7 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "The caster is immune to Fire damage for the duration.",
+      "description": "For up to 10 minutes with concentration, the caster has Immunity to Fire damage.",
       "conditionalEndings": []
     },
     {
@@ -330,7 +330,7 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "The caster has resistance to Cold damage for the duration.",
+      "description": "For up to 10 minutes with concentration, the caster has Resistance to Cold damage.",
       "conditionalEndings": []
     },
     {
@@ -354,7 +354,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "light",
-      "description": "Flames shed bright light in a 30-foot radius and dim light for an additional 30 feet.",
+      "description": "For up to 10 minutes with concentration, flames shed Bright Light in a 30-foot radius and Dim Light for 30 more feet, and the caster can use an action each turn to create the 15-foot line of fire.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

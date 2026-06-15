@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Companions System
 slug: companions
-Status: active
+status: active
 last_updated: 2026-06-10
 iteration: 2
 source_agent: Not recorded

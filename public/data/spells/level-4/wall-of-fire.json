@@ -205,7 +205,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 5d8 Fire damage on a failed Dexterity save, or half as much on success; slot scaling adds +1d8.",
+      "description": "When the opaque wall appears as either a 60-foot-long, 20-foot-high, 1-foot-thick wall or a 20-foot-diameter, 20-foot-high, 1-foot-thick ring within 120 feet, each creature in its area makes a Dexterity save, taking 5d8 Fire damage on a failure or half as much on a success; each slot level above 4 adds +1d8 damage.",
       "conditionalEndings": []
     },
     {
@@ -267,7 +267,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "A creature takes this damage when it enters the wall for the first time on a turn. Only the selected damage side deals proximity damage; the other side deals no damage.",
+      "description": "A creature takes 5d8 Fire damage, plus +1d8 per slot level above 4, when it enters the wall for the first time on a turn; only the caster-selected side deals 10-foot proximity damage, and the other side deals no damage.",
       "conditionalEndings": []
     },
     {
@@ -329,7 +329,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "A creature takes this damage when it ends its turn inside the wall or within 10 feet of the selected damage side. The other side deals no damage.",
+      "description": "A creature takes 5d8 Fire damage, plus +1d8 per slot level above 4, when it ends its turn inside the wall or within 10 feet of the caster-selected damage side; the other side deals no damage.",
       "conditionalEndings": []
     }
   ],

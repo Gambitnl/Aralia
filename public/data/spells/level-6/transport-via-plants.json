@@ -120,7 +120,7 @@
         "direction": "caster_choice",
         "maxDistance": "same plane"
       },
-      "description": "For the duration, any creature can use 5 feet of movement to step into the target plant and exit from the destination plant on the same plane.",
+      "description": "For 1 minute, any creature can spend 5 feet of movement to step into the target Large-or-larger inanimate plant within 10 feet and exit from a destination plant on the same plane that the caster has seen or touched before.",
       "conditionalEndings": []
     },
     {
@@ -174,7 +174,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "This spell creates a magical link between a Large or larger inanimate plant within range and another plant, at any distance, on the same plane of existence. You must have seen or touched the destination plant at least once before. For the duration, any creature can step into the target plant and exit from the destination plant by using 5 feet of movement.",
+      "description": "Create a 1-minute magical link between a Large-or-larger inanimate plant within 10 feet and another plant at any distance on the same plane that the caster has seen or touched before; any creature can spend 5 feet of movement to enter the target plant and exit from the destination plant.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

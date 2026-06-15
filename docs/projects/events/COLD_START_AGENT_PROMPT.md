@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Events System
 slug: events
-Status: active
+status: active
 last_updated: 2026-06-12
 iteration: 4
 source_agent: Not recorded

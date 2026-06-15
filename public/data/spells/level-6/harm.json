@@ -143,7 +143,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a failed Constitution save, the target takes 14d6 Necrotic damage; on a successful save, it takes half as much damage only.",
+      "description": "One visible creature within 60 feet makes a Constitution save, taking 14d6 Necrotic damage on a failure or half as much on a success; only a failed save also reduces the target's Hit Point maximum.",
       "conditionalEndings": []
     },
     {
@@ -211,7 +211,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a failed save, the target's Hit Point maximum is reduced by an amount equal to the Necrotic damage it took. The spell cannot reduce the target's Hit Point maximum below 1.",
+      "description": "On a failed Constitution save, the target's Hit Point maximum is reduced by the Necrotic damage it took from Harm, but not below 1.",
       "conditionalEndings": []
     }
   ],

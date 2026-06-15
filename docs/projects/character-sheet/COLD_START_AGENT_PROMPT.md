@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Character Sheet
 slug: character-sheet
-Status: active
+status: active
 last_updated: 2026-06-12
 iteration: 10
 source_agent: Gemini 3.5 Flash

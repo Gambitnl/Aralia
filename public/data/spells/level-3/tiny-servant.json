@@ -146,7 +146,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Animates each touched Tiny nonmagical unattended object into a controlled Tiny Servant for 8 hours, commandable by bonus action within 120 feet and ending for a servant when it drops to 0 Hit Points.",
+      "description": "Animate each touched Tiny nonmagical unattended object into a controlled Tiny Servant for 8 hours. As a Bonus Action, you can mentally command any or all servants within 120 feet, they keep following a simple order until complete, they defend themselves if uncommanded, and each servant reverts to object form when it drops to 0 Hit Points.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+2 animated objects per slot level above 3rd",

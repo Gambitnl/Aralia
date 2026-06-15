@@ -214,7 +214,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a failed Constitution save, a creature has the Blinded condition for 1 minute and repeats the save at the end of each turn.",
+      "description": "Each creature in the 60-foot-radius sunlight sphere makes a Constitution save; on a failed save, it is Blinded for 1 minute and repeats the Constitution save at the end of each of its turns, ending Blinded on success.",
       "statusCondition": {
         "name": "Blinded",
         "duration": {

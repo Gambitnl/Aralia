@@ -153,7 +153,7 @@
         "bonusPerLevel": "+1d10",
         "customFormula": ""
       },
-      "description": "When the swarm appears, each creature in it makes a Constitution save, taking half damage on a success.",
+      "description": "When the swarm appears, each creature in it makes a Constitution save, taking 4d10 Piercing damage on a failed save or half on a success.",
       "conditionalEndings": []
     },
     {
@@ -217,7 +217,7 @@
         "bonusPerLevel": "+1d10",
         "customFormula": ""
       },
-      "description": "A creature that enters the swarm for the first time on a turn makes a Constitution save, taking half damage on a success. The canonical spell limits this damage to once per turn.",
+      "description": "A creature that enters the swarm for the first time on a turn makes a Constitution save, taking 4d10 Piercing damage on a failed save or half on a success; this can happen only once per turn.",
       "conditionalEndings": []
     },
     {
@@ -281,7 +281,7 @@
         "bonusPerLevel": "+1d10",
         "customFormula": ""
       },
-      "description": "A creature that ends its turn in the swarm makes a Constitution save, taking half damage on a success. The canonical spell limits this damage to once per turn.",
+      "description": "A creature that ends its turn in the swarm makes a Constitution save, taking 4d10 Piercing damage on a failed save or half on a success; this can happen only once per turn.",
       "conditionalEndings": []
     },
     {
@@ -371,7 +371,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "sensory",
-      "description": "The locust swarm lightly obscures its 20-foot-radius sphere.",
+      "description": "Create a 20-foot-radius locust swarm sphere for up to 10 minutes with concentration; separate rows carry the Piercing damage timing, Difficult Terrain, and Lightly Obscured effects.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

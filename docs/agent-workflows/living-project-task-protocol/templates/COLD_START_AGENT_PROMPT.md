@@ -10,6 +10,10 @@ source_agent: <agent/model or not recorded>
 target_agent: next cold-start agent
 runtime_surface: <CLI agent/application agent/browser-app agent/MCP-subagent/unknown>
 certainty: <certain/inferred/unknown>
+active_agent: <agent/model or not recorded>
+agent_pass_status: <not_started/in_progress/blocked/finished/waiting/review_required/idle>
+agent_pass_started_at: <YYYY-MM-DDTHH:mm:ss+TZ or empty>
+agent_pass_ended_at: <YYYY-MM-DDTHH:mm:ss+TZ or empty>
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -50,6 +54,16 @@ through. Use one of: CLI agent, application agent, browser/app-embedded agent,
 MCP/subagent, or unknown. Name the system clue used, such as shell-only
 terminal, app browser context, Codex desktop context, MCP handoff, or explicit
 operator statement. Mark the classification as certain or inferred.>
+
+Pass telemetry:
+<After reading this handoff index and identifying yourself, but before deeper
+project reading or task selection, update the project dashboard schema in
+NORTH_STAR.md or TRACKER.md: set active_agent to your agent/model identity,
+agent_pass_status to in_progress, agent_pass_started_at to the local start
+timestamp, and agent_pass_ended_at to empty. At closeout, keep the agent and
+start time, then set agent_pass_status to finished, blocked, waiting,
+review_required, idle, or another explicit local status, and set
+agent_pass_ended_at to the local closeout timestamp.>
 
 ## Iteration Agent Ledger
 
@@ -156,10 +170,10 @@ done, dormant, or paused unless the operator or source evidence says so.>
 Before ending, update this handoff with the next iteration number, previous
 agent context, agent identity/runtime surface, active task, acceptance criteria,
 key files, verification method, blockers, recent progress, workflow-gap review
-result, expansion-radar result, and dashboard-schema updates. Account for every
-required doc, mention optional docs touched or skipped, update `agent_comments`
-only when an out-of-flow note is useful, and keep only the current handoff
-between the same BEGIN/END markers. Keep the iteration agent ledger as one
-compact row per completed iteration; do not preserve old handoff transcripts in
-this file.
+result, expansion-radar result, dashboard-schema updates, active agent, pass
+status, pass start time, and pass end time. Account for every required doc,
+mention optional docs touched or skipped, update `agent_comments` only when an
+out-of-flow note is useful, and keep only the current handoff between the same
+BEGIN/END markers. Keep the iteration agent ledger as one compact row per
+completed iteration; do not preserve old handoff transcripts in this file.
 ---END NEXT AGENT HANDOFF---

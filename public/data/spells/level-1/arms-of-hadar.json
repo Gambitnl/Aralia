@@ -232,7 +232,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Creatures that fail the Strength save have reactions suppressed for 1 round.",
+      "description": "Creatures in the 10-foot Emanation that fail the Strength save cannot take Reactions until the start of their next turn.",
       "conditionalEndings": [],
       "tags": [
         "reaction-suppression",

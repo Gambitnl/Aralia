@@ -144,7 +144,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "If the target has more than 100 Hit Points, it takes 12d12 Psychic damage.",
+      "description": "If the visible target within 60 feet has more than 100 Hit Points, it takes 12d12 Psychic damage instead of dying.",
       "conditionalEndings": []
     },
     {
@@ -198,7 +198,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Choose one visible creature within 60 feet. If the target has 100 Hit Points or fewer, it dies; if it has more than 100 Hit Points, it survives the death word and takes the spell fallback damage instead.",
+      "description": "Choose one visible creature within 60 feet. If the target has 100 Hit Points or fewer, it dies; if it has more than 100 Hit Points, it takes the 12d12 Psychic fallback damage instead.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

@@ -5,6 +5,8 @@
  * Build-order item 2 (slice 2): climate → pack → rivers → biomes (fmg/).
  * Build-order item 2 (slice 3): civilization layer — cultures → burgs →
  * states → routes → religions → provinces (fmg/).
+ * Build-order item 8 (asset half): ForgeAssetService — runtime AI-gen +
+ * content-addressed cache + procedural-shader fallback (assets/).
  */
 export * from './units';
 export * from './seedPath';

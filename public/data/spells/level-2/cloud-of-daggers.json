@@ -207,7 +207,7 @@
         "dice": "4d4",
         "type": "Slashing"
       },
-      "description": "A creature takes 4d4 Slashing damage the first time on a turn that it enters the Cube or the Cube moves into its space.",
+      "description": "A creature takes 4d4 Slashing damage the first time on a turn that it enters the Cube or when the Cube moves into its space; this can happen only once per turn and gains +2d4 per slot level above 2.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+2d4",

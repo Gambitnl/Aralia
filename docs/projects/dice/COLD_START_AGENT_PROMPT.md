@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Dice
 slug: dice
-Status: review-required
+status: review-required
 last_updated: 2026-06-08
 iteration: 3
 source_agent: Not recorded

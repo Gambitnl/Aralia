@@ -281,7 +281,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a failed Wisdom save, the target is imprisoned until the spell ends.",
+      "description": "One visible creature within 30 feet that fails the Wisdom save is imprisoned until the spell ends; on a successful save it is unaffected and immune to this spell for 24 hours, while a failed target no longer needs to breathe, eat, drink, or age, cannot be found by Divination, and cannot teleport.",
       "statusCondition": {
         "name": "Imprisoned",
         "duration": {
@@ -347,7 +347,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The Chaining option gives the imprisoned target the Restrained condition.",
+      "description": "The Chaining imprisonment option holds the failed-save target in place with rooted chains, gives it the Restrained condition, and prevents it from being moved until the chosen ending trigger, ninth-level Dispel Magic route, or other spell ending resolves.",
       "statusCondition": {
         "name": "Restrained",
         "duration": {
@@ -413,7 +413,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The Slumber option gives the imprisoned target the Unconscious condition and prevents waking.",
+      "description": "The Slumber imprisonment option gives the failed-save target the Unconscious condition and prevents it from being awakened until the chosen ending trigger, ninth-level Dispel Magic route, or other spell ending resolves.",
       "statusCondition": {
         "name": "Unconscious",
         "duration": {

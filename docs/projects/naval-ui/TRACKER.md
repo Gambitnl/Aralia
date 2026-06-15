@@ -1,7 +1,7 @@
 ﻿# Naval UI Living Tracker
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-15
 
 ## Status Vocabulary
 
@@ -16,7 +16,7 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action |
 |---|---|---|---|---|---|---|
-| U2 | active | Document naval UI implementation state, integration points, and current gaps | Worker B | 2026-06-05 | `docs/projects/naval-ui/*.md`, `src/components/Naval`, `src/components/layout/GameModals.tsx`, `src/state/reducers` | Keep the refreshed handoff aligned and trace the ShipPane action decision against reducer behavior before adding controls |
+| U2 | done | Document naval UI implementation state, integration points, and current gaps | Iteration Agent 2 | 2026-06-15 | Source inspection confirmed all file map entries accurate, all 5 gaps verified against current code, docs consistency check passed across NORTH_STAR/TRACKER/GAPS | None - documentation verification complete |
 | U3 | active | Track gaps that block Voyage + crew + status workflows from becoming usable from UI | Worker B | 2026-06-05 | `src/state/reducers/navalReducer.ts`, `src/state/actionTypes.ts`, `src/data/naval/*` | Add UI-safe proof checks in the next implementation slice |
 
 ## Gap Log

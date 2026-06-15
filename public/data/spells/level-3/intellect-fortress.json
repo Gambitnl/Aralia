@@ -158,7 +158,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "For the duration, you or one willing creature you can see within range has resistance to psychic damage, as well as advantage on Intelligence, Wisdom, and Charisma saving throws.",
+      "description": "Choose yourself or one willing creature you can see within 30 feet for up to 1 hour with concentration; the target has Advantage on Intelligence, Wisdom, and Charisma saves. Higher slots add one target per slot level above 3, and all targets must be within 30 feet of each other.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -223,7 +223,7 @@
         "type": "minutes",
         "value": 60
       },
-      "description": "For the duration, the target has Resistance to Psychic damage.",
+      "description": "For up to 1 hour with concentration, the target has Resistance to Psychic damage.",
       "damageType": [
         "Psychic"
       ],

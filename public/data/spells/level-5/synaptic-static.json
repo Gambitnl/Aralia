@@ -158,7 +158,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 8d6 Psychic damage on a failed Intelligence save, or half as much on success.",
+      "description": "Each creature with Intelligence 3 or higher in the 20-foot-radius Sphere centered on a point within 120 feet makes an Intelligence save, taking 8d6 Psychic damage on a failure or half as much on a success; a failed save also applies Muddled Thoughts for 1 minute.",
       "conditionalEndings": []
     },
     {
@@ -241,7 +241,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Muddled Thoughts for 1 minute unless the target succeeds on an Intelligence save; a turn-end Intelligence save can end it.",
+      "description": "Muddled Thoughts lasts for 1 minute after a failed Intelligence save. While affected, the target subtracts 1d6 from attack rolls, ability checks, and Constitution saves to maintain concentration, and repeats the Intelligence save at the end of each turn to end the effect.",
       "conditionalEndings": []
     }
   ],

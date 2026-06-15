@@ -144,7 +144,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The initial Dexterity save deals 8d6 Fire damage on a failed save or half as much damage on a success.",
+      "description": "One visible creature within 90 feet makes an initial Dexterity save, taking 8d6 Fire damage on a failure or half as much on a success; on a failed save the target also starts Burning.",
       "conditionalEndings": []
     },
     {
@@ -217,7 +217,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a failed initial save, the target burns for the spell's duration and repeats the Dexterity save at the end of each turn, ending the spell on a success.",
+      "description": "On a failed initial Dexterity save, the target burns for up to 1 minute while concentrating, sheds Bright Light in a 30-foot radius and Dim Light for another 30 feet, and repeats the Dexterity save at the end of each turn, ending the spell on a success.",
       "conditionalEndings": []
     },
     {
@@ -283,7 +283,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "At the end of each of the burning target's turns, it repeats the Dexterity save, taking 4d6 Fire damage on a failed save.",
+      "description": "At the end of each Burning target's turns, it repeats the Dexterity save; on a failed save it takes 4d6 Fire damage, and on a successful save the spell ends for that target.",
       "conditionalEndings": []
     },
     {

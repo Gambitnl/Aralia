@@ -1,7 +1,7 @@
 # Physics System Audit / Proof
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-15
 
 Use this file for durable proof summaries, scoped verification notes, and acceptance evidence. Do not paste raw logs unless a short excerpt is required for later agents to understand the result.
 
@@ -10,6 +10,7 @@ Use this file for durable proof summaries, scoped verification notes, and accept
 | Date | Check | Result | Evidence |
 |---|---|---|---|
 | 2026-06-10 | Required-doc surface initialized | pass | `docs/projects/physics/NORTH_STAR.md` declares this file in `required_docs`; schema migration created the file for audit-clean doc coverage. |
+| 2026-06-15 | T4 elemental state wiring (G2 damage path) | pass | `npx vitest run src/commands/effects/__tests__/DamageCommand.test.ts src/systems/physics/__tests__/ElementalInteractionSystem.test.ts` → 2 files, 26 tests passed. New tests: Wet target + Cold damage → Frozen; Fire damage applies Burning; Bludgeoning leaves stateTags untouched. Mapping added in `src/types/elemental.ts` (`DamageTypeToStateTag` / `getStateTagForDamageType`); wiring in `src/commands/effects/DamageCommand.ts` (`applyElementalState`, Step 5b). |
 
 ## Standing Verification Notes
 

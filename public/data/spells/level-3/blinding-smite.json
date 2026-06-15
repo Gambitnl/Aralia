@@ -139,7 +139,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 3d8 Radiant damage when the hit-based smite damage effect resolves.",
+      "description": "The strike that hit deals an extra 3d8 Radiant damage.",
       "conditionalEndings": []
     },
     {

@@ -145,7 +145,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "sensory",
-      "description": "Sense magical effects within 30 feet; with the Magic action you can see auras on visible creatures or objects and learn a spell's school; blocked by common materials as noted.",
+      "description": "For up to 10 minutes with concentration, sense magical effects within a 30-foot Sphere around the caster. With a Magic action, the caster can see auras on visible creatures or objects and learn a spell effect's school, but the sense is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or thin lead.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

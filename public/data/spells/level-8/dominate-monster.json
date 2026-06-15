@@ -140,7 +140,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "While the Charmed target is on the same plane, the caster has a telepathic link and can issue no-action commands on the caster turn. The target obeys on its turn, acts self-protectively after completing orders, and commanded Reactions cost the caster a Reaction.",
+      "description": "While the Charmed target is on the same plane as you, you have a telepathic link and can issue no-action commands on your turn. The target obeys on its turn, acts self-protectively after completing orders, and you can spend your Reaction to command the target to take a Reaction.",
       "utilityType": "other",
       "grantedActions": [
         {
@@ -288,7 +288,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a failed Wisdom save, the target has the Charmed condition for the duration.",
+      "description": "One visible creature within 60 feet has Advantage on the Wisdom save if you or your allies are fighting it; on a failed save, it is Charmed for the concentration duration, linked telepathically for commands, and repeats the save whenever it takes damage, ending the spell on a success.",
       "statusCondition": {
         "name": "Charmed",
         "duration": {

@@ -259,7 +259,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Enemies that can see the illusion when it appears must save or become Frightened of it for 1 minute.",
+      "description": "When the Huge shadow-dragon illusion appears in an unoccupied visible space within 120 feet, enemies that can see it must make a Wisdom save or become Frightened for 1 minute, repeating the save at end of turn if they no longer have line of sight.",
       "statusCondition": {
         "name": "Frightened",
         "duration": {
@@ -366,7 +366,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The illusion can exhale a 60-foot cone from its space during its bonus-action movement.",
+      "description": "During the bonus-action movement, the illusory dragon can exhale a 60-foot cone from its space; creatures in the cone make an Intelligence save, taking 7d6 of the chosen Acid, Cold, Fire, Lightning, Necrotic, or Poison damage on a failed save or half as much on a success, with Advantage for creatures that have discerned the illusion.",
       "damage": {
         "dice": "7d6",
         "type": "acid, cold, fire, lightning, necrotic, or poison"
@@ -428,7 +428,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "As a Bonus Action on the caster turn, the caster can move the illusion up to 60 feet.",
+      "description": "As a Bonus Action during the 1-minute concentration duration, the caster can move the tangible dragon illusion up to 60 feet and can trigger its 60-foot cone breath at any point during that movement.",
       "movementType": "speed_change",
       "distance": 60,
       "duration": {

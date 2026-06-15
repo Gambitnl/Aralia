@@ -148,7 +148,7 @@
         ]
       },
       "utilityType": "control",
-      "description": "On failed save, target is charmed. Each turn before moving, it must use its action to make a melee attack against a creature you choose. At end of each of its turns, it can repeat the Wisdom save to end the effect.",
+      "description": "One visible Humanoid within 120 feet that fails the Wisdom save is Charmed for up to 1 minute with concentration; before moving on each turn, it must use its action to make a melee attack against a caster-chosen creature other than itself, can act normally if no creature is chosen or reachable, repeats the Wisdom save at the end of each turn, and the caster must spend a Magic action on later turns to maintain control.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -224,7 +224,7 @@
           "useOriginalDC": true
         }
       },
-      "description": "The failed Wisdom save applies the Charmed condition for the spell's duration.",
+      "description": "A failed Wisdom save applies Charmed for up to 1 minute with concentration, with an end-turn Wisdom repeat save that ends the spell on that target on a success.",
       "conditionalEndings": [
         {
           "trigger": "repeat_save_success",

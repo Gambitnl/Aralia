@@ -40,6 +40,8 @@ import { StatusConditionCommand } from './StatusConditionCommand';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 import { applyDamageAndCheckDowned } from '../../utils/combat/deathSaveUtils';
 import { combatEvents } from '../../systems/events/CombatEvents';
+import { getStateTagForDamageType } from '../../types/elemental';
+import { applyStateToTags } from '../../systems/physics/ElementalInteractionSystem';
 
 /** Unique key for tracking Slasher speed reduction once-per-turn usage */
 const SLASHER_SLOW_USAGE_KEY = 'slasher_slow';
@@ -325,6 +327,12 @@ export class DamageCommand extends BaseEffectCommand {
         damagedThisTurn: updatedTarget.damagedThisTurn
       });
 
+      // --- Step 5b: Apply elemental state transition ---
+      // Elemental damage contacts the target and resolves against its existing
+      // stateTags (e.g. Wet + Cold -> Frozen, Wet + Fire -> Smoke). This is the
+      // command-level wiring from damage element into the physics state engine.
+      currentState = this.applyElementalState(currentState, target);
+
       // --- SLASHER FEAT LOGIC ---
       if (caster.feats?.includes('slasher') && this.effect.damage.type.toLowerCase() === 'slashing' && finalDamage > 0) {
         currentState = this.applySlasherFeat(currentState, caster, target, isCritical);
@@ -500,6 +508,47 @@ export class DamageCommand extends BaseEffectCommand {
     }
 
     return currentState;
+  }
+
+  /**
+   * Maps the damage element to an elemental StateTag and resolves it against the
+   * target's existing `stateTags` via the physics interaction engine.
+   *
+   * Damage types without an elemental meaning (bludgeoning, force, psychic, etc.)
+   * map to nothing and leave state untouched. When a reaction occurs (e.g. a Wet
+   * target struck by Cold becomes Frozen), the resolved interaction is logged so
+   * the combat log surfaces the physics outcome.
+   */
+  private applyElementalState(
+    state: CombatState,
+    target: CombatCharacter
+  ): CombatState {
+    if (!isDamageEffect(this.effect)) return state;
+
+    const incomingState = getStateTagForDamageType(this.effect.damage.type);
+    if (!incomingState) return state;
+
+    // Use the freshest target snapshot so this runs after the HP/status update.
+    const currentTarget = state.characters.find(c => c.id === target.id);
+    if (!currentTarget) return state;
+
+    const { newStates, result } = applyStateToTags(currentTarget.stateTags || [], incomingState);
+
+    let nextState = this.updateCharacter(state, target.id, { stateTags: newStates });
+
+    const message = result.interaction
+      ? `${currentTarget.name}: ${result.interaction}`
+      : `${currentTarget.name} is now ${incomingState}`;
+
+    nextState = this.addLogEntry(nextState, {
+      type: 'status',
+      message,
+      characterId: target.id,
+      targetIds: [target.id],
+      data: { stateTags: newStates }
+    });
+
+    return nextState;
   }
 
   private logDamage(

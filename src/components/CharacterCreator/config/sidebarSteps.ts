@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:27:14
- * Dependents: CreationSidebar.tsx
- * Imports: 1 files
+ * Last Sync: 14/06/2026, 20:43:53
+ * Dependents: components/CharacterCreator/CreationSidebar.tsx
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -49,10 +49,6 @@ export const isStepCompleted = (step: CreationStep, state: CharacterCreationStat
         if (!ability) return false;
       }
       // Races with required skill picks.
-      if (state.selectedRace.id === 'elf') {
-        const keen = state.racialSelections['elf']?.skillIds?.[0];
-        if (!keen) return false;
-      }
       if (state.selectedRace.id === 'centaur') {
         const nat = state.racialSelections['centaur']?.skillIds?.[0];
         if (!nat) return false;

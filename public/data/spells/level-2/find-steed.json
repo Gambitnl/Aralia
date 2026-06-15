@@ -157,7 +157,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Summons a steed companion for the spell's persistent companion effect; no slot-scaling changes are modeled.",
+      "description": "Summon a persistent loyal steed companion in an unoccupied space within 30 feet, choosing Horse, Camel, Dire Wolf, or Elk appearance and Celestial, Fey, or Fiend creature type. The steed is allied, shares your Initiative count, functions as a controlled mount while ridden, acts independently after your turn to protect you if you are Incapacitated, communicates telepathically with you within 1 mile, disappears at 0 Hit Points or if you die, can be replaced or resummoned by recasting, and uses the spell slot level for AC, Hit Points, Hit Dice, flight at slot level 4+, attack damage, and Celestial, Fey, or Fiend traits.",
       "conditionalEndings": []
     }
   ],

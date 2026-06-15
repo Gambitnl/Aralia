@@ -140,7 +140,7 @@
         "bonusPerLevel": "+1d10",
         "customFormula": "1d10 at level 1, 2d10 at level 5, 3d10 at level 11, 4d10 at level 17"
       },
-      "description": "On a melee spell hit, one target takes 1d10 Acid damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "description": "One creature within 5 feet takes 1d10 Acid damage on a melee spell hit; damage increases to 2d10 at level 5, 3d10 at level 11, and 4d10 at level 17.",
       "conditionalEndings": [],
       "tags": [
         "acid-damage",

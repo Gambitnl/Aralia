@@ -166,7 +166,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Charmed for up to 1 minute unless the Beast succeeds on the Wisdom save; damage can trigger the configured repeat save to end the condition.",
+      "description": "One visible Beast within 60 feet makes a Wisdom save, with Advantage if the caster or the caster's allies are fighting it; on a failed save, it is Charmed for up to 1 minute, and each time it takes damage it repeats the Wisdom save, ending the spell on itself on a success.",
       "conditionalEndings": []
     }
   ],

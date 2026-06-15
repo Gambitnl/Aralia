@@ -145,7 +145,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 3d8 psychic damage on a failed Wisdom save, or half as much on success; slot scaling adds +1d8 per level.",
+      "description": "One visible creature within 120 feet makes a Wisdom save, taking 3d8 Psychic damage on a failure or half as much on a success; on a failed save the caster knows the target location for up to 1 hour with concentration while both remain on the same plane, the target cannot become hidden from the caster, Invisible gives it no benefit against the caster, and each slot level above 2 adds +1d8 damage.",
       "conditionalEndings": []
     },
     {
@@ -201,7 +201,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "information",
-      "description": "On a failed save, you know the target's location for the duration while on the same plane.",
+      "description": "On a failed Wisdom save, the caster knows the target's location for up to 1 hour with concentration while both remain on the same plane; during that time, the target cannot become hidden from the caster and gains no benefit from Invisible against the caster.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

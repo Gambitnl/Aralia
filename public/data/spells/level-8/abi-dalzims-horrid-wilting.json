@@ -192,7 +192,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 12d8 Necrotic damage on a failed Constitution save, or half as much on success.",
+      "description": "Each non-Construct, non-Undead creature in the 30-foot Cube centered on a point within 150 feet makes a Constitution save, taking 12d8 Necrotic damage on a failure or half as much on a success; Plants and Water Elementals make this save with Disadvantage.",
       "conditionalEndings": []
     }
   ],

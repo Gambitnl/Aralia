@@ -135,7 +135,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Targets have Advantage on Wisdom saving throws for the duration.",
+      "description": "Choose any number of creatures within 30 feet for up to 1 minute with concentration; each target has Advantage on Wisdom saving throws.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -224,7 +224,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Targets have Advantage on death saving throws for the duration.",
+      "description": "Each chosen target has Advantage on Death Saving Throws for up to 1 minute with concentration.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -313,7 +313,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Targets regain the maximum possible hit points from any healing received for the duration.",
+      "description": "Each chosen target regains the maximum possible Hit Points from any healing received for up to 1 minute with concentration.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

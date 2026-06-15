@@ -153,7 +153,7 @@
         "dice": "2d4",
         "type": "Piercing"
       },
-      "description": "Difficult terrain; creatures take damage per 5 ft traveled within the area; camouflaged (Perception vs save DC to notice).",
+      "description": "For up to 10 minutes with concentration, create a camouflaged 20-foot-radius Sphere centered on a point within 150 feet; a creature takes 2d4 Piercing damage for every 5 feet it travels through the damaging Difficult Terrain.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -243,7 +243,7 @@
         "dice": "",
         "type": ""
       },
-      "description": "The area becomes Difficult Terrain.",
+      "description": "The 20-foot-radius Sphere is Difficult Terrain for up to 10 minutes with concentration, and a creature that could not see the area when the spell was cast must Search and succeed on a Wisdom (Perception or Survival) check against the spell save DC to recognize the hazard before entering.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

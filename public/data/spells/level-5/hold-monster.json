@@ -140,7 +140,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Records the Hold Monster control wrapper while the separate Paralyzed effect carries the Wisdom save, repeat save, and condition duration.",
+      "description": "Choose a visible creature within 90 feet; on a failed Wisdom save, the target is held by paralysis for up to 1 minute with concentration. The spell has no effect on Undead, and the target repeats the Wisdom save at the end of each turn, ending the spell on a success.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

@@ -148,7 +148,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Asleep option: on a failed Wisdom save, the target has the Unconscious condition. It wakes if it takes damage or another creature uses an action to shake it awake.",
+      "description": "Asleep option: on a failed Wisdom save, one visible creature within 60 feet becomes Unconscious until it takes damage or another creature uses an action to shake it awake.",
       "conditionalEndings": []
     },
     {
@@ -216,7 +216,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Panicked option: on a failed Wisdom save, the target has the Frightened condition. It must Dash away by the safest shortest route on each of its turns, and the effect ends if it reaches a space at least 60 feet away where it cannot see the caster.",
+      "description": "Panicked option: on a failed Wisdom save, one visible creature within 60 feet is Frightened of you, must Dash away by the safest shortest route on each turn while possible, and the effect ends if it reaches a space at least 60 feet away where it cannot see you.",
       "conditionalEndings": []
     },
     {
@@ -284,7 +284,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Sickened option: on a failed Wisdom save, the target has the Poisoned condition.",
+      "description": "Sickened option: on a failed Wisdom save, one visible creature within 60 feet has Disadvantage on attack rolls and ability checks, then repeats the Wisdom save at the end of each of its turns and ends the effect on a success.",
       "conditionalEndings": []
     },
     {
@@ -338,7 +338,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "For the spell's duration, your eyes become an inky void imbued with dread power. One creature of your choice within 60 feet of you that you can see must succeed on a Wisdom saving throw or be affected by one of the following effects of your choice for the duration. On each of your turns until the spell ends, you can use your action to target another creature but can't target a creature again if it has succeeded on a saving throw against this casting of eyebite.",
+      "description": "For up to 1 minute with concentration, your eyes become inky voids. On the initial cast and again with a Magic action on later turns, choose Asleep, Panicked, or Sickened for one visible creature within 60 feet; a creature that succeeds on a Wisdom save against this casting cannot be targeted by it again.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

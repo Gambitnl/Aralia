@@ -150,7 +150,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A creature that moves into the spell's area for the first time on a turn makes a Constitution save, taking no damage on a success.",
+      "description": "The first time on a turn that a creature moves into the 30-foot-radius Sickening Radiance area, it makes a Constitution save; on a failure it takes 4d10 Radiant damage, gains one exhaustion level, emits 5-foot-radius dim green light, and cannot benefit from being Invisible until the spell ends.",
       "conditionalEndings": []
     },
     {
@@ -214,7 +214,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A creature that starts its turn in the spell's area makes a Constitution save, taking no damage on a success.",
+      "description": "A creature that starts its turn in the 30-foot-radius Sickening Radiance area makes a Constitution save; on a failure it takes 4d10 Radiant damage, gains one exhaustion level, emits 5-foot-radius dim green light, and cannot benefit from being Invisible until the spell ends.",
       "conditionalEndings": []
     },
     {
@@ -268,7 +268,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "light",
-      "description": "Dim, greenish light fills the 30-foot-radius Sphere, spreads around corners, and causes failed-save creatures to emit Dim Light in a 5-foot radius.",
+      "description": "Dim green light fills a 30-foot-radius Sphere for up to 10 minutes with concentration, spreads around corners, and removes the spell-caused light and exhaustion when the spell ends.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

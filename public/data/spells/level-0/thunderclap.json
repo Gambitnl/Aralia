@@ -152,7 +152,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "Creatures in the 5-foot burst make a Constitution save against 1d6 Thunder damage, with cantrip-tier damage scaling.",
+      "description": "Creatures in the 5-foot Emanation originating from the caster make a Constitution save; on a failure they take 1d6 Thunder damage, the thunderous sound can be heard up to 100 feet away, and damage increases to 2d6 at level 5, 3d6 at level 11, and 4d6 at level 17.",
       "conditionalEndings": [],
       "soundEmission": {
         "audibleRadius": 100,

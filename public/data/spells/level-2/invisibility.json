@@ -152,7 +152,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Target becomes invisible until the spell ends early after it makes an attack roll, deals damage, or casts a spell; scales to additional targets with higher slots.",
+      "description": "Touch one creature for up to 1 hour with concentration; the target gains the Invisible condition until the spell ends early after it makes an attack roll, deals damage, or casts a spell. Higher slots add one target per slot level above 2.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -206,7 +206,7 @@
           "value": 60
         }
       },
-      "description": "The touched creature gains the Invisible condition while the spell remains active.",
+      "description": "The touched creature gains the Invisible condition for up to 1 hour with concentration; this spell ends early after the target makes an attack roll, deals damage, or casts a spell.",
       "conditionalEndings": [
         {
           "trigger": "target_makes_attack_roll",

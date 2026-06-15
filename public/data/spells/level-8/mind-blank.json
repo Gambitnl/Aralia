@@ -254,7 +254,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The willing target has Immunity to Psychic damage and the Charmed condition.",
+      "description": "For 24 hours, one willing creature the caster touches has Immunity to Psychic damage and the Charmed condition, and is also shielded from emotion or alignment sensing, thought reading, magical location detection, remote observation, mind control, and even Wish-based information gathering.",
       "defenseType": "immunity",
       "damageType": [
         "Psychic",

@@ -6,13 +6,13 @@ category: Runtime / Systems
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-12
+last_updated: 2026-06-14
 iteration: 3
 confidence: medium
 evidence: docs/projects/command-factory-runtime
-gap_signal: 4 open gaps; 4 open project gaps
+gap_signal: 5 open gaps; 5 open project gaps
 protocol: living project doc set
-next_step: Re-check src/commands/factory and src/hooks/useAbilitySystem.ts after the next source edit, then update GAPS.md if drift appears.
+next_step: Re-check src/commands/factory and src/hooks/useAbilitySystem.ts after next source edit or when resolving G1 or G3.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -29,8 +29,8 @@ required_verification:
 completed_verification:
   - scoped_tests
   - docs_consistency
-last_proof: 2026-06-08
-workflow_gaps_reviewed: 2026-06-08
+last_proof: 2026-06-14
+workflow_gaps_reviewed: 2026-06-14
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -41,7 +41,7 @@ human_decision_required: "no"
 # NORTH_STAR: Command Factory Runtime
 
 Status: active  
-Last updated: 2026-06-12
+Last updated: 2026-06-14
 
 ## Dashboard Card Schema
 
@@ -51,13 +51,13 @@ Category: Runtime / Systems
 Status: active
 Confidence: medium
 Evidence: docs/projects/command-factory-runtime
-Gap signal: 4 open project gaps
+Gap signal: 5 open project gaps
 Protocol: living project doc set
-Next step: Re-check `src/commands/factory` and `src/hooks/useAbilitySystem.ts` after the next source edit, then update `GAPS.md` if drift appears.
+Next step: Re-check `src/commands/factory` and `src/hooks/useAbilitySystem.ts` after next source edit or when resolving G1 or G3.
 Required verification: scoped_tests, docs_consistency
 Completed verification: scoped_tests, docs_consistency
-Last proof: 2026-06-08
-Workflow gaps reviewed: 2026-06-08
+Last proof: 2026-06-14
+Workflow gaps reviewed: 2026-06-14
 
 ## Purpose
 

@@ -175,7 +175,7 @@
         },
         "selfRelation": "not_applicable"
       },
-      "description": "Creatures of specified types have disadvantage on attack rolls against the target.",
+      "description": "For up to 10 minutes with concentration, Aberration, Celestial, Elemental, Fey, Fiend, and Undead creatures have Disadvantage on attack rolls against the touched target.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -251,7 +251,7 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "The target cannot gain Charmed or Frightened from the listed creature types while the spell remains active.",
+      "description": "For up to 10 minutes with concentration, the touched target cannot gain Charmed or Frightened from Aberration, Celestial, Elemental, Fey, Fiend, or Undead creatures.",
       "value": 0,
       "baseACFormula": "",
       "acMinimum": 0,

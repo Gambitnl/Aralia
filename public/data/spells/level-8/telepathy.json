@@ -135,7 +135,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Creates a 24-hour same-plane telepathic link with a familiar willing creature, allowing instant exchange of words, images, sounds, and other sensory messages.",
+      "description": "Create a 24-hour telepathic link with one familiar willing creature anywhere on the same plane. The link ends if either creature leaves the plane, lets both creatures instantly exchange words, images, sounds, and other sensory messages, and lets the target recognize the caster and understand the meaning of those messages.",
       "utilityType": "communication",
       "grantedActions": [],
       "attackAugments": [],

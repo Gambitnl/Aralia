@@ -1,3 +1,115 @@
+---
+schema_version: 1
+gap_schema: project_gap_registry
+project: Dialogue
+slug: dialogue
+status: active
+status_note: Preserved as routed_reference to avoid flattening existing gap provenance.
+registry_mode: routed_reference
+last_updated: "2026-06-10"
+gap_count: 6
+open_gap_count: 6
+resolved_gap_count: 0
+routed_gap_count: 0
+imported_gap_count: 0
+decision_required_count: 0
+visual_proof_required_count: 0
+highest_severity: medium
+proof_freshness: recorded
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+north_star: docs/projects/dialogue/NORTH_STAR.md
+tracker: docs/projects/dialogue/TRACKER.md
+global_gaps: docs/projects/GLOBAL_GAPS.md
+allowed_statuses:
+  - open
+  - active
+  - pending
+  - blocked
+  - not_started
+  - in_progress
+  - waiting
+  - needs_validation
+  - untriaged
+  - routed
+  - review-required
+  - design_decision_deferred
+  - merged-reference
+  - resolved
+  - closed
+  - done
+  - complete
+  - out_of_scope
+allowed_classifications:
+  - in_scope_now
+  - support_needed_now
+  - adjacent_follow_up
+  - out_of_scope
+  - blocked_human_decision
+  - blocked_external_state
+  - uncertainty
+  - architecture
+  - workflow
+  - execution-path
+  - typing-safety
+  - mechanics
+  - ui
+  - integration
+  - data-model
+  - test_coverage
+  - schema_normalization
+  - ownership
+  - serialization
+  - coverage
+  - globalize
+  - routed
+  - design_decision_deferred
+allowed_severities:
+  - none
+  - low
+  - medium
+  - high
+  - critical
+supported_optional_row_fields:
+  - owner_confidence
+  - source_project
+  - imported_from
+  - global_gap_id
+  - linked_gap_id
+  - routed_to
+  - decision_required
+  - decision_reference
+  - review_required
+  - visual_proof_required
+  - proof_freshness
+  - proof_date
+  - uncertainty
+  - notes
+supported_optional_sections:
+  - Current Readout
+  - Current State
+  - Purpose
+  - Summary
+  - Iteration Notes
+  - Classification Notes
+  - Global Routing
+  - Global Gap Imports
+  - Resolved Gap Log
+  - Required Review Brief
+  - Decision Visualizations
+  - Open / Uncertain Notes
+  - Appendix
+---
+project: Dialogue
+slug: dialogue
+last_updated: \"2026-06-10\"
+gap_count: 6
+open_gap_count: 6
+north_star: docs/projects/dialogue/NORTH_STAR.md
+tracker: docs/projects/dialogue/TRACKER.md
+global_gaps: docs/projects/GLOBAL_GAPS.md
+highest_severity: medium
+registry_mode: mixed
+---
 # Dialogue Gap Registry
 
 Status: active  
@@ -24,6 +136,11 @@ Use this file for durable unresolved findings that belong to the Dialogue featur
 | DIAL-005 | not_started | adjacent_follow_up | aralia-dialogue | `docs/projects/dialogue/TRACKER.md` | North Star review | Dialogue and companion chat are separate flows, but the boundary and ownership rule are not formalized in the handoff | `docs/projects/dialogue/NORTH_STAR.md` (separate `ConversationPanel` / `useConversation.ts` flow), `docs/projects/dialogue/COLD_START_AGENT_PROMPT.md` | Future work can patch the wrong system or assume shared state between flows | Add a short boundary note or decision entry clarifying the separation and ownership | Next cold-start handoff should point to the correct flow without ambiguity |
 | DIAL-006 | not_started | adjacent_follow_up | Codex | `docs/projects/code-modularization-audit` CMA-G12 | Code modularization audit routing | Companion banter orchestration is a large cross-flow hook that touches dialogue expectations but is not owned solely by Dialogue. | `src/hooks/useCompanionBanter.ts`; `docs/projects/companions/GAPS.md` G8 | Dialogue expansion can accidentally inherit companion-banter scheduling if ownership is unclear. | Add dialogue boundary notes before any banter extraction. | Handoff clearly says which flow owns companion banter vs scripted dialogue |
 
+## Schema Fit Notes
+
+| Issue | Existing content shape | Why schema does not fit | Proposed schema change |
+|---|---|---|---|
+| Non-canonical registry mode: `routed_reference` | Existing gap rows or prose carry compact, routed, merged-reference, or decision-history context. | Forcing the canonical row shape now could invent missing ownership/proof metadata or flatten provenance. | Preserve this section until a row-by-row migration can map each current field losslessly. |
 ## Classification Reference
 
 | Classification | Use when |

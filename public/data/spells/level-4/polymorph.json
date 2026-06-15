@@ -138,7 +138,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "On a failed Wisdom save, the target shape-shifts into a chosen Beast with CR no higher than its CR or level, uses that Beast stat block with retained identity traits, gains Beast-form Temporary HP, and ends early when those Temporary HP are depleted.",
+      "description": "One visible creature within 60 feet makes a Wisdom save or transforms into a Beast you choose for up to 1 hour with concentration, with CR no higher than the target CR or level. The target uses the Beast stat block while retaining alignment, personality, creature type, Hit Points, and Hit Point Dice, gains Beast-form Temporary Hit Points that vanish when the spell ends, cannot speak or cast spells, is limited by Beast anatomy, cannot use or benefit from merged gear, and the spell ends early when those Temporary Hit Points are depleted.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

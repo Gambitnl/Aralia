@@ -26,8 +26,12 @@ Last updated: 2026-06-10
 - T4 is complete; no reducer migration is required for this pass.
 - No player-facing (non-dev-menu) entry points exist yet for InvestmentBoard, LedgerBook, or CourierPouch.
 
-## Update Rules
+## Gap Log
 
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+
+## Update Rules
 - Update this tracker before starting a new slice.
 - Update it when implementation changes the current state.
 - Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.

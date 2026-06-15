@@ -6,7 +6,7 @@ category: Feature/UI Projects
 main_category: "Game & Simulation"
 subcategory: "Combat & Encounters"
 status: active
-last_updated: 2026-06-11
+last_updated: 2026-06-11
 iteration: 8
 confidence: high
 evidence: docs/projects/3d-combat-map

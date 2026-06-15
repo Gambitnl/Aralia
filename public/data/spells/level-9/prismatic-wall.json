@@ -305,7 +305,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Another creature that can see the wall and moves within 20 feet of it or starts its turn there must save or be Blinded for 1 minute.",
+      "description": "A creature other than the caster or designated safe creatures that can see the wall makes a Constitution save when it moves within 20 feet of the wall or starts its turn there; on a failed save, it is Blinded for 1 minute.",
       "statusCondition": {
         "name": "Blinded",
         "duration": {
@@ -369,7 +369,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The prismatic wall is an opaque blocking wall or globe with seven layers.",
+      "description": "The prismatic wall is an opaque blocking wall or globe with seven ordered colored layers, AC 10, layer-by-layer destruction from red to violet, Antimagic Field immunity, and violet-only Dispel Magic interaction.",
       "terrainType": "wall",
       "areaOfEffect": {
         "shape": "Square",

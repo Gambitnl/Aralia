@@ -148,7 +148,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Invisible for 1 minute to the target.",
+      "description": "Touch one creature for up to 1 minute with concentration; the target gains the Invisible condition until the spell ends, and attacking does not end this invisibility.",
       "conditionalEndings": []
     }
   ],

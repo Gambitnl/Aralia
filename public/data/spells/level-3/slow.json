@@ -155,7 +155,7 @@
           "useOriginalDC": true
         }
       },
-      "description": "On a failed Wisdom save, affected creatures become Slowed: reduced speed, AC/Dexterity-save penalty, no Reactions, limited action economy, one Attack-action attack, somatic spell-failure chance, and end-turn repeat save.",
+    "description": "On a failed Wisdom save, each affected creature becomes Slowed for up to 1 minute with concentration. While Slowed, Speed is halved, AC and Dexterity saves take a -2 penalty, Reactions are unavailable, the target can take either an action or a Bonus Action but not both, only one attack can be made with the Attack action, Somatic spells have a 25 percent failure chance, and the target repeats the Wisdom save at the end of each turn to end the effect on itself.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

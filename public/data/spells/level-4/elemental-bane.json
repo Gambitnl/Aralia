@@ -136,7 +136,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Choose Acid, Cold, Fire, Lightning, or Thunder. On a failed Constitution save, the target is affected for the duration: the first time each turn it takes damage of the chosen type, it takes an extra 2d6 damage of that type, and it loses any resistance to that damage type until the spell ends.",
+      "description": "Choose Acid, Cold, Fire, Lightning, or Thunder and one creature within 90 feet; on a failed Constitution save for up to 1 minute with concentration, the target loses resistance to the chosen type and the first time each turn it takes that damage type it takes an extra 2d6 damage of the same type.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

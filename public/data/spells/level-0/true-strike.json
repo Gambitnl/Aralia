@@ -136,7 +136,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Make one weapon attack using your spellcasting ability. Damage can be Radiant or normal type.",
+      "description": "Make one weapon attack with the weapon used in the casting, using the caster's spellcasting ability for both the attack and damage rolls instead of Strength or Dexterity; if the attack deals damage, it can deal Radiant damage or the weapon's normal damage type, with extra Radiant damage increasing to 1d6 at level 5, 2d6 at level 11, and 3d6 at level 17.",
       "attackAugments": [
         {
           "attackType": "weapon",

@@ -151,7 +151,7 @@
         "customFormula": "{\"5\": \"2d6\", \"11\": \"3d6\", \"17\": \"4d6\"}",
         "bonusPerLevel": ""
       },
-      "description": "Creatures in the 5-foot sphere make a Dexterity save against 1d6 Acid damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "description": "Create an acidic burst at a point within 60 feet; creatures in the 5-foot-radius Sphere make a Dexterity save, taking 1d6 Acid damage on a failure, and damage increases to 2d6 at level 5, 3d6 at level 11, and 4d6 at level 17.",
       "conditionalEndings": [],
       "tags": [
         "acid-damage",

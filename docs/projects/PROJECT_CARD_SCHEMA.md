@@ -1,7 +1,7 @@
 # Project Dashboard Schema
 
 Status: active
-Last updated: 2026-06-12
+Last updated: 2026-06-15
 
 This file documents how top-level Project Tracker cards get their content and
 what agents must keep current when they finish a project iteration.
@@ -49,6 +49,10 @@ gap_signal: "3 open gaps; short source-backed summary"
 protocol: living project doc set
 next_step: Define the next concrete handoff action.
 agent_comments: "Optional note outside the normal flow; keep empty when not needed."
+active_agent: ""
+agent_pass_status: not_started
+agent_pass_started_at: ""
+agent_pass_ended_at: ""
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -83,6 +87,16 @@ specific warning for the next agent. If the note is a reusable workflow problem,
 also register or `+1` it in
 `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md`.
 
+`active_agent`, `agent_pass_status`, `agent_pass_started_at`, and
+`agent_pass_ended_at` are pass-ownership telemetry for the project dashboard.
+At the start of an iteration, after the agent has read enough handoff metadata
+to identify the project files but before deeper project reading or task
+selection, the agent should write its identity, set `agent_pass_status:
+in_progress`, set `agent_pass_started_at` to the local start timestamp, and
+clear `agent_pass_ended_at`. At closeout, keep the active agent and start time,
+then set `agent_pass_status` to the real final pass state and set
+`agent_pass_ended_at`.
+
 `required_docs` should list the full canonical living-project surface, including
 supporting docs. If a supporting doc is not relevant for a project yet, the
 agent should keep it listed and explain "not needed this iteration" in the final
@@ -101,6 +115,145 @@ leaving it as an unnamed one-off.
 
 Schema-fit decisions for project-specific artifacts are tracked in
 `docs/projects/PROJECT_SCHEMA_MIGRATION_NOTES.md`.
+
+## Project Gap Registry Frontmatter Schema
+
+Add this block at the top of `GAPS.md` and keep the existing Markdown gap log
+below it. The frontmatter gives the dashboard and audit a stable count/index;
+the Markdown table remains the source-backed working registry agents edit.
+
+```yaml
+---
+schema_version: 1
+gap_schema: project_gap_registry
+project: Readable Project Name
+slug: readable-project-name
+status: active
+status_note: ""
+registry_mode: canonical
+last_updated: 2026-06-04
+gap_count: 3
+open_gap_count: 2
+resolved_gap_count: 1
+routed_gap_count: 0
+imported_gap_count: 0
+decision_required_count: 0
+visual_proof_required_count: 0
+highest_severity: medium
+proof_freshness: mixed
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+north_star: docs/projects/readable-project-name/NORTH_STAR.md
+tracker: docs/projects/readable-project-name/TRACKER.md
+global_gaps: docs/projects/GLOBAL_GAPS.md
+allowed_statuses:
+  - open
+  - active
+  - pending
+  - blocked
+  - not_started
+  - in_progress
+  - waiting
+  - needs_validation
+  - untriaged
+  - routed
+  - review-required
+  - design_decision_deferred
+  - merged-reference
+  - resolved
+  - closed
+  - done
+  - complete
+  - out_of_scope
+allowed_classifications:
+  - in_scope_now
+  - support_needed_now
+  - adjacent_follow_up
+  - out_of_scope
+  - blocked_human_decision
+  - blocked_external_state
+  - uncertainty
+  - architecture
+  - workflow
+  - execution-path
+  - typing-safety
+  - mechanics
+  - ui
+  - integration
+  - data-model
+  - test_coverage
+  - schema_normalization
+  - ownership
+  - serialization
+  - coverage
+  - globalize
+  - routed
+  - design_decision_deferred
+allowed_severities:
+  - none
+  - low
+  - medium
+  - high
+  - critical
+supported_optional_row_fields:
+  - owner_confidence
+  - source_project
+  - imported_from
+  - global_gap_id
+  - linked_gap_id
+  - routed_to
+  - decision_required
+  - decision_reference
+  - review_required
+  - visual_proof_required
+  - proof_freshness
+  - proof_date
+  - uncertainty
+  - notes
+supported_optional_sections:
+  - Current Readout
+  - Current State
+  - Purpose
+  - Summary
+  - Iteration Notes
+  - Classification Notes
+  - Global Routing
+  - Global Gap Imports
+  - Resolved Gap Log
+  - Required Review Brief
+  - Decision Visualizations
+  - Open / Uncertain Notes
+  - Appendix
+---
+```
+
+`gap_count` is the number of rows in the `Gap Log` table.
+`open_gap_count` counts rows whose status is still actionable:
+`open`, `active`, `pending`, `blocked`, `not_started`, `in_progress`,
+`waiting`, `needs_validation`, `untriaged`, `routed`, or `review-required`.
+`registry_mode` records whether the file is already `canonical`, still
+`compact`, a `routed_reference`, or a `merged_reference`. Do not flatten
+compact/reference registries until a migration pass can preserve routed
+ownership, decision provenance, proof freshness, and visual proof needs.
+
+Canonical migration target for `Gap Log` rows:
+
+```markdown
+| Gap ID | Status | Severity | Classification | Owner | Owner confidence | Source project | Imported/global link | Decision/review state | Visual proof | Proof freshness | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+```
+
+Minimum row contract before full migration:
+
+```markdown
+| Gap ID | Status | Classification | Gap | Evidence/source | Next action |
+|---|---|---|---|---|---|
+```
+
+Allowed optional body sections exist because the current project gap files use
+real supporting structures: resolved-gap logs, global/import routing notes,
+required-review briefs, decision visualizations, current-state readouts, and
+appendices. Preserve those sections unless their content is explicitly migrated
+into canonical columns.
 
 ## Required `Dashboard Card Schema` Section
 
@@ -123,6 +276,10 @@ Gap signal: 3 open gaps; short source-backed summary
 Protocol: living project doc set
 Next step: Define the next concrete handoff action.
 Agent comments: Optional note outside the normal flow; keep empty when not needed.
+Active agent:
+Agent pass status: not_started
+Agent pass started at:
+Agent pass ended at:
 Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-04
@@ -178,6 +335,10 @@ Field meanings:
 | Last proof | Date of the most recent durable proof update. |
 | Workflow gaps reviewed | Date the agent checked `WORKFLOW_GAPS.md`. |
 | Agent comments | Brief note for unusual workflow friction, assumptions, or out-of-flow concerns. |
+| Active agent | Agent/model currently owning or most recently owning the project iteration pass. Set this at pass start before deeper project reading or task selection. |
+| Agent pass status | Current pass state: `not_started`, `in_progress`, `blocked`, `finished`, `waiting`, `review_required`, `idle`, or a clearly explained local status. |
+| Agent pass started at | Local timestamp for when the active agent began the pass. Prefer an ISO-like value with timezone. |
+| Agent pass ended at | Local timestamp for when the active pass finished, blocked, paused, or handed off. Leave empty while the pass is in progress. |
 | Required docs | Canonical living-project docs the agent must account for. |
 | Optional docs | Project-specific extras the agent must be aware of when present. |
 | Compaction status | Whether anti-bloat cleanup was `not_needed`, `done`, or `needed`. |
@@ -207,6 +368,10 @@ Field meanings:
   "lastProof": "2026-06-04",
   "workflowGapsReviewed": "2026-06-04",
   "agentComments": "Optional out-of-flow note.",
+  "activeAgent": "Codex application agent",
+  "agentPassStatus": "in_progress",
+  "agentPassStartedAt": "2026-06-15T01:21:09+02:00",
+  "agentPassEndedAt": "",
   "requiredDocs": ["NORTH_STAR.md", "TRACKER.md", "GAPS.md", "COLD_START_AGENT_PROMPT.md", "DECISIONS.md", "AUDIT_OR_PROOF.md", "RUNBOOK.md"],
   "optionalDocs": ["tasks/", "architecture notes", "migration notes"],
   "compactionStatus": "not_needed",

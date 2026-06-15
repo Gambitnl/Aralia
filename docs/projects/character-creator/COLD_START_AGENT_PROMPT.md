@@ -3,10 +3,10 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Character Creator
 slug: character-creator
-Status: active
-last_updated: 2026-06-12
-iteration: 5
-source_agent: Gemini 3.5 Flash (Medium)
+status: active
+last_updated: 2026-06-14
+iteration: 6
+source_agent: Antigravity
 target_agent: next cold-start agent
 runtime_surface: CLI agent
 certainty: certain
@@ -20,7 +20,7 @@ gaps: docs/projects/character-creator/GAPS.md
 # Character Creator Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-12
+Last updated: 2026-06-14
 
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
@@ -33,33 +33,36 @@ Project entry point: docs/projects/character-creator/NORTH_STAR.md
 |---|---|---|---|---|---|
 | 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
 | 5 | Gemini 3.5 Flash (Medium) | CLI agent | certain | 2026-06-12 | Reconciled T4 documentation drift and registered racial trait gaps G18, G19 |
+| 6 | Antigravity | CLI agent | certain | 2026-06-14 | Resolved G18 redundant validation checks and G19 rest choices mapping/type bugs |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Character Creator
 Project folder: docs/projects/character-creator
-iteration: 5
+iteration: 6
 North Star: docs/projects/character-creator/NORTH_STAR.md
 Tracker: docs/projects/character-creator/TRACKER.md
 Gaps: docs/projects/character-creator/GAPS.md
 
 ## Current Mission
 
-The T4 documentation harmonization is resolved (drift reconciled to reflect G2 permissive navigation). Two new racial trait gaps are registered (G18 base-race validation dead-code, G19 rest-choices mapping/type bugs). Next mission: Proceed to address G18 (redundant base-race checks in validation) and G19 (rest choices mapping/type bugs).
+Redundant base-race validation checks are removed (G18), and rest choices are fully resolved and typed (G19). Next mission: Proceed to address G7 (CreationSidebar test alias mismatch), G14 (CreationSidebar progress counter jumps), and G20 (deriveRacialSkillGrants test mismatch).
 
 ## Required End State For This Iteration
 
-- Redundant base-race validation checks are removed from `useCharacterAssembly.ts` and `sidebarSteps.ts` (resolving G18).
-- `RacialRestChoiceData` interface is updated with `weaponIds`, and `characterReducer.ts` is fixed to map rest skill choices to valid `Skill` objects using `SKILLS_DATA` lookup (resolving G19).
-- Run `npm run typecheck` and `npm run test` to verify that character creator and state tests pass.
+- Fix test in `CreationSidebar.test.tsx` to query with correct step labels and enums (resolving G7).
+- Update `CreationSidebar.tsx` to handle progress counter logically (e.g. counting visited steps only or showing remaining choices) to resolve G14.
+- Fix `skillSelectionUtils.test.ts` to expect either correct source or mock the `raceId` as `'human'` for the human check (resolving G20).
+- Run `npm run test` and `npm run typecheck` to verify that character creator and state tests pass.
 
 ## Evidence
 
-- `useCharacterAssembly.ts:293-296` and `sidebarSteps.ts:52-55` (G18 redundant checks evidence)
-- `characterReducer.ts:626-628,638,644` and `types/character.ts:473-480` (G19 rest choices mapping and type bugs evidence)
+- `CreationSidebar.test.tsx:37-41` (G7 evidence)
+- `CreationSidebar.tsx` progress bar logic (G14 evidence)
+- `src/components/CharacterCreator/utils/__tests__/skillSelectionUtils.test.ts:48-66` (G20 evidence)
 
 ## agent_comments
 
-- G2 is resolved and documented; sidebar navigation is intentionally permissive.
+- Iteration 6 resolved G18 and G19 successfully, and all character creator hooks and reducer tests are passing.
 Required docs to account for before closeout:
 - NORTH_STAR.md
 - TRACKER.md
@@ -99,6 +102,7 @@ Before selecting work, identify yourself and the surface you are running through
 |---|---|---|---|---|---|
 | pre-standardization | not recorded | unknown | unknown | before 2026-06-12 | Original character-creator handoff predates the ledger requirement. |
 | 5 | Gemini 3.5 Flash (Medium) | CLI agent | certain | 2026-06-12 | Reconciled T4 documentation drift and registered racial trait gaps G18, G19 |
+| 6 | Antigravity | CLI agent | certain | 2026-06-14 | Resolved G18 redundant validation checks and G19 rest choices mapping/type bugs |
 
 ### Required project docs to account for
 

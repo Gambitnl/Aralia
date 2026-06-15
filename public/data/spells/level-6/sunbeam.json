@@ -150,7 +150,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The caster launches or recreates a 5-foot-wide, 60-foot-long Line of radiance; each creature in the Line makes a Constitution save, taking 6d8 Radiant damage on a failed save or half as much on a successful one.",
+      "description": "Each creature in the 5-foot-wide, 60-foot line makes a Constitution save, taking 6d8 Radiant damage on a failed save or half as much on a success.",
       "conditionalEndings": []
     },
     {
@@ -213,7 +213,7 @@
         },
         "level": 0
       },
-      "description": "On a failed Constitution save, a creature has the Blinded condition until the start of the caster's next turn.",
+      "description": "On a failed Constitution save against the Sunbeam line, the target is Blinded until the start of the caster's next turn.",
       "conditionalEndings": []
     },
     {
@@ -237,7 +237,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "light",
-      "description": "A mote of brilliant radiance shines above the caster for the duration, shedding Bright Light in a 30-foot radius and Dim Light for an additional 30 feet. This light is sunlight.",
+      "description": "For up to 1 minute with concentration, bright sunlight shines from the caster in a 30-foot radius and dim sunlight for an additional 30 feet; the caster can use an action on later turns to project the 5-foot-wide, 60-foot line again.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

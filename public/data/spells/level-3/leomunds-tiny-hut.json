@@ -139,7 +139,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
-      "description": "Creates a stationary 10-foot-radius shelter around the caster: initial occupants can pass freely, outsiders and outside objects are barred, low-level spells cannot cross the boundary, and the interior stays comfortable with caster-chosen dim light or darkness.",
+      "description": "Create a stationary 10-foot-radius shelter around the caster for 8 hours; creatures and objects inside when cast can pass through freely, all others are barred, spells of 3rd level or lower cannot cross the boundary, and the interior stays dry and comfortable with caster-chosen dim light or darkness.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

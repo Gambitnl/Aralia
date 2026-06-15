@@ -154,7 +154,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": "1d8 at level 1, 2d8 at level 5, 3d8 at level 11, 4d8 at level 17"
       },
-      "description": "One target within 60 feet makes a Dexterity save against 1d8 Radiant damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "description": "One visible creature within 60 feet makes a Dexterity save that gains no benefit from Half Cover or Three-Quarters Cover; on a failure it takes 1d8 Radiant damage, and damage increases to 2d8 at level 5, 3d8 at level 11, and 4d8 at level 17.",
       "conditionalEndings": [],
       "tags": [
         "radiant-damage",

@@ -145,7 +145,7 @@
         "bonusPerLevel": "+1d12",
         "customFormula": "1d12 at level 1, 2d12 at level 5, 3d12 at level 11, 4d12 at level 17"
       },
-      "description": "One target within 30 feet takes 1d12 Poison damage when the hit-based damage effect resolves; cantrip scaling raises the damage at character levels 5, 11, and 17.",
+      "description": "One creature within 30 feet takes 1d12 Poison damage on a ranged spell hit; damage increases to 2d12 at level 5, 3d12 at level 11, and 4d12 at level 17.",
       "conditionalEndings": [],
       "tags": [
         "poison-damage",

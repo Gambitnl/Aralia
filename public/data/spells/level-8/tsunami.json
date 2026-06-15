@@ -342,7 +342,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "At the start of each caster turn after the wall appears, Huge or smaller creatures inside the wall or whose space the wall enters save against ongoing Bludgeoning damage.",
+      "description": "At the start of each caster turn after the wall appears, Huge or smaller creatures inside the wall or whose space the wall enters make a Strength save, taking 5d10 Bludgeoning damage on a failed save or half as much on a success. A creature takes this damage only once per round, and later-round damage decreases by 1d10 each turn as the wall height falls.",
       "damage": {
         "dice": "5d10",
         "type": "Bludgeoning"

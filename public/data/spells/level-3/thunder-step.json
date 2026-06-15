@@ -145,7 +145,7 @@
         "bonusPerLevel": "+1d10",
         "customFormula": ""
       },
-      "description": "Deals 3d10 Thunder damage on a failed Constitution save, or half as much on success; slot scaling adds +1d10.",
+      "description": "Immediately after the caster teleports away, each creature within 10 feet of the origin space makes a Constitution save, taking 3d10 Thunder damage on a failure or half as much on a success; the boom is audible up to 300 feet away, and each slot level above 3 adds +1d10 damage.",
       "soundEmission": {
         "audibleRadius": 300,
         "radiusUnit": "feet",

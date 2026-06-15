@@ -145,7 +145,7 @@
         "bonusPerLevel": "+1 die (d8 or d12)",
         "customFormula": "1d8 (or 1d12 if damaged) at level 1; increases by 1 die at levels 5, 11, and 17"
       },
-      "description": "One target within 60 feet makes a Wisdom save against Necrotic damage; the damage uses d8s or d12s based on the target's injury state and scales at cantrip tiers.",
+      "description": "One visible creature within 60 feet hears a dolorous bell audible within 10 feet and makes a Wisdom save; on a failure it takes 1d8 Necrotic damage, or 1d12 Necrotic damage if it is missing any Hit Points, and damage increases to 2 dice at level 5, 3 dice at level 11, and 4 dice at level 17.",
       "conditionalEndings": [],
       "soundEmission": {
         "audibleRadius": 10,

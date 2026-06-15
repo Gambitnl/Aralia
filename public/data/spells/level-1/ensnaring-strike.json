@@ -207,7 +207,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The struck target must succeed on a Strength save or be Restrained for up to 1 minute while the spell persists.",
+      "description": "When the triggering weapon hit lands, the target makes a Strength save with Advantage if it is Large or larger; on a failure it is Restrained for up to 1 minute with concentration, on a success the vines shrivel and the spell ends, and the target or a creature within reach can use an action for a Strength (Athletics) check against the spell save DC to end the spell.",
       "conditionalEndings": [],
       "tags": [
         "restrained",

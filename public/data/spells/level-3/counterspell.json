@@ -136,7 +136,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Reaction interrupt attempt: target caster makes a Constitution save; on failure, the triggering spell has no effect and its casting action is wasted without expending a spell slot.",
+      "description": "When you see a creature within 60 feet casting a spell, you try to interrupt it. The caster makes a Constitution saving throw. On a failure, the spell fizzles, the casting action is wasted, and any slot used for it is not expended.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

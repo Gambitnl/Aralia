@@ -143,7 +143,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Creature entering or starting in the zone must make a Charisma save; on failed save it cannot speak deliberate lies while in the area. You know whether each creature succeeds or fails.",
+      "description": "Create a 15-foot-radius Sphere within 60 feet for 10 minutes. A creature that enters the zone for the first time on a turn or starts its turn there makes a Charisma save; on a failed save, it cannot speak a deliberate lie while in the zone, and the caster knows whether each creature succeeds or fails.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

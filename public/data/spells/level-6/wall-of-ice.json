@@ -194,7 +194,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "If the wall cuts through a creature's space when it appears, the creature is pushed to one side chosen by the caster and makes a Dexterity save against 10d6 Cold damage.",
+      "description": "If the 1-foot-thick ice wall, dome, globe, or contiguous panel shape cuts through a creature's space when it appears within 120 feet, the caster pushes that creature to one side and it makes a Dexterity save, taking 10d6 Cold damage on a failure or half as much on a success; each slot level above 6 adds +2d6 appearance damage.",
       "conditionalEndings": []
     },
     {
@@ -279,7 +279,7 @@
         "hp": 30,
         "ac": 12
       },
-      "description": "Creates a 1-foot-thick ice wall on a solid surface as a hemisphere, globe, or flat contiguous panels. Each 10-foot section has AC 12 and 30 Hit Points.",
+      "description": "Creates a 1-foot-thick ice wall on a solid surface as a 10-foot-radius hemisphere or globe, or up to ten contiguous 10-foot panels; each 10-foot section has AC 12, 30 Hit Points, Cold, Poison, and Psychic immunity, Fire vulnerability, and leaves frigid air behind when destroyed.",
       "conditionalEndings": []
     },
     {
@@ -343,7 +343,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "A creature moving through the frigid air left behind by a destroyed wall section for the first time on a turn makes a Constitution save, taking 5d6 Cold damage on a failed save or half as much on a success.",
+      "description": "A creature moving through frigid air left by a destroyed wall section for the first time on a turn makes a Constitution save, taking 5d6 Cold damage on a failure or half as much on a success; each slot level above 6 adds +1d6 frigid-air damage.",
       "conditionalEndings": []
     },
     {

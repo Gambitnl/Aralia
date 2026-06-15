@@ -212,7 +212,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On the same hit, the target has opportunity attacks suppressed for 1 round.",
+      "description": "On the triggering melee spell hit, the target has opportunity attacks suppressed for 1 round.",
       "conditionalEndings": [],
       "tags": [
         "reaction-control",

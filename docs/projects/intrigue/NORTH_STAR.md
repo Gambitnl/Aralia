@@ -6,13 +6,13 @@ category: Feature/System Projects
 main_category: "Game & Simulation"
 subcategory: Core Sim Systems
 status: active
-last_updated: 2026-06-05
-iteration: 2
+last_updated: 2026-06-15
+iteration: 3
 confidence: medium
 evidence: docs/projects/intrigue
-gap_signal: 7 open gaps in GAPS.md
+gap_signal: 6 open gaps in GAPS.md
 protocol: living project doc set
-next_step: Continue I2 by deciding whether LeverageSystem gets production wiring or a documented deferment.
+next_step: Continue I3 by resolving rumor lead handling contract.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -28,8 +28,9 @@ required_verification:
   - scoped_tests
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-05
-workflow_gaps_reviewed: 2026-06-05
+  - scoped_tests
+last_proof: 2026-06-15
+workflow_gaps_reviewed: 2026-06-15
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -50,13 +51,13 @@ Category: Feature/System Projects
 Status: active
 Confidence: medium
 Evidence: docs/projects/intrigue
-Gap signal: 7 open gaps in `GAPS.md`
+Gap signal: 6 open gaps in `GAPS.md`
 Protocol: living project doc set
-Next step: Continue `I2` by deciding whether `LeverageSystem` gets production wiring or a documented deferment.
+Next step: Continue `I3` by resolving rumor lead handling contract.
 Required verification: docs_consistency, scoped_tests
-Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Completed verification: docs_consistency, scoped_tests
+Last proof: 2026-06-15
+Workflow gaps reviewed: 2026-06-15
 
 Purpose
 Intrigue connects social intelligence, faction politics, and rumor-driven world state with the rest of Aralia. It is implemented as three layers:
@@ -120,16 +121,15 @@ Integration points to preserve
 
 Current gaps and uncertainties to carry forward
 - `IntrigueCheckResult` is defined in `src/types/identity.ts` but not used by any live reducer or action flow.
-- `LeverageSystem` has no production wiring; it is currently covered by unit tests only.
+- `LeverageSystem` is now wired with `APPLY_LEVERAGE` action type (actionTypes.ts:245), identityReducer case (identityReducer.ts:109), `LeverageUI.tsx` component, and integration tests. Next step for leverage: integrate the LeverageUI into a dialog/npc-interaction surface so players can invoke it in context.
 - `TavernGossipSystem` marks `lead` option payload as `undefined` with a TODO to connect quest/world hookups.
 - `TavernGossipSystem` and two noble/secret generator families show partial overlap and different payload conventions.
-- Reputation/rumor hooks are present, but there is no complete player-facing chain for applying discovered secret leverage in social resolution.
+- Reputation/rumor hooks are present, but the player-facing chain for applying discovered secret leverage now has an action path and UI component awaiting dialog surface integration.
 
 Resume path
-1. Start with `TRACKER.md` row `I2`.
-2. Resolve whether leverage is wired into a gameplay path or deliberately deferred.
-3. If `I2` is deferred, convert that decision into a concise gap update and move to `I3`.
-4. Keep the active gap list aligned with `GAPS.md` before opening any new work.
+1. Start with `TRACKER.md` row `I3`.
+2. Resolve rumor lead handling contract (lead type currently non-actionable).
+3. Keep the active gap list aligned with `GAPS.md` before opening any new work.
 
 
 ## Cold-Start Gap Routing
@@ -138,6 +138,5 @@ The next cold-start agent must:
 - read `TRACKER.md` and `GAPS.md` first
 - read the existing project gaps in `GAPS.md` before choosing work
 - tackle one real, evidence-backed project gap in the same pass
-- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
-- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- if no valid in-scope project gaps exist, identify real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count

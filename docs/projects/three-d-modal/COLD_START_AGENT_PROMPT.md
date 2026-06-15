@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Three D Modal
 slug: three-d-modal
-Status: merged-reference
+status: merged-reference
 last_updated: 2026-06-12
 iteration: 2
 source_agent: Not recorded

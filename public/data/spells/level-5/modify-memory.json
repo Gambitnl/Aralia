@@ -134,7 +134,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "information",
-      "description": "You attempt to reshape another creature's memories. One creature that you can see must make a Wisdom saving throw. If you are fighting the creature, it has Advantage on the saving throw. On a failed save, the target becomes Charmed by you for the duration. The Charmed target is Incapacitated and unaware of its surroundings, though it can still hear you. If it takes any damage or is targeted by another spell, this spell ends, and none of the target's memories are modified. While this charm lasts, you can affect the target's memory of an event that it experienced within the last 24 hours and that lasted no more than 10 minutes. You can permanently eliminate all memory of the event, allow the target to recall the event with perfect clarity and exacting detail, change its memory of the details of the event, or create a memory of an event that never happened. You must speak to the target to describe how its memories are affected, and it must be able to understand your language for the modified memories to take root. Its mind fills in any gaps in the details of your description. If the spell ends before you have finished describing the modified memories, the creature's memory isn't altered. Otherwise, the modified memories take hold when the spell ends. A modified memory doesn't necessarily affect how a creature behaves, particularly if the memory contradicts the creature's natural inclinations, alignment, or beliefs. An illogical modified memory, such as implanting a memory of how much the creature enjoyed dousing itself in acid, is dismissed, perhaps as a bad dream. The DM might deem a modified memory too nonsensical to affect a creature in a significant manner. A *Remove Curse* or *Greater Restoration* spell cast on the target restores the creature's true memory.",
+      "description": "Choose one visible creature within 30 feet; on a failed Wisdom save, with Advantage if it is fighting you, it is Charmed and Incapacitated for up to 1 minute with concentration while you describe a memory change for an event from the last 24 hours lasting no more than 10 minutes. Damage, another spell targeting it, ending before the description is complete, or the target being unable to understand your language prevents modification; Remove Curse or Greater Restoration restores the true memory, and higher slots extend the lookback window.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -241,7 +241,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A failed Wisdom save applies Charmed for the spell duration. The target has advantage on the save if it is fighting the caster.",
+      "description": "On a failed Wisdom save, the target is Charmed for up to 1 minute with concentration, has Advantage on the save if it is fighting you, must be able to understand your language for the modified memory to take root, and can have the true memory restored by Remove Curse or Greater Restoration.",
       "conditionalEndings": []
     },
     {
@@ -313,7 +313,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A failed Wisdom save leaves the Charmed target Incapacitated and unaware of its surroundings while it can still hear the caster.",
+      "description": "On a failed Wisdom save, the Charmed target is Incapacitated and unaware of its surroundings while still able to hear you; this nested state supports the memory-description window and ends without modifying memory if the spell ends before the description is complete.",
       "conditionalEndings": []
     }
   ],

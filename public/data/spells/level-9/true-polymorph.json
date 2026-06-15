@@ -136,7 +136,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Transform one visible creature or nonmagical unattended object within 30 feet using creature-to-creature, creature-to-object, or object-to-creature mode. Unwilling creatures can negate the spell with a Wisdom save, and maintaining concentration for the full hour makes the transformation last until dispelled. The modes preserve CR or level limits, object-size and worn-or-carried eligibility, friendly controlled object-creature behavior, loss of caster control after one hour, retained hit points, Hit Point Dice, alignment, and personality for creature forms, action, speech, spellcasting, and gear limits, and no memory of time spent as an object.",
+      "description": "Transform one visible creature or nonmagical unattended object within 30 feet using creature-to-creature, creature-to-object, or object-to-creature mode. Unwilling creatures can negate the spell with a Wisdom save, and maintaining concentration for the full hour makes the transformation last until dispelled. The modes keep their CR or level limits, object-size and worn-or-carried eligibility, friendly object-creature control while the spell is controlled, loss of caster control after one hour, retained Hit Points, Hit Point Dice, alignment, and personality for creature forms, action, speech, spellcasting, gear limits, and no memory of time spent as an object.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -278,7 +278,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Creature-into-creature grants temporary hit points equal to the new form Hit Points.",
+      "description": "In True Polymorph creature-to-creature mode, the new form grants temporary hit points equal to that form Hit Points.",
       "defenseType": "temporary_hp",
       "duration": {
         "type": "special"

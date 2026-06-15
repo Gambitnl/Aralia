@@ -206,7 +206,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a failed Intelligence save, the target is Stunned and repeats the save at the end of each of its turns.",
+      "description": "Up to ten chosen visible creatures within 90 feet, excluding creatures with Intelligence 2 or lower, are Stunned on a failed Intelligence save after Psychic Scream damage and repeat the Intelligence save at the end of each of their turns, ending Stunned on success.",
       "statusCondition": {
         "name": "Stunned",
         "duration": {

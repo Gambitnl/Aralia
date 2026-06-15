@@ -151,7 +151,7 @@
           "useOriginalDC": true
         }
       },
-      "description": "A target with 100 hit points or fewer that is not immune to being charmed is subject to crippling pain.",
+      "description": "One visible creature within 60 feet is affected only if it has 100 Hit Points or fewer and is not immune to Charmed. While in crippling pain, spellcasting requires a Constitution save, and the target repeats the Constitution save at the end of each turn to end the pain on a success.",
       "recurringMechanics": [
         {
           "timing": "on_target_cast",
@@ -231,7 +231,7 @@
         "direction": "safest_route",
         "maxDistance": ""
       },
-      "description": "While affected, any speed the target has can be no higher than 10 feet.",
+      "description": "While Power Word Pain affects the target, every Speed it has is capped at 10 feet until an end-turn Constitution save succeeds and ends the pain.",
       "conditionalEndings": []
     },
     {
@@ -295,7 +295,7 @@
         },
         "notes": "Part of a broader disadvantage package that also affects ability checks and saving throws other than Constitution saves."
       },
-      "description": "While affected, the target has disadvantage on attack rolls, ability checks, and saving throws other than Constitution saving throws.",
+      "description": "While affected, the target has Disadvantage on attack rolls, ability checks, and saving throws other than Constitution saves.",
       "conditionalEndings": []
     },
     {
@@ -349,7 +349,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Choose one visible creature within 60 feet. If the target has 100 Hit Points or fewer and is not immune to being Charmed, it suffers crippling pain; while affected, spellcasting requires a Constitution save or wastes the spell, and end-turn Constitution saves can end the pain.",
+      "description": "Choose one visible creature within 60 feet. If the target has 100 Hit Points or fewer and is not immune to Charmed, it suffers crippling pain; while affected, spellcasting requires a Constitution save or wastes the spell, and end-turn Constitution saves can end the pain.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

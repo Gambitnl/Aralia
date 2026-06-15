@@ -152,7 +152,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A creature that partakes has its Hit Point maximum increased by 2d10 and gains the same number of Hit Points. The runtime still needs a first-class hit-point-maximum-increase field.",
+      "description": "A creature that partakes gains 2d10 Hit Point maximum increase and regains the same number of Hit Points for 24 hours.",
       "conditionalEndings": []
     },
     {
@@ -330,7 +330,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
-      "description": "You conjure a feast that appears on a surface in an unoccupied 10-foot Cube next to you. The feast takes 1 hour to consume and disappears at the end of that time, and the beneficial effects don't set in until this hour is over. Up to twelve creatures can partake of the feast.",
+      "description": "Conjure a feast on a surface in an unoccupied 10-foot Cube next to the caster; up to twelve creatures can spend 1 hour eating it, the feast disappears at the end of that hour, and the benefits begin only after the hour is complete.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

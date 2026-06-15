@@ -132,7 +132,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "light",
-      "description": "Flame sheds bright light in a 20-foot radius and dim light for an additional 20 feet",
+      "description": "The held flame sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet, emits no heat, ignites nothing, and ends if the caster casts this spell again.",
       "light": {
         "brightRadius": 20,
         "dimRadius": 20,
@@ -235,7 +235,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": "1d8 at level 1, 2d8 at level 5, 3d8 at level 11, 4d8 at level 17"
       },
-      "description": "The produced flame can be hurled as a spell attack that deals 1d8 Fire damage on hit, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "description": "Until the spell ends, the caster can take a Magic action to hurl the flame at one creature or object within 60 feet; on a ranged spell hit, the target takes 1d8 Fire damage, and damage increases to 2d8 at level 5, 3d8 at level 11, and 4d8 at level 17.",
       "conditionalEndings": [],
       "tags": [
         "fire-damage",

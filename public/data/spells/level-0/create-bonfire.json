@@ -153,7 +153,7 @@
         "customFormula": "{\"5\": \"2d8\", \"11\": \"3d8\", \"17\": \"4d8\"}",
         "bonusPerLevel": ""
       },
-      "description": "Any creature in the bonfire's space when you cast the spell must succeed on a Dexterity saving throw or take 1d8 fire damage.",
+      "description": "When the spell is cast, each creature in the 5-foot Cube bonfire space makes a Dexterity save or takes 1d8 Fire damage; damage scales to 2d8 at level 5, 3d8 at level 11, and 4d8 at level 17.",
       "conditionalEndings": []
     },
     {
@@ -217,7 +217,7 @@
         "customFormula": "{\"5\": \"2d8\", \"11\": \"3d8\", \"17\": \"4d8\"}",
         "bonusPerLevel": ""
       },
-      "description": "A creature that ends its turn in the bonfire's space must make this saving throw.",
+      "description": "A creature that ends its turn in the 5-foot Cube bonfire space makes a Dexterity save or takes 1d8 Fire damage; damage scales to 2d8 at level 5, 3d8 at level 11, and 4d8 at level 17.",
       "conditionalEndings": []
     },
     {
@@ -281,7 +281,7 @@
         "customFormula": "{\"5\": \"2d8\", \"11\": \"3d8\", \"17\": \"4d8\"}",
         "bonusPerLevel": ""
       },
-      "description": "A creature that moves into the bonfire's space for the first time on a turn must make this saving throw.",
+      "description": "The first time on a turn that a creature enters the 5-foot Cube bonfire space, it makes a Dexterity save or takes 1d8 Fire damage; damage scales to 2d8 at level 5, 3d8 at level 11, and 4d8 at level 17.",
       "conditionalEndings": []
     }
   ],

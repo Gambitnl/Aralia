@@ -152,7 +152,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "Each creature in the cylinder makes a Dexterity save, taking half Fire damage on a success.",
+      "description": "Each creature in the cylinder makes a Dexterity save, taking 5d6 Fire damage on a failed save or half as much on a success; higher slots add 1d6 Fire damage per slot level above 5.",
       "conditionalEndings": []
     },
     {
@@ -216,7 +216,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "Each creature in the cylinder makes a Dexterity save, taking half Radiant damage on a success.",
+      "description": "Each creature in the cylinder makes a Dexterity save, taking 5d6 Radiant damage on a failed save or half as much on a success; higher slots add 1d6 Radiant damage per slot level above 5.",
       "conditionalEndings": []
     }
   ],

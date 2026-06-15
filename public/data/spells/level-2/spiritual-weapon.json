@@ -198,7 +198,7 @@
         "dice": "1d8+spellcasting_mod",
         "type": "Force"
       },
-      "description": "On later turns, the caster can use the granted Bonus Action to move the spectral weapon up to 20 feet and repeat the melee spell attack against a creature within 5 feet of it.",
+      "description": "On later turns, the caster can use the granted Bonus Action to move the spectral weapon up to 20 feet and repeat the melee spell attack against a creature within 5 feet of it for 1d8 plus spellcasting modifier Force damage on a hit, with higher slots adding 1d8 per slot level above 2.",
       "scaling": {
         "type": "custom",
         "customFormula": "Damage increases by 1d8 at slots 3/4, and another 1d8 at 5/6, etc.",

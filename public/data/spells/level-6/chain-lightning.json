@@ -145,7 +145,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 10d8 Lightning damage on a failed Dexterity save, or half as much on success.",
+      "description": "A lightning bolt hits one visible creature or object within 150 feet, then leaps to up to three different creatures or objects within 30 feet of the first target; each target makes a Dexterity save, taking 10d8 Lightning damage on a failure or half as much on a success, and each slot level above 6 adds one additional leaping bolt.",
       "conditionalEndings": []
     }
   ],

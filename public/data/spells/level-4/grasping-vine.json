@@ -212,7 +212,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On the same hit, a Huge or smaller target gains the Grappled condition for up to 1 minute and can use an action to make the spell-save-DC escape check.",
+      "description": "On the triggering melee spell attack hit from the vine, a Huge or smaller target gains the Grappled condition for up to 1 minute and can use an action to make the spell-save-DC escape check.",
       "conditionalEndings": []
     },
     {
@@ -280,7 +280,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a hit, the target is pulled up to 30 feet toward the vine.",
+      "description": "On a melee spell attack hit from the vine, the target is pulled up to 30 feet toward the vine.",
       "conditionalEndings": []
     }
   ],

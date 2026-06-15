@@ -218,7 +218,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "Creatures in the 5-foot burst make a Dexterity save against 2d6 Cold damage, increasing by 1d6 per slot level above 1st.",
+      "description": "Hit or miss, the ice shard explodes after the primary attack; the target and each creature within 5 feet makes a Dexterity save, taking 2d6 Cold damage on a failed save, plus +1d6 per slot level above 1.",
       "conditionalEndings": [],
       "tags": [
         "cold-damage",

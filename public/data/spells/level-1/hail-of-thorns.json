@@ -208,7 +208,7 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "description": "AoE damage to creatures within 5ft of target.",
+      "description": "When the triggering ranged weapon attack hits, the attack target and each creature within 5 feet of it make a Dexterity save, taking 1d10 Piercing damage on a failed save or half as much on a success; higher slots add +1d10 damage per slot level above 1.",
       "damage": {
         "dice": "1d10",
         "type": "Piercing"

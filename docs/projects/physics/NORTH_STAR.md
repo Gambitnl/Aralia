@@ -6,14 +6,18 @@ category: Core Simulation / Combat
 main_category: "Game & Simulation"
 subcategory: "Combat & Encounters"
 status: review-required
-last_updated: 2026-06-05
-iteration: 2
+last_updated: 2026-06-15
+iteration: 3
 confidence: medium
 evidence: docs/projects/physics
-gap_signal: "8 open gaps; G7 needs a human decision"
+gap_signal: "8 open gaps; G2 damage path done (status path remains as T5); G7 needs a human decision"
 protocol: living project doc set
-next_step: Implement the elemental state wiring slice from T4, then return to the tile-effect schema split.
+next_step: Wire the StatusConditionCommand condition->StateTag mapping (T5) to finish G2, then return to the tile-effect schema split (G3).
 agent_comments: ""
+active_agent: "Claude Opus 4.8 (Claude Code)"
+agent_pass_status: finished
+agent_pass_started_at: "2026-06-15 01:40 local"
+agent_pass_ended_at: "2026-06-15 01:45 local"
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -27,8 +31,9 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-05
-workflow_gaps_reviewed: 2026-06-05
+  - scoped_vitest
+last_proof: 2026-06-15
+workflow_gaps_reviewed: 2026-06-15
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -39,7 +44,7 @@ human_decision_required: "yes"
 # Physics System North Star
 
 Status: review-required
-Last updated: 2026-06-05
+Last updated: 2026-06-15
 
 ## Why this project exists
 
@@ -55,13 +60,13 @@ Category: Core Simulation / Combat
 Status: review-required
 Confidence: medium
 Evidence: docs/projects/physics
-Gap signal: 8 open gaps; G7 needs a human decision
+Gap signal: 8 open gaps; G2 damage path done (status path remains as T5); G7 needs a human decision
 Protocol: living project doc set
-Next step: Implement the elemental state wiring slice from T4, then return to the tile-effect schema split.
+Next step: Wire the StatusConditionCommand condition->StateTag mapping (T5) to finish G2, then return to the tile-effect schema split.
 Required verification: docs_consistency
-Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Completed verification: docs_consistency, scoped_vitest
+Last proof: 2026-06-15
+Workflow gaps reviewed: 2026-06-15
 
 ## Required Review Brief
 
@@ -92,6 +97,7 @@ After decision: update G7 with the chosen owner/deferral and resume only the app
 ## Implemented state
 
 - Elemental interaction core exists: `applyStateToTags` handles `StateTag` reactions from `StateInteractions` and returns final tag outcomes.
+- Damage-path elemental wiring exists (T4, 2026-06-15): `DamageTypeToStateTag`/`getStateTagForDamageType` in `src/types/elemental.ts` map damage elements to states, and `DamageCommand.applyElementalState` resolves them against the target's `stateTags` (e.g. Wet + Cold damage -> Frozen). Status-condition path is not yet wired.
 - Movement math exists and is tested for 5-10-5 diagonal costs, tile cost normalization, pathfinding, and map reachability.
 - Terrain and environmental effects are represented in combat maps via `environmentalEffects` and are mutated by `TerrainCommand`.
 - Environment systems define base terrain rules, weather profiles, hazards, and modifier hooks.
@@ -129,7 +135,7 @@ After decision: update G7 with the chosen owner/deferral and resume only the app
 ## Gaps that are part of this project
 
 - Elemental reactions are currently one-step only and do not re-run recursively after producing a new state.
-- `DamageCommand` does not apply elemental state transitions to `CombatCharacter.stateTags`; integration exists in comments only.
+- `DamageCommand` now applies elemental state transitions to `CombatCharacter.stateTags` (T4, 2026-06-15). `StatusConditionCommand` still does not map condition names to states (remaining half of G2, tracked as T5).
 - Engine tile effect handling is partly inconsistent: commands write `environmentalEffects[]`, while cleanup/effects code still reads `(tile as any).environmentalEffect` in some paths.
 - Line of sight ignores elevation even though weather/terrain data includes height in tiles.
 - Opportunity-attack timing is documented as retroactive after move commit.

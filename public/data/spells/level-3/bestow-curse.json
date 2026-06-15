@@ -135,7 +135,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You touch a creature, and that creature must succeed on a Wisdom saving throw or become cursed for the duration of the spell. When you cast this spell, choose the nature of the curse from the following options. Choose one ability score. While cursed, the target has Disadvantage on ability checks and saving throws made with that ability score. While cursed, the target has Disadvantage on attack rolls against you. While cursed, the target must make a Wisdom saving throw at the start of each of its turns. If it fails, it wastes its action that turn doing nothing. While the target is cursed, your attacks and spells deal an extra 1d8 Necrotic damage to the target. A Remove Curse spell ends this effect. At the GM's option, you may choose an alternative curse effect, but it should be no more powerful than those described above. The GM has final say on such a curse's effect.",
+      "description": "Touch one creature and force a Wisdom save; on a failure, choose one curse for the duration: Disadvantage on checks and saves with one ability score, Disadvantage on attacks against you, a start-turn Wisdom save that can waste the target action, +1d8 Necrotic damage from your attacks and spells, or a DM-approved alternative no stronger than those options. Remove Curse ends the curse, and higher slots extend duration or remove Concentration as listed in the scaling table.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

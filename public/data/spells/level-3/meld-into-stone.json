@@ -133,7 +133,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "The caster merges into a touched stone object or surface large enough to contain them, becoming hidden from nonmagical senses, unable to move except to exit, limited to self-targeting spells, and vulnerable to expulsion if the stone is reshaped or destroyed.",
+      "description": "Step into a touched stone object or surface large enough to fully contain you and your equipment for up to 8 hours. While merged, you are hidden from nonmagical senses, cannot see outside, make hearing-based Perception checks outside with Disadvantage, remain aware of time, can cast only self-targeting spells, cannot move except to spend 5 feet of movement to exit where you entered, and are expelled Prone to the nearest unoccupied space if the stone no longer contains you: partial destruction or reshaping deals 6d6 Force damage, while complete destruction or transmutation deals 50 Force damage.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

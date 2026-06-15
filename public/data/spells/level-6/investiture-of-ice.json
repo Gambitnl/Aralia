@@ -164,7 +164,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The caster can use an action to create a 15-foot cone of freezing wind; each creature in the cone makes a Constitution save, taking 4d6 Cold damage on a failed save or half as much on a successful one.",
+      "description": "For up to 10 minutes with concentration, the caster can use an action to create a 15-foot cone of freezing wind; each creature in the cone makes a Constitution save, taking 4d6 Cold damage on a failed save or half as much on a success.",
       "conditionalEndings": []
     },
     {
@@ -195,7 +195,7 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "The caster is immune to Cold damage for the duration.",
+      "description": "For up to 10 minutes with concentration, the caster has Immunity to Cold damage.",
       "conditionalEndings": []
     },
     {
@@ -226,7 +226,7 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "The caster has resistance to Fire damage for the duration.",
+      "description": "For up to 10 minutes with concentration, the caster has Resistance to Fire damage.",
       "conditionalEndings": []
     },
     {
@@ -270,7 +270,7 @@
         "hp": 0,
         "ac": 0
       },
-      "description": "The ground in a 10-foot radius around the caster is icy difficult terrain for creatures other than the caster, and the radius moves with the caster.",
+      "description": "For up to 10 minutes with concentration, icy ground in a 10-foot radius around the caster is Difficult Terrain for creatures other than the caster, and the radius moves with the caster.",
       "conditionalEndings": []
     },
     {
@@ -341,7 +341,7 @@
         "direction": "away_from_caster",
         "maxDistance": ""
       },
-      "description": "A creature that fails the save against the freezing wind has its speed halved until the start of the caster's next turn; speedChange.value uses -0.5 as a schema-safe fractional marker because the runtime lacks a multiplier field.",
+      "description": "A creature that fails the save against the freezing wind has its Speed halved until the start of the caster's next turn.",
       "conditionalEndings": []
     },
     {
@@ -365,7 +365,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "The caster can move across difficult terrain created by ice or snow without spending extra movement.",
+      "description": "For up to 10 minutes with concentration, the caster ignores extra movement costs from ice or snow Difficult Terrain and can use an action each turn to create the 15-foot cone of freezing wind.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

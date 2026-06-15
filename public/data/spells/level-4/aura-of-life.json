@@ -141,7 +141,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Life-preserving energy radiates from you in a 30-foot aura that moves with you. Nonhostile creatures in the aura have resistance to Necrotic damage, their Hit Point maximum can't be reduced, and a nonhostile living creature in the aura regains 1 Hit Point when it starts its turn there with 0 Hit Points.",
+      "description": "For up to 10 minutes with concentration, life-preserving energy radiates from the caster in a 30-foot aura that moves with the caster and affects nonhostile creatures in the aura.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -237,7 +237,7 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "Nonhostile creatures in the aura, including the caster, have resistance to Necrotic damage.",
+      "description": "For up to 10 minutes with concentration, nonhostile creatures in the 30-foot aura, including the caster, have Resistance to Necrotic damage.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -272,7 +272,7 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "Nonhostile creatures in the aura cannot have their Hit Point maximum reduced.",
+      "description": "For up to 10 minutes with concentration, nonhostile creatures in the 30-foot aura cannot have their Hit Point maximum reduced.",
       "damageType": [],
       "preventionImmunity": [
         "hit_point_maximum_reduction"
@@ -333,7 +333,7 @@
         "dice": "1",
         "isTemporaryHp": false
       },
-      "description": "A nonhostile living creature regains 1 Hit Point when it starts its turn in the aura with 0 Hit Points.",
+      "description": "A nonhostile living creature regains 1 Hit Point when it starts its turn in the 30-foot aura with 0 Hit Points.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

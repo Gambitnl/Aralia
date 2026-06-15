@@ -3,9 +3,9 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Physics System
 slug: physics
-Status: review-required
-last_updated: 2026-06-05
-iteration: 2
+status: review-required
+last_updated: 2026-06-15
+iteration: 3
 source_agent: Not recorded
 target_agent: next cold-start agent
 runtime_surface: unknown
@@ -41,11 +41,13 @@ docs/projects/physics/NORTH_STAR.md
 | Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
 | 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
+| 2 | Not recorded | unknown | unknown | 2026-06-05 | Dashboard schema refresh + gap routing pass |
+| 3 | Claude Opus 4.8 (Claude Code) | CLI agent | certain | 2026-06-15 | Shell-only Claude Code session on win32; executed T4 |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Physics System
 Project folder: docs/projects/physics
-iteration: 2
+iteration: 4
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -55,73 +57,56 @@ Gaps: docs/projects/physics/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 1 was the bootstrap pass. This iteration refreshed the project
-dashboard schema, routed the existing physics gaps into the shared workflow
-classes, and split the bundled utility debt into separate follow-up items.
-Use NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue,
-and GAPS.md for unresolved findings.
+Iteration 3 (2026-06-15) completed T4: the damage half of G2. Damage elements
+now map to elemental states (`DamageTypeToStateTag` / `getStateTagForDamageType`
+in `src/types/elemental.ts`) and `DamageCommand.applyElementalState` resolves
+them against the target's `stateTags` via `applyStateToTags` (Step 5b). Proof:
+26 scoped Vitest tests pass, including a new Wet + Cold damage -> Frozen case.
+See `AUDIT_OR_PROOF.md` (2026-06-15 row). G2 remains open because the
+status-condition path is not wired yet (now tracked as T5).
 
 ## Current Mission
 
 Active task:
-T4 - Wire elemental state transitions into damage/status command flow and add
-one focused proof check.
+T5 - Wire elemental state mapping into `StatusConditionCommand`
+(condition name -> StateTag, e.g. 'Ignited' -> Burning), completing the second
+half of G2. Resolve the resulting state through `applyStateToTags`.
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. The task is done when the command-level state mapping exists,
-the chosen regression path is covered, and the handoff clearly records the
-proof source.
+Use the active TRACKER.md T5 row. Done when condition-to-state mapping exists in
+`StatusConditionCommand`, the elemental TODO(Simulator) at line ~147 is
+addressed, a regression test covers at least one condition that maps to a
+StateTag, and the handoff records the proof source. If T5 is blocked, record the
+blocker and pick the next actionable item (G3 tile-effect schema unify is the
+next in-scope candidate; G7 stays blocked on human decision).
 
 Key files to touch:
 - docs/projects/physics/NORTH_STAR.md
 - docs/projects/physics/TRACKER.md
 - docs/projects/physics/GAPS.md
 - docs/projects/physics/COLD_START_AGENT_PROMPT.md
-- src/commands/effects/DamageCommand.ts
-- src/commands/effects/StatusConditionCommand.ts
-- src/types/elemental.ts
-- src/types/combat.ts
-
-Scoped verification:
-Use targeted Vitest coverage for the elemental transition path, or record the
-missing proof as a blocker with the next action if the flow is not yet wired.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs. No workflow-level gap was opened in this pass.
-
-Recent progress:
-The project docs now include a dashboard card schema, the tracker points at a
-new implementation slice, and the physics gaps are split into explicit
-in-scope, adjacent, and human-decision routes.
-
-Key files to touch:
-- docs/projects/physics/NORTH_STAR.md
-- docs/projects/physics/TRACKER.md
-- docs/projects/physics/GAPS.md
-- docs/projects/physics/COLD_START_AGENT_PROMPT.md
-- docs/projects/physics/DECISIONS.md
 - docs/projects/physics/AUDIT_OR_PROOF.md
-- docs/projects/physics/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- docs/projects/physics plus source/docs named by the active tracker task
+- src/commands/effects/StatusConditionCommand.ts
+- src/systems/physics/ElementalInteractionSystem.ts
+- src/types/elemental.ts
 
 Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
+- DECISIONS.md, RUNBOOK.md
+- tasks/, architecture/migration/proof notes
 
 Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
+Targeted Vitest for the status-condition elemental path, e.g.
+`npx vitest run src/commands/effects/__tests__/StatusConditionCommand.test.ts
+src/commands/effects/__tests__/DamageCommand.test.ts`.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
+Stay inside this project's scope. G7 (suffocation) is blocked on a human
+decision (see NORTH_STAR Required Review Brief) - do not implement it. Route
+sibling-project blockers instead of editing their docs.
 
 Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+G2 damage path wired and verified (T4). G1, G3, G4, G5, G6, G8 remain as
+previously recorded; see GAPS.md.
 
 ## Required End State For This Iteration
 

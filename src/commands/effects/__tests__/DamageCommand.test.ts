@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { DamageCommand } from '../DamageCommand'
 import { CombatState, CombatCharacter } from '../../../types/combat'
 import { SpellEffect } from '../../../types/spells'
+import { StateTag } from '../../../types/elemental'
 import { CommandContext } from '../../base/SpellCommand'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/factories'
 
@@ -228,6 +229,67 @@ describe('DamageCommand', () => {
             // But here we cleared logs. So we expect NO new log about slowing.
             const slowLog = finalState.combatLog.find(l => l.message.includes('Slasher feat slows'));
             expect(slowLog).toBeUndefined();
+        });
+    });
+
+    describe('Elemental state transitions', () => {
+        it('freezes a Wet target struck by Cold damage', async () => {
+            const wetTarget: CombatCharacter = {
+                ...mockTarget,
+                stateTags: [StateTag.Wet]
+            };
+            const stateWithWet: CombatState = {
+                ...mockState,
+                characters: [mockCaster, wetTarget]
+            };
+
+            const effect: SpellEffect = {
+                type: "DAMAGE",
+                damage: { dice: '1d6', type: 'Cold' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            };
+
+            const command = new DamageCommand(effect, mockContext);
+            const newState = await command.execute(stateWithWet);
+
+            const finalTarget = newState.characters.find(c => c.id === mockTarget.id);
+            expect(finalTarget?.stateTags).toContain(StateTag.Frozen);
+            expect(finalTarget?.stateTags).not.toContain(StateTag.Wet);
+            expect(finalTarget?.stateTags).not.toContain(StateTag.Cold);
+
+            const stateLog = newState.combatLog.find(l => l.message.includes('frozen'));
+            expect(stateLog).toBeDefined();
+        });
+
+        it('applies a fresh elemental state when no reaction exists', async () => {
+            const effect: SpellEffect = {
+                type: "DAMAGE",
+                damage: { dice: '1d6', type: 'Fire' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            };
+
+            const command = new DamageCommand(effect, mockContext);
+            const newState = await command.execute(mockState);
+
+            const finalTarget = newState.characters.find(c => c.id === mockTarget.id);
+            expect(finalTarget?.stateTags).toContain(StateTag.Burning);
+        });
+
+        it('leaves stateTags untouched for non-elemental damage types', async () => {
+            const effect: SpellEffect = {
+                type: "DAMAGE",
+                damage: { dice: '1d6', type: 'Bludgeoning' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            };
+
+            const command = new DamageCommand(effect, mockContext);
+            const newState = await command.execute(mockState);
+
+            const finalTarget = newState.characters.find(c => c.id === mockTarget.id);
+            expect(finalTarget?.stateTags ?? []).toHaveLength(0);
         });
     });
 

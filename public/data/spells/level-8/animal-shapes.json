@@ -137,7 +137,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Choose any number of willing visible creatures within 30 feet to shape-shift into caster-chosen Large-or-smaller Beast forms of Challenge Rating 4 or lower, with different forms allowed per target and later Magic-action re-transforms. Targets use Beast statistics but retain creature type, Hit Points, Hit Point Dice, alignment, communication, and Intelligence, Wisdom, and Charisma scores; cannot cast spells; are limited by Beast anatomy; have equipment merged and unusable; and can end the transformation with a Bonus Action.",
+      "description": "Choose any number of willing visible creatures within 30 feet for up to 24 hours and shape-shift each into a caster-chosen Large-or-smaller Beast form of Challenge Rating 4 or lower, with different forms allowed per target and later Magic-action re-transforms. Targets use Beast statistics but retain creature type, Hit Points, Hit Point Dice, alignment, communication, and Intelligence, Wisdom, and Charisma scores; cannot cast spells; are limited by Beast anatomy; have equipment merged and unusable; and can end their own transformation with a Bonus Action.",
       "utilityType": "other",
       "grantedActions": [
         {

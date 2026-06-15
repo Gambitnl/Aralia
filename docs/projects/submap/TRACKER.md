@@ -1,7 +1,7 @@
-﻿# Submap Living Tracker
+# Submap and Tile-Grid Retirement Tracker
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-15
 
 ## Status Vocabulary
 
@@ -19,9 +19,10 @@ Last updated: 2026-06-10
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T3 | extraction_active | Extract quick-travel and inspect contracts before component deprecation. | Cursor / Composer | 2026-06-10 | `src/utils/spatial/submapActionContracts.ts`, `src/utils/spatial/__tests__/submapActionContracts.test.ts`, `docs/projects/submap/DEPENDENCY_CONTRACT.md` | Wire `SubmapPane` through shared contract helpers without behavior drift (G7). | SubmapPane dispatch paths use `submapActionContracts`; existing handler tests still pass. |
-| T4 | extraction_active | Inventory all Submap dependents and classify retain/extract/replace/retire. | Cursor / Composer | 2026-06-10 | `docs/projects/submap/DEPENDENCY_CONTRACT.md` extraction matrix, `rg` inventory 2026-06-10 | Validate matrix rows against any newly discovered callers; route open replace rows to G5. | Every primary dependent surface has class + owner + proof path in matrix. |
-| T5 | extraction_active | Split generation rules into reusable candidates before deprecating Submap components. | Cursor / Composer | 2026-06-10 | `docs/projects/submap/GENERATION_MODULARIZATION.md`, `src/hooks/useSubmapProceduralData.ts` | Extract `generateLocalTerrainData` as a non-React module (G8). | Fixture parity for plains/cave/wetland vs hook output. |
+| T6 | active | Inventory every load-bearing consumer of MapData.tiles + the Submap panes and record a retirement order. | next iteration agent | 2026-06-15 | `src/types/world.ts`, `src/components/MapPane.tsx`, `docs/projects/submap/DEPENDENCY_CONTRACT.md` | Scan the codebase for `MapData.tiles` and `gridSize` usages and list them in `DEPENDENCY_CONTRACT.md`. | Complete inventory matrix covers all grid callers with retirement/adapter plans. |
+| T3 | extraction_active | Extract quick-travel and inspect contracts before component deprecation. | future agent | 2026-06-10 | `src/utils/spatial/submapActionContracts.ts`, `src/utils/spatial/__tests__/submapActionContracts.test.ts`, `docs/projects/submap/DEPENDENCY_CONTRACT.md` | Wire `SubmapPane` through shared contract helpers without behavior drift (G7). | SubmapPane dispatch paths use `submapActionContracts`; existing handler tests still pass. |
+| T4 | extraction_active | Inventory all Submap dependents and classify retain/extract/replace/retire. | future agent | 2026-06-10 | `docs/projects/submap/DEPENDENCY_CONTRACT.md` extraction matrix, `rg` inventory 2026-06-10 | Validate matrix rows against any newly discovered callers; route open replace rows to G5. | Every primary dependent surface has class + owner + proof path in matrix. |
+| T5 | extraction_active | Split generation rules into reusable candidates before deprecating Submap components. | future agent | 2026-06-10 | `docs/projects/submap/GENERATION_MODULARIZATION.md`, `src/hooks/useSubmapProceduralData.ts` | Extract `generateLocalTerrainData` as a non-React module (G8). | Fixture parity for plains/cave/wetland vs hook output. |
 
 ## Gap Log
 

@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Planar System
 slug: planar
-Status: partial
+status: partial
 last_updated: 2026-06-12
 iteration: 2
 source_agent: Not recorded

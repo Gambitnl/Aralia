@@ -1,7 +1,7 @@
 ﻿# Living Project Workflow Gaps
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-15
 
 This file tracks gaps in the living-project workflow itself. It is not a
 project blocker list. Use it only when an agent finds ambiguity, unsafe
@@ -63,7 +63,7 @@ Do not add anonymous vote counts. The testimony is the evidence.
 
 | ID | Status | Severity | Workflow Area | Issue | Testimonies | Next Action | Owner | Last Updated |
 |---|---|---|---|---|---|---|---|---|
-| _None_ | _n/a_ | _n/a_ | _n/a_ | No active workflow gaps after WFG-006 resolution. | _n/a_ | Keep checking this file during each iteration. | _n/a_ | 2026-06-10 |
+| _None_ | _n/a_ | _n/a_ | _n/a_ | No active workflow gaps after WFG-007 resolution. | _n/a_ | Keep checking this file during each iteration. | _n/a_ | 2026-06-15 |
 
 ### WFG-002 - Routing projects have no required write obligation into owner project docs
 
@@ -505,6 +505,67 @@ instructions to the cold-start prompt, GAPS template, and living tracker
 template. Agents must now actively look for source-backed expansion
 opportunities during execution, route them to the right tracker, and report
 whether any were found without inventing speculative work.
+
+---
+
+### WFG-007 - Project dashboard lacks explicit active agent pass telemetry
+
+Status: resolved
+Severity: medium
+Workflow area: Start Of Iteration / Required Closeout Updates / Project Dashboard Schema
+Opened: 2026-06-15
+Last updated: 2026-06-15
+
+#### Problem
+
+The workflow required agents to identify themselves in prose, but it did not
+require a structured dashboard-visible record of the active agent, pass start
+time, pass status, or pass end time. A project could therefore appear current
+while no tile or schema field showed who was currently working on it, when the
+pass started, whether it was blocked or finished, or whether a previous pass
+was left half-open.
+
+#### Why This Is Workflow-Level
+
+This affects every living project that uses the shared dashboard and
+cold-start handoff. It is not a product gap inside one project; it is a missing
+workflow contract between iteration agents, project docs, and the project
+tracker UI.
+
+#### Current Safe Handling
+
+At the start of a pass, after reading enough handoff metadata to identify the
+project files and after identifying itself, the agent should update dashboard
+schema fields in `NORTH_STAR.md` or `TRACKER.md`: `active_agent`,
+`agent_pass_status: in_progress`, `agent_pass_started_at`, and an empty
+`agent_pass_ended_at`. At closeout, the agent should keep the owner and start
+time, set `agent_pass_status` to the true final pass state, and set
+`agent_pass_ended_at`.
+
+#### Testimonies
+
+- 2026-06-15 | project tracker dashboard browser review | User/operator:
+  Selected the project-row metric strip and requested explicit workflow,
+  schema, and UI support for active agent name, task start time, pass status,
+  and end time. This is workflow-level because it changes what every project
+  iteration agent must write before and after work, and what the dashboard
+  should surface.
+
+#### Proposed Workflow Refinement
+
+Add pass telemetry fields to `docs/projects/PROJECT_CARD_SCHEMA.md`, render
+them in the project tracker UI/template, and update the shared workflow and
+cold-start prompt template so agents set pass-start fields before deeper
+project reading or task selection and set pass-end fields during closeout.
+
+#### Resolution
+
+Resolved on 2026-06-15 by adding `active_agent`, `agent_pass_status`,
+`agent_pass_started_at`, and `agent_pass_ended_at` to the project dashboard
+schema; rendering active agent, pass status, start time, and end time tiles in
+the project tracker UI and template data; and updating the README, shared
+iteration workflow, and cold-start prompt template with start-of-pass and
+closeout requirements.
 
 ## Resolved Workflow Gaps
 

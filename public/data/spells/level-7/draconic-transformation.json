@@ -191,7 +191,7 @@
         "direction": "safest_route",
         "maxDistance": ""
       },
-      "description": "Incorporeal wings give the caster a flying speed of 60 feet for the duration.",
+      "description": "For the 1-minute concentration duration of Draconic Transformation, incorporeal wings give the caster a 60-foot flying speed alongside the spell's blindsight and repeatable breath weapon benefits.",
       "conditionalEndings": []
     },
     {

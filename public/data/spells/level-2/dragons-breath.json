@@ -254,7 +254,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "Represents the breath weapon damage when the target uses the granted action.",
+      "description": "When the target uses the granted Magic action, creatures in the 15-foot Cone make a Dexterity save, taking 3d6 of the chosen Acid, Cold, Fire, Lightning, or Poison damage on a failed save or half as much on a success; higher slots add +1d6 damage per slot level above 2.",
       "conditionalEndings": []
     }
   ],

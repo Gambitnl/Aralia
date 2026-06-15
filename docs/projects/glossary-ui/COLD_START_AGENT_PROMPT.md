@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Glossary UI
 slug: glossary-ui
-Status: active
+status: active
 last_updated: 2026-06-10
 iteration: 6
 source_agent: Hubble / gpt-5.4-mini high

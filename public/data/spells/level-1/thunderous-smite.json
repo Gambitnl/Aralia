@@ -139,7 +139,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "On the triggering weapon hit, the target takes 2d6 Thunder damage, increasing by 1d6 per slot level above 1st.",
+      "description": "On the first melee weapon hit, the target takes 2d6 Thunder damage, the strike is audible within 300 feet, and the damage increases by 1d6 per slot level above 1.",
       "soundEmission": {
         "audibleRadius": 300,
         "radiusUnit": "feet",
@@ -219,7 +219,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The target must succeed on a Strength save or fall Prone as part of the smite rider.",
+      "description": "On the first melee weapon hit, the target makes a Strength save or gains the Prone condition as part of the Thunderous Smite rider.",
       "conditionalEndings": [],
       "tags": [
         "prone",
@@ -300,7 +300,7 @@
         "value": 0,
         "unit": "feet"
       },
-      "description": "The target must succeed on a Strength save or be pushed by the smite's movement rider.",
+      "description": "On the first melee weapon hit, the target makes a Strength save or is pushed 10 feet away from the caster.",
       "conditionalEndings": [],
       "tags": [
         "forced-movement",

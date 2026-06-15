@@ -135,7 +135,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You touch a creature and end the Poisoned condition on it. For the duration, the target has Advantage on saving throws to avoid or end the Poisoned condition, and it has Resistance to Poison damage.",
+      "description": "Touch one creature, end the Poisoned condition on it immediately, and for 1 hour grant Advantage on saves to avoid or end the Poisoned condition; the companion defensive row carries Poison damage Resistance.",
       "conditionRemoval": [
         "Poisoned"
       ],
@@ -203,7 +203,7 @@
         "type": "minutes",
         "value": 60
       },
-      "description": "For the duration, the target has Resistance to Poison damage.",
+      "description": "For 1 hour, the touched target has Resistance to Poison damage.",
       "damageType": [
         "Poison"
       ],

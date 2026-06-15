@@ -139,7 +139,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "The target hit by the triggering strike takes an extra 2d6 Radiant damage.",
+      "description": "The next creature hit by the triggering weapon attack takes an extra 2d6 Radiant damage, plus +1d6 per slot level above 2.",
       "conditionalEndings": []
     },
     {
@@ -193,7 +193,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "light",
-      "description": "Until the spell ends, the target sheds Bright Light in a 5-foot radius.",
+      "description": "Until the spell ends, the hit target sheds Bright Light in a 5-foot radius, attack rolls against it have Advantage, and it cannot benefit from the Invisible condition.",
       "light": {
         "brightRadius": 5,
         "dimRadius": 0,

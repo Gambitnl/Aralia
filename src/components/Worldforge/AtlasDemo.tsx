@@ -32,7 +32,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Sparkles, Dices, Settings, Activity, Layers, Map, ArrowLeft, Info, HelpCircle, Menu, PanelLeftClose } from "lucide-react";
+import { Sparkles, Dices, Settings, Activity, Layers, Map, ArrowLeft, Info, HelpCircle, Menu, PanelLeftClose, MapPin } from "lucide-react";
 import { generateFmgAtlas, type FmgAtlasResult } from "../../systems/worldforge/fmg/generateAtlas";
 import { generateFmgWorld } from "../../systems/worldforge/fmg/generateWorld";
 import { heightmapTemplates } from "../../systems/worldforge/fmg/heightmap-templates";
@@ -45,6 +45,8 @@ import type { AtlasOverlayMode, AtlasView } from "./atlasDraw";
 import AtlasMapView from "./AtlasMapView";
 import RegionMapView from "./RegionMapView";
 import LocalMapView from "./LocalMapView";
+import CellInfoPanel from "./CellInfoPanel";
+import { describeCell } from "../../systems/worldforge/cellInfo";
 import { type OverlayMarker } from "./overlay";
 
 // ============================================================================
@@ -63,6 +65,9 @@ const AtlasDemo: React.FC = () => {
   // Navigation & View Mode — the full zoom chain: L0 atlas → L1 region → L2 local
   const [viewMode, setViewMode] = useState<"atlas" | "region" | "local">("atlas");
   const [selectedCellId, setSelectedCellId] = useState<number | null>(null);
+  // Cell selected for inspection on the atlas (drives the CellInfoPanel). Kept
+  // distinct from selectedCellId, which tracks the descended region cell.
+  const [inspectCellId, setInspectCellId] = useState<number | null>(null);
   const [regionArtifact, setRegionArtifact] = useState<RegionArtifact | null>(null);
   const [localArtifact, setLocalArtifact] = useState<LocalArtifact | null>(null);
   const [isGeneratingLocal, setIsGeneratingLocal] = useState<boolean>(false);
@@ -86,6 +91,13 @@ const AtlasDemo: React.FC = () => {
   const [showMarkers, setShowMarkers] = useState<boolean>(true);
   const [showZones, setShowZones] = useState<boolean>(true);
   const [showMilitary, setShowMilitary] = useState<boolean>(false);
+  // Voronoi cell mesh (Azgaar "Cells" layer): thin edges on every cell so the
+  // individual cells the map is built from are visible. Default off (clutter at
+  // fit zoom); most useful when browsing/selecting cells at depth.
+  const [showCells, setShowCells] = useState<boolean>(false);
+  // Travel mode: forces the cell mesh on and highlights the cell under the
+  // cursor (parity with the Azgaar world map's Travel button).
+  const [travelMode, setTravelMode] = useState<boolean>(false);
   const [showDemoOverlay, setShowDemoOverlay] = useState<boolean>(false);
   const [demoTime, setDemoTime] = useState<number>(0);
 
@@ -312,6 +324,7 @@ const AtlasDemo: React.FC = () => {
         });
         setRegionArtifact(regionData);
         setSelectedCellId(cellId);
+        setInspectCellId(null); // descending supersedes the inspect panel
         setViewMode("region");
       } catch (err) {
         console.error("Error generating L1 region:", err);
@@ -370,6 +383,7 @@ const AtlasDemo: React.FC = () => {
 
     setViewMode("atlas");
     setSelectedCellId(null);
+    setInspectCellId(null);
     setRegionArtifact(null);
     setLocalArtifact(null);
   };
@@ -629,6 +643,24 @@ const AtlasDemo: React.FC = () => {
                 <label className="flex items-center justify-between cursor-pointer group py-1">
                   <div className="flex flex-col">
                     <span className="text-xs font-semibold text-gray-300 group-hover:text-white transition-colors">
+                      Display Cells
+                    </span>
+                    <span className="text-[10px] text-gray-500">Voronoi cell mesh — the cells you click to inspect</span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={showCells}
+                      onChange={(e) => setShowCells(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-8 h-4 bg-gray-950 rounded-full border border-gray-800 peer-checked:bg-indigo-600 transition-colors after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-gray-400 after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:after:translate-x-4 peer-checked:after:bg-white" />
+                  </div>
+                </label>
+
+                <label className="flex items-center justify-between cursor-pointer group py-1">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-semibold text-gray-300 group-hover:text-white transition-colors">
                       Display Graticule Grid
                     </span>
                     <span className="text-[10px] text-gray-500">Latitude & longitude grid lines</span>
@@ -855,6 +887,39 @@ const AtlasDemo: React.FC = () => {
             </div>
           )}
 
+          {/* Travel-mode toggle — floats top-center; mirrors the Azgaar world
+              map's Travel button. Forces the cell mesh on and enables the
+              cursor-following cell highlight. */}
+          {viewMode === "atlas" && atlas && (
+            <button
+              type="button"
+              data-testid="worldforge-travel-toggle"
+              aria-pressed={travelMode}
+              onClick={() => setTravelMode((t) => !t)}
+              className={`absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold shadow-xl transition-all active:scale-95 border ${
+                travelMode
+                  ? "bg-rose-600 hover:bg-rose-500 text-white border-rose-400"
+                  : "bg-gray-900/85 backdrop-blur-md hover:bg-gray-800 text-gray-200 border-gray-700"
+              }`}
+              title="Travel mode: show the cell mesh and highlight the cell under the cursor"
+            >
+              <MapPin size={14} />
+              {travelMode ? "Travel: ON" : "Travel"}
+            </button>
+          )}
+
+          {/* Cell inspection panel — floats top-right (below the breadcrumb)
+              whenever a cell is selected on the atlas. */}
+          {viewMode === "atlas" && atlas && inspectCellId != null && (
+            <div className="absolute top-16 right-3 z-20">
+              <CellInfoPanel
+                info={describeCell(atlas, inspectCellId)}
+                onClose={() => setInspectCellId(null)}
+                onDescend={handleCellClick}
+              />
+            </div>
+          )}
+
           {/* Main Visualizer Views — sized to the measured workspace */}
           <div className="w-full h-full flex items-center justify-center">
             {viewMode === "atlas" ? (
@@ -870,7 +935,11 @@ const AtlasDemo: React.FC = () => {
                   showMarkers={showMarkers}
                   showZones={showZones}
                   showMilitary={showMilitary}
+                  showCells={showCells || travelMode}
+                  travelMode={travelMode}
                   onCellClick={handleCellClick}
+                  onCellSelect={setInspectCellId}
+                  selectedCellId={inspectCellId}
                   initialView={initialAtlasView}
                   onViewChange={(v) => { lastAtlasViewRef.current = v; }}
                   cooldownActive={cooldownActive}

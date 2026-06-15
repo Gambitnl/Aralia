@@ -146,7 +146,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A non-Undead target makes a Constitution save, taking 5d12 Necrotic damage on a failed save or half as much damage on a success.",
+      "description": "One visible non-Undead creature within 60 feet makes a Constitution save, taking 5d12 Necrotic damage on a failure or half as much on a success; a creature killed by this damage rises as a zombie at the start of the caster's next turn.",
       "conditionalEndings": []
     },
     {
@@ -210,7 +210,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "An Undead target makes no saving throw and gains temporary hit points equal to half a 5d12 roll.",
+      "description": "If the visible target within 60 feet is Undead, it makes no saving throw and instead gains temporary Hit Points equal to half of a 5d12 roll.",
       "conditionalEndings": []
     }
   ],

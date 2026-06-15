@@ -211,7 +211,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a failed Wisdom save, the target has the Frightened condition for the duration.",
+      "description": "On a failed Wisdom save, the target is Frightened for up to 1 minute with concentration and repeats the Wisdom save at the end of each of its turns, ending the spell on itself on a success.",
       "statusCondition": {
         "name": "Frightened",
         "duration": {
@@ -287,7 +287,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A Frightened target takes 5d10 Psychic damage when it fails the end-turn repeat Wisdom save.",
+      "description": "A target still Frightened by Weird takes 5d10 Psychic damage when it fails the end-turn repeat Wisdom save.",
       "conditionalEndings": []
     },
     {

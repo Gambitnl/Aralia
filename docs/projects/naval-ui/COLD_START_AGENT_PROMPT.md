@@ -3,13 +3,13 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Naval UI
 slug: naval-ui
-Status: active
-last_updated: 2026-06-05
-iteration: 2
-source_agent: Not recorded
+status: active
+last_updated: 2026-06-15
+iteration: 3
+source_agent: Iteration Agent 2 (Devin CLI)
 target_agent: next cold-start agent
-runtime_surface: unknown
-certainty: unknown
+runtime_surface: CLI agent
+certainty: certain
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -41,11 +41,12 @@ docs/projects/naval-ui/NORTH_STAR.md
 | Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
 | 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
+| 2 | Devin CLI (SWE-1.6 Slow) | CLI agent | certain | 2026-06-15 | Executed task U2: verified naval UI implementation state documentation via source inspection. Confirmed all file map entries accurate, all 5 gaps valid, docs consistency passed. No new gaps discovered. |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Naval UI
 Project folder: docs/projects/naval-ui
-iteration: 2
+iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -55,40 +56,45 @@ Gaps: docs/projects/naval-ui/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 1 created the initial Naval UI cold-start handoff. This pass refreshed
-the durable docs, added an explicit dashboard card schema, and kept the active
-project gaps unchanged.
+Iteration 2 executed task U2: documented naval UI implementation state, integration points, and current gaps. This was a docs-only verification pass that confirmed:
+- All file map entries in NORTH_STAR.md are accurate against current source
+- All 5 gaps in GAPS.md remain valid and match current code behavior
+- Docs consistency check passed across NORTH_STAR/TRACKER/GAPS
+- No new project-specific blockers discovered during source inspection
+- Updated all project docs to 2026-06-15 with completion evidence
 
 ## Current Mission
 
 Active task:
-U2 - Document naval UI implementation state, integration points, and current gaps
+None - task U2 completed. The next agent should choose the highest-value in-scope gap from GAPS.md.
+
+Suggested priority order (based on gap classifications):
+1. NU-1 (in_scope_now): Implement NAVAL_REPAIR_SHIP reducer case or remove action contract
+2. NU-5 (support_needed_now): Add ShipPane action controls or confirm read-only contract
+3. NU-2 (in_scope_now): Add voyage start transition from movement path
+4. NU-4 (in_scope_now): Choose canonical voyage event source
+5. NU-3 (in_scope_now): Define combat/status handoff strategy
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+Select one gap from GAPS.md, implement the fix or documented next action, and record completion evidence in TRACKER.md and AUDIT_OR_PROOF.md. If the chosen gap requires a human decision first, create a Required Review Brief following the PROJECT_CARD_SCHEMA.md format.
 
 Key files to touch:
-- docs/projects/naval-ui/NORTH_STAR.md
-- docs/projects/naval-ui/TRACKER.md
-- docs/projects/naval-ui/GAPS.md
-- docs/projects/naval-ui/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+- docs/projects/naval-ui/NORTH_STAR.md (update frontmatter dates and next_step)
+- docs/projects/naval-ui/TRACKER.md (add new task row or update existing)
+- docs/projects/naval-ui/GAPS.md (update resolved gap status or add new findings)
+- docs/projects/naval-ui/COLD_START_AGENT_PROMPT.md (update for next handoff)
+- docs/projects/naval-ui/DECISIONS.md (record any durable project decisions)
+- docs/projects/naval-ui/AUDIT_OR_PROOF.md (record verification evidence)
+- Source files named by the selected gap (e.g., navalReducer.ts, ShipPane.tsx, actionTypes.ts)
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. For
-docs-only refreshes, a compact consistency check across the three Naval UI docs
-is enough; if the task moves into source work, collect empirical proof.
+Use the verification method named by the selected gap's "next proof/check" column. For source changes, run relevant tests or provide empirical proof (screenshot, log excerpt, or deterministic replay evidence). For docs changes, a consistency check across the affected docs is sufficient.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+Stay inside this project's scope boundaries. Route sibling-project blockers to GLOBAL_GAPS.md instead of editing their docs.
 
 Recent progress:
-North Star now has an explicit Dashboard Card Schema. TRACKER and GAPS were
-refreshed to 2026-06-05, and no new project-specific blocker was added.
+Task U2 completed 2026-06-15: implementation state documentation verified accurate via source inspection. All 5 gaps confirmed current. No new gaps discovered. Docs refreshed with completion evidence across all required files.
 
 Key files to touch:
 - docs/projects/naval-ui/NORTH_STAR.md
@@ -98,24 +104,21 @@ Key files to touch:
 - docs/projects/naval-ui/DECISIONS.md
 - docs/projects/naval-ui/AUDIT_OR_PROOF.md
 - docs/projects/naval-ui/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- docs/projects/naval-ui plus source/docs named by the active tracker task
+- Source files named by the selected gap (navalReducer.ts, ShipPane.tsx, actionTypes.ts, voyageEvents files, etc.)
 
 Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
+- tasks/ (if any task-specific docs exist)
+- architecture notes (if any exist in this project)
+- migration notes (if any exist in this project)
 
 Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
+Use the scoped verification named by the selected gap in GAPS.md. If verification cannot be run, record the blocker and next proof in the gap row before closing the iteration.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
 
 Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth. All 5 gaps are confirmed accurate as of 2026-06-15.
 
 ## Required End State For This Iteration
 

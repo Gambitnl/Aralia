@@ -6,14 +6,18 @@ category: Runtime Support
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-05
-iteration: 2
+last_updated: 2026-06-15
+iteration: 3
 confidence: medium
 evidence: docs/projects/realmsmith-service
-gap_signal: 3 open gaps (2 support-needed, 1 adjacent follow-up)
+gap_signal: 1 open gap (1 adjacent follow-up)
 protocol: living project doc set
-next_step: Confirm the service contract and retry policy from source before the next implementation change.
+next_step: Address G3 (versioning) when biome/painter refactors are planned.
 agent_comments: ""
+active_agent: Claude Code (Devin CLI)
+agent_pass_status: done
+agent_pass_started_at: 2026-06-15
+agent_pass_ended_at: 2026-06-15
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -27,8 +31,8 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-05
-workflow_gaps_reviewed: 2026-06-05
+last_proof: 2026-06-15
+workflow_gaps_reviewed: 2026-06-15
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -97,8 +101,112 @@ Workflow gaps reviewed: 2026-06-05
 | Allowed boundaries | `docs/projects/realmsmith-service/*`, `docs/projects/GLOBAL_GAPS.md`, `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` if the workflow ambiguity recurs. |
 | Stop condition | no code or API changes in this pass. |
 | Verification | docs consistency plus a source scan of the generator/painter contract surface before implementation. |
-| Owner | Codex agent |
-| Next action | source-scan the service contract and record the chosen retry/failure policy in the project packet. |
+| Owner | Claude Code (Devin CLI) |
+| Next action | Document the confirmed contract surface and retry policy; mark T2 complete. |
+
+## Service Contract Documentation
+
+### Generation Service Contract
+
+**Entry Point**: `src/services/RealmSmithTownGenerator.ts` - `TownGenerator` class
+
+**Constructor Contract**:
+- Input: `TownOptions` interface containing:
+  - `seed: number` - deterministic seed for RNG
+  - `biome: BiomeType` - biome type from enum
+  - `density: TownDensity` - town density from enum
+  - `connections: { north, east, south, west: boolean }` - edge connection flags
+- Side effects: Initializes internal RNG, NoiseGenerator, and biome config
+- Failure mode: Constructor throws if biome config not found (BIOME_DATA lookup)
+
+**Main Method Contract**:
+- Method: `generate(): TownMap`
+- Return type: `TownMap` interface containing:
+  - `width: number` - map width in tiles
+  - `height: number` - map height in tiles
+  - `tiles: Tile[][]` - 2D array of tile objects
+  - `buildings: Building[]` - array of building objects
+  - `seed: number` - echo of input seed
+  - `biome: BiomeType` - echo of input biome
+- Side effects: None (pure function aside from internal RNG state)
+- Failure mode: No explicit error handling; throws on internal failures
+- Synchronous: Yes (blocking call)
+
+### Rendering Service Contract
+
+**Entry Point**: `src/services/RealmSmithAssetPainter.ts` - `AssetPainter` class
+
+**Constructor Contract**:
+- Input: `ctx: CanvasRenderingContext2D` - active 2D canvas context
+- Side effects: Stores context reference; initializes painter sub-modules
+- Failure mode: Throws if context is null/invalid
+
+**Main Method Contract**:
+- Method: `drawMap(tiles: Tile[][], buildings: Building[], biome: BiomeType, options: DrawOptions): void`
+- Input:
+  - `tiles: Tile[][]` - 2D tile array from TownMap
+  - `buildings: Building[]` - building array from TownMap
+  - `biome: BiomeType` - biome type for rendering
+  - `options: DrawOptions` interface containing:
+    - `isNight: boolean` - night mode toggle
+    - `showGrid: boolean` - debug grid overlay
+    - `playerPosition?: { x, y }` - player world position
+    - `playerFacing?: TownDirection` - player facing direction
+    - `isMoving?: boolean` - walk animation flag
+    - `playerVisuals?: CharacterVisualConfig` - player appearance
+    - `npcs?: Array<{...}>` - ambient NPC data
+- Return type: `void` (renders directly to canvas)
+- Side effects: Mutates canvas context; draws to canvas
+- Failure mode:
+  - Silent return on empty/null tiles array
+  - Throws on canvas context errors during draw operations
+- Synchronous: Yes (blocking render pass)
+
+### Orchestration Contract
+
+**Entry Point**: `src/hooks/useTownController.ts` - `useTownController` hook
+
+**Generation Flow Contract**:
+- Method: `generateMap(): void`
+- Process:
+  1. Sets `loading: true` state
+  2. Wraps generation in `setTimeout` (50ms) to yield to UI thread
+  3. Creates `TownGenerator` instance with current options
+  4. Calls `generator.generate()`
+  5. Sets `mapData` state with result
+  6. Calculates player spawn position if needed
+  7. On error: logs to console, sets `loading: false`, leaves mapData unchanged
+  8. On success: sets `loading: false`, resets zoom/pan
+- Error handling: `try-catch` with `console.error("Failed to generate map:", error)`
+- Failure mode: Map generation fails silently (console log only), previous map state persists
+- Retry policy: None (single attempt, no retry on failure)
+
+### Current Retry/Failure Policy
+
+**Generation Failure Handling**:
+- Policy: **Hard-fail with console logging**
+- Behavior: On exception, log error to console, leave `mapData` in previous state
+- User experience: Loading spinner clears, no error UI, previous map remains visible
+- No automatic retry
+- No fallback generation
+- No user notification beyond console log
+
+**Rendering Failure Handling**:
+- Policy: **Silent fail or error display**
+- Behavior:
+  - Empty/null input: silent return (no render)
+  - Canvas context errors: caught by component try-catch, displays red error text on canvas
+- User experience: Either blank canvas or red error message
+- No automatic retry
+- No fallback rendering
+
+**Contract Summary**:
+- Both services use **synchronous, blocking APIs**
+- **No standardized error envelope** (raw exceptions or silent returns)
+- **No retry logic** at any layer
+- **No service-level health checks** or validation
+- **Error visibility**: Console logs only (generation), canvas error text (rendering)
+- **Deterministic expectation**: Same seed + options = same map (no external state dependencies)
 
 ## Scope Boundaries
 

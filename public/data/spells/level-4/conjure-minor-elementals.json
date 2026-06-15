@@ -149,7 +149,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 2d8 Acid, Cold, Fire, or Lightning damage when the hit-based elemental aura damage resolves; each slot level above 4th adds +1d8.",
+      "description": "Until the spell ends, any attack the caster makes that hits a creature in the 15-foot Emanation deals an extra 2d8 Acid, Cold, Fire, or Lightning damage chosen for that attack; each slot level above 4 adds +1d8 damage.",
       "conditionalEndings": []
     },
     {

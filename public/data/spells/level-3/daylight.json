@@ -145,7 +145,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Sunlight fills a 60-foot-radius Sphere from a point within range, creating Bright Light and shedding Dim Light for an additional 60 feet. Alternatively, it can originate from an object that isn't worn or carried, and opaque cover blocks that object-origin sunlight. Overlap with magical Darkness from a spell of level 3 or lower dispels that Darkness.",
+      "description": "For 1 hour, sunlight fills a 60-foot-radius Sphere from a point within 60 feet, creating Bright Light and shedding Dim Light for an additional 60 feet; alternatively, it can originate from an object that is not worn or carried, opaque cover blocks that object-origin sunlight, and overlap with magical Darkness from a spell of level 3 or lower dispels that Darkness.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

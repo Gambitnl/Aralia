@@ -277,7 +277,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "As a Bonus Action each turn, the caster can make a ranged spell attack from the sphere's center against one creature within 60 feet of the center. The attack has advantage if the target is in the sphere.",
+      "description": "As a Bonus Action each turn, the caster can make a ranged spell attack from the sphere's center against one creature within 60 feet of the center, dealing 4d6 Lightning damage on a hit and gaining advantage if the target is in the sphere.",
       "conditionalEndings": []
     },
     {

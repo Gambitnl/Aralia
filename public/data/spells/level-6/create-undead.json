@@ -135,7 +135,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "At night, turns up to three Small or Medium Humanoid corpses into controlled ghouls and lets the caster command created undead within 120 feet with a bonus action.",
+      "description": "At night, turn up to three Small or Medium Humanoid corpses within 10 feet into controlled Ghouls for 24 hours. As a Bonus Action, you can mentally command any Undead created by this spell within 120 feet, issuing the same command to multiple controlled Undead; without commands they Dodge and move only to avoid harm, orders continue until complete, control stops after 24 hours unless recast before expiry, and higher slots animate or reassert control over four Ghouls at slot 7, five Ghouls or two Ghasts/Wights at slot 8, or six Ghouls, three Ghasts/Wights, or two Mummies at slot 9.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "7th: four Ghouls; 8th: five Ghouls or two Ghasts/Wights; 9th: six Ghouls, three Ghasts/Wights, or two Mummies",

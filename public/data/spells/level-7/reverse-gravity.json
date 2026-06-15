@@ -219,7 +219,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "If a ceiling or anchored object is encountered in the upward fall, creatures and objects strike it as they would during a downward fall.",
+      "description": "If a ceiling or anchored object is encountered during the upward fall, creatures and objects strike it and take normal falling damage as Bludgeoning damage.",
       "conditionalEndings": []
     },
     {
@@ -284,7 +284,7 @@
         "direction": "toward_caster",
         "maxDistance": "downward fall when the spell ends"
       },
-      "description": "When the spell ends, affected objects and creatures fall downward.",
+      "description": "When Reverse Gravity ends or the target leaves the 50-foot-radius, 100-foot-high cylinder, affected creatures and objects that were hovering at the top fall downward and resolve normal falling consequences.",
       "conditionalEndings": []
     },
     {

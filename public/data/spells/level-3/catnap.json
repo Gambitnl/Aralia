@@ -160,7 +160,7 @@
           "adjacent_creature_action_shakes_awake"
         ]
       },
-      "description": "Up to three willing creatures fall Unconscious for the spell's duration.",
+      "description": "Choose up to three willing visible creatures within 30 feet; each falls Unconscious for 10 minutes, wakes early if it takes damage or another creature uses an action to shake or slap it awake, gains the benefit of a Short Rest if it remains Unconscious for the full duration, cannot benefit from this spell again until finishing a Long Rest, and higher slots add one willing target per slot level above 3.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

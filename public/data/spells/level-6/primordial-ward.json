@@ -112,7 +112,7 @@
         "type": "minutes",
         "value": 1
       },
-      "description": "The caster has resistance to Acid, Cold, Fire, Lightning, and Thunder damage for the duration.",
+      "description": "The caster has resistance to Acid, Cold, Fire, Lightning, and Thunder damage for up to 1 minute with concentration.",
       "conditionalEndings": []
     },
     {
@@ -147,7 +147,7 @@
         "type": "rounds",
         "value": 1
       },
-      "description": "When the caster takes one of the listed damage types, the caster can use a reaction to gain immunity to that type, including against the triggering damage, until the end of the caster's next turn.",
+      "description": "When the caster takes Acid, Cold, Fire, Lightning, or Thunder damage, the caster can use a reaction to gain immunity to that triggering damage type, including against the triggering damage, until the end of the caster's next turn.",
       "conditionalEndings": []
     },
     {
@@ -201,7 +201,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You have resistance to acid, cold, fire, lightning, and thunder damage for the spell's duration. When you take damage of one of those types, you can use your reaction to gain immunity to that type of damage, including against the triggering damage. If you do so, the resistances end, and you have the immunity until the end of your next turn, at which time the spell ends.",
+      "description": "Using the reaction immunity ends the spell's Acid, Cold, Fire, Lightning, and Thunder resistances immediately, and the spell ends when the chosen immunity ends at the end of the caster's next turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

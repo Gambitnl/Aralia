@@ -170,7 +170,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 4d8 Bludgeoning damage on a failed Strength save, or half as much on success.",
+      "description": "When the 50-foot-long, 15-foot-high, 1-foot-thick wall appears, each creature in its area makes a Strength save, taking 4d8 Bludgeoning damage on a failed save or half as much on a success.",
       "conditionalEndings": []
     },
     {
@@ -224,7 +224,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "For the duration, the strong wind keeps fog, smoke, and other gases at bay. Small or smaller flying creatures or objects cannot pass through the wall. Loose, lightweight materials brought into the wall fly upward. Ordinary arrows, bolts, and similar projectiles launched at targets behind the wall are deflected upward and miss automatically, while boulders hurled by Giants or siege engines and similar projectiles are unaffected. Creatures in gaseous form cannot pass through it.",
+      "description": "For up to 1 minute with concentration, the wall keeps fog, smoke, gases, gaseous creatures, Small or smaller flying creatures or objects, and loose lightweight materials from passing normally; ordinary arrows, bolts, and similar projectiles aimed through it miss automatically, while giant boulders, siege projectiles, and similar heavy projectiles are unaffected.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

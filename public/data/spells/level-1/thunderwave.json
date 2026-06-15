@@ -219,7 +219,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "On a failed save, creature is pushed 10 feet away; unsecured objects wholly in the area are pushed 10 feet. Audible out to 300 feet.",
+      "description": "On a failed Constitution save, each creature in the 15-foot Cube is pushed 10 feet away from the caster; unsecured objects wholly in the area are also pushed 10 feet away, and the thunderous boom is audible within 300 feet.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

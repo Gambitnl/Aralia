@@ -133,7 +133,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Summons a demon under constrained command for the duration, with the maximum demon challenge rating increasing by 1 for each slot level above 4th.",
+      "description": "Summon one chosen Demon of CR 5 or lower in a visible unoccupied space within 60 feet for up to 1 hour with concentration; maximum CR increases by 1 per slot level above 4. The demon rolls its own Initiative, takes its own turns, obeys no-action verbal commands until it succeeds on an end-turn Charisma save, has Disadvantage on that save if you speak its true name, attacks creatures that attacked it when uncommanded, pursues nearest non-demons after control breaks, lingers for 1d6 rounds if concentration ends early while uncontrolled, disappears at 0 Hit Points or when the spell ends, and cannot cross or harm the optional consumed blood circle or target creatures inside it.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+1 maximum demon CR per slot level above 4th",

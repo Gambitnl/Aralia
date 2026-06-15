@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 23:08:53
+ * Last Sync: 14/06/2026, 18:19:49
  * Dependents: commands/index.ts
  * Imports: 22 files
  *
@@ -283,7 +283,7 @@ export class SpellCommandFactory {
 
       const targetFilter = effect.condition?.targetFilter;
       if (targetFilter) {
-        filteredTargets = context.targets.filter(t => this.matchesFilter(t, targetFilter));
+        filteredTargets = context.targets.filter(t => TargetValidationUtils.matchesFilter(t, targetFilter));
 
         if (filteredTargets.length === 0 && context.targets.length > 0) {
           // All targets filtered out

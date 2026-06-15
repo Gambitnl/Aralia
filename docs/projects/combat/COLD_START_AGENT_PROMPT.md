@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Combat System
 slug: combat
-Status: active
+status: active
 last_updated: 2026-06-10
 iteration: 11
 source_agent: Anscombe / gpt-5.4-mini high

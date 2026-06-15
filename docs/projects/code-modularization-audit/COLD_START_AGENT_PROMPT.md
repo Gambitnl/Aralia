@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Code Modularization Audit
 slug: code-modularization-audit
-Status: active
+status: active
 last_updated: 2026-06-12
 iteration: 6
 source_agent: Amazon Q

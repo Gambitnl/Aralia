@@ -139,7 +139,7 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "Target gains a +2 bonus to AC.",
+      "description": "As a Bonus Action, choose one creature within 60 feet for up to 10 minutes with concentration; the target gains a +2 bonus to AC.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

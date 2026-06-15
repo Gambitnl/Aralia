@@ -474,7 +474,10 @@ describe('worldforge pipeline integration', () => {
       townFeatureCount: restoredReplay.artifact.features.length,
     }).toEqual({
       burgId: 264,
-      plotCount: 7,
+      // 2026-06-14: town gen added the `workshop` plot role (one extra RNG draw
+      // per eligible plot) — the hamlet probe now yields 8 plots. Re-frozen on
+      // acceptance of the accepted, already-wired workshop feature.
+      plotCount: 8,
       firstPlot: {
         id: 0,
         footprint: [
@@ -552,7 +555,10 @@ describe('worldforge pipeline integration', () => {
       modifiedPlotRole: 'market',
       modifiedInteriorEntryRole: 'shopfloor',
       addedPlotRole: 'market',
-      addedInteriorRoomCount: 8,
+      // 2026-06-14: the workshop role shifts the plot-id counter, so
+      // newPlotId (= max plot id + 100) changed, reseeding the added
+      // building's room-packing → 9 rooms. Re-frozen with the workshop feature.
+      addedInteriorRoomCount: 9,
       hasAddedExteriorDoor: true,
       removedPlotPresent: false,
     });

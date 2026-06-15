@@ -147,7 +147,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Create a 20-foot-radius Heavily Obscured sphere of ember-smoke within 150 feet for up to 1 minute with concentration. The cloud lasts until concentration ends or strong wind disperses it, and a creature makes the spell damage save only once per turn.",
+      "description": "Create a 20-foot-radius Heavily Obscured sphere of ember-smoke within 150 feet for up to 1 minute with concentration. The cloud lasts until concentration ends or strong wind disperses it, a creature makes the spell damage save only once per turn, and at the start of each caster turn the cloud moves 10 feet away from the caster in a chosen direction.",
       "utilityType": "other",
       "grantedActions": [],
       "attackAugments": [],

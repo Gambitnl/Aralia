@@ -215,7 +215,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "sensory",
-      "description": "You create one of the following magical effects within range: 1) A harmless sensory effect (sparks, wind, music, odor). 2) Light or snuff out a candle, torch, or small campfire. 3) Clean or soil an object no larger than 1 cubic foot. 4) Chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour. 5) Make a color, mark, or symbol appear on an object/surface for 1 hour. 6) Create a nonmagical trinket or illusory image that fits in your hand (lasts until end of next turn).",
+    "description": "Create one minor magical effect within 10 feet: a harmless sensory effect; light or snuff a candle, torch, or small campfire; clean or soil an object no larger than 1 cubic foot; chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour; place a color, mark, or symbol on an object or surface for 1 hour; or create a hand-sized nonmagical trinket or illusory image until the end of the caster next turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

@@ -135,7 +135,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "The caster transforms into a seen non-Construct, non-Undead creature with an eligible Challenge Rating for up to 1 hour with concentration, and can use a Magic action to choose another eligible form while the spell lasts. The caster retains identity, proficiencies, communication, and Spellcasting where the new form allows, and chooses whether equipment falls, merges, or is worn by the new form.",
+      "description": "Transform into a creature you have seen that is not a Construct or Undead and has an eligible Challenge Rating for up to 1 hour with concentration. Your game statistics become the chosen form except for retained identity, proficiencies, communication, and Spellcasting the form can support; while the spell lasts, you can use a Magic action to choose another eligible form, and you choose whether equipment falls, merges, or is worn by the new form.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -256,7 +256,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On the first shape-shift, the caster gains temporary hit points equal to the Hit Points of the chosen first form.",
+      "description": "On the first Shapechange transformation, you gain temporary hit points equal to the chosen form Hit Points; those temporary hit points vanish when the spell ends.",
       "defenseType": "temporary_hp",
       "duration": {
         "type": "special"

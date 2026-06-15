@@ -71,3 +71,27 @@ export const StateInteractions: Record<string, StateTag | null> = {
   // TODO(Simulator): Expand interaction system to support side-effects (e.g., wet+electrified dealing damage) and applied mechanics (e.g., smoke obscuring vision).
   // TODO(Simulator): Implement 'spread' mechanic for wet+electrified interaction in ElementalInteractionSystem or a dedicated EffectSystem.
 };
+
+/**
+ * Maps a combat damage type to the elemental StateTag it applies on contact.
+ *
+ * Keys are lowercase damage types so callers can pass raw spell/weapon damage
+ * types directly. Only damage types with a clear elemental meaning are mapped;
+ * physical and metaphysical types (bludgeoning, force, psychic, radiant, etc.)
+ * have no elemental state and are intentionally absent.
+ */
+export const DamageTypeToStateTag: Record<string, StateTag> = {
+  fire: StateTag.Burning,
+  cold: StateTag.Cold,
+  lightning: StateTag.Electrified,
+  poison: StateTag.Poisoned,
+  acid: StateTag.Acid,
+};
+
+/**
+ * Resolves the elemental StateTag for a damage type, or undefined when the
+ * damage type does not map to an elemental state. Case-insensitive.
+ */
+export function getStateTagForDamageType(damageType: string): StateTag | undefined {
+  return DamageTypeToStateTag[damageType.toLowerCase()];
+}

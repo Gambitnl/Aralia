@@ -142,7 +142,7 @@
         },
         "level": 0
       },
-      "description": "On a failed save, a target with 0 to 20 Hit Points dies.",
+      "description": "On a failed Charisma save, a chosen creature within 30 feet with 20 Hit Points or fewer dies; failed Celestial, Elemental, Fey, or Fiend targets also resolve the planar return branch.",
       "conditionalEndings": []
     },
     {
@@ -205,7 +205,7 @@
         },
         "level": 0
       },
-      "description": "On a failed save, a target with 21 to 30 Hit Points has the Blinded condition for 1 hour.",
+      "description": "On a failed Charisma save, a target with 21 to 30 Hit Points has the Blinded condition for 1 hour.",
       "conditionalEndings": []
     },
     {
@@ -268,7 +268,7 @@
         },
         "level": 0
       },
-      "description": "On a failed save, a target with 21 to 30 Hit Points has the Deafened condition for 1 hour.",
+      "description": "On a failed Charisma save, a target with 21 to 30 Hit Points has the Deafened condition for 1 hour.",
       "conditionalEndings": []
     },
     {
@@ -331,7 +331,7 @@
         },
         "level": 0
       },
-      "description": "On a failed save, a target with 21 to 30 Hit Points has the Stunned condition for 1 hour.",
+      "description": "On a failed Charisma save, a target with 30 Hit Points or fewer is Stunned for 1 hour; the same HP band also carries the Blinded and Deafened Divine Word conditions.",
       "conditionalEndings": []
     },
     {
@@ -394,7 +394,7 @@
         },
         "level": 0
       },
-      "description": "On a failed save, a target with 31 to 40 Hit Points has the Deafened condition for 10 minutes.",
+      "description": "On a failed Charisma save, a target with 31 to 40 Hit Points has the Deafened condition for 10 minutes.",
       "conditionalEndings": []
     },
     {
@@ -457,7 +457,7 @@
         },
         "level": 0
       },
-      "description": "On a failed save, a target with 41 to 50 Hit Points has the Deafened condition for 1 minute.",
+      "description": "On a failed Charisma save, a target with 41 to 50 Hit Points has the Deafened condition for 1 minute.",
       "conditionalEndings": []
     },
     {
@@ -533,7 +533,7 @@
         "direction": "caster_choice",
         "maxDistance": "plane of origin"
       },
-      "description": "Regardless of Hit Points, a Celestial, Elemental, Fey, or Fiend target that fails its save is forced back to its plane of origin if it is not already there.",
+      "description": "Regardless of Hit Points, a Celestial, Elemental, Fey, or Fiend target that fails its Charisma save is forced back to its plane of origin if it is not already there.",
       "conditionalEndings": []
     },
     {
@@ -587,7 +587,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Choose creatures within 30 feet to make a Charisma save. On a failed save, targets with 50 Hit Points or fewer resolve the Divine Word Hit Point table, while failed Celestial, Elemental, Fey, or Fiend targets are forced back to their plane of origin if not already there and cannot return to the current plane for 24 hours except by Wish.",
+      "description": "Choose creatures within 30 feet to make a Charisma save. Failed targets with 50 Hit Points or fewer resolve the Divine Word Hit Point table, while failed Celestial, Elemental, Fey, or Fiend targets return to their plane of origin and cannot come back to the current plane for 24 hours except by Wish.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

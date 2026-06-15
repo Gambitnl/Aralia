@@ -71,8 +71,16 @@ export interface AtlasMapViewProps {
   showMarkers?: boolean;
   showZones?: boolean;
   showMilitary?: boolean;
-  /** Callback triggered when a Voronoi cell is clicked. */
+  /** Voronoi cell mesh overlay (Azgaar "Cells" layer). Default false. */
+  showCells?: boolean;
+  /** Callback triggered when a Voronoi cell is clicked (scroll auto-descend). */
   onCellClick?: (cellId: number) => void;
+  /** Callback triggered when a cell is selected by a pointer click (inspect). */
+  onCellSelect?: (cellId: number) => void;
+  /** Currently selected cell id to highlight, or null for none. */
+  selectedCellId?: number | null;
+  /** Travel mode: shows the cell mesh and highlights the cell under the cursor. */
+  travelMode?: boolean;
   /** Optional viewport parameters to restore. */
   initialView?: AtlasView;
   /** Optional callback to notify viewport parameter updates. */
@@ -100,7 +108,11 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
   showMarkers = false,
   showZones = false,
   showMilitary = false,
+  showCells = false,
   onCellClick,
+  onCellSelect,
+  selectedCellId = null,
+  travelMode = false,
   initialView,
   onViewChange,
   cooldownActive,
@@ -127,6 +139,32 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
 
   // Track mouse coordinates on canvas for NPC tooltip hovers
   const [hoverPos, setHoverPos] = useState<{ x?: number; y?: number }>({});
+
+  // Cell under the cursor in travel mode (drives the cursor-following highlight).
+  const [hoveredCellId, setHoveredCellId] = useState<number | null>(null);
+
+  // Nearest-centroid hit test: map a screen point to the cell whose centroid is
+  // closest (Voronoi cells own the region nearest their centroid). Shared by
+  // click-select and travel hover. Returns -1 when no cell qualifies.
+  const cellAtScreenPoint = (screenX: number, screenY: number, v: AtlasView): number => {
+    const mapX = (screenX - v.offsetX) / v.scale;
+    const mapY = (screenY - v.offsetY) / v.scale;
+    const { cells } = atlas.pack;
+    let nearest = -1;
+    let minDistSq = Infinity;
+    for (let i = 0; i < cells.p.length; i++) {
+      const p = cells.p[i];
+      if (!p) continue;
+      const dx = mapX - p[0];
+      const dy = mapY - p[1];
+      const distSq = dx * dx + dy * dy;
+      if (distSq < minDistSq) {
+        minDistSq = distSq;
+        nearest = i;
+      }
+    }
+    return nearest;
+  };
 
   // Track if mouse/pointer is currently dragging
   const isDraggingRef = useRef(false);
@@ -208,6 +246,13 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
     const my = e.clientY - rect.top;
     setHoverPos({ x: mx, y: my });
 
+    // Travel mode: track the cell under the cursor so the highlight follows the
+    // mouse from cell to cell. Skipped while dragging (panning) to avoid churn.
+    if (travelMode && !isDraggingRef.current) {
+      const id = cellAtScreenPoint(mx, my, view);
+      setHoveredCellId((prev) => (prev === id ? prev : id));
+    }
+
     if (!isDraggingRef.current) return;
     const dx = e.clientX - lastPointerPos.current.x;
     const dy = e.clientY - lastPointerPos.current.y;
@@ -224,6 +269,7 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
   const handlePointerLeave = () => {
     // Reset hover coordinates when mouse pointer leaves canvas bounds
     setHoverPos({});
+    setHoveredCellId(null);
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -238,7 +284,10 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
     const dist = Math.sqrt(dx * dx + dy * dy);
     const duration = performance.now() - clickStartTime.current;
 
-    if (dist < 6 && duration < 350 && onCellClick) {
+    // A genuine click (not a drag) SELECTS the cell for inspection — including
+    // water cells (the info panel reports "Ocean/Lake"). Descent is an explicit
+    // action from the info panel, or the scroll-zoom auto-descent below.
+    if (dist < 6 && duration < 350 && (onCellSelect || onCellClick)) {
       const rect = e.currentTarget.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const clickY = e.clientY - rect.top;
@@ -265,7 +314,8 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
       }
 
       if (nearestCellId !== -1) {
-        onCellClick(nearestCellId);
+        if (onCellSelect) onCellSelect(nearestCellId);
+        else if (onCellClick) onCellClick(nearestCellId);
       }
     }
   };
@@ -393,7 +443,8 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
         showMarkers,
         showZones,
         showMilitary,
-        overlayMode
+        overlayMode,
+        showCells
       );
 
     if (view.scale <= FULL_CACHE_MAX_SCALE) {
@@ -422,6 +473,7 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
             showMarkers,
             showZones,
             showMilitary,
+            showCells,
           });
           cacheViewRef.current = {
             scale: view.scale,
@@ -432,6 +484,7 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
             showMarkers,
             showZones,
             showMilitary,
+            showCells,
           };
         }
       }
@@ -477,6 +530,7 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
             showMarkers,
             showZones,
             showMilitary,
+            showCells,
           });
           cacheViewRef.current = {
             scale: view.scale,
@@ -487,6 +541,7 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
             showMarkers,
             showZones,
             showMilitary,
+            showCells,
           };
           deepAnchorRef.current = { offsetX: view.offsetX, offsetY: view.offsetY, width, height };
         }
@@ -518,6 +573,49 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
       );
     }
 
+    // Trace a cell's Voronoi polygon in screen space above the cached terrain
+    // (the cache is shared across selections/hovers, so highlights must be live
+    // overlays rather than baked in).
+    const traceCell = (cellId: number) => {
+      const vIdx = atlas.pack.cells.v?.[cellId];
+      const vPts = atlas.pack.vertices?.p;
+      if (!vIdx || vIdx.length < 3 || !vPts) return false;
+      ctx.beginPath();
+      for (let i = 0; i < vIdx.length; i++) {
+        const pt = vPts[vIdx[i]];
+        if (!pt) continue;
+        const sx = pt[0] * view.scale + view.offsetX;
+        const sy = pt[1] * view.scale + view.offsetY;
+        if (i === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.closePath();
+      return true;
+    };
+
+    // Travel-mode hover: a light reddish border on the cell under the cursor,
+    // following the mouse from cell to cell. Drawn beneath the selection ring.
+    if (travelMode && hoveredCellId != null && hoveredCellId >= 0 && hoveredCellId !== selectedCellId) {
+      if (traceCell(hoveredCellId)) {
+        ctx.fillStyle = "rgba(248, 113, 113, 0.16)";
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgba(248, 113, 113, 0.9)";
+        ctx.stroke();
+      }
+    }
+
+    // Selected cell: a firmer indigo ring (persists across hovers).
+    if (selectedCellId != null && selectedCellId >= 0) {
+      if (traceCell(selectedCellId)) {
+        ctx.fillStyle = "rgba(99, 102, 241, 0.22)";
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = "rgba(165, 180, 252, 0.95)";
+        ctx.stroke();
+      }
+    }
+
     // Draw the scale bar directly on the main canvas at the correct screen position
     if (showScaleBar) {
       drawScaleBar(ctx, atlas, {
@@ -530,7 +628,12 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
         overlayMode,
       });
     }
-  }, [atlas, view, width, height, showScaleBar, showGraticule, showPolitical, overlayMode, showMarkers, showZones, showMilitary, markers, hoverPos]);
+  }, [atlas, view, width, height, showScaleBar, showGraticule, showPolitical, overlayMode, showMarkers, showZones, showMilitary, showCells, markers, hoverPos, selectedCellId, travelMode, hoveredCellId]);
+
+  // Clear the hover highlight when travel mode is switched off.
+  useEffect(() => {
+    if (!travelMode) setHoveredCellId(null);
+  }, [travelMode]);
 
   // --------------------------------------------------------------------------
   // Button-Triggered Zoom Helpers

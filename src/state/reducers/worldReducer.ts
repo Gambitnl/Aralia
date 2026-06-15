@@ -267,6 +267,12 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         // Simulates NPC-owned businesses: revenue, costs, price adjustments, financial pressure.
         // Bankrupt businesses (pressure > 90 for 30+ unprofitable days) are removed and their
         // NPC owner's businessId is cleared so they can be re-generated as merchants without shops.
+        //
+        // ECON-WIRE-1 (SPEC §8): Town-claimed businesses (burgId/plotId set by World3DWrapper)
+        // flow through this same loop because they are registered as ownerType === 'npc' with a
+        // valid npcOwnerProfile. No parallel abstraction is needed — the existing daily sim is
+        // the single consumer. See src/systems/worldforge/bridge/townEconomy.ts for helpers and
+        // src/systems/worldforge/bridge/__tests__/townEconomy.test.ts for regression coverage.
         const currentWorldBusinesses = nextState.worldBusinesses;
         if (currentWorldBusinesses && Object.keys(currentWorldBusinesses).length > 0) {
           const npcBizRng = new SeededRandom(state.worldSeed + newDay + 8888);

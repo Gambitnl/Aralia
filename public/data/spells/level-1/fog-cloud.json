@@ -178,7 +178,7 @@
         },
         "depositDistance": 0
       },
-      "description": "Creates a 20-foot-radius obscuring fog area within 120 feet, with radius increasing by 20 feet for each slot level above 1st.",
+      "description": "Create a 20-foot-radius Sphere of heavily obscuring fog centered on a point within 120 feet for up to 1 hour with concentration; strong wind disperses the fog, and higher-level slots increase the radius by 20 feet per slot level above 1.",
       "conditionalEndings": [],
       "tags": [
         "obscurement",

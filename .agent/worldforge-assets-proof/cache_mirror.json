@@ -1,0 +1,26 @@
+{
+  "cc441a7b": {
+    "key": "texture/wall/plaster/weathered/temperate",
+    "address": "cc441a7b",
+    "source": "generated",
+    "imageUri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mPsrKqsBwADegF4V2HupQAAAABJRU5ErkJggg=="
+  },
+  "52ad4bc0": {
+    "key": "face/dwarf/female/elderly/braided",
+    "address": "52ad4bc0",
+    "source": "generated",
+    "imageUri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mPc3tFRDwAE1QGC4Zg58gAAAABJRU5ErkJggg=="
+  },
+  "cc30c245": {
+    "key": "heraldry/house-mindfaek/crest",
+    "address": "cc30c245",
+    "source": "generated",
+    "imageUri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPj/HwADEwGP76vC5gAAAABJRU5ErkJggg=="
+  },
+  "3ba2035a": {
+    "key": "texture/ground/stone/mossy",
+    "address": "3ba2035a",
+    "source": "generated",
+    "imageUri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwADEQH/g8tN3gAAAABJRU5ErkJggg=="
+  }
+}

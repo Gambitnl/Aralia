@@ -151,7 +151,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 5d8 Force damage on a failed Wisdom save, or half as much on success; slot scaling adds +1d8.",
+      "description": "For up to 10 minutes with concentration, nature spirits flit in a 10-foot Emanation around the caster; when the Emanation enters a visible creature's space, or a visible creature enters it or ends its turn there, that creature can be forced to make a Wisdom save once per turn, taking 5d8 Force damage on a failure or half as much on a success, with +1d8 per slot level above 4.",
       "conditionalEndings": []
     },
     {

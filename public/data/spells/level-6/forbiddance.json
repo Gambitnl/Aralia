@@ -147,7 +147,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Deals 5d10 Radiant damage through the spell's always-applied ward damage effect.",
+    "description": "Ward up to 40,000 square feet for 1 day so Aberrations, Celestials, Elementals, Fey, Fiends, and Undead take 5d10 Radiant damage when they enter the warded area or start their turn there.",
       "conditionalEndings": []
     }
   ],

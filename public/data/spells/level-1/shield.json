@@ -142,7 +142,7 @@
         "event": "when_hit",
         "includesSpells": []
       },
-      "description": "Gain +5 bonus to AC until the start of your next turn.",
+      "description": "When you are hit by an attack, you gain +5 AC, including against that attack, until the start of your next turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -252,7 +252,7 @@
           "magic-missile"
         ]
       },
-      "description": "Take no damage from Magic Missile.",
+      "description": "When Magic Missile targets you, you take no damage from it until the start of your next turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

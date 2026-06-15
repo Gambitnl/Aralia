@@ -149,7 +149,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a ranged spell hit, one creature or object takes 1d10 Fire damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "description": "One creature or object within 120 feet takes 1d10 Fire damage on a ranged spell hit; a flammable object hit by the spell starts burning if it is not worn or carried, and damage increases to 2d10 at level 5, 3d10 at level 11, and 4d10 at level 17.",
       "conditionalEndings": [],
       "tags": [
         "fire-damage",

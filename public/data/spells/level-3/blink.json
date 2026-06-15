@@ -135,7 +135,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Roll 1d6 at the end of each of your turns. On a roll of 4-6, you vanish from your current plane and appear in the Ethereal Plane; the spell ends instantly if you are already there. While there, you can perceive the plane you left in shades of gray out to 60 feet, can affect and be affected only by other Ethereal creatures, and creatures on the other plane can't perceive you unless they can perceive Ethereal things. You return at the start of your next turn, and when the spell ends if you are still Ethereal, to an unoccupied space of your choice that you can see within 10 feet of the space you left, or the nearest unoccupied space if none is available.",
+    "description": "For 1 minute, roll 1d6 at the end of each caster turn; on 4-6, the caster vanishes to the Ethereal Plane unless already there, perceives the original plane in gray out to 60 feet, can affect and be affected only by Ethereal creatures, returns at the start of the next turn or when the spell ends to a visible unoccupied space within 10 feet of the departure space, or the nearest unoccupied space if none is available.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

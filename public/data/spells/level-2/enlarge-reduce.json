@@ -140,7 +140,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Enlarge increases the target's size by one category after any required Constitution save, grants Advantage on Strength checks and saves, and adds 1d4 damage to enlarged weapon or Unarmed Strike hits.",
+      "description": "Enlarge increases the target size by one category after any required Constitution save, along with worn and carried gear. The target has Advantage on Strength checks and Strength saves, and its weapon attacks and Unarmed Strikes deal an extra 1d4 damage.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -231,7 +231,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Reduce decreases the target's size by one category after any required Constitution save, imposes Disadvantage on Strength checks and saves, and subtracts 1d4 from reduced weapon or Unarmed Strike damage to a minimum of 1.",
+      "description": "Reduce decreases the target size by one category after any required Constitution save, along with worn and carried gear. The target has Disadvantage on Strength checks and Strength saves, and its weapon attacks and Unarmed Strikes deal 1d4 less damage, to a minimum of 1.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

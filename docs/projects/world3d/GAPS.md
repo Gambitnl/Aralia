@@ -1,4 +1,105 @@
-﻿# World3d Gap Registry
+---
+schema_version: 1
+gap_schema: project_gap_registry
+project: World3d
+slug: world3d
+status: "active â€” W3D-G10 decision recorded 2026-06-10; implementation lane open"
+status_note: "Preserved as routed_reference to avoid flattening existing gap provenance. D4 decision recorded."
+registry_mode: routed_reference
+last_updated: "2026-06-10"
+gap_count: 9
+open_gap_count: 9
+resolved_gap_count: 0
+routed_gap_count: 0
+imported_gap_count: 0
+decision_required_count: 0
+visual_proof_required_count: 0
+highest_severity: low
+proof_freshness: recorded
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+north_star: docs/projects/world3d/NORTH_STAR.md
+tracker: docs/projects/world3d/TRACKER.md
+global_gaps: docs/projects/GLOBAL_GAPS.md
+allowed_statuses:
+  - open
+  - active
+  - pending
+  - blocked
+  - not_started
+  - in_progress
+  - waiting
+  - needs_validation
+  - untriaged
+  - routed
+  - review-required
+  - design_decision_deferred
+  - merged-reference
+  - resolved
+  - closed
+  - done
+  - complete
+  - out_of_scope
+allowed_classifications:
+  - in_scope_now
+  - support_needed_now
+  - adjacent_follow_up
+  - out_of_scope
+  - blocked_human_decision
+  - blocked_external_state
+  - uncertainty
+  - architecture
+  - workflow
+  - execution-path
+  - typing-safety
+  - mechanics
+  - ui
+  - integration
+  - data-model
+  - test_coverage
+  - schema_normalization
+  - ownership
+  - serialization
+  - coverage
+  - globalize
+  - routed
+  - design_decision_deferred
+allowed_severities:
+  - none
+  - low
+  - medium
+  - high
+  - critical
+supported_optional_row_fields:
+  - owner_confidence
+  - source_project
+  - imported_from
+  - global_gap_id
+  - linked_gap_id
+  - routed_to
+  - decision_required
+  - decision_reference
+  - review_required
+  - visual_proof_required
+  - proof_freshness
+  - proof_date
+  - uncertainty
+  - notes
+supported_optional_sections:
+  - Current Readout
+  - Current State
+  - Purpose
+  - Summary
+  - Iteration Notes
+  - Classification Notes
+  - Global Routing
+  - Global Gap Imports
+  - Resolved Gap Log
+  - Required Review Brief
+  - Decision Visualizations
+  - Open / Uncertain Notes
+  - Appendix
+---
+# World3d Gap Registry
 
 Status: active â€” W3D-G10 decision recorded 2026-06-10; implementation lane open
 Last updated: 2026-06-10 (D4 decision recorded)
@@ -24,6 +125,11 @@ retained with `done`/`superseded` status as history; do not silently delete.
 | W3D-G16 | not_started | adjacent_follow_up | unassigned | 2026-06-02 T8 implement | Sub-cell view window flattens relief: the streamed window is `LOAD_RADIUS(4) Ã— CHUNK_WORLD_SIZE(128)` â‰ˆ 512 m radius, but `METERS_PER_CELL = 1024`, so the camera sees **â‰¤ ~1 height cell**. Within one cell the heightfield is a single bilinear-interpolated slope, so even with strong vertical exaggeration the terrain reads as one smooth ridge, never *rolling* hills, and multi-cell features (a road crossing several cells, a valley) can't fit in frame. (Related to T8: it's the deeper limiter on relief legibility that exaggeration alone can't fix.) | `config.ts` (`LOAD_RADIUS`, `CHUNK_WORLD_SIZE`, `METERS_PER_CELL`); live T8 screenshots show a single ridge | Relief/roads/rivers are only ever seen one cell at a time; shrinking `METERS_PER_CELL` would cross the worldâ†”grid coord contract `world-3d-ui` depends on, so it needs a deliberate plan | Widen the visible window without exploding chunk count â€” e.g., bigger `CHUNK_WORLD_SIZE` (fewer chunks/cell) and/or a coarse far-LOD ring beyond the detailed window (ties into W3D-G10/G13) | Camera frames â‰¥ 3â€“4 cells of varied terrain; multiple hills + a road segment read at once |
 | W3D-G22 | not_started | adjacent_follow_up | unassigned | 2026-06-02 T12 implement | Site horizontal positions are quantized to integer grid cells: the T12 replay showed **all 58** demo sites sit at integer grid coordinates (`(xÂ·METERS_PER_CELL) % CHUNK_WORLD_SIZE === 0` for every site). Consequence in the renderer: a site's chunk-local position is `gxÂ·M âˆ’ cxÂ·S`, which for an integer-grid site is exactly `0` â€” so every town seats flush at its owning chunk's NW corner (`localX = localZ = 0`), never in the chunk interior, and towns snap to a coarse 1024 m lattice. The half-open rule (W3D-G20) deterministically assigns these corner sites to the higher chunk. | `chunkSampler.ts` + `siteGeometry.ts` (chunk-local placement); T12 in-page replay (`boundarySitesOnGrid: 58/58`) | Towns can't be placed sub-cell; at world scale settlements visibly snap to a grid and always hug a chunk corner, which looks artificial and can collide with chunk-seam artifacts | Decide whether sub-cell site placement is wanted; if so, carry fractional site positions from the generator (likely a `worldsim-service` concern) and verify the renderer honours them. If integer placement is intended, document it so the corner-seating isn't mistaken for a bug | Either sites render at fractional in-chunk positions, or the integer-lattice placement is documented as intended with the corner-seating noted |
 
+## Schema Fit Notes
+
+| Issue | Existing content shape | Why schema does not fit | Proposed schema change |
+|---|---|---|---|
+| Non-canonical registry mode: `routed_reference` | Existing gap rows or prose carry compact, routed, merged-reference, or decision-history context. | Forcing the canonical row shape now could invent missing ownership/proof metadata or flatten provenance. | Preserve this section until a row-by-row migration can map each current field losslessly. |
 ## Classification Reference
 
 | Classification | Use when |

@@ -164,7 +164,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The caster can use an action to create a 15-foot Cube of swirling wind centered on a visible point within 60 feet; each creature in the Cube makes a Constitution save, taking 2d10 Bludgeoning damage on a failed save or half as much on a successful one.",
+      "description": "For up to 10 minutes with concentration, the caster can use an action to create a 15-foot Cube of swirling wind centered on a visible point within 60 feet; each creature in the Cube makes a Constitution save, taking 2d10 Bludgeoning damage on a failed save or half as much on a success.",
       "conditionalEndings": []
     },
     {
@@ -192,7 +192,7 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "Ranged weapon attacks made against the caster have disadvantage on the attack roll.",
+      "description": "For up to 10 minutes with concentration, ranged weapon attacks made against the caster have Disadvantage on the attack roll.",
       "conditionalEndings": []
     },
     {
@@ -231,7 +231,7 @@
         "direction": "away_from_caster",
         "maxDistance": ""
       },
-      "description": "The caster gains a flying speed of 60 feet for the duration; the runtime still needs a first-class movement-mode field to distinguish flying speed from walking speed changes.",
+      "description": "For up to 10 minutes with concentration, the caster gains a 60-foot Fly Speed; if the spell ends while the caster is still flying, the caster falls unless another effect prevents the fall.",
       "conditionalEndings": [],
       "endCleanup": [
         {
@@ -343,7 +343,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "The caster can use an action to create the swirling wind Cube, gains a flying speed of 60 feet, and falls when the spell ends if still flying unless another effect prevents the fall.",
+      "description": "For up to 10 minutes with concentration, the caster gains a 60-foot Fly Speed, can use an action each turn to create the 15-foot swirling wind Cube, and falls when the spell ends if still flying unless another effect prevents the fall.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

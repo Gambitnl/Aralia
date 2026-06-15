@@ -12,14 +12,17 @@ Last updated: 2026-06-12
 - `done`
 - `superseded`
 - `out_of_scope`
-## Active task queue
-
+## Active Task Queue
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check |
 |---|---|---|---|---|---|---|---|
 | T3 | not_started | Document and decide component type registry strategy | Worker B | 2026-05-31 | `src/components/types/index.ts` | Confirm whether a dedicated component registry layer is needed | Decision log update in this project |
 
-## Decisions in scope
+## Gap Log
 
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+
+## Decisions in scope
 - Keep implementation scope unchanged until implementation resumes in `src/` code.
 - Preserve evidence-first notes: this project is now positioned as a continuity surface, not a cleanup pass.
 

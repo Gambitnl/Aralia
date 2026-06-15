@@ -141,7 +141,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Creates a silence zone: blocks sound, deafens creatures inside, prevents verbal casting, and grants immunity to thunder damage within.",
+      "description": "A 20-foot-radius sphere of silence forms at a point you choose within 120 feet. Sound cannot be created within it or pass through it, creatures inside cannot cast spells with Verbal components, and creatures or objects entirely inside ignore Thunder damage.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -195,7 +195,7 @@
           "value": 10
         }
       },
-      "description": "Creatures entirely inside the silence sphere are Deafened while the spell persists.",
+      "description": "Creatures entirely inside the silence sphere have the Deafened condition while they remain there.",
       "conditionalEndings": []
     },
     {
@@ -256,7 +256,7 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "Creatures and objects entirely inside the silence sphere have immunity to Thunder damage.",
+      "description": "Creatures and objects entirely inside the silence sphere are immune to Thunder damage while they remain there.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

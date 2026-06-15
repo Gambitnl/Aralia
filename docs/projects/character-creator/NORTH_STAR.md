@@ -6,13 +6,13 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-12
-iteration: 5
+last_updated: 2026-06-14
+iteration: 6
 confidence: high
 evidence: docs/projects/character-creator
-gap_signal: "13 open gaps; G1, G3-G8, and G14-G19 remain open after G2 and G9-G13 resolution"
+gap_signal: "12 open gaps; G1, G3-G8, G14-G17, and G20 remain open after G18-G19 resolution"
 protocol: living project doc set
-next_step: T4 resolved - documentation drift reconciled. Proceed to address adjacent gaps (G3-G5) or implement rest choice and validation fixes (G18-G19).
+next_step: G18 and G19 resolved. Proceed to address open wizard/sidebar/feat selection gaps (G7, G14, G20).
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -27,8 +27,8 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-08
-workflow_gaps_reviewed: 2026-06-08
+last_proof: 2026-06-14
+workflow_gaps_reviewed: 2026-06-14
 compaction_status: not_needed
 lifecycle_status: reviewed (G2 resolved)
 deprecation_confidence: none
@@ -39,7 +39,7 @@ human_decision_required: "no"
 # Character Creator North Star
 
 Status: active (G2 resolved 2026-06-08; no pending review hold)
-Last updated: 2026-06-12
+Last updated: 2026-06-14
 
 ## Dashboard Card Schema
 
@@ -49,17 +49,17 @@ Category: Feature/UI Projects
 Status: active (G2 resolved 2026-06-08; no pending review hold)
 Confidence: high
 Evidence: docs/projects/character-creator
-Gap signal: 13 open gaps; G1, G3-G8, and G14-G19 remain open after G2 and G9-G13 resolution
+Gap signal: 12 open gaps; G1, G3-G8, G14-G17, and G20 remain open after G18-G19 resolution
 Protocol: living project doc set
-Next step: T4 resolved - documentation drift reconciled. Proceed to address adjacent gaps (G3-G5) or implement rest choice and validation fixes (G18-G19).
+Next step: G18 and G19 resolved. Proceed to address open wizard/sidebar/feat selection gaps (G7, G14, G20).
 Required verification: docs_consistency
 Completed verification: docs_consistency
-Last proof: 2026-06-08 review-gate classification
-Workflow gaps reviewed: 2026-06-08
+Last proof: 2026-06-14
+Workflow gaps reviewed: 2026-06-14
 
 Dashboard lifecycle: reviewed (G2 resolved)
-Next step: T4 resolved - documentation drift reconciled. Proceed to address adjacent gaps (G3-G5) or implement rest choice and validation fixes (G18-G19).
-Housekeeping note (2026-06-10): the 2026-06-10 decision blitz (`docs/projects/DECISION_BLITZ_2026-06-10.md`, "Items converted to work") confirmed G2 was already resolved on 2026-06-08 â€” no decision was pending, and this project should not be read as review-blocked.
+Next step: G18 and G19 resolved. Proceed to address open wizard/sidebar/feat selection gaps (G7, G14, G20).
+Housekeeping note (2026-06-10): the 2026-06-10 decision blitz (`docs/projects/DECISION_BLITZ_2026-06-10.md`, "Items converted to work") confirmed G2 was already resolved on 2026-06-08 — no decision was pending, and this project should not be read as review-blocked.
 
 ## Required Review Brief
 

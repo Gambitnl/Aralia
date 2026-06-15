@@ -69,3 +69,8 @@
 {"at":1781351488720,"kind":"exit","id":"as-mqcao3q8-6932c3","agent":"shell","title":"render alpha","status":"killed","exitCode":-1073741510,"runtimeMs":23023}
 {"at":1781351490846,"kind":"exit","id":"as-mqcao47q-325996","agent":"shell","title":"render beta","status":"killed","exitCode":-1073741510,"runtimeMs":24520}
 {"at":1781355557954,"kind":"spawn","id":"as-mqcd3soi-a41e27","agent":"claude","title":"Claude Desktop · terminal"}
+{"at":1781480969392,"kind":"spawn","id":"probe-codex-mqefrtf2","agent":"codex","title":"usage probe · codex","external":true}
+{"at":1781480983461,"kind":"exit","id":"probe-codex-mqefrtf2","agent":"codex","title":"usage probe · codex","status":"exited","exitCode":0,"runtimeMs":14070,"external":true}
+{"at":1781481000582,"kind":"spawn","id":"probe-agy-mqefshhi","agent":"agy","title":"usage probe · agy","external":true}
+{"at":1781481018670,"kind":"exit","id":"probe-agy-mqefshhi","agent":"agy","title":"usage probe · agy","status":"exited","exitCode":0,"runtimeMs":18088,"external":true}
+{"at":1781481483884,"kind":"spawn","id":"as-mqeg2u5q-d55bbd","agent":"copilot","title":"wiring test � copilot"}

@@ -143,7 +143,7 @@
         "type": "minutes",
         "value": 1
       },
-      "description": "The target gains a +2 bonus to Armor Class while Haste lasts.",
+      "description": "Choose one willing creature within 30 feet for up to 1 minute with concentration. While Haste lasts, the target has doubled Speed, +2 Armor Class, Advantage on Dexterity saves, and one limited extra action each turn; when the spell ends, the target is Incapacitated with Speed 0 until the end of its next turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

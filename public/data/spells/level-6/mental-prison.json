@@ -151,7 +151,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On either a successful or failed Intelligence save, the target takes 5d10 Psychic damage; the spell ends on a successful save.",
+      "description": "One visible creature within 60 feet makes an Intelligence save, automatically succeeding if immune to Charmed. The target takes 5d10 Psychic damage on a success or failure, and the spell ends immediately on a successful save.",
       "conditionalEndings": []
     },
     {
@@ -214,7 +214,7 @@
         },
         "level": 0
       },
-      "description": "On a failed Intelligence save, the target is Restrained by the illusory cell for the spell's duration.",
+      "description": "On a failed Intelligence save, the target is Restrained for up to 1 minute with concentration inside an illusory cell only it perceives, cannot see or hear beyond the illusion, and triggers the escape damage if it leaves, attacks through, or reaches through the illusion.",
       "conditionalEndings": []
     },
     {
@@ -276,7 +276,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Escape-trigger damage deals 10d10 Psychic if the target leaves, attacks through, or reaches through the illusion, then ends the spell.",
+      "description": "If the target leaves the illusory cell, makes a melee attack through it, or reaches through it, the target takes 10d10 Psychic damage and the spell ends.",
       "conditionalEndings": []
     },
     {
@@ -300,7 +300,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "sensory",
-      "description": "The target perceives an illusory cell around its space and cannot see or hear anything beyond the illusion. A target immune to being Charmed automatically succeeds on the saving throw.",
+      "description": "Create an illusory cell around the target space that only the target perceives. A target immune to Charmed automatically succeeds on the Intelligence save; on a failed save, the illusion blocks sight and hearing beyond it and defines the leave, attack-through, or reach-through escape triggers.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

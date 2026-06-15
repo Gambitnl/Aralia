@@ -140,7 +140,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Choose one visible creature within 60 feet. If the target has 150 Hit Points or fewer, it is Stunned and repeats Constitution saves at the end of each turn; if it has more than 150 Hit Points, its Speed becomes 0 until the start of the caster next turn.",
+      "description": "Choose one visible creature within 60 feet. If the target has 150 Hit Points or fewer, it has the Stunned condition and repeats Constitution saves at the end of each turn; if it has more than 150 Hit Points, its Speed becomes 0 until the start of your next turn.",
       "utilityType": "other",
       "grantedActions": [],
       "attackAugments": [],
@@ -246,7 +246,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A target with 150 Hit Points or fewer has the Stunned condition and repeats the Constitution save at the end of each turn.",
+      "description": "If the visible target has 150 Hit Points or fewer, it has the Stunned condition and repeats the Constitution save at the end of each of its turns, ending Stunned on a success.",
       "statusCondition": {
         "name": "Stunned",
         "duration": {
@@ -316,7 +316,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "If the target has more than 150 Hit Points, its Speed is 0 until the start of the caster next turn.",
+      "description": "If the visible target has more than 150 Hit Points, its Speed becomes 0 until the start of your next turn instead of applying Stunned.",
       "movementType": "stop",
       "duration": {
         "type": "rounds",

@@ -142,7 +142,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
-      "description": "Imbues up to 3 pebbles. They can be thrown (60ft) or slung (normal range) for 1d6 + Mod Bludgeoning damage using Spell Attack Roll.",
+      "description": "Imbue up to 3 pebbles; you or another creature can throw one as a ranged spell attack at 60 feet or sling it at normal range, using the caster's spellcasting ability for the attack roll and dealing 1d6 plus the caster's spellcasting ability modifier Bludgeoning damage on a hit. Hit or miss, that pebble's magic ends, and recasting ends any remaining pebbles early.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

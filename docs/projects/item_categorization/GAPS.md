@@ -1,3 +1,115 @@
+---
+schema_version: 1
+gap_schema: project_gap_registry
+project: Item Categorization
+slug: item_categorization
+status: review-required
+status_note: Preserved as routed_reference to avoid flattening existing gap provenance.
+registry_mode: routed_reference
+last_updated: "2026-06-12"
+gap_count: 5
+open_gap_count: 5
+resolved_gap_count: 0
+routed_gap_count: 0
+imported_gap_count: 0
+decision_required_count: 0
+visual_proof_required_count: 0
+highest_severity: medium
+proof_freshness: recorded
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+north_star: docs/projects/item_categorization/NORTH_STAR.md
+tracker: docs/projects/item_categorization/TRACKER.md
+global_gaps: docs/projects/GLOBAL_GAPS.md
+allowed_statuses:
+  - open
+  - active
+  - pending
+  - blocked
+  - not_started
+  - in_progress
+  - waiting
+  - needs_validation
+  - untriaged
+  - routed
+  - review-required
+  - design_decision_deferred
+  - merged-reference
+  - resolved
+  - closed
+  - done
+  - complete
+  - out_of_scope
+allowed_classifications:
+  - in_scope_now
+  - support_needed_now
+  - adjacent_follow_up
+  - out_of_scope
+  - blocked_human_decision
+  - blocked_external_state
+  - uncertainty
+  - architecture
+  - workflow
+  - execution-path
+  - typing-safety
+  - mechanics
+  - ui
+  - integration
+  - data-model
+  - test_coverage
+  - schema_normalization
+  - ownership
+  - serialization
+  - coverage
+  - globalize
+  - routed
+  - design_decision_deferred
+allowed_severities:
+  - none
+  - low
+  - medium
+  - high
+  - critical
+supported_optional_row_fields:
+  - owner_confidence
+  - source_project
+  - imported_from
+  - global_gap_id
+  - linked_gap_id
+  - routed_to
+  - decision_required
+  - decision_reference
+  - review_required
+  - visual_proof_required
+  - proof_freshness
+  - proof_date
+  - uncertainty
+  - notes
+supported_optional_sections:
+  - Current Readout
+  - Current State
+  - Purpose
+  - Summary
+  - Iteration Notes
+  - Classification Notes
+  - Global Routing
+  - Global Gap Imports
+  - Resolved Gap Log
+  - Required Review Brief
+  - Decision Visualizations
+  - Open / Uncertain Notes
+  - Appendix
+---
+project: Item Categorization
+slug: item_categorization
+last_updated: \"2026-06-12\"
+gap_count: 6
+open_gap_count: 5
+north_star: docs/projects/item_categorization/NORTH_STAR.md
+tracker: docs/projects/item_categorization/TRACKER.md
+global_gaps: docs/projects/GLOBAL_GAPS.md
+highest_severity: medium
+registry_mode: mixed
+---
 # Item Categorization Gap Registry
 Status: review-required
 Last updated: 2026-06-12
@@ -50,6 +162,11 @@ Use this file for durable unresolved findings that are too important or too larg
 | IC-G5 | open | adjacent_follow_up | Item Categorization | Item conversion ownership | converter ownership review | Resolve duplicate conversion paths between `src/utils/itemAdapter.ts` and `scripts/generateItemRegistry.ts`. | `src/utils/itemAdapter.ts`; `scripts/generateItemRegistry.ts`; `scripts/test_itemAdapter.ts` | Two converters can drift if one is canonical and the other remains separate. | Decide whether `itemAdapter` is compatibility helper, deprecated path, or canonical input. | Decision note plus one parity check if both paths stay alive. |
 | IC-G6 | open | adjacent_follow_up | Glossary maintenance / Item Categorization | Glossary rebuild operations | runbook review | Document a canonical non-dev glossary-index rebuild command path. | `scripts/generateGlossaryIndex.js`; `vite.config.ts`; `package.json` | Regeneration is possible, but runbooks are less explicit without a stable command path. | Add or document a repeatable command outside the dev endpoint. | Runbook or package script reference with one scoped rebuild proof. |
 
+## Schema Fit Notes
+
+| Issue | Existing content shape | Why schema does not fit | Proposed schema change |
+|---|---|---|---|
+| Non-canonical registry mode: `routed_reference` | Existing gap rows or prose carry compact, routed, merged-reference, or decision-history context. | Forcing the canonical row shape now could invent missing ownership/proof metadata or flatten provenance. | Preserve this section until a row-by-row migration can map each current field losslessly. |
 ## Classification Reference
 
 | Classification | Use when |

@@ -3,10 +3,10 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Command Factory Runtime
 slug: command-factory-runtime
-Status: active
-last_updated: 2026-06-08
-iteration: 3
-source_agent: Codex / gpt-5.4-mini high
+status: active
+last_updated: 2026-06-14
+iteration: 4
+source_agent: Antigravity / Gemini 3.5 Flash (Medium)
 target_agent: next cold-start agent
 runtime_surface: MCP-subagent
 certainty: certain
@@ -20,7 +20,7 @@ gaps: docs/projects/command-factory-runtime/GAPS.md
 # Command Factory Runtime Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-14
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -39,7 +39,7 @@ docs/projects/command-factory-runtime/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Command Factory Runtime
 Project folder: docs/projects/command-factory-runtime
-iteration: 3
+iteration: 4
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -52,23 +52,19 @@ Gaps: docs/projects/command-factory-runtime/GAPS.md
 | Iteration | Agent / model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
 | 2 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Spawned by the foreman as a bounded living-project iteration worker |
+| 3 | Antigravity / Gemini 3.5 Flash (Medium) | MCP-subagent | certain | 2026-06-14 | Spawned by the foreman as a bounded living-project iteration worker |
 
 ## Previous Handoff
 
-Iteration 2 kept the Command Factory Runtime docs source-anchored and then
-advanced one concrete gap: `AbilityCommandFactory` now calls
-`TargetValidationUtils.matchesFilter(...)` directly, while
-`SpellCommandFactory.matchesFilter(...)` remains only as a legacy wrapper for
-spell callers.
+Iteration 3 redirected the last internal caller of the deprecated `SpellCommandFactory.matchesFilter` wrapper to target the shared `TargetValidationUtils.matchesFilter` directly. Gap `G2` was marked closed, and two new gaps (`G5` - split mapping pathways, `G6` - co-located WeaponAttackCommand implementation) were registered in `GAPS.md`.
 
 ## Current Mission
 
 Active task:
-T2 - Monitor drift after source edits and keep gaps updated
+None - select next actionable gap from `GAPS.md` (G1 is currently in_scope_now)
 
 Acceptance criteria:
-Keep the dashboard card schema current, preserve the source-anchored file map,
-and record any new project blocker or scope drift in `GAPS.md`.
+Select next actionable gap (such as G1) from `GAPS.md`, perform research, implementation, and verify using Vitest.
 
 Key files to touch:
 - docs/projects/command-factory-runtime/NORTH_STAR.md
@@ -78,36 +74,25 @@ Key files to touch:
 - Any source/docs named by the active tracker task
 
 Scoped verification:
-Use the verification command or evidence source named by `TRACKER.md` or
-`NORTH_STAR.md`. For this slice, the focused factory tests and a call-site
-search confirmed the shared validator path.
+Use `vitest run src/commands/factory` to verify factory behavior.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+Stay inside this project's scope boundaries. Route sibling-project blockers instead of editing their docs.
 
 Recent progress:
-`AbilityCommandFactory` now uses the shared target validator directly, the
-gap log was updated to show G2 as a lower-risk follow-up, and the focused
-factory tests passed.
+SpellCommandFactory.ts no longer calls its deprecated matchesFilter wrapper internally. Gap G2 has been closed. Gaps G5 and G6 were registered.
 
 Workflow-gap review result:
-`docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` was read
-and left unchanged; WFG-001 still applies but did not change the safety of
-this iteration.
+`docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` was read and found to have no active workflow gaps; no changes were made.
 
 Dashboard schema updates:
-`NORTH_STAR.md` and `TRACKER.md` were refreshed with the new date, proof
-status, and source-backed note about the shared validator path.
+`NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` were refreshed to reflect the resolution of G2, addition of G5/G6, and current iteration metadata.
 
 Optional docs:
-`DECISIONS.md`, `AUDIT_OR_PROOF.md`, and `RUNBOOK.md` are not present for this
-project yet, so they were not needed this iteration.
+`DECISIONS.md`, `AUDIT_OR_PROOF.md`, and `RUNBOOK.md` are not present for this project yet, so they were not needed this iteration.
 
 Next safe resume path:
-Re-check `src/commands/factory` and `src/hooks/useAbilitySystem.ts` after the
-next source edit, then close G2 only if the legacy wrapper loses its last
-caller.
+Confirm existing registry patterns in `src/commands/index.ts` and `hooks/useAbilitySystem.ts`, then design the explicit command registration registry for G1.
 
 ## Required End State For This Iteration
 
@@ -131,7 +116,7 @@ Final response must report:
 
 ## Project Prompt Conformance Notes
 
-Last updated: 2026-06-08
+Last updated: 2026-06-14
 
 This section aligns older cold-start prompts with the shared living-project workflow without replacing the project-specific handoff above. The original handoff remains authoritative for project context; this section records the universal prompt shape that every next agent must honor.
 

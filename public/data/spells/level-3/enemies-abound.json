@@ -157,7 +157,7 @@
           "useOriginalDC": true
         }
       },
-      "description": "On a failed Intelligence save, the target treats all visible creatures as enemies, chooses targets randomly from visible creatures in range, and must make available opportunity attacks; damage allows a repeat Intelligence save to end the effect.",
+      "description": "On a failed Intelligence save, the target treats every visible creature as an enemy for up to 1 minute with concentration, chooses targets randomly from visible creatures in range, and must make available opportunity attacks. A target immune to Frightened automatically succeeds, and damage lets the target repeat the Intelligence save to end the effect.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

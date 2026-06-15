@@ -177,7 +177,7 @@
         },
         "depositDistance": 0
       },
-      "description": "Creates a 10-foot-square slick terrain area within 60 feet as the spell's control surface.",
+      "description": "Nonflammable grease coats a 10-foot square within 60 feet for 1 minute without concentration, making the area Difficult Terrain.",
       "conditionalEndings": [],
       "tags": [
         "terrain-control",
@@ -260,7 +260,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Creatures affected by the grease area must succeed on a Dexterity save or fall Prone.",
+      "description": "Each creature standing in the 10-foot square when the grease appears makes a Dexterity save or gains the Prone condition.",
       "conditionalEndings": [],
       "tags": [
         "prone",
@@ -338,7 +338,7 @@
           "useOriginalDC": true
         }
       },
-      "description": "A creature that moves into the grease for the first time on a turn must make this saving throw.",
+      "description": "The first time on a turn that a creature enters the 10-foot square, it makes a Dexterity save or gains the Prone condition.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -416,7 +416,7 @@
           "useOriginalDC": true
         }
       },
-      "description": "A creature that ends its turn in the grease must make this saving throw.",
+      "description": "A creature that ends its turn in the 10-foot square makes a Dexterity save or gains the Prone condition.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

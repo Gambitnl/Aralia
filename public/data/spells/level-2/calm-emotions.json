@@ -152,7 +152,7 @@
         "type": "minutes",
         "value": 1
       },
-      "description": "On a failed Charisma save, the caster can choose for the Humanoid target to gain immunity to Charmed and Frightened and suppress existing Charmed or Frightened conditions for the duration.",
+      "description": "Each Humanoid in a 20-foot-radius Sphere within 60 feet that fails the Charisma save can be chosen to gain immunity to Charmed and Frightened for up to 1 minute with concentration, suppressing any existing Charmed or Frightened condition for the same duration.",
       "value": 0,
       "baseACFormula": "",
       "acMinimum": 0,
@@ -260,7 +260,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "On failed save, you either suppress charm/fear effects or make targets indifferent to chosen creatures they are hostile toward (ends if they're attacked or see harm to allies).",
+      "description": "Each Humanoid in a 20-foot-radius Sphere within 60 feet that fails the Charisma save can instead become indifferent toward caster-chosen creatures it is hostile toward for up to 1 minute with concentration, ending early for that target if it takes damage or witnesses its allies taking damage.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

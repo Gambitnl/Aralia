@@ -176,7 +176,7 @@
         },
         "depositDistance": 0
       },
-      "description": "Creates a 20-foot-square terrain control area of grasping plants while concentration lasts.",
+      "description": "Create a 20-foot Square of grasping plants within 90 feet for up to 1 minute with concentration; the area is Difficult Terrain until the spell ends.",
       "conditionalEndings": [],
       "tags": [
         "terrain-control",
@@ -261,7 +261,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Creatures affected by the entangling area must succeed on a Strength save or be Restrained for up to 1 minute.",
+      "description": "Each creature in the 20-foot Square when the plants appear makes a Strength save or gains the Restrained condition for up to 1 minute, with a Strength (Athletics) action to escape and the listed end-turn Wisdom save to end it.",
       "conditionalEndings": [],
       "tags": [
         "restrained",
@@ -341,7 +341,7 @@
           "useOriginalDC": true
         }
       },
-      "description": "A creature that moves into the area for the first time on a turn must succeed on a Strength saving throw or be restrained.",
+      "description": "The first time on a turn that a creature enters the 20-foot Square, it makes a Strength save or gains the Restrained condition, with the same Strength (Athletics) escape action and listed end-turn Wisdom save.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -421,7 +421,7 @@
           "useOriginalDC": true
         }
       },
-      "description": "A creature that ends its turn in the area must succeed on a Strength saving throw or be restrained.",
+      "description": "A creature that ends its turn in the 20-foot Square makes a Strength save or gains the Restrained condition, with the same Strength (Athletics) escape action and listed end-turn Wisdom save.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

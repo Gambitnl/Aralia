@@ -136,7 +136,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Animates eligible nonmagical unattended objects into allied Construct creatures, weighted by size against the caster ability modifier limit, commandable by bonus action within 500 feet and ending for each object at 0 HP.",
+      "description": "Animate eligible nonmagical unattended Huge-or-smaller objects within 120 feet for up to 1 minute with concentration. Object size counts against your spellcasting ability modifier limit, each object becomes an allied Construct that shares your initiative, you can command any within 500 feet as a Bonus Action, uncommanded objects Dodge and avoid harm, and each object reverts at 0 Hit Points with excess damage carrying over.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "Slam damage increases by object size per slot level above 5th",

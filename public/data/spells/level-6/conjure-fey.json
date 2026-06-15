@@ -129,7 +129,7 @@
           }
         ]
       },
-      "description": "Conjures one Medium spirit from the Feywild in an unoccupied visible space within range. The spirit looks like a Fey creature chosen by the caster.",
+      "description": "Summon one Medium Feywild spirit in a visible unoccupied space within 60 feet for up to 10 minutes with concentration; it looks like a Fey creature you choose and serves as the origin for the spell attack and later teleport loop.",
       "conditionalEndings": []
     },
     {
@@ -191,7 +191,7 @@
         "bonusPerLevel": "+1d12",
         "customFormula": ""
       },
-      "description": "When the spirit appears, and after later bonus-action teleports, the caster can make one melee spell attack from the spirit against a creature within 5 feet of it.",
+      "description": "When the spirit appears, and on later turns after you teleport it with a Bonus Action, you can make one melee spell attack from the spirit against a creature within 5 feet of it; on a hit, the target takes 3d12 plus your spellcasting ability modifier Psychic damage, increasing by 1d12 per slot level above 6.",
       "conditionalEndings": []
     },
     {
@@ -257,7 +257,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a hit, the target has the Frightened condition until the start of the caster's next turn, with both the caster and the spirit as the source of the fear.",
+      "description": "A target hit by the Fey spirit attack has the Frightened condition until the start of your next turn, with both you and the spirit as the source of the fear.",
       "conditionalEndings": []
     },
     {
@@ -286,7 +286,7 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "On later turns, the caster can use a Bonus Action to teleport the spirit to an unoccupied visible space within 30 feet of the space it left.",
+      "description": "On later turns, you can use a Bonus Action to teleport the Fey spirit to a visible unoccupied space within 30 feet of the space it left before making the spirit attack.",
       "conditionalEndings": []
     },
     {
@@ -340,7 +340,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "The conjured spirit is a Medium Feywild spirit in an unoccupied visible space. On later turns, the caster can use a Bonus Action to teleport the spirit and make its melee spell attack from the new position.",
+      "description": "Conjure Fey is a repeatable teleport-attack loop: summon the Medium spirit, attack when it appears, then on later turns use a Bonus Action to teleport it up to 30 feet and make the same melee spell attack; a hit deals Psychic damage and Frightens the target until the start of your next turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

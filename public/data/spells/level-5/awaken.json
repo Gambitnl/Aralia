@@ -146,7 +146,7 @@
         },
         "level": 0
       },
-      "description": "The awakened target has the Charmed condition for 30 days or until the caster or the caster's allies deal damage to it.",
+      "description": "The awakened Beast or Plant is Charmed for 30 days or until the caster or the caster's allies damage it, then chooses its attitude when the condition ends.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -211,7 +211,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You spend the casting time tracing magical pathways within a precious gemstone, and then touch the target. The target must be either a Beast or Plant creature with an Intelligence of 3 or less or a natural plant that isn't a creature. The target gains an Intelligence of 10 and the ability to speak one language you know. If the target is a natural plant, it becomes a Plant creature and gains the ability to move its limbs, roots, vines, creepers, and so forth, and it gains senses similar to a human's. The DM chooses statistics appropriate for the awakened Plant, such as the statistics for the Awakened Shrub or Awakened Tree. The awakened target has the Charmed condition for 30 days or until you or your allies deal damage to it. When that condition ends, the awakened creature chooses its attitude toward you.",
+      "description": "After the 8-hour casting with a consumed 1,000 GP gemstone, touch a Beast or Plant creature with Intelligence 3 or less, or a natural plant that is not a creature; the target gains Intelligence 10 and one language the caster knows, and a noncreature plant becomes a Plant creature with movement, humanlike senses, and DM-chosen statistics.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

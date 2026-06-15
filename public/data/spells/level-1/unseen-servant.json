@@ -156,7 +156,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Summons an unseen servant in an unoccupied ground space within 60 feet; no slot-scaling changes are modeled for this summoning effect.",
+      "description": "Summon one temporary invisible servant in an unoccupied ground space within 60 feet. The servant has AC 10, 1 Hit Point, Strength 2, Speed 15 feet, cannot attack, can perform simple tasks when commanded with a Bonus Action, and the spell ends if it drops to 0 Hit Points or moves too far away.",
       "conditionalEndings": [
         {
           "trigger": "created_entity_drops_to_0_hp",

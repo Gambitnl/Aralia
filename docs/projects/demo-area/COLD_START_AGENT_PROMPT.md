@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Demo Area
 slug: demo-area
-Status: reference-only
+status: reference-only
 last_updated: 2026-06-12
 iteration: 2
 source_agent: Not recorded
@@ -98,6 +98,11 @@ Optional docs to check when present or named by tracker:
 - architecture notes
 - migration notes
 - project-specific proof or design notes
+## Required End State For This Iteration
+
+Before ending, update this handoff with the next iteration number, current context, active task, acceptance criteria, verification method, blockers, recent progress, workflow-gap review result, dashboard-schema updates, and agent_comments status. Account for every required doc, mention optional docs touched or skipped, and keep the existing demo-area handoff content intact unless a future iteration genuinely supersedes it.
+
+agent_comments: Preserve the reference-only demo-area status unless a future project owner changes the North Star or tracker status.
 ---END NEXT AGENT HANDOFF---
 
 ## Project Prompt Conformance Notes

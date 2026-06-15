@@ -172,7 +172,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Confused unless the target succeeds on a Wisdom save for 1 minute; repeat Wisdom save at turn end can end the condition.",
+      "description": "Each creature in the 10-foot-radius Sphere centered on a point within 90 feet makes a Wisdom save or becomes Confused for up to 1 minute with concentration. While Confused, the target cannot take Bonus Actions or Reactions, rolls 1d10 at the start of each turn to determine that turn behavior from the spell table, and repeats the Wisdom save at the end of each turn to end the spell on itself; each slot level above 4 adds 5 feet to the Sphere radius.",
       "conditionalEndings": []
     }
   ],

@@ -146,7 +146,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Blinded for 60 minutes as part of Feign Death's protective deathlike state.",
+      "description": "Touch one willing creature for 1 hour without concentration; as part of a deathlike state indistinguishable from death to outward inspection and status-detecting magic, the target is Blinded, has Speed 0, resists all damage except Psychic, and is immune to Poisoned.",
       "conditionalEndings": []
     },
     {
@@ -212,7 +212,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Incapacitated for 60 minutes as part of Feign Death's protective deathlike state.",
+      "description": "Touch one willing creature for 1 hour without concentration; as part of the same deathlike state, the target is Incapacitated, has Speed 0, resists all damage except Psychic, and is immune to Poisoned.",
       "conditionalEndings": []
     },
     {

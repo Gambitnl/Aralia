@@ -134,7 +134,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You gain the ability to enter a tree and move from inside it to inside another tree of the same kind within 500 feet. Both trees must be living and at least the same size as you. You must use 5 feet of movement to enter a tree. You instantly know the location of all other trees of the same kind within 500 feet and, as part of the move used to enter the tree, can either pass into one of those trees or step out of the tree you're in. You appear in a spot of your choice within 5 feet of the destination tree, using another 5 feet of movement. If you have no movement left, you appear within 5 feet of the tree you entered. You can use this transportation ability only once on each of your turns. You must end each turn outside a tree.",
+      "description": "For up to 1 minute with concentration, the caster can use 5 feet of movement once each turn to enter a living tree at least their size and either exit it or teleport through another living tree of the same kind within 500 feet, appearing within 5 feet of the destination or original tree if no movement remains, while instantly knowing same-kind tree locations and being required to end each turn outside a tree.",
       "recurringMechanics": [
         {
           "timing": "turn_end",
@@ -211,7 +211,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Once on each turn, the caster can enter a living tree and teleport to another living tree of the same kind within 500 feet, appearing within 5 feet of the destination tree.",
+      "description": "Once on each turn for up to 1 minute with concentration, the caster can spend 5 feet of movement to enter a living tree at least their size and teleport to another living tree of the same kind within 500 feet, appearing within 5 feet of that destination tree or the original tree if no movement remains.",
       "conditionalEndings": []
     }
   ],

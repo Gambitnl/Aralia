@@ -164,7 +164,7 @@
         "bonusPerLevel": "+1 target",
         "customFormula": ""
       },
-      "description": "On failed save, target is paralyzed for the duration. The save repeats at the end of each turn.",
+      "description": "One visible Humanoid within 60 feet that fails the Wisdom save is Paralyzed for up to 1 minute with concentration, repeats the Wisdom save at the end of each turn to end the spell on itself, and higher-level slots add one Humanoid target per slot level above 2.",
       "conditionalEndings": []
     }
   ],

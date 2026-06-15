@@ -151,7 +151,7 @@
         "bonusPerLevel": "+2d8",
         "customFormula": ""
       },
-      "description": "Deals 8d8 Necrotic damage on a failed Constitution save, or half as much on success; slot scaling adds +2d8.",
+      "description": "Each creature in the 60-foot-radius Sphere centered on a point within 150 feet makes a Constitution save, taking 8d8 Necrotic damage on a failure or half as much on a success; each slot level above 6 adds +2d8 damage.",
       "conditionalEndings": []
     }
   ],

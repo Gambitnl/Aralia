@@ -135,7 +135,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Transform up to ten visible creatures within 120 feet into caster-chosen Beast forms for up to 1 hour with concentration. Unwilling targets make Wisdom saves, unwilling shapechangers automatically succeed, eligible forms must be Beasts the caster has seen within CR or half-level limits, and targets keep Hit Points, alignment, and personality while form statistics, action limits, speech, spellcasting, hands use, gear access, and reversion timing follow the chosen form.",
+      "description": "Transform up to ten visible creatures within 120 feet into Beast forms you choose for up to 1 hour with concentration. Unwilling targets make Wisdom saves, unwilling shapechangers automatically succeed, eligible forms must be Beasts you have seen within the spell CR or half-level limits, and targets keep Hit Points, alignment, and personality while the chosen form supplies statistics, action limits, speech, spellcasting, hands use, gear access, and reversion timing.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -266,7 +266,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Each target gains temporary hit points equal to the hit points of its new beast form; those temporary hit points cannot be replaced by another source.",
+      "description": "Each Mass Polymorph target gains temporary hit points equal to the chosen Beast form Hit Points, and those temporary hit points cannot be replaced by another source.",
       "defenseType": "temporary_hp",
       "duration": {
         "type": "special"

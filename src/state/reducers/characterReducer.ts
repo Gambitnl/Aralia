@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:29:14
- * Dependents: appState.ts
- * Imports: 7 files
+ * Last Sync: 14/06/2026, 20:46:37
+ * Dependents: state/appState.ts
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -38,6 +38,7 @@
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { GameState, LimitedUseAbility, SpellSlots, DiscoveryType as _DiscoveryType, Item, RacialSelectionData, LevelUpChoices, EquipmentSlotType, ArmorCategory, AbilityScoreName } from '../../types';
 import { AppAction } from '../actionTypes';
+import { SKILLS_DATA } from '../../data/skills';
 import {
   calculateArmorClass,
   createPlayerCharacterFromTemp,
@@ -618,7 +619,12 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                         for (const choiceId in charCopy.racialRestChoices) {
                             const oldChoice = charCopy.racialRestChoices[choiceId];
                             if (oldChoice.skillIds) {
-                                charCopy.skills = charCopy.skills.filter(s => !oldChoice.skillIds?.includes(s.name));
+                                charCopy.skills = charCopy.skills.filter(s => 
+                                    !oldChoice.skillIds?.some(id => 
+                                        id.toLowerCase() === s.id?.toLowerCase() || 
+                                        id.toLowerCase() === s.name?.toLowerCase()
+                                    )
+                                );
                             }
                             if (oldChoice.toolIds) {
                                 charCopy.toolProficiencies = (charCopy.toolProficiencies || []).filter(t => !oldChoice.toolIds?.includes(t));
@@ -634,8 +640,19 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                     for (const choiceId in newChoicesForChar) {
                         const newChoice = newChoicesForChar[choiceId];
                         if (newChoice.skillIds) {
-                            const skillsToAdd = newChoice.skillIds.filter(id => !charCopy.skills.some(s => s.name === id));
-                            charCopy.skills = [...charCopy.skills, ...skillsToAdd.map(id => ({ name: id, proficiencyLevel: 'proficient' as const }))];
+                            const skillsToAdd = newChoice.skillIds.filter(id => 
+                                !charCopy.skills.some(s => 
+                                    s.id?.toLowerCase() === id.toLowerCase() || 
+                                    s.name?.toLowerCase() === id.toLowerCase()
+                                )
+                            );
+                            const resolvedSkills = skillsToAdd
+                                .map(id => Object.values(SKILLS_DATA).find(s => 
+                                    s.id.toLowerCase() === id.toLowerCase() || 
+                                    s.name.toLowerCase() === id.toLowerCase()
+                                ))
+                                .filter((s): s is Skill => !!s);
+                            charCopy.skills = [...charCopy.skills, ...resolvedSkills];
                         }
                         if (newChoice.toolIds) {
                             const toolsToAdd = newChoice.toolIds.filter(id => !(charCopy.toolProficiencies || []).includes(id));

@@ -1,7 +1,7 @@
 # Submap Decisions
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-15
 
 ## Decision Log
 
@@ -115,3 +115,23 @@ Rationale:
 - This resolves the review gate kept open by D-001 through D-004: the
   "preserve before replacement" posture stands until the replacement proves
   contract coverage.
+
+### D-007: Upgrading Existing Project to Own Retirement
+
+Date: 2026-06-15
+
+Decision: Upgrade the existing `submap` project to own both the Submap system and the legacy rectangular tile-grid world model retirement, rather than creating a parallel project like `grid-submap-retirement`.
+
+Rationale:
+- The Submap and the rectangular tile-grid world model are tightly coupled, representing the legacy coordinate-grid navigation surfaces.
+- Using the existing `submap` folder and project card avoids duplicating documentation work and follows the preflight rule to upgrade rather than create a parallel project.
+
+### D-008: Placement of Worldforge and Cell-Native Travel Seam
+
+Date: 2026-06-15
+
+Decision: Document the role of Worldforge and the seam with the cell-native travel project.
+- **Worldforge** is the procedural generation pipeline that runs behind the scenes to generate L0-L4 datasets (atlas, region, local, ground, interior).
+- **MapPane (Azgaar map)** is the canonical player-facing 2D cartography/navigation interface that renders L0-L2 cartography.
+- **Cell-Native Travel** is the adjacent project that owns re-rooting player travel, pathfinding, and discovery onto Voronoi cells. It is a separate project seam from grid/Submap component retirement to keep execution bounded.
+

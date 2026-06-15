@@ -216,7 +216,7 @@
         "type": "minutes",
         "value": 1
       },
-      "description": "While Charmed by the spell, the target has Disadvantage on attack rolls; other creatures have Advantage on attack rolls against it. The runtime still needs a first-class attacker-advantage-against-target field.",
+      "description": "While Charmed by the spell, the dancing target has Disadvantage on attack rolls and Dexterity saving throws, and other creatures have Advantage on attack rolls against it.",
       "conditionalEndings": []
     },
     {
@@ -270,7 +270,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Records Otto's Irresistible Dance wrapper facts: one visible creature within 30 feet begins a comic dance of shuffling, tapping, and capering, creatures that cannot be Charmed are immune, and sibling rows carry the Wisdom save, Charmed state, all-movement dance lock, attack Disadvantage / attacker Advantage, and repeat-save action.",
+      "description": "Choose one visible creature within 30 feet to begin a comic dance of shuffling, tapping, and capering; creatures that cannot be Charmed are immune. On a successful initial Wisdom save, the dancing-in-place movement lock lasts until the end of the target's next turn; on a failed save, the Charmed dance state continues for up to 1 minute with concentration and the target can use an action on each turn to repeat the save.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

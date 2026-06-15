@@ -226,7 +226,7 @@
         "value": 0,
         "unit": "feet"
       },
-      "description": "On a failed Wisdom save, the target uses its reaction to move away from the caster by the safest route.",
+      "description": "On a failed Wisdom save, the visible target within 60 feet must immediately use its Reaction, if available, to move as far away from the caster as it can up to its Speed by the safest route.",
       "conditionalEndings": [],
       "tags": [
         "forced-movement",

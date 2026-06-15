@@ -145,7 +145,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 4d8 Necrotic damage on a failed Dexterity save, or half as much on success; slot scaling adds +1d8.",
+      "description": "One visible creature within 60 feet makes a Dexterity save; on a failure it takes 4d8 Necrotic damage and can be damaged again by the caster's action each turn until the spell ends, while on a success it takes 2d8 Necrotic damage and the spell ends. Whenever this spell deals Necrotic damage, the caster regains Hit Points equal to half the damage dealt, and each slot level above 5 adds +1d8 damage.",
       "conditionalEndings": []
     }
   ],

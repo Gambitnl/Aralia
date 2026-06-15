@@ -143,7 +143,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "One target within 60 feet makes a Wisdom save against 1d6 Psychic damage, with cantrip-tier damage scaling.",
+      "description": "One creature within 60 feet that the caster can see or hear makes a Wisdom save, taking 1d6 Psychic damage on a failed save; the damage increases by 1d6 at character levels 5, 11, and 17.",
       "conditionalEndings": [],
       "tags": [
         "psychic-damage",
@@ -204,7 +204,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Target has disadvantage on the next attack roll it makes before the end of its next turn.",
+      "description": "On a failed Wisdom save, the target has Disadvantage on the next attack roll it makes before the end of its next turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

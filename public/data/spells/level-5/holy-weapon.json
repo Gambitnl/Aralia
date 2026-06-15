@@ -132,7 +132,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "light",
-      "description": "The touched weapon emits bright light in a 30-foot radius and dim light for an additional 30 feet, becomes magical if it was not already magical, and adds 2d8 Radiant damage to weapon attacks made with it. The caster can dismiss the spell as a bonus action to emit the burst represented by the separate damage and Blinded effects.",
+      "description": "The touched weapon sheds Bright Light in 30 feet and Dim Light for 30 more feet, becomes magical, and adds 2d8 Radiant damage to weapon attacks made with it. As a Bonus Action, the caster can end the spell early to unleash the dismiss burst against chosen visible creatures within 30 feet of the weapon.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -248,7 +248,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "When the caster dismisses the spell as a bonus action, each chosen visible creature within 30 feet of the weapon makes a Constitution save, taking half damage on a success.",
+      "description": "When the caster dismisses the spell as a Bonus Action, each chosen visible creature within 30 feet of the weapon makes a Constitution save, taking 4d8 Radiant damage on a failed save or half as much on a success.",
       "conditionalEndings": []
     },
     {

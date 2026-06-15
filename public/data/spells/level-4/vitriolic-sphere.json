@@ -164,7 +164,7 @@
         "dice": "10d4",
         "type": "Acid"
       },
-      "description": "Each creature in the 20-foot-radius acid explosion makes a Dexterity save, taking 10d4 Acid damage on a failed save or half as much on a success.",
+      "description": "A 1-foot acid orb streaks to a point within 150 feet and explodes in a 20-foot-radius Sphere; each creature there makes a Dexterity save, taking 10d4 Acid damage on a failed save or half as much on a success, with +2d4 per slot level above 4.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+2d4",

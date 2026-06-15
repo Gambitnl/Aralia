@@ -125,7 +125,7 @@
         "direction": "caster_choice",
         "maxDistance": "sanctuary"
       },
-      "description": "The caster and up to five willing creatures teleport to the previously designated sanctuary, appearing in nearest unoccupied spaces.",
+      "description": "The caster and up to five willing creatures within 5 feet instantly teleport to the previously designated sanctuary and appear in the nearest unoccupied spaces to the prepared spot.",
       "conditionalEndings": []
     },
     {
@@ -179,7 +179,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You and up to five willing creatures within 5 feet of you instantly teleport to a previously designated sanctuary. You and any creatures that teleport with you appear in the nearest unoccupied space to the spot you designated when you prepared your sanctuary. If you cast this spell without first preparing a sanctuary, the spell has no effect. You must designate a location, such as a temple, as a sanctuary by casting this spell there.",
+      "description": "If no sanctuary has been prepared, the spell has no effect; the caster prepares a sanctuary by casting Word of Recall at that location, such as a temple.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

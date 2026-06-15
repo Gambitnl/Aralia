@@ -1,3 +1,115 @@
+---
+schema_version: 1
+gap_schema: project_gap_registry
+project: History System
+slug: history
+status: active
+status_note: ""
+registry_mode: canonical
+last_updated: "2026-06-15"
+gap_count: 4
+open_gap_count: 4
+resolved_gap_count: 0
+routed_gap_count: 0
+imported_gap_count: 0
+decision_required_count: 0
+visual_proof_required_count: 0
+highest_severity: medium
+proof_freshness: mixed
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+north_star: docs/projects/history/NORTH_STAR.md
+tracker: docs/projects/history/TRACKER.md
+global_gaps: docs/projects/GLOBAL_GAPS.md
+allowed_statuses:
+  - open
+  - active
+  - pending
+  - blocked
+  - not_started
+  - in_progress
+  - waiting
+  - needs_validation
+  - untriaged
+  - routed
+  - review-required
+  - design_decision_deferred
+  - merged-reference
+  - resolved
+  - closed
+  - done
+  - complete
+  - out_of_scope
+allowed_classifications:
+  - in_scope_now
+  - support_needed_now
+  - adjacent_follow_up
+  - out_of_scope
+  - blocked_human_decision
+  - blocked_external_state
+  - uncertainty
+  - architecture
+  - workflow
+  - execution-path
+  - typing-safety
+  - mechanics
+  - ui
+  - integration
+  - data-model
+  - test_coverage
+  - schema_normalization
+  - ownership
+  - serialization
+  - coverage
+  - globalize
+  - routed
+  - design_decision_deferred
+allowed_severities:
+  - none
+  - low
+  - medium
+  - high
+  - critical
+supported_optional_row_fields:
+  - owner_confidence
+  - source_project
+  - imported_from
+  - global_gap_id
+  - linked_gap_id
+  - routed_to
+  - decision_required
+  - decision_reference
+  - review_required
+  - visual_proof_required
+  - proof_freshness
+  - proof_date
+  - uncertainty
+  - notes
+supported_optional_sections:
+  - Current Readout
+  - Current State
+  - Purpose
+  - Summary
+  - Iteration Notes
+  - Classification Notes
+  - Global Routing
+  - Global Gap Imports
+  - Resolved Gap Log
+  - Required Review Brief
+  - Decision Visualizations
+  - Open / Uncertain Notes
+  - Appendix
+---
+project: History System
+slug: history
+last_updated: \"2026-06-15\"
+gap_count: 4
+open_gap_count: 4
+north_star: docs/projects/history/NORTH_STAR.md
+tracker: docs/projects/history/TRACKER.md
+global_gaps: docs/projects/GLOBAL_GAPS.md
+highest_severity: medium
+registry_mode: canonical
+---
 # History System Gap Registry
 
 Status: active
@@ -9,7 +121,7 @@ Use this file for durable unresolved findings that are too important or too larg
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|
 | G1 | not_started | support_needed_now | Worker A | `docs/projects/history/TRACKER.md` | Registry/progress refresh | No retention or pruning policy for permanent `WorldHistory`. | `src/utils/world/historyUtils.ts` only appends events and performs duplicate filtering; there is no trim/archive/snapshot path. `src/systems/world/WorldEventManager.ts` keeps `WorldRumor` pruning logic with `expiration`, but `worldHistory` has no analogous cleanup. | Unbounded growth risks save/load size and historical query performance; unclear long-term disk or replay cost. | Decide and document a retention policy (no prune, bounded history, periodic archive, and/or shard strategy). | Add policy decision and acceptance proof in tracker before any lifecycle change. |
-| G2 | active | support_needed_now | Worker A | `docs/projects/history/TRACKER.md` | T2 source audit refresh | Partial event typing coverage: factory coverage exists for multiple event types, but write coverage is still skirmish-only and two declared types have no producer or factory found in this scan. | `HistoryService.ts` implements `FACTION_WAR`, `POLITICAL_SHIFT`, `DISCOVERY`, `CATASTROPHE`; `WorldHistoryService.ts` only emits `MAJOR_BATTLE`; `WorldEventManager.ts` only wires skirmish to history recorder; `WorldHistoryEventType` also declares `HEROIC_DEED` and `MYSTERY_SOLVED`. | Event chronology will miss expected history categories and weaken long-term consistency with comments and type intent. | Map each intended event type to a concrete emitter or mark it as out of scope in project docs. | Add a named event-source matrix and close this gap once coverage is explicit. |
+| G2 | active | support_needed_now | Worker A | `docs/projects/history/TRACKER.md` | T2 source audit | Partial event typing coverage: factory coverage exists for multiple event types, but runtime write coverage is still skirmish-only; two declared types have no runtime producer or factory found in this scan. | `HistoryService.ts` implements `FACTION_WAR`, `POLITICAL_SHIFT`, `DISCOVERY`, `CATASTROPHE`; `WorldHistoryService.ts` emits `MAJOR_BATTLE` and seeded `DISCOVERY` / `HEROIC_DEED` / `POLITICAL_SHIFT` via `createFirstBuildHistory`; `WorldEventManager.ts` only wires skirmish to history recorder; `WorldHistoryEventType` also declares `HEROIC_DEED` and `MYSTERY_SOLVED`. Bootstrap paths confirmed in `src/hooks/useGameInitialization.ts` and `src/services/__tests__/WorldHistoryService.test.ts`. | Event chronology misses runtime emitters for several declared categories and weakens long-term consistency with gameplay intent. | Decide whether the missing types need emitters or should be marked out of scope in project docs. | Add a named event-source matrix and close this gap once coverage is explicit. |
 | G3 | active | support_needed_now | Worker A | `docs/projects/history/TRACKER.md` | Source scan (T4) | No explicit consumer contract for timeline/replay/read surface for world history. | `getRelevantHistory`, `findEventsByParticipant`, and `findEventsByLocation` are helper queries only; there is no documented timeline or replay consumer in this project slice. | Without a consumed contract, history stays write-only and difficult to validate in gameplay. | Define if and how `worldHistory` powers a player or debug timeline surface. | Add explicit acceptance criteria for at least one read path or mark as future-scope. |
 | G4 | not_started | support_needed_now | Worker A | `docs/projects/history/TRACKER.md` | Evidence audit | Save/load intent for world history schema evolution is not documented. | `src/types/state.ts` and history action/reducer path support state shape, but no migration notes cover enum growth or future schema shape changes. | Historical records can desync across saves if enum/record shape changes without migration policy. | Decide migration and compatibility behavior for existing saved games with older `worldHistory` payloads. | Add migration test or save-load note when schema changes are approved. |
 

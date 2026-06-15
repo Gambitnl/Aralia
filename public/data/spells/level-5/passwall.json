@@ -139,7 +139,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
-      "description": "Creates a temporary passage through a visible wooden, plaster, or stone surface, up to 5 feet wide, 8 feet tall, and 20 feet deep, without destabilizing the surrounding structure.",
+      "description": "Create a 1-hour passage in a visible wooden, plaster, or stone surface within 30 feet, up to 5 feet wide, 8 feet tall, and 20 feet deep; the opening does not destabilize the structure, and creatures or objects still inside when it ends are safely ejected to the nearest unoccupied space beside the surface.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

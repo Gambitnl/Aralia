@@ -146,7 +146,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 4d8 Necrotic damage to the caster as the spell's life-transfer cost; each slot level above 3rd adds +1d8.",
+      "description": "The caster takes 4d8 Necrotic damage that cannot be reduced, and one visible creature within 30 feet regains Hit Points equal to twice the Necrotic damage the caster takes; each slot level above 3 adds +1d8 self-damage before healing is doubled.",
       "conditionalEndings": []
     }
   ],

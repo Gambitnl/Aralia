@@ -1,4 +1,105 @@
-﻿# Character Creator Gap Registry
+---
+schema_version: 1
+gap_schema: project_gap_registry
+project: Character Creator
+slug: character-creator
+status: "active (G2 resolved 2026-06-08; no pending review hold â€” confirmed in the 2026-06-10 decision blitz housekeeping pass)"
+status_note: "G9-G17 added from the 20-character full-flow audit; G9/G10 fixes in progress in the same session."
+registry_mode: canonical
+last_updated: "2026-06-11"
+gap_count: 14
+open_gap_count: 12
+resolved_gap_count: 0
+routed_gap_count: 0
+imported_gap_count: 0
+decision_required_count: 0
+visual_proof_required_count: 0
+highest_severity: high
+proof_freshness: mixed
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+north_star: docs/projects/character-creator/NORTH_STAR.md
+tracker: docs/projects/character-creator/TRACKER.md
+global_gaps: docs/projects/GLOBAL_GAPS.md
+allowed_statuses:
+  - open
+  - active
+  - pending
+  - blocked
+  - not_started
+  - in_progress
+  - waiting
+  - needs_validation
+  - untriaged
+  - routed
+  - review-required
+  - design_decision_deferred
+  - merged-reference
+  - resolved
+  - closed
+  - done
+  - complete
+  - out_of_scope
+allowed_classifications:
+  - in_scope_now
+  - support_needed_now
+  - adjacent_follow_up
+  - out_of_scope
+  - blocked_human_decision
+  - blocked_external_state
+  - uncertainty
+  - architecture
+  - workflow
+  - execution-path
+  - typing-safety
+  - mechanics
+  - ui
+  - integration
+  - data-model
+  - test_coverage
+  - schema_normalization
+  - ownership
+  - serialization
+  - coverage
+  - globalize
+  - routed
+  - design_decision_deferred
+allowed_severities:
+  - none
+  - low
+  - medium
+  - high
+  - critical
+supported_optional_row_fields:
+  - owner_confidence
+  - source_project
+  - imported_from
+  - global_gap_id
+  - linked_gap_id
+  - routed_to
+  - decision_required
+  - decision_reference
+  - review_required
+  - visual_proof_required
+  - proof_freshness
+  - proof_date
+  - uncertainty
+  - notes
+supported_optional_sections:
+  - Current Readout
+  - Current State
+  - Purpose
+  - Summary
+  - Iteration Notes
+  - Classification Notes
+  - Global Routing
+  - Global Gap Imports
+  - Resolved Gap Log
+  - Required Review Brief
+  - Decision Visualizations
+  - Open / Uncertain Notes
+  - Appendix
+---
+# Character Creator Gap Registry
 
 Status: active (G2 resolved 2026-06-08; no pending review hold â€” confirmed in the 2026-06-10 decision blitz housekeeping pass)
 Last updated: 2026-06-11 (G9â€“G17 added from the 20-character full-flow audit; G9/G10 fixes in progress in the same session)
@@ -20,8 +121,9 @@ Use this file for durable unresolved findings that genuinely belong to this proj
 | G15 | not_started | adjacent_follow_up | Claude (2026-06-11 audit) | `SkillSelection.tsx` | 20-character flow audit | Class skill list badges racially-granted skills ("Racial") but not background-granted ones â€” Sage grants Arcana/History yet both remain silently pickable; Criminal/Stealth same | High Elf Wizard (#2), Halfling Rogue (#7) runs 2026-06-11 | Double-picking a background skill wastes a class skill choice with no warning (same family as G12) | Extend the existing badge mechanism to background-granted skills | Sage + Wizard: Arcana/History rows show a "Background" badge and don't count toward the 2 picks | None |
 | G16 | not_started | adjacent_follow_up | Claude (2026-06-11 audit) | `SpellCard`/spell list components across `*FeatureSelection`, `FeatSpellPicker`, `CharacterSheet` Spellbook | 20-character flow audit + UI drift comparison | Three unrelated spell-card designs: (a) class spell selection â€” checkbox cards, 4-letter school tags, V/S/M letters, TIME/RANGE/DAMAGE columns; (b) feat picker â€” emoji school icons, full school names, expandable rows, search + school dropdown, no components/damage; (c) in-game spellbook â€” Material-symbol icon list rows with separate CASTING TIME/RANGE/COMPONENTS/DURATION detail pane. Same domain object, three visual languages | Screenshots + DOM captures 2026-06-11 (Wizard Spell Selection, Magic Initiate config, Wrenna Thornquill's spellbook) | Players re-learn how to read a spell three times; future spell-UI changes must be made in three places | Extract one shared SpellCard/SpellRow component (props: selectable, expandable, density) and adopt it in all three surfaces | All three surfaces render the same component; visual diff review | Largest of the new gaps; suggest its own slice |
 | G17 | not_started | adjacent_follow_up | Claude (2026-06-11 audit) | `WeaponMasterySelection.tsx` + weapons data | 20-character flow audit | "Rusty Sword" (a junk/starter item) appears in the Weapon Mastery pool alongside real weapon types; mastery detail pane is hover-only ("Hover over an item for details") which is unusable on touch and undiscoverable | Weapon Mastery step run 2026-06-11 (Fighter #1) | Junk items in a build-defining list look unpolished; hover-only details hide the mastery rules | Filter mastery pool to canonical weapon types; add click-to-pin details like the Skills step | Mastery list contains no junk items; details reachable by click | Rusty Sword may be intentional flavor â€” confirm with owner |
-| G18 | not_started | adjacent_follow_up | Gemini (focus on racial traits) | `useCharacterAssembly.ts` / `sidebarSteps.ts` | cold-start gap discovery | Redundant base race validation checks remain in `useCharacterAssembly.ts` and `sidebarSteps.ts` for elf, goliath, and tiefling despite these being non-selectable base helper races | `useCharacterAssembly.ts:293-296`, `sidebarSteps.ts:52-55` | Leads to dead code and unnecessary validation maintenance for helper classes that are never selected by the user | Remove redundant base-race checks from `useCharacterAssembly.ts` and `sidebarSteps.ts` | Vitest and compiler checks pass after removal | None |
-| G19 | not_started | adjacent_follow_up | Gemini (focus on racial traits) | `characterReducer.ts` / `RacialRestChoiceData` | cold-start gap discovery | TypeScript and mapping error in `characterReducer.ts` rest choices: `RacialRestChoiceData` lacks `weaponIds` and the rest reducer maps skill choices to malformed `Skill` objects lacking `id`/`ability` | `types/character.ts:473-480`, `characterReducer.ts:626-628,638,644` | Causes TypeScript compiler check failures and corrupts the character's skill list on rest choice resolution | Add `weaponIds` to `RacialRestChoiceData` and look up the full `Skill` object from `SKILLS_DATA` inside the rest reducer mapping function | `npm run typecheck` passes; long rest resolves and successfully applies skill/weapon choices on characters | None |
+| G18 | resolved | adjacent_follow_up | Gemini (focus on racial traits) | `useCharacterAssembly.ts` / `sidebarSteps.ts` | cold-start gap discovery | Redundant base race validation checks remain in `useCharacterAssembly.ts` and `sidebarSteps.ts` for elf, goliath, and tiefling despite these being non-selectable base helper races | `useCharacterAssembly.ts:293-296`, `sidebarSteps.ts:52-55` | Leads to dead code and unnecessary validation maintenance for helper classes that are never selected by the user | Remove redundant base-race checks from `useCharacterAssembly.ts` and `sidebarSteps.ts` | Vitest and compiler checks pass after removal | None |
+| G19 | resolved | adjacent_follow_up | Gemini (focus on racial traits) | `characterReducer.ts` / `RacialRestChoiceData` | cold-start gap discovery | TypeScript and mapping error in `characterReducer.ts` rest choices: `RacialRestChoiceData` lacks `weaponIds` and the rest reducer maps skill choices to malformed `Skill` objects lacking `id`/`ability` | `types/character.ts:473-480`, `characterReducer.ts:626-628,638,644` | Causes TypeScript compiler check failures and corrupts the character's skill list on rest choice resolution | Add `weaponIds` to `RacialRestChoiceData` and look up the full `Skill` object from `SKILLS_DATA` inside the rest reducer mapping function | `npm run typecheck` passes; long rest resolves and successfully applies skill/weapon choices on characters | None |
+| G20 | not_started | adjacent_follow_up | Antigravity | `skillSelectionUtils.test.ts` | G18/G19 verification pass | The unit test `deriveRacialSkillGrants returns expected sources and ids` queries a human skill choice from a non-human `raceId` (bugbear) and expects it to be granted, which fails under proper raceId constraints | `src/components/CharacterCreator/utils/__tests__/skillSelectionUtils.test.ts:48-66` | Prevents skillSelectionUtils unit tests from passing successfully without mock bypasses | Fix test to query with matching raceId 'human' or update source logic | Vitest runs successfully for skillSelectionUtils.test.ts | None |
 
 ## Classification Reference
 
@@ -38,3 +140,10 @@ Use this file for durable unresolved findings that genuinely belong to this proj
 
 - Keep gaps tied to evidence and a next proof/check.
 - Route out-of-project items to `docs/projects/GLOBAL_GAPS.md` instead of retaining them here.
+
+
+## Schema Fit Notes
+
+| Issue | Existing content shape | Why schema does not fit | Proposed schema change |
+|---|---|---|---|
+| Compact registry retained | Existing rows preserve the project's current compact gap notes, routing context, and proof wording. | A full canonical expansion would require a deeper row-by-row provenance pass than this schema-only migration. | Keep the compact table shape for now; expand only when each row can be normalized without guesswork. |

@@ -148,7 +148,7 @@
         "bonusPerLevel": "+1d10",
         "customFormula": ""
       },
-      "description": "Deals 3d10 Lightning damage on a failed Dexterity save, or half as much on success; slot scaling adds +1d10.",
+      "description": "Choose a visible point under the storm cloud; each creature within 5 feet of that point makes a Dexterity save, taking 3d10 Lightning damage on a failure or half as much on a success. Outdoor storm control adds +1d10 damage, and each slot level above 3 adds +1d10 damage.",
       "conditionalEndings": []
     },
     {
@@ -202,7 +202,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "You can take a Magic action to call down lightning again.",
+      "description": "For up to 10 minutes with concentration, you can use a Magic action on later turns to call lightning again at the same point or a different point under the storm cloud.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

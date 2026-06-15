@@ -170,7 +170,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Blinded for 10 minutes to creatures affected by the sand wall effect.",
+      "description": "Creatures in the 30-foot-long, 10-foot-high, 10-foot-thick sand wall gain the Blinded condition for up to 10 minutes with concentration; the wall blocks line of sight but not movement, and each foot moved inside costs 3 feet of movement.",
       "conditionalEndings": []
     }
   ],

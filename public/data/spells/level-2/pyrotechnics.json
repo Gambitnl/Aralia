@@ -142,7 +142,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Fireworks: extinguish the flame; each creature in a 10-foot radius makes a Con save or is blinded until end of your next turn.",
+      "description": "Fireworks: extinguish the 5-foot Cube flame within 60 feet; each creature within 10 feet of it makes a Constitution save or gains the Blinded condition until the end of the caster's next turn.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -231,7 +231,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Smoke: extinguish the flame; create a 20-foot cube of smoke (heavily obscured) for 1 minute, dispersible by strong wind.",
+      "description": "Smoke: extinguish the 5-foot Cube flame within 60 feet and create a 20-foot Cube of Heavily Obscured smoke for 1 minute, dispersible by strong wind.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -287,7 +287,7 @@
           "value": 1
         }
       },
-      "description": "The Fireworks option blinds creatures that fail the Constitution save until the end of the caster's next turn.",
+      "description": "Fireworks: on a failed Constitution save, a creature within 10 feet of the extinguished flame gains the Blinded condition until the end of the caster's next turn.",
       "conditionalEndings": []
     }
   ],

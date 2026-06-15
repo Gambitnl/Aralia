@@ -158,7 +158,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Adds 1d4 to attack rolls and saving throws",
+      "description": "Up to three creatures within 30 feet gain the Blessed modifier for up to 1 minute with concentration, adding 1d4 to attack rolls and saving throws. Higher slots add one target per slot level above 1.",
       "conditionalEndings": [],
       "statusCondition": {
         "name": "Blessed",

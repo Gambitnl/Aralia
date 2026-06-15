@@ -142,7 +142,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The target takes 4d6 Psychic damage and makes an Intelligence saving throw.",
+      "description": "One visible creature within 150 feet takes 4d6 Psychic damage and makes an Intelligence save. On a failed save, its Intelligence and Charisma become 1, it cannot cast spells, activate magic items, understand language, or communicate intelligibly, and it repeats the Intelligence save every 30 days until the spell ends.",
       "damage": {
         "dice": "4d6",
         "type": "Psychic"
@@ -316,7 +316,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "On a failed Intelligence save, the creature Intelligence and Charisma scores become 1 and it loses spellcasting, magic item activation, language understanding, and intelligible communication.",
+      "description": "On a failed Intelligence save, the creature Intelligence and Charisma scores become 1, and it loses spellcasting, magic item activation, language understanding, and intelligible communication.",
       "statusCondition": {
         "name": "Feebleminded",
         "duration": {

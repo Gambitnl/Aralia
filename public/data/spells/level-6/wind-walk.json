@@ -118,7 +118,7 @@
         "direction": "caster_choice",
         "maxDistance": ""
       },
-      "description": "In cloud form, a target has a Fly Speed of 300 feet and can hover. Runtime still needs a first-class movement-mode field for fly speed and hover.",
+      "description": "In cloud form, each Wind Walk target has a 300-foot Fly Speed, can hover, can only Dash or use Magic to begin reverting, and if still flying when the spell ends descends safely 60 feet per round for 1 minute before falling any remaining distance.",
       "conditionalEndings": []
     },
     {
@@ -149,7 +149,7 @@
         },
         "level": 0
       },
-      "description": "Reverting to normal form takes 1 minute, during which the target has the Stunned condition.",
+      "description": "A Wind Walk target that uses Magic to revert to normal form is Stunned during the 1-minute transformation, and returning to cloud form later uses the same Magic action plus 1-minute transformation timing.",
       "conditionalEndings": []
     },
     {

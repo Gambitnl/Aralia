@@ -6,7 +6,7 @@ category: Game Systems
 main_category: Review / Archive
 subcategory: Deprecation Review
 status: active
-last_updated: 2026-06-12
+last_updated: 2026-06-12
 iteration: 2
 confidence: medium
 evidence: docs/projects/crime/TRACKER.md

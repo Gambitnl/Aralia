@@ -224,7 +224,7 @@
         "bonusPerLevel": "+2d4",
         "customFormula": ""
       },
-      "description": "A creature covered in the acid takes this damage at the start of each of its turns.",
+      "description": "A creature covered in the acid takes 2d4 Acid damage at the start of each of its turns; this recurring damage increases by 2d4 per slot level above 1st.",
       "conditionalEndings": []
     }
   ],

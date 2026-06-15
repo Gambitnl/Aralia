@@ -81,6 +81,23 @@ function deriveAzgaarSeed(mapData: MapData): number {
   return bounded > 0 ? bounded : bounded + 999_999_999;
 }
 
+/**
+ * Description of an actual Azgaar Voronoi cell (returned by the iframe bridge's
+ * describeCell). Replaces the old square-grid tile readout on hover.
+ */
+interface AzgaarCellInfo {
+  i: number;
+  height: number;
+  land: boolean;
+  biome?: string;
+  state?: string;
+  province?: string;
+  culture?: string;
+  religion?: string;
+  burg?: { name: string; population: number; capital: boolean; port: boolean };
+  population?: number;
+}
+
 const MapPane: React.FC<MapPaneProps> = ({
   mapData,
   worldSeed,
@@ -104,6 +121,11 @@ const MapPane: React.FC<MapPaneProps> = ({
   const [atlasTransform, setAtlasTransform] = useState<AzgaarAtlasTransform | null>(null);
   const [showPrecisionOverlay, setShowPrecisionOverlay] = useState(true);
   const [seedInput, setSeedInput] = useState('');
+  // Voronoi cell polygon under the cursor in Travel mode (graph-space vertices),
+  // queried live from the Azgaar iframe bridge. Drives the reddish highlight.
+  const [hoveredVoronoiPoly, setHoveredVoronoiPoly] = useState<Array<[number, number]> | null>(null);
+  // Description of the Azgaar Voronoi cell under the cursor (Travel mode).
+  const [hoveredAzgaarCell, setHoveredAzgaarCell] = useState<AzgaarCellInfo | null>(null);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const embedOverlayRef = useRef<HTMLDivElement>(null);
@@ -183,6 +205,91 @@ const MapPane: React.FC<MapPaneProps> = ({
 
             window.__araliaAzgaar.resetZoom = function (d) {
               try { resetZoom(typeof d === 'number' ? d : 1000); return true; } catch (e) { return false; }
+            };
+
+            // Turn Azgaar's "Cells" layer (the Voronoi mesh) on or off. Mirrors
+            // the Layers panel toggle; used to auto-show cells in Travel mode.
+            window.__araliaAzgaar.setCellsLayer = function (on) {
+              try {
+                var isOn = (typeof layerIsOn === 'function') ? layerIsOn('toggleCells') : false;
+                if (isOn !== !!on && typeof toggleCells === 'function') toggleCells();
+                return true;
+              } catch (e) { return false; }
+            };
+
+            // Biome name lookup, cached lazily (getDefault rebuilds the table).
+            window.__araliaAzgaar._biomeNames = null;
+            function biomeNames() {
+              if (!window.__araliaAzgaar._biomeNames) {
+                try {
+                  if (typeof Biomes !== 'undefined' && Biomes.getDefault) {
+                    window.__araliaAzgaar._biomeNames = Biomes.getDefault().name || null;
+                  }
+                } catch (e) { /* ignore */ }
+              }
+              return window.__araliaAzgaar._biomeNames;
+            }
+
+            // Describe an actual Azgaar Voronoi cell: terrain, biome, and the
+            // political/cultural ownership the generator assigned. Used for the
+            // hover readout (replacing the old square-grid tile description).
+            window.__araliaAzgaar.describeCell = function (i) {
+              try {
+                var cells = pack.cells;
+                var h = cells.h[i];
+                var info = { i: i, height: h, land: h >= 20 };
+                var bn = biomeNames();
+                if (bn && cells.biome) info.biome = bn[cells.biome[i]];
+                var sId = cells.state ? cells.state[i] : 0;
+                if (sId && pack.states && pack.states[sId] && !pack.states[sId].removed) {
+                  info.state = pack.states[sId].fullName || pack.states[sId].name;
+                }
+                var prId = cells.province ? cells.province[i] : 0;
+                if (prId && pack.provinces && pack.provinces[prId] && pack.provinces[prId].i) {
+                  info.province = pack.provinces[prId].fullName || pack.provinces[prId].name;
+                }
+                var cuId = cells.culture ? cells.culture[i] : 0;
+                if (cuId && pack.cultures && pack.cultures[cuId] && pack.cultures[cuId].i) {
+                  info.culture = pack.cultures[cuId].name;
+                }
+                var reId = cells.religion ? cells.religion[i] : 0;
+                if (reId && pack.religions && pack.religions[reId] && pack.religions[reId].i) {
+                  info.religion = pack.religions[reId].name;
+                }
+                var bId = cells.burg ? cells.burg[i] : 0;
+                if (bId && pack.burgs && pack.burgs[bId] && !pack.burgs[bId].removed) {
+                  var b = pack.burgs[bId];
+                  info.burg = {
+                    name: b.name,
+                    population: Math.round((b.population || 0) * 1000),
+                    capital: !!b.capital,
+                    port: !!b.port
+                  };
+                }
+                if (cells.pop && cells.pop[i] > 0) info.population = Math.round(cells.pop[i] * 1000);
+                return info;
+              } catch (e) { return { i: i }; }
+            };
+
+            // Hit-test a graph-space point to its Voronoi cell and return the
+            // cell's polygon vertices (graph coords), centroid, and a content
+            // description so the parent can draw the cursor-following highlight
+            // and show the real cell's details outside the iframe.
+            window.__araliaAzgaar.getCellPolygonAt = function (xWorld, yWorld) {
+              try {
+                if (typeof findCell !== 'function' || typeof pack === 'undefined') return null;
+                var i = findCell(xWorld, yWorld);
+                if (i === undefined || i === null || i < 0) return null;
+                var vIds = pack.cells.v[i];
+                if (!vIds || vIds.length < 3) return null;
+                var pts = [];
+                for (var k = 0; k < vIds.length; k++) {
+                  var p = pack.vertices.p[vIds[k]];
+                  if (p) pts.push([p[0], p[1]]);
+                }
+                var c = pack.cells.p[i] || null; // cell centroid (graph coords)
+                return { i: i, points: pts, c: c, info: window.__araliaAzgaar.describeCell(i) };
+              } catch (e) { return null; }
             };
 
             // Hard-disable actions that would desync the embedded generator from Aralia gameplay.
@@ -329,6 +436,38 @@ const MapPane: React.FC<MapPaneProps> = ({
     return { x, y, tile };
   }, [gridSize.cols, gridSize.rows, readAtlasTransform, tiles]);
 
+  const resolveWorldFromPointer = useCallback((clientX: number, clientY: number) => {
+    // Map a screen point to Azgaar graph-space coordinates (the same space the
+    // iframe's Voronoi pack uses), accounting for the live pan/zoom transform.
+    const overlay = embedOverlayRef.current;
+    if (!overlay) return null;
+    const bounds = overlay.getBoundingClientRect();
+    if (bounds.width <= 0 || bounds.height <= 0) return null;
+    const transform = readAtlasTransform();
+    if (!transform) return null;
+    const fx = (clientX - bounds.left) / bounds.width;
+    const fy = (clientY - bounds.top) / bounds.height;
+    const xSvg = fx * transform.graphWidth;
+    const ySvg = fy * transform.graphHeight;
+    return {
+      xWorld: (xSvg - transform.viewX) / transform.scale,
+      yWorld: (ySvg - transform.viewY) / transform.scale,
+    };
+  }, [readAtlasTransform]);
+
+  const gridTileFromWorld = useCallback((xWorld: number, yWorld: number) => {
+    // Map an Azgaar graph-space point (e.g. a Voronoi cell centroid) to the
+    // Aralia grid tile that contains it — the same normalize→grid step that
+    // resolveCellFromPointer applies to a pointer's world coords.
+    const transform = readAtlasTransform();
+    if (!transform || transform.graphWidth <= 0 || transform.graphHeight <= 0) return null;
+    const x = clampIndex(Math.floor((xWorld / transform.graphWidth) * gridSize.cols), gridSize.cols);
+    const y = clampIndex(Math.floor((yWorld / transform.graphHeight) * gridSize.rows), gridSize.rows);
+    const tile = tiles[y]?.[x];
+    if (!tile) return null;
+    return { x, y, tile };
+  }, [gridSize.cols, gridSize.rows, readAtlasTransform, tiles]);
+
   const handleOverlayClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const resolved = resolveCellFromPointer(event.clientX, event.clientY);
     if (!resolved) return;
@@ -339,8 +478,25 @@ const MapPane: React.FC<MapPaneProps> = ({
     }
 
     if (!allowTravel || interactionMode !== 'travel') return;
+
+    // Travel to the highlighted Voronoi cell: resolve the cell under the click
+    // and travel to the grid tile at its centroid, so movement matches the
+    // reddish highlight rather than the raw pointer pixel. Falls back to the
+    // direct pointer→grid mapping if the iframe bridge is unavailable.
+    const world = resolveWorldFromPointer(event.clientX, event.clientY);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bridge = (iframeRef.current?.contentWindow as any)?.__araliaAzgaar;
+    const cell = world ? bridge?.getCellPolygonAt?.(world.xWorld, world.yWorld) : null;
+    if (cell?.c && Array.isArray(cell.c)) {
+      const centroidTile = gridTileFromWorld(cell.c[0], cell.c[1]);
+      if (centroidTile) {
+        onTileClick(centroidTile.x, centroidTile.y, centroidTile.tile);
+        return;
+      }
+    }
+
     onTileClick(resolved.x, resolved.y, resolved.tile);
-  }, [allow3DEntry, allowTravel, interactionMode, onEnter3DAtCell, onTileClick, resolveCellFromPointer]);
+  }, [allow3DEntry, allowTravel, interactionMode, onEnter3DAtCell, onTileClick, resolveCellFromPointer, resolveWorldFromPointer, gridTileFromWorld]);
 
   const handleOverlayMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     if (interactionMode !== 'travel' && interactionMode !== 'enter3d') return;
@@ -348,10 +504,22 @@ const MapPane: React.FC<MapPaneProps> = ({
     const resolved = resolveCellFromPointer(event.clientX, event.clientY);
     if (!resolved) {
       setHoveredCell(null);
-      return;
+    } else {
+      setHoveredCell({ x: resolved.x, y: resolved.y });
     }
-    setHoveredCell({ x: resolved.x, y: resolved.y });
-  }, [interactionMode, readAtlasTransform, resolveCellFromPointer]);
+
+    // Travel mode: ask the iframe bridge which Voronoi cell sits under the
+    // cursor and remember its polygon so the highlight follows the mouse from
+    // cell to cell. (Enter-3D keeps the legacy rectangular precision overlay.)
+    if (interactionMode === 'travel') {
+      const world = resolveWorldFromPointer(event.clientX, event.clientY);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const bridge = (iframeRef.current?.contentWindow as any)?.__araliaAzgaar;
+      const cell = world ? bridge?.getCellPolygonAt?.(world.xWorld, world.yWorld) : null;
+      setHoveredVoronoiPoly(cell?.points && cell.points.length >= 3 ? cell.points : null);
+      setHoveredAzgaarCell((cell?.info as AzgaarCellInfo | undefined) ?? null);
+    }
+  }, [interactionMode, readAtlasTransform, resolveCellFromPointer, resolveWorldFromPointer]);
 
   const overlayCapturesClicks =
     (allowTravel && interactionMode === 'travel')
@@ -378,19 +546,6 @@ const MapPane: React.FC<MapPaneProps> = ({
     return null;
   }, [tiles]);
 
-  const hoveredCellRect = useMemo(() => {
-    // Convert the hovered destination cell into a CSS rectangle over the Azgaar
-    // iframe, using the latest pan/zoom transform when available.
-    if (!hoveredCell) return null;
-    return getCellOverlayPercentRect(
-      hoveredCell.x,
-      hoveredCell.y,
-      gridSize.cols,
-      gridSize.rows,
-      atlasTransform,
-    );
-  }, [atlasTransform, gridSize.cols, gridSize.rows, hoveredCell]);
-
   const playerCellRect = useMemo(() => {
     // Convert the player's current cell into the same overlay coordinate space as
     // the destination highlight so travel origin and target are visually paired.
@@ -404,6 +559,21 @@ const MapPane: React.FC<MapPaneProps> = ({
     );
   }, [atlasTransform, gridSize.cols, gridSize.rows, playerCell]);
 
+  const hoveredVoronoiPercentPoints = useMemo(() => {
+    // Project the hovered Voronoi polygon (graph coords) into overlay-percent
+    // space using the live pan/zoom transform, matching the iframe's mapping.
+    if (!hoveredVoronoiPoly || !atlasTransform) return null;
+    const { graphWidth, graphHeight, viewX, viewY, scale } = atlasTransform;
+    if (graphWidth <= 0 || graphHeight <= 0 || scale <= 0) return null;
+    return hoveredVoronoiPoly
+      .map(([px, py]) => {
+        const sx = ((px * scale + viewX) / graphWidth) * 100;
+        const sy = ((py * scale + viewY) / graphHeight) * 100;
+        return `${sx.toFixed(3)},${sy.toFixed(3)}`;
+      })
+      .join(' ');
+  }, [hoveredVoronoiPoly, atlasTransform]);
+
   useEffect(() => {
     // Refresh the transform once the iframe is ready so the player-cell outline
     // appears correctly even before the first mouse move in Travel mode.
@@ -416,6 +586,24 @@ const MapPane: React.FC<MapPaneProps> = ({
     if (viewMode !== 'azgaar' || !playerWorldPos) return;
     setAtlasTransform(readAtlasTransform());
   }, [playerWorldPos, readAtlasTransform, viewMode]);
+
+  useEffect(() => {
+    // Auto-show Azgaar's Cells layer (Voronoi mesh) while Travel mode is active,
+    // and hide it again on leaving travel — so the cells you can highlight and
+    // travel across are visible without manually opening the Layers panel.
+    if (viewMode !== 'azgaar' || !isFrameReady) return;
+    const wantCells = interactionMode === 'travel';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const setCells = () => (iframeRef.current?.contentWindow as any)?.__araliaAzgaar?.setCellsLayer?.(wantCells);
+    setCells();
+    // The generator's layer functions can lag the bridge install; retry briefly.
+    const t = window.setTimeout(setCells, 400);
+    if (!wantCells) {
+      setHoveredVoronoiPoly(null);
+      setHoveredAzgaarCell(null);
+    }
+    return () => window.clearTimeout(t);
+  }, [interactionMode, isFrameReady, viewMode]);
 
   const handleIframeError = useCallback(() => {
     setFrameError('Azgaar world map could not be loaded. Switched to legacy grid view.');
@@ -586,6 +774,8 @@ const MapPane: React.FC<MapPaneProps> = ({
               onMouseMove={handleOverlayMouseMove}
               onMouseLeave={() => {
                 setHoveredCell(null);
+                setHoveredVoronoiPoly(null);
+                setHoveredAzgaarCell(null);
               }}
               aria-label="World map click overlay"
               role="button"
@@ -601,6 +791,24 @@ const MapPane: React.FC<MapPaneProps> = ({
               />
             )}
 
+            {interactionMode === 'travel' && hoveredVoronoiPercentPoints && (
+              <svg
+                className="absolute inset-0 w-full h-full pointer-events-none z-[1]"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+                data-testid="azgaar-voronoi-highlight"
+              >
+                <polygon
+                  points={hoveredVoronoiPercentPoints}
+                  fill="rgba(248,113,113,0.16)"
+                  stroke="rgba(248,113,113,0.95)"
+                  strokeWidth={2}
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+            )}
+
             {overlayCapturesClicks && showPrecisionOverlay && (
               <div className="absolute inset-0 pointer-events-none z-[1]" aria-hidden="true">
                 {playerCellRect && (
@@ -614,17 +822,8 @@ const MapPane: React.FC<MapPaneProps> = ({
                     }}
                   />
                 )}
-                {hoveredCellRect && (
-                  <div
-                    className="absolute border-2 border-amber-300/95 bg-amber-200/20"
-                    style={{
-                      left: `${hoveredCellRect.left}%`,
-                      top: `${hoveredCellRect.top}%`,
-                      width: `${hoveredCellRect.width}%`,
-                      height: `${hoveredCellRect.height}%`,
-                    }}
-                  />
-                )}
+                {/* The amber hovered-cell square was the old square-grid target;
+                    deprecated in favor of the reddish Voronoi-cell highlight. */}
               </div>
             )}
 
@@ -634,11 +833,41 @@ const MapPane: React.FC<MapPaneProps> = ({
               </div>
             )}
 
-            {overlayCapturesClicks && hoveredCell && hoveredTile && (
+            {/* Travel mode: describe the ACTUAL Azgaar Voronoi cell under the
+                cursor (biome + political/cultural ownership the generator
+                assigned), replacing the deprecated square-grid tile readout. */}
+            {interactionMode === 'travel' && hoveredAzgaarCell && (
+              <div className="absolute bottom-3 left-3 rounded bg-black/75 text-white px-2.5 py-1.5 pointer-events-none z-[2] max-w-[300px] leading-tight">
+                <div className="text-xs font-semibold text-amber-200">
+                  {hoveredAzgaarCell.burg
+                    ? `${hoveredAzgaarCell.burg.capital ? '★ ' : ''}${hoveredAzgaarCell.burg.name}`
+                    : hoveredAzgaarCell.state || (hoveredAzgaarCell.land ? 'Wildlands' : 'Open Water')}
+                </div>
+                <div className="text-[11px] text-gray-300">
+                  {hoveredAzgaarCell.land ? (hoveredAzgaarCell.biome || 'Land') : 'Water'}
+                  {hoveredAzgaarCell.burg && hoveredAzgaarCell.state ? ` · ${hoveredAzgaarCell.state}` : ''}
+                  {hoveredAzgaarCell.province ? ` · ${hoveredAzgaarCell.province}` : ''}
+                </div>
+                {(hoveredAzgaarCell.culture || hoveredAzgaarCell.religion) && (
+                  <div className="text-[10px] text-gray-400">
+                    {[hoveredAzgaarCell.culture, hoveredAzgaarCell.religion].filter(Boolean).join(' · ')}
+                  </div>
+                )}
+                {(hoveredAzgaarCell.burg || hoveredAzgaarCell.population != null) && (
+                  <div className="text-[10px] text-gray-400">
+                    {hoveredAzgaarCell.burg
+                      ? `Pop ${hoveredAzgaarCell.burg.population.toLocaleString()}${hoveredAzgaarCell.burg.port ? ' · Port' : ''}`
+                      : `Rural pop ${hoveredAzgaarCell.population!.toLocaleString()}`}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Enter-3D keeps the grid readout (discovery status drives 3D entry). */}
+            {interactionMode === 'enter3d' && hoveredCell && hoveredTile && (
               <div className="absolute bottom-3 left-3 rounded bg-black/70 text-white text-xs px-2 py-1 pointer-events-none z-[2]">
                 Cell {hoveredCell.x},{hoveredCell.y} - {hoveredBiome?.name || hoveredTile.biomeId}
-                {interactionMode === 'enter3d' && !hoveredTile.discovered ? ' (undiscovered)' : ''}
-                {showPrecisionOverlay ? ' (precision on)' : ''}
+                {!hoveredTile.discovered ? ' (undiscovered)' : ''}
               </div>
             )}
           </div>

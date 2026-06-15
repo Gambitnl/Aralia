@@ -136,7 +136,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
-      "description": "Creates a magical hand that can be directed into protective, forceful, grasping, or striking options; the hand persists until the spell ends or the created hand drops to 0 hit points.",
+      "description": "Create a Large shimmering force hand in a visible unoccupied space within 120 feet for up to 1 minute with concentration. When cast and on later Bonus Actions, the caster can move the hand up to 60 feet and choose Clenched Fist, Forceful Hand, Grasping Hand, or Interposing Hand; the hand has AC 20, Hit Points equal to the caster's Hit Point maximum, Strength 26, Dexterity 10, and the spell ends if the hand drops to 0 Hit Points.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+2d8 clenched-fist damage and +2d6 grasping-hand damage per slot level above 5th",

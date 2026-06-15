@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Submap Generation
 slug: submap-generation
-Status: merged-reference
+status: merged-reference
 last_updated: 2026-06-12
 iteration: 4
 source_agent: Codex / gpt-5

@@ -147,7 +147,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 3d8 Radiant/Necrotic damage on a failed Wisdom save, or half as much on success; slot scaling adds +1d8.",
+      "description": "Creatures in the 15-foot Emanation that follows the caster make a Wisdom save, taking 3d8 Radiant or Necrotic damage on a failed save or half as much on a success; damage increases by +1d8 per slot level above 3.",
       "conditionalEndings": []
     }
   ],

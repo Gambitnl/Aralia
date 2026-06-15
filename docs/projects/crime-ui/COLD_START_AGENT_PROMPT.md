@@ -3,13 +3,13 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Crime UI
 slug: crime-ui
-Status: active
-last_updated: 2026-06-05
-iteration: 1
-source_agent: Not recorded
+status: active
+last_updated: 2026-06-15
+iteration: 2
+source_agent: Qoder
 target_agent: next cold-start agent
-runtime_surface: unknown
-certainty: unknown
+runtime_surface: application agent
+certainty: inferred
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -20,7 +20,7 @@ gaps: docs/projects/crime-ui/GAPS.md
 # Crime UI Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-15
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -41,11 +41,12 @@ docs/projects/crime-ui/NORTH_STAR.md
 | Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
 | 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
+| 2 | Qoder | application agent | inferred | 2026-06-15 | IDE-integrated agent (Qoder/Qoder IDE) |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Crime UI
 Project folder: docs/projects/crime-ui
-iteration: 1
+iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -55,39 +56,21 @@ Gaps: docs/projects/crime-ui/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 2 (2026-06-15, Qoder, application agent): Completed T2 by re-verifying
+all 5 gaps against source code, reconciling GAPS.md statuses from not_started to
+active, refreshing NORTH_STAR.md with evidence-backed implementation state
+snapshot, marking T2 done in TRACKER.md, and updating AUDIT_OR_PROOF.md with
+verification proof. All docs are now evidence-based rather than scaffold-only.
 
 ## Current Mission
 
 Active task:
-T2 - Convert docs from scaffold-only to implementation state snapshot
+T3 - Validate any future UI work against `docs/projects/crime` for core contract changes
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
-
-Key files to touch:
-- docs/projects/crime-ui/NORTH_STAR.md
-- docs/projects/crime-ui/TRACKER.md
-- docs/projects/crime-ui/GAPS.md
-- docs/projects/crime-ui/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
-
-Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
-
-Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+Check compatibility between Crime UI changes and `docs/projects/crime` core
+contracts before coding job/fence/heist UI changes. Add regression test notes
+in `TRACKER.md` before merge.
 
 Key files to touch:
 - docs/projects/crime-ui/NORTH_STAR.md
@@ -97,9 +80,10 @@ Key files to touch:
 - docs/projects/crime-ui/DECISIONS.md
 - docs/projects/crime-ui/AUDIT_OR_PROOF.md
 - docs/projects/crime-ui/RUNBOOK.md
+- docs/projects/crime/TRACKER.md (cross-project check)
 - docs/projects/PROJECT_CARD_SCHEMA.md
 - docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- docs/projects/crime-ui plus source/docs named by the active tracker task
+- Source/docs named by the active tracker task
 
 Optional docs to check when present or named by tracker:
 - tasks/
@@ -108,13 +92,19 @@ Optional docs to check when present or named by tracker:
 - project-specific proof or design notes
 
 Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
+Check compatibility with `docs/projects/crime` before coding. Add regression
+test notes in TRACKER.md.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
+Stay inside this project's scope boundaries. Route sibling-project blockers
+instead of editing their docs.
 
 Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+T2 completed on 2026-06-15. All project docs converted from scaffold-only to
+evidence-backed implementation state snapshot. All 5 gaps re-verified against
+source code. GAPS.md statuses reconciled. NORTH_STAR.md confidence raised to
+high. Next step: T3 (cross-project validation against crime-core) or tackle
+G3/G4 as most actionable in-scope implementation gaps.
 
 ## Required End State For This Iteration
 

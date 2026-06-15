@@ -146,7 +146,7 @@
         "dice": "1d4",
         "notes": "Whenever a creature makes an attack roll against the caster before the spell ends, the attacker subtracts 1d4 from the attack roll."
       },
-      "description": "Whenever a creature makes an attack roll against you before the spell ends, the attacker subtracts 1d4 from the attack roll.",
+      "description": "Self only. For up to 1 minute with concentration, every incoming attack roll against the caster subtracts 1d4 while the spell remains active.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

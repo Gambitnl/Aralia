@@ -1,19 +1,19 @@
 ---
 schema_version: 1
-project: Travel
+project: Travel System
 slug: travel
 category: active project
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-12
-iteration: 2
-confidence: unknown
+last_updated: 2026-06-15
+iteration: 3
+confidence: high
 evidence: "docs/projects/travel/TRACKER.md; docs/projects/travel/GAPS.md"
-gap_signal: 5 open gaps; forced march, navigation drift, quick-travel alignment, transport, and resource-cost follow-ups remain open
+gap_signal: "10 open gaps; cell-native travel integration gaps (G6-G10) and travel core gaps (G1-G5) open"
 protocol: living-project
-next_step: Resume from TRACKER.md and keep the gap log aligned.
-agent_comments: ""
+next_step: "Define first bounded task to spike cell-native Voronoi-keyed travel/discovery model behind the legacy grid (T4)."
+agent_comments: "Upgraded existing travel project to own cell-native travel path per D2."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -24,125 +24,115 @@ required_docs:
   - RUNBOOK.md
 optional_docs:
 required_verification:
-  - docs consistency
+  - docs_consistency
+  - scoped_tests
 completed_verification:
-  - docs refresh
-last_proof: 2026-06-05
-workflow_gaps_reviewed: ""
+  - docs_consistency
+last_proof: 2026-06-15
+workflow_gaps_reviewed: 2026-06-15
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: "no"
+human_decision_required: no
 ---
 # Travel System North Star
 
 Status: active
-Last updated: 2026-06-12
+Last updated: 2026-06-15
 
 ## Dashboard Card Schema
 
 | Field | Value |
 |---|---|
-| Project | Travel |
+| Project | Travel System |
 | Slug | travel |
 | Category | active project |
 | Status | active |
-| Confidence | unknown |
+| Confidence | high |
 | Evidence | docs/projects/travel/TRACKER.md; docs/projects/travel/GAPS.md |
-| Gap signal | present |
+| Gap signal | 10 open gaps; cell-native travel integration gaps (G6-G10) and travel core gaps (G1-G5) open |
 | Protocol | living-project |
-| Next step | Resume from TRACKER.md and keep the gap log aligned. |
-| Required verification | docs consistency |
-| Completed verification | docs refresh |
-| Last proof | 2026-06-05 docs refresh |
-| Workflow gaps reviewed | yes |
+| Next step | Define first bounded task to spike cell-native Voronoi-keyed travel/discovery model behind the legacy grid (T4). |
+| Required verification | docs_consistency, scoped_tests |
+| Completed verification | docs_consistency |
+| Last proof | 2026-06-15 |
+| Workflow gaps reviewed | 2026-06-15 |
 
 ## Why This Project Exists
-Travel movement is partially implemented in multiple directories with separate core,
-UI, and action-handler logic. This project protects those partial systems from
-being treated as either finished or abandoned.
+Movement, travel pathfinding, and map discovery are coupled to a legacy rectangular 2D tile grid. This project exists to migrate travel, movement, and tile discovery off the rectangular grid and onto Azgaar's actual Voronoi cells.
 
 ## Intended Outcome
-Preserve concrete Travel System state for cold starts: what exists today, where it
-is wired, and which mechanics still need integration.
+Cell-native travel where the cell selected on the map, the cell traveled to, and the cell that gets "discovered" are the same Azgaar-generated Voronoi cell. This avoids grid-centroid coordinate collapse and enables high-fidelity movement/pathfinding matching the Azgaar world map's actual layout.
 
 ## Current State
-- Core travel math is in `src/systems/travel/TravelCalculations.ts` with tests
-  in `src/systems/travel/__tests__/TravelCalculations.test.ts`.
-- Navigation check logic is in `src/systems/travel/TravelNavigation.ts` with tests
-  in `src/systems/travel/__tests__/TravelNavigation.test.ts`.
-- Runtime movement handling is in `src/hooks/actions/handleMovement.ts`, including
-  adjacent movement, world crossing, named location movement, and `QUICK_TRAVEL`.
-- Quick-travel pathfinding and action payload use are in
-  `src/components/Submap/useQuickTravel.ts` and `src/components/Submap/SubmapPane.tsx`.
-- `src/services/travelService.ts` offers a reusable route calculator that currently
-  is not the sole runtime path for normal movement.
-- Quick-travel action type and payload are defined in `src/types/actions.ts`.
-- This project documentation started with scaffold-only structure and now tracks
-  concrete file-level state and integration gaps.
+- The Azgaar world map ([MapPane.tsx](file:///F:/Repos/Aralia/src/components/MapPane.tsx)) embeds Azgaar FMG in an iframe with a bridge object `window.__araliaAzgaar` (`getTransform`, `setCellsLayer`, `getCellPolygonAt`, `describeCell`).
+- In Travel mode, the cell under the cursor is highlighted with a reddish Voronoi polygon, and clicking travels via `onTileClick(x, y, tile)`.
+- **The Grid Gap**: Travel still ultimately resolves to a rectangular Aralia grid tile. `gridTileFromWorld` maps the hovered Voronoi cell's centroid to `mapData.tiles[y][x]` using `gridSize.cols/rows` (~60x40). Travel "snaps" to a cell's centroid tile, but movement/discovery remain grid-based.
+- **Consequence**: Many small adjacent Voronoi cells (Azgaar has ~10k) collapse onto one grid tile, making cell-accurate travel impossible.
+- **Wired Systems**:
+  - Core travel math is in `src/systems/travel/TravelCalculations.ts` with tests.
+  - Navigation check logic is in `src/systems/travel/TravelNavigation.ts` with tests.
+  - Runtime movement handling is in `src/hooks/actions/handleMovement.ts`.
+  - Quick travel pathfinding is in `src/components/Submap/useQuickTravel.ts`.
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Turn the travel docs in `docs/projects/travel/` into a concrete cold-start pack. |
-| Acceptance criteria | NORTH_STAR, TRACKER, and GAPS contain concrete file map, integration points, and evidence-backed gaps. |
-| Allowed boundaries | `docs/projects/travel/` only. Source read-only confirmation in scoped files. |
-| Stop condition | Documentation is internally consistent and includes next checks for movement/navi mechanics integration. |
-| Verification | Confirm each referenced file path exists and matches current implementation assertions in this pack. |
+| Task | Spike a Voronoi-cell-keyed travel/discovery model behind the existing grid. |
+| Acceptance criteria | 1. Introduce cell-native position storage and discovery representation in state.<br>2. Wire cell ID (`cellId`) into the travel action payload.<br>3. Keep existing grid-based travel and discovery checks passing without regression. |
+| Allowed boundaries | `src/components/MapPane.tsx`, `src/hooks/actions/handleMovement.ts`, `docs/projects/travel/` |
+| Stop condition | Cell-keyed model is spiked behind the scenes with zero behavior change; tests and types build cleanly. |
+| Verification | `npm run test` and `tsc --noEmit` checks |
 | Owner | Worker A |
-| Next action | Resolve `in_scope_now` gaps in the travel runtime on the next implementation slice. |
+| Next action | Create the spike implementation of cell-native fields in State and Actions. |
 
 ## Scope Boundaries
 
-In scope:
-- Documenting current travel behavior and wiring for this codebase.
-- Recording unresolved but discovered gaps tied to Travel files.
-- Defining continuation checkpoints for the next implementation slice.
+### In scope:
+- Re-routing travel selection, target resolution, and path movement off rectangular grid tiles onto Azgaar Voronoi cells.
+- Cell-native discovery flags (cell-level discovery tracking in state).
+- Decoupling map seed generation (`deriveAzgaarSeed`) from grid tiles.
+- Positioning the player marker (`AtlasPlayerMarker`) relative to cell centroids (`cell.c`).
+- Adapting compass and travel reducers to support cell IDs.
 
-Adjacent but not in this slice:
-- Rebalancing movement numbers.
-- Cross-project movement UX redesign.
-
-Out of scope:
-- Gameplay refactors outside Travel, Submap, or movement action handlers.
-- Unrelated tracker or policy cleanup.
+### Out of scope (Owned by "grid + submap retirement" project):
+- Retiring the legacy grid and Submap surfaces.
+- Making Azgaar the canonical 2D world model.
+- Deleting legacy `MapData.tiles` array or its rendering layers (these must act as compatibility layers).
+- Retiring the Submap pane.
 
 ## What Must Not Be Lost
-- Split ownership between travel logic, action handling, and submap UI.
-- Explicit TODO markers where mechanics are defined but not yet connected:
-  forced march, navigation drift in runtime, and vehicle simplifications.
-- Contract mismatch risk between fast quick-travel step costs and service-level group
-  travel model.
+- **Adapter Preservation (Option B)**: Keep the legacy grid tiles intact as a fallback/compatibility layer during migration. Do not remove grid fields until all dependencies are verified.
+- **Seed Consistency**: Ensure `deriveAzgaarSeed` or its replacement remains stable and doesn't break map loading.
 
 ## Known Gaps And Follow-Ups
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| Forced march status is computed but not applied in runtime movement. | in_scope_now | Worker A | `src/systems/travel/TravelCalculations.ts`, `src/hooks/actions/handleMovement.ts` | Add exhaustion check path in movement loop and add movement-level assertions. |
-| Navigation drift (`checkNavigation`) is not integrated into travel movement flow. | in_scope_now | Worker A | `src/systems/travel/TravelNavigation.ts`, `src/hooks/actions/handleMovement.ts` | Implement call site and create regression coverage. |
-| Quick travel and normal movement use different cost models. | support_needed_now | Worker A | `src/components/Submap/useQuickTravel.ts`, `src/hooks/actions/handleMovement.ts`, `src/services/travelService.ts` | Define one cost contract or document a justified split and align tests. |
-| Transport and vehicle edge cases are simplified. | support_needed_now | Worker A | `src/systems/travel/TravelCalculations.ts`, `src/types/travel.ts` | Expand vehicle/puller modeling before adding wagon/heavy-load gameplay tests. |
-| Quick travel has no fatigue/resource consumption implementation. | adjacent_follow_up | Worker A | `src/components/Submap/SubmapPane.tsx`, `src/components/Submap/useQuickTravel.ts` | Decide whether to add fatigue and supply consumption in the same slice as pathfinding. |
+| G1: Forced march status not applied in runtime. | adjacent_follow_up | Worker A | `TravelCalculations.ts`, `handleMovement.ts` | Wire forced march checks in movement loop. |
+| G2: Navigation drift not consumed in movement. | adjacent_follow_up | Worker A | `TravelNavigation.ts`, `handleMovement.ts` | Wire navigation drift in movement handler. |
+| G3: Cost model mismatch between quick travel and movement. | adjacent_follow_up | Worker A | `useQuickTravel.ts`, `travelService.ts` | Define unified cost contract. |
+| G4: Transport edge cases simplified. | adjacent_follow_up | Worker A | `TravelCalculations.ts` | Expand vehicle/load contracts. |
+| G5: Quick travel fatigue ignored. | adjacent_follow_up | Worker A | `SubmapPane.tsx` | Wire resource drain to quick travel. |
+| G6: Grid-resolution limit (Voronoi centroid-grid collapse). | in_scope_now | Worker A | `MapPane.tsx:458` (`gridTileFromWorld`) | Re-root travel target resolution to Voronoi cells. |
+| G7: Cell-native player discovery tracking. | in_scope_now | Worker A | `MapPane.tsx` (`tile.discovered`) | Map discovery states to Voronoi cell IDs. |
+| G8: Decoupling map seed generation (`deriveAzgaarSeed`) from grid tiles. | support_needed_now | Worker A | `MapPane.tsx:67` | Derivation of map seed directly from world seed. |
+| G9: Cell-native Atlas player marker positioning. | in_scope_now | Worker A | `MapPane.tsx` / `AtlasPlayerMarker` | Render player marker at cell centroid. |
+| G10: Compass and travel reducers coupling to grid coords. | in_scope_now | Worker A | `worldReducer.ts` | Add cell ID tracking to travel reducers. |
 
 ## Global Gap Imports
-
-`docs/projects/GLOBAL_GAPS.md` was checked. All identified issues are travel-local.
-
-| Global gap ID | Imported? | Project destination | Scope rationale |
-|---|---|---|---|
-| none | no | none | No cross-project gaps were identified during this pass. |
+No global gaps imported during this pass.
 
 ## Evidence And Proof
 
 | Evidence | What it proves | Location |
 |---|---|---|
-| Travel calculations + tests | Travel math primitives and edge coverage exist in the codebase | `src/systems/travel/TravelCalculations.ts`, `src/systems/travel/__tests__/TravelCalculations.test.ts` |
-| Navigation checks + tests | Navigation outcome model (success/fail + drift/time penalty) is defined and tested | `src/systems/travel/TravelNavigation.ts`, `src/systems/travel/__tests__/TravelNavigation.test.ts` |
-| Movement handlers + contract | Move and QUICK_TRAVEL action path exists in action system | `src/hooks/actions/handleMovement.ts`, `src/hooks/actions/actionHandlers.ts`, `src/types/actions.ts` |
-| Submap quick-travel UI | Pathfinding-driven UI and dispatch payload are implemented | `src/components/Submap/useQuickTravel.ts`, `src/components/Submap/SubmapPane.tsx` |
+| MapPane iframe integration | Map click/hover maps to Voronoi cells via iframe bridge | `src/components/MapPane.tsx` |
+| Travel calculations | Core travel math and cost equations exist | `src/systems/travel/TravelCalculations.ts` |
+| Movement action handler | Movement actions are processed on grid coordinates | `src/hooks/actions/handleMovement.ts` |
 
 ## Supporting Files
 
@@ -152,36 +142,23 @@ Out of scope:
 | `docs/projects/GLOBAL_GAPS.md` | Cross-project/global gap routing | active |
 | `docs/projects/travel/TRACKER.md` | Active task and gap routing slice tracking | active |
 | `docs/projects/travel/GAPS.md` | Durable gap registry for travel scope | active |
-| `src/systems/travel/TravelCalculations.ts` | Core travel math implementation | active |
-| `src/systems/travel/TravelNavigation.ts` | Navigation outcomes and drift | active |
-| `src/hooks/actions/handleMovement.ts` | Runtime movement and QUICK_TRAVEL handling | active |
-| `src/components/Submap/useQuickTravel.ts` | Quick travel pathfinding and preview metrics | active |
-| `src/components/Submap/SubmapPane.tsx` | Quick travel UI and action dispatch | active |
-| `src/services/travelService.ts` | Shared travel calculation service | active |
+| `docs/projects/travel/DECISIONS.md` | Log of durable project decisions | active |
+| `docs/projects/travel/COLD_START_AGENT_PROMPT.md` | Next agent handoff instructions | active |
 
 ## Open Questions
 
 | Question | Why it matters | Owner | Needed by |
 |---|---|---|---|
-| Should `travelService.ts` be authoritative for all movement time checks? | Prevents inconsistent pacing behavior between quick travel and world/submap movement | Worker A | Next implementation slice |
-| Which travel route should own fatigue and encounter checks? | Prevents duplicated or missing side effects across handlers | Worker A | Next implementation slice |
+| How will cell-native discovery states be persisted in save files? | Save/load compatibility and file size limits | Worker A | Discovery phase |
+| What adapter contract will translate Voronoi cell coordinates for 3D world markers? | Seamless 2D-to-3D transition | Worker A | 3D transition phase |
 
 ## Resume Path For A Cold Agent
-
 1. Read this file.
-2. Read `docs/projects/travel/TRACKER.md`.
-3. Read `docs/projects/travel/GAPS.md`.
-4. Confirm evidence in these files:
-   - `src/systems/travel/TravelCalculations.ts`
-   - `src/systems/travel/TravelNavigation.ts`
-   - `src/hooks/actions/handleMovement.ts`
-   - `src/components/Submap/useQuickTravel.ts`
-   - `src/services/travelService.ts`
-5. Continue from: close `in_scope_now` gaps with a movement-pass review.
-
+2. Read `docs/projects/travel/TRACKER.md` and `docs/projects/travel/GAPS.md`.
+3. Check `src/components/MapPane.tsx` to understand the iframe bridge operations.
+4. Continue with Task T4: Spike cell-native model behind the existing grid.
 
 ## Cold-Start Gap Routing
-
 The next cold-start agent must:
 - read `TRACKER.md` and `GAPS.md` first
 - tackle one real, evidence-backed project gap in the same pass

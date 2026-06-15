@@ -302,7 +302,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Other creatures have Disadvantage on attack rolls against affected chosen creatures.",
+      "description": "For the 1-minute concentration aura, other creatures have Disadvantage on attack rolls against chosen creatures while those creatures remain in the caster's 30-foot Emanation.",
       "attackRollModifier": {
         "modifier": "disadvantage",
         "direction": "incoming",
@@ -376,7 +376,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "When a Fiend or Undead hits an affected creature with a melee attack, the attacker must succeed on a Constitution save or be Blinded until the end of its next turn.",
+      "description": "When a Fiend or Undead hits an affected chosen creature in Holy Aura with a melee attack, that attacker must make a Constitution save or be Blinded until the end of its next turn.",
       "statusCondition": {
         "name": "Blinded",
         "duration": {

@@ -149,7 +149,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "Deals 8d8 Cold damage on a failed Constitution save, or half as much on success; slot scaling adds +1d8.",
+      "description": "Each creature in a self-originating 60-foot Cone makes a Constitution save, taking 8d8 Cold damage on a failure or half as much on a success; a creature killed by this spell becomes a frozen statue until it thaws, and each slot level above 5 adds +1d8 damage.",
       "conditionalEndings": []
     }
   ],

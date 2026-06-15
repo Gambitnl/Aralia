@@ -177,7 +177,7 @@
         },
         "depositDistance": 0
       },
-      "description": "Creates a 60-minute webbed terrain area that anchors the spell's restraint and difficult-terrain effects.",
+      "description": "Create a 20-foot Cube of sticky webs for up to 1 hour with concentration; the webbed area anchors restraint saves, Difficult Terrain, and burning-web damage.",
       "conditionalEndings": [
         {
           "trigger": "unsupported_area_collapses_next_turn",
@@ -250,7 +250,7 @@
           "actionCost": "action"
         }
       },
-      "description": "On a failed Dex save, a creature entering or starting its turn in the webs is restrained.",
+      "description": "A creature that enters the webs or starts its turn there makes a Dexterity save; on a failure, it has the Restrained condition while caught in the webs.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -312,7 +312,7 @@
         "dice": "2d4",
         "type": "Fire"
       },
-      "description": "If a 5-foot cube of web is ignited, a creature starting its turn in that burning area takes fire damage.",
+      "description": "If a 5-foot cube of web is ignited, the burning web is destroyed in 1 round and a creature that starts its turn in that burning area takes 2d4 Fire damage.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -384,7 +384,7 @@
         "dice": "",
         "type": ""
       },
-      "description": "The webbed area counts as Difficult Terrain.",
+      "description": "The webbed 20-foot Cube is Difficult Terrain for the spell duration.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

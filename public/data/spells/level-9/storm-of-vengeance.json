@@ -211,7 +211,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "A creature that fails the initial Constitution save is Deafened for the spell duration.",
+      "description": "When the 300-foot-radius storm cloud appears, each creature under it makes a Constitution save; on a failed save, the creature is Deafened for the concentration duration alongside the initial Thunder damage.",
       "statusCondition": {
         "name": "Deafened",
         "duration": {
@@ -525,7 +525,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Until the spell ends, the area under the storm is Difficult Terrain.",
+      "description": "Until Storm of Vengeance ends, the entire 300-foot-radius area under the cloud is Difficult Terrain during the staged acid, lightning, hail, and freezing-rain turns.",
       "terrainType": "difficult",
       "areaOfEffect": {
         "shape": "Sphere",
@@ -593,7 +593,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Until the spell ends, the area under the storm is Heavily Obscured.",
+      "description": "Until Storm of Vengeance ends, the entire 300-foot-radius area under the cloud is Heavily Obscured, blocks ranged weapon attacks, and has strong wind blowing through it.",
       "terrainType": "obscuring",
       "areaOfEffect": {
         "shape": "Sphere",

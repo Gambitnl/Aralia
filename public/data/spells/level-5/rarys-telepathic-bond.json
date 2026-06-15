@@ -133,7 +133,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "communication",
-      "description": "You forge a telepathic link among up to eight willing creatures of your choice within range, psychically linking each creature to all the others for the duration. Creatures that can't communicate in any languages aren't affected by this spell. Until the spell ends, the targets can communicate telepathically through the bond whether or not they share a language. The communication is possible over any distance, though it can't extend to other planes of existence.",
+      "description": "Link up to eight willing creatures within 30 feet for 1 hour; creatures with Intelligence 2 or lower are unaffected, and linked targets can communicate telepathically with every other linked target over any distance on the same plane without sharing a language.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

@@ -180,7 +180,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Summons a familiar spirit at an unoccupied point within range; no slot-scaling changes are modeled for this summoning effect.",
+      "description": "Summon one persistent familiar spirit in an animal form at an unoccupied space within range. The familiar acts independently, obeys your commands, and stays until dismissed or reduced to 0 Hit Points. While it is within 100 feet, you can communicate telepathically with it, use a Bonus Action to perceive through its senses until the start of your next turn, and have it deliver your touch spells using its Reaction; you can have only one familiar at a time.",
       "conditionalEndings": [],
       "tags": [
         "summon",

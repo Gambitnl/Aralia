@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Dialogue
 slug: dialogue
-Status: active
+status: active
 last_updated: 2026-06-10
 iteration: 3
 source_agent: qoder-iteration2

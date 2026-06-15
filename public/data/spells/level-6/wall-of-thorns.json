@@ -307,7 +307,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "A creature that ends its turn in the wall makes the once-per-turn Dexterity save against 7d8 Slashing damage.",
+      "description": "A creature that ends its turn in the wall makes a Dexterity save, taking 7d8 Slashing damage on a failed save or half as much on a success; this can happen only once per turn.",
       "conditionalEndings": []
     },
     {
@@ -353,7 +353,7 @@
         "hp": 0,
         "ac": 0
       },
-      "description": "Creates a thorn wall on a solid surface as a straight wall or circular wall, blocking line of sight.",
+      "description": "Create a thorn wall on a solid surface, up to 60 feet long, 10 feet high, and 5 feet thick, that blocks line of sight for the spell duration.",
       "conditionalEndings": []
     },
     {
@@ -392,7 +392,7 @@
         "direction": "away_from_caster",
         "maxDistance": ""
       },
-      "description": "For every 1 foot a creature moves through the wall, it must spend 4 feet of movement; speedChange.value is a schema-safe marker for the movement cost multiplier.",
+      "description": "For every 1 foot a creature moves through the wall, it must spend 4 feet of movement.",
       "conditionalEndings": []
     },
     {
@@ -416,7 +416,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
-      "description": "The thorn wall can be straight or circular, blocks line of sight, and slows movement through it.",
+      "description": "Create a thorn wall for up to 10 minutes with concentration as a straight wall up to 60 feet long, 10 feet high, and 5 feet thick, or as a circular wall up to 20 feet in diameter, 20 feet high, and 5 feet thick.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+1d8",

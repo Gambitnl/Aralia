@@ -156,7 +156,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Prone unless the target succeeds on a Dexterity save for 1 minute.",
+      "description": "A creature that enters or starts its turn in the 20-foot-radius, 40-foot-high Cylinder makes a Dexterity save; on a failed save, it falls Prone and loses Concentration.",
       "conditionalEndings": []
     },
     {
@@ -223,7 +223,7 @@
         "dice": "",
         "type": ""
       },
-      "description": "Ground in the Cylinder is Difficult Terrain.",
+      "description": "Ground in the 20-foot-radius, 40-foot-high Cylinder is Difficult Terrain for up to 1 minute with concentration.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

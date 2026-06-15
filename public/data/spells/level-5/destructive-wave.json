@@ -147,7 +147,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Each chosen creature in the Emanation makes a Constitution save, taking half Thunder damage on a success.",
+      "description": "Each chosen creature in the 30-foot Emanation makes a Constitution save, taking 5d6 Thunder damage on a failed save or half as much on a success.",
       "conditionalEndings": []
     },
     {
@@ -211,7 +211,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The caster chooses Radiant or Necrotic damage. Each chosen creature in the Emanation makes a Constitution save, taking half of this damage on a success.",
+      "description": "The caster chooses Radiant or Necrotic damage; each chosen creature in the Emanation makes the same Constitution save, taking 5d6 of the chosen damage type on a failed save or half as much on a success.",
       "conditionalEndings": []
     },
     {

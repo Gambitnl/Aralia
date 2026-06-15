@@ -142,7 +142,7 @@
         ],
         "aftermath": "Target cannot be targeted by Divination spells, detected by magic, or viewed remotely with magic."
       },
-      "description": "For the duration, the target has the Invisible condition.",
+      "description": "The touched object or willing creature is Invisible until Sequester ends, cannot be targeted by Divination, detected by magic, or viewed remotely with magic, and the spell ends for the target if it takes damage or the caster-defined condition occurs within 1 mile.",
       "conditionalEndings": []
     },
     {
@@ -206,7 +206,7 @@
         ],
         "aftermath": "Creature target is in suspended animation, does not age, and does not need food, water, or air."
       },
-      "description": "If the target is a creature, it enters suspended animation and has the Unconscious condition.",
+      "description": "If the sequestered target is a willing creature, it enters suspended animation with the Unconscious condition, does not age or need food, water, or air, and remains that way until damage, Dispel, or the caster-defined ending condition ends the spell.",
       "conditionalEndings": []
     },
     {

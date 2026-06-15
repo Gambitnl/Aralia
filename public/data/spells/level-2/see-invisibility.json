@@ -136,7 +136,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "sensory",
-      "description": "For the duration, you see creatures and objects that have the Invisible condition as if they were visible, and you can see into the Ethereal Plane. Creatures and objects there appear ghostly.",
+      "description": "For 1 hour, the caster sees Invisible creatures and objects as visible and perceives into the Ethereal Plane, where creatures and objects appear ghostly.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

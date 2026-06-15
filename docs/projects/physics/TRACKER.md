@@ -1,7 +1,7 @@
 ﻿# Physics System Living Tracker
 
 Status: review-required
-Last updated: 2026-06-05
+Last updated: 2026-06-15
 
 ## Status Vocabulary
 
@@ -17,14 +17,15 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check |
 |---|---|---|---|---|---|---|---|
-| T4 | active | Wire elemental state transitions into damage/status command flow and add one focused proof check. | Physics worker | 2026-06-05 | `docs/projects/physics/GAPS.md` (G2), `src/commands/effects/DamageCommand.ts`, `src/commands/effects/StatusConditionCommand.ts`, `src/types/elemental.ts`, `src/types/combat.ts` | Implement the command-level state mapping and add one regression path for a physical effect flow. | Add targeted Vitest coverage for the elemental transition path.
+| T4 | done | Wire elemental state transitions into damage/status command flow and add one focused proof check. | Physics worker | 2026-06-15 | `src/types/elemental.ts` (`DamageTypeToStateTag`/`getStateTagForDamageType`), `src/commands/effects/DamageCommand.ts` (`applyElementalState`), `src/commands/effects/__tests__/DamageCommand.test.ts` (3 new tests, 26 pass) | Done for the damage path: damage element maps to StateTag and resolves vs target `stateTags` (Wet+Cold→Frozen). Remaining: StatusConditionCommand condition→state mapping (tracked under G2). | Vitest passed 2026-06-15; see `AUDIT_OR_PROOF.md`.
+| T5 | not_started | Wire elemental state mapping into StatusConditionCommand (condition name → StateTag), completing the second half of G2. | Physics worker | 2026-06-15 | `src/commands/effects/StatusConditionCommand.ts` line ~147 TODO(Simulator), `src/systems/physics/ElementalInteractionSystem.ts` | Define condition→StateTag map (e.g. 'Ignited'→Burning) and call `applyStateToTags` when applying elemental conditions. | Add targeted Vitest coverage for a status-condition that maps to a StateTag.
 
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
 | G1 | open | in_scope_now | Physics worker | `docs/projects/physics/GAPS.md` | Documentation pass | One-step elemental interactions stop early even when resulting state could react further. | `src/systems/physics/ElementalInteractionSystem.ts`, `src/systems/physics/Physics_Ralph.md` | Decide whether recursive resolution is a rule requirement or intentional simplification. | Add behavior test if recursion is adopted, or document hard stop policy. | Add regression tests for chained interactions.
-| G2 | open | in_scope_now | Physics worker | `docs/projects/physics/GAPS.md` | Documentation pass | `StateTag` transitions are not connected to damage/status command payload flow. | `src/types/elemental.ts`, `src/types/combat.ts`, `src/commands/effects/DamageCommand.ts` | Combat outcomes miss elemental-state side effects. | Define and document command-level mapping for elemental damage -> `stateTags`. | Add coverage for at least one physical spell/effect flow using elemental transitions.
+| G2 | open | in_scope_now | Physics worker | `docs/projects/physics/GAPS.md` | Documentation pass | DAMAGE PATH DONE 2026-06-15 (T4): damage element now maps to `StateTag` and resolves vs target `stateTags` in `DamageCommand`. STATUS PATH REMAINS: `StatusConditionCommand` does not yet map condition names → states. | `src/types/elemental.ts`, `src/types/combat.ts`, `src/commands/effects/DamageCommand.ts`, `src/commands/effects/StatusConditionCommand.ts` | Combat damage now propagates elemental state; status-condition application still misses it. | Wire condition→StateTag in StatusConditionCommand (T5). | Add coverage for a status-condition that maps to a StateTag.
 | G3 | open | in_scope_now | Physics worker | `docs/projects/physics/GAPS.md` | Documentation pass | Tile effect schema is read inconsistently as `environmentalEffects` vs `environmentalEffect`. | `src/commands/effects/TerrainCommand.ts`, `src/hooks/combat/engine/useCombatEngine.ts` | Runtime tick logic and effect expiry may diverge from mutation path. | Add one migration/bridge pass or unify schema in one owned touchpoint. | Run round and movement tests after migration proof.
 | G4 | open | adjacent_follow_up | Physics worker | `docs/projects/physics/GAPS.md` | Documentation pass | LOS ignores elevation and start/end tile blocking exceptions remain non-standard. | `src/utils/spatial/lineOfSight.ts`, `src/utils/spatial/__tests__/lineOfSight.test.ts` | Potential mismatch with tactical vision requirements. | Decide whether elevation-aware LOS is required for this project scope. | Add line-of-sight test cases with elevation contrasts.
 | G5 | open | support_needed_now | Physics worker | `docs/projects/physics/GAPS.md` | Documentation pass | Movement opportunity-attack timing is implemented with a retroactive path due to synchronous action executor assumptions. | `src/hooks/combat/useActionExecutor.ts` | Reaction timing can affect balance and reproducibility. | Validate expected order against combat rules and decide if event ordering should be rewritten. | Add deterministic event-order tests around move + OA interaction.

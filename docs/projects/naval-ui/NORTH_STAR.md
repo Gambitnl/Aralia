@@ -6,14 +6,14 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: active
-last_updated: 2026-06-05
-iteration: 2
+last_updated: 2026-06-15
+iteration: 3
 confidence: medium
 evidence: docs/projects/naval-ui
 gap_signal: "5 open gaps remain in the project handoff set; ShipPane is still read-only and the voyage/action surface is unresolved"
 protocol: living project doc set
-next_step: Resume TRACKER task U2 and confirm the ShipPane action contract before adding new controls.
-agent_comments: ""
+next_step: Address NU-1 (NAVAL_REPAIR_SHIP reducer implementation) or NU-5 (ShipPane action controls) as the next in-scope gap.
+agent_comments: "Task U2 completed: verified implementation state documentation accuracy via source inspection. All file map entries confirmed present. All 5 gaps verified accurate against current source. No new gaps discovered during this docs-only pass."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -27,8 +27,8 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-05
-workflow_gaps_reviewed: 2026-06-05
+last_proof: 2026-06-15
+workflow_gaps_reviewed: 2026-06-15
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -51,11 +51,11 @@ Confidence: medium
 Evidence: docs/projects/naval-ui
 Gap signal: 5 open gaps remain in the project handoff set; ShipPane is still read-only and the voyage/action surface is unresolved
 Protocol: living project doc set
-Next step: Resume TRACKER task U2 and confirm the ShipPane action contract before adding new controls.
+Next step: Address NU-1 (NAVAL_REPAIR_SHIP reducer implementation) or NU-5 (ShipPane action controls) as the next in-scope gap.
 Required verification: docs_consistency
 Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Last proof: 2026-06-15
+Workflow gaps reviewed: 2026-06-15
 
 ## Purpose And Scope
 

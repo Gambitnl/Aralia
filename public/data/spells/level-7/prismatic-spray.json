@@ -150,7 +150,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Targets affected by red, orange, yellow, green, or blue rays take 12d6 damage of the ray color type on a failed Dexterity save, or half as much on a successful save.",
+      "description": "Red, orange, yellow, green, and blue rays deal 12d6 damage of the rolled ray damage type on a failed Dexterity save, or half as much damage on a successful save.",
       "conditionalEndings": []
     },
     {
@@ -216,7 +216,7 @@
         ],
         "aftermath": "Indigo ray: target makes Constitution saves at the end of each of its turns; three successes end the condition, three failures impose Petrified until freed by an effect like Greater Restoration."
       },
-      "description": "Indigo ray failed save restrains the target and starts the three-success/three-failure Constitution save track.",
+      "description": "Indigo ray: on a failed Dexterity save, the target gains the Restrained condition and starts the end-turn Constitution save track. Three successes end the condition, and three failures impose Petrified.",
       "conditionalEndings": []
     },
     {
@@ -280,7 +280,7 @@
         "breakTriggers": [],
         "aftermath": "The Petrified condition lasts until the target is freed by an effect like Greater Restoration."
       },
-      "description": "Indigo ray applies Petrified after three failed Constitution saves.",
+      "description": "Indigo ray Petrified branch: after three failed end-turn Constitution saves while Restrained, the target has the Petrified condition until freed by an effect such as Greater Restoration.",
       "conditionalEndings": []
     },
     {
@@ -346,7 +346,7 @@
         ],
         "aftermath": "Violet ray: target makes a Wisdom save at the start of the caster next turn; success ends Blinded, failure ends Blinded and teleports the creature to another plane chosen by the DM."
       },
-      "description": "Violet ray failed save blinds the target until the start-of-next-turn Wisdom save resolves.",
+      "description": "Violet ray: on a failed Dexterity save, the target gains the Blinded condition until the start-of-next-turn Wisdom save resolves.",
       "conditionalEndings": []
     },
     {
@@ -412,7 +412,7 @@
         "direction": "safest_route",
         "maxDistance": "another plane of existence chosen by the DM"
       },
-      "description": "If the violet ray target fails the Wisdom save at the start of the caster next turn, it teleports to another plane of existence chosen by the DM.",
+      "description": "Violet ray follow-up: a target that failed the Dexterity save stays Blinded until the start-of-next-turn Wisdom save; on a failed Wisdom save, Blinded ends and the target teleports to a DM-chosen plane.",
       "conditionalEndings": []
     },
     {
@@ -466,7 +466,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Emit eight rays in a 60-foot cone, with each creature in the cone making a Dexterity save before rolling 1d8 to determine its Prismatic Rays table color. A result of 8 strikes the target with two rays instead, rolling twice and rerolling any further 8s.",
+      "description": "Emit eight rays in a 60-foot Cone. Each creature in the cone makes a Dexterity save, then rolls 1d8 for its Prismatic Rays table color; a result of 8 strikes the target with two rays, rolling twice and rerolling any further 8s.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

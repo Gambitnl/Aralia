@@ -135,7 +135,7 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "description": "On a failed Constitution save, the target becomes Enfeebled: it has Disadvantage on Strength-based D20 Tests, subtracts 1d8 from damage rolls, and repeats the save at the end of each turn. On a successful initial save, it only has Disadvantage on its next attack roll until the start of your next turn.",
+      "description": "On a failed Constitution save, the target becomes Enfeebled for up to 1 minute: it has Disadvantage on Strength-based D20 Tests, subtracts 1d8 from damage rolls, and repeats the Constitution save at the end of each turn, ending the effect on a success. On a successful initial save, it only has Disadvantage on its next attack roll until the start of your next turn.",
       "statusCondition": {
         "name": "Enfeebled",
         "duration": {

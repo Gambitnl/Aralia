@@ -138,7 +138,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You create an Invisible, intangible, invulnerable sensor within range in a familiar location or an obvious unfamiliar location. When you cast the spell, choose seeing or hearing, and you can use the chosen sense through the sensor as if you were in its space. As a Bonus Action, you can switch between seeing and hearing. A creature that can see the sensor, such as with See Invisibility or Truesight, sees a luminous orb about the size of your fist.",
+      "description": "Create an invisible, intangible, invulnerable sensor within 1 mile for up to 10 minutes with concentration, placed in a familiar location or an obvious unfamiliar one; choose sight or hearing through the sensor, switch senses as a Bonus Action, and creatures with See Invisibility or Truesight see it as a fist-sized luminous orb.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

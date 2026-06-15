@@ -166,7 +166,7 @@
         "direction": "safest_route",
         "maxDistance": "nearest unoccupied spaces to the entrance"
       },
-      "description": "When the spell ends, creatures and objects left inside the extradimensional space are expelled into unoccupied spaces nearest the entrance.",
+      "description": "When the mansion ends, creatures and objects left inside the extradimensional dwelling are expelled into unoccupied spaces nearest the entrance.",
       "conditionalEndings": []
     },
     {
@@ -236,7 +236,7 @@
         "initiative": "shared",
         "specialActions": []
       },
-      "description": "A staff of 100 near-transparent, invulnerable servants attends all who enter, obeys commands, cannot attack or directly harm creatures, and cannot leave the dwelling.",
+      "description": "Summon 100 near-transparent invulnerable servants inside the mansion; they attend entrants, obey commands, perform human-servant tasks, cannot attack or directly harm creatures, and cannot leave the dwelling.",
       "conditionalEndings": []
     },
     {
@@ -290,7 +290,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Create a 5-foot-wide, 10-foot-tall shimmering door within 300 feet for 24 hours leading to a clean, fresh, warm extradimensional dwelling. The caster and designated creatures can enter while the door is open, the caster can open or close it without an action while within 30 feet, the closed door is imperceptible, the mansion can use any floor plan up to 50 contiguous 10-foot cubes with caster-chosen furnishings and decoration, it provides a nine-course banquet for up to 100 people, and created furnishings or objects dissipate into smoke if removed.",
+      "description": "Create a 5-foot-wide, 10-foot-tall shimmering door within 300 feet for 24 hours leading to a clean, fresh, warm extradimensional dwelling of up to 50 contiguous 10-foot Cubes; only the caster and designated creatures can enter while the door is open, the caster can open or close it without an action within 30 feet, a closed door is imperceptible, furnishings and decor are chosen by the caster, food serves a nine-course banquet for up to 100 people, and spell-created objects dissipate if removed.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

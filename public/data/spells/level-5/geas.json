@@ -139,7 +139,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You give a verbal command to a creature that you can see within range, ordering it to carry out some service or refrain from an action or a course of activity as you decide. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target automatically succeeds if it can't understand your command. While Charmed, the creature takes 5d10 Psychic damage if it acts in a manner directly counter to your command. It takes this damage no more than once each day. You can issue any command you choose, short of an activity that would result in certain death. Should you issue a suicidal command, the spell ends. A Remove Curse, Greater Restoration, or Wish spell ends this spell.",
+      "description": "Give one visible creature within 60 feet that can understand you a verbal command to perform a service or avoid an activity for 30 days. On a failed Wisdom save, the target is Charmed, takes 5d10 Psychic damage no more than once each day when it acts directly against the command, ends the spell if given a suicidal command, can be freed by Remove Curse, Greater Restoration, or Wish, and higher slots extend the duration to 365 days at slots 7-8 or until ended at slot 9.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -201,7 +201,7 @@
           "value": 43200
         }
       },
-      "description": "A failed Wisdom save applies the Charmed condition for the base 30-day Geas duration.",
+      "description": "On a failed Wisdom save, the target is Charmed for the 30-day base Geas duration, while a target that cannot understand the command automatically succeeds; higher slots extend the Charmed duration to 365 days at slots 7-8 or until ended at slot 9.",
       "conditionalEndings": []
     }
   ],

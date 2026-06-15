@@ -139,7 +139,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "On the triggering weapon hit, the target takes 1d6 Necrotic damage, increasing by 1d6 per slot level above 1st.",
+      "description": "On the first melee weapon hit, the target takes 1d6 Necrotic damage, increasing by 1d6 per slot level above 1.",
       "conditionalEndings": [],
       "tags": [
         "necrotic-damage",
@@ -218,7 +218,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The target must succeed on a Wisdom save or be Frightened for up to 1 minute as part of the smite rider.",
+      "description": "On the first melee weapon hit, the target makes a Wisdom save or gains the Frightened condition for up to 1 minute, repeating the Wisdom save at each turn end to end the spell on itself.",
       "conditionalEndings": [],
       "tags": [
         "frightened",

@@ -3,7 +3,7 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: "Scripts: Spell Runtime Template Audit"
 slug: scripts-spell-runtime-template-audit
-Status: review-required
+status: review-required
 last_updated: 2026-06-12
 iteration: 2
 source_agent: Not recorded

@@ -157,7 +157,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Applies Poisoned unless the target succeeds on a Constitution save for 1 minute.",
+      "description": "A creature that starts its turn in the 20-foot-radius Heavily Obscured gas Sphere within 90 feet makes a Constitution save or is Poisoned until the end of the current turn and cannot take actions or Bonus Actions; a strong wind disperses the cloud.",
       "conditionalEndings": []
     }
   ],
