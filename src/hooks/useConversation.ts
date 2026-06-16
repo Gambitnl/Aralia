@@ -103,9 +103,19 @@ export function useConversation(
      */
     const getParticipantData = useCallback((companionIds: string[]) => {
         const state = gameStateRef.current;
+        // Situational (non-companion) NPCs live on the active conversation, not in
+        // `companions`. Resolve them here so the opening-situation stranger can be
+        // voiced through the same continueConversation path.
+        const npcParticipants = state.activeConversation?.npcParticipants ?? [];
         return companionIds.map(id => {
             const companion = state.companions[id];
-            if (!companion) return { id, name: id, personality: '', race: '', class: '', sex: '', age: '', physicalDescription: '' };
+            if (!companion) {
+                const situational = npcParticipants.find(p => p.id === id);
+                if (situational) {
+                    return { id, name: situational.name, personality: situational.personality, race: '', class: '', sex: '', age: '', physicalDescription: '' };
+                }
+                return { id, name: id, personality: '', race: '', class: '', sex: '', age: '', physicalDescription: '' };
+            }
             return {
                 id,
                 name: companion.identity.name,

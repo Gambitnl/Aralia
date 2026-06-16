@@ -1,0 +1,1 @@
+Cold-start Aralia project task: read AGENTS.md, inspect the repo orientation docs if needed, do not edit files, and report a concise project-orientation summary plus whether the Qoder Bob PAT-backed lane is working.

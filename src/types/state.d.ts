@@ -222,6 +222,7 @@ export interface GameState {
     crafting?: CraftingState;
     journal?: JournalState;
     activeConversation?: import('./conversation.js').ActiveConversation | null;
+    gameEntry?: import('../systems/gameEntry/types.js').GameEntryState;
     archivedBanters: import('./companions.js').BanterMoment[];
     shortRestTracker: ShortRestTracker;
 }

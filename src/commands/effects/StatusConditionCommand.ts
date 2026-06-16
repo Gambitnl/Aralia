@@ -13,6 +13,8 @@ import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils'
 import { generateId } from '../../utils/combatUtils';
 import { STATUS_ICONS, DEFAULT_STATUS_ICON } from '@/config/statusIcons';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
+import { ConditionToStateTag } from '../../types/elemental';
+import { applyStateToTags } from '../../systems/physics/ElementalInteractionSystem';
 
 export class StatusConditionCommand extends BaseEffectCommand {
   execute(state: CombatState): CombatState {
@@ -123,9 +125,24 @@ export class StatusConditionCommand extends BaseEffectCommand {
         this.effect.statusCondition.name
       );
 
+      let finalStateTags = target.stateTags || [];
+      const incomingStateTag = ConditionToStateTag[this.effect.statusCondition.name.toLowerCase()];
+      if (incomingStateTag) {
+        const { newStates, result } = applyStateToTags(finalStateTags, incomingStateTag);
+        finalStateTags = newStates;
+        if (result.interaction) {
+           currentState = this.addLogEntry(currentState, {
+             type: 'status',
+             message: `${target.name}'s elemental states reacted: ${result.interaction}`,
+             characterId: target.id
+           });
+        }
+      }
+
       currentState = this.updateCharacter(currentState, target.id, {
         statusEffects,
-        conditions: updatedConditions
+        conditions: updatedConditions,
+        stateTags: finalStateTags
       });
 
       currentState = this.addLogEntry(currentState, {

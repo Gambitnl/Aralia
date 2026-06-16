@@ -1,0 +1,6 @@
+{
+  "title": "qoder bob cold project task",
+  "agent": "qoder-bob",
+  "cmd": "powershell -NoLogo -ExecutionPolicy Bypass -File .agent\\qoder-bob-wincred-launch.ps1",
+  "cwd": "F:\\Repos\\Aralia"
+}

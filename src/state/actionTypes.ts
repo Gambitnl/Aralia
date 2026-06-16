@@ -312,7 +312,12 @@ export type AppAction =
   | { type: 'UNLOCK_ACHIEVEMENT'; payload: { achievementId: string } }
   | { type: 'SET_CRAFTING_LOCATION'; payload: { locationId: string } }
   // Interactive Conversation Actions
-  | { type: 'START_CONVERSATION'; payload: { companionIds: string[]; initialMessage: import('../types/conversation.js').ConversationMessage } }
+  | { type: 'START_CONVERSATION'; payload: { companionIds: string[]; initialMessage?: import('../types/conversation.js').ConversationMessage; initialMessages?: import('../types/conversation.js').ConversationMessage[]; kind?: 'companion' | 'situation'; npcParticipants?: import('../types/conversation.js').ConversationNpcParticipant[] } }
+  // Opening-situation entry actions (GAME-ENTRY-SITUATION)
+  | { type: 'BEGIN_OPENING_SITUATION' }
+  | { type: 'RESOLVE_OPENING_SITUATION'; payload: import('../systems/gameEntry/types.js').OpeningSituation }
+  | { type: 'FAIL_OPENING_SITUATION'; payload: string }
+  | { type: 'RESET_OPENING_SITUATION' }
   | { type: 'ADD_CONVERSATION_MESSAGE'; payload: import('../types/conversation.js').ConversationMessage }
   | { type: 'SET_CONVERSATION_PENDING'; payload: boolean }
   | { type: 'END_CONVERSATION' }

@@ -31,6 +31,24 @@
 
 import React, { useCallback, useRef, useMemo, useState, useEffect } from 'react';
 import World3DScene from './World3DScene';
+import { createForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
+import { assetAddress } from '@/systems/worldforge/assets/assetKey';
+
+const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+let _stubService;
+if (urlParams.get('stubForgeAssets') === '1') {
+  _stubService = createForgeAssetService({
+    generator: {
+      async generate(key) {
+        // Simple red texture data URI
+        const dataUri = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVQIW2NkYGD4z8DAwMgAI0AMDA4YAQFDzMCmAAAAAElFTkSuQmCC'; 
+        return { key, address: assetAddress(key), source: 'generated', imageUri: dataUri };
+      }
+    },
+    online: true,
+  });
+}
+
 import InWorldHUD from './InWorldHUD';
 import { createWorkerChunkLoader, type DisposableChunkLoader } from './createWorkerChunkLoader';
 import { usePlayerWorldPos, useWorldViewMode } from '../../hooks/useWorldViewMode';
@@ -614,6 +632,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {loader ? (
         <World3DScene
+          forgeAssetService={_stubService}
           loader={loader}
           start={wfGroundView?.start ?? startPos}
           startSurfaceY={wfGroundView?.surfaceY ?? startSurfaceY}

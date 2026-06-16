@@ -18,6 +18,24 @@
 
 import React, { useMemo } from 'react';
 import World3DScene from './World3DScene';
+import { createForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
+import { assetAddress } from '@/systems/worldforge/assets/assetKey';
+
+const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+let _stubService;
+if (urlParams.get('stubForgeAssets') === '1') {
+  _stubService = createForgeAssetService({
+    generator: {
+      async generate(key) {
+        // Red checkerboard or simple texture data URI
+        const dataUri = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVQIW2NkYGD4z8DAwMgAI0AMDA4YAQFDzMCmAAAAAElFTkSuQmCC'; // 2x2 red and black
+        return { key, address: assetAddress(key), source: 'generated', imageUri: dataUri };
+      }
+    },
+    online: true,
+  });
+}
+
 import { generateMap } from '@/services/mapService';
 import { BIOMES } from '@/constants';
 import { handleChunkRequest } from '@/systems/world3d/chunkWorkerCore';
@@ -124,7 +142,9 @@ const World3DDemo: React.FC = () => {
       <p style={{ margin: 0, fontSize: '14px', color: '#4a5a6a' }}>
         Right-click and drag to pan the camera across the landscape. Chunks will stream in and out in real time!
       </p>
-      <World3DScene loader={loader} start={start} startSurfaceY={startSurfaceY} viewProfile={groundMode ? 'ground' : 'continent'} />
+      <World3DScene loader={loader} start={start} startSurfaceY={startSurfaceY} viewProfile={groundMode ? 'ground' : 'continent'}
+        forgeAssetService={_stubService}
+      />
     </div>
   );
 };

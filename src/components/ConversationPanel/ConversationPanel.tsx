@@ -50,9 +50,12 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
     // Get participant names for @mention autocomplete
     const participantOptions = useMemo(() => {
         if (!conversation) return [];
+        const npcParticipants = conversation.npcParticipants ?? [];
         return conversation.participants.map(id => {
             const companion = gameState.companions[id];
-            return companion ? { id, name: companion.identity.name } : { id, name: id };
+            if (companion) return { id, name: companion.identity.name };
+            const situational = npcParticipants.find(p => p.id === id);
+            return situational ? { id, name: situational.name } : { id, name: id };
         });
     }, [conversation, gameState.companions]);
 
@@ -153,7 +156,9 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                     const isPlayer = msg.speakerId === 'player';
                     const speakerName = isPlayer
                         ? 'You'
-                        : gameState.companions[msg.speakerId]?.identity.name || msg.speakerId;
+                        : gameState.companions[msg.speakerId]?.identity.name
+                            || (conversation.npcParticipants ?? []).find(p => p.id === msg.speakerId)?.name
+                            || (msg.speakerId === 'narrator' ? '' : msg.speakerId);
 
                     return (
                         <div

@@ -97,6 +97,7 @@ import ErrorBoundary from './components/ui/ErrorBoundary';
 import * as SaveLoadService from './services/saveLoadService';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { ConversationPanel } from './components/ConversationPanel';
+import { OpeningSituationGate } from './components/gameEntry/OpeningSituationGate';
 import { SafeStorage } from './utils/core/storageUtils';
 import { shouldPassiveGameClockRun } from './utils/core/timekeeperUtils';
 
@@ -1299,6 +1300,12 @@ const App: React.FC = () => {
           {/* Interactive Companion Conversation Panel */}
           {gameState.phase === GamePhase.PLAYING && gameState.activeConversation && (
             <ConversationPanel gameState={gameState} dispatch={dispatch} />
+          )}
+
+          {/* Opening-situation entry gate (GAME-ENTRY-SITUATION): runs the
+              generator and renders the generating overlay / honest model block. */}
+          {gameState.phase === GamePhase.PLAYING && (
+            <OpeningSituationGate gameState={gameState} dispatch={dispatch} />
           )}
 
           {/* Modal Manager: Handles all overlays (Inventory, Map, Logs, etc.) */}

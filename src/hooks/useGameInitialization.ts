@@ -285,6 +285,14 @@ export function useGameInitialization({
         type: 'START_GAME_SUCCESS',
         payload: payload
       });
+
+      // GAME-ENTRY-SITUATION (additive, 2026-06-16): a brand-new game does not
+      // spawn into the static clearing description — it kicks off generation of a
+      // fresh, Ollama-written opening predicament. The entry state machine moves
+      // idle → generating; useOpeningSituation (mounted in App) runs the model and
+      // drops the player into a live conversation. Load/dummy flows never dispatch
+      // this, so resumed saves are untouched.
+      dispatch({ type: 'BEGIN_OPENING_SITUATION' });
     },
     [currentMapData, dispatch],
   );

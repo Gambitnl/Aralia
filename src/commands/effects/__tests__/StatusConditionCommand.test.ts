@@ -150,6 +150,32 @@ describe('StatusConditionCommand', () => {
 
     const updatedTarget = newState.characters.find(c => c.id === 'target')!;
     expect(updatedTarget.conditions).toHaveLength(0);
+    // Simulate a successful save
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      total: 15,
+      success: true,
+      modifiersApplied: []
+    } as any);
+
+    const effect: StatusConditionEffect = {
+      type: 'STATUS_CONDITION',
+      statusCondition: {
+        name: 'Prone',
+        duration: { type: 'rounds', value: 1 }
+      },
+      condition: {
+        type: 'save',
+        saveType: 'Wisdom',
+        saveEffect: 'negates_condition'
+      } as any,
+      trigger: { type: 'immediate' } as any
+    };
+
+    const command = new StatusConditionCommand(effect, context);
+    const newState = await command.execute(state);
+
+    const updatedTarget = newState.characters.find(c => c.id === 'target')!;
+    expect(updatedTarget.conditions).toHaveLength(0);
     expect(updatedTarget.statusEffects).toHaveLength(0);
 
     const logs = newState.combatLog.filter(l => l.type === 'status');
@@ -196,5 +222,69 @@ describe('StatusConditionCommand', () => {
 
     expect(updatedTarget.statusEffects).toHaveLength(1);
     expect(updatedTarget.statusEffects[0].name).toBe('Blinded');
+  });
+
+  describe('Elemental state transitions', () => {
+    it('applies Burning state when Ignited condition is applied', async () => {
+      const effect: StatusConditionEffect = {
+        type: 'STATUS_CONDITION',
+        statusCondition: {
+          name: 'Ignited',
+          duration: { type: 'rounds', value: 1 },
+          level: 0
+        },
+        condition: { type: 'always' } as any,
+        trigger: { type: 'immediate' } as any
+      };
+
+      const command = new StatusConditionCommand(effect, context);
+      const newState = await command.execute(state);
+
+      const updatedTarget = newState.characters.find(c => c.id === 'target')!;
+      
+      // Target should have 'burning' state tag
+      expect(updatedTarget.stateTags).toContain('burning');
+    });
+
+    it('interacts with existing state tags', async () => {
+      // Setup target who is already Wet
+      const targetWithWet = createMockCombatCharacter({
+        id: 'target',
+        name: 'Target',
+        conditions: [],
+        statusEffects: [],
+        stateTags: ['wet']
+      });
+
+      state = {
+        ...state,
+        characters: [state.characters[0], targetWithWet]
+      };
+
+      const effect: StatusConditionEffect = {
+        type: 'STATUS_CONDITION',
+        statusCondition: {
+          name: 'Chilled',
+          duration: { type: 'rounds', value: 1 },
+          level: 0
+        },
+        condition: { type: 'always' } as any,
+        trigger: { type: 'immediate' } as any
+      };
+
+      const command = new StatusConditionCommand(effect, context);
+      const newState = await command.execute(state);
+
+      const updatedTarget = newState.characters.find(c => c.id === 'target')!;
+      
+      // Wet + Chilled (Cold) = Frozen state tag
+      expect(updatedTarget.stateTags).toContain('frozen');
+      expect(updatedTarget.stateTags).not.toContain('wet');
+      expect(updatedTarget.stateTags).not.toContain('cold');
+      
+      // Should also have interaction log
+      const logs = newState.combatLog.filter(l => l.type === 'status');
+      expect(logs.some(l => l.message.includes('elemental states reacted: frozen'))).toBe(true);
+    });
   });
 });

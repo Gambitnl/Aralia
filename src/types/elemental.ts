@@ -73,6 +73,23 @@ export const StateInteractions: Record<string, StateTag | null> = {
 };
 
 /**
+ * Maps standard 5e status condition names to their corresponding elemental state tags.
+ * Used to ensure applying a status like "Burning" also updates the underlying chemistry engine.
+ */
+export const ConditionToStateTag: Record<string, StateTag> = {
+  burning: StateTag.Burning,
+  ignited: StateTag.Burning,
+  frozen: StateTag.Frozen,
+  poisoned: StateTag.Poisoned,
+  wet: StateTag.Wet,
+  drenched: StateTag.Wet,
+  oiled: StateTag.Oiled,
+  electrified: StateTag.Electrified,
+  chilled: StateTag.Cold,
+  webbed: StateTag.Webbed,
+};
+
+/**
  * Maps a combat damage type to the elemental StateTag it applies on contact.
  *
  * Keys are lowercase damage types so callers can pass raw spell/weapon damage

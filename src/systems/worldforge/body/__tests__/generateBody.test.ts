@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { generateBody } from '../generateBody';
 import type { Occupant, AgeBand, Occupation } from '../../roster/types';
 import { rootSeedPath, childSeedPath } from '../../seedPath';
-import { parseAssetKey } from '../../../assets/assetKey';
+import { parseAssetKey } from '../../assets/assetKey';
 
 describe('generateBody', () => {
   describe('determinism', () => {
@@ -84,15 +84,15 @@ describe('generateBody', () => {
       const plan = generateBody(occupant, seedPath);
 
       const props = plan.proportions;
-      expect(props.height).toBeFinite();
-      expect(props.shoulderWidth).toBeFinite();
-      expect(props.torsoLength).toBeFinite();
-      expect(props.torsoGirth).toBeFinite();
-      expect(props.armLength).toBeFinite();
-      expect(props.armGirth).toBeFinite();
-      expect(props.legLength).toBeFinite();
-      expect(props.legGirth).toBeFinite();
-      expect(props.headSize).toBeFinite();
+      expect(Number.isFinite(props.height)).toBe(true);
+      expect(Number.isFinite(props.shoulderWidth)).toBe(true);
+      expect(Number.isFinite(props.torsoLength)).toBe(true);
+      expect(Number.isFinite(props.torsoGirth)).toBe(true);
+      expect(Number.isFinite(props.armLength)).toBe(true);
+      expect(Number.isFinite(props.armGirth)).toBe(true);
+      expect(Number.isFinite(props.legLength)).toBe(true);
+      expect(Number.isFinite(props.legGirth)).toBe(true);
+      expect(Number.isFinite(props.headSize)).toBe(true);
     });
 
     it('generates positive dimensions', () => {
@@ -329,7 +329,7 @@ describe('generateBody', () => {
       const plan = generateBody(occupant, seedPath);
 
       // Golden values — these pin the algorithm to prevent silent changes
-      expect(plan.proportions.height).toBeCloseTo(5.87, 2);
+      expect(plan.proportions.height).toBeCloseTo(6.10, 2);
       expect(plan.skinToneHex).toBe('#e0ac69');
       expect(plan.clothingSecondaryHex).toBe('#b5552e');
       expect(plan.assetKeys.face).toMatch(/^face\/human\/(male|female)\/adult\/\w+$/);

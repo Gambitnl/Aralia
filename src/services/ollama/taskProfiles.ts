@@ -147,6 +147,15 @@ export const DEFAULT_TASK_PROFILES: Record<TaskType, TaskProfile> = {
         preferredModels: PROSE_MODELS,
         params: { ...PROSE_PARAMS, temperature: 0.8, numPredict: 100 }
     },
+    // Opening situation: the fresh, non-deterministic predicament the player is
+    // dropped into on a new game. Prose models, higher temperature for genuine
+    // per-run variety, json format, extra headroom for the structured scene.
+    opening_situation: {
+        taskType: 'opening_situation',
+        preferredModels: PROSE_MODELS,
+        params: { ...PROSE_PARAMS, temperature: 0.95, topP: 0.95, numPredict: 420 },
+        format: 'json'
+    },
 
     // Structured / judgment ------------------------------------------------
     oracle_response: {

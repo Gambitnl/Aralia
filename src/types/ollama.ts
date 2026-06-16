@@ -106,6 +106,7 @@ export type TaskType =
     | 'encounter_description'
     | 'action_outcome'
     | 'dynamic_event'
+    | 'opening_situation'
     // Structured / judgment
     | 'oracle_response'
     | 'social_check_outcome'

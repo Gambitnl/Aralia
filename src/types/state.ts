@@ -348,6 +348,10 @@ export interface GameState {
   // Interactive companion conversation state
   activeConversation?: import('./conversation.js').ActiveConversation | null;
 
+  // Opening-situation entry state machine (GAME-ENTRY-SITUATION).
+  // Optional + defaulted to idle so existing saves/factories load unchanged.
+  gameEntry?: import('../systems/gameEntry/types.js').GameEntryState;
+
   // Archive of completed banter moments
   archivedBanters: import('./companions.js').BanterMoment[];
 

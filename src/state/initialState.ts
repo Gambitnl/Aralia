@@ -31,6 +31,7 @@ import { DEITIES } from '../data/deities';
 import { TEMPLES } from '../data/temples';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
 import { createEmptyHistory } from '../utils/historyUtils';
+import { INITIAL_GAME_ENTRY_STATE } from '../systems/gameEntry/types';
 import { NavalState } from '../types/naval';
 import type { DivineFavor } from '../types/religion';
 import { getGameDay } from '../utils/core';
@@ -294,6 +295,7 @@ export const initialGameState: GameState = {
     activeDialogueSession: null,
     isDialogueInterfaceOpen: false,
     activeConversation: null,
+    gameEntry: INITIAL_GAME_ENTRY_STATE,
 
     // Lockpicking Modal State
     isLockpickingModalVisible: false,

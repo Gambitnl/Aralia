@@ -1,8 +1,8 @@
 /**
  * agentUsageProbe — dev-server middleware that fetches LIVE usage/quota data
- * from locally installed AI coding agents by driving their TUIs in a hidden
- * PTY, sending the agent's usage command (/status, /usage, ...), scraping the
- * screen, and parsing the quota lines.
+ * from locally installed AI coding agents and isolated web-account profiles.
+ * CLI probes drive TUIs in a hidden PTY; web-account probes use their own
+ * browser profiles and return only normalized dashboard facts.
  *
  * GET /api/agent-usage            → all cached entries
  * GET /api/agent-usage?agent=codex            → cached (probe if absent)
@@ -16,9 +16,16 @@ import * as pty from 'node-pty';
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import {
+  clearWebAccountProfile,
+  isWebAccountProbeAgent,
+  openCursorAccountLogin,
+  probeCursorAccount,
+} from './webAccountProbe';
 
 const CACHE_TTL_MS = 10 * 60 * 1000;
 const CACHE_FILE = path.join(process.cwd(), '.agent', 'usage-cache.json');
+const WEB_ACCOUNT_AGENTS = ['cursor-main', 'cursor-alt'];
 
 // eslint-disable-next-line no-control-regex
 const ANSI_RE = /[][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
@@ -191,6 +198,55 @@ const persist = () => { try { fs.writeFileSync(CACHE_FILE, JSON.stringify(cache,
 
 let queue: Promise<unknown> = Promise.resolve();
 
+// Browser-backed account probes live beside the CLI probes, but they are
+// capped to explicit, validated account ids so the middleware never accepts
+// arbitrary profile names or returns raw browser state.
+const listAgents = () => [...new Set([...Object.keys(RECIPES), ...WEB_ACCOUNT_AGENTS])];
+
+const readJsonBody = async (req: any): Promise<Record<string, unknown>> => {
+  if (req.body && typeof req.body === 'object') return req.body;
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  const raw = Buffer.concat(chunks).toString('utf8').trim();
+  if (!raw) return {};
+  return JSON.parse(raw);
+};
+
+const sendJson = (res: any, statusCode: number, payload: unknown) => {
+  res.statusCode = statusCode;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify(payload));
+};
+
+const runWebAccountProbe = async (accountId: string, logger: { info: (s: string) => void }): Promise<CacheEntry> => {
+  try {
+    const result = await probeCursorAccount(accountId);
+    const selectorMissing = !result.loginRequired && !result.summary && !result.usage;
+    const entry: CacheEntry = {
+      agent: accountId,
+      at: result.fetchedAt,
+      ok: !result.loginRequired && !selectorMissing,
+      data: result as unknown as Record<string, unknown>,
+      error: result.loginRequired ? 'login required' : selectorMissing ? 'selector missing' : undefined,
+    };
+    cache[accountId] = entry;
+    persist();
+    logger.info(`[usage-probe] ${accountId}: ${entry.ok ? 'ok' : `FAILED (${entry.error})`}`);
+    return entry;
+  } catch (error) {
+    const entry: CacheEntry = {
+      agent: accountId,
+      at: Date.now(),
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+    cache[accountId] = entry;
+    persist();
+    logger.info(`[usage-probe] ${accountId}: FAILED (${entry.error})`);
+    return entry;
+  }
+};
+
 function runProbe(agent: string, logger: { info: (s: string) => void }): Promise<CacheEntry> {
   const recipe = RECIPES[agent];
   if (!recipe) return Promise.resolve({ agent, at: Date.now(), ok: false, error: `no recipe for "${agent}"` });
@@ -329,22 +385,62 @@ export const agentUsageProbe = () => ({
       const url = new URL(req.url || '/', 'http://localhost');
       const agent = url.searchParams.get('agent');
       const refresh = url.searchParams.get('refresh') === '1';
-      res.setHeader('Content-Type', 'application/json');
       try {
         if (!agent) {
-          res.end(JSON.stringify({ agents: Object.keys(RECIPES), cache }));
+          sendJson(res, 200, { agents: listAgents(), cache });
           return;
         }
         const cached = cache[agent];
         if (!refresh && cached && Date.now() - cached.at < CACHE_TTL_MS) {
-          res.end(JSON.stringify(cached));
+          sendJson(res, 200, cached);
           return;
         }
-        const entry = await runProbe(agent, server.config.logger);
-        res.end(JSON.stringify(entry));
+        const entry = isWebAccountProbeAgent(agent)
+          ? await runWebAccountProbe(agent, server.config.logger)
+          : await runProbe(agent, server.config.logger);
+        sendJson(res, 200, entry);
       } catch (err) {
-        res.statusCode = 500;
-        res.end(JSON.stringify({ ok: false, error: (err as Error).message }));
+        sendJson(res, 500, { ok: false, error: (err as Error).message });
+      }
+    });
+
+    server.middlewares.use('/api/web-account-login', async (req: any, res: any) => {
+      if (req.method !== 'POST') {
+        sendJson(res, 405, { ok: false, error: 'method not allowed' });
+        return;
+      }
+      try {
+        const body = await readJsonBody(req);
+        const accountId = String(body.accountId || '');
+        if (!isWebAccountProbeAgent(accountId)) {
+          sendJson(res, 400, { ok: false, error: 'invalid web account id' });
+          return;
+        }
+        const result = await openCursorAccountLogin(accountId);
+        sendJson(res, 200, result);
+      } catch (err) {
+        sendJson(res, err instanceof SyntaxError ? 400 : 500, { ok: false, error: (err as Error).message });
+      }
+    });
+
+    server.middlewares.use('/api/web-account-profile', async (req: any, res: any) => {
+      if (req.method !== 'DELETE') {
+        sendJson(res, 405, { ok: false, error: 'method not allowed' });
+        return;
+      }
+      try {
+        const body = await readJsonBody(req);
+        const accountId = String(body.accountId || '');
+        if (!isWebAccountProbeAgent(accountId)) {
+          sendJson(res, 400, { ok: false, error: 'invalid web account id' });
+          return;
+        }
+        const result = await clearWebAccountProfile(accountId);
+        delete cache[accountId];
+        persist();
+        sendJson(res, 200, result);
+      } catch (err) {
+        sendJson(res, err instanceof SyntaxError ? 400 : 500, { ok: false, error: (err as Error).message });
       }
     });
   },

@@ -31,13 +31,24 @@ import { WebSocket, WebSocketServer } from 'ws';
 import * as pty from 'node-pty';
 import * as fs from 'fs';
 import * as path from 'path';
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 
 const BUFFER_CHARS = 400_000;
 const MAX_SESSIONS = 24;
 const MAX_DONE_RETAINED = 16;
 const ACTIVITY_FILE = path.join(process.cwd(), '.agent', 'orchestration', 'activity.jsonl');
 const ACTIVITY_MAX_RETURN = 200;
+
+// Allowlisted interactive logins. These open a REAL detached console window on
+// the user's desktop rather than a dev-server PTY: OAuth flows start local
+// callback servers / open browsers and flood TUI redraws, which jam the vite
+// event loop when streamed through node-pty. A native console handles them
+// cleanly and the user just completes the login there.
+const LOGIN_COMMANDS: Record<string, { label: string; cmd: string }> = {
+  copilot: { label: 'Copilot login', cmd: 'copilot' },
+  cursor: { label: 'Cursor login', cmd: '"%LOCALAPPDATA%\\cursor-agent\\cursor-agent.cmd" login' },
+  kilo: { label: 'Kilo gateway login', cmd: 'kilo auth login' },
+};
 
 const logActivity = (event: Record<string, unknown>) => {
   try {
@@ -114,6 +125,8 @@ interface AgentSession {
   proc: ReturnType<typeof pty.spawn> | null;
   buffer: string;
   clients: Set<WebSocket>;
+  pending: string;                       // coalesced output awaiting flush
+  flushTimer: ReturnType<typeof setTimeout> | null;
 }
 
 export const agentSessionManager = () => ({
@@ -142,6 +155,18 @@ export const agentSessionManager = () => ({
       exitCode: s.exitCode,
     });
 
+    // Windows: pty.kill() only kills the direct child (cmd.exe), orphaning the
+    // grandchild node.exe (copilot/kilo/cursor). Those orphans hold the conpty
+    // open so conhost.exe never exits → leak → eventual AttachConsole crash.
+    // taskkill /T /F kills the whole tree. (Gemini's fix #2.)
+    const hardKill = (s: AgentSession) => {
+      const pid = s.proc?.pid;
+      try { s.proc?.kill(); } catch { /* already dead */ }
+      if (pid && process.platform === 'win32') {
+        exec(`taskkill /PID ${pid} /T /F`, { timeout: 5000 }, () => { /* best effort */ });
+      }
+    };
+
     const pruneFinished = () => {
       const done = [...sessions.values()]
         .filter(s => s.status !== 'running')
@@ -153,7 +178,7 @@ export const agentSessionManager = () => ({
       }
     };
 
-    const spawnSession = (opts: { title?: string; agent?: string; cmd: string; cwd?: string; cols?: number; rows?: number }) => {
+    const spawnSession = (opts: { title?: string; agent?: string; cmd: string; cwd?: string; cols?: number; rows?: number; env?: Record<string, string> }) => {
       const id = `as-${Date.now().toString(36)}-${Math.random().toString(16).slice(2, 8)}`;
       const cwd = opts.cwd || process.cwd();
       const cols = Math.max(20, Math.min(400, opts.cols || 120));
@@ -174,6 +199,8 @@ export const agentSessionManager = () => ({
         proc: null,
         buffer: '',
         clients: new Set(),
+        pending: '',
+        flushTimer: null,
       };
 
       session.proc = pty.spawn(shell, shellArgs, {
@@ -181,22 +208,38 @@ export const agentSessionManager = () => ({
         cols,
         rows,
         cwd,
-        env: process.env as Record<string, string>,
+        env: { ...(process.env as Record<string, string>), ...(opts.env || {}) },
       });
 
-      session.proc.onData((data: string) => {
-        session.buffer += data;
+      // Coalesce PTY output: a chatty login/spinner TUI emits thousands of tiny
+      // chunks; doing buffer-concat + WS-broadcast per chunk saturates vite's
+      // single event loop and hangs every /api/* route. Instead, accumulate and
+      // flush at ~40 Hz — same on-screen result, bounded event-loop work.
+      const flush = () => {
+        session.flushTimer = null;
+        if (!session.pending) return;
+        const chunk = session.pending;
+        session.pending = '';
+        session.buffer += chunk;
         if (session.buffer.length > BUFFER_CHARS) {
           session.buffer = session.buffer.slice(-BUFFER_CHARS);
         }
         for (const client of session.clients) {
           try {
-            if (client.readyState === WebSocket.OPEN) client.send(data);
+            if (client.readyState === WebSocket.OPEN) client.send(chunk);
           } catch { /* client torn down mid-send */ }
         }
+      };
+      session.proc.onData((data: string) => {
+        session.pending += data;
+        // hard cap pending so a runaway producer can't grow it unbounded between flushes
+        if (session.pending.length > BUFFER_CHARS) session.pending = session.pending.slice(-BUFFER_CHARS);
+        if (!session.flushTimer) session.flushTimer = setTimeout(flush, 24);
       });
 
       session.proc.onExit(({ exitCode }: { exitCode: number }) => {
+        if (session.flushTimer) { clearTimeout(session.flushTimer); session.flushTimer = null; }
+        if (session.pending) { session.buffer += session.pending; session.pending = ''; } // don't drop the tail
         if (session.status === 'running') session.status = 'exited';
         session.exitCode = exitCode;
         session.proc = null;
@@ -319,11 +362,61 @@ export const agentSessionManager = () => ({
         }
       }
 
+      // Open an allowlisted interactive login in a detached external console.
+      if (req.method === 'POST' && urlPath === '/api/agent-sessions/open-login') {
+        if (process.platform !== 'win32') {
+          return json(res, 400, { error: 'external login window is Windows-only here' });
+        }
+        let body: any;
+        try { body = JSON.parse(await readBody(req)); } catch { return json(res, 400, { error: 'invalid JSON body' }); }
+        const entry = body && LOGIN_COMMANDS[body.agent];
+        if (!entry) return json(res, 400, { error: `unknown login agent "${body?.agent}"` });
+        try {
+          // CRITICAL: run the login from the user home, NOT the repo. The repo's
+          // .mcp.json defines a `github` MCP server with an empty token; it exits
+          // instantly and Copilot CLI respawns it in a tight npx loop → CPU pegs.
+          // A cwd with no .mcp.json means the login loads no project MCP servers.
+          const cleanCwd = process.env.USERPROFILE || process.env.HOME || process.cwd();
+          // cmd /c start "<title>" cmd /k "<login>" → new console, stays open after login
+          const child = spawn('cmd.exe', ['/c', 'start', entry.label, 'cmd', '/k', entry.cmd], {
+            cwd: cleanCwd, detached: true, stdio: 'ignore', windowsVerbatimArguments: true,
+          });
+          child.unref();
+          logActivity({ kind: 'open-login', agent: body.agent, label: entry.label, cwd: cleanCwd });
+          return json(res, 200, { ok: true, label: entry.label });
+        } catch (err: any) {
+          return json(res, 500, { error: `open-login failed: ${err.message}` });
+        }
+      }
+
+      // Spawn an allowlisted interactive login as a VISIBLE tile, made safe by:
+      //  - clean cwd (USERPROFILE, no repo .mcp.json → no github-MCP respawn loop)
+      //  - CI=1 (CLIs degrade to no-spinner mode → no 60Hz redraw event-loop flood)
+      //  - hardKill (taskkill /T /F) teardown so the process tree can't leak.
+      if (req.method === 'POST' && urlPath === '/api/agent-sessions/spawn-login') {
+        let body: any;
+        try { body = JSON.parse(await readBody(req)); } catch { return json(res, 400, { error: 'invalid JSON body' }); }
+        const entry = body && LOGIN_COMMANDS[body.agent];
+        if (!entry) return json(res, 400, { error: `unknown login agent "${body?.agent}"` });
+        const running = [...sessions.values()].filter(s => s.status === 'running').length;
+        if (running >= MAX_SESSIONS) return json(res, 429, { error: `session cap reached (${MAX_SESSIONS})` });
+        try {
+          const s = spawnSession({
+            title: entry.label, agent: body.agent, cmd: entry.cmd,
+            cwd: process.env.USERPROFILE || process.env.HOME || process.cwd(),
+            env: { CI: '1', FORCE_COLOR: '1' },
+          });
+          return json(res, 200, { id: s.id, wsPort });
+        } catch (err: any) {
+          return json(res, 500, { error: `spawn-login failed: ${err.message}` });
+        }
+      }
+
       const killMatch = urlPath.match(/^\/api\/agent-sessions\/([\w-]+)\/kill$/);
       if (req.method === 'POST' && killMatch) {
         const s = sessions.get(killMatch[1]);
         if (!s) return json(res, 404, { error: 'no such session' });
-        if (s.proc) { s.status = 'killed'; try { s.proc.kill(); } catch { /* already dead */ } }
+        if (s.proc) { s.status = 'killed'; hardKill(s); }
         return json(res, 200, { ok: true });
       }
 
@@ -331,7 +424,7 @@ export const agentSessionManager = () => ({
       if (req.method === 'DELETE' && delMatch) {
         const s = sessions.get(delMatch[1]);
         if (!s) return json(res, 404, { error: 'no such session' });
-        if (s.proc) { s.status = 'killed'; try { s.proc.kill(); } catch { /* already dead */ } }
+        if (s.proc) { s.status = 'killed'; hardKill(s); }
         for (const c of s.clients) { try { c.close(); } catch { /* ignore */ } }
         sessions.delete(s.id);
         return json(res, 200, { ok: true });

@@ -30,15 +30,26 @@ import { generateId } from '../../utils/core/idGenerator';
 export function conversationReducer(state: GameState, action: AppAction): Partial<GameState> {
     switch (action.type) {
         case 'START_CONVERSATION': {
-            const { companionIds, initialMessage } = action.payload;
+            const { companionIds, initialMessage, initialMessages, kind, npcParticipants } = action.payload;
+
+            // Support both the legacy single `initialMessage` (companion conversations)
+            // and the new `initialMessages` array (the opening situation seeds the
+            // narration + the NPC utterance as two messages).
+            const seededMessages = initialMessages && initialMessages.length > 0
+                ? initialMessages
+                : initialMessage
+                    ? [initialMessage]
+                    : [];
 
             const newConversation: ActiveConversation = {
                 id: generateId(),
                 participants: companionIds,
-                messages: [initialMessage],
+                messages: seededMessages,
                 startedAt: Date.now(),
-                isPlayerTurn: true, // Player responds after initial companion message
+                isPlayerTurn: true, // Player responds after the opening message(s)
                 pendingResponse: false,
+                ...(kind ? { kind } : {}),
+                ...(npcParticipants && npcParticipants.length > 0 ? { npcParticipants } : {}),
             };
 
             return {

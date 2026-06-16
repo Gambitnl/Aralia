@@ -1,0 +1,7 @@
+Ollama unreachable (simulated "stopped") → generator behaviour:
+  threw: OpeningSituationUnavailableError
+  message: No Ollama model available to generate the opening situation.
+  instanceof OpeningSituationUnavailableError: true
+
+Result: NO canned scene was produced. The entry gate turns this throw into the
+OllamaDependencyModal block + Retry (status=model-unavailable).

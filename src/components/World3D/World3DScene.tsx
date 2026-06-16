@@ -44,6 +44,10 @@ import { chunkOriginWorld } from '@/systems/world3d/coords';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
 import type { PlayerWorldPosition } from '@/types';
+import { useForgeTexture, getSemanticAssetKey } from '@/systems/worldforge/bridge/forgeMaterials';
+import type { ForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
+
+export const ForgeAssetContext = React.createContext<ForgeAssetService | undefined>(undefined);
 
 interface World3DSceneProps {
   loader: ChunkLoader;
@@ -68,6 +72,8 @@ interface World3DSceneProps {
    * low, close, overlooking the spawn like a diorama.
    */
   viewProfile?: 'continent' | 'ground';
+  /** Service for runtime AI-generated textures. */
+  forgeAssetService?: ForgeAssetService;
 }
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
@@ -101,9 +107,11 @@ function useDisposableGeometry(arr: {
 
 const TerrainPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
   const geometry = useDisposableGeometry(chunk.bundle.terrain);
+  const service = React.useContext(ForgeAssetContext);
+  const tex = useForgeTexture(getSemanticAssetKey({ surface: 'ground' }), service);
   return (
     <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} receiveShadow={SHADOWS}>
-      <meshStandardMaterial vertexColors flatShading />
+      <meshStandardMaterial vertexColors flatShading map={tex || null} />
     </mesh>
   );
 };
@@ -183,6 +191,11 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
   const roofRef = useRef<THREE.Mesh>(null);
   const localCam = useRef(new THREE.Vector3());
 
+  const service = React.useContext(ForgeAssetContext);
+  const role = s.colorHex === '#c8923f' ? 'market' : s.colorHex === '#b09a72' ? 'house' : s.kind;
+  const wallTex = useForgeTexture(getSemanticAssetKey({ surface: 'wall', role }), service);
+  const roofTex = useForgeTexture(getSemanticAssetKey({ surface: 'roof', role }), service);
+
   useFrame(({ camera }) => {
     const roof = roofRef.current;
     const group = groupRef.current;
@@ -220,13 +233,14 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
             castShadow={SHADOWS}
           >
             <boxGeometry args={[p.w, p.h, p.d]} />
-            <meshStandardMaterial color={p.colorHex} />
+            {/* Apply wall texture only to tall perimeter/interior walls (h >= 2.0) */}
+            <meshStandardMaterial color={p.colorHex} map={p.h >= 2.0 ? (wallTex || null) : null} />
           </mesh>
         ))
       ) : (
         <mesh position={[0, (s.boxHeight ?? 0) * 0.5, 0]} castShadow={SHADOWS}>
           <boxGeometry args={[s.boxWidth, s.boxHeight, s.boxDepth]} />
-          <meshStandardMaterial color={s.colorHex ?? '#b09a72'} />
+          <meshStandardMaterial color={s.colorHex ?? '#b09a72'} map={wallTex || null} />
         </mesh>
       )}
       {/* Hip roof: a 4-segment cone is a pyramid whose base square is
@@ -240,7 +254,7 @@ const SiteBuilding: React.FC<{ site: LoadedChunk['bundle']['sites'][number] }> =
         castShadow={SHADOWS}
       >
         <coneGeometry args={[Math.SQRT1_2, 1, 4]} />
-        <meshStandardMaterial color="#7a4a32" flatShading side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#7a4a32" flatShading side={THREE.DoubleSide} map={roofTex || null} />
       </mesh>
       {/* Door slab + windows only dress the SOLID shell; with interior parts
           the entry gap in the perimeter wall is the door. */}
@@ -360,6 +374,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   onPositionChange: onPositionChangeOverride,
   onChunkUpdate,
   viewProfile = 'continent',
+  forgeAssetService,
 }) => {
   const { loaded, update } = useChunkStreaming(loader);
 
@@ -401,6 +416,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
 
   return (
     <div style={{ width: '100%', height: '78vh', minHeight: '520px', flex: '1 1 auto', background: '#9fb8d0', borderRadius: '12px', overflow: 'hidden' }}>
+      <ForgeAssetContext.Provider value={forgeAssetService}>
       <Canvas
         shadows={SHADOWS}
         camera={{ fov: 55, near: 1, far: 6000, position: camPosition }}
@@ -448,6 +464,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           <ChunkPieces key={`${c.cx}|${c.cy}`} chunk={c} origin={sceneOrigin} />
         ))}
       </Canvas>
+      </ForgeAssetContext.Provider>
     </div>
   );
 };

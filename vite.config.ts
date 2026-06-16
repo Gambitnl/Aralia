@@ -46,6 +46,16 @@ const agentSessionManager = () => ({
     return (mod.agentSessionManager() as { configureServer: (s: unknown) => void }).configureServer(server);
   },
 });
+
+// Lazy: PAT-vault status endpoint (/api/pat-status). Lazy so editing the
+// credential map doesn't restart the dev server.
+const patVaultManager = () => ({
+  name: 'pat-vault-manager-lazy',
+  async configureServer(server: unknown) {
+    const mod = await import('./scripts/vite-plugins/patVaultManager');
+    return (mod.patVaultManager() as { configureServer: (s: unknown) => void }).configureServer(server);
+  },
+});
 import { portraitApiManager } from './scripts/vite-plugins/portraitApiManager';
 
 import {
@@ -152,6 +162,7 @@ export default defineConfig(async ({ mode, command }) => {
     ptyTerminalManager(),
     shellTerminalManager(),
     agentUsageProbe(),
+    patVaultManager(),
     agentSessionManager()
   ];
   const roadmapOnlyPlugins = [react(), roadmapManager()];
@@ -173,6 +184,7 @@ export default defineConfig(async ({ mode, command }) => {
     ptyTerminalManager(),
     shellTerminalManager(),
     agentUsageProbe(),
+    patVaultManager(),
     agentSessionManager()
   ];
 

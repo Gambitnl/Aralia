@@ -1,0 +1,115 @@
+{
+  "_comment": "Canonical learned-lessons registry for the agent fleet. Rendered by misc/lessons.html via /api/lessons. Add hard-won, reusable lessons here — the kind that would cost another session hours (or melt a CPU) to rediscover. Keep each lesson's 'principle' general; put the specific incident in 'incident'.",
+  "lessons": [
+    {
+      "id": "spawn-safety",
+      "title": "Treat every spawned child process as a potential runaway",
+      "category": "process-safety",
+      "severity": "high",
+      "date": "2026-06-15",
+      "principle": "When a server spawns external CLIs, three guards are non-negotiable: (1) fix the TRIGGER at the source, not the symptom; (2) own the whole process TREE — kill with taskkill /PID <pid> /T /F, never just the parent, or orphaned grandchildren leak; (3) launch from a clean, known CWD — tools auto-inherit whatever config sits in the launch directory.",
+      "incident": "Clicking 'copilot login' spiked CPU to 92% and leaked ~190 conhost.exe. First mis-blamed on node-pty. Real cause: the repo .mcp.json had a `github` MCP server with an EMPTY token; it exited instantly and copilot respawned it in a tight npx loop. Fix: clean cwd (no .mcp.json → no loop) + CI=1 (no spinner flood) + taskkill /T /F teardown. Turned a sustained 92% peg into a 3s boot spike that settles to ~20%.",
+      "nextLevel": "If runaways recur: isolate PTYs in a worker/child process so they can't hang the server's event loop, and add a CPU watchdog that tree-kills any session pegged > ~1.5 cores for > 20s."
+    },
+    {
+      "id": "mcp-empty-token-loop",
+      "title": "An MCP server with a missing token hot-loops and burns CPU",
+      "category": "mcp",
+      "severity": "high",
+      "date": "2026-06-15",
+      "principle": "An MCP server that requires a credential will exit immediately if it's blank, and the host CLI respawns it forever. A blank/broken MCP entry is worse than no entry — it's a CPU footgun for EVERY MCP-reading CLI launched in that directory.",
+      "incident": "`@modelcontextprotocol/server-github` in .mcp.json with `GITHUB_PERSONAL_ACCESS_TOKEN: ''`. Visible in ~/.copilot/logs as a new `npx -y ...server-github` every few hundred ms.",
+      "nextLevel": "Either give it a real token via a NON-committed env reference, or remove the entry. Audit .mcp.json for blank-credential servers."
+    },
+    {
+      "id": "secrets-outside-repo",
+      "title": "Secrets never live in repo files — the daily snapshot commits them",
+      "category": "security",
+      "severity": "high",
+      "date": "2026-06-13",
+      "principle": "This repo auto-commits a daily snapshot including .agent/. Any token written into a tracked file leaks into git history. Store tokens in user env vars and files OUTSIDE the repo (~/.qoder-pats/*.txt). Dashboards/configs reference the env var NAME or file PATH, never the value.",
+      "incident": "Qoder PATs for bob + cranenre stored at ~/.qoder-pats/{bob,cranenre}.txt + user env QODER_PAT_*. PAT Vault shows presence + a masked last-5 tail only.",
+      "nextLevel": "Optional upgrade: Windows Credential Manager (DPAPI-encrypted at rest) via PowerShell SecretManagement, instead of plaintext file + env duplication."
+    },
+    {
+      "id": "lazy-vite-plugin",
+      "title": "Lazy-import dev-server plugins to avoid restart-on-edit",
+      "category": "vite",
+      "severity": "medium",
+      "date": "2026-06-12",
+      "principle": "A plugin statically imported by vite.config.ts is a config dependency — editing it restarts the dev server (killing live PTYs / in-flight work). Wrap it in a thin plugin whose configureServer does a dynamic import(); the real module then sits OUTSIDE the config-watch list and edits don't restart the server.",
+      "incident": "agentUsageProbe / agentSessionManager / patVaultManager are all lazy-wrapped in vite.config.ts.",
+      "nextLevel": "Trade-off: lazy modules don't hot-reload either — after editing one, `touch vite.config.ts` once to force a reload."
+    },
+    {
+      "id": "agent-watch-handle-leak",
+      "title": "Don't let vite watch the .agent working tree",
+      "category": "vite",
+      "severity": "high",
+      "date": "2026-06-12",
+      "principle": "chokidar holds ~1 OS handle per watched file with no upper bound. A tree written constantly by agents (captures, logs, probe caches) exhausts the process handle budget and silently kills the dev server in 30-60 min. Add such trees to server.watch.ignored.",
+      "incident": "Writing 400 files into .agent added exactly 401 handles. Fixed by ignoring **/.agent/** and **/.tmp/**.",
+      "nextLevel": ""
+    },
+    {
+      "id": "sandboxed-shell-spawn-fails",
+      "title": "Some agent CLIs silently fail from a sandboxed shell — drive their TUI instead",
+      "category": "orchestration",
+      "severity": "medium",
+      "date": "2026-06-12",
+      "principle": "`agy -p` and `codex exec` produce NO output (or fail with Windows 0xc0000142) when launched from this session's sandboxed Bash. Drive those TUIs through the web-terminal PTY (misc/codex-terminal.html + wtSend) with file-based I/O (spec file in, output file out). qodercli -p and gemini -p work fine headless.",
+      "incident": "Repeated empty-output dispatches before the pattern was understood.",
+      "nextLevel": "Prefer the dashboard /api/agent-sessions spawn rig (dev-server-owned PTY) so dispatches are watchable and survive tab close."
+    },
+    {
+      "id": "sticky-pty-dies-on-disconnect",
+      "title": "The web-terminal sticky PTY dies when its last WS client disconnects",
+      "category": "orchestration",
+      "severity": "medium",
+      "date": "2026-06-12",
+      "principle": "The codex-terminal sticky PTY is owned by the browser connection — navigate the tab away mid-run and the PTY (and the agent in it) dies. Keep the tab parked for the whole run, or use the dev-server-owned agent-sessions PTYs which survive tab close.",
+      "incident": "Two agy/Opus analysis runs died to navigation/PTY kills before this was understood.",
+      "nextLevel": ""
+    },
+    {
+      "id": "qoder-multi-account",
+      "title": "Isolate multi-account CLI auth with a config-dir env var",
+      "category": "orchestration",
+      "severity": "low",
+      "date": "2026-06-13",
+      "principle": "Claude-Code-style CLIs key their auth off a config directory. Override it per-shell (QODER_CONFIG_DIR for Qoder, CLAUDE_CONFIG_DIR for Claude) to run two accounts in parallel. Or use a per-shell token env var (QODER_PERSONAL_ACCESS_TOKEN) for browserless auth.",
+      "incident": "Two Qoder lanes (bob + cranenre) run browserless via PATs; ~400 free Qwen calls/day combined.",
+      "nextLevel": "Device-bound promos (Qoder's 200/day Qwen) may attach to the FIRST account on a device — verify the 2nd lane actually gets its own pool."
+    },
+    {
+      "id": "permission-classifier-subagents",
+      "title": "The permission classifier blocks bypass-permission sub-agents — split the work",
+      "category": "orchestration",
+      "severity": "medium",
+      "date": "2026-06-12",
+      "principle": "Spawning a sub-agent with --dangerously-skip-permissions / bypass_permissions is (correctly) denied. The sanctioned shape: have the free agent do READ-ONLY analysis and propose a diff, then the orchestrator applies + verifies it. Safer and keeps a human-reviewable diff.",
+      "incident": "Qoder/Gemini analyzed resume-journey tasks read-only; orchestrator applied + tested.",
+      "nextLevel": ""
+    },
+    {
+      "id": "npm-before-pin",
+      "title": "npm has a rolling 'before' date pin that silently caps installs",
+      "category": "tooling",
+      "severity": "low",
+      "date": "2026-06-12",
+      "principle": "An `npm config` `before` date (supply-chain cooldown) silently caps every install to packages older than the cutoff — newer versions appear 'not found'. Don't strip it; just retry the install once the version ages past the window.",
+      "incident": "qodercli 1.0.18 install kept failing 'no matching version' until the pin window passed.",
+      "nextLevel": ""
+    },
+    {
+      "id": "openai-sharing-autobills",
+      "title": "OpenAI's free-daily-tokens (data sharing) AUTO-BILLS overage",
+      "category": "security",
+      "severity": "high",
+      "date": "2026-06-12",
+      "principle": "Enabling 'share inputs/outputs with OpenAI' grants free daily tokens but the request that crosses the cap is billed in FULL at standard rates — no hard stop. Requires a funded org. Set a billing hard-cap first, and never route proprietary code through it (used for training). Contrast: NVIDIA build.nvidia.com is genuinely card-free.",
+      "incident": "Flagged DANGER during free-tier research; not enabled.",
+      "nextLevel": ""
+    }
+  ]
+}

@@ -74,3 +74,37 @@
 {"at":1781481000582,"kind":"spawn","id":"probe-agy-mqefshhi","agent":"agy","title":"usage probe · agy","external":true}
 {"at":1781481018670,"kind":"exit","id":"probe-agy-mqefshhi","agent":"agy","title":"usage probe · agy","status":"exited","exitCode":0,"runtimeMs":18088,"external":true}
 {"at":1781481483884,"kind":"spawn","id":"as-mqeg2u5q-d55bbd","agent":"copilot","title":"wiring test � copilot"}
+{"at":1781481860257,"kind":"open-login","agent":"kilo","label":"Kilo gateway login"}
+{"at":1781481875502,"kind":"open-login","agent":"kilo","label":"Kilo gateway login"}
+{"at":1781482045790,"kind":"open-login","agent":"copilot","label":"Copilot login"}
+{"at":1781482112792,"kind":"open-login","agent":"kilo","label":"Kilo gateway login"}
+{"at":1781492044824,"kind":"spawn","id":"as-mqemd754-0a5788","agent":"copilot","title":"jam test · copilot"}
+{"at":1781492648521,"kind":"spawn","id":"as-mqempy9w-0e6251","agent":"copilot","title":"winpty test · copilot"}
+{"at":1781521618105,"kind":"spawn","id":"as-mqf3z230-bf51fb","agent":"copilot","title":"LOGIN · Copilot — type /login, then enter the code at github.com/login/device"}
+{"at":1781522089234,"kind":"exit","id":"as-mqf3z230-bf51fb","agent":"copilot","title":"LOGIN · Copilot — type /login, then enter the code at github.com/login/device","status":"exited","exitCode":259,"runtimeMs":471238}
+{"at":1781522433104,"kind":"open-login","agent":"copilot","label":"Copilot login"}
+{"at":1781523305709,"kind":"spawn","id":"as-mqf4z87q-237f7a","agent":"copilot","title":"Copilot login"}
+{"at":1781523318488,"kind":"exit","id":"as-mqf4z87q-237f7a","agent":"copilot","title":"Copilot login","status":"killed","exitCode":1,"runtimeMs":12930}
+{"at":1781523384023,"kind":"spawn","id":"as-mqf50wpy-9fccca","agent":"copilot","title":"Copilot login"}
+{"at":1781523412766,"kind":"exit","id":"as-mqf50wpy-9fccca","agent":"copilot","title":"Copilot login","status":"killed","exitCode":1,"runtimeMs":28792}
+{"at":1781528224249,"kind":"spawn","id":"as-mqf7wnfc-142a2c","agent":"qoder-bob","title":"qoder bob cold project task"}
+{"at":1781528225576,"kind":"exit","id":"as-mqf7wnfc-142a2c","agent":"qoder-bob","title":"qoder bob cold project task","status":"exited","exitCode":1,"runtimeMs":1424}
+{"at":1781528235852,"kind":"spawn","id":"as-mqf7wwel-5d12b1","agent":"qoder-bob","title":"qoder bob cold project task"}
+{"at":1781528237153,"kind":"exit","id":"as-mqf7wwel-5d12b1","agent":"qoder-bob","title":"qoder bob cold project task","status":"exited","exitCode":1,"runtimeMs":1364}
+{"at":1781528306475,"kind":"spawn","id":"as-mqf7yewf-4a645a","agent":"qoder-bob","title":"qoder bob cold project task"}
+{"at":1781528307781,"kind":"exit","id":"as-mqf7yewf-4a645a","agent":"qoder-bob","title":"qoder bob cold project task","status":"exited","exitCode":1,"runtimeMs":1366}
+{"at":1781528358518,"kind":"spawn","id":"as-mqf7zj25-644fee","agent":"qoder-bob","title":"qoder bob cold project task"}
+{"at":1781528360252,"kind":"exit","id":"as-mqf7zj25-644fee","agent":"qoder-bob","title":"qoder bob cold project task","status":"exited","exitCode":1,"runtimeMs":1791}
+{"at":1781528397255,"kind":"spawn","id":"as-mqf80cy6-711d5f","agent":"shell","title":"powershell · terminal"}
+{"at":1781528403435,"kind":"spawn","id":"as-mqf80hpz-2f5088","agent":"shell","title":"powershell · terminal"}
+{"at":1781528430422,"kind":"spawn","id":"as-mqf812j5-5e1ae1","agent":"qoder","title":"qoder bob default cold project task"}
+{"at":1781528436271,"kind":"exit","id":"as-mqf80hpz-2f5088","agent":"shell","title":"powershell · terminal","status":"exited","exitCode":1,"runtimeMs":32888}
+{"at":1781528498090,"kind":"exit","id":"as-mqf812j5-5e1ae1","agent":"qoder","title":"qoder bob default cold project task","status":"exited","exitCode":0,"runtimeMs":67736}
+{"at":1781528694692,"kind":"exit","id":"as-mqf80cy6-711d5f","agent":"shell","title":"powershell · terminal","status":"killed","exitCode":1,"runtimeMs":297494}
+{"at":1781528710443,"kind":"spawn","id":"as-mqf872lz-8f498a","agent":"shell","title":"powershell · terminal"}
+{"at":1781528820248,"kind":"spawn","id":"as-mqf89f96-32927a","agent":"shell","title":"powershell · terminal"}
+{"at":1781528828206,"kind":"exit","id":"as-mqf872lz-8f498a","agent":"shell","title":"powershell · terminal","status":"killed","exitCode":1,"runtimeMs":117815}
+{"at":1781528867027,"kind":"spawn","id":"as-mqf8affi-165782","agent":"shell","title":"powershell · terminal"}
+{"at":1781528896830,"kind":"exit","id":"as-mqf89f96-32927a","agent":"shell","title":"powershell · terminal","status":"killed","exitCode":1,"runtimeMs":76740}
+{"at":1781530672034,"kind":"spawn","id":"as-mqf9d46i-03aca1","agent":"qoder-bob","title":"Qoder Bob · qodercli"}
+{"at":1781530677259,"kind":"spawn","id":"as-mqf9d877-0e157f","agent":"qoder-cranenre","title":"Qoder Cranenre · qodercli"}

@@ -1,0 +1,24 @@
+Character: Brannoch the Tiefling Warlock (Charlatan)
+Place: Aralia Town Center
+
+=== RUN A ===
+Setting : Aralia Town Center | dusk | foggy
+Predicament: A group of thugs are trying to extort a merchant for a tribute, but the merchant has already paid and is now in danger of being attacked.
+NPCs:
+  - Thaddeus (Thug Leader) — hostile; wants: demand money from the merchant
+  - Elara (Merchant) — frightened; wants: survive the confrontation
+  - Kael (Street Kid) — curious; wants: observe the situation
+Opening line (Thaddeus): "You think you're safe, merchant? Pay up or we'll make you wish you were."
+Suggested replies: "I'm not here to pay your debts."  "Maybe I can help you with that."  "What makes you think I have money?"  "I've already paid my tribute."
+
+=== RUN B ===
+Setting : Aralia Town Center | dusk | overcast with a light drizzle
+Predicament: A group of bandits has just raided the apothecary, scattering its contents and leaving a trail of smoke and chaos. Brannoch, leveraging his warlock powers and charlatan background, is trying to gather information from the remaining customers to piece together who orchestrated the heist.
+NPCs:
+  - Eldrin (Local merchant) — panicked but resourceful; wants: recover stolen goods
+  - Mira (Apothecary apprentice) — fearful but determined; wants: protect her mentor's legacy
+  - Thaddeus (Town guard captain) — authoritative and suspicious; wants: maintain order and investigate the crime
+Opening line (Mira): "You're not going to believe this, but the bandits took everything! My master's life work is gone!"
+Suggested replies: "Can you tell me what happened exactly?"  "Who do you think could have organized this?"  "What did they take that's most valuable?"  "Do you know any of the bandits' descriptions?"
+
+Predicaments differ: true

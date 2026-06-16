@@ -13,8 +13,8 @@
  */
 
 import type { Occupant, AgeBand, Occupation } from '../roster/types';
-import type { SeedPath, streamPath } from '../seedPath';
-import { rngFromPath } from '../seedPath';
+import type { SeedPath } from '../seedPath';
+import { rngFromPath, streamPath } from '../seedPath';
 import type { BodyPlan, BodyProportions, BodyAssetKeys } from './types';
 
 /**
