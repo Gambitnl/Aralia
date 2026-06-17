@@ -412,6 +412,28 @@ export const agentSessionManager = () => ({
         }
       }
 
+      const nativeShellMatch = urlPath.match(/^\/api\/agent-sessions\/([\w-]+)\/open-native-shell$/);
+      if (req.method === 'POST' && nativeShellMatch) {
+        if (process.platform !== 'win32') {
+          return json(res, 400, { error: 'native shell handoff is Windows-only here' });
+        }
+        const s = sessions.get(nativeShellMatch[1]);
+        if (!s) return json(res, 404, { error: 'no such session' });
+        try {
+          // This opens a real local console in the same working directory as the
+          // Matrix PTY. It is a handoff shell, not an attachment to the existing
+          // node-pty process; Windows consoles cannot safely attach to that PTY.
+          const child = spawn('cmd.exe', ['/c', 'start', `${s.title} native shell`, 'cmd', '/k'], {
+            cwd: s.cwd, detached: true, stdio: 'ignore', windowsVerbatimArguments: true,
+          });
+          child.unref();
+          logActivity({ kind: 'open-native-shell', id: s.id, agent: s.agent, title: s.title, cwd: s.cwd });
+          return json(res, 200, { ok: true, cwd: s.cwd });
+        } catch (err: any) {
+          return json(res, 500, { error: `open-native-shell failed: ${err.message}` });
+        }
+      }
+
       const killMatch = urlPath.match(/^\/api\/agent-sessions\/([\w-]+)\/kill$/);
       if (req.method === 'POST' && killMatch) {
         const s = sessions.get(killMatch[1]);

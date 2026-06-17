@@ -443,9 +443,27 @@ export class SpellCommandFactory {
   ): SpellEffect {
     const tier = scalingLevels.filter(l => casterLevel >= l).length
 
-    if (tier === 0 || !effect.scaling?.bonusPerLevel) return effect
+    if (tier === 0 || !effect.scaling) return effect
+
+    const scalingTiers = effect.scaling.scalingTiers
+    if (scalingTiers && isDamageEffect(effect)) {
+      const tierKeys = Object.keys(scalingTiers).map(Number).sort((a, b) => a - b)
+      const qualifiedTier = tierKeys.filter(l => casterLevel >= l).pop()
+
+      if (qualifiedTier !== undefined) {
+        const tierDice = scalingTiers[String(qualifiedTier)]
+        if (tierDice && /^\d+d\d+$/.test(tierDice)) {
+          return {
+            ...effect,
+            damage: { ...effect.damage, dice: tierDice }
+          }
+        }
+      }
+    }
 
     const bonusPerLevel = effect.scaling.bonusPerLevel
+    if (!bonusPerLevel) return effect
+
     const diceMatch = bonusPerLevel.match(/\+(\d+)d(\d+)/)
 
     if (diceMatch && isDamageEffect(effect)) {

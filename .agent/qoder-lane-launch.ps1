@@ -80,11 +80,15 @@ function Get-WinCredToken([string[]]$Targets) {
 if ($Lane -eq 'bob') {
   $label = 'Qoder Bob'
   $configDir = Join-Path $homeDir '.qoder-cli-bob-pat'
-  $token = Get-WinCredToken @('Aralia PAT Vault:qoder-bob', 'AraliaPATVault:qoder-bob')
+  # Prefer the current PAT Vault target name first. The spaced legacy target is
+  # kept as a fallback only, so stale credentials cannot shadow the vault entry.
+  $token = Get-WinCredToken @('AraliaPATVault:qoder-bob', 'Aralia PAT Vault:qoder-bob')
 } else {
   $label = 'Qoder Cranenre'
   $configDir = Join-Path $homeDir '.qoder-cli-cranenre'
-  $token = Get-WinCredToken @('Aralia PAT Vault:qoder-cranenre', 'AraliaPATVault:qoder-cranenre')
+  # Prefer the current PAT Vault target name first. The spaced legacy target is
+  # kept as a fallback only, so stale credentials cannot shadow the vault entry.
+  $token = Get-WinCredToken @('AraliaPATVault:qoder-cranenre', 'Aralia PAT Vault:qoder-cranenre')
 }
 
 if ([string]::IsNullOrWhiteSpace($token)) {
@@ -97,7 +101,11 @@ $env:QODER_CONFIG_DIR = $configDir
 $env:QODER_PERSONAL_ACCESS_TOKEN = $token
 
 try {
-  qodercli
+  # Matrix-launched Qoder lanes default to edit auto-approval so bounded agents
+  # can apply their own file patches without stalling on every edit prompt. This
+  # is deliberately not the full bypass mode; shell/tool approvals still remain
+  # visible unless the operator launches a separate full-bypass session.
+  qodercli --permission-mode accept_edits
 } finally {
   Remove-Item Env:\QODER_PERSONAL_ACCESS_TOKEN -ErrorAction SilentlyContinue
 }

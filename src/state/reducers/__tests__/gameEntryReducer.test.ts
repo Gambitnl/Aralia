@@ -54,6 +54,26 @@ describe('gameEntryReducer', () => {
         expect(retried.gameEntry?.error).toBeNull();
     });
 
+    it('PLACE_SITUATION_NPCS registers NPCs and adds them to the active scene list', () => {
+        const state = createMockGameState();
+        const npc = {
+            id: 'sit-1', name: 'Volk', role: 'guard', baseDescription: 'a guard',
+            initialPersonalityPrompt: 'gruff', stats: {}, biography: {}, equippedItems: {},
+        } as never;
+        const next = gameEntryReducer(
+            { ...state, currentLocationActiveDynamicNpcIds: ['existing-npc'] },
+            { type: 'PLACE_SITUATION_NPCS', payload: { npcs: [npc] } },
+        );
+        expect(next.generatedNpcs?.['sit-1']).toBeDefined();
+        expect(next.currentLocationActiveDynamicNpcIds).toContain('existing-npc');
+        expect(next.currentLocationActiveDynamicNpcIds).toContain('sit-1');
+    });
+
+    it('PLACE_SITUATION_NPCS with no NPCs is a no-op', () => {
+        const state = createMockGameState();
+        expect(gameEntryReducer(state, { type: 'PLACE_SITUATION_NPCS', payload: { npcs: [] } })).toEqual({});
+    });
+
     it('does NOT trigger generation for unrelated actions (e.g. a load)', () => {
         const state = createMockGameState();
         // An existing-save load never dispatches BEGIN_OPENING_SITUATION, so the

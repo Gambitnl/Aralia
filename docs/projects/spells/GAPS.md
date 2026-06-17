@@ -6,15 +6,15 @@ slug: spells
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-11"
-gap_count: 0
-open_gap_count: 0
+last_updated: "2026-06-16"
+gap_count: 1
+open_gap_count: 1
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
 visual_proof_required_count: 0
-highest_severity: none
+highest_severity: high
 proof_freshness: recorded
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 north_star: docs/projects/spells/NORTH_STAR.md
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Spells Gap Registry
 
 Status: active
-Last updated: 2026-06-11
+Last updated: 2026-06-16
 
 Use this file for durable unresolved findings that are in-scope for this project.
 
@@ -110,6 +110,7 @@ Use this file for durable unresolved findings that are in-scope for this project
 
 | Gap ID | Status | Severity | Classification | Owner | Owner confidence | Source project | Imported/global link | Decision/review state | Visual proof | Proof freshness | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| G10 | open | high | data-model | Working agent | high | spells | none | none | none | recorded | SpellIntegrityValidator Rule 1; SpellCommandFactory concentration path | Spell Phase corpus scan 2026-06-16 | 117 spells have `duration.concentration: true` but `tags` missing `"concentration"`, and no corpus-wide regression test exists in `SpellIntegrityValidator.test.ts` to catch this. Concentration sync is a declared hard-failure rule but the systematic test only covers monolithic effects, blank descriptions, and scaffold wording. | `src/systems/spells/validation/SpellIntegrityValidator.ts` Rule 1; `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` systematic section; `public/data/spells/level-*/` (117 affected files); `src/commands/factory/SpellCommandFactory.ts` line 223-229 uses `spell.duration.concentration`; UI concentration indicators rely on `tags` | Concentration is the core combat sustain mechanic. Missing tags silently desync UI indicators and audit tooling from the actual concentration state. SpellCommandFactory uses `duration.concentration` directly so combat execution still works, but glossary, spellbook, and audit surfaces that read `tags` will miss 117 concentration spells. | Add corpus-wide concentration-sync regression test (soft-warn first to track debt, hard-fail after remediation), then batch-fix the 117 affected spell JSON files. | Run node scan or new regression test; confirm 0 mismatches after fix batch. | Banishing Smite fixed as proof-of-concept on 2026-06-16. Remaining 117 spells listed in scan output. |
 
 ## Classification Reference
 

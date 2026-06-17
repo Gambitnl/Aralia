@@ -325,7 +325,9 @@ const App: React.FC = () => {
 
     if (gameState.currentLocationActiveDynamicNpcIds) {
       const dynamicNpcs = gameState.currentLocationActiveDynamicNpcIds
-        .map(npcId => NPCS[npcId])
+        // Resolve static NPCs first, then runtime-generated ones (situational
+        // opening NPCs, town-gen NPCs) so they render in the scene too.
+        .map(npcId => NPCS[npcId] || gameState.generatedNpcs?.[npcId])
         .filter(Boolean) as NPC[];
       npcList = [...npcList, ...dynamicNpcs];
     }
@@ -338,7 +340,7 @@ const App: React.FC = () => {
     }, [] as NPC[]);
 
     return uniqueNpcList;
-  }, [getCurrentLocation, gameState.currentLocationActiveDynamicNpcIds]);
+  }, [getCurrentLocation, gameState.currentLocationActiveDynamicNpcIds, gameState.generatedNpcs]);
 
   const getTileTooltipText = useCallback((worldMapTile: MapTile): string => {
     const biome = BIOMES[worldMapTile.biomeId];

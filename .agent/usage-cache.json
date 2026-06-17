@@ -104,22 +104,6 @@
       ]
     }
   },
-  "cursor-main": {
-    "agent": "cursor-main",
-    "at": 1781532660052,
-    "ok": false,
-    "data": {
-      "provider": "cursor",
-      "accountId": "cursor-main",
-      "profileDir": "C:\\Users\\Gambit\\.aralia-browser-profiles\\cursor-main",
-      "fetchedAt": 1781532660052,
-      "loginRequired": true,
-      "lines": [
-        "Cursor browser verification required."
-      ]
-    },
-    "error": "login required"
-  },
   "cursor-alt": {
     "agent": "cursor-alt",
     "at": 1781532792247,

@@ -30,6 +30,24 @@ Living work-path log for the Ollama-generated opening situation. What / why / pr
 - **Honest-failure proof:** `.agent/game-entry-situation/honest-failure.txt` — client pointed at a dead port → `OpeningSituationUnavailableError` thrown, NO situation returned. Script: `capture-failure.mjs`. Gate turns this into the dependency block + Retry.
 - **App health:** dev server (port 5174) loads main menu with zero console errors; entry wiring did not break the menu.
 
+## Addendum (2026-06-16) — NPCs placed in the scene
+
+Owner follow-up: "there's no visuals for the event?" → chose **place NPCs in the scene**.
+
+| Slice | Files | Why |
+|-------|-------|-----|
+| Situation→RichNPC converter | `src/systems/gameEntry/situationNpcToRichNpc.ts` | Maps each generated `SituationNPC` to a full `RichNPC` via `npcGenerator.generateNPC` (valid stats/biography/equipment), overlaying role (free-text→enum), disposition+goal personality, and the opening line as the speaker's dialogue seed. |
+| Placement action | `PLACE_SITUATION_NPCS` in `actionTypes.ts` + `gameEntryReducer.ts` | Registers the RichNPCs into `generatedNpcs` AND appends their ids to `currentLocationActiveDynamicNpcIds` so the scene shows them. They drop off naturally on move (list recomputed). |
+| Hook wiring | `useOpeningSituation.ts` | Dispatches `PLACE_SITUATION_NPCS` before opening the conversation. |
+| Scene resolution | `App.tsx` `getCurrentNPCs` | Now resolves dynamic ids from `NPCS[id] \|\| generatedNpcs[id]` so runtime NPCs render in-scene (ActionPane "Talk to", dialogue, 3D). |
+
+**Proof (live, real new-game flow):** `.agent/game-entry-situation/npcs-in-scene-capture.txt` —
+half-orc sorcerer/sailor "Brannoch Vex" spawned into Forest Clearing; generated
+strangers **Lira, Gerran, Thorne** appeared as in-world "Talk to X" actions
+(resolved from `generatedNpcs`, not static `NPCS`) and as conversation participants.
+Zero console errors. Tests: `situationNpcToRichNpc.test.ts` (6) + placement reducer
+cases green; `src/state/ src/hooks/` → 316 passed.
+
 ## Gaps / follow-ups
 
 - **Full in-browser click-through** (New Game → character wizard → land inside the generated conversation → type a reply → live response) not screenshotted end-to-end here; the generation slice is proven headlessly against the live model and the conversation drop-in is covered by reducer/hook unit tests. Recommended as the owner's final eyeball — artifacts above stand as the generation proof.

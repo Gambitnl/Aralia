@@ -24,6 +24,7 @@ import {
     generateOpeningSituation,
     type GenerateOpeningSituationDeps,
 } from '../systems/gameEntry/generateOpeningSituation';
+import { situationNpcsToRichNpcs } from '../systems/gameEntry/situationNpcToRichNpc';
 import type {
     OpeningSituation,
     OpeningSituationCharacter,
@@ -125,6 +126,12 @@ export function useOpeningSituation(
 
         try {
             const situation = await generate(character, location);
+
+            // Place the generated strangers into the scene as real, interactable
+            // NPCs (not just chat voices) before opening the conversation.
+            const placedNpcs = situationNpcsToRichNpcs(situation);
+            dispatch({ type: 'PLACE_SITUATION_NPCS', payload: { npcs: placedNpcs } });
+
             const { initialMessages, npcParticipants, participantIds } = buildConversationSeed(situation);
             dispatch({
                 type: 'START_CONVERSATION',

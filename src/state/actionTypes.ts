@@ -318,6 +318,7 @@ export type AppAction =
   | { type: 'RESOLVE_OPENING_SITUATION'; payload: import('../systems/gameEntry/types.js').OpeningSituation }
   | { type: 'FAIL_OPENING_SITUATION'; payload: string }
   | { type: 'RESET_OPENING_SITUATION' }
+  | { type: 'PLACE_SITUATION_NPCS'; payload: { npcs: import('../types/world.js').RichNPC[] } }
   | { type: 'ADD_CONVERSATION_MESSAGE'; payload: import('../types/conversation.js').ConversationMessage }
   | { type: 'SET_CONVERSATION_PENDING'; payload: boolean }
   | { type: 'END_CONVERSATION' }

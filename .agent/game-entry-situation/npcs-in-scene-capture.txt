@@ -1,0 +1,36 @@
+IN-BROWSER RENDER PROOF — situational NPCs placed in the scene
+(live Ollama, real new-game flow: Begin Legend → Auto-Fill → name "Brannoch Vex" → Begin Adventure!)
+
+Character: Brannoch Vex — Pathfinder Half-Orc Sorcerer (Sailor background)
+Spawn location: Forest Clearing (loc=clearing)
+
+--- Entry sequence observed ---
+1. phase transitioned to PLAYING with the "generating" overlay
+   (data-testid=opening-situation-generating = true).
+2. Generation completed → conversation opened (no canned scene), and the
+   generated strangers were registered + placed in the location.
+
+--- Opening conversation (seeded) ---
+Narrator:
+  Forest Clearing — dusk, foggy. Brannoch Vex, a half-orc sorcerer with a
+  sailor's weathered skin, is struggling to keep his magic from unraveling as he
+  tries to light a campfire in the damp forest air. A sudden gust of wind sends
+  sparks flying, and he barely dodges a stray flame that ignites the grass around him.
+Lira:
+  "You're not from these parts, are you? That magic of yours smells like
+   saltwater and danger."
+
+(Grounded in THIS PC: half-orc sorcerer + sailor background both referenced.)
+
+--- NPCs PLACED IN THE SCENE (the ask) ---
+ActionPane "Talk to" actions now present in the location:
+  - Talk to Gerran
+  - Talk to Lira
+  - Talk to Thorne
+
+These ids are NOT in the static NPCS registry — they were generated this run,
+converted to RichNPCs, registered into gameState.generatedNpcs, and appended to
+currentLocationActiveDynamicNpcIds. getCurrentNPCs() resolves them, so they are
+real, interactable in-world entities (talk/dialogue), not just chat-panel voices.
+
+Conversation participants: Lira, Gerran, Thorne.

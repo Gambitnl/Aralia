@@ -41,6 +41,29 @@ export function gameEntryReducer(state: GameState, action: AppAction): Partial<G
         case 'RESET_OPENING_SITUATION':
             return { gameEntry: gameEntryTransition(current, { type: 'RESET' }) };
 
+        case 'PLACE_SITUATION_NPCS': {
+            // Place the generated strangers into the world: register them in the
+            // runtime NPC registry AND add them to the current location's active
+            // dynamic NPC list so the scene actually shows the event. They drop
+            // off naturally when the player moves (the list is recomputed on move).
+            const { npcs } = action.payload;
+            if (npcs.length === 0) return {};
+
+            const generatedNpcs = { ...state.generatedNpcs };
+            for (const npc of npcs) generatedNpcs[npc.id] = npc;
+
+            const existing = state.currentLocationActiveDynamicNpcIds ?? [];
+            const merged = [...existing];
+            for (const npc of npcs) {
+                if (!merged.includes(npc.id)) merged.push(npc.id);
+            }
+
+            return {
+                generatedNpcs,
+                currentLocationActiveDynamicNpcIds: merged,
+            };
+        }
+
         default:
             return {};
     }
