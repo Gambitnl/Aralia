@@ -6,14 +6,18 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-09
-iteration: 3
+last_updated: 2026-06-17
+iteration: 4
 confidence: medium
 evidence: docs/projects/crafting-ui
-gap_signal: 5 open gaps (2 current blockers, 3 follow-ups)
+gap_signal: 5 open gaps; G2 typing, G5 reducer proof, G4 windowing, G6 modularization, G7 stats dispatch
 protocol: living project doc set
-next_step: Resume with G3 in GAPS.md and keep the UI/system contract boundary explicit.
+next_step: Implement G2+G5 as a single slice: tighten UPDATE_CRAFTING_STATS payload typing and add craftingReducer.test.ts.
 agent_comments: ""
+active_agent: "Qoder CLI"
+agent_pass_status: finished
+agent_pass_started_at: "2026-06-17T18:30:00+02:00"
+agent_pass_ended_at: "2026-06-17T19:00:00+02:00"
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -28,9 +32,8 @@ required_verification:
   - scoped_tests
 completed_verification:
   - docs_consistency
-  - scoped_tests
-last_proof: 2026-06-09
-workflow_gaps_reviewed: 2026-06-09
+last_proof: 2026-06-17
+workflow_gaps_reviewed: 2026-06-17
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -41,7 +44,7 @@ human_decision_required: "no"
 # Crafting UI North Star
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-17
 
 ## Dashboard Card Schema
 
@@ -51,13 +54,13 @@ Category: Feature/UI Projects
 Status: active
 Confidence: medium
 Evidence: docs/projects/crafting-ui
-Gap signal: 5 open gaps (2 current blockers, 3 follow-ups)
+Gap signal: 5 open gaps; G2 typing, G5 reducer proof, G4 windowing, G6 modularization, G7 stats dispatch
 Protocol: living project doc set
-Next step: Resume with G3 in GAPS.md and keep the UI/system contract boundary explicit.
+Next step: Implement G2+G5 as a single slice: tighten UPDATE_CRAFTING_STATS payload typing and add craftingReducer.test.ts.
 Required verification: docs_consistency, scoped_tests
-Completed verification: docs_consistency, scoped_tests
-Last proof: 2026-06-09
-Workflow gaps reviewed: 2026-06-09
+Completed verification: docs_consistency
+Last proof: 2026-06-17
+Workflow gaps reviewed: 2026-06-17
 
 ## Why this project exists
 
@@ -142,14 +145,12 @@ It does not own recipe math, location rules, or economy core calculations.
 
 ## Active project-level gaps
 
-- Current resume blockers are G2 and G3. G4, G5, and G6 stay as follow-up work unless the next slice re-opens them.
-- UI and systems contract boundary is still split: registry now explicitly marks this project as needing reconciliation with systems/crafting.
-- Some flows still rely on simplified placeholders:
-  - Gathering now prefers the selected character from the open sheet; creature harvest stays on the party lead until CombatView exposes a separate selection prop.
-  - Experiment result side effects include text-only damage logging instead of party damage dispatch.
-  - Only AlchemyBenchPanel is wrapped in `WindowFrame`; Gathering and harvest use custom overlays.
-- Focused craft UI tests now cover the shared crafter adapter plus the gathering and creature-harvest selection paths, but reducer-contract coverage still needs a named proof row.
-- Action typing is not fully strict for crafting stat updates (`string` payload fields).
+- G2 (typing) and G5 (reducer proof) are the next implementation slice — they are tightly coupled and should be taken together.
+- G3 is resolved: experiment damage dispatches `MODIFY_PARTY_HEALTH` through the shared party-health reducer with test proof.
+- G4 (windowing), G6 (modularization), and G7 (stats dispatch coverage) remain follow-up work.
+- UI and systems contract boundary is mostly settled: crafter adapter (G1) and experiment damage (G3) are resolved. The remaining boundary is action typing (G2).
+- Action typing is not fully strict for crafting stat updates (`string` payload fields for `quality` and `category`).
+- `UPDATE_CRAFTING_STATS` is only dispatched from AlchemyBenchPanel — other crafting panels do not report stats (G7).
 
 ## Relationship to docs/projects/crafting
 
@@ -160,19 +161,20 @@ The systems project (`Crafting System` row) owns gameplay logic; this project ow
 
 | Field | Value |
 |---|---|
-| Task | Preserve the current Crafting UI contract map and the resolved G1 proof slice |
-| Acceptance criteria | North Star, tracker, gaps, and proof docs agree on the shared crafter boundary, and the next agent can resume with G3 without re-deriving G1 |
-| Allowed files | `docs/projects/crafting-ui/NORTH_STAR.md`, `docs/projects/crafting-ui/TRACKER.md`, `docs/projects/crafting-ui/GAPS.md`, `docs/projects/crafting-ui/COLD_START_AGENT_PROMPT.md`, `docs/projects/crafting-ui/AUDIT_OR_PROOF.md` |
-| Stop condition | Docs reflect the G1 closure and the next safe resume path clearly enough for any engineer to continue from G3 |
-| Verification | `docs_consistency`, focused Crafting UI vitest run, and manual file-map verification against `src/components/Crafting` and `src/components/CharacterSheet` and `src/components/Combat/CombatView.tsx` |
+| Task | Implement G2+G5: tighten `UPDATE_CRAFTING_STATS` payload typing and add `craftingReducer.test.ts` |
+| Acceptance criteria | `CraftingQuality` and `CraftingCategory` type unions defined in `types/crafting.ts`; `actionTypes.ts` payload updated; `craftingReducer.test.ts` covers ruined/standard/masterwork/legendary/nat20/category-count branches; `npm run typecheck` and `npm run test` pass |
+| Allowed files | `src/types/crafting.ts`, `src/state/actionTypes.ts`, `src/state/reducers/craftingReducer.ts`, `src/state/reducers/__tests__/craftingReducer.test.ts`, `src/components/Crafting/AlchemyBenchPanel.tsx` |
+| Stop condition | Do not widen into G4 (windowing), G6 (modularization), or G7 (stats dispatch coverage) unless a typing change forces it |
+| Verification | `npm run typecheck`, `npm run test -- --run src/state/reducers/__tests__/craftingReducer.test.ts` |
 
 ## Resume path
 
 1. Read this file.
 2. Read `docs/projects/crafting-ui/TRACKER.md` and `docs/projects/crafting-ui/GAPS.md`.
-3. Start with G3 first, then G2 if the typing slice is still needed after the damage contract is settled.
-4. Check `docs/projects/PROJECT_TRACKER.md` only if a gap needs routing back to `Crafting System`.
-5. Keep scope narrow; if neither blocker is safe to address, preserve the docs state and record the reason instead of widening the slice.
+3. Start with G2+G5 as a single implementation slice.
+4. After G2+G5, evaluate G7 (stats dispatch coverage for non-alchemy panels).
+5. G4 and G6 remain follow-up work — do not widen scope without explicit reason.
+6. Check `docs/projects/PROJECT_TRACKER.md` only if a gap needs routing back to `Crafting System`.
 
 
 

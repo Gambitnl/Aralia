@@ -10,6 +10,7 @@
 
 export interface TerrainHitPoint {
   x: number;
+  y?: number;
   z: number;
 }
 
@@ -21,6 +22,10 @@ export interface TerrainMapDimensions {
 export interface TerrainTileCoordinates {
   x: number;
   y: number;
+}
+
+export interface TerrainTileResolutionOptions {
+  sampleHeight?: (tileX: number, tileZ: number) => number;
 }
 
 function clampToTileIndex(value: number, size: number): number {
@@ -38,6 +43,7 @@ function clampToTileIndex(value: number, size: number): number {
 export function resolveTerrainTileCoordinates(
   hitPoint: TerrainHitPoint,
   dimensions: TerrainMapDimensions,
+  options: TerrainTileResolutionOptions = {},
 ): TerrainTileCoordinates | null {
   if (!Number.isFinite(hitPoint.x) || !Number.isFinite(hitPoint.z)) {
     return null;
@@ -45,6 +51,35 @@ export function resolveTerrainTileCoordinates(
 
   if (dimensions.width <= 0 || dimensions.height <= 0) {
     return null;
+  }
+
+  if (Number.isFinite(hitPoint.y) && options.sampleHeight) {
+    const baseX = Math.floor(hitPoint.x);
+    const baseY = Math.floor(hitPoint.z);
+    let best: TerrainTileCoordinates | null = null;
+    let bestDistanceSq = Number.POSITIVE_INFINITY;
+
+    for (let y = baseY - 1; y <= baseY + 1; y++) {
+      for (let x = baseX - 1; x <= baseX + 1; x++) {
+        const clampedX = clampToTileIndex(x, dimensions.width);
+        const clampedY = clampToTileIndex(y, dimensions.height);
+        const centerX = clampedX + 0.5;
+        const centerZ = clampedY + 0.5;
+        const centerY = options.sampleHeight(centerX, centerZ);
+        if (!Number.isFinite(centerY)) continue;
+
+        const dx = hitPoint.x - centerX;
+        const dy = (hitPoint.y as number) - centerY;
+        const dz = hitPoint.z - centerZ;
+        const distanceSq = dx * dx + dy * dy + dz * dz;
+        if (distanceSq < bestDistanceSq) {
+          bestDistanceSq = distanceSq;
+          best = { x: clampedX, y: clampedY };
+        }
+      }
+    }
+
+    if (best) return best;
   }
 
   return {

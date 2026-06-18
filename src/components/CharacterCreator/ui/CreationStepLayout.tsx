@@ -83,6 +83,7 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
                 onClick={onNext}
                 disabled={!canProceed}
                 aria-label={nextLabel}
+                title={!canProceed && blockedReason ? blockedReason : nextLabel}
               >
                 {nextLabel}
               </Button>

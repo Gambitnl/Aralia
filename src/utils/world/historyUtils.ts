@@ -35,6 +35,60 @@ export function createEmptyHistory(): WorldHistory {
 }
 
 /**
+ * Enforces the Bounded Importance-Aware Retention policy.
+ * - Soft Cap: 1000 events
+ * - Buffer: Pruning triggers at > 1100 events
+ * - Protection: importance >= 80 are never pruned
+ * - Pruning Logic: removes oldest unprotected events
+ */
+export function pruneHistory(history: WorldHistory): WorldHistory {
+    const TRIGGER_CAP = 1100;
+    const TARGET_CAP = 1000;
+    const PROTECTION_THRESHOLD = 80;
+
+    if (history.events.length <= TRIGGER_CAP) {
+        return history;
+    }
+
+    const unprotectedEvents: { event: WorldHistoryEvent, index: number }[] = [];
+    
+    history.events.forEach((event, index) => {
+        if (event.importance < PROTECTION_THRESHOLD) {
+            unprotectedEvents.push({ event, index });
+        }
+    });
+
+    const currentSize = history.events.length;
+    const numberToRemove = currentSize - TARGET_CAP;
+    
+    if (numberToRemove <= 0) {
+        return history;
+    }
+
+    unprotectedEvents.sort((a, b) => {
+        if (a.event.timestamp !== b.event.timestamp) {
+            return a.event.timestamp - b.event.timestamp;
+        }
+        return a.event.realtime - b.event.realtime;
+    });
+
+    const idsToRemove = new Set<string>();
+    const actualRemoveCount = Math.min(numberToRemove, unprotectedEvents.length);
+    for (let i = 0; i < actualRemoveCount; i++) {
+        idsToRemove.add(unprotectedEvents[i].event.id);
+    }
+
+    if (idsToRemove.size === 0) {
+        return history;
+    }
+
+    return {
+        ...history,
+        events: history.events.filter(event => !idsToRemove.has(event.id))
+    };
+}
+
+/**
  * Adds a new event to the world history.
  * @param history The current world history.
  * @param event The event to add.
@@ -46,10 +100,12 @@ export function addHistoryEvent(history: WorldHistory, event: WorldHistoryEvent)
         return history;
     }
 
-    return {
+    const newHistory = {
         ...history,
         events: [...history.events, event]
     };
+
+    return pruneHistory(newHistory);
 }
 
 /**

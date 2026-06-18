@@ -6,10 +6,10 @@ slug: crafting-ui
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-09"
-gap_count: 5
+last_updated: "2026-06-17"
+gap_count: 7
 open_gap_count: 5
-resolved_gap_count: 0
+resolved_gap_count: 2
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
@@ -102,20 +102,21 @@ supported_optional_sections:
 # Crafting UI Gap Registry
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-17
 
 Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
 
-Current resume priority: G3, then G2. G4, G5, and G6 remain real follow-ups, but they do not need to block the next slice unless scope expands into them.
+Current resume priority: G2+G5 as a single typing-and-proof slice. G4, G6, and G7 remain real follow-ups.
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G2 | active | in_scope_now | Worker | src/state/actionTypes.ts / src/state/reducers/craftingReducer.ts | docs/projects/crafting-ui/NORTH_STAR.md update | Tighten crafting action payload typing to typed quality/category unions | Reducer expects strict behavior while action type uses `quality: string`, `category: string` | Add typed action payloads in action types and align reducer callers in panels | Build passes for typecheck or bounded type-focused compile run |
-| G3 | active | support_needed_now | Worker | src/systems/crafting (upstream) | docs/projects/crafting-ui/NORTH_STAR.md update | Resolve experimental damage handling contract | `src/components/Crafting/ExperimentPanel.tsx` only logs damage text | Decide whether damage should call shared HP actions and what resistance path to use | Add contract note in systems tracker or this project's gap when decision is made |
-| G4 | active | adjacent_follow_up | Worker | docs/projects/crafting/ | docs/projects/crafting-ui/NORTH_STAR.md update | Reconcile UI windowing patterns | Only Alchemy bench uses `WindowFrame`; gathering and creature harvest use custom overlays | Decide if window pattern should be standardized for UX consistency | Add a follow-up in systems UI review if this remains intentional |
-| G5 | active | adjacent_follow_up | Worker | src/systems/crafting | runtime scan | Keep reducer-contract proof explicit for panel flows and reducer actions | Focused Crafting UI tests now exist for the shared crafter adapter and panel selection paths, but no project-owned reducer-contract proof row names the `UPDATE_CRAFTING_STATS` typing boundary yet | Add a reducer-focused proof row when the action typing slice is taken | Add test filenames in the next tracker row with pass criteria |
+| G2 | active | in_scope_now | Qoder CLI | src/state/actionTypes.ts / src/state/reducers/craftingReducer.ts | T2 boundary scan | Tighten crafting action payload typing to typed quality/category unions | `UPDATE_CRAFTING_STATS` payload uses `quality: string` and `category: string` in `actionTypes.ts:311`. Reducer checks for `'ruined'`, `'masterwork'`, `'legendary'` string literals. Callers dispatch `'standard'` and `'ruined'` (AlchemyBenchPanel.tsx:152) and `result.quality` (line 190). Recipe categories are already typed as `'potion' \| 'oil' \| 'poison' \| 'bomb' \| 'utility' \| 'ink'` in `alchemyRecipes.ts:28`. | Loose string payloads let typos pass silently. A `quality: 'msterwork'` typo would skip the masterwork counter with no compiler error. | Define `CraftingQuality = 'ruined' \| 'standard' \| 'masterwork' \| 'legendary'` and `CraftingCategory = 'potion' \| 'oil' \| 'poison' \| 'bomb' \| 'utility' \| 'ink'` in `types/crafting.ts`, update `actionTypes.ts` payload, and verify `npm run typecheck` passes. | `npm run typecheck` clean; reducer test named in G5 passes. |
+| G3 | resolved | support_needed_now | Qoder CLI | src/components/Crafting/ExperimentPanel.tsx | T2 evidence scan | Resolve experimental damage handling contract | `ExperimentPanel.tsx:185-194` dispatches `MODIFY_PARTY_HEALTH` with negative amount and party member IDs. `characterReducer.ts:192` handles it. `ExperimentPanel.test.tsx:182-185` proves dispatch with `{ amount: -6, characterIds: ['party-lead', 'party-ally'] }`. | Damage was previously text-only; now routes through shared party-health reducer with test proof. | No further action needed. Gap is resolved in source and tests. | Verified: `MODIFY_PARTY_HEALTH` dispatch proven in source (ExperimentPanel.tsx:188-194) and test (ExperimentPanel.test.tsx:182-185). | Resolved by source evidence discovered during T2 boundary scan on 2026-06-17. |
+| G4 | active | adjacent_follow_up | Worker | docs/projects/crafting/ | docs/projects/crafting-ui/NORTH_STAR.md update | Reconcile UI windowing pattern | Only Alchemy bench uses `WindowFrame`; gathering and creature harvest use custom overlays | Decide if window pattern should be standardized for UX consistency | Add a follow-up in systems UI review if this remains intentional |
+| G5 | active | adjacent_follow_up | Qoder CLI | src/state/reducers/craftingReducer.ts | T2 boundary scan | Add reducer-contract proof for `UPDATE_CRAFTING_STATS` | No dedicated `craftingReducer.test.ts` file exists. Focused Crafting UI tests cover crafter adapter and panel selection paths, but the reducer's quality/category branching logic has no direct unit test. | Reducer behavior for `UPDATE_CRAFTING_STATS` (quality checks, category counts, nat20 tracking) is unverified. Combined with G2 typing, this forms a single implementation slice. | Add `src/state/reducers/__tests__/craftingReducer.test.ts` covering `UPDATE_CRAFTING_STATS` branches: ruined, standard, masterwork, legendary, nat20, and category count increment. | Test file exists with all branches covered; `npm run test` passes. |
 | G6 | active | adjacent_follow_up | Codex | `docs/projects/code-modularization-audit` CMA-G13 | Code modularization audit routing | Alchemy bench is a large UI surface paired with a large recipe corpus. | `src/components/Crafting/AlchemyBenchPanel.tsx`; `src/systems/crafting/alchemyRecipes.ts`; `docs/projects/crafting/GAPS.md` G9 | UI extraction needs panel-flow proof and should not be mixed with recipe-corpus sharding. | Define UI-owned split boundaries and keep systems recipe ownership separate. | Alchemy bench UI proof and reducer/panel tests named before code movement |
+| G7 | active | adjacent_follow_up | Qoder CLI | src/components/Crafting/AlchemyBenchPanel.tsx | T2 evidence scan | `UPDATE_CRAFTING_STATS` is only dispatched from `AlchemyBenchPanel.tsx` | Grep across `src/` found `UPDATE_CRAFTING_STATS` dispatch only in `AlchemyBenchPanel.tsx:150,188`. No other crafting panel (ExperimentPanel, GatheringPanel, CreatureHarvestPanel) dispatches stats updates. | If gathering, experiments, or creature harvest should contribute to crafting stats, the dispatch gap is invisible until a panel-flow audit catches it. | Decide whether non-alchemy crafting flows should also dispatch `UPDATE_CRAFTING_STATS` and record the decision. | Each crafting panel either dispatches stats or has an explicit "no stats" note in its header. |
 
 ## Classification Guide
 
@@ -144,7 +145,7 @@ Current resume priority: G3, then G2. G4, G5, and G6 remain real follow-ups, but
 
 - Keep each gap tied to evidence and a next proof/check.
 - Link back to a global gap ID when this project imports one.
-- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping it here.
 - Do not mark a gap done unless completion evidence is linked or summarized.
 - Add dated testimony or status notes to an existing gap instead of opening duplicates.
 

@@ -6,8 +6,8 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: active
-last_updated: 2026-06-15
-iteration: 2
+last_updated: 2026-06-17
+iteration: 3
 confidence: high
 evidence: docs/projects/crime-ui
 gap_signal: "5 open gaps, all status active after 2026-06-15 evidence re-verification; 1 adjacent_follow_up (G1) and 4 active blockers (G2-G5)"
@@ -27,8 +27,9 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-15
-workflow_gaps_reviewed: 2026-06-15
+  - cross_project_validation
+last_proof: 2026-06-17
+workflow_gaps_reviewed: 2026-06-17
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -39,7 +40,7 @@ human_decision_required: "no"
 # Crime UI North Star
 
 Status: active
-Last updated: 2026-06-15
+Last updated: 2026-06-17
 
 ## Purpose And Scope
 
@@ -73,7 +74,7 @@ Confidence: high
 Evidence: docs/projects/crime-ui
 Gap signal: 5 open gaps, all status active after 2026-06-15 evidence re-verification; 1 adjacent_follow_up (G1) and 4 active blockers (G2-G5)
 Protocol: living project doc set
-Next step: Resolve G4 (safehouse service source-of-truth) and G3 (heist plan type narrowing) as the most actionable in-scope gaps before adding new UI slices.
+Next step: T4 - Resolve G4 (safehouse service source-of-truth) and G3 (heist plan type narrowing) as the most actionable in-scope gaps before adding new UI slices.
 Required verification: docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-15
@@ -161,3 +162,4 @@ The next cold-start agent must:
 - keep the active gap set current before adding new UI slices
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
+

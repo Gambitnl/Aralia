@@ -1,7 +1,7 @@
 ﻿# Scripts: Archive Living Tracker
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-17
 
 ## Status Vocabulary
 
@@ -17,7 +17,7 @@ Last updated: 2026-06-05
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T2 | active | Verify deprecation/cleanup policy for archived scripts and temporary auth artifacts | Worker C | 2026-06-05 | `docs/projects/scripts-archive/NORTH_STAR.md`, `docs/projects/scripts-archive/GAPS.md`, `Test-Path .agent/roadmap-local/spell-validation/dndbeyond-auth.json` | Record the archive tombstone decision or explicit no-tombstone rule in the project docs | Re-run `Test-Path .agent/roadmap-local/spell-validation/dndbeyond-auth.json` if the temp auth artifact is ever recreated |
+| T2 | review-required | Verify deprecation/cleanup policy for archived scripts and temporary auth artifacts | Qoder CLI | 2026-06-17 | Required Review Brief in `NORTH_STAR.md`; `Test-Path .agent/roadmap-local/spell-validation/dndbeyond-auth.json` returned `False` on 2026-06-17 | Human operator decides tombstone policy (Option A/B/C in Required Review Brief); re-run temp-auth check only if artifact is recreated | Operator decision recorded in `DECISIONS.md`; tombstone entry or policy note committed |
 
 ## Gap Log
 

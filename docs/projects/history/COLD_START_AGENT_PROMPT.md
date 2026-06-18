@@ -20,7 +20,7 @@ gaps: docs/projects/history/GAPS.md
 # History System Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-15
+Last updated: 2026-06-17
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -42,11 +42,12 @@ docs/projects/history/NORTH_STAR.md
 |---|---|---|---|---|---|
 | 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
 | 2 | Kilo/stepfun/step-3.7-flash:free | CLI agent | inferred | 2026-06-15 | Producer-to-type audit completed; source scan covered `src/services/WorldHistoryService.ts`, `src/systems/world/WorldEventManager.ts`, `src/systems/history/HistoryService.ts`, `src/hooks/useGameInitialization.ts`, and `src/state/reducers/worldReducer.ts` |
+| 3 | Gemini 3.1 Pro (High) | GUI agent | high | 2026-06-17 | Defined "Bounded Importance-Aware Retention" policy in `DECISIONS.md`. Closed T3, spawned T5 for implementation. Added G5 and G6 gaps for importance scaling and date-range querying. |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: History System
 Project folder: docs/projects/history
-iteration: 3
+iteration: 4
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -56,25 +57,15 @@ Gaps: docs/projects/history/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 2 completed the T2 producer audit. The event-source matrix is now
-source-backed: `MAJOR_BATTLE` and `DISCOVERY`/`POLITICAL_SHIFT`/`HEROIC_DEED`
-are produced by `WorldHistoryService.createFirstBuildHistory` and attached at
-bootstrap via `createBootstrapWorldHistory`; `MAJOR_BATTLE` also has a live
-runtime producer through `WorldEventManager.handleFactionSkirmish`; factories
-exist for `FACTION_WAR`, `POLITICAL_SHIFT`, `DISCOVERY`, and `CATASTROPHE`;
-`MYSTERY_SOLVED` remains without a producer or factory. T2 is closed; G2 is
-still the active unwired-events gap.
+Iteration 3 defined the "Bounded Importance-Aware Retention" policy in `DECISIONS.md`. The policy establishes a soft cap of 1,000 events, with pruning of low-importance (<80) events when exceeding 1,100 events, while permanently protecting critical lore. T3 is closed. T5 was added to track implementation of this policy in `historyUtils.ts`. G5 and G6 were added to address lack of dynamic importance scaling and time-range queries respectively.
 
 ## Current Mission
 
 Active task:
-T3 - Define retention and lifecycle policy for `worldHistory` and its save compatibility impact.
+T5 - Implement Bounded Importance-Aware Retention policy for `worldHistory`.
 
 Acceptance criteria:
-Use the active TRACKER.md row and the source map in NORTH_STAR.md. Decide a
-retention policy (no prune, bounded history, periodic archive, and/or shard
-strategy), document acceptance criteria, and identify migration risks for
-save/load and test coverage targets.
+Implement prune logic in `historyUtils.ts` (e.g. `addHistoryEvent` or a separate daily prune function) that enforces the soft cap defined in D2. Write unit tests verifying that protected events (`importance >= 80`) survive pruning, while the oldest unprotected events are removed first. Ensure the reducer safely delegates to this logic without crashing on legacy saves with huge histories.
 
 Key files to touch:
 - docs/projects/history/NORTH_STAR.md
@@ -89,19 +80,14 @@ Key files to touch:
 - src/systems/world/WorldEventManager.ts
 
 Scoped verification:
-Re-run the bounded source search for retention/pruning and save/load touchpoints,
-then confirm the North Star status and tracker/gap rows match that evidence. If
-the change is observable, collect concise proof in the project docs.
+Write tests in `src/utils/world/__tests__/historyUtils.test.ts` for the new pruning behavior. If testing is blocked, explain why and collect concise proof of manual test in the project docs.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Iteration 2 completed the T2 producer audit and updated the event-source matrix.
-The producer map now reflects bootstrap and runtime paths, with `MYSTERY_SOLVED`
-still unwired. G2 remains open as a support-needed gap until the unwired types are
-classified as gaps or out of scope.
+Iteration 3 closed T3 by explicitly documenting the retention policy in D2. Two new gaps (G5, G6) were added to support future retention accuracy and replayability. Iteration 4 should tackle the T5 implementation of D2.
 
 Key files to touch:
 - docs/projects/history/NORTH_STAR.md
@@ -128,9 +114,7 @@ Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
 
 Recent progress:
-Iteration 2 closed T2 with a source-backed producer map. Iteration 3 should pick
-up T3 retention/policy work, keeping NORTH_STAR.md, TRACKER.md, and GAPS.md as
-the current source of truth.
+Iteration 3 closed T3 and defined the D2 retention policy. Iteration 4 should pick up T5 (implementing the retention policy), keeping `historyUtils.ts` tests as the primary verification method.
 
 ## Required End State For This Iteration
 

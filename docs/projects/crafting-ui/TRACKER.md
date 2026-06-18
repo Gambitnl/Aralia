@@ -1,7 +1,7 @@
-﻿# Crafting UI Living Tracker
+# Crafting UI Living Tracker
 
 Status: active
-Last updated: 2026-06-12
+Last updated: 2026-06-17
 
 ## Status Vocabulary
 
@@ -16,13 +16,19 @@ Last updated: 2026-06-12
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|
-| T2 | active | Preserve unresolved UI/systems boundary, and define what is in scope for the next implementation slice | Worker | 2026-06-09 | `docs/projects/PROJECT_TRACKER.md`, `src/state/reducers/craftingReducer.ts`, `docs/projects/crafting-ui/GAPS.md` | Use the G2/G3 ordering in GAPS.md to choose the next implementation slice without widening scope | Confirm each gap has owner, status, and next proof before code changes |
-| T3 | active | Capture evidence for missing contract areas before code changes | Worker | 2026-06-05 | `src/components/Crafting/*.tsx`, `src/systems/crafting/*`, `src/state/actionTypes.ts` | Carry the existing contract evidence forward so the next slice can start from the documented blockers | Docs remain in sync with the active gap list and resume path |
+| T2 | done | Preserve unresolved UI/systems boundary, and define what is in scope for the next implementation slice | Qoder CLI | 2026-06-17 | `src/state/actionTypes.ts:311`, `src/state/reducers/craftingReducer.ts:88-113`, `src/components/Crafting/ExperimentPanel.tsx:185-194`, `src/components/Crafting/AlchemyBenchPanel.tsx:150,188` | Boundary defined: next slice is G2+G5 (typing + reducer proof). G3 resolved in source. G4, G6, G7 deferred. | See DECISIONS.md D-002 and GAPS.md for scope rationale. |
+
+## Closed Task Log
+
+| ID | Status | Task | Closed | Decision |
+|---|---|---|---|---|
+| T2 | done | Preserve unresolved UI/systems boundary, and define next implementation slice | 2026-06-17 | Next slice: G2 (typing) + G5 (reducer proof). G3 resolved. See D-002. |
 
 ## Tracker Notes
 
-- This tracker is intentionally limited to docs-only continuity for the current pass.
-- The current resume priority is G3, then G2; G4, G5, and G6 remain follow-up work.
+- G3 was discovered resolved in source during T2 evidence scan: `ExperimentPanel.tsx` dispatches `MODIFY_PARTY_HEALTH` and test proves it.
+- G2 and G5 should be taken as a single slice: tighten `UPDATE_CRAFTING_STATS` payload typing and add `craftingReducer` unit tests in the same pass.
+- G4 (windowing pattern), G6 (alchemy bench modularization), and G7 (stats dispatch coverage) remain real follow-ups.
 - Any future implementation should continue here and update `NORTH_STAR.md` only when contract boundaries change.
 
 ## Gap Log

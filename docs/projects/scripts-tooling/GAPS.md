@@ -6,10 +6,10 @@ slug: scripts-tooling
 status: active
 status_note: Preserved as routed_reference to avoid flattening existing gap provenance.
 registry_mode: routed_reference
-last_updated: "2026-06-05"
-gap_count: 3
+last_updated: "2026-06-17"
+gap_count: 4
 open_gap_count: 3
-resolved_gap_count: 0
+resolved_gap_count: 1
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
@@ -102,19 +102,20 @@ supported_optional_sections:
 # Scripts: Tooling Gap Registry
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-17
 
 Use this file for durable unresolved findings tied directly to the scripts-tooling project.
 
-Current iteration note: no new project-local gaps were added in this pass. The stale shared-path ambiguity is tracked centrally in `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md`.
+Current iteration note: ST-2 closed — `trackRun()` adoption stays intentionally selective (see DECISIONS.md D2). STG-002 resolved with that decision. STG-004 opened for run-log data integrity. The stale shared-path ambiguity remains tracked centrally in `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md`.
 
 ## Gap Log
 
 | Gap ID | Status | Severity | Classification | Owner | Owner confidence | Source project | Imported/global link | Decision/review state | Visual proof | Proof freshness | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check | Notes |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | STG-001 | not_started | medium | adjacent_follow_up | Worker C | confirmed | project |  | none | none | not_recorded | `docs/projects/scripts-tooling/TRACKER.md` | Docs scan | `script-registry.json` tracks only one tooling bucket entry for `scripts/tooling/script-tracker.ts`; most `scripts/tooling` scripts are not represented in the branch registry yet. | `scripts/tooling/script-registry.json`, `.run-log.json` | Registry consumers do not show a complete tooling-script view. | Decide whether a `scripts-tooling` branch should be added or registry is intentionally scoped to selected scripts. | `rg -n "scripts/tooling/" scripts/tooling` and registry review. |  |
-| STG-002 | not_started | medium | support_needed_now | Worker C | confirmed | project |  | none | none | not_recorded | `docs/projects/scripts-tooling/TRACKER.md` | Docs scan | Only `serialize-session-proof.ts` currently calls `trackRun()`, so most scripts in this folder do not update shared run metadata unless manually touched by workflow actors. | `scripts/tooling/script-tracker.ts`, `scripts/tooling/serialize-session-proof.ts` | Run freshness metrics can be misleading and reduce the value of tooling touch views. | Add `trackRun(import.meta.url)` in selected scripts or document why this folder is intentionally outside tracking. | Review `.run-log.json` coverage and script call-sites with no `@script-meta`. |  |
+| STG-002 | resolved | medium | adjacent_follow_up | Qoder CLI | confirmed | project |  | none | none | 2026-06-17 | `docs/projects/scripts-tooling/TRACKER.md` | ST-2 execution | Only `serialize-session-proof.ts` currently calls `trackRun()`, so most scripts in this folder do not update shared run metadata unless manually touched by workflow actors. | `scripts/tooling/script-tracker.ts`, `scripts/tooling/serialize-session-proof.ts` | Run freshness metrics can be misleading and reduce the value of tooling touch views. | Decision: `trackRun()` adoption stays intentionally selective. Only standalone entry-point scripts should be tracked; libraries and agent-only helpers are excluded by design. See DECISIONS.md D2. | Verified: 1/15 calls trackRun, 5/15 have run-log entries, 10/15 are libraries/helpers. | Resolved by documentation, not by code change. |
 | STG-003 | not_started | low | adjacent_follow_up | Worker C | confirmed | project |  | none | none | not_recorded | `docs/projects/scripts-tooling/` | Docs scan | Some scripts have `Called by:` workflow notes, but invocation evidence is not centrally indexed, so runtime path changes can be missed. | `scripts/tooling/*.ts` header comments, `public/agent-docs/workflows/*.md` | Manual linkage is fragile for future maintenance. | Consider a small indexed source of workflow-to-script mapping. | Add a dedicated map doc or registry annotation and keep it in project scope. |  |
+| STG-004 | not_started | low | adjacent_follow_up | Qoder CLI | confirmed | project |  | none | none | 2026-06-17 | `docs/projects/scripts-tooling/GAPS.md` | ST-2 evidence scan | `.run-log.json` contains entries for 5 tooling scripts (`diagnose-shell.ts`, `scan-temp-assets.ts`, `purge-stale-branches.ts`, `validate-git-remote.ts`, `serialize-session-proof.ts`) that were seeded without any of those scripts calling `trackRun()`. None of these 5 files contain `@script-meta` blocks or `trackRun` imports, yet the run-log shows `runCount > 0` for some. | `scripts/tooling/.run-log.json`, grep for `trackRun` across `scripts/tooling/` | Run-log entries with `runCount > 0` may not reflect actual executions, undermining `getStaleScripts()` freshness checks and tooling UI reliability. | Classify which run-log entries were manually seeded vs. genuinely tracked; either reset seeded entries to `runCount: 0` or add `trackRun()` to the seeded scripts if they qualify as standalone entry points per D2. | Confirm each tooling run-log entry matches a real execution or is flagged as seeded. |  |
 
 ## Schema Fit Notes
 

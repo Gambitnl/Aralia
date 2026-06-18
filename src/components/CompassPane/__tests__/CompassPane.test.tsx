@@ -181,6 +181,37 @@ describe('CompassPane', () => {
     expect(onAction).toHaveBeenCalledTimes(1);
   });
 
+  it('uses currentLocation map coordinates for world-boundary pre-checks', () => {
+    render(
+      <CompassPane
+        {...defaultProps}
+        currentLocation={{ ...mockLocation, mapCoordinates: { x: 0, y: 0 } }}
+        currentSubMapCoordinates={{ x: 0, y: 0 }}
+        worldMapCoords={{ x: 0, y: 1 }}
+      />
+    );
+
+    expect(screen.getByLabelText('Move North (unavailable)')).toBeDisabled();
+  });
+
+  it('disables movement into an impassable adjacent world tile', () => {
+    render(
+      <CompassPane
+        {...defaultProps}
+        currentSubMapCoordinates={{ x: 29, y: 10 }}
+        mapData={{
+          gridSize: { rows: 2, cols: 2 },
+          tiles: [
+            [{ biomeId: 'plains' }, { biomeId: 'ocean' }],
+            [{ biomeId: 'plains' }, { biomeId: 'plains' }],
+          ],
+        } as any}
+      />
+    );
+
+    expect(screen.getByLabelText('Move East (unavailable)')).toBeDisabled();
+  });
+
   it('opens pass time and emits wait seconds when confirmed', () => {
     const onAction = vi.fn();
 

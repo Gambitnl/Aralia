@@ -192,6 +192,17 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
 
   if (!allSpells) return <div className="p-8 text-center text-gray-500 italic">Loading character details...</div>;
 
+  // Surface why "Begin Adventure!" is blocked so a disabled button never leaves
+  // the player guessing (matches the RaceSelection blockedReason pattern). Mirror
+  // the canProceed conditions below, ordered most-actionable first.
+  const blockedReason: string | null = !name.trim()
+    ? 'Enter a character name to begin your adventure.'
+    : validationError
+      ? validationError
+      : isGeneratingPortrait
+        ? 'Wait for the portrait to finish generating.'
+        : null;
+
   const { cantrips: allKnownCantrips, spells: allKnownSpells } = getCharacterSpells(characterPreview, allSpells);
   
   const selectedDraconicAncestryId = racialSelections?.['dragonborn']?.choiceId;
@@ -207,6 +218,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
       onBack={onBack}
       onNext={handleConfirm}
       canProceed={!validationError && !!name.trim() && !isGeneratingPortrait}
+      blockedReason={blockedReason}
       nextLabel="Begin Adventure!"
       bodyScrollable={false}
     >

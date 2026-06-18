@@ -224,7 +224,7 @@ each row's Assignment rule cell is authoritative.
 | Battle Map | active | medium | `src/components/BattleMap` | GAPS.md present; G3 decided 2026-06-10 — keep the `useBattleMapGeneration.ts` filename, document the stateless utility contract (D17); G6 spawn scoring now assignable | implemented | document the utility contract per D17; G6 tactical spawn scoring is a bounded assignable slice |
 | Character Creator | active | high | `src/components/CharacterCreator` | GAPS.md present; G2 sidebar navigation already resolved 2026-06-08 (permissive navigation); review hold cleared 2026-06-10 | implemented | forward iteration allowed; pick the next audited gap |
 | Character Sheet | partial | high | `src/components/CharacterSheet` | GAPS.md present; G7 decided 2026-06-10 — durable `acquiredAt` acquisition-timestamp semantics on the item model (D16); implementation lane open | implemented | add `acquiredAt` to the item model, backfill/migrate inventory data, then implement food expiration from that source |
-| Compass Pane | partial | medium | `src/components/CompassPane` | GAPS.md present | implemented | define navigation affordances |
+| Compass Pane | partial | medium | `src/components/CompassPane` | GAPS.md present; G1 and G3 resolved; G4 documentation continuity remains | implemented | update CompassPane README continuity |
 | Conversation Panel | partial | medium | `src/components/ConversationPanel` | GAPS.md present | implemented | define dialogue state transitions |
 | Crafting UI | partial | medium | `src/components/Crafting` | GAPS.md present | implemented | reconcile with systems/crafting |
 | Crime UI | partial | medium | `src/components/Crime` | GAPS.md present | implemented | define suspect/report flow |

@@ -1,6 +1,6 @@
 # Compass Pane Audit And Proof
 
-Last updated: 2026-06-08
+Last updated: 2026-06-18
 
 This note keeps the durable proof for the movement/action regression slice so
 future agents do not have to reconstruct it from chat output.
@@ -11,6 +11,10 @@ future agents do not have to reconstruct it from chat output.
 - Verified `look_around` dispatch from the center action.
 - Verified edge disablement for movement at the world boundary while
   `look_around` stays available.
+- Verified CompassPane uses `currentLocation.mapCoordinates` for world-boundary
+  pre-checks instead of display-only `worldMapCoords`.
+- Verified movement into an adjacent impassable world tile is disabled before
+  dispatch.
 - Verified pass-time confirmation emits a `wait` action with seconds payload.
 
 ## Verification Run
@@ -31,4 +35,5 @@ npm exec vitest run src/components/CompassPane/__tests__/CompassPane.test.tsx
 
 No Required Review Brief was needed for this slice. The affordance decision
 work remains tracked separately in `docs/projects/compass-pane/GAPS.md` and
-`docs/projects/compass-pane/TRACKER.md`.
+`docs/projects/compass-pane/TRACKER.md`. G3 is closed with the pre-check rule
+table in `NORTH_STAR.md` and scoped CompassPane regression tests.

@@ -267,3 +267,26 @@ If you are about to build something new, first answer:
 3. what unfinished intent might this accidentally overwrite
 
 If you cannot answer those questions yet, search more before coding.
+
+## Agent Matrix Boundary
+
+The Agent Matrix implementation lives outside this repo at
+`F:\Repos\Aralia-operator-dashboard`.
+
+Use this repo, `F:\Repos\Aralia`, only for Aralia game/application work
+performed by Matrix-dispatched agents: feature work, Aralia-facing task docs,
+Spell Phase work, runtime changes, data changes, and verification for Aralia
+product behavior.
+
+The entire Agent Matrix control plane lives in
+`F:\Repos\Aralia-operator-dashboard`: Matrix UI, APIs, PAT Vault, onboarding,
+operator instructions, dashboard verification, orchestration proof,
+quota/status probing, session control, and related documentation.
+
+Do not add or repair Agent Matrix control-plane behavior in this repo just
+because the Matrix launches Aralia work.
+
+For cold-start Matrix orchestration, read
+`F:\Repos\Aralia-operator-dashboard\docs\ORCHESTRATOR_BRIEFING.md` first.
+Read this Aralia `AGENTS.md` only after the task is classified as
+`ARALIA_PRODUCT` or a `CROSS_REPO` task with an Aralia product portion.

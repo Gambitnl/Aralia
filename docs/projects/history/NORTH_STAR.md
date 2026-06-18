@@ -6,13 +6,13 @@ category: Feature / Simulation Systems
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-15
-iteration: 2
+last_updated: 2026-06-17
+iteration: 3
 confidence: medium
 evidence: docs/projects/history/NORTH_STAR.md
-gap_signal: "3 open gaps; T2 producer map complete; HEROIC_DEED and MYSTERY_SOLVED still lack runtime producers"
+gap_signal: "5 open gaps; T3 policy documented; G5/G6 added"
 protocol: living project doc set
-next_step: Continue T3 retention/policy definition; decide whether unwired event types stay gaps or move out of scope.
+next_step: Implement retention policy (T5) and continue T4 read-contract validation.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -41,7 +41,7 @@ human_decision_required: "no"
 # History System North Star
 
 Status: active
-Last updated: 2026-06-15
+Last updated: 2026-06-17
 
 ## Dashboard Card Schema
 
@@ -51,20 +51,20 @@ Category: Feature / Simulation Systems
 Status: active
 Confidence: medium
 Evidence: docs/projects/history/NORTH_STAR.md
-Gap signal: 3 open gaps; T2 producer map complete; HEROIC_DEED and MYSTERY_SOLVED still lack runtime producers
+Gap signal: 5 open gaps; T3 policy documented; G5/G6 added
 Protocol: living project doc set
-Next step: Continue T3 retention/policy and T4 read-contract work; decide whether the unwired event types stay gaps or move out of scope.
+Next step: Implement retention policy (T5) and continue T4 read-contract validation.
 Required verification: docs_consistency, source_audit
 Completed verification: docs_consistency, source_audit
-Last proof: 2026-06-15
-Workflow gaps reviewed: 2026-06-15
+Last proof: 2026-06-17
+Workflow gaps reviewed: 2026-06-17
 
 ## Purpose
 The History System is Aralia's long-term world memory layer. It stores immutable `WorldHistoryEvent` records that survive beyond ephemeral rumor life and is the intended source of canonical event memory for faction wars, political shifts, discoveries, and major battles.
 
 ## Status
 
-- Active task: T2 producer audit complete; next work is T3 retention/policy and T4 read-contract validation.
+- Active task: T3 defined retention policy; next work is T5 implementation and T4 read-contract validation.
 - Live runtime write path: `WorldEventManager` -> `WorldHistoryService.createSkirmishEvent` -> `addHistoryEvent`.
 - Bootstrap write path: `createBootstrapWorldHistory` -> `WorldHistoryService.createFirstBuildHistory` seeds `DISCOVERY`, `POLITICAL_SHIFT`, and `HEROIC_DEED` (and `MAJOR_BATTLE` when factions > 1) during world bootstrap in `src/hooks/useGameInitialization.ts`.
 - Factory coverage exists for `FACTION_WAR`, `POLITICAL_SHIFT`, `DISCOVERY`, and `CATASTROPHE`; no gameplay call sites found outside bootstrap/tests.
@@ -123,13 +123,13 @@ Out of scope for this pass:
 - History query utilities support filtering by tag, minimum importance, participant, and location.
 
 ## Gaps and Uncertainties (Preserved)
-- Permanent records are currently append-only; no explicit retention or archive policy exists.
+- D2 defines a "Bounded Importance-Aware Retention" policy, but it is not yet implemented in `historyUtils.ts`. Unbounded growth risks remain until T5 is complete.
 - `WorldHistoryEventType` includes `HEROIC_DEED` and `MYSTERY_SOLVED`, but no runtime gameplay producer call sites were found for these types in the current scan.
 - No timeline/replay consumer or UI contract is defined in this slice yet.
 - `HistoryService.ts` and `types/history.ts` still contain TODO comments about planned recorder and integration paths.
 
 ## Next checks for a cold agent
-- Define and document a retention/pruning policy (or explicit no-prune policy) and add it to the same layer.
+- Implement the bounded retention/pruning policy (T5) and add acceptance proof in `historyUtils.test.ts`.
 - Validate whether world-history records should feed a UI timeline and define the read contract.
 - Decide whether the unwired event types stay gaps or move out of scope.
 

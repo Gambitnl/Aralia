@@ -4,9 +4,9 @@ handoff_type: agent_to_agent
 project: Dialogue
 slug: dialogue
 status: active
-last_updated: 2026-06-10
-iteration: 3
-source_agent: qoder-iteration2
+last_updated: 2026-06-18
+iteration: 4
+source_agent: GitHub Copilot / MAI-Code-1-Flash
 target_agent: next cold-start agent
 runtime_surface: application agent
 certainty: certain
@@ -20,7 +20,7 @@ gaps: docs/projects/dialogue/GAPS.md
 # Dialogue Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-18
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -42,11 +42,12 @@ docs/projects/dialogue/NORTH_STAR.md
 |---|---|---|---|---|---|
 | 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
 | 2 | qoder | application agent | certain | 2026-06-10 | Qoder IDE agent session |
+| 3 | GitHub Copilot / MAI-Code-1-Flash | application agent | certain | 2026-06-18 | Current docs-consistency and D2 gap-alignment pass |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Dialogue
 Project folder: docs/projects/dialogue
-iteration: 3
+iteration: 4
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -56,11 +57,7 @@ Gaps: docs/projects/dialogue/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 2 (qoder, application agent, 2026-06-10): Validated D3 session persistence
-path end-to-end against source. Documented ephemeral session + persisted NPC
-memory behavior in NORTH_STAR.md. Confirmed all 6 existing gaps remain
-evidence-backed; no new gaps added. Gap signal corrected from 5 to 6 (DIAL-006
-was missing from the readout text).
+Iteration 3 (GitHub Copilot / MAI-Code-1-Flash, application agent, 2026-06-18): Completed the D2 docs-alignment pass for Dialogue. Verified the current project surface against the living-project audit, preserved the six evidence-backed gap entries, and refreshed the handoff packet without adding new project-local gaps.
 
 ## Current Mission
 
@@ -97,11 +94,14 @@ Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers instead of editing their docs, and do not edit the shared workflow files.
 
 Recent progress:
-D3 is now done. The session persistence path is fully documented in NORTH_STAR.md. The gap inventory is confirmed at 6 entries (DIAL-001 through DIAL-006). The highest-value next action is deciding the DIAL-002 unlock propagation model (DiscoveryLog vs NPC KnownFact path).
+D3 is now documented and the current D2 gap inventory remains at 6 evidence-backed entries (DIAL-001 through DIAL-006). This pass refreshed the living-project docs and verified the current gap list without introducing new project-local gaps. The highest-value next action remains deciding the DIAL-002 unlock propagation model (DiscoveryLog vs NPC KnownFact path).
 
 ## Required End State For This Iteration
 
 Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers; do not preserve old handoff transcripts in this file.
+
+Workflow-gap review result:
+No new workflow-level gap was opened during this pass. The existing workflow gap file was reviewed for process ambiguity and no new WFG entry was required.
 
 Final response must report:
 - files updated

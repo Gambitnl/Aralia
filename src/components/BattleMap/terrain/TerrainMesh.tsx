@@ -779,6 +779,11 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
     return geo;
   }, [tileGrid, width, height, mapData.seed]);
 
+  const terrainHeightSampler = useMemo(
+    () => makeTerrainHeightSampler(tileGrid, width, height, mapData.seed ?? 42),
+    [tileGrid, width, height, mapData.seed],
+  );
+
   // Terrain type data texture (per-tile, for the GPU)
   const terrainTypeTex = useMemo(
     () => createTerrainTypeTexture(mapData, width, height),
@@ -850,19 +855,20 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
       // ray lands on a steeply displaced surface. Clamping the derived tile
       // coordinate keeps valid edge clicks from falling out of bounds.
       const tileCoords = resolveTerrainTileCoordinates(
-        { x: event.point.x / TILE_SIZE, z: event.point.z / TILE_SIZE },
+        { x: event.point.x / TILE_SIZE, y: event.point.y, z: event.point.z / TILE_SIZE },
         { width, height },
+        { sampleHeight: terrainHeightSampler },
       );
       if (!tileCoords) return;
       const tileId = `${tileCoords.x}-${tileCoords.y}`;
       const tile = mapData.tiles.get(tileId);
       if (tile) onTileClick(tile);
     };
-  }, [height, mapData, onTileClick, width]);
+  }, [height, mapData, onTileClick, terrainHeightSampler, width]);
 
   // Hover → tile under the pointer, deduped so the callback fires once per
-  // tile crossing instead of on every pointermove event. Same coordinate
-  // resolution as clicks (shares gap #4's steep-slope caveat, no worse).
+  // tile crossing instead of on every pointermove event. Same height-aware
+  // coordinate resolution as clicks.
   const lastHoverTileId = useRef<string | null>(null);
   const handlePointerMove = useMemo(() => {
     if (!onTileHover) return undefined;
@@ -870,8 +876,9 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
       const point = e.intersections[0]?.point;
       if (!point) return;
       const tileCoords = resolveTerrainTileCoordinates(
-        { x: point.x / TILE_SIZE, z: point.z / TILE_SIZE },
+        { x: point.x / TILE_SIZE, y: point.y, z: point.z / TILE_SIZE },
         { width, height },
+        { sampleHeight: terrainHeightSampler },
       );
       if (!tileCoords) return;
       const tileId = `${tileCoords.x}-${tileCoords.y}`;
@@ -880,7 +887,7 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
       const tile = mapData.tiles.get(tileId);
       if (tile) onTileHover(tile);
     };
-  }, [height, mapData, onTileHover, width]);
+  }, [height, mapData, onTileHover, terrainHeightSampler, width]);
 
   return (
     <>

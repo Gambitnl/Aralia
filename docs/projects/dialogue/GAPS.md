@@ -6,7 +6,7 @@ slug: dialogue
 status: active
 status_note: Preserved as routed_reference to avoid flattening existing gap provenance.
 registry_mode: routed_reference
-last_updated: "2026-06-10"
+last_updated: "2026-06-18"
 gap_count: 6
 open_gap_count: 6
 resolved_gap_count: 0
@@ -113,7 +113,7 @@ registry_mode: mixed
 # Dialogue Gap Registry
 
 Status: active  
-Last updated: 2026-06-10
+Last updated: 2026-06-18
 
 Use this file for durable unresolved findings that belong to the Dialogue feature.
 
@@ -122,7 +122,7 @@ Use this file for durable unresolved findings that belong to the Dialogue featur
 - DIAL-001 remains an adjacent follow-up for future scripted dialogue work.
 - DIAL-002 through DIAL-005 are the active Dialogue follow-ups for this resume path.
 - DIAL-006 was routed from the code-modularization audit (companion banter ownership boundary).
-- No new gaps were added during iteration 2; existing gaps remain evidence-backed.
+- The current D2 docs-alignment sweep preserved the six evidence-backed gaps and added no new project-local gap rows.
 - No cross-project gaps were imported during this pass.
 
 ## Gap Log

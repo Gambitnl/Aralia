@@ -795,7 +795,13 @@ const extractChoicesFromTrait = (
   const requiredAbilities = parseChoicePromptAbilities(trait);
   if (requiredAbilities.length > 0) {
     const requiresSpellAbilitySentence = /spellcasting ability|cast (?:the|that) spell|these spells/i.test(trait);
-    if (requiresSpellAbilitySentence) {
+    // Only surface a *choice* when the trait actually offers one: either it
+    // names more than one ability, or it explicitly says "choose". A trait that
+    // pins a single ability — e.g. Aasimar Light Bearer: "Charisma is your
+    // spellcasting ability for it" — is FIXED, so it must not spawn a chooser.
+    // (Mirrors inferSpellAbilityFromText's choice detection.)
+    const offersAbilityChoice = requiredAbilities.length > 1 || /\bchoose\b/i.test(trait);
+    if (requiresSpellAbilitySentence && offersAbilityChoice) {
       const requiredSpellIds = new Set<string>();
       const grants = extractSpellGrantsFromTraitText(race, traitName, trait);
       grants.forEach((grant) => requiredSpellIds.add(grant.spellId));

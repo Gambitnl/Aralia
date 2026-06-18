@@ -6,14 +6,18 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: active
-last_updated: 2026-06-08
-iteration: 3
+last_updated: 2026-06-18
+iteration: 4
 confidence: medium
 evidence: docs/projects/compass-pane
-gap_signal: "3 open gaps; movement proof captured and affordance semantics still need validation"
+gap_signal: "1 open gap; G3 UI pre-check semantics resolved, G4 documentation continuity remains"
 protocol: living project doc set
-next_step: Resume T3 by validating navigation affordances for map/submap/3D toggles in context
+next_step: Resume G4 documentation continuity for CompassPane README
 agent_comments: ""
+active_agent: "Kilo / kilo/kilo-auto/free"
+agent_pass_status: finished
+agent_pass_started_at: "2026-06-18T00:19:16+02:00"
+agent_pass_ended_at: "2026-06-18T00:26:00+02:00"
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -29,8 +33,8 @@ required_verification:
 completed_verification:
   - docs_consistency
   - scoped_tests
-last_proof: 2026-06-08
-workflow_gaps_reviewed: 2026-06-08
+last_proof: 2026-06-18
+workflow_gaps_reviewed: 2026-06-18
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -41,7 +45,7 @@ human_decision_required: "no"
 # Compass Pane North Star
 
 Status: active  
-Last updated: 2026-06-08
+Last updated: 2026-06-18
 
 ## Purpose And Scope
 
@@ -66,13 +70,13 @@ Category: Feature/UI Projects
 Status: active  
 Confidence: medium  
 Evidence: docs/projects/compass-pane  
-Gap signal: 3 open gaps; movement proof captured and affordance semantics still need validation
-Protocol: living project doc set  
-Next step: Resume T3 by validating navigation affordances for map/submap/3D toggles in context
-Required verification: scoped_tests, docs_consistency  
+Gap signal: 1 open gap; G3 UI pre-check semantics resolved, G4 documentation continuity remains
+Protocol: living project doc set
+Next step: Resume G4 documentation continuity for CompassPane README
+Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency, scoped_tests
-Last proof: 2026-06-08
-Workflow gaps reviewed: 2026-06-08
+Last proof: 2026-06-18
+Workflow gaps reviewed: 2026-06-18
 
 ## Concrete File Map
 
@@ -82,7 +86,7 @@ Workflow gaps reviewed: 2026-06-08
 | `src/components/Submap/SubmapPane.tsx` | Integration surface | Embeds Compass Pane in submap modal context, disables controls during inspect/quick travel. |
 | `src/components/layout/GameLayout.tsx` | Integration surface | Renders Compass Pane in normal exploration layout. |
 | `src/components/ui/TimeWidget.tsx` | Time display + action entry | Provides clock, moon/season display, and pass-time button callback. |
-| `src/components/CompassPane/__tests__/CompassPane.test.tsx` | Test coverage | Covers time widget rendering, move/look-around dispatch, edge disablement, and pass-time wait confirmation. |
+| `src/components/CompassPane/__tests__/CompassPane.test.tsx` | Test coverage | Covers time widget rendering, move/look-around dispatch, edge disablement, current-location boundary pre-checks, impassable adjacent world tiles, and pass-time wait confirmation. |
 | `src/hooks/actions/actionHandlers.ts` | Action dispatch registry | Maps `move`, `look_around`, `toggle_map`, `toggle_submap_visibility`, `toggle_three_d`, `wait` to handlers. |
 | `src/hooks/actions/handleMovement.ts` | Movement contract | Performs submap/world movement, wrap and bounds logic, map tile validation, time advancement, and location dispatch. |
 | `src/hooks/actions/handleObservation.ts` | Look around contract | Generates `look_around` descriptions and sets custom actions. |
@@ -94,13 +98,41 @@ Workflow gaps reviewed: 2026-06-08
 | `src/types/ui.ts` | Toggle routing | `UIToggleAction` includes map/submap/3D toggles used by `useGameActions`. |
 | `src/components/CompassPane/README.md` | Historical surface docs | Useful as an older narrative, but stale on the current file name, prop surface, and pass-time/submap wiring. |
 
+## Validated Navigation Affordances
+
+**Context-Aware Toggle Visibility Rules (T3 Resolution):**
+
+| Context | World Map Toggle | Submap Toggle | 3D Toggle | Rationale |
+|---|---|---|---|---|
+| GameLayout (main exploration) | ✅ Visible | ✅ Visible | ✅ Visible | All navigation options should be available during standard exploration |
+| SubmapPane (submap modal) | ✅ Visible | ❌ Hidden | ❌ Hidden | World map provides global context; submap/3D toggles are redundant since user is already in submap view |
+
+**G3 UI Pre-check Semantics:**
+
+| UI Case | CompassPane Pre-check | Handler Responsibility | Proof |
+|---|---|---|---|
+| Global disabled state | Movement, look-around, pass-time, and toggle buttons disabled when `disabled` is true | No movement handler runs from disabled UI controls | Existing CompassPane tests cover disabled edge behavior and pass-time flow |
+| In-bounds submap move | Button remains enabled so the player can ask to move | `handleMovement` validates submap terrain, blocks impassable terrain, and emits terrain-specific messages | Dispatch test verifies in-bounds submap move emits `move`; G3 resolution states submap terrain remains handler-owned |
+| World-boundary transition | Uses `currentLocation.mapCoordinates`, not the display-only `worldMapCoords`, to reject moves outside `mapData.gridSize` | Handler uses the current location/world coordinate source to reject unknown-world movement | New test covers boundary pre-check when `worldMapCoords` differs from `currentLocation.mapCoordinates` |
+| Impassable adjacent world tile | Disables the direction when adjacent world tile biome is not passable | Handler performs the same passability check before changing location | New test covers disabled movement into an adjacent `ocean` world tile |
+
+**Implementation Evidence:**
+- `CompassPane/index.tsx` lines 148-187: Conditional rendering based on `isSubmapContext` prop
+- `GameLayout.tsx`: Renders CompassPane without `isSubmapContext` (defaults to false)
+- `SubmapPane.tsx` line 513: Renders CompassPane with `isSubmapContext={true}`
+- `src/components/CompassPane/__tests__/CompassPane.test.tsx`: Covers current-location boundary pre-checks and impassable adjacent world tiles
+- Scoped verification: Tests pass for all navigation behaviors
+
+**Decision:** Current implementation is correct and intentional. No Required Review Brief needed.
+
 ## Implemented State (Verified)
 
 - `CompassPane` renders an 8-direction grid with a center action (line logic and labels in `CompassPane/index.tsx`).
 - Direction movement is disabled when:
   - Global `disabled` flag is true.
-  - Target world tile is outside map bounds.
+  - Target world tile is outside map bounds using `currentLocation.mapCoordinates`.
   - Target world tile biome is not passable.
+- In-bounds submap movement is not pre-blocked by CompassPane; `handleMovement` owns submap terrain validation and messaging.
 - `look_around` action is currently never movement-blocked by direction checks.
 - Time section is rendered through `TimeWidget` and pass-time launches `PassTimeModal`.
 - On pass-time confirm, Compass dispatches `wait` with seconds (`handlePassTimeConfirm`).
@@ -132,10 +164,9 @@ Workflow gaps reviewed: 2026-06-08
 
 ## Resume Path
 
-1. Resume T3 in `TRACKER.md`; the active slice is the navigation-affordance decision.
-2. Keep the movement/action regression proof in `AUDIT_OR_PROOF.md` as the durable reference for T2.
-3. Keep the submap/main-layout affordance question open until the gap log says it
-   has been accepted or closed or a Required Review Brief is added.
+1. Resume G4 in `TRACKER.md` and `GAPS.md`; the active slice is documentation continuity for `src/components/CompassPane/README.md`.
+2. Keep the movement/action and G3 pre-check regression proof in `AUDIT_OR_PROOF.md` as the durable reference for T2/T4.
+3. Keep the submap/main-layout affordance decision closed unless a new source-backed affordance change appears.
 
 
 ## Cold-Start Gap Routing

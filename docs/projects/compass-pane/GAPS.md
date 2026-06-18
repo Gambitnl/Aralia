@@ -6,16 +6,16 @@ slug: compass-pane
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-08"
+last_updated: "2026-06-18"
 gap_count: 3
 open_gap_count: 1
-resolved_gap_count: 0
+resolved_gap_count: 2
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
 visual_proof_required_count: 0
 highest_severity: none
-proof_freshness: mixed
+proof_freshness: fresh
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 north_star: docs/projects/compass-pane/NORTH_STAR.md
 tracker: docs/projects/compass-pane/TRACKER.md
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Compass Pane Gap Registry
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-18
 
 Use this file for durable unresolved findings that belong to Compass Pane.
 
@@ -110,9 +110,17 @@ Use this file for durable unresolved findings that belong to Compass Pane.
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | not_started | adjacent_follow_up | Worker B | `docs/projects/compass-pane/TRACKER.md` | Registry-to-implementation mapping | Define navigation affordances for map/submap/3D toggles in each context | `docs/projects/PROJECT_TRACKER.md`; `src/components/CompassPane/index.tsx`; `src/components/CompassPane/README.md` | Current behavior is implemented but intent is only partially documented in code/docs and differs between main layout and submap context | Define accepted rules for each UI state and lock them to tests | Acceptance criteria written and traceable to action/state checks |
-| G3 | support_needed_now | support_needed_now | Worker B | `src/hooks/actions/handleMovement.ts` and action router | State-handler scan | Confirm UI pre-check semantics match handler movement semantics on boundaries and map transitions | `src/components/CompassPane/index.tsx`; `src/hooks/actions/handleMovement.ts` | UI currently blocks some cases before handler runs, so edge behavior can be under-tested at handler level | Capture an explicit rule table for edge and impassable transitions | Add regression tests or acceptance comments in `NORTH_STAR.md` and `TRACKER.md` |
+| G1 | resolved | adjacent_follow_up | Worker B | `docs/projects/compass-pane/TRACKER.md` | Registry-to-implementation mapping | Define navigation affordances for map/submap/3D toggles in each context | `docs/projects/PROJECT_TRACKER.md`; `src/components/CompassPane/index.tsx`; `src/components/CompassPane/README.md` | Current behavior is implemented but intent is only partially documented in code/docs and differs between main layout and submap context | Define accepted rules for each UI state and lock them to tests | Acceptance criteria written and traceable to action/state checks |
+| G3 | resolved | support_needed_now | Kilo / kilo/kilo-auto/free | `src/hooks/actions/handleMovement.ts` and action router | State-handler scan | Confirm UI pre-check semantics match handler movement semantics on boundaries and map transitions | `src/components/CompassPane/index.tsx`; `src/hooks/actions/handleMovement.ts`; `src/components/CompassPane/__tests__/CompassPane.test.tsx` | UI pre-checks now mirror handler-owned source fields for world-boundary checks and have regression coverage for edge and impassable world transitions; submap terrain remains handler-owned | Rule table and regression tests document that CompassPane pre-checks global disabled state, world bounds, and world biome passability, while in-bounds submap moves and submap impassable terrain remain handler responsibility | Scoped CompassPane tests cover currentLocation-based boundary checks and impassable adjacent world tiles |
 | G4 | support_needed_now | support_needed_now | Worker B | Docs scan | Documentation continuity | `src/components/CompassPane/README.md` still describes the component as `CompassPane.tsx`, carries older prop/type wording, and omits the pass-time modal, submap context, and reducer toggle coupling details | `src/components/CompassPane/README.md`; `docs/projects/compass-pane/NORTH_STAR.md` | Mismatched docs can send future work down the wrong path and weaken cold-start accuracy | Sync the component README or keep the North Star note explicit that the README is historical only | README diff against source behavior for one pass |
+
+## G3 Resolution
+
+Date: 2026-06-18
+
+G3 is resolved as a documentation-and-proof slice. The durable rule is that CompassPane pre-checks only the cases it can verify from its props: global disabled state, current location/world boundary, and adjacent world biome passability. In-bounds submap moves are enabled in the UI so `handleMovement` can own submap terrain validation and messaging.
+
+Proof added in `src/components/CompassPane/__tests__/CompassPane.test.tsx` for current-location boundary pre-checks and impassable adjacent world tiles.
 
 ## Classification Reference
 

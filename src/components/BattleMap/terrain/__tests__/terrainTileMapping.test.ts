@@ -16,4 +16,28 @@ describe('resolveTerrainTileCoordinates', () => {
 
     expect(result).toEqual({ x: 3, y: 2 });
   });
+
+  it('uses terrain height when choosing between neighboring steep-slope tiles', () => {
+    const result = resolveTerrainTileCoordinates(
+      { x: 0.49, y: 3.0, z: 0.5 },
+      { width: 3, height: 1 },
+      {
+        sampleHeight: (tileX) => (tileX > 1 ? 3.0 : 0.0),
+      },
+    );
+
+    expect(result).toEqual({ x: 1, y: 0 });
+  });
+
+  it('falls back to projected tile flooring when no hit height is available', () => {
+    const result = resolveTerrainTileCoordinates(
+      { x: 0.49, z: 0.5 },
+      { width: 3, height: 1 },
+      {
+        sampleHeight: (tileX) => (tileX > 1 ? 3.0 : 0.0),
+      },
+    );
+
+    expect(result).toEqual({ x: 0, y: 0 });
+  });
 });

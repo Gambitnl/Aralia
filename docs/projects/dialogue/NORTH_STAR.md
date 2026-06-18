@@ -6,14 +6,18 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-10
-iteration: 3
+last_updated: 2026-06-18
+iteration: 4
 confidence: medium
 evidence: docs/projects/dialogue
 gap_signal: "6 open gaps; DIAL-001 adjacent, DIAL-002 through DIAL-005 active follow-ups, DIAL-006 routed from code-modularization audit"
 protocol: living project doc set
-next_step: Resume from TRACKER D2 and decide whether DIAL-002 cross-NPC propagation should use DiscoveryLog or NPC KnownFact path.
-agent_comments: ""
+next_step: Resume from TRACKER D2 and keep the 6-gap inventory aligned while the DIAL-002 unlock-propagation decision remains the highest-value follow-up.
+agent_comments: "No new project gap was added during the bounded sweep; DIAL-002 remains the clearest next decision point."
+active_agent: "GitHub Copilot / MAI-Code-1-Flash"
+agent_pass_status: finished
+agent_pass_started_at: "2026-06-18T00:00:00"
+agent_pass_ended_at: "2026-06-18T00:00:00"
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -39,7 +43,7 @@ human_decision_required: "no"
 # Dialogue North Star
 
 Status: active  
-Last updated: 2026-06-10
+Last updated: 2026-06-18
 
 ## Purpose
 Preserve dialogue project continuity for future workers by documenting the implemented topic-based dialogue system, how it is wired into game state and UI, and where gaps remain.
@@ -60,8 +64,8 @@ Protocol: living project doc set
 Next step: Resume from TRACKER D2 and decide whether DIAL-002 cross-NPC propagation should use DiscoveryLog or NPC KnownFact path.
 Required verification: docs_consistency
 Completed verification: docs_consistency
-Last proof: 2026-06-10
-Workflow gaps reviewed: 2026-06-10
+Last proof: 2026-06-18
+Workflow gaps reviewed: 2026-06-18
 
 ## Current system summary
 - Dialogue is implemented as topic-based interactions, not a linear scripted node graph.

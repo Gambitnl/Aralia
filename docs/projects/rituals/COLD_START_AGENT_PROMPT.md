@@ -4,12 +4,12 @@ handoff_type: agent_to_agent
 project: Rituals System
 slug: rituals
 status: active
-last_updated: 2026-06-05
-iteration: 2
-source_agent: Not recorded
+last_updated: 2026-06-17
+iteration: 3
+source_agent: Kilo application agent
 target_agent: next cold-start agent
-runtime_surface: unknown
-certainty: unknown
+runtime_surface: application agent
+certainty: confirmed
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -20,7 +20,7 @@ gaps: docs/projects/rituals/GAPS.md
 # Rituals System Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-17
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -41,11 +41,12 @@ docs/projects/rituals/NORTH_STAR.md
 | Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
 | 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
+| 2 | Kilo application agent | application agent | confirmed | 2026-06-17 | Source scan and doc refresh for RIT-3 call-chain evidence |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Rituals System
 Project folder: docs/projects/rituals
-iteration: 2
+iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -55,20 +56,15 @@ Gaps: docs/projects/rituals/GAPS.md
 
 ## Previous Agent Handoff
 
-The first pass established the project docs and gap surface. This iteration
-refreshed the dashboard schema and tightened the tracker/gap handoff without
-expanding scope. Use NORTH_STAR.md for project scope and intent, TRACKER.md for
-the active queue, and GAPS.md for unresolved findings.
+Iteration 2 performed a docs-only source sweep and refreshed RIT-3 evidence. It confirmed no live `startRitual(` caller exists outside tests, no production dispatch of ritual action types exists, and `src/types/ritual.ts` is still imported by `CombatCharacter`. It also added two newly registered gaps (RG-9, RG-10) and updated the leader/tracker/readout in docs only. Use NORTH_STAR.md for scope and resume guidance, TRACKER.md for the active queue, and GAPS.md for the current 10-gap surface.
 
 ## Current Mission
 
 Active task:
-RIT-3 - Capture and verify ritual execution coupling between combat spell casting and ritual start flow.
+RIT-3 and RIT-4 closeout sequence — keep verified ritual caller-chain evidence current and resolve the ritual type-fork decision before implementation.
 
 Acceptance criteria:
-Use the active TRACKER.md row and the Dashboard Card Schema / Next Checks in
-NORTH_STAR.md. Keep the live caller-chain evidence and type-ownership notes in
-sync with GAPS.md before making any source change.
+Use TRACKER.md rows RIT-3/RIT-4 and GAPS.md RG-1 through RG-10. Keep source-caller evidence synced with tracker/gap data. Do not implement production combat dispatch changes unless explicitly directive-approved.
 
 Key files to touch:
 - docs/projects/rituals/NORTH_STAR.md
@@ -78,19 +74,13 @@ Key files to touch:
 - Any source/docs named by the active tracker task
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done.
-This pass only refreshed docs, so keep proof limited to docs consistency unless
-the next agent makes a source change.
+Use the verification source named by TRACKER.md or NORTH_STAR.md. If none is named, add one before claiming the task is done. If source implementation is required, coupling verification gates before closeout.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+Stay inside this project's scope boundaries. Route sibling-project blockers instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. This pass added the North Star dashboard card schema and compacted
-the tracker/gap language so the next agent can resume RIT-3 or RIT-4 quickly.
+Iteration 2 refreshed the docs model from stale 8-gap wording to the verified 10-gap source-backed model. Tracker RIT-3 evidence was widened to include RG-9 (dead dispatch contract), and RIT-4 evidence was updated for RG-6/RG-10 type-duplication confirmations.
 
 Key files to touch:
 - docs/projects/rituals/NORTH_STAR.md

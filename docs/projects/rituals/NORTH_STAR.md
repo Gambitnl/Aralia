@@ -6,14 +6,14 @@ category: Gameplay Systems
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-05
+last_updated: 2026-06-17
 iteration: 2
 confidence: high
 evidence: docs/projects/rituals
-gap_signal: "8 open gaps remain; start-path wiring, typed events, interruption branches, and ritual economy math are still open"
+gap_signal: "10 open gaps remain; start-path wiring, event typing, interrupt branch coverage, type duplication, and dead ritual action dispatch remain open"
 protocol: living project doc set
-next_step: Keep RIT-3 evidence current by mapping the first live startRitual(...) caller and confirming the caller contract.
-agent_comments: ""
+next_step: Fulfill RIT-3 closeout by selecting the proven gap set (RG-1/RG-2/RG-9) for the next combat ritual flow pass; keep RG-6/RG-10 type-fork evidence current through source verification.
+agent_comments: "Resumed unfinished iteration on 2026-06-17 after review of source scan showing no live startRitual caller and no ritual action dispatch outside tests."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -23,14 +23,15 @@ required_docs:
   - AUDIT_OR_PROOF.md
   - RUNBOOK.md
 optional_docs:
+  - task docs
 required_verification:
   - scoped_tests
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-05
-workflow_gaps_reviewed: 2026-06-05
-compaction_status: not_needed
+last_proof: 2026-06-17
+workflow_gaps_reviewed: 2026-06-17
+compaction_status: done
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
@@ -64,13 +65,13 @@ Category: Gameplay Systems
 Status: active  
 Confidence: high  
 Evidence: `docs/projects/rituals`  
-Gap signal: 8 open gaps remain; start-path wiring, typed events, interruption branches, and ritual economy math are still open  
+Gap signal: 10 open gaps remain; start-path wiring, event typing, interrupt branch coverage, type duplication, and dead ritual action dispatch remain open  
 Protocol: living project doc set  
-Next step: Keep RIT-3 evidence current by mapping the first live `startRitual(...)` caller and confirming the caller contract.  
+Next step: Fulfill RIT-3 closeout by selecting the proven gap set (RG-1/RG-2/RG-9) for the next combat ritual flow pass; keep RG-6/RG-10 type-fork evidence current through source verification.  
 Required verification: `scoped_tests`, `docs_consistency`  
 Completed verification: `docs_consistency`  
-Last proof: 2026-06-05  
-Workflow gaps reviewed: 2026-06-05
+Last proof: 2026-06-17  
+Workflow gaps reviewed: 2026-06-17
 
 ## Concrete File Map
 

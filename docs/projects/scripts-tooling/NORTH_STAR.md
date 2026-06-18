@@ -6,14 +6,18 @@ category: Developer Tooling
 main_category: "Tools, Docs & Agents"
 subcategory: "Scripts & Automation"
 status: active
-last_updated: 2026-06-05
-iteration: 2
+last_updated: 2026-06-17
+iteration: 3
 confidence: medium
 evidence: docs/projects/scripts-tooling
-gap_signal: 3 open gaps
+gap_signal: 3 open gaps; STG-001 registry coverage, STG-003 workflow-script mapping, STG-004 run-log data integrity
 protocol: living project doc set
-next_step: Review ST-2 in TRACKER.md and decide whether trackRun() coverage should stay selective or be expanded.
+next_step: Review STG-001 in GAPS.md and decide whether script-registry.json should expand to cover more tooling scripts or remain intentionally scoped.
 agent_comments: ""
+active_agent: "Qoder CLI"
+agent_pass_status: finished
+agent_pass_started_at: "2026-06-17T18:00:00+02:00"
+agent_pass_ended_at: "2026-06-17T18:30:00+02:00"
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -27,8 +31,8 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-05
-workflow_gaps_reviewed: 2026-06-05
+last_proof: 2026-06-17
+workflow_gaps_reviewed: 2026-06-17
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -39,7 +43,7 @@ human_decision_required: "no"
 # NORTH_STAR: Scripts: Tooling
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-17
 
 ## Dashboard Card Schema
 
@@ -49,13 +53,13 @@ Category: Developer Tooling
 Status: active
 Confidence: medium
 Evidence: docs/projects/scripts-tooling
-Gap signal: 3 open gaps
+Gap signal: 3 open gaps; STG-001 registry coverage, STG-003 workflow-script mapping, STG-004 run-log data integrity
 Protocol: living project doc set
-Next step: Review ST-2 in TRACKER.md and decide whether `trackRun()` coverage should stay selective or be expanded.
+Next step: Review STG-001 in GAPS.md and decide whether script-registry.json should expand to cover more tooling scripts or remain intentionally scoped.
 Required verification: docs_consistency
 Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Last proof: 2026-06-17
+Workflow gaps reviewed: 2026-06-17
 
 ## Why this project exists
 
@@ -117,12 +121,13 @@ Allowed scope for this documentation pass:
 | Field | Value |
 |---|---|
 | Task | ST-2: Decide whether to align script-tracker adoption for more tooling scripts. |
-| Acceptance criteria | The docs record whether `trackRun()` adoption should expand or remain intentionally selective, and the gap file reflects that decision. |
+| Status | done — `trackRun()` adoption stays intentionally selective. See DECISIONS.md D2. |
+| Next gap | STG-001: Decide whether `script-registry.json` should expand to cover more tooling scripts. |
 | Allowed boundaries | `docs/projects/scripts-tooling/*` only. |
 | Stop condition | Do not edit tooling code or add new script behavior. |
-| Verification | Re-scan `scripts/tooling`, `script-tracker.ts`, and `.run-log.json` coverage, then record the decision in tracker/gaps. |
-| Owner | Worker C |
-| Next action | Re-read ST-2 evidence and confirm whether the folder is intentionally selective or under-tracked. |
+| Verification | Re-scan `scripts/tooling`, `script-registry.json` coverage, and record the decision. |
+| Owner | next agent |
+| Next action | Re-read STG-001 evidence and confirm whether the registry is intentionally scoped or under-represented. |
 
 ## Scope boundaries
 

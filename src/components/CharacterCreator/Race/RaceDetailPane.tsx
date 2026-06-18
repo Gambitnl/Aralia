@@ -410,24 +410,11 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
 
                 {/* Traits List */}
                 <div className="space-y-3 flex-grow">
-                    <h3 className="text-lg font-cinzel text-sky-400 border-b border-gray-700 pb-1 mb-2">Racial Traits</h3>
-                    <CharacterCreatorTraitsTable
-                        baseTraits={race.baseTraits}
-                        traits={race.feats}
-                        onSpellClick={setInfoSpellId}
-                        spellsOfTheMark={race.spellsOfTheMark}
-                    />
-
-                    {race.furtherChoicesNote && (
-                        <div className="mt-4 p-3 bg-sky-900/20 border border-sky-700/50 rounded-lg flex gap-3 items-start">
-                            <span className="text-sky-400 text-xl">ℹ️</span>
-                            <p className="text-sm text-sky-200/80">{race.furtherChoicesNote}</p>
-                        </div>
-                    )}
-
-                    {/* Racial Spell Ability Choice */}
+                    {/* Racial Spell Ability Choice — surfaced at the top of the
+                        section because it is a required choice; leaving it below
+                        the traits table made players miss it (UX feedback). */}
                     {race.racialSpellChoice && (
-                        <div className="mt-4 bg-purple-900/20 border border-purple-700/50 rounded-lg overflow-hidden">
+                        <div className="bg-purple-900/20 border border-purple-700/50 rounded-lg overflow-hidden">
                             <div className="p-3 border-b border-purple-700/50">
                                 <h4 className="text-sm font-semibold text-purple-300 flex items-center gap-2">
                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -454,6 +441,21 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
                                     ))}
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    <h3 className="text-lg font-cinzel text-sky-400 border-b border-gray-700 pb-1 mb-2">Racial Traits</h3>
+                    <CharacterCreatorTraitsTable
+                        baseTraits={race.baseTraits}
+                        traits={race.feats}
+                        onSpellClick={setInfoSpellId}
+                        spellsOfTheMark={race.spellsOfTheMark}
+                    />
+
+                    {race.furtherChoicesNote && (
+                        <div className="mt-4 p-3 bg-sky-900/20 border border-sky-700/50 rounded-lg flex gap-3 items-start">
+                            <span className="text-sky-400 text-xl">ℹ️</span>
+                            <p className="text-sm text-sky-200/80">{race.furtherChoicesNote}</p>
                         </div>
                     )}
 
