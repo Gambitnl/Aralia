@@ -1,7 +1,67 @@
 
-import { describe, it, expect } from 'vitest';
+/**
+ * This file proves that battle setup generation is stable and safe.
+ *
+ * The combat screen depends on this helper to turn a seed, biome, and roster
+ * into a shared tactical map with real character positions. These tests keep
+ * that setup deterministic, object-aware, and able to recover when preferred
+ * spawn zones are too dense for ordinary placement.
+ */
+import { describe, it, expect, vi } from 'vitest';
 import { generateBattleSetup } from '../useBattleMapGeneration';
 import { createMockCombatCharacter } from '../../utils/factories';
+import type { BattleMapData, BattleMapTile } from '../../types/combat';
+
+// ============================================================================
+// Dense Map Test Helpers
+// ============================================================================
+// This section creates tiny generated maps for edge-case placement tests.
+// Building the map in the test keeps the production generator untouched while
+// still proving how the setup helper behaves when its usual spawn zones fail.
+// ============================================================================
+
+const createDenseFallbackMap = (): BattleMapData => {
+    const width = 10;
+    const height = 10;
+    const tiles = new Map<string, BattleMapTile>();
+
+    // Start with a fully blocked battlefield so both preferred spawn zones are
+    // exhausted. The center tiles below are the only legal fallback positions.
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const key = `${x}-${y}`;
+            tiles.set(key, {
+                id: key,
+                coordinates: { x, y },
+                terrain: 'wall',
+                elevation: 0,
+                movementCost: 5,
+                blocksLoS: true,
+                blocksMovement: true,
+                decoration: null,
+                effects: []
+            });
+        }
+    }
+
+    // Leave a small central island walkable. This proves fallback placement can
+    // move outside the preferred zone instead of dropping character positions.
+    for (const [x, y] of [[4, 4], [5, 4], [4, 5], [5, 5]]) {
+        const tile = tiles.get(`${x}-${y}`)!;
+        tile.terrain = 'floor';
+        tile.elevation = 1;
+        tile.blocksLoS = false;
+        tile.blocksMovement = false;
+    }
+
+    return {
+        dimensions: { width, height },
+        tiles,
+        targetableObjects: [],
+        theme: 'dungeon',
+        seed: 999
+    };
+};
 
 describe('useBattleMapGeneration', () => {
     it('should be deterministic when given the same seed', () => {
@@ -127,5 +187,61 @@ describe('useBattleMapGeneration', () => {
             const mapDiag = Math.hypot(mapData.dimensions.width, mapData.dimensions.height);
             expect(dist).toBeGreaterThan(mapDiag * 0.3);
         }
+    });
+
+    it('keeps 40x30 tactical spawn generation within the documented budget', () => {
+        const characters = [
+            ...[1, 2, 3, 4, 5, 6].map(i => createMockCombatCharacter({ id: `p${i}`, team: 'player' })),
+            ...[1, 2, 3, 4, 5, 6].map(i => createMockCombatCharacter({ id: `e${i}`, team: 'enemy' }))
+        ];
+
+        // Measure only the setup call. Vitest import and transform time is not
+        // part of the gameplay budget; the 40x30 map setup itself should remain
+        // comfortably below the G6 <=50ms target.
+        const startedAt = performance.now();
+        const { mapData, positionedCharacters } = generateBattleSetup('forest', 13579, characters);
+        const durationMs = performance.now() - startedAt;
+
+        expect(mapData.dimensions).toEqual({ width: 40, height: 30 });
+        expect(positionedCharacters.every(character => character.position)).toBe(true);
+        expect(durationMs).toBeLessThanOrEqual(50);
+    });
+
+    it('falls back to nearest walkable tiles when preferred spawn zones are exhausted', async () => {
+        // Mock only the procedural generator for this test. The setup helper
+        // still runs its real spawn-zone logic, which is the behavior under
+        // proof for dense generated maps.
+        vi.resetModules();
+        vi.doMock('../../services/battleMapGenerator', () => ({
+            BattleMapGenerator: class {
+                generate() {
+                    return createDenseFallbackMap();
+                }
+            }
+        }));
+
+        const { generateBattleSetup: generateWithDenseMap } = await import('../useBattleMapGeneration');
+        const characters = [
+            createMockCombatCharacter({ id: 'p1', team: 'player' }),
+            createMockCombatCharacter({ id: 'p2', team: 'player' }),
+            createMockCombatCharacter({ id: 'e1', team: 'enemy' }),
+            createMockCombatCharacter({ id: 'e2', team: 'enemy' })
+        ];
+
+        const { positionedCharacters, mapData } = generateWithDenseMap('dungeon', 999, characters);
+        const positions = positionedCharacters.map(character => character.position);
+
+        // Every character must get a real walkable tile even when the normal
+        // side/corner zones have no legal candidates.
+        expect(positions.every(Boolean)).toBe(true);
+        expect(new Set(positions.map(position => `${position!.x}-${position!.y}`)).size).toBe(characters.length);
+
+        for (const position of positions) {
+            const tile = mapData.tiles.get(`${position!.x}-${position!.y}`);
+            expect(tile?.blocksMovement).toBe(false);
+        }
+
+        vi.doUnmock('../../services/battleMapGenerator');
+        vi.resetModules();
     });
 });

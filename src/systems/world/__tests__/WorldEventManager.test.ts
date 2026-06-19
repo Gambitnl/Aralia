@@ -6,7 +6,7 @@
  * Tests for the WorldEventManager.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { processWorldEvents } from '../WorldEventManager';
 // TODO(lint-intent): 'GamePhase' is unused in this test; use it in the assertion path or remove it.
 import { GameState, GamePhase as _GamePhase } from '../../../types';
@@ -134,5 +134,24 @@ describe('WorldEventManager', () => {
         expect(spreadRumor).toBeDefined();
         expect(spreadRumor?.spreadDistance).toBeGreaterThanOrEqual(1);
         expect(spreadRumor?.virality).toBeLessThan(1.0);
+    });
+
+    it('should emit stable daily-world log IDs for the same seeded state', () => {
+        const dateNowSpy = vi.spyOn(Date, 'now');
+
+        try {
+            // The world simulation is seeded from state, so wall-clock time must not
+            // become part of replayable daily event IDs.
+            dateNowSpy.mockReturnValue(1000);
+            const firstRun = processWorldEvents(baseState, 100);
+
+            dateNowSpy.mockReturnValue(9000);
+            const secondRun = processWorldEvents(baseState, 100);
+
+            expect(firstRun.logs.length).toBeGreaterThan(0);
+            expect(firstRun.logs.map(log => log.id)).toEqual(secondRun.logs.map(log => log.id));
+        } finally {
+            dateNowSpy.mockRestore();
+        }
     });
 });

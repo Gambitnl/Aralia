@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 04:34:00
+ * Last Sync: 18/06/2026, 04:24:29
  * Dependents: state/reducers/worldReducer.ts, systems/world/NobleIntrigueManager.ts
  * Imports: 18 files
  *
@@ -55,6 +55,26 @@ export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD
 
 
 // Probability of an event occurring per day (0.0 to 1.0)
+
+const createDailyWorldLogId = (state: GameState, rng: SeededRandom): number => {
+    // Daily world events are replayed from saved game time and seed, so log IDs
+    // must come from the same deterministic inputs instead of the wall clock.
+    const timestamp = state.gameTime || new Date();
+    const gameDay = getGameDay(timestamp);
+    return (gameDay * 1_000_000) + Math.floor(rng.next() * 1_000_000);
+};
+
+const normalizeDailyWorldLogIds = (state: GameState, logs: GameMessage[]): GameMessage[] => {
+    // Some daily subsystems still produce their own wall-clock IDs. The world
+    // manager owns the returned daily log envelope, so it assigns stable IDs
+    // without reaching into sibling economy, quest, or intrigue internals.
+    const timestamp = state.gameTime || new Date();
+    const gameDay = getGameDay(timestamp);
+    return logs.map((log, index) => ({
+        ...log,
+        id: (gameDay * 1_000_000) + index + 1
+    }));
+};
 
 
 /**
@@ -155,7 +175,7 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
     const text = `Rumors arrive: Skirmish between ${factionA.name} and ${factionB.name}. ${winner.name} claimed victory.`;
 
     logs.push({
-        id: Date.now() + rng.next(),
+        id: createDailyWorldLogId(state, rng),
         text,
         sender: 'system',
         timestamp: timestamp
@@ -271,6 +291,9 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
  * Adds flavor text and updates economy state.
  */
 const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResult => {
+    const timestamp = state.gameTime || new Date();
+    const eventStartTime = timestamp.getTime();
+
     // Define potential market events with actual gameplay effects
     const events: Array<{ text: string; event: MarketEvent & { affectedTags?: string[]; effect?: MarketEventImpactDirection; duration: number }, weight?: number }> = [
         {
@@ -284,7 +307,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 duration: 5,
                 type: MarketEventType.SURPLUS,
                 intensity: 1,
-                startTime: Date.now()
+                startTime: eventStartTime
             },
             weight: 1
         },
@@ -299,7 +322,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 duration: 7,
                 type: MarketEventType.SHORTAGE,
                 intensity: 1,
-                startTime: Date.now()
+                startTime: eventStartTime
             },
             weight: 1
         },
@@ -314,7 +337,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 duration: 10,
                 type: MarketEventType.SHORTAGE,
                 intensity: 1,
-                startTime: Date.now()
+                startTime: eventStartTime
             },
             weight: 1
         },
@@ -329,7 +352,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 duration: 5,
                 type: MarketEventType.SURPLUS,
                 intensity: 1,
-                startTime: Date.now()
+                startTime: eventStartTime
             },
             weight: 1
         }
@@ -366,7 +389,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                     duration: 7,
                     type: MarketEventType.SURPLUS,
                     intensity: 1,
-                    startTime: Date.now()
+                    startTime: eventStartTime
                 },
                 weight: 4
             });
@@ -387,11 +410,10 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
         roll -= w;
     }
 
-    const timestamp = state.gameTime || new Date();
     const gameDay = getGameDay(timestamp);
 
     const logs: GameMessage[] = [{
-        id: Date.now() + rng.next(),
+        id: createDailyWorldLogId(state, rng),
         text: `Market News: ${selection.text}`,
         sender: 'system',
         timestamp: timestamp
@@ -450,7 +472,7 @@ const handleRumorSpread = (state: GameState, rng: SeededRandom): WorldEventResul
     const gameDay = getGameDay(timestamp);
 
     const logs: GameMessage[] = [{
-        id: Date.now() + rng.next(),
+        id: createDailyWorldLogId(state, rng),
         text: `Gossip: ${text}`,
         sender: 'system',
         timestamp: timestamp
@@ -643,7 +665,7 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
                 }
             };
             allLogs.push({
-                id: Date.now() + rng.next(),
+                id: createDailyWorldLogId(currentState, rng),
                 text: message,
                 sender: 'system',
                 timestamp: currentState.gameTime
@@ -673,7 +695,7 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
         currentState = { ...currentState, factions: factionEconResult.factions };
         for (const logText of factionEconResult.logs) {
             allLogs.push({
-                id: Date.now() + rng.next(),
+                id: createDailyWorldLogId(currentState, rng),
                 text: logText,
                 sender: 'system',
                 timestamp: currentState.gameTime
@@ -688,7 +710,7 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
         if (delivered.length > 0) {
             for (const courier of delivered) {
                 allLogs.push({
-                    id: Date.now() + rng.next(),
+                    id: createDailyWorldLogId(currentState, rng),
                     text: `[Courier] ${courier.messageText}`,
                     sender: 'system',
                     timestamp: currentState.gameTime
@@ -698,5 +720,5 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
         }
     }
 
-    return { state: currentState, logs: allLogs };
+    return { state: currentState, logs: normalizeDailyWorldLogIds(currentState, allLogs) };
 };

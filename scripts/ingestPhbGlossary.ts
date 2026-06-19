@@ -5,6 +5,51 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+// This function is exported for testing purposes.
+export function buildItemMetadata(item: any, typeMap: Record<string, string>): any {
+    const itemMetadata: any = {};
+
+    if (item.type) {
+        const typeAbbr = item.type.split('|')[0];
+        const typeName = typeMap[typeAbbr] || typeAbbr;
+        itemMetadata.type = typeName;
+    } else {
+        if (item.wondrous) {
+            itemMetadata.type = 'Wondrous Item';
+        } else if (item.potion) {
+            itemMetadata.type = 'Potion';
+        } else if (item.ring) {
+            itemMetadata.type = 'Ring';
+        } else if (item.rod) {
+            itemMetadata.type = 'Rod';
+        } else if (item.scroll) {
+            itemMetadata.type = 'Scroll';
+        } else if (item.staff) {
+            itemMetadata.type = 'Staff';
+        } else if (item.wand) {
+            itemMetadata.type = 'Wand';
+        }
+    }
+    if (item.rarity) itemMetadata.rarity = item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1);
+    if (item.tier) itemMetadata.tier = item.tier.charAt(0).toUpperCase() + item.tier.slice(1);
+    if (item.reqAttune) {
+        if (item.reqAttune === true) itemMetadata.reqAttune = 'Required';
+        else itemMetadata.reqAttune = `Required ${item.reqAttune}`;
+    }
+    if (item.value) itemMetadata.cost = item.value / 100;
+    if (item.weight) itemMetadata.weight = item.weight;
+    if (item.dmg1) itemMetadata.damage = `${item.dmg1} ${item.dmgType || ''}`.trim();
+    if (item.property && item.property.length > 0) itemMetadata.properties = item.property;
+    if (item.ac) itemMetadata.ac = item.ac;
+
+    if (Object.keys(itemMetadata).length === 0) {
+        return null;
+    }
+
+    return itemMetadata;
+}
+
+
 const VENDOR_DATA_DIR = path.join(process.cwd(), 'vendor/5etools-src/data');
 const ENTRIES_BASE = path.join(process.cwd(), 'public/data/glossary/entries');
 
@@ -154,48 +199,11 @@ function processSourceFiles() {
 
         // --- GAP RESOLUTION: Parse Item Metadata ---
         if (source.category === 'Equipment') {
-            itemMetadata = {};
-            if (item.type) {
-                const typeAbbr = item.type.split('|')[0];
-                const typeName = typeMap[typeAbbr] || typeAbbr;
-                itemMetadata.type = typeName;
-                itemTags.push(`itemType:${typeName}`);
-            } else {
-                if (item.wondrous) {
-                    itemMetadata.type = 'Wondrous Item';
-                    itemTags.push(`itemType:Wondrous Items`);
-                } else if (item.potion) {
-                    itemMetadata.type = 'Potion';
-                    itemTags.push(`itemType:Potions`);
-                } else if (item.ring) {
-                    itemMetadata.type = 'Ring';
-                    itemTags.push(`itemType:Rings`);
-                } else if (item.rod) {
-                    itemMetadata.type = 'Rod';
-                    itemTags.push(`itemType:Rods`);
-                } else if (item.scroll) {
-                    itemMetadata.type = 'Scroll';
-                    itemTags.push(`itemType:Scrolls`);
-                } else if (item.staff) {
-                    itemMetadata.type = 'Staff';
-                    itemTags.push(`itemType:Staves`);
-                } else if (item.wand) {
-                    itemMetadata.type = 'Wand';
-                    itemTags.push(`itemType:Wands`);
-                }
+            itemMetadata = buildItemMetadata(item, typeMap);
+            if (itemMetadata?.type) {
+                // Add itemType tag if the metadata build process found a type.
+                itemTags.push(`itemType:${itemMetadata.type}`);
             }
-            if (item.rarity) itemMetadata.rarity = item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1);
-            if (item.tier) itemMetadata.tier = item.tier.charAt(0).toUpperCase() + item.tier.slice(1);
-            if (item.reqAttune) {
-                if (item.reqAttune === true) itemMetadata.reqAttune = 'Required';
-                else itemMetadata.reqAttune = `Required ${item.reqAttune}`;
-            }
-            if (item.value) itemMetadata.cost = item.value; // Keep in cp or whatever base, we can handle conversion in UI. Wait, let's normalize to gp.
-            if (item.value) itemMetadata.cost = item.value / 100; 
-            if (item.weight) itemMetadata.weight = item.weight;
-            if (item.dmg1) itemMetadata.damage = `${item.dmg1} ${item.dmgType || ''}`.trim();
-            if (item.property && item.property.length > 0) itemMetadata.properties = item.property;
-            if (item.ac) itemMetadata.ac = item.ac;
         }
         
         mdBody += entriesToMarkdown(item.entries || []).trim();

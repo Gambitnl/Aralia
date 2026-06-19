@@ -41,3 +41,12 @@ Last updated: 2026-06-17
 - **Heist Planning:** Heist modal UI changes must include type tests against 	types/crime/index.ts and verify phase assumptions against crimeReducer.ts once core debt (Crime core G5) is resolved.
 - **Safehouse Services:** UI should use ThievesGuildSystem.getAvailableServices() and ensure snapshot/unit tests reflect the actual economic context, avoiding conflicts with core's orphan systems (Crime core G3).
 
+
+
+## Gap Log
+
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G2 | active | support_needed_now | Qoder | docs/projects/crime-ui/GAPS.md | docs pass + 2026-06-15 code re-scan | Fence sale contract dispatches generic SELL_ITEM with no crime-specific handler in crimeReducer.ts | FenceInterface.tsx:42-48, ctionTypes.ts:109, crimeReducer.ts (no SELL_ITEM case) | Core criminal consequence model (heat, exposure) cannot be enforced from UI currently | Decide whether to keep generic action or add FENCE_SELL_ITEM crime-specific action with heat/bounty side-effects | confirm behavior tests around heat/bounty side-effects |
+| G3 | done | in_scope_now | Gemini CLI | docs/projects/crime-ui/GAPS.md | Iteration 4 | Heist planning modal uses local cast to enforce non-optionality | HeistPlanningModal.tsx, 	ypes/crime/index.ts | Fragile type boundary: cast bypasses TS null-safety | Narrowed types | Unit test coverage confirmed |
+| G4 | done | support_needed_now | Gemini CLI | docs/projects/crime-ui/GAPS.md | Iteration 4 | Safehouse service list hardcoded | ThievesGuildSafehouse.tsx | Service names/rank/cost drift | Refactored to use system call | Snapshot/unit test confirms dynamic service render |

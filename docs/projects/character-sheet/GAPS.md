@@ -3,13 +3,13 @@ schema_version: 1
 gap_schema: project_gap_registry
 project: Character Sheet
 slug: character-sheet
-status: "active (G7 decided 2026-06-10; implementation lane open)"
+status: "active (G7 implemented 2026-06-19; remaining gaps open)"
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-10"
+last_updated: "2026-06-19"
 gap_count: 5
-open_gap_count: 5
-resolved_gap_count: 0
+open_gap_count: 4
+resolved_gap_count: 1
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
@@ -101,8 +101,8 @@ supported_optional_sections:
 ---
 # Character Sheet Gap Registry
 
-Status: active (G7 decided 2026-06-10; implementation lane open)
-Last updated: 2026-06-10
+Status: active (G7 implemented 2026-06-19; remaining gaps open)
+Last updated: 2026-06-19
 
 Use this file only for durable unresolved findings that belong to this project.
 
@@ -112,7 +112,7 @@ Use this file for durable unresolved findings that are too important or too larg
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
 | G5 | not_started | adjacent_follow_up | Codex | `docs/projects/code-modularization-audit` CMA-G8 | Code modularization audit routing | Character/race derivation and race presentation are large enough that future splits need a sheet-consumer contract. | `src/utils/character/characterUtils.ts`; `src/data/races/racialTraits.ts`; `src/components/CharacterCreator/Race/RaceDetailPane.tsx`; `src/components/CharacterSheet/*` | Character sheet consumers can drift if character build output changes during creator modularization. | Add a sheet-owned acceptance map for fields that depend on character/race derivation before creator split work starts. | Character sheet field mapping table plus `characterUtils` tests referenced in split plan |
-| G7 | active | blocked_human_decision | gpt-5.4-mini high / MCP-subagent | `src/components/CharacterSheet/Overview` | codebase audit | Hardcoded food decay / expiration in `InventoryList.tsx` needs a lifecycle decision before implementation | `src/components/CharacterSheet/Overview/InventoryList.tsx#L408-L481`, `src/types/items.ts`, `src/types/provenance.ts`, `src/data/item_templates/index.ts`; `docs/projects/DECISION_BLITZ_2026-06-10.md` D16 | The `isExpired` flag is a hardcoded placeholder (`const isExpired = false`), but the `Item` model only exposes `perishable` and a descriptive `shelfLife`; there is no durable `acquiredAt` field or wired inventory timestamp to compute freshness from safely. | Decided 2026-06-10 (Remy, D16, Option A): add durable `acquiredAt` acquisition-timestamp semantics to the item model, backfill/migrate inventory data, then implement food expiration from that source. | Source-backed `acquiredAt` model/migration plus a focused InventoryList render test for fresh and expired food. |
+| G7 | resolved | data-model | Codex | `src/components/CharacterSheet/Overview` | codebase audit | Hardcoded food decay / expiration in `InventoryList.tsx` needed durable acquisition timing before implementation | `src/types/items.ts` optional `acquiredAt`; `src/state/reducers/characterReducer.ts` stamps `ADD_ITEM` and merchant `BUY_ITEM`; `src/components/CharacterSheet/Overview/InventoryList.tsx` parses `shelfLife` and computes expiration; `src/components/CharacterSheet/__tests__/InventoryList.test.tsx`; `docs/projects/DECISION_BLITZ_2026-06-10.md` D16 | The inventory UI now computes perishable food freshness from item-instance acquisition time and disables visibly expired food instead of relying on `const isExpired = false`. | Implemented 2026-06-19 per D16 Option A within scoped acquisition paths; legacy unstamped items stay migration-safe and non-expired until a durable acquisition/save-load path stamps them. | `npm run test -- src/components/CharacterSheet/__tests__/InventoryList.test.tsx --run` passed; `npm run typecheck` remains blocked by unrelated existing repo-wide errors. |
 | G8 | untriaged | adjacent_follow_up | Gemini 3.5 Flash | `src/components/CharacterSheet/Overview` | codebase audit | Character Sheet does not provide visual feedback (e.g. red text or a warning icon) when a character suffers a speed penalty from wearing Heavy Armor without meeting the Strength requirement. | `src/components/CharacterSheet/Overview/CharacterOverview.tsx`, `src/utils/character/characterUtils.ts` | Obscures mechanical penalties, leading to confusion about why speed values are lower than expected. | Add a warning indicator to the Speed field in `CharacterOverview` when an armor-based penalty is active. | Verify warning visibility for a low-STR character in Plate armor. |
 | G9 | untriaged | adjacent_follow_up | Gemini 3.5 Flash | `src/components/CharacterSheet/Overview` | codebase audit | Equippable items without defined slots are incorrectly skipped or blocked in `InventoryList.tsx` | `src/components/CharacterSheet/Overview/InventoryList.tsx#L400-L407` | Valid equippable items that lack a slot property are treated as non-equippable/blocked rather than logging a warning. | Log a warning for equippable items without slots or handle them gracefully in the equip flow. | Test coverage or verification showing graceful handling of slotless equippable items. |
 | G10 | untriaged | adjacent_follow_up | Gemini 3.5 Flash | `src/components/CharacterSheet/Overview` | codebase audit | Container assignments live in transient local React state instead of persistent global state | `src/components/CharacterSheet/Overview/InventoryList.tsx#L274-L296` | Item assignments to bags/containers are lost whenever the character sheet modal closes and remounts. | Migrate container assignments to the global `gameState` or store `containerId` changes in the item model via reducer actions. | Verify bag assignments persist after closing and reopening the character sheet modal. |

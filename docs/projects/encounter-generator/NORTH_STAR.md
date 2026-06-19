@@ -6,14 +6,18 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: review-required
-last_updated: 2026-06-09
-iteration: 3
+last_updated: 2026-06-18
+iteration: 4
 confidence: medium
 evidence: docs/projects/encounter-generator
 gap_signal: 1 open gap (G4 AI determinism boundary)
 protocol: living project doc set
 next_step: Resolve G4 human decision (full AI replay vs local-only replay contract), then resume T3/T4 implementation if approved.
 agent_comments: ""
+active_agent: Codex CLI agent
+agent_pass_status: review_required
+agent_pass_started_at: 2026-06-18T21:26:50+02:00
+agent_pass_ended_at: 2026-06-18T21:29:31+02:00
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -29,8 +33,8 @@ required_verification:
 completed_verification:
   - scoped_tests
   - docs_consistency
-last_proof: 2026-06-09
-workflow_gaps_reviewed: 2026-06-09
+last_proof: 2026-06-18
+workflow_gaps_reviewed: 2026-06-18
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -41,7 +45,7 @@ human_decision_required: "yes"
 # Encounter Generator North Star
 
 Status: review-required
-Last updated: 2026-06-09
+Last updated: 2026-06-18
 
 ## Dashboard Card Schema
 
@@ -56,8 +60,8 @@ Protocol: living project doc set
 Next step: Resolve G4 human decision (full AI replay vs local-only replay contract), then resume T3/T4 implementation if approved.
 Required verification: scoped_tests, docs_consistency
 Completed verification: scoped_tests, docs_consistency
-Last proof: 2026-06-09
-Workflow gaps reviewed: 2026-06-09
+Last proof: 2026-06-18
+Workflow gaps reviewed: 2026-06-18
 
 ## Required Review Brief
 

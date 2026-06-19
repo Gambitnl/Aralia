@@ -1,32 +1,25 @@
 /**
- * This file verifies that the world-sim artifact used by 3D is generated from shared
- * terrain/baseline inputs, not from the 2D Azgaar river mask on disk.
+ * This file verifies the first WSS-005a feature-source bridge.
  *
- * It exists as a safety contract for WSS-005: before we decide whether 2D and 3D
- * should share one feature source, we need a focused proof that those feature feeds are
- * currently separate.
+ * Azgaar is now the product-decided source of truth for atlas features. This test
+ * proves that the WorldData object persisted for 3D keeps a typed Azgaar hint payload
+ * beside its generated geometry, so later renderer/gameplay work can follow the same
+ * canonical river/site/road source without guessing from regenerated polylines.
  */
 
 import { runWorldSim } from '../index';
 import { generateAzgaarDerivedMap } from '../../azgaarDerivedMapService';
 import { BIOMES, LOCATIONS } from '@/constants';
 
-function rasterizeWorldRiverCells(rivers: Array<{ points: { x: number; y: number }[] }>, cols: number, rows: number): boolean[] {
-  const cells = new Array(rows * cols).fill(false);
-  for (const river of rivers) {
-    for (const { x, y } of river.points) {
-      const nx = Math.floor(x);
-      const ny = Math.floor(y);
-      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) {
-        continue;
-      }
-      cells[ny * cols + nx] = true;
-    }
-  }
-  return cells;
-}
+// ============================================================================
+// Fixed-Seed Acceptance
+// ============================================================================
+// This section uses the same seed that exposed the old atlas-vs-WorldData river
+// split. The new contract does not remove generated geometry yet; it adds the
+// canonical Azgaar feature hints that downstream bridge work can consume.
+// ============================================================================
 
-it('proves WSS-005 at source: Azgaar river mask is not the 3D worldSim input', () => {
+it('carries Azgaar feature hints into WorldData as the shared feature truth', () => {
   const rows = 40;
   const cols = 60;
   const worldSeed = 2026;
@@ -37,16 +30,19 @@ it('proves WSS-005 at source: Azgaar river mask is not the 3D worldSim input', (
   }
 
   const azgaarMask = mapData.azgaarWorld.rivers;
-  const worldMask = rasterizeWorldRiverCells(mapData.worldData.rivers, cols, rows);
+  const featureHints = mapData.worldData.featureHints;
 
+  // The atlas and WorldData must keep the same Azgaar river mask. This is the
+  // first durable proof that the bridge carries canonical feature truth instead
+  // of relying on a separately traced 3D river network.
   expect(azgaarMask).toHaveLength(rows * cols);
-  expect(worldMask).toHaveLength(rows * cols);
-  const mismatchCount = azgaarMask.reduce((count, hasRiver, index) => count + (hasRiver === worldMask[index] ? 0 : 1), 0);
-  expect(mismatchCount).toBeGreaterThan(0);
+  expect(featureHints?.source).toBe('azgaar');
+  expect(featureHints?.rivers).toEqual(azgaarMask);
+  expect(featureHints?.sites).toEqual([]);
+  expect(featureHints?.roads).toEqual([]);
 
-  // Re-run the same terrain pipeline as the Azgaar-derived world producer to show
-  // that 3D world artifacts are a deterministic function of this terrain and are not
-  // altered by the Azgaar boolean-river input channel.
+  // Re-run the same terrain pipeline with the same feature hints to prove that
+  // the bridge is deterministic for a fixed seed and source payload.
   const fromSourceInput = runWorldSim({
     seed: worldSeed,
     templateId: mapData.azgaarWorld.templateId,
@@ -56,8 +52,8 @@ it('proves WSS-005 at source: Azgaar river mask is not the 3D worldSim input', (
     temperatures: mapData.azgaarWorld.temperatures,
     moisture: mapData.azgaarWorld.moisture,
     biomeIds: mapData.tiles.flat().map((tile) => tile.biomeId),
+    featureHints,
   });
 
-  expect(fromSourceInput).toBeDefined();
   expect(JSON.stringify(fromSourceInput)).toBe(JSON.stringify(mapData.worldData));
 });

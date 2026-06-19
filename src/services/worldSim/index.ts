@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 19/06/2026, 00:45:39
+ * Dependents: services/azgaarDerivedMapService.ts, state/migrations/worldDataMigration.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file index.ts
  * @description World-sim pipeline entry point. Integrates marching squares (coastlines/lakes),
@@ -16,7 +32,7 @@
  */
 
 import { SeededRandom } from '@/utils/random';
-import type { WorldData } from './types';
+import type { WorldData, WorldFeatureHints } from './types';
 import { extractCoastlines, extractLakes } from './coastlinesAndLakes';
 import { extractBiomeZones } from './biomeZones';
 import { traceRivers } from './rivers';
@@ -32,6 +48,7 @@ export interface RunWorldSimInput {
   temperatures: number[];
   moisture: number[];
   biomeIds: string[];
+  featureHints?: WorldFeatureHints;
 }
 
 // Global density rules for world generation (proportionate to grid cells count)
@@ -45,7 +62,7 @@ const RUIN_DENSITY = 1 / 150;
  * Produces fully hydrated, deterministic WorldData.
  */
 export function runWorldSim(input: RunWorldSimInput): WorldData {
-  const { seed, templateId, cols, rows, heights, temperatures, moisture, biomeIds } = input;
+  const { seed, templateId, cols, rows, heights, temperatures, moisture, biomeIds, featureHints } = input;
   // Blend seed with salt to avoid correlation between placement RNG and map/heightmap RNG
   const rng = new SeededRandom(seed ^ 0xa5a5a5a5);
 
@@ -64,6 +81,24 @@ export function runWorldSim(input: RunWorldSimInput): WorldData {
   const sites = placeSites(heights, cols, rows, rivers, rng, targets);
   const roads = generateRoads(heights, cols, rows, sites);
 
+  // Keep the bridge payload separate from generated geometry. That preserves
+  // current rivers/sites/roads behavior while letting Azgaar-derived maps carry
+  // the canonical feature source chosen by WSS-005.
+  const canonicalFeatureHints = featureHints
+    ? {
+        ...featureHints,
+        rivers: [...featureHints.rivers],
+        sites: featureHints.sites.map((site) => ({
+          ...site,
+          position: { ...site.position },
+        })),
+        roads: featureHints.roads.map((road) => ({
+          ...road,
+          points: road.points.map((point) => ({ ...point })),
+        })),
+      }
+    : undefined;
+
   return {
     version: 2,
     seed,
@@ -76,6 +111,7 @@ export function runWorldSim(input: RunWorldSimInput): WorldData {
     rivers,
     roads,
     sites,
+    ...(canonicalFeatureHints ? { featureHints: canonicalFeatureHints } : {}),
     coastlines,
     lakes,
     biomeZones,

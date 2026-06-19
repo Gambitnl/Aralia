@@ -14210,10 +14210,10 @@
     ]
   },
   {
-    "id": "equipment_wondrous_items",
-    "title": "Wondrous Items",
+    "id": "equipment_wondrous_item",
+    "title": "Wondrous Item",
     "category": "Equipment",
-    "excerpt": "Wondrous Items equipment items.",
+    "excerpt": "Wondrous Item equipment items.",
     "filePath": null,
     "subEntries": [
       {
@@ -14223,7 +14223,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing these wraps, you have a +1 bonus to attack rolls and damage rolls made with your Unarmed Strikes. Those strikes deal your choice of Forc...",
         "aliases": [],
@@ -14237,7 +14237,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing these wraps, you have a +2 bonus to attack rolls and damage rolls made with your Unarmed Strikes. Those strikes deal your choice of Forc...",
         "aliases": [],
@@ -14251,7 +14251,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing these wraps, you have a +3 bonus to attack rolls and damage rolls made with your Unarmed Strikes. Those strikes deal your choice of Forc...",
         "aliases": [],
@@ -14265,7 +14265,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This ceramic jug appears to be able to hold a gallon of liquid and weighs 12 pounds whether full or empty. The jug sloshes when it is shaken, even if ...",
         "aliases": [],
@@ -14282,7 +14282,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "Your Constitution score is 19 while you wear this amulet. It has no effect on you if your Constitution is already 19 or higher without it....",
         "aliases": [],
@@ -14296,7 +14296,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this amulet, you can't be targeted by Divination spells or perceived through magical scrying sensors unless you allow it....",
         "aliases": [],
@@ -14310,7 +14310,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this amulet, you can take a magic action to name a location that you are familiar with on another plane of existence. Then make a DC 15 ...",
         "aliases": [],
@@ -14328,7 +14328,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This item first appears to be a sealed iron barrel weighing 500 pounds. The barrel has a hidden catch, which can be found with a successful DC 20 Inte...",
         "aliases": [],
@@ -14350,7 +14350,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "The archfey Baba Yaga crafted many of these magic brooms. No two appear exactly alike. While holding the broom, you can take a magic action to transfo...",
         "aliases": [],
@@ -14370,7 +14370,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This heavy cloth bag contains 3d4 dry beans when found. The bag weighs half a pound regardless of how many beans it contains and becomes a nonmagical ...",
         "aliases": [],
@@ -14388,7 +14388,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This bag resembles a bag_of_holding of Holding but is a feeding orifice for a gigantic extradimensional creature. Turning the bag inside out closes th...",
         "aliases": [],
@@ -14405,7 +14405,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This bag has an interior space considerably larger than its outside dimensions—roughly 2 feet square and 4 feet deep on the inside. The bag can hold u...",
         "aliases": [],
@@ -14423,7 +14423,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This bag made from gray cloth appears empty. Reaching inside the bag, however, reveals the presence of a small, fuzzy object. You can take a magic act...",
         "aliases": [],
@@ -14443,7 +14443,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This bag made from rust cloth appears empty. Reaching inside the bag, however, reveals the presence of a small, fuzzy object. You can take a magic act...",
         "aliases": [],
@@ -14463,7 +14463,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This bag made from tan cloth appears empty. Reaching inside the bag, however, reveals the presence of a small, fuzzy object. You can take a magic acti...",
         "aliases": [],
@@ -14483,7 +14483,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This small black sphere measures 3/4 of an inch in diameter and weighs an ounce. Typically, 1d4 + 4 Beads of Force are found together. You can take a ...",
         "aliases": [],
@@ -14502,7 +14502,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This flavorless, gelatinous bead dissolves on your tongue and provides as much nourishment as 1 day of Rations....",
         "aliases": [],
@@ -14516,7 +14516,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This flavorless, gelatinous bead dissolves in liquid, transforming up to a pint of the liquid into fresh, cold drinking water. The bead has no effect ...",
         "aliases": [],
@@ -14530,7 +14530,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this belt, your Strength score changes to 27. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
         "aliases": [],
@@ -14544,7 +14544,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this belt, you gain the following benefits: - Dwarvish: You know Dwarvish. - Friend of Dwarvenkind: You have advantage on Charisma (pers...",
         "aliases": [],
@@ -14564,7 +14564,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this belt, your Strength score changes to 25. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
         "aliases": [],
@@ -14578,7 +14578,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this belt, your Strength score changes to 23. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
         "aliases": [],
@@ -14592,7 +14592,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this belt, your Strength score changes to 21. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
         "aliases": [],
@@ -14606,7 +14606,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this belt, your Strength score changes to 23. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
         "aliases": [],
@@ -14620,7 +14620,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this belt, your Strength score changes to 29. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
         "aliases": [],
@@ -14634,7 +14634,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "The definitive treatise on all that is good in the multiverse, the Book of Exalted Deeds figures prominently in many religions. Rather than being a sc...",
         "aliases": [],
@@ -14661,7 +14661,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "The contents of this foul manuscript are the meat and drink of the wicked. It contains knowledge so horrid that to even glimpse the scrawled pages inv...",
         "aliases": [],
@@ -14687,7 +14687,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While you wear these boots, your steps make no sound, regardless of the surface you are moving across. You also have advantage on Dexterity (stealth) ...",
         "aliases": [],
@@ -14704,7 +14704,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing these boots, you can have them leave tracks like those of any kind of Humanoid of your size....",
         "aliases": [],
@@ -14718,7 +14718,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While you wear these boots, you can cast levitate on yourself....",
         "aliases": [],
@@ -14734,7 +14734,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While you wear these boots, you can take a bonus_action Action to click the boots' heels together. If you do, the boots double your speed, and any cre...",
         "aliases": [],
@@ -14754,7 +14754,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While you wear these boots, your speed becomes 30 feet unless your speed is higher, and your speed isn't reduced by you carrying weight in excess of y...",
         "aliases": [],
@@ -14770,7 +14770,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "These furred boots are snug and feel warm. While wearing them, you gain the following benefits.  Cold Resistance You have resistance to Cold damage an...",
         "aliases": [],
@@ -14787,7 +14787,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While this bowl is filled with water and you are within 5 feet of it, you can take a magic action to summon a Water Elemental. The elemental appears i...",
         "aliases": [],
@@ -14805,7 +14805,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing these bracers, you have proficiency with the longbow and shortbow, and you gain a +2 bonus to damage rolls made with such weapons....",
         "aliases": [],
@@ -14822,7 +14822,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing these bracers, you gain a +2 bonus to armor_class Class if you are wearing no armor and using no shield....",
         "aliases": [],
@@ -14839,7 +14839,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While you are within 5 feet of this brazier, you can take a magic action to summon a Fire Elemental. The elemental appears in an unoccupied space as c...",
         "aliases": [],
@@ -14857,7 +14857,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this brooch, you have resistance to Force damage, and you have immunity to damage from the magic_missile Missile spell....",
         "aliases": [],
@@ -14875,7 +14875,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This wooden broom functions like a mundane broom until you stand astride it and take a magic action to make it hover beneath you, at which time it can...",
         "aliases": [],
@@ -14892,7 +14892,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This candle's magic is activated when the candle is lit, which requires a magic action. After burning for 4 hours, the candle is destroyed. You can sn...",
         "aliases": [],
@@ -14912,7 +14912,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "The flame of this candle isn't extinguished when immersed in water. It gives off light and heat like a normal candle....",
         "aliases": [],
@@ -14926,7 +14926,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this cap underwater, you can take a magic action to create a bubble of air around your head. This bubble allows you to breathe normally ...",
         "aliases": [],
@@ -14942,7 +14942,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This cape smells faintly of brimstone. While wearing it, you can use it to cast dimension_door Door as a magic action. This property can't be used aga...",
         "aliases": [],
@@ -14960,7 +14960,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "You can make this carpet hover and fly by taking a magic action and using the carpet's command word. It moves according to your directions if you are ...",
         "aliases": [],
@@ -14977,7 +14977,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "You can make this carpet hover and fly by taking a magic action and using the carpet's command word. It moves according to your directions if you are ...",
         "aliases": [],
@@ -14994,7 +14994,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "You can make this carpet hover and fly by taking a magic action and using the carpet's command word. It moves according to your directions if you are ...",
         "aliases": [],
@@ -15011,7 +15011,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "You can make this carpet hover and fly by taking a magic action and using the carpet's command word. It moves according to your directions if you are ...",
         "aliases": [],
@@ -15028,7 +15028,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This Tiny pot bears relief scenes of heroes on its cast-iron sides. You can use the cauldron as a spellcasting_focus Focus for your spells, and it fun...",
         "aliases": [],
@@ -15049,7 +15049,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While gently swinging this censer, you can take a magic action to summon an Air Elemental. The elemental appears in an unoccupied space as close to th...",
         "aliases": [],
@@ -15067,7 +15067,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "Whenever you roll this six-sided die, you can control which number it rolls....",
         "aliases": [],
@@ -15081,7 +15081,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This hollow metal tube measures about 1 foot long and weighs 1 pound. As a magic action, you can strike the chime to cast knock. The spell's customary...",
         "aliases": [],
@@ -15098,7 +15098,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this circlet, you can cast scorching_ray Ray with it (+5 to hit). The circlet can't cast this spell again until the next dawn....",
         "aliases": [],
@@ -15114,7 +15114,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This fine garment is made of black silk interwoven with faint, silvery threads. While wearing it, you gain the following benefits.  Poison Resistance ...",
         "aliases": [],
@@ -15134,7 +15134,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this cloak, you can take a bonus_action Action to make it billow dramatically for 1 minute....",
         "aliases": [],
@@ -15150,7 +15150,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While you wear this cloak, it magically projects an illusion that makes you appear to be standing in a place near your actual location, causing any cr...",
         "aliases": [],
@@ -15167,7 +15167,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While you wear this cloak, Wisdom (perception) checks made to perceive you have disadvantage, and you have advantage on Dexterity (stealth) checks....",
         "aliases": [],
@@ -15186,7 +15186,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This cloak has 3 charges and regains 1d3 expended charges daily at dawn. While wearing the cloak, you can take a magic action to pull its hood over yo...",
         "aliases": [],
@@ -15203,7 +15203,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this cloak, you can take a bonus_action Action to change the style, color, and apparent quality of the garment. The cloak's weight doesn...",
         "aliases": [],
@@ -15219,7 +15219,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "You gain a +1 bonus to armor_class Class and saving throws while you wear this cloak....",
         "aliases": [],
@@ -15235,7 +15235,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this cloak, you have advantage on Dexterity (stealth) checks. In an area of dim_light Light or darkness, you can grip the edges of the c...",
         "aliases": [],
@@ -15256,7 +15256,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this cloak, you can breathe underwater, and you have a swim_speed Speed of 60 feet....",
         "aliases": [],
@@ -15272,7 +15272,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This copper amulet contains tiny interlocking gears and is powered by magic from Mechanus, a plane of clockwork predictability. Faint ticking and whir...",
         "aliases": [],
@@ -15286,7 +15286,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This elegant outfit magically mends itself to counteract daily wear and tear. Pieces of the outfit that are destroyed can't be repaired in this way....",
         "aliases": [],
@@ -15300,7 +15300,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "The typical crystal ball, a very rare item, is about 6 inches in diameter. While touching it, you can cast the scrying spell (save DC 17) with it....",
         "aliases": [],
@@ -15316,7 +15316,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While touching this crystal orb, you can cast scrying (save DC 17) with it. In addition, you can cast detect_thoughts Thoughts (save DC 17) targeting ...",
         "aliases": [],
@@ -15333,7 +15333,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While touching this crystal orb, you can cast scrying (save DC 17) with it. In addition, you can communicate telepathically with creatures you can see...",
         "aliases": [],
@@ -15350,7 +15350,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While touching this crystal orb, you can cast scrying (save DC 17) with it. In addition, you have truesight with a range of 120 feet centered on the s...",
         "aliases": [],
@@ -15367,7 +15367,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This cube is about an inch across. Each face has a distinct marking on it. You can press one of those faces, expend the number of charges required for...",
         "aliases": [],
@@ -15388,7 +15388,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This Tiny cube looks like a jack-in-the-box. When you wind its crank as a magic action, a merry tune emits from the box, the lid pops open, a creature...",
         "aliases": [],
@@ -15411,7 +15411,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This cube is 3 inches across and radiates palpable magical energy. The six sides of the cube are each keyed to a different plane of existence, one of ...",
         "aliases": [],
@@ -15429,7 +15429,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "As a magic action, you can place this 1-inch adamantine statuette on the ground and, using a command word, cause it to grow rapidly into a square adam...",
         "aliases": [],
@@ -15451,7 +15451,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This stoppered flask sloshes when shaken, as if it contains water. The decanter weighs 2 pounds. You can take a magic action to remove the stopper and...",
         "aliases": [],
@@ -15469,7 +15469,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This box contains a set of cards. A full deck has 34 cards: 32 depicting specific creatures and two with a mirrored surface. A deck found as treasure ...",
         "aliases": [],
@@ -15488,7 +15488,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "Usually found in a box or pouch, this deck contains a number of cards made of ivory or vellum. Most (75 percent) of these decks have thirteen cards, b...",
         "aliases": [],
@@ -15517,7 +15517,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This treatise, composed by Iggwilv the archmage, documents the Abyss's layers and inhabitants and is widely regarded as the most thorough and blasphem...",
         "aliases": [],
@@ -15544,7 +15544,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "You can take a utilize action to place these shackles on a creature that has the incapacitated condition. The shackles adjust to fit a creature of Sma...",
         "aliases": [],
@@ -15562,7 +15562,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While you're wearing this fearsome steel helm, your eyes glow red and the rest of your face is hidden in shadow....",
         "aliases": [],
@@ -15576,7 +15576,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This small sphere of thick glass weighs 1 pound. If you are within 60 feet of it, you can command it to emanate light equivalent to that of the light ...",
         "aliases": [],
@@ -15594,7 +15594,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This powder resembles fine sand. There is enough of it for one use. When you take a utilize action to throw the dust into the air, you and each creatu...",
         "aliases": [],
@@ -15612,7 +15612,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This small packet contains 1d6 + 4 pinches of dust. As a utilize action, you can sprinkle a pinch of the dust over water, turning up to a 15-foot cube...",
         "aliases": [],
@@ -15629,7 +15629,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "Found in a small container, this powder resembles dust_of_disappearance of Disappearance, and identify reveals it to be such. There is enough of it fo...",
         "aliases": [],
@@ -15650,7 +15650,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While held up to your ear, this horn suppresses the effects of the deafened condition on you....",
         "aliases": [],
@@ -15666,7 +15666,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "When you take a magic action to remove the stopper of this painted brass bottle, a cloud of thick smoke flows out of it. At the end of your turn, the ...",
         "aliases": [],
@@ -15683,7 +15683,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This gem contains a mote of elemental energy. When you take a utilize action to break the gem, an Air Elemental is summoned, and the gem ceases to be ...",
         "aliases": [],
@@ -15701,7 +15701,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This gem contains a mote of elemental energy. When you take a utilize action to break the gem, a Water Elemental is summoned, and the gem ceases to be...",
         "aliases": [],
@@ -15719,7 +15719,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This gem contains a mote of elemental energy. When you take a utilize action to break the gem, a Fire Elemental is summoned, and the gem ceases to be ...",
         "aliases": [],
@@ -15737,7 +15737,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This gem contains a mote of elemental energy. When you take a utilize action to break the gem, an Earth Elemental is summoned, and the gem ceases to b...",
         "aliases": [],
@@ -15755,7 +15755,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This spellbook, along with anything written on its pages, can't be damaged by fire or water. In addition, the spellbook doesn't deteriorate with age....",
         "aliases": [],
@@ -15769,7 +15769,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This magical eye replaces a real one that was lost or removed. While the Ersatz Eye is embedded in your eye socket, you can see through the tiny orb a...",
         "aliases": [],
@@ -15785,7 +15785,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "As a magic action, you can open or close this bottle. Opening the bottle causes thick smoke to billow out, forming a cloud that fills a 60-foot emanat...",
         "aliases": [],
@@ -15804,7 +15804,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "Vecna was a mighty wizard who, through magic and conquest, forged a terrible empire. For all his power, however, Vecna feared death and took steps to ...",
         "aliases": [],
@@ -15828,7 +15828,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "These crystal lenses fit over the eyes. They have 3 charges. While wearing them, you can expend 1 or more charges to cast charm_person Person (save DC...",
         "aliases": [],
@@ -15844,7 +15844,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "These crystal lenses fit over the eyes. While wearing them, your vision improves significantly out to a range of 1 foot, granting you darkvision withi...",
         "aliases": [],
@@ -15862,7 +15862,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "These crystal lenses fit over the eyes. While wearing them, you have advantage on Wisdom (perception) checks that rely on sight. In conditions of clea...",
         "aliases": [],
@@ -15879,7 +15879,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
         "aliases": [],
@@ -15899,7 +15899,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
         "aliases": [],
@@ -15919,7 +15919,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
         "aliases": [],
@@ -15939,7 +15939,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
         "aliases": [],
@@ -15964,7 +15964,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
         "aliases": [],
@@ -15984,7 +15984,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
         "aliases": [],
@@ -16004,7 +16004,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
         "aliases": [],
@@ -16025,7 +16025,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
         "aliases": [],
@@ -16045,7 +16045,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
         "aliases": [],
@@ -16066,7 +16066,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This object appears as a wooden box that measures 12 inches long, 6 inches wide, and 6 inches deep. It weighs 4 pounds and floats. It can be opened to...",
         "aliases": [],
@@ -16085,7 +16085,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "Your Strength score is 19 while you wear these gauntlets. They have no effect on you if your Strength is 19 or higher without them....",
         "aliases": [],
@@ -16099,7 +16099,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This prism has 50 charges. While you are holding it, you can take a magic action and use one of three command words to cause one of the following effe...",
         "aliases": [],
@@ -16120,7 +16120,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This gem has 3 charges. As a magic action, you can expend 1 charge. For the next 10 minutes, you have truesight out to 120 feet when you peer through ...",
         "aliases": [],
@@ -16137,7 +16137,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "If you're hit by an attack roll made with a Ranged or Thrown weapon while wearing these gloves, you can take a reaction to reduce the damage by 1d10 p...",
         "aliases": [],
@@ -16153,7 +16153,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing these gloves, climbing and swimming don't cost you extra movement, and you gain a +5 bonus to Strength (athletics) checks made to climb ...",
         "aliases": [],
@@ -16169,7 +16169,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "These gloves are imperceptible while worn. While wearing them, you gain a +5 bonus to Dexterity (sleight_of_hand of Hand) checks....",
         "aliases": [],
@@ -16185,7 +16185,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing these dark lenses, you have darkvision out to 60 feet. If you already have darkvision, wearing the goggles increases its range by 60 fee...",
         "aliases": [],
@@ -16201,7 +16201,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "A Hag Eye has 3 charges. While wearing or holding this item, you can expend 1 charge to cast darkvision (targeting yourself only) or see_invisibility ...",
         "aliases": [],
@@ -16220,7 +16220,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "Vecna was a mighty wizard who, through magic and conquest, forged a terrible empire. For all his power, however, Vecna feared death and took steps to ...",
         "aliases": [],
@@ -16243,7 +16243,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this hat, you can cast the disguise_self Self spell. The spell ends if the hat is removed....",
         "aliases": [],
@@ -16259,7 +16259,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This hat has 3 charges. While holding the hat, you can take a magic action to expend 1 charge and summon your choice of a Bat, a Frog, or a Rat. The s...",
         "aliases": [],
@@ -16277,7 +16277,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "Your Intelligence score is 19 while you wear this headband. It has no effect on you if your Intelligence is 19 or higher without it....",
         "aliases": [],
@@ -16291,7 +16291,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This helm is set with 1d10 diamonds, 2d10 rubies, 3d10 fire opals, and 4d10 opals. Any gem pried from the helm crumbles to dust. When all the gems are...",
         "aliases": [],
@@ -16316,7 +16316,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this helm, you can cast comprehend_languages Languages from it....",
         "aliases": [],
@@ -16332,7 +16332,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this helm, you have telepathy with a range of 30 feet, and you can cast detect_thoughts Thoughts or suggestion (save DC 13) from the hel...",
         "aliases": [],
@@ -16349,7 +16349,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This helm has 3 charges. While wearing it, you can expend 1 charge to cast teleport from it. The helm regains 1d3 expended charges daily at dawn....",
         "aliases": [],
@@ -16365,7 +16365,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This backpack has a central pouch and two side pouches, each of which is an extradimensional space. Each side pouch can hold up to 200 pounds of mater...",
         "aliases": [],
@@ -16385,7 +16385,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This belt pouch appears empty and has 10 charges. While holding the pouch, you can take a magic action to expend 1 charge, name any nonmagical food se...",
         "aliases": [],
@@ -16401,7 +16401,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "These horseshoes come in a set of four. As a magic action, you can touch one of the horseshoes to the hoof of a horse or similar creature, whereupon t...",
         "aliases": [],
@@ -16419,7 +16419,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "These horseshoes come in a set of four. As a magic action, you can touch one of the horseshoes to the hoof of a horse or similar creature, whereupon t...",
         "aliases": [],
@@ -16436,7 +16436,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While you are playing this musical_instrument instrument, you can take a magic action to create harmless, illusory visual effects within a 5-foot eman...",
         "aliases": [],
@@ -16454,7 +16454,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This musical_instrument instrument has 3 charges and regains all expended charges daily at dawn. While you are playing it, you can take a magic action...",
         "aliases": [],
@@ -16473,7 +16473,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "An Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college...",
         "aliases": [],
@@ -16495,7 +16495,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "An Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college...",
         "aliases": [],
@@ -16517,7 +16517,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "An Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college...",
         "aliases": [],
@@ -16539,7 +16539,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} While this pale lavender ellipsoid orbits your head, you can take a reaction to cancel a spell of level 4 or lower cast by a cr...",
         "aliases": [],
@@ -16555,7 +16555,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} Your Dexterity increases by 2, to a maximum of 20, while this deep-red sphere orbits your head....",
         "aliases": [],
@@ -16569,7 +16569,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} While this dark-blue rhomboid orbits your head, you have advantage on initiative rolls and Wisdom (perception) checks....",
         "aliases": [],
@@ -16587,7 +16587,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} Your Constitution increases by 2, to a maximum of 20, while this pink rhomboid orbits your head....",
         "aliases": [],
@@ -16601,7 +16601,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} While this marbled lavender and green ellipsoid orbits your head, you can take a reaction to cancel a spell of level 8 or lower...",
         "aliases": [],
@@ -16617,7 +16617,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} Your Wisdom increases by 2, to a maximum of 20, while this incandescent blue sphere orbits your head....",
         "aliases": [],
@@ -16631,7 +16631,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} Your Intelligence increases by 2, to a maximum of 20, while this marbled scarlet and blue sphere orbits your head....",
         "aliases": [],
@@ -16645,7 +16645,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} Your Charisma increases by 2, to a maximum of 20, while this marbled pink and green sphere orbits your head....",
         "aliases": [],
@@ -16659,7 +16659,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} Your proficiency Bonus increases by 1 while this pale green prism orbits your head....",
         "aliases": [],
@@ -16675,7 +16675,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} You gain a +1 bonus to armor_class Class while this dusty-rose prism orbits your head....",
         "aliases": [],
@@ -16691,7 +16691,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} You regain 15 hit_points Points at the end of each hour this pearly white spindle orbits your head if you have at least 1 hit_p...",
         "aliases": [],
@@ -16708,7 +16708,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} This vibrant purple prism stores spells cast into it, holding them until you use them. The stone can store up to 4 levels of sp...",
         "aliases": [],
@@ -16722,7 +16722,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} Your Strength increases by 2, to a maximum of 20, while this pale blue rhomboid orbits your head....",
         "aliases": [],
@@ -16736,7 +16736,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "{itemEntry Ioun Stone} You don't need to eat or drink while this clear spindle orbits your head....",
         "aliases": [],
@@ -16750,7 +16750,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This rusty iron sphere measures 3 inches in diameter and weighs 1 pound. You can take a magic action to throw the sphere at a Huge or smaller creature...",
         "aliases": [],
@@ -16770,7 +16770,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While holding this brass-stoppered iron flask, you can take a magic action to target a creature that you can see within 60 feet of yourself. If the fl...",
         "aliases": [],
@@ -16788,7 +16788,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This glass jar, 3 inches in diameter, contains 1d4 + 1 doses of a thick mixture that smells faintly of aloe. The jar and its contents weigh 1/2 pound....",
         "aliases": [],
@@ -16806,7 +16806,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While lit, this hooded lantern burns for 6 hours on 1 pint of oil, shedding bright_light Light in a 30-foot radius and dim_light Light for an addition...",
         "aliases": [],
@@ -16825,7 +16825,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This lock appears to be an ordinary lock (of the type described in chapter 6 of the Player's Handbook) and comes with a single key. The tumblers in th...",
         "aliases": [],
@@ -16842,7 +16842,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "You have advantage on saving throws against spells while you wear this cloak....",
         "aliases": [],
@@ -16858,7 +16858,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This book contains health and diet tips, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer studying the boo...",
         "aliases": [],
@@ -16872,7 +16872,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This tome contains information and incantations necessary to make a clay golem. To decipher and use the manual, you must be a spellcaster with at leas...",
         "aliases": [],
@@ -16886,7 +16886,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This tome contains information and incantations necessary to make a flesh golem. To decipher and use the manual, you must be a spellcaster with at lea...",
         "aliases": [],
@@ -16900,7 +16900,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This book describes fitness exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer studying the book'...",
         "aliases": [],
@@ -16914,7 +16914,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This tome contains information and incantations necessary to make a iron golem. To decipher and use the manual, you must be a spellcaster with at leas...",
         "aliases": [],
@@ -16928,7 +16928,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This book contains coordination and balance exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer st...",
         "aliases": [],
@@ -16942,7 +16942,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This tome contains information and incantations necessary to make a stone golem. To decipher and use the manual, you must be a spellcaster with at lea...",
         "aliases": [],
@@ -16956,7 +16956,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "The medallion has 5 charges. While wearing it, you can expend 1 charge to cast detect_thoughts Thoughts (save DC 13) from it. The medallion regains 1d...",
         "aliases": [],
@@ -16972,7 +16972,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "When this 4-foot-tall, 2-foot-wide mirror is viewed indirectly, its surface shows faint images of creatures. The mirror weighs 50 pounds, and it has A...",
         "aliases": [],
@@ -16994,7 +16994,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "A question mark is worked into the head of this key. The key has a 5% chance of unlocking any lock into which it's inserted. Once it unlocks something...",
         "aliases": [],
@@ -17008,7 +17008,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this necklace, you can breathe normally in any environment, and you have advantage on saving throws made to avoid or end the poisoned co...",
         "aliases": [],
@@ -17025,7 +17025,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This necklace has 1d6 + 3 beads hanging from it. You can take a magic action to detach a bead and throw it up to 60 feet away. When it reaches the end...",
         "aliases": [],
@@ -17042,7 +17042,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This necklace has 1d4 + 2 magic beads made from aquamarine, black pearl, or topaz. It also has many nonmagical beads made from stones such as amber, b...",
         "aliases": [],
@@ -17064,7 +17064,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This fine wooden box contains 1d4 pots of pigment and a brush (weighing 1 pound in total). Using the brush and expending 1 pot of pigment, you can pai...",
         "aliases": [],
@@ -17080,7 +17080,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This orb can be used as an Arcane Focus. While holding this orb, you can take a magic action to determine which way is magnetic north. Nothing happens...",
         "aliases": [],
@@ -17096,7 +17096,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "Long ago, in the Dragonlance setting, elves and humans waged a terrible war against chromatic dragons. When the world seemed doomed, the wizards of th...",
         "aliases": [],
@@ -17122,7 +17122,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This orb can be used as an Arcane Focus. While holding the orb, you can take a magic action to determine whether it is morning, afternoon, evening, or...",
         "aliases": [],
@@ -17138,7 +17138,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While this pearl is on your person, you can take a magic action to regain one expended spell slot of level 3 or lower. Once you use the pearl, it can'...",
         "aliases": [],
@@ -17154,7 +17154,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This tiny vial contains magic perfume, enough for one use. You can take a magic action to apply the perfume to yourself, and its effect lasts 1 hour. ...",
         "aliases": [],
@@ -17173,7 +17173,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this pendant, you can take a magic action to regain 2d4 + 2 hit_points Points. Once used, this property can't be used again until the ne...",
         "aliases": [],
@@ -17192,7 +17192,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This delicate silver chain has a brilliant-cut black gem pendant. While you wear it, you have immunity to the poisoned condition and Poison damage....",
         "aliases": [],
@@ -17209,7 +17209,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this pendant, you gain the following benefits.  Life Preservation Whenever you make a death_saving_throw Saving Throw, you can change a ...",
         "aliases": [],
@@ -17227,7 +17227,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While smoking this pipe, you can take a magic action to exhale a puff of smoke that takes the form of a creature, such as a dragon, a flumph, or a sla...",
         "aliases": [],
@@ -17243,7 +17243,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "These pipes have 3 charges and regain 1d3 expended charges daily at dawn. You can take a magic action to play them and expend 1 charge to create an ee...",
         "aliases": [],
@@ -17260,7 +17260,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While these pipes are on your person, ordinary rat and giant rat are indifferent_attitude toward you and won't attack you unless you threaten or harm ...",
         "aliases": [],
@@ -17279,7 +17279,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This item functions as a Pole. While holding it, you can take a magic action to cause it to transform into a fishing pole with a hook, a line, and a r...",
         "aliases": [],
@@ -17295,7 +17295,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This item functions as a Pole. While holding it, you can take a magic action to collapse it into a 1-foot-long rod for ease of storage (the pole's wei...",
         "aliases": [],
@@ -17311,7 +17311,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This fine black cloth, soft as silk, is folded up to the dimensions of a handkerchief. It unfolds into a circular sheet 6 feet in diameter. You can ta...",
         "aliases": [],
@@ -17331,7 +17331,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "If you plant an ordinary shrub in this 10-pound clay pot and let it grow for 30 days, the shrub magically transforms into an Awakened Shrub at the end...",
         "aliases": [],
@@ -17347,7 +17347,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This magic item replaces a lost limb—a hand, an arm, a foot, a leg, or a similar body part. While the prosthetic is attached, it functions identically...",
         "aliases": [],
@@ -17363,7 +17363,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This object looks like a feather. You can take a magic action to touch the token to a boat or ship. For the next 24 hours, the vessel can't be moved b...",
         "aliases": [],
@@ -17379,7 +17379,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This object looks like a feather. You can take a magic action to toss the token 5 feet into the air. The token disappears and an enormous, multicolore...",
         "aliases": [],
@@ -17396,7 +17396,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This object looks like a feather. If you are on a boat or ship, you can take a magic action to toss the token up to 10 feet in the air. The token disa...",
         "aliases": [],
@@ -17412,7 +17412,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This object looks like a feather. You can take a magic action to touch the token to a body of water at least 60 feet in diameter. The token disappears...",
         "aliases": [],
@@ -17428,7 +17428,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This object looks like a feather. You must be outdoors to use this token. You can take a magic action to touch it to an unoccupied space on the ground...",
         "aliases": [],
@@ -17444,7 +17444,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This object looks like a feather. You can take a magic action to throw the token to a point within 10 feet of yourself. The token disappears, and a fl...",
         "aliases": [],
@@ -17462,7 +17462,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "Each of the quiver's three compartments connects to an extradimensional space that allows the quiver to hold numerous items while never weighing more ...",
         "aliases": [],
@@ -17482,7 +17482,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This gold coin has a creature embossed on each side. The two depicted creatures must be famous rivals or enemies of each other. For example, a Rival C...",
         "aliases": [],
@@ -17499,7 +17499,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This robe is adorned with eyelike patterns. While you wear the robe, you gain the following benefits: - All-Around Vision: The robe gives you advantag...",
         "aliases": [],
@@ -17521,7 +17521,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This robe has 3 charges, and it regains 1d3 expended charges daily at dawn. While you wear it, you can take a magic action and expend 1 charge to caus...",
         "aliases": [],
@@ -17541,7 +17541,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This black or dark-blue robe is embroidered with small white or silver stars. You gain a +1 bonus to saving throws while you wear it. Six stars, locat...",
         "aliases": [],
@@ -17558,7 +17558,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This elegant garment is made from exquisite cloth and adorned with runes. You gain these benefits while wearing the robe.  Armor If you aren't wearing...",
         "aliases": [],
@@ -17575,7 +17575,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This robe has cloth patches of various shapes and colors covering it. While wearing the robe, you can take a magic action to detach one of the patches...",
         "aliases": [],
@@ -17603,7 +17603,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This 60-foot length of rope can hold up to 3,000 pounds. While holding one end of the rope, you can take a magic action to command the other end of th...",
         "aliases": [],
@@ -17623,7 +17623,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This rope is 30 feet long. While holding one end of the rope, you can take a magic action to command the other end to dart forward and entangle one cr...",
         "aliases": [],
@@ -17647,7 +17647,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This 50-foot coil of rope can repair itself when cut into any number of smaller pieces. As a magic action, you can cause all pieces of the rope that a...",
         "aliases": [],
@@ -17663,7 +17663,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While in this saddle on a mount, you can't be dismounted against your will if you're conscious, and attack rolls against the mount have disadvantage....",
         "aliases": [],
@@ -17677,7 +17677,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This beetle-shaped medallion provides three benefits while it is on your person.  Defense You gain a +1 bonus to armor_class Class.  Preservation The ...",
         "aliases": [],
@@ -17695,7 +17695,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "Sending Stones come in pairs, with each stone carved to match the other so the pairing is easily recognized. While you touch one stone, you can cast s...",
         "aliases": [],
@@ -17711,7 +17711,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While you wear these light shoes, you can move up, down, and across vertical surfaces and along ceilings, while leaving your hands free. You have a cl...",
         "aliases": [],
@@ -17728,7 +17728,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This viscous, milky-white substance can form a permanent adhesive bond between any two objects. It must be stored in a jar or flask that has been coat...",
         "aliases": [],
@@ -17748,7 +17748,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This 2-foot-diameter black sphere is a hole in the multiverse, hovering in space and stabilized by a magical field surrounding it. The sphere oblitera...",
         "aliases": [],
@@ -17768,7 +17768,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This ornate wooden board has the letters of the Common alphabet printed on one side, alongside the words \"Yes\" and \"No\" and symbols representing \"Weal...",
         "aliases": [],
@@ -17785,7 +17785,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While touching this 5-pound stone to the ground, you can take a magic action to summon an Earth Elemental. The elemental appears in an unoccupied spac...",
         "aliases": [],
@@ -17803,7 +17803,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While this polished agate is on your person, you gain a +1 bonus to ability checks and saving throws....",
         "aliases": [],
@@ -17817,7 +17817,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This talisman is a mighty symbol of goodness. A Fiend or an Undead that touches the talisman takes 8d6 Radiant damage and takes the damage again each ...",
         "aliases": [],
@@ -17834,7 +17834,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While holding or wearing this talisman, you have advantage on any Intelligence (arcana) check you make to control a sphere_of_annihilation of Annihila...",
         "aliases": [],
@@ -17853,7 +17853,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This item symbolizes unrepentant evil. A creature that isn't a Fiend or an Undead that touches the talisman takes 8d6 Necrotic damage and takes the da...",
         "aliases": [],
@@ -17870,7 +17870,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While this doll is within 5 feet of you, you can spend a short_rest Rest telling it to say up to six phrases, none of which can be more than six words...",
         "aliases": [],
@@ -17887,7 +17887,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This tankard has a stern face sculpted into one side. You can drink ale, wine, or any other nonmagical alcoholic beverage poured into it without becom...",
         "aliases": [],
@@ -17901,7 +17901,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This book contains memory and logic exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer studying t...",
         "aliases": [],
@@ -17915,7 +17915,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This book contains guidelines for influencing and charming others, and its words are charged with magic. If you spend 48 hours over a period of 6 days...",
         "aliases": [],
@@ -17929,7 +17929,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This book contains intuition and insight exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer study...",
         "aliases": [],
@@ -17943,7 +17943,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This tube holds milky liquid with a strong alcohol smell. When found, a tube contains 1d6 + 1 ounces. You can take a utilize action to pour 1 or more ...",
         "aliases": [],
@@ -17959,7 +17959,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "As a bonus_action Action, you can transform this walking cane into an ordinary Longsword or change the Longsword back into a walking cane. In either c...",
         "aliases": [],
@@ -17975,7 +17975,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "This fine black cloth, soft as silk, is folded up to the dimensions of a handkerchief. It unfolds into a circular sheet 6 feet in diameter. You can ta...",
         "aliases": [],
@@ -17991,7 +17991,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While holding this fan, you can cast gust_of_wind of Wind (save DC 13) from it. Each subsequent time the fan is used before the next dawn, it has a cu...",
         "aliases": [],
@@ -18007,7 +18007,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "These boots have 4 charges and regain 1d4 expended charges daily at dawn. While wearing the boots, you can take a magic action to expend 1 charge, gai...",
         "aliases": [],
@@ -18024,7 +18024,7 @@
         "tags": [
           "source:xphb",
           "item",
-          "itemType:Wondrous Items"
+          "itemType:Wondrous Item"
         ],
         "excerpt": "While wearing this cloak, you can take a magic action to turn the cloak into a pair of wings on your back. The wings lasts for 1 hour or until you end...",
         "aliases": [],

@@ -170,6 +170,60 @@ const resolveInventoryAssetSrc = (src?: string): string | undefined => {
   if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
   return `${import.meta.env.BASE_URL}${src}`;
 };
+
+// ============================================================================
+// Perishable Food Timing
+// ============================================================================
+// Converts the descriptive shelf-life field into real milliseconds so the
+// inventory can compare durable acquisition timestamps against the current time.
+// Existing unstamped food is treated as unknown freshness rather than spoiled,
+// which keeps legacy saves playable until their inventories are migrated by an
+// acquisition or save-load path.
+// ============================================================================
+
+const SHELF_LIFE_UNIT_MS: Record<string, number> = {
+  minute: 60 * 1000,
+  hour: 60 * 60 * 1000,
+  day: 24 * 60 * 60 * 1000,
+  week: 7 * 24 * 60 * 60 * 1000,
+  month: 30 * 24 * 60 * 60 * 1000,
+  year: 365 * 24 * 60 * 60 * 1000,
+};
+
+const parseShelfLifeToMs = (shelfLife?: string): number | null => {
+  if (!shelfLife) return null;
+
+  // Shelf life is authored as phrases like "3 days" or "1 week".
+  // The first supported number+unit pair is enough for the current item data.
+  const match = shelfLife.trim().toLowerCase().match(/(\d+(?:\.\d+)?)\s*(minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years)\b/);
+  if (!match) return null;
+
+  const amount = Number(match[1]);
+  const normalizedUnit = match[2].replace(/s$/, '');
+  const unitMs = SHELF_LIFE_UNIT_MS[normalizedUnit];
+
+  // If authored data drifts into an unsupported unit, keep the food usable
+  // and visible instead of silently declaring it expired.
+  if (!Number.isFinite(amount) || !unitMs) return null;
+
+  return amount * unitMs;
+};
+
+const getFoodExpirationState = (item: Item, now = Date.now()): { isExpired: boolean; label: string } => {
+  if (!item.perishable) return { isExpired: false, label: '' };
+
+  const shelfLifeMs = parseShelfLifeToMs(item.shelfLife);
+  if (typeof item.acquiredAt !== 'number' || !shelfLifeMs) {
+    return { isExpired: false, label: `Expires: ${item.shelfLife || 'Unknown'}` };
+  }
+
+  const expiresAt = item.acquiredAt + shelfLifeMs;
+  if (now >= expiresAt) {
+    return { isExpired: true, label: `Expired: ${item.shelfLife || 'Unknown'} shelf life elapsed` };
+  }
+
+  return { isExpired: false, label: `Expires: ${item.shelfLife || 'Unknown'}` };
+};
 // ============================================================================
 // Main Inventory List Component
 // ============================================================================
@@ -406,8 +460,8 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                   canEquipItem(character, child) : { can: false, reason: undefined };
 
               const isFood = child.type === 'food_drink';
-              // TODO: Implement food expiration system by comparing item.acquiredAt timestamp with item.shelfLife duration to compute actual expiration state
-              const isExpired = false; // Placeholder logic for now
+              const foodExpiration = getFoodExpirationState(child);
+              const isExpired = isFood && foodExpiration.isExpired;
               const childIsContainer = isContainerItem(child);
 
               // UX IMPROVEMENT: Distinguish between "Cannot Equip" (Blocked/Red) and "Warning" (Penalty/Amber)
@@ -420,6 +474,8 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                 rowStyle = 'bg-red-950/30 border-red-500/40 hover:bg-red-900/30';
               } else if (isWarningOnly) {
                 rowStyle = 'bg-amber-950/30 border-amber-500/40 hover:bg-amber-900/30';
+              } else if (isExpired) {
+                rowStyle = 'bg-red-950/30 border-red-500/40 hover:bg-red-900/30';
               }
 
               // Calculate potential AC change for armor items
@@ -478,7 +534,11 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                             {isWarningOnly && <AlertTriangle size={12} className="text-amber-500" aria-label="Warning" />}
                             {isBlocked && <span className="text-[10px]" role="img" aria-label="Blocked">⛔</span>}
                           </div>
-                          {child.perishable && <span className="text-[10px] text-orange-300">Expires: {child.shelfLife || 'Unknown'}</span>}
+                          {child.perishable && (
+                            <span className={`text-[10px] ${isExpired ? 'text-red-300 font-semibold' : 'text-orange-300'}`}>
+                              {foodExpiration.label}
+                            </span>
+                          )}
                         </div>
                       </Tooltip>
                     </div>

@@ -1,7 +1,7 @@
 # Quest Log Audit / Proof
 
-Status: review-required
-Last updated: 2026-06-09
+Status: active
+Last updated: 2026-06-19
 
 This file holds concise durable proof notes for the Quest Log handoff.
 Keep it short. Prefer links to durable docs over raw logs.
@@ -19,6 +19,8 @@ Keep it short. Prefer links to durable docs over raw logs.
 - Verified the deadline-note surface with `npm test -- src/systems/quests/__tests__/QuestManager.test.ts src/components/QuestLog/__tests__/QuestLog.test.tsx`.
 - The queue bridge is intentional; the remaining open follow-up is the in-scope NPC quest handoff check tracked in `docs/projects/quest-log/GAPS.md` as G3.
 - 2026-06-09: re-scanned `src/hooks/actions/handleNpcInteraction.ts`, `src/services/dialogueService.ts`, `src/data/dialogue/topics.ts`, and `src/hooks/useDialogueSystem.ts`; the NPC quest handoff ownership is still ambiguous, so the project moved to `review-required` with a Required Review Brief instead of forcing a narrow runtime change.
+- 2026-06-19: implemented T7/G3 by adding a minimal `QuestOffer` payload (`questId` only) to `src/types/actions.ts` and wiring `src/hooks/actions/handleNpcInteraction.ts` to resolve offered quest ids through `INITIAL_QUESTS` before dispatching the existing `ACCEPT_QUEST` action.
+- Verified the NPC handoff and no-offer dialogue preservation with `npm test -- src/hooks/actions/__tests__/handleNpcInteraction.test.ts`.
 
 ## Notes
 

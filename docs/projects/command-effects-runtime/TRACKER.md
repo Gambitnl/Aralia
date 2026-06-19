@@ -1,7 +1,7 @@
 ﻿# Command Effects Runtime Living Tracker
 
-Status: active â€” G1 decision recorded 2026-06-10; implementation lane open
-Last updated: 2026-06-10
+Status: active - T2/G1 delegated reactive payload execution implemented
+Last updated: 2026-06-19
 
 ## Status Vocabulary
 
@@ -17,14 +17,14 @@ Last updated: 2026-06-10
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T2 | active | Resolve the delegated reactive payload ownership question before any forward implementation | Worker C | 2026-06-10 | `src/commands/effects/ReactiveEffectCommand.ts`, `src/commands/base/SpellCommand.ts`, `src/hooks/combat/useActionExecutor.ts`. **Decision recorded 2026-06-10 (Remy, `docs/projects/DECISION_BLITZ_2026-06-10.md` D9):** command context owns the delegated payload. | Implement the approved contract: expose the delegated-payload source-of-truth in `CommandContext` and rehydrate delegated commands in `ReactiveEffectCommand` | Focused trigger-path tests proving the command-context owner executes a reactive payload |
+| T2 | done | Resolve the delegated reactive payload ownership question before any forward implementation | Worker C | 2026-06-19 | `src/commands/base/SpellCommand.ts` now exposes `delegatedReactivePayload`; `src/commands/effects/ReactiveEffectCommand.ts` rehydrates supported sibling commands through `CommandExecutor`; `src/commands/effects/__tests__/ReactiveEffectCommand.test.ts` proves a movement trigger commits delegated damage. | Closed for the T2 slice; keep inline executor behavior untouched until a later owner explicitly redirects uncovered cases | `npx vitest run src\commands\effects\__tests__\ReactiveEffectCommand.test.ts` passed 2 tests on 2026-06-19 |
 
 ## Gap Log
 
 - `T1` closed by this docs update.
-- `T2` is now blocked on the G1 review brief; `G4` remains resolved through explicit teleport dispatch in `AbilityCommandFactory`. *(2026-06-10: the G1 review brief is resolved â€” command context owns the delegated payload, DECISION_BLITZ D9 â€” so T2 is unblocked for implementation.)*
+- `T2` is done for this slice. The command context owns a minimal delegated reactive payload handle, and `ReactiveEffectCommand` can execute that payload through `CommandExecutor` when its registered trigger fires.
 - Gap surface tracked in `docs/projects/command-effects-runtime/GAPS.md`:
-  - `G1` Reactive callback path is review-required until the delegated payload owner is decided.
+  - `G1` Reactive callback path is resolved for command-context-owned delegated payloads.
   - `G3` Rider support scope is limited.
   - `G4` Ability movement mapping can collapse semantics. This is now resolved through explicit teleport dispatch in `AbilityCommandFactory`.
   - `G5` Status cleanup lifecycle is cross-system.

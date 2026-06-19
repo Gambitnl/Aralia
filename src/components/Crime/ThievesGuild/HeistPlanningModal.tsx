@@ -23,21 +23,17 @@ export const HeistPlanningModal: React.FC<HeistPlanningModalProps> = ({
     onClose
 }) => {
     const [selectedType, setSelectedType] = useState<string | null>(null);
-    const planWithExtras = plan as HeistPlan & {
-        approaches: HeistApproach[];
-        intelGathered: HeistIntel[];
-    };
 
     return (
         <div role="dialog" aria-modal="true" aria-label="Heist Planning">
             <WindowFrame title="Heist Planning" onClose={onClose}>
             <div className="p-4 text-gray-200">
                 <h3 className="text-xl font-bold text-amber-400 mb-4">Target: {plan.targetLocationId}</h3>
-                
+
                 <div className="mb-6">
                     <h4 className="text-lg font-semibold mb-2">Select Approach</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {planWithExtras.approaches.map(approach => (
+                        {plan.approaches.map(approach => (
                             <button
                                 key={approach.type}
                                 onClick={() => {
@@ -45,8 +41,8 @@ export const HeistPlanningModal: React.FC<HeistPlanningModalProps> = ({
                                     onSelectApproach(approach);
                                 }}
                                 className={`p-4 border rounded-lg text-left transition-colors ${
-                                    selectedType === approach.type 
-                                        ? 'bg-amber-900/50 border-amber-500' 
+                                    selectedType === approach.type
+                                        ? 'bg-amber-900/50 border-amber-500'
                                         : 'bg-gray-800 border-gray-600 hover:bg-gray-700'
                                 }`}
                             >
@@ -63,11 +59,11 @@ export const HeistPlanningModal: React.FC<HeistPlanningModalProps> = ({
 
                 <div className="bg-gray-900 p-4 rounded border border-gray-700 mb-6">
                     <h4 className="font-semibold text-gray-300 mb-2">Intel Gathered</h4>
-                    {planWithExtras.intelGathered.length === 0 ? (
+                    {plan.intelGathered.length === 0 ? (
                         <p className="text-gray-500 italic">No intel gathering conducted yet.</p>
                     ) : (
                         <ul className="list-disc list-inside text-sm">
-                            {planWithExtras.intelGathered.map((intel, i) => (
+                            {plan.intelGathered.map((intel, i) => (
                                 <li key={i}>{intel.description}</li>
                             ))}
                         </ul>

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 08:04:57
+ * Last Sync: 18/06/2026, 03:45:27
  * Dependents: App.tsx, state/appState.ts
- * Imports: 14 files
+ * Imports: 15 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -232,6 +232,10 @@ export const initialGameState: GameState = {
         bounties: [],
     },
 
+    // Daily world simulation starts with no active rumor payloads. Keeping the
+    // array present lets rumor producers append to a known collection while old
+    // saves are still healed at the app reducer boundary.
+    activeRumors: [],
     worldHistory: createEmptyHistory(),
 
     // Town Exploration

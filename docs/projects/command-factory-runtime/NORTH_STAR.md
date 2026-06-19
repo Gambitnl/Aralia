@@ -6,14 +6,18 @@ category: Runtime / Systems
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-14
-iteration: 3
+last_updated: 2026-06-18
+iteration: 4
 confidence: medium
 evidence: docs/projects/command-factory-runtime
-gap_signal: 5 open gaps; 5 open project gaps
+gap_signal: "4 open gaps; 4 open project gaps"
 protocol: living project doc set
-next_step: Re-check src/commands/factory and src/hooks/useAbilitySystem.ts after next source edit or when resolving G1 or G3.
-agent_comments: ""
+next_step: Continue with G3 or G4 after confirming no behavioral drift from the factory registry change.
+active_agent: "Codex CLI agent, repaired by Matrix orchestrator"
+agent_pass_status: finished_after_orchestrator_repair
+agent_pass_started_at: "2026-06-18T12:26:41+02:00"
+agent_pass_ended_at: "2026-06-18T12:31:17+02:00"
+agent_comments: "Matrix retry session exited 1 after warning spam and interruption; orchestrator reviewed the partial diff, repaired the registry binding, and ran focused factory tests."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -29,7 +33,7 @@ required_verification:
 completed_verification:
   - scoped_tests
   - docs_consistency
-last_proof: 2026-06-14
+last_proof: 2026-06-18
 workflow_gaps_reviewed: 2026-06-14
 compaction_status: not_needed
 lifecycle_status: active
@@ -41,7 +45,7 @@ human_decision_required: "no"
 # NORTH_STAR: Command Factory Runtime
 
 Status: active  
-Last updated: 2026-06-14
+Last updated: 2026-06-18
 
 ## Dashboard Card Schema
 
@@ -51,12 +55,12 @@ Category: Runtime / Systems
 Status: active
 Confidence: medium
 Evidence: docs/projects/command-factory-runtime
-Gap signal: 5 open project gaps
+Gap signal: 4 open project gaps
 Protocol: living project doc set
-Next step: Re-check `src/commands/factory` and `src/hooks/useAbilitySystem.ts` after next source edit or when resolving G1 or G3.
+Next step: Continue with `G3` or `G4` after confirming no behavioral drift from the factory registry change.
 Required verification: scoped_tests, docs_consistency
 Completed verification: scoped_tests, docs_consistency
-Last proof: 2026-06-14
+Last proof: 2026-06-18
 Workflow gaps reviewed: 2026-06-14
 
 ## Purpose
@@ -81,6 +85,7 @@ It is the primary "creation lane" for runtime combat mechanics.
   - `src/commands/factory/AbilityEffectMapper.ts`
 - Command export wiring:
   - `src/commands/index.ts` exports factories and base command types.
+  - `src/commands/index.ts` now also exports `commandFactoryRegistry` documenting explicit spell and ability creation entry points.
 - Active integration path:
   - Spell path: `hooks/useAbilitySystem.ts` -> `SpellCommandFactory.createCommands(...)` -> `CommandExecutor.execute(...)`
   - Ability path: `hooks/useAbilitySystem.ts` -> `AbilityCommandFactory.createCommands(...)` -> `CommandExecutor.execute(...)`
@@ -111,6 +116,7 @@ In scope:
 - Documenting this runtime boundary and its operational contracts.
 - Tracking implemented command creation behavior and integration edges.
 - Keeping durable implementation context for handoff.
+- Maintaining the command-creation registry surface for discoverability.
 
 Out of scope:
 - Changing source code in `src/commands/factory`, `src/commands/base`, or `src/commands/effects`.
@@ -126,25 +132,26 @@ Out of scope:
 
 - `SpellCommandFactory.createCommands(...)` is the main spell entry conversion surface.
 - `AbilityCommandFactory.createCommands(...)` is the ability-to-command bridge.
-- Static factories are wired directly by `useAbilitySystem.ts`, not through a late-binding registry.
+- Static factories are wired directly by `useAbilitySystem.ts` and also discoverable through `commandFactoryRegistry` in `src/commands/index.ts`.
 - `requestedReaction` and AI adjudication are currently in the spell branch for arbitration-style spells.
 
 ## Active task
 
 | Field | Value |
 |---|---|
-| Task | Keep command-factory runtime docs as a cold-start-safe contract handoff for factory, validation, integration boundaries, and dashboard state |
-| Acceptance criteria | Documentation includes file map, integrations, implemented state, gap log, dashboard card schema, and clear resume path |
-| Allowed files | `docs/projects/command-factory-runtime/*` |
-| Next check | Re-check `src/commands/factory` and `src/hooks/useAbilitySystem.ts` after the next source edit, then update `GAPS.md` if drift appears |
-| Owner | Worker C |
-| Stop condition | docs remain source-anchored, dashboard schema stays current, and the next check evidence list updates when factory wiring changes |
+| Task | G1 - make factory creation paths explicit through a lightweight registry |
+| Acceptance criteria | `src/commands/index.ts` includes discoverable factory creation metadata with explicit spell/ability creators |
+| Allowed files | `src/commands/index.ts`, `docs/projects/command-factory-runtime/*` |
+| Next check | Confirm `commandFactoryRegistry` stays aligned with all command creation producers and call sites when G3 or G4 is picked up |
+| Owner | Codex CLI agent, repaired by Matrix orchestrator |
+| Stop condition | G1 is marked `done`, focused factory tests pass, and tracker points to the next highest-priority gap |
 
 ## Known uncertainties and gap watch
 
 - Which creation paths should be registered as first-class explicit factory registry entries versus direct-call surfaces.
 - Whether `SpellCommandFactory.matchesFilter` should be removed once the last legacy spell caller is retired.
 - Whether command scaling helpers should move to a shared utility with `resolveScalableNumber`.
+- Whether `commandFactoryRegistry` should include non-command creation producers (e.g. non-combat command emitters) as those land.
 
 ## Resume path for cold agent
 

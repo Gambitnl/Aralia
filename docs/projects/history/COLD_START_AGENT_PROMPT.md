@@ -44,10 +44,12 @@ docs/projects/history/NORTH_STAR.md
 | 2 | Kilo/stepfun/step-3.7-flash:free | CLI agent | inferred | 2026-06-15 | Producer-to-type audit completed; source scan covered `src/services/WorldHistoryService.ts`, `src/systems/world/WorldEventManager.ts`, `src/systems/history/HistoryService.ts`, `src/hooks/useGameInitialization.ts`, and `src/state/reducers/worldReducer.ts` |
 | 3 | Gemini 3.1 Pro (High) | GUI agent | high | 2026-06-17 | Defined "Bounded Importance-Aware Retention" policy in `DECISIONS.md`. Closed T3, spawned T5 for implementation. Added G5 and G6 gaps for importance scaling and date-range querying. |
 
+| 4 | Gemini 3.1 Pro (High) | GUI agent | high | 2026-06-18 | Implemented Bounded Importance-Aware Retention policy in `historyUtils.ts` and added unit tests. Closed T5. |
+
 ---BEGIN NEXT AGENT HANDOFF---
 Project: History System
 Project folder: docs/projects/history
-iteration: 4
+iteration: 5
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -57,64 +59,32 @@ Gaps: docs/projects/history/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 3 defined the "Bounded Importance-Aware Retention" policy in `DECISIONS.md`. The policy establishes a soft cap of 1,000 events, with pruning of low-importance (<80) events when exceeding 1,100 events, while permanently protecting critical lore. T3 is closed. T5 was added to track implementation of this policy in `historyUtils.ts`. G5 and G6 were added to address lack of dynamic importance scaling and time-range queries respectively.
+Iteration 4 implemented the Bounded Importance-Aware Retention policy defined in D2. The `pruneHistory` logic was added to `historyUtils.ts` and wired into `addHistoryEvent`, enforcing the 1000 event soft-cap and protecting events with importance >= 80. Unit tests were added to `historyUtils.test.ts`. Task T5 was closed. Due to host machine PowerShell failure, `vitest` execution was blocked, so verification relies on manual code review of the test suite.
 
 ## Current Mission
 
 Active task:
-T5 - Implement Bounded Importance-Aware Retention policy for `worldHistory`.
+T4 - Validate read/query contract for timeline behavior and consumer expectations.
 
 Acceptance criteria:
-Implement prune logic in `historyUtils.ts` (e.g. `addHistoryEvent` or a separate daily prune function) that enforces the soft cap defined in D2. Write unit tests verifying that protected events (`importance >= 80`) survive pruning, while the oldest unprotected events are removed first. Ensure the reducer safely delegates to this logic without crashing on legacy saves with huge histories.
+Determine whether the current read/query methods in `historyUtils.ts` and the state structure are sufficient for downstream consumers (like a timeline UI or replay diagnostic). Identify missing query paths or explicitly declare them out of scope for this project slice.
 
 Key files to touch:
 - docs/projects/history/NORTH_STAR.md
 - docs/projects/history/TRACKER.md
 - docs/projects/history/GAPS.md
 - docs/projects/history/COLD_START_AGENT_PROMPT.md
-- docs/projects/history/DECISIONS.md
-- docs/projects/history/AUDIT_OR_PROOF.md
-- docs/projects/history/RUNBOOK.md
 - src/utils/world/historyUtils.ts
-- src/types/world.ts
-- src/systems/world/WorldEventManager.ts
+- src/types/history.ts
 
 Scoped verification:
-Write tests in `src/utils/world/__tests__/historyUtils.test.ts` for the new pruning behavior. If testing is blocked, explain why and collect concise proof of manual test in the project docs.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
-
-Recent progress:
-Iteration 3 closed T3 by explicitly documenting the retention policy in D2. Two new gaps (G5, G6) were added to support future retention accuracy and replayability. Iteration 4 should tackle the T5 implementation of D2.
-
-Key files to touch:
-- docs/projects/history/NORTH_STAR.md
-- docs/projects/history/TRACKER.md
-- docs/projects/history/GAPS.md
-- docs/projects/history/COLD_START_AGENT_PROMPT.md
-- docs/projects/history/DECISIONS.md
-- docs/projects/history/AUDIT_OR_PROOF.md
-- docs/projects/history/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- docs/projects/history plus source/docs named by the active tracker task
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
-
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
+Document any explicit missing query paths in GAPS.md or add an out-of-scope note to NORTH_STAR.md or DECISIONS.md.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
 
 Recent progress:
-Iteration 3 closed T3 and defined the D2 retention policy. Iteration 4 should pick up T5 (implementing the retention policy), keeping `historyUtils.ts` tests as the primary verification method.
+Iteration 4 closed T5 (implementing the retention policy). Iteration 5 should pick up T4 (validating the read/query contract), completing the initial scope of the History System's core logic.
 
 ## Required End State For This Iteration
 

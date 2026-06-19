@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 09/06/2026, 01:19:49
- * Dependents: components/CharacterSheet/Family/FamilyTreeTab.tsx, components/World3D/DebugHUD.tsx, components/World3D/InWorldHUD.tsx, services/strongholdService.ts, state/migrations/worldDataMigration.ts, systems/economy/TradeRouteSystem.ts, systems/spells/ai/AISpellArbitrator.ts, types/index.ts, utils/mapDataToWorldData.ts
- * Imports: 1 files
+ * Last Sync: 18/06/2026, 03:18:58
+ * Dependents: components/CharacterSheet/Family/FamilyTreeTab.tsx, components/World3D/DebugHUD.tsx, components/World3D/InWorldHUD.tsx, services/strongholdService.ts, state/migrations/worldDataMigration.ts, systems/economy/TradeRouteSystem.ts, systems/gameEntry/situationNpcToRichNpc.ts, systems/spells/ai/AISpellArbitrator.ts, systems/worldforge/bridge/groundChunkLoader.ts, types/index.ts, utils/mapDataToWorldData.ts, utils/world/worldGeographyAdapter.ts
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -21,6 +21,7 @@ import type { NPCMemory } from './memory.js'; // Added because NPC now carries o
 import type { AbilityScores } from './character.js';
 import type { EquipmentSlotType, Item } from './items.js';
 import type { WorldData } from '../services/worldSim/types';
+import type { WorldGeographySnapshot } from '../utils/world/worldGeographyAdapter';
 import type { Lock } from '../systems/puzzles/types.js';
 
 export type Position = CombatPosition;
@@ -289,6 +290,13 @@ export interface MapData {
   azgaarWorld?: AzgaarWorldRenderData;
   /** Rich world artifact — produced by worldSim. Required for new saves; populated by migration on load for old saves. */
   worldData?: WorldData;
+  /**
+   * Future geography contract persisted beside the legacy tile grid.
+   * It is optional during migration so old saves can still load, and it keeps the
+   * legacy fields readable until World, Travel, Submap, and 3D consumers finish
+   * their adapter proofs.
+   */
+  worldGeography?: WorldGeographySnapshot;
   /** How this world was generated (primary vs fallback). Surfaced in the DebugHUD. */
   generation?: WorldGenDiagnostics;
 }

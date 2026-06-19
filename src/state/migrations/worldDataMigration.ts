@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 04:12:09
+ * Last Sync: 18/06/2026, 03:23:31
  * Dependents: services/mapService.ts, services/saveLoadService.ts, utils/mapDataToWorldData.ts
- * Imports: 4 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -37,14 +37,19 @@ import type { MapData } from '@/types/world';
 import { runWorldSim } from '@/services/worldSim';
 import { heightFromBiomes } from '@/services/worldSim/heightFromBiomes';
 import { climateFromBiomes } from '@/services/worldSim/climateFromBiomes';
+import { fromMapData } from '@/utils/world';
 
 /**
  * Migrates a MapData object to WorldData v2 if worldData is missing.
  */
 export function migrateMapDataToWorldDataV2(mapData: MapData, worldSeed: number): MapData {
-  // Idempotence check: if v2 already exists, return mapData immediately
+  // Idempotence check: if v2 and the geography bridge already exist, return
+  // the save payload immediately. Saves from the T11 transition may have v2
+  // `worldData` but still need the persisted `worldGeography` field below.
   if (mapData.worldData && mapData.worldData.version === 2) {
-    return mapData;
+    return mapData.worldGeography
+      ? mapData
+      : { ...mapData, worldGeography: fromMapData(mapData) };
   }
 
   const { rows, cols } = mapData.gridSize;
@@ -81,6 +86,11 @@ export function migrateMapDataToWorldDataV2(mapData: MapData, worldSeed: number)
   });
 
   const migrated: MapData = { ...mapData, worldData };
+
+  // Persist the World geography compatibility snapshot beside the legacy tiles.
+  // This keeps old saves readable while giving future migration and 3D-entry
+  // work a durable contract to load instead of recomputing the bridge ad hoc.
+  migrated.worldGeography = fromMapData(migrated);
 
   // Record provenance only when we derived heights from biomes (no Azgaar terrain), and only if a
   // generator upstream (e.g. mapService legacy fallback) has not already recorded a more specific

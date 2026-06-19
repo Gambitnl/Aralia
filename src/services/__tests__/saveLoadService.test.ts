@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as SaveLoadService from '../saveLoadService';
 // TODO(lint-intent): 'NotificationType' is unused in this test; use it in the assertion path or remove it.
-import { GameState, GamePhase, NotificationType as _NotificationType } from '../../types';
+import { GameState, GamePhase, NotificationType as _NotificationType, DiscoveryEntry, DiscoveryType } from '../../types';
 // TODO(lint-intent): 'simpleHash' is unused in this test; use it in the assertion path or remove it.
 import { simpleHash as _simpleHash } from '../../utils/hashUtils';
 import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
 import type { WorldDelta } from '../../systems/worldforge/delta/types';
+import { MAX_DISCOVERY_LOG_ENTRIES } from '../../state/reducers/logReducer';
 
 // Mock NotificationSystem callback
 const mockNotify = vi.fn();
@@ -88,6 +89,26 @@ const createWorldforgeDelta = (id: string, sequence: number): WorldDelta => ({
         role: sequence === 1 ? 'market' : 'home',
         storeys: sequence + 1,
     },
+});
+
+// ============================================================================
+// Discovery Log Save Fixtures
+// ============================================================================
+// Save/load tests need complete discovery entries so the loaded Logbook can be
+// checked the same way the player-facing reducer stores it during play.
+// ============================================================================
+
+const createDiscoveryEntry = (id: string, overrides: Partial<DiscoveryEntry> = {}): DiscoveryEntry => ({
+    id,
+    timestamp: Number(id.replace(/\D/g, '')) || 1,
+    gameTime: '2026-06-18T12:00:00.000Z',
+    type: DiscoveryType.MISC_EVENT,
+    title: `Discovery ${id}`,
+    content: `Discovery content ${id}`,
+    source: { type: 'SYSTEM' },
+    flags: [],
+    isRead: false,
+    ...overrides,
 });
 
 describe('SaveLoadService', () => {
@@ -373,6 +394,37 @@ describe('SaveLoadService', () => {
 
             expect(result.success).toBe(true);
             expect(result.data?.playerGroundPos).toBeNull();
+        });
+
+        it('prunes oversized legacy discovery logs on load and keeps unread count tied to retained entries', async () => {
+            // Older saves can already contain more discoveries than the new
+            // runtime cap. Loading should keep the newest player-visible rows
+            // and make the badge match only those retained rows.
+            const oversizedDiscoveryLog = Array.from({ length: MAX_DISCOVERY_LOG_ENTRIES + 5 }, (_, index) =>
+                createDiscoveryEntry(`legacy-discovery-${index}`, {
+                    isRead: index % 3 === 0,
+                })
+            );
+            const legacyState = {
+                ...mockGameState,
+                discoveryLog: oversizedDiscoveryLog,
+                unreadDiscoveryCount: oversizedDiscoveryLog.filter(entry => !entry.isRead).length,
+            };
+            const key = SaveLoadService.getSlotStorageKey('legacy_discovery_log_slot');
+
+            localStorage.setItem(key, JSON.stringify({
+                version: '0.1.0',
+                slotId: key,
+                slotName: 'legacy_discovery_log_slot',
+                state: legacyState,
+            }));
+
+            const result = await SaveLoadService.loadGame('legacy_discovery_log_slot');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.discoveryLog).toHaveLength(MAX_DISCOVERY_LOG_ENTRIES);
+            expect(result.data?.discoveryLog[0]?.id).toBe('legacy-discovery-0');
+            expect(result.data?.unreadDiscoveryCount).toBe(result.data?.discoveryLog.filter(entry => !entry.isRead).length);
         });
     });
 

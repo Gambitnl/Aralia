@@ -8,7 +8,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { worldReducer } from '../worldReducer';
-import { GameState } from '../../../types';
+import { GameState, MapData } from '../../../types';
 import { WeatherState } from '../../../types/environment';
 import { getGameDay } from '../../../utils/core';
 import { createMockGameState } from '../../../utils/factories';
@@ -105,6 +105,63 @@ afterEach(() => {
 });
 
 describe('worldReducer', () => {
+    // ============================================================================
+    // Reducer Payload Contracts
+    // ============================================================================
+    // These checks prove the reducer consumes the typed action payloads directly.
+    // MapData centers from gridSize, while inspected-tile descriptions preserve
+    // the exact key provided by the UI inspection flow.
+    // ============================================================================
+
+    it('centers minimap focus from the typed MapData grid size', () => {
+        const mapData: MapData = {
+            gridSize: { rows: 8, cols: 12 },
+            tiles: Array.from({ length: 8 }, (_, y) =>
+                Array.from({ length: 12 }, (_, x) => ({
+                    x,
+                    y,
+                    discovered: y === 4 && x === 6,
+                    isPlayerCurrent: y === 4 && x === 6,
+                    biomeId: 'plains',
+                }))
+            ),
+        };
+        const baseState = createMockGameState({
+            minimapFocus: { x: 99, y: 99 },
+        });
+        const action: AppAction = {
+            type: 'SET_MAP_DATA',
+            payload: mapData,
+        };
+
+        const result = worldReducer(baseState, action);
+
+        expect(result.mapData).toBe(mapData);
+        expect(result.minimapFocus).toEqual({ x: 6, y: 4 });
+    });
+
+    it('stores inspected tile descriptions at the typed tile key', () => {
+        const baseState = createMockGameState({
+            inspectedTileDescriptions: {
+                '1,1:grass': 'Old grass note.',
+            },
+        });
+        const action: AppAction = {
+            type: 'UPDATE_INSPECTED_TILE_DESCRIPTION',
+            payload: {
+                tileKey: '2,3:forest',
+                description: 'Dense roots and moss crowd the trail.',
+            },
+        };
+
+        const result = worldReducer(baseState, action);
+
+        expect(result.inspectedTileDescriptions).toEqual({
+            '1,1:grass': 'Old grass note.',
+            '2,3:forest': 'Dense roots and moss crowd the trail.',
+        });
+    });
+
     // ============================================================================
     // Ground Position Persistence
     // ============================================================================

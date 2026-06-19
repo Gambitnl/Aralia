@@ -4,11 +4,11 @@ handoff_type: agent_to_agent
 project: Command Factory Runtime
 slug: command-factory-runtime
 status: active
-last_updated: 2026-06-14
+last_updated: 2026-06-18
 iteration: 4
-source_agent: Antigravity / Gemini 3.5 Flash (Medium)
+source_agent: Codex CLI agent
 target_agent: next cold-start agent
-runtime_surface: MCP-subagent
+runtime_surface: CLI agent
 certainty: certain
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
@@ -20,7 +20,7 @@ gaps: docs/projects/command-factory-runtime/GAPS.md
 # Command Factory Runtime Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-14
+Last updated: 2026-06-18
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -39,7 +39,7 @@ docs/projects/command-factory-runtime/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Command Factory Runtime
 Project folder: docs/projects/command-factory-runtime
-iteration: 4
+iteration: 5
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -53,18 +53,19 @@ Gaps: docs/projects/command-factory-runtime/GAPS.md
 |---|---|---|---|---|---|
 | 2 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Spawned by the foreman as a bounded living-project iteration worker |
 | 3 | Antigravity / Gemini 3.5 Flash (Medium) | MCP-subagent | certain | 2026-06-14 | Spawned by the foreman as a bounded living-project iteration worker |
+| 4 | Codex CLI agent, repaired by Matrix orchestrator | CLI agent + orchestrator review | certain | 2026-06-18 | Follow-up on G1 with bounded source audit and registry implementation; spawned worker exited 1 after warning spam, then orchestrator reviewed and repaired the partial diff |
 
 ## Previous Handoff
 
-Iteration 3 redirected the last internal caller of the deprecated `SpellCommandFactory.matchesFilter` wrapper to target the shared `TargetValidationUtils.matchesFilter` directly. Gap `G2` was marked closed, and two new gaps (`G5` - split mapping pathways, `G6` - co-located WeaponAttackCommand implementation) were registered in `GAPS.md`.
+Iteration 4 added `commandFactoryRegistry` in `src/commands/index.ts` for explicit spell and ability command creation entry points, closing gap `G1` with source-backed registry evidence. The Matrix-spawned worker was interrupted after warning spam, so the orchestrator repaired the registry binding and verified the focused factory slice.
 
 ## Current Mission
 
 Active task:
-None - select next actionable gap from `GAPS.md` (G1 is currently in_scope_now)
+G1 implemented: explicit registry entries added in `src/commands/index.ts`
 
 Acceptance criteria:
-Select next actionable gap (such as G1) from `GAPS.md`, perform research, implementation, and verify using Vitest.
+G1 is complete. For the next pass, select `G3` or `G4` from `GAPS.md` after confirming the registry remains aligned with current command creation call sites.
 
 Key files to touch:
 - docs/projects/command-factory-runtime/NORTH_STAR.md
@@ -80,19 +81,19 @@ Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers instead of editing their docs.
 
 Recent progress:
-SpellCommandFactory.ts no longer calls its deprecated matchesFilter wrapper internally. Gap G2 has been closed. Gaps G5 and G6 were registered.
+G1 is marked resolved in `GAPS.md`; `src/commands/index.ts` now exports `commandFactoryRegistry`; `NORTH_STAR.md` and `TRACKER.md` capture the pass telemetry, Matrix interruption, orchestrator repair, and focused test proof.
 
 Workflow-gap review result:
 `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` was read and found to have no active workflow gaps; no changes were made.
 
 Dashboard schema updates:
-`NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` were refreshed to reflect the resolution of G2, addition of G5/G6, and current iteration metadata.
+`NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` were refreshed to reflect G1 resolution, the reduced open-gap count, the repaired pass closeout, and current iteration metadata.
 
 Optional docs:
 `DECISIONS.md`, `AUDIT_OR_PROOF.md`, and `RUNBOOK.md` are not present for this project yet, so they were not needed this iteration.
 
 Next safe resume path:
-Confirm existing registry patterns in `src/commands/index.ts` and `hooks/useAbilitySystem.ts`, then design the explicit command registration registry for G1.
+Continue with `G3` or `G4` in `GAPS.md` after confirming no behavioral drift from the factory registry change.
 
 ## Required End State For This Iteration
 

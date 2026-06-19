@@ -1,7 +1,7 @@
 # Command Factory Runtime Living Tracker
 
 Status: active  
-Last updated: 2026-06-14
+Last updated: 2026-06-18
 
 ## Status Vocabulary
 
@@ -17,6 +17,7 @@ Last updated: 2026-06-14
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
+| T3 | done | Add explicit command factory registry metadata for spell and ability creation paths | Codex CLI agent, repaired by Matrix orchestrator | 2026-06-18 | `src/commands/index.ts`, `src/commands/factory/SpellCommandFactory.ts`, `src/commands/factory/AbilityCommandFactory.ts` | Continue with G3 or G4 after checking registry drift | `npx vitest run src/commands/factory` passed 9 files / 34 tests on 2026-06-18 |
 | T2 | done | Monitor drift after source edits and keep gaps updated | Worker C | 2026-06-14 | `docs/projects/command-factory-runtime/NORTH_STAR.md`, `src/commands/factory/SpellCommandFactory.ts` | None — no actionable task left for this iteration | Verified last internal caller redirected to `TargetValidationUtils.matchesFilter` and unit tests passed |
 
 ## Gap Log

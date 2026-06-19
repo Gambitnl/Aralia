@@ -1,13 +1,13 @@
 ﻿# Encounter Generator Living Tracker
 
 Status: review-required
-Last updated: 2026-06-12
+Last updated: 2026-06-18
 
 ## Active Task Queue
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check |
 |---|---|---|---|---|---|---|---|
-| T3 | blocked | Close seeded encounter generation and difficulty contract slice | Worker B | 2026-06-09 | `src/components/Combat/EncounterModal.tsx`, `src/hooks/actions/handleEncounter.ts`, `src/services/gemini/encounters.ts`, `src/services/geminiServiceFallback.ts`, `src/utils/world/bestiaryEncounterGenerator.ts`, `src/utils/world/encounterUtils.ts`, `src/utils/combat/encounterDifficulty.ts` | Keep slice bounded to seed + difficulty contract and route non-seeded AI replay gap | Pause forward implementation until G4 decision is recorded; maintain review gate in GAPS and then continue with explicit scope note |
+| T3 | blocked | Close seeded encounter generation and difficulty contract slice | Worker B / Codex CLI pass | 2026-06-18 | `src/components/Combat/EncounterModal.tsx`, `src/hooks/actions/handleEncounter.ts`, `src/services/gemini/encounters.ts`, `src/services/geminiServiceFallback.ts`, `src/utils/world/bestiaryEncounterGenerator.ts`, `src/utils/world/encounterUtils.ts`, `src/utils/combat/encounterDifficulty.ts` | Keep slice bounded to seed + difficulty contract and route non-seeded AI replay gap | Pause forward implementation until G4 decision is recorded; existing focused seed/fallback tests pass as of 2026-06-18 |
 
 ## Status Vocabulary
 

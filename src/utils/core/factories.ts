@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 08:04:57
+ * Last Sync: 18/06/2026, 03:46:27
  * Dependents: utils/core/index.ts, utils/factories.ts
- * Imports: 7 files
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -50,6 +50,7 @@ import {
 import { CommandContext } from '@/commands/base/SpellCommand';
 import { v4 as uuidv4 } from 'uuid';
 import { buildHitPointDicePools } from '@/utils/character';
+import { createEmptyHistory } from '@/utils/historyUtils';
 
 /**
  * [Warden] Hardened factories against failures in uuid generation or time utilities.
@@ -576,7 +577,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       activeDialogueSession: null,
       isDialogueInterfaceOpen: false,
       activeRumors: [],
-      worldHistory: undefined,
+      worldHistory: createEmptyHistory(),
       activeHeist: null,
       activeContracts: [],
       playerIdentity: undefined,
@@ -743,7 +744,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       activeDialogueSession: null,
       isDialogueInterfaceOpen: false,
       activeRumors: [],
-      worldHistory: undefined,
+      worldHistory: createEmptyHistory(),
       activeHeist: null,
       activeContracts: [],
       playerIdentity: undefined,

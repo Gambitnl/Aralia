@@ -2,18 +2,22 @@
 schema_version: 1
 project: World
 slug: world
-category: active project
+category: completed project
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
-status: active
-last_updated: 2026-06-12
-iteration: 2
-confidence: unknown
-evidence: "docs/projects/world/TRACKER.md; docs/projects/world/GAPS.md"
-gap_signal: "8 open gaps; G1 through G8 remain open around world-geography contract implementation"
+status: complete for World-owned scope
+last_updated: 2026-06-18
+iteration: 16
+confidence: medium
+evidence: "docs/projects/world/TRACKER.md; docs/projects/world/GAPS.md; docs/projects/world/WORLD_GEOGRAPHY_ADAPTER_CONTRACT.md; src/utils/world/worldGeographyAdapter.ts; src/utils/world/__tests__/worldGeographyAdapter.test.ts; src/hooks/actions/handleMovement.ts; src/hooks/actions/__tests__/handleMovement.test.ts; src/hooks/actions/handleWorldEvents.ts; src/components/MapPane.tsx; src/components/__tests__/MapPane.test.tsx; src/state/__tests__/appState.worldGeographySnapshot.test.ts; src/state/__tests__/appState.worldStateShape.test.ts; src/state/reducers/worldReducer.ts; src/state/reducers/__tests__/worldReducer.test.ts; src/state/migrations/worldDataMigration.ts; src/state/migrations/__tests__/worldDataMigration.test.ts; src/systems/world/WorldEventManager.ts; src/types/world.ts; src/types/state.ts; src/state/appState.ts; src/state/initialState.ts; src/services/worldSim/types.ts; docs/projects/travel/GAPS.md; docs/projects/events/GAPS.md; docs/projects/memory/GAPS.md; docs/projects/town-description-system/GAPS.md"
+gap_signal: "0 open gaps; World-owned gaps are resolved or routed. Remaining related work belongs to WorldSim Service WSS-001, Travel G6-G10, Submap G9-G12, and Global GG-29 owner lanes."
 protocol: living-project
-next_step: Define the new canonical world-geography contract (aligned with the Azgaar-based pipeline) and build explicit adapters for every tile-grid dependency (movement, passability, discovery, save/load/migration, 3D markers) before retiring old fields.
-agent_comments: "G3 Required Review Brief resolved 2026-06-10 (Option B). See docs/projects/DECISION_BLITZ_2026-06-10.md D2."
+next_step: No active World-owned task remains; resume in the owner project named by any routed gap.
+agent_comments: ""
+active_agent: "Codex application agent (GPT-5)"
+agent_pass_status: finished
+agent_pass_started_at: "2026-06-18T04:22:38.1137062+02:00"
+agent_pass_ended_at: "2026-06-18T04:30:25.2563096+02:00"
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -23,14 +27,31 @@ required_docs:
   - AUDIT_OR_PROOF.md
   - RUNBOOK.md
 optional_docs:
+  - WORLD_GEOGRAPHY_ADAPTER_CONTRACT.md
 required_verification:
   - docs consistency
 completed_verification:
-  - docs refresh
-last_proof: 2026-06-09
-workflow_gaps_reviewed: 2026-06-09
+  - docs_consistency
+  - focused_tests
+  - adapter_design
+  - source_adapter_tests
+  - mutation_helper_tests
+  - movement_wiring_tests
+  - MapPane_read_wiring_tests
+  - startup_load_snapshot_tests
+  - passability_adapter_tests
+  - migration_persistence_tests
+  - 3D_anchor_conversion_tests
+  - world_state_shape_tests
+  - reducer_payload_contract_tests
+  - schedule_proximity_boundary_audit
+  - deterministic_daily_world_log_id_tests
+  - worldsim_performance_owner_route
+  - final_grid_retirement_owner_route
+last_proof: 2026-06-18
+workflow_gaps_reviewed: 2026-06-18
 compaction_status: not_needed
-lifecycle_status: phase-out-contract-implementation
+lifecycle_status: complete_for_world_owned_scope
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
@@ -38,8 +59,8 @@ human_decision_required: "no"
 ---
 # World System North Star
 
-Status: active (G3 decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-12
+Status: complete for World-owned scope (all World gaps resolved or routed)
+Last updated: 2026-06-18
 
 ## Dashboard Card Schema
 
@@ -47,19 +68,19 @@ Last updated: 2026-06-12
 |---|---|
 | Project | World |
 | Slug | world |
-| Category | active project |
-| Status | active (G3 decision recorded 2026-06-10; implementation lane open) |
-| Confidence | unknown |
-| Evidence | docs/projects/world/TRACKER.md; docs/projects/world/GAPS.md |
-| Gap signal | G3 decided 2026-06-10 (new canonical world-geography contract + adapters before retiring tile-grid fields) |
+| Category | completed project |
+| Status | complete for World-owned scope (all World gaps resolved or routed) |
+| Confidence | medium |
+| Evidence | docs/projects/world/TRACKER.md; docs/projects/world/GAPS.md; docs/projects/world/WORLD_GEOGRAPHY_ADAPTER_CONTRACT.md; src/utils/world/worldGeographyAdapter.ts; src/utils/world/__tests__/worldGeographyAdapter.test.ts; src/hooks/actions/handleMovement.ts; src/hooks/actions/__tests__/handleMovement.test.ts; src/hooks/actions/handleWorldEvents.ts; src/components/MapPane.tsx; src/components/__tests__/MapPane.test.tsx; src/state/__tests__/appState.worldGeographySnapshot.test.ts; src/state/__tests__/appState.worldStateShape.test.ts; src/state/reducers/worldReducer.ts; src/state/reducers/__tests__/worldReducer.test.ts; src/state/migrations/worldDataMigration.ts; src/state/migrations/__tests__/worldDataMigration.test.ts; src/systems/world/WorldEventManager.ts; src/types/world.ts; src/types/state.ts; src/state/appState.ts; src/state/initialState.ts; src/services/worldSim/types.ts; docs/projects/travel/GAPS.md; docs/projects/events/GAPS.md; docs/projects/memory/GAPS.md; docs/projects/town-description-system/GAPS.md |
+| Gap signal | 0 open gaps; World-owned gaps are resolved or routed. Remaining related work belongs to WorldSim Service WSS-001, Travel G6-G10, Submap G9-G12, and Global GG-29 owner lanes. |
 | Protocol | living-project |
-| Next step | Define the new canonical world-geography contract and build explicit adapters for every tile-grid dependency (movement, passability, discovery, save/load/migration, 3D markers) before retiring old fields. |
+| Next step | No active World-owned task remains; resume in the owner project named by any routed gap. |
 | Required verification | docs consistency |
-| Completed verification | docs refresh |
-| Last proof | 2026-06-09 Required Review Brief added for tile-grid phase-out contract |
-| Workflow gaps reviewed | 2026-06-09 |
+| Completed verification | docs consistency; focused tests; adapter design; source adapter tests; mutation helper tests; movement wiring tests; MapPane read wiring tests; startup/load snapshot tests; passability adapter tests; migration persistence tests; 3D anchor conversion tests; world-state shape tests; reducer payload contract tests; schedule/proximity boundary audit; deterministic daily-world log ID tests; worldSim performance owner route; final grid retirement owner route |
+| Last proof | 2026-06-18 T18 final grid-retirement owner route |
+| Workflow gaps reviewed | 2026-06-18 |
 
-Dashboard lifecycle: phase-out-contract-implementation
+Dashboard lifecycle: complete_for_world_owned_scope
 Assignment rule: Do not assign forward runtime changes until `MapData` tile-grid movement, save/load, and migration compatibility dependencies are explicitly preserved or routed. Update (2026-06-10): the G3 decision is recorded (Option B â€” DECISION_BLITZ D2); forward runtime work is assignable only through the new-contract-plus-adapters lane, and tile-grid fields stay canonical until every dependency has an explicit adapter.
 
 ## Required Review Brief
@@ -80,7 +101,7 @@ Proof after decision: Contract preservation table plus focused startup/load/move
 Outcome: **Option B â€” promote a new canonical world-geography contract and create an explicit migration/adapter layer for every tile-grid dependency before retiring old fields.** The new contract aligns with the Azgaar-based proc-gen pipeline (Azgaar is canonical per WorldSim Service D1). Required adapters cover, at minimum: movement, passability, discovery/current-tile markers, save/load/migration compatibility, and 3D marker anchors. Tile-grid `MapData` fields are not removed until each dependency has a working adapter and verification.
 Decider: Remy (project owner), batched decision session (June 2026 proc-gen campaign context â€” see the master record's Context section).
 Record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D2).
-Effect: the G3 review gate is lifted. Next slice: write the contract preservation table mapping every tile-grid dependency to its adapter, define the new canonical world-geography contract, then run the focused startup/load/movement verification named above before any old field is retired.
+Effect: the G3 review gate is lifted and the World-owned adapter lane is closed. The first contract preservation table now lives in `TRACKER.md` under `Contract Preservation Table`, the concrete adapter design lives in `WORLD_GEOGRAPHY_ADAPTER_CONTRACT.md`, the read/mutation source adapter lives in `src/utils/world/worldGeographyAdapter.ts`, movement writes route through it, `MapPane.tsx` reads marker state through adapter-projected tiles, T9 proves startup/load payloads can produce seeded snapshots, T10 proves canonical biome plus allow-list passability through the adapter, T11 persists `worldGeography` during migration while preserving legacy `MapData`, and T12 resolves persisted geography points into World3D entry anchors. Final tile-grid retirement still belongs to G11/GG-29 plus Travel/Submap owner lanes.
 
 ## Why This Project Exists
 
@@ -119,6 +140,13 @@ Provide a cold-start map of implemented world-state ownership and open gaps arou
 - Faction economy and diplomacy are actively mutated from the daily loop and exposed via `playerFactionStandings`.
 - `worldDataMigration` already handles missing/legacy `MapData` by regenerating `worldData` with `runWorldSim(...)`.
 - `MapPane`, `handleMovement`, `MapData`, app state setup/load flows, and `worldDataMigration` still preserve tile-grid world data while Azgaar/3D rendering paths replace the old world-map renderer.
+- The 2026-06-18 gap pass closed stale weather/economy casting gaps in `WorldEventManager`: current source reads `state.environment` and typed `state.economy.activeEvents`; focused WorldEventManager/worldReducer tests pass.
+- The explicit G3 adapter contract rows are now source-proven for World. Final tile-grid retirement remains out of this World slice until G11/GG-29, Travel, and Submap owner lanes close their side.
+- `WORLD_GEOGRAPHY_ADAPTER_CONTRACT.md` defines the concrete adapter design and stop conditions; `worldGeographyAdapter.ts` now covers read projection plus pure discovery/current-marker mutation helpers, and `handleMovement.ts` uses those helpers for marker writes.
+- T13 made `activeRumors` and `worldHistory` mandatory on `GameState`, seeded fresh state and factory state with concrete defaults, and heals legacy loaded saves that omit rumor/history/notification/merchant UI fields.
+- T14 removed the `SET_MAP_DATA` and `UPDATE_INSPECTED_TILE_DESCRIPTION` reducer payload placeholder casts, typed the existing `minimapFocus` state field, and proves typed `MapData.gridSize` minimap centering plus exact inspected-tile description writes.
+- T15 routed the schedule/proximity TODO cluster: Travel owns forced march application, Events owns scheduler markers, Memory owns action-to-memory coverage, and Town Description owns proximity-triggered town-description loading.
+- T16 made returned daily-world log IDs deterministic for identical saved game time and world seed, including logs returned from sibling daily subsystems through the `WorldEventManager` boundary.
 
 ## Relevant Tests
 
@@ -138,15 +166,15 @@ Keep this project focused on world-system ownership; do not close open items fro
 1. Read this file.
 2. Read `docs/projects/world/TRACKER.md`.
 3. Read `docs/projects/world/GAPS.md`.
-4. Continue with evidence-backed tile-grid contract preservation before any forward runtime edits.
-5. Update (2026-06-10): the G3 decision is recorded (new canonical world-geography contract + adapters â€” DECISION_BLITZ D2). The next slice is the contract preservation table and the new-contract/adapters definition; old tile-grid fields stay until each dependency has a verified adapter.
+4. No active World-owned task remains. If new World work is discovered, open a new source-backed gap before implementation.
+5. Old tile-grid fields stay until Travel and Submap owner lanes close their side. Do not absorb Travel's cell-native movement work, Submap's UI retirement work, or WorldSim Service performance work into this completed World scope.
 
 
 ## Cold-Start Gap Routing
 
 The next cold-start agent must:
 - read `TRACKER.md` and `GAPS.md` first
-- tackle one real, evidence-backed project gap in the same pass
-- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
-- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
-- do not invent gaps just to satisfy the count
+- do not continue World work unless a new source-backed World-owned gap is opened
+- keep World's scope to the canonical world-geography contract and adapters
+- route Travel cell-native movement/pathfinding and Submap UI retirement work to their owner projects
+- do not invent gaps just to satisfy a count

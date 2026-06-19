@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 19/06/2026, 00:45:39
+ * Dependents: components/World3D/InWorldHUD.tsx, components/World3D/World3DMinimap.tsx, components/World3D/World3DWrapper.tsx, components/World3D/chunkWorker.ts, components/World3D/createWorkerChunkLoader.ts, services/azgaarDerivedMapService.ts, services/worldSim/biomeZones.ts, services/worldSim/coastlinesAndLakes.ts, services/worldSim/index.ts, services/worldSim/marchingSquares.ts, services/worldSim/rivers.ts, services/worldSim/roads.ts, services/worldSim/sites.ts, systems/world3d/chunkSampler.ts, systems/world3d/chunkWorkerCore.ts, systems/world3d/coords.ts, systems/worldforge/bridge/groundWorldAdapter.ts, types/index.ts, types/world.ts, utils/mapDataToWorldData.ts, utils/world/worldGeographyAdapter.ts, utils/worldCoords.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file types.ts
  * Type definitions for the world-sim pipeline output (WorldData) and its artifacts.
@@ -57,6 +73,37 @@ export interface BiomeZone {
   polygon: Polygon;
 }
 
+// ============================================================================
+// Canonical Feature Hints
+// ============================================================================
+// This section carries feature truth from the atlas generator into WorldData.
+// The generated polylines below still exist for current render/runtime behavior,
+// but these hints record which upstream feature source should be trusted when
+// later bridge work reconciles rivers, roads, and sites.
+// ============================================================================
+
+export interface WorldFeatureSiteHint {
+  id: string;
+  kind: Site['kind'];
+  position: Vec2;
+}
+
+export interface WorldFeatureRoadHint {
+  id: string;
+  points: Vec2[];
+  type: Road['type'];
+}
+
+export interface WorldFeatureHints {
+  source: 'azgaar';
+  /** Per-cell river mask from the canonical Azgaar atlas layer. */
+  rivers: boolean[];
+  /** Canonical site hints; empty until the Azgaar producer emits richer site data. */
+  sites: WorldFeatureSiteHint[];
+  /** Canonical road hints; empty until the Azgaar producer emits richer road data. */
+  roads: WorldFeatureRoadHint[];
+}
+
 export interface WorldData {
   version: 2;
   seed: number;
@@ -75,6 +122,9 @@ export interface WorldData {
 
   // Site placements
   sites: Site[];
+
+  // Canonical feature hints
+  featureHints?: WorldFeatureHints;
 
   // Polygons
   coastlines: Polygon[];

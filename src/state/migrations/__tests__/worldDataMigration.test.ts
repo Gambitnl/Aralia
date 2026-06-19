@@ -1,5 +1,15 @@
-import { migrateMapDataToWorldDataV2 } from '../worldDataMigration';
 import type { MapData } from '@/types/world';
+import { fromMapData } from '@/utils/world';
+import { migrateMapDataToWorldDataV2 } from '../worldDataMigration';
+
+/**
+ * These tests protect the loader-side world-data migration.
+ *
+ * Old saves arrive with legacy tile grids, optional Azgaar terrain, or already
+ * migrated `WorldData`. The migration must keep those saves readable while
+ * attaching the newer world-geography bridge that later movement, map, and 3D
+ * work can consume.
+ */
 
 const fakeTiles = (cols: number, rows: number) => {
   const tiles = [];
@@ -199,4 +209,99 @@ it('is a no-op when worldData already exists and is v2', () => {
   const before: MapData = { gridSize: { rows, cols }, tiles: fakeTiles(cols, rows), worldData: seedWd };
   const after = migrateMapDataToWorldDataV2(before, 1);
   expect(after.worldData).toBe(seedWd);
+});
+
+it('adds missing world geography to saves that already have v2 worldData', () => {
+  const cols = 4;
+  const rows = 4;
+  const worldData = {
+    version: 2 as const,
+    seed: 11,
+    templateId: 'v2-without-geography',
+    gridSize: { rows, cols },
+    heights: new Array(cols * rows).fill(30),
+    temperatures: [],
+    moisture: [],
+    biomeIds: [],
+    rivers: [],
+    roads: [],
+    sites: [],
+    coastlines: [],
+    lakes: [],
+    biomeZones: [],
+  };
+  const before: MapData = {
+    gridSize: { rows, cols },
+    tiles: fakeTiles(cols, rows),
+    worldData,
+  };
+
+  const after = migrateMapDataToWorldDataV2(before, 11);
+
+  expect(after).not.toBe(before);
+  expect(after.worldData).toBe(worldData);
+  expect(after.worldGeography).toEqual(fromMapData(after));
+  expect(after.tiles).toBe(before.tiles);
+});
+
+it('persists a world geography snapshot while keeping legacy tiles readable', () => {
+  const cols = 4;
+  const rows = 3;
+  const before: MapData = {
+    gridSize: { rows, cols },
+    tiles: fakeTiles(cols, rows),
+  };
+
+  const after = migrateMapDataToWorldDataV2(before, 314);
+
+  expect(after.worldData).toBeDefined();
+  expect(after.worldGeography).toEqual(fromMapData(after));
+  expect(after.worldGeography!.source).toBe('worlddata-v2');
+  expect(after.worldGeography!.points).toHaveLength(cols * rows);
+  expect(after.gridSize).toEqual(before.gridSize);
+  expect(after.tiles[0][0]).toMatchObject({
+    x: 0,
+    y: 0,
+    biomeId: 'plains',
+    discovered: false,
+    isPlayerCurrent: false,
+  });
+});
+
+it('preserves an existing world geography snapshot on already migrated saves', () => {
+  const cols = 3;
+  const rows = 3;
+  const worldData = {
+    version: 2 as const,
+    seed: 5,
+    templateId: 'saved-geography',
+    gridSize: { rows, cols },
+    heights: new Array(cols * rows).fill(30),
+    temperatures: [],
+    moisture: [],
+    biomeIds: [],
+    rivers: [],
+    roads: [],
+    sites: [],
+    coastlines: [],
+    lakes: [],
+    biomeZones: [],
+  };
+  const savedGeography = fromMapData({
+    gridSize: { rows, cols },
+    tiles: fakeTiles(cols, rows),
+    worldData,
+  });
+  const before: MapData = {
+    gridSize: { rows, cols },
+    tiles: fakeTiles(cols, rows),
+    worldData,
+    worldGeography: savedGeography,
+  };
+
+  const after = migrateMapDataToWorldDataV2(before, 5);
+
+  expect(after).toBe(before);
+  expect(after.worldData).toBe(worldData);
+  expect(after.worldGeography).toBe(savedGeography);
 });

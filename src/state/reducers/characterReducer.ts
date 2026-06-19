@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/06/2026, 20:46:37
+ * Last Sync: 19/06/2026, 00:50:16
  * Dependents: state/appState.ts
  * Imports: 9 files
  *
@@ -36,7 +36,7 @@
 // TODO(lint-intent): 'DiscoveryType' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { GameState, LimitedUseAbility, SpellSlots, DiscoveryType as _DiscoveryType, Item, RacialSelectionData, LevelUpChoices, EquipmentSlotType, ArmorCategory, AbilityScoreName } from '../../types';
+import { GameState, LimitedUseAbility, SpellSlots, DiscoveryType as _DiscoveryType, Item, RacialSelectionData, LevelUpChoices, EquipmentSlotType, ArmorCategory, AbilityScoreName, Skill } from '../../types';
 import { AppAction } from '../actionTypes';
 import { SKILLS_DATA } from '../../data/skills';
 import {
@@ -73,6 +73,19 @@ const resolveMaxValue = (char: GameState['party'][0], ability: LimitedUseAbility
     if (ability.max === 'proficiency_bonus') return char.proficiencyBonus || 2;
     return 1; // Fallback
 };
+
+/**
+ * Stamps newly acquired inventory items with the real-world time they entered
+ * the party inventory.
+ *
+ * Existing saves and older item templates may not have this field yet, so this
+ * helper preserves any timestamp that already exists and only fills the missing
+ * value at acquisition boundaries owned by this reducer.
+ */
+const stampItemAcquiredAt = (item: Item, acquiredAt = Date.now()): Item => ({
+    ...item,
+    acquiredAt: item.acquiredAt ?? acquiredAt,
+});
 
 // ============================================================================
 // Main Reducer Logic
@@ -117,8 +130,10 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 return {};
             }
 
-            // Create independent copies of the item to avoid shared reference issues
-            const newItems = Array.from({ length: count }, () => ({ ...item, id: item.id === 'gold_piece' ? item.id : generateId() }));
+            // Create independent item instances and stamp when they entered
+            // inventory so perishable food can expire from durable item data.
+            const acquiredAt = Date.now();
+            const newItems = Array.from({ length: count }, () => stampItemAcquiredAt({ ...item, id: item.id === 'gold_piece' ? item.id : generateId() }, acquiredAt));
 
             // For stackable items (like gold), we might want to just add them as is, but current inventory is a flat list.
             // If the item is generic (like gold_piece), we keep the ID. If it's a unique gear item, we give it a unique ID.
@@ -727,7 +742,9 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
                 return {
                     gold: newGold,
-                    inventory: [...state.inventory, item],
+                    // Purchased items enter the player inventory here, so this
+                    // is the merchant acquisition boundary for freshness timing.
+                    inventory: [...state.inventory, stampItemAcquiredAt(item)],
                     merchantModal: state.merchantModal ? {
                         ...state.merchantModal,
                         merchantInventory: newMerchantInventory

@@ -1,7 +1,28 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 18/06/2026, 02:39:54
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file MapPane.tsx
  * World map modal surface. Stage R1 default is an embedded, read-only Azgaar
  * atlas with a click-to-hidden-cell bridge to preserve existing travel logic.
+ *
+ * The pane still receives legacy `MapData`, but discovery/current-player reads
+ * now pass through the World geography adapter before the grid or click overlay
+ * consumes them. That keeps today's tile-grid UI intact while future Azgaar or
+ * Worldforge cell identities can replace the backing fields behind one adapter.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapData, MapMarker, MapTile as MapTileType } from '../types';
@@ -18,6 +39,11 @@ import { WindowFrame } from './ui/WindowFrame';
 import { WINDOW_KEYS } from '../styles/uiIds';
 import AtlasPlayerMarker from './World3D/AtlasPlayerMarker';
 import type { PlayerWorldPosition } from '../types';
+import {
+  fromMapData,
+  resolveLegacyTile,
+  type WorldGeographySnapshot,
+} from '@/utils/world/worldGeographyAdapter';
 
 interface MapPaneProps {
   mapData: MapData;
@@ -81,6 +107,46 @@ function deriveAzgaarSeed(mapData: MapData): number {
   return bounded > 0 ? bounded : bounded + 999_999_999;
 }
 
+// -----------------------------------------------------------------------------
+// World geography read adapter bridge
+// -----------------------------------------------------------------------------
+// MapPane still renders and emits legacy tiles. These helpers make the read side
+// depend on the World geography snapshot first, then fall back to the original
+// tile if a future non-tile geography point has not been bridged yet.
+// -----------------------------------------------------------------------------
+
+function projectTileFromGeographySnapshot(
+  tile: MapTileType,
+  snapshot: WorldGeographySnapshot,
+): MapTileType {
+  const projectedPoint = resolveLegacyTile(snapshot, { x: tile.x, y: tile.y });
+  if (!projectedPoint) {
+    return tile;
+  }
+  if (
+    projectedPoint.discovered === tile.discovered &&
+    projectedPoint.isPlayerCurrent === tile.isPlayerCurrent
+  ) {
+    return tile;
+  }
+  return {
+    ...tile,
+    discovered: projectedPoint.discovered,
+    isPlayerCurrent: projectedPoint.isPlayerCurrent,
+  };
+}
+
+function projectMapDataForRead(mapData: MapData): MapData {
+  const snapshot = fromMapData(mapData);
+  return {
+    ...mapData,
+    gridSize: { ...mapData.gridSize },
+    tiles: mapData.tiles.map((row) =>
+      row.map((tile) => projectTileFromGeographySnapshot(tile, snapshot)),
+    ),
+  };
+}
+
 /**
  * Description of an actual Azgaar Voronoi cell (returned by the iframe bridge's
  * describeCell). Replaces the old square-grid tile readout on hover.
@@ -112,7 +178,10 @@ const MapPane: React.FC<MapPaneProps> = ({
   generationLockedReason = null,
   onRegenerateWorld,
 }) => {
-  const { gridSize, tiles } = mapData;
+  const { gridSize } = mapData;
+  const geographySnapshot = useMemo(() => fromMapData(mapData), [mapData]);
+  const projectedMapData = useMemo(() => projectMapDataForRead(mapData), [mapData]);
+  const projectedTiles = projectedMapData.tiles;
   const [viewMode, setViewMode] = useState<WorldMapViewMode>('azgaar');
   const [interactionMode, setInteractionMode] = useState<WorldMapInteractionMode>(allowTravel ? 'travel' : 'pan');
   const [isFrameReady, setIsFrameReady] = useState(false);
@@ -137,9 +206,9 @@ const MapPane: React.FC<MapPaneProps> = ({
     return `${azgaarBasePath}?seed=${azgaarSeed}&options=default&runtime=${AZGAAR_RUNTIME_REV}`;
   }, [azgaarSeed]);
 
-  const flattenedTiles = useMemo(() => tiles.flat(), [tiles]);
+  const flattenedTiles = useMemo(() => projectedTiles.flat(), [projectedTiles]);
 
-  const poiMarkers: MapMarker[] = useMemo(() => buildPoiMarkers(POIS, mapData), [mapData]);
+  const poiMarkers: MapMarker[] = useMemo(() => buildPoiMarkers(POIS, projectedMapData), [projectedMapData]);
 
   const markersByCoordinate = useMemo(() => {
     const markerMap = new Map<string, MapMarker[]>();
@@ -431,10 +500,10 @@ const MapPane: React.FC<MapPaneProps> = ({
     const x = clampIndex(Math.floor(normalizedX * gridSize.cols), gridSize.cols);
     const y = clampIndex(Math.floor(normalizedY * gridSize.rows), gridSize.rows);
 
-    const tile = tiles[y]?.[x];
+    const tile = projectedTiles[y]?.[x];
     if (!tile) return null;
     return { x, y, tile };
-  }, [gridSize.cols, gridSize.rows, readAtlasTransform, tiles]);
+  }, [gridSize.cols, gridSize.rows, readAtlasTransform, projectedTiles]);
 
   const resolveWorldFromPointer = useCallback((clientX: number, clientY: number) => {
     // Map a screen point to Azgaar graph-space coordinates (the same space the
@@ -463,10 +532,10 @@ const MapPane: React.FC<MapPaneProps> = ({
     if (!transform || transform.graphWidth <= 0 || transform.graphHeight <= 0) return null;
     const x = clampIndex(Math.floor((xWorld / transform.graphWidth) * gridSize.cols), gridSize.cols);
     const y = clampIndex(Math.floor((yWorld / transform.graphHeight) * gridSize.rows), gridSize.rows);
-    const tile = tiles[y]?.[x];
+    const tile = projectedTiles[y]?.[x];
     if (!tile) return null;
     return { x, y, tile };
-  }, [gridSize.cols, gridSize.rows, readAtlasTransform, tiles]);
+  }, [gridSize.cols, gridSize.rows, readAtlasTransform, projectedTiles]);
 
   const handleOverlayClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const resolved = resolveCellFromPointer(event.clientX, event.clientY);
@@ -527,24 +596,21 @@ const MapPane: React.FC<MapPaneProps> = ({
 
   const hoveredTile = useMemo(() => {
     if (!hoveredCell) return null;
-    return tiles[hoveredCell.y]?.[hoveredCell.x] || null;
-  }, [hoveredCell, tiles]);
+    return projectedTiles[hoveredCell.y]?.[hoveredCell.x] || null;
+  }, [hoveredCell, projectedTiles]);
 
   const hoveredBiome = hoveredTile ? BIOMES[hoveredTile.biomeId] : undefined;
 
   const playerCell = useMemo(() => {
     // Find the current player position so precision mode can anchor the starting
     // cell even before the player hovers over a destination.
-    for (let y = 0; y < tiles.length; y++) {
-      const row = tiles[y];
-      for (let x = 0; x < row.length; x++) {
-        if (row[x]?.isPlayerCurrent) {
-          return { x, y };
-        }
+    for (const point of geographySnapshot.points) {
+      if (point.isPlayerCurrent && point.legacyTile) {
+        return { x: point.legacyTile.x, y: point.legacyTile.y };
       }
     }
     return null;
-  }, [tiles]);
+  }, [geographySnapshot]);
 
   const playerCellRect = useMemo(() => {
     // Convert the player's current cell into the same overlay coordinate space as

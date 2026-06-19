@@ -82,6 +82,8 @@ describe('ThievesGuildSystem', () => {
             leaderId: 'player',
             crew: [],
             collectedIntel: [],
+            intelGathered: [],
+            approaches: [],
             lootSecured: [],
             alertLevel: 0,
             turnsElapsed: 0,

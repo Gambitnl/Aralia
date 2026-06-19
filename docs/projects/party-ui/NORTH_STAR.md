@@ -6,13 +6,13 @@ category: Feature/UI Projects
 main_category: "Content & Rules"
 subcategory: "Rules, Spells & Source Data"
 status: partial
-last_updated: 2026-06-12
+last_updated: 2026-06-19
 iteration: 6
 confidence: medium
 evidence: docs/projects/party-ui
-gap_signal: "6 open gaps; G4 through G7 and G9 through G10 remain open after G1-G3 and G8 closure"
+gap_signal: "5 open gaps; G5 resolved by D15/D2 roster acceptance contract, while G4, G6, G7, G9, and G10 remain open"
 protocol: living project doc set
-next_step: "G5 decided 2026-06-10 (D15): roster MAY include non-companion NPCs under an explicit acceptance rule Ã¢â‚¬â€ write the acceptance rule (membership model, sheet context, save/load semantics) as step one of the implementation slice, which then unblocks G7; G9 (PartyMemberCard tests) and G4 (warning placement rule) remain independent tasks."
+next_step: "G7 is now unblocked by the written G5 roster acceptance contract (D15/D2): thread companion relationship data into PartyOverlay while preserving null-safe non-companion roster entries; G9 (PartyMemberCard tests), G4 (warning placement rule), and G10 (short-rest parity) remain independent tasks."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -32,7 +32,8 @@ completed_verification:
   - companion-context regression tests (2026-06-08)
   - T5 mismatch-warning evaluation (2026-06-08)
   - G3 README audit (2026-06-08)
-last_proof: 2026-06-08
+  - G5 roster acceptance contract audit (2026-06-19)
+last_proof: 2026-06-19
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: needed
 lifecycle_status: active
@@ -43,8 +44,8 @@ human_decision_required: "no"
 ---
 # Party UI North Star
 
-Status: active (G5 decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-12
+Status: active (G5 acceptance contract written 2026-06-19; G7 implementation lane unblocked)
+Last updated: 2026-06-19
 
 ## Dashboard Card Schema
 
@@ -54,12 +55,12 @@ Category: Feature/UI Projects
 Status: partial
 Confidence: medium
 Evidence: docs/projects/party-ui
-Gap signal: 6 open gaps; G4 through G7 and G9 through G10 remain open after G1-G3 and G8 closure
+Gap signal: 5 open gaps; G5 resolved by D15/D2 roster acceptance contract, while G4, G6, G7, G9, and G10 remain open
 Protocol: living project doc set
-Next step: G5 decided 2026-06-10 (D15): write the explicit roster acceptance rule for non-companion NPCs (membership model, sheet context, save/load semantics) as step one of the implementation slice; that unblocks G7 (companion data in overlay); G9 (PartyMemberCard tests) and G4 (warning placement rule) remain independent tasks.
+Next step: G7 is now unblocked by the written G5 roster acceptance contract (D15/D2): thread companion relationship data into PartyOverlay while preserving null-safe non-companion roster entries; G9 (PartyMemberCard tests), G4 (warning placement rule), and G10 (short-rest parity) remain independent tasks.
 Required verification: docs_consistency, scoped_tests
 Completed verification: docs_consistency, focused short-rest persistence tests, companion-context regression tests (2026-06-08), T5 mismatch-warning evaluation (2026-06-08), G3 README audit (2026-06-08)
-Last proof: 2026-06-08
+Last proof: 2026-06-19
 Workflow gaps reviewed: 2026-06-08
 
 ## Purpose and scope
@@ -189,14 +190,64 @@ Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D15
   non-companion entries, and save/load semantics.
 - Writing that rule unblocks **G7** (wiring companion relationship data into `PartyOverlay`).
 
-Status: decision recorded 2026-06-10; implementation lane open.
+Status: decision recorded 2026-06-10; acceptance contract written 2026-06-19.
+
+## Roster acceptance rule for non-companion NPCs (G5 contract)
+
+Decision authority: `docs/projects/DECISION_BLITZ_2026-06-10.md` D15 and
+`docs/projects/party-ui/DECISIONS.md` D2. This section is the durable acceptance
+contract required before G7 companion-data threading begins.
+
+### Membership model
+
+- `gameState.party` remains the roster membership source of truth and stores
+  `PlayerCharacter[]`.
+- A party member is accepted into the roster if it is a valid `PlayerCharacter`
+  for the active party/combat surface. It does not need a matching entry in
+  `gameState.companions`.
+- `gameState.companions` remains a separate companion metadata registry. Matching
+  a party member id to a companion id is an optional relationship-context link,
+  not a membership requirement.
+- Non-companion roster entries are first-class party members for roster display,
+  character-sheet opening, rest participation, combat/party mechanics that read
+  `gameState.party`, and dev-only full-party replacement flows.
+- G7 must preserve this boundary: adding companion relationship data to
+  `PartyOverlay` may enrich matching companion entries, but it must not filter,
+  reject, hide, or auto-convert party members that lack companion metadata.
+
+### Character-sheet context
+
+- Opening a sheet from the roster always uses the selected `PlayerCharacter`.
+- If `gameState.companions[character.id]` exists, the sheet may receive that
+  companion context and show companion-only approval, relationship, banter, or
+  questline information.
+- If no companion record exists, the companion context is `null`/absent and the
+  sheet must still render the character normally without companion relationship
+  controls or warnings that imply invalid membership.
+- A missing companion record is therefore ordinary non-companion roster state,
+  not a data mismatch by itself.
+
+### Save/load semantics
+
+- Saves persist roster membership through the existing party character data:
+  `gameState.party` as `PlayerCharacter[]`.
+- Saves persist companion metadata separately through `gameState.companions`.
+- Loading a save must restore non-companion party members from `gameState.party`
+  without requiring or synthesizing companion records.
+- Loading a save must keep companion metadata available for any party member
+  whose id matches a companion id, but unmatched party members remain accepted
+  non-companion entries.
+- Dev-only flows such as `SET_FULL_PARTY` and `SET_PARTY_COMPOSITION` may continue
+  producing parties with mixed companion and non-companion entries. G7 can add
+  display context, but validation or migration work that would reject those mixed
+  rosters is outside this acceptance contract unless a later decision changes it.
 
 ## Next checks for the next agent
 
-- All T-tasks (T1Ã¢â‚¬â€œT5) are done.
+- All T-tasks (T1-T5) are done.
 - G3 is resolved: READMEs aligned with current implementation (iteration 5).
-- G5 (roster acceptance rule for non-companion NPCs) remains blocked on human decision; do not touch it. **Update 2026-06-10: decided (D15) Ã¢â‚¬â€ write the acceptance rule as step one of the implementation slice.**
-- G7 (wire companion relationship data into PartyOverlay) is the next safe lane once G5 is decided. **G5 is decided 2026-06-10; G7 opens once the acceptance rule is written.**
+- G5 (roster acceptance rule for non-companion NPCs) is resolved: D15/D2 decided the roster may include non-companion NPCs, and the acceptance contract above records membership, sheet context, and save/load semantics.
+- G7 (wire companion relationship data into PartyOverlay) is now unblocked. Implement companion data as optional enrichment keyed by party member id, preserving accepted non-companion entries with null/absent companion context.
 - G9 (add `PartyMemberCard` tests) is an independent test-coverage task.
 - G10 (short rest modal parity with long rest) is an independent UX/rules follow-up.
 - G4 (missing-choice warning placement rule) is an independent adjacent follow-up.
@@ -207,9 +258,9 @@ Status: decision recorded 2026-06-10; implementation lane open.
 2. Read `docs/projects/party-ui/TRACKER.md`.
 3. Read `docs/projects/party-ui/GAPS.md`.
 4. Cross-check `docs/projects/PROJECT_TRACKER.md` and `docs/projects/GLOBAL_GAPS.md` for classification before scope expansion.
-5. All T-tasks (T1Ã¢â‚¬â€œT5) are done. G3 resolved. Next safe lanes: G9 (tests), G4 (warning rule), G7 (companion data, blocked by G5).
-6. G5 remains blocked on human decision. G8 and G3 are resolved.
-7. Update 2026-06-10: G5 is decided (D15, `docs/projects/DECISION_BLITZ_2026-06-10.md`) Ã¢â‚¬â€ write the explicit acceptance rule as step one of the implementation slice; that unblocks G7.
+5. All T-tasks (T1-T5) are done. G3 resolved. Next safe lanes: G7 (companion data, unblocked by the G5 contract), G9 (tests), and G4 (warning rule).
+6. G5 is resolved by D15/D2 and the roster acceptance contract in this file. G8 and G3 are resolved.
+7. Update 2026-06-19: G7 may begin by threading companion relationship data into `PartyOverlay` as optional context keyed by party member id; non-companion roster entries must continue rendering and saving/loading normally.
 
 
 ## Cold-Start Gap Routing
@@ -224,13 +275,13 @@ The next cold-start agent must:
 
 ## Required Review Brief
 
-Title: Party UI partial due to roster acceptance rule
-Question: What acceptance rule governs non-companion NPCs in the party roster?
-Issue: D15 decided the roster may include non-companion NPCs, but implementation still needs the membership, sheet-context, and save/load acceptance rule.
-Current behavior: The next step says writing that acceptance rule is step one and unblocks G7; G9 and G4 remain independent tasks.
-Why blocked: Implementation without the rule risks breaking identity, character sheet, and save/load semantics.
-Option A: Write the acceptance rule first, then implement the roster behavior.
-Option B: Delay implementation until the companion/party boundary gets a narrower owner decision.
-Evidence: NORTH_STAR.md next_step; GAPS.md G1-G3; D15 reference in gap_signal.
+Title: Party UI partial with G7 now unblocked
+Question: How should companion relationship data be threaded into PartyOverlay without invalidating non-companion roster entries?
+Issue: G5 now has a written D15/D2 acceptance contract, so G7 can proceed against explicit membership, sheet-context, and save/load semantics.
+Current behavior: `PartyOverlay` still receives `party: PlayerCharacter[]` only; companion metadata is only bridged at the character sheet by optional id match.
+Why blocked: G7 was blocked until the acceptance rule existed. That block is resolved; implementation still needs scoped code and visual/test proof.
+Option A: Add optional companion data to PartyOverlay and render relationship context only when `companions[character.id]` exists.
+Option B: Defer richer relationship display but still pass companion context through the overlay boundary for later card work.
+Evidence: `docs/projects/DECISION_BLITZ_2026-06-10.md` D15; `docs/projects/party-ui/DECISIONS.md` D2; NORTH_STAR G5 contract; GAPS.md G5/G7 rows.
 Decision owner: Party UI owner / human operator if acceptance wording changes
-Proof after decision: Tracker records the acceptance rule and the implementation slice verifies membership plus save/load semantics.
+Proof after decision: G7 implementation verifies companion entries render relationship context and non-companion entries remain null-safe across roster, sheet, and save/load assumptions.

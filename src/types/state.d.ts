@@ -109,6 +109,11 @@ export interface GameState {
     error: string | null;
     worldSeed: number;
     mapData: MapData | null;
+    /** Center point used by minimap consumers after map data changes. */
+    minimapFocus?: {
+        x: number;
+        y: number;
+    };
     isMapVisible: boolean;
     isSubmapVisible: boolean;
     isThreeDVisible?: boolean;
@@ -171,8 +176,8 @@ export interface GameState {
     };
     economy: EconomyState;
     notoriety: NotorietyState;
-    activeRumors?: WorldRumor[];
-    worldHistory?: WorldHistory;
+    activeRumors: WorldRumor[];
+    worldHistory: WorldHistory;
     questLog: Quest[];
     isQuestLogVisible: boolean;
     notifications: Notification[];

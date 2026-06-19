@@ -5,7 +5,7 @@ project: Crime UI
 slug: crime-ui
 status: active
 last_updated: 2026-06-17
-iteration: 3
+iteration: 4
 source_agent: Gemini CLI
 target_agent: next cold-start agent
 runtime_surface: application agent
@@ -43,11 +43,12 @@ docs/projects/crime-ui/NORTH_STAR.md
 | 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
 | 2 | Qoder | application agent | inferred | 2026-06-15 | IDE-integrated agent (Qoder/Qoder IDE) |
 | 3 | Gemini CLI | application agent | certain | 2026-06-17 | Explicit identification in session |
+| 4 | Gemini CLI | application agent | certain | 2026-06-17 | Explicit identification in session |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Crime UI
 Project folder: docs/projects/crime-ui
-iteration: 4
+iteration: 5
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -57,35 +58,29 @@ Gaps: docs/projects/crime-ui/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 3 (2026-06-17, Gemini CLI, application agent): Completed T3 by validating the future UI work against `docs/projects/crime` core contract changes. Identified that G2 (fence semantics), G3 (type debt), and G5 (heist phase assumptions) in core overlap with UI needs. Added regression test notes to `TRACKER.md` as required. Updated `NORTH_STAR.md` verification fields and gap signals.
+Iteration 4 (2026-06-17, Gemini CLI, application agent): Completed T4 by resolving G3 and G4. I updated \	ypes/crime/index.ts\ to make \HeistPlan.approaches\ and \intelGathered\ required arrays, eliminating brittle casts in \HeistPlanningModal.tsx\. I refactored \ThievesGuildSafehouse.tsx\ to fetch services dynamically from \ThievesGuildSystem.getAvailableServices()\. I successfully added and executed unit tests in Vitest for both components, confirming proper rendering, state interactions, and rank gating behavior. \TRACKER.md\ and \NORTH_STAR.md\ were updated to reflect completion.
 
 ## Current Mission
 
 Active task:
-T4 - Resolve G4 (safehouse service source-of-truth) and G3 (heist plan type narrowing)
+None - idle state after T4 resolution.
 
 Acceptance criteria:
-- For G4: Replace the hardcoded service list in `ThievesGuildSafehouse.tsx` with `ThievesGuildSystem.getAvailableServices()` and add snapshot/unit tests for consistency.
-- For G3: Narrow `HeistPlan.approaches` and `HeistPlan.intelGathered` types or add a runtime guard in `HeistPlanningModal.tsx` to remove the brittle type cast. Update reducer and type test coverage.
+Read the Tracker and North Star to reassess the status of remaining gaps (G1, G2, G5) before starting a new UI implementation slice or picking up the next appropriate Tracker task.
 
 Key files to touch:
-- src/components/Crime/ThievesGuild/ThievesGuildSafehouse.tsx
-- src/components/Crime/ThievesGuild/HeistPlanningModal.tsx
-- src/state/reducers/crimeReducer.ts
-- src/types/crime/index.ts
 - docs/projects/crime-ui/TRACKER.md
-- docs/projects/crime-ui/GAPS.md
 - docs/projects/crime-ui/NORTH_STAR.md
-- docs/projects/crime-ui/COLD_START_AGENT_PROMPT.md
+- docs/projects/crime-ui/GAPS.md
 
 Scoped verification:
-Add unit/snapshot checks for safehouse service list consistency. Add type/reducer test coverage for narrowed heist plan types.
+Check current status. If no actionable item is left, wait for direction.
 
 Blockers / boundaries:
-Do not expand the scope to fixing core `crime` G5 or G2 unless it directly blocks these specific UI fixes. Route core fixes to the `crime` tracker if encountered.
+Do not implement changes to G2 or G5 unless the decision on the core crime project logic is resolved first.
 
 Recent progress:
-T3 completed on 2026-06-17. Cross-project validation against \crime` core performed and documented. `TRACKER.md` updated with regression test notes for future UI changes. `NORTH_STAR.md` verified and aligned.
+T4 completed on 2026-06-17. \HeistPlanningModal.tsx\ and \ThievesGuildSafehouse.tsx\ refactored to use safe types and dynamic systems. Verified by new component unit tests.
 
 ## Required End State For This Iteration
 
@@ -106,4 +101,3 @@ Final response must report:
 - assumptions made
 - next safe resume action
 ---END NEXT AGENT HANDOFF---
-

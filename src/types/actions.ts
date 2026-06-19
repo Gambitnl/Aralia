@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/06/2026, 01:19:30
- * Dependents: hooks/actions/actionHandlers.ts, hooks/actions/handleResourceActions.ts, types/index.ts
+ * Last Sync: 19/06/2026, 00:47:03
+ * Dependents: hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, types/index.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -232,6 +232,17 @@ export interface SetLoadingPayload {
   message?: string | null;
 }
 
+export interface QuestOffer {
+  /**
+   * Minimal dialogue-to-quest handoff payload.
+   *
+   * Dialogue outcomes only name the quest they are offering; action handlers
+   * resolve that id through the existing quest registry so NPC dialogue does
+   * not have to duplicate full quest objects or invent a second quest shape.
+   */
+  questId: string;
+}
+
 export interface GroundingChunk {
   web: {
     uri: string;
@@ -285,7 +296,7 @@ export interface StartGameSuccessPayload {
 export type Action =
   | { type: 'move'; payload: { query?: string; geminiPrompt?: string }; label?: string; targetId?: string }
   | { type: 'look_around'; payload?: { query?: string }; label?: string }
-  | { type: 'talk'; payload: { targetNpcId?: string; query?: string; isEgregious?: boolean }; label?: string; targetId?: string }
+  | { type: 'talk'; payload: { targetNpcId?: string; query?: string; isEgregious?: boolean; questOffer?: QuestOffer }; label?: string; targetId?: string }
   | { type: 'take_item'; payload: { itemId: string }; label?: string; targetId?: string }
   // Keep item-use actions on the reducer-facing uppercase contract used by the item state flow.
   | { type: 'USE_ITEM'; payload: UseItemPayload; label?: string }

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 12/06/2026, 23:08:42
- * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, commands/index.ts, utils/core/factories.ts
+ * Last Sync: 19/06/2026, 00:46:26
+ * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, commands/index.ts, utils/core/factories.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -31,7 +31,7 @@
 
 import { CombatState, CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import { GameState } from '@/types'
-import { EffectDuration, SpellAttackType, MagicSchool, ConditionalEnding } from '@/types/spells'
+import { EffectDuration, SpellAttackType, MagicSchool, ConditionalEnding, SpellEffect } from '@/types/spells'
 import { Plane } from '@/types/planes'
 
 /**
@@ -94,6 +94,40 @@ export interface CommandMetadata {
   timestamp: number
 }
 
+// ============================================================================
+// Delegated Reactive Payloads
+// ============================================================================
+// Reactive spells are registered now and fire later, after the original command
+// execution has returned. This section defines the small bridge that lets the
+// future trigger read the current combat state, run normal effect commands, and
+// hand the updated state back to the owner that keeps combat state alive.
+// ============================================================================
+
+/** Details passed to optional target resolvers when a reactive trigger fires later. */
+export interface DelegatedReactiveTriggerContext {
+  /** The raw event from the combat event bus that caused the reactive spell to fire. */
+  event: unknown
+  /** The latest combat state at the moment the reactive spell fires. */
+  state: CombatState
+  /** The command context that originally registered the reactive spell. */
+  commandContext: CommandContext
+}
+
+/** A command-context-owned payload that a reactive trigger can execute later. */
+export interface DelegatedReactivePayload {
+  /** Effect rows to rehydrate as normal sibling effect commands when the trigger fires. */
+  effects: SpellEffect[]
+  /** Reads the current combat state because reactive callbacks run after the original cast. */
+  getState: () => CombatState
+  /** Commits the final state produced by the normal command executor. */
+  commitState: (nextState: CombatState) => void
+  /**
+   * Optional target override for special reactions whose recipient is not the
+   * original protected target. Omitted payloads keep using CommandContext.targets.
+   */
+  resolveTargets?: (triggerContext: DelegatedReactiveTriggerContext) => CombatCharacter[]
+}
+
 /**
  * Context payload provided to commands upon instantiation.
  * Contains all the "Snapshot" data needed to resolve the effect.
@@ -154,6 +188,12 @@ export interface CommandContext {
   weaponProperties?: string[]
   /** Whether the ability is magical; used to bypass nonmagical-attack resistances. */
   isMagical?: boolean
+  /**
+   * Optional source-of-truth for reactive payloads that execute after the initial
+   * spell cast. If this is absent, ReactiveEffectCommand preserves the older
+   * listener/logging behavior instead of guessing at a payload.
+   */
+  delegatedReactivePayload?: DelegatedReactivePayload
   /** Request a manual reaction from the user via UI */
   requestReaction?: (attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_take_damage', options: any[]) => Promise<string | null>
 }

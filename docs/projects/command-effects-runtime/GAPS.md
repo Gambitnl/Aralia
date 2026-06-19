@@ -3,13 +3,13 @@ schema_version: 1
 gap_schema: project_gap_registry
 project: Command Effects Runtime
 slug: command-effects-runtime
-status: "active â€” G1 decision recorded 2026-06-10; implementation lane open"
+status: "active - G1 delegated reactive payload execution implemented"
 status_note: Preserved as routed_reference to avoid flattening existing gap provenance.
 registry_mode: routed_reference
-last_updated: "2026-06-10"
+last_updated: "2026-06-19"
 gap_count: 3
-open_gap_count: 3
-resolved_gap_count: 0
+open_gap_count: 2
+resolved_gap_count: 1
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
@@ -101,23 +101,23 @@ supported_optional_sections:
 ---
 # Command Effects Runtime Gap Registry
 
-Status: active â€” G1 decision recorded 2026-06-10; implementation lane open
-Last updated: 2026-06-10
+Status: active - G1 delegated reactive payload execution implemented
+Last updated: 2026-06-19
 
 Use this file for durable unresolved findings that belong to command-effects-runtime.
 
-Current focus: `G1` was review-required because the delegated payload owner
-was not exposed in the command context; decided 2026-06-10 â€” the command
-context owns the delegated payload (`docs/projects/DECISION_BLITZ_2026-06-10.md` D9). `G2` was resolved this pass with
-explicit teleport budget metadata, and `G4` is now resolved through explicit
-teleport dispatch in `AbilityCommandFactory`. `G3` and `G5` remain parked as
-follow-ups until the command path or ownership evidence changes.
+Current focus: `G1` is resolved for the T2 slice. The delegated payload owner
+is now exposed on `CommandContext`, and `ReactiveEffectCommand` rehydrates
+supported sibling effect commands through `CommandExecutor` when a trigger
+fires. `G2` remains resolved with explicit teleport budget metadata, and `G4`
+remains resolved through explicit teleport dispatch in `AbilityCommandFactory`.
+`G3` and `G5` remain parked as follow-ups until the command path or ownership
+evidence changes.
 
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | active | in_scope_now | Worker C | `docs/projects/command-effects-runtime/TRACKER.md` | source/context review | Reactive effects register but do not execute delegated command payloads because the command context does not expose a safe delegated payload source-of-truth | `src/commands/effects/ReactiveEffectCommand.ts`, `src/commands/base/SpellCommand.ts`, `src/types/state.ts`, `src/hooks/combat/useActionExecutor.ts`, `docs/projects/DECISION_BLITZ_2026-06-10.md` (D9) | Reactive spells and defensive loops are currently listener-only and lose effect impact | **Decided 2026-06-10 (Remy, DECISION_BLITZ D9):** the command context owns the delegated payload â€” expose a safe delegated-payload source-of-truth in `CommandContext` so `ReactiveEffectCommand` rehydrates delegated commands and reactive effects execute through the normal command pipeline; implementation lane open | focused trigger-path tests proving a reactive payload executes via the command-context owner and logs its state change |
 | G3 | active | support_needed_now | Worker C | `docs/projects/command-effects-runtime/TRACKER.md` | docs update scan | Non-damage/complex riders are only partially routed through `RegisterRiderCommand` | `src/commands/effects/RegisterRiderCommand.ts`, `src/commands/factory/SpellCommandFactory.ts` | Hit riders can silently do nothing beyond damage-only support | decide rider schema expansion or add owner note to prevent silent drops | update command selection docs and tests |
 | G5 | active | adjacent_follow_up | Worker C | `docs/projects/command-effects-runtime/TRACKER.md` | docs update scan | Status and condition turn cleanup lifecycle is implemented outside this command layer | `src/commands/effects/StatusConditionCommand.ts` | Status expiry can diverge from expected cleanup timing | hand off to owning lifecycle subsystem and keep API contract here | add follow-up in owner project if behavior changes |
 
@@ -125,6 +125,7 @@ follow-ups until the command path or ownership evidence changes.
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Evidence/source | Resolution | Next proof/check |
 |---|---|---|---|---|---|---|---|
+| G1 | resolved | in_scope_now | Worker C | `docs/projects/command-effects-runtime/TRACKER.md` | `src/commands/base/SpellCommand.ts`, `src/commands/effects/ReactiveEffectCommand.ts`, `src/commands/effects/__tests__/ReactiveEffectCommand.test.ts`, `docs/projects/DECISION_BLITZ_2026-06-10.md` (D9) | `CommandContext` now owns an optional `delegatedReactivePayload` containing effect rows plus live-state read/commit hooks. `ReactiveEffectCommand` preserves legacy log-only behavior when no payload is present, and executes supported delegated payloads through `CommandExecutor` when the registered trigger fires. | `npx vitest run src\commands\effects\__tests__\ReactiveEffectCommand.test.ts` passed 2 tests on 2026-06-19; broader `src\commands\effects\__tests__` run is blocked by an existing duplicate declaration transform error in `StatusConditionCommand.test.ts`, outside this slice |
 
 ## Classification Reference
 
@@ -140,7 +141,6 @@ follow-ups until the command path or ownership evidence changes.
 - Keep each gap tied to source evidence and a next proof condition.
 - Move resolved gaps out of this table only with evidence or explicit blocker update.
 - Prefer adjacent tracking to avoid expanding this project into unrelated lifecycle ownership.
-
 
 ## Schema Fit Notes
 

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 08:56:11
+ * Last Sync: 19/06/2026, 00:47:24
  * Dependents: hooks/actions/actionHandlers.ts
- * Imports: 12 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -31,6 +31,8 @@ import { generateId } from '../../utils/core/idGenerator';
 import { OllamaService } from '../../services/ollama';
 import { ConversationMessage } from '../../types/conversation';
 import { getWeatherSummary } from '../../types/environment';
+import { INITIAL_QUESTS } from '../../data/quests';
+import type { QuestOffer } from '../../types/actions';
 
 interface BanterContext {
     locationName: string;
@@ -50,6 +52,15 @@ interface HandleTalkProps {
   generalActionContext: string;
 }
 
+// ============================================================================
+// Conversation Target And Quest Offer Helpers
+// ============================================================================
+// This section keeps NPC talk routing local to this handler. The quest helper is
+// intentionally narrow: dialogue can offer a quest by id, and this handler
+// resolves that id through the existing quest registry before using the current
+// ACCEPT_QUEST reducer contract.
+// ============================================================================
+
 function getConversationTarget(action: Action, gameState: GameState): string | null {
     const directTargetId = ('targetId' in action ? (action as { targetId?: string }).targetId : undefined);
     const payloadTargetId = (action.payload as { targetNpcId?: string } | undefined)?.targetNpcId;
@@ -67,6 +78,32 @@ function getConversationTarget(action: Action, gameState: GameState): string | n
         }
     }
     return null;
+}
+
+function getDialogueQuestOffer(action: Action): QuestOffer | undefined {
+    // Dialogue outcomes only need to carry the quest id. The full quest object
+    // stays source-backed in src/data/quests so this bridge does not create a
+    // parallel quest schema inside NPC action payloads.
+    return (action.payload as { questOffer?: QuestOffer } | undefined)?.questOffer;
+}
+
+function acceptDialogueQuestOffer(
+    offer: QuestOffer | undefined,
+    gameState: GameState,
+    dispatch: React.Dispatch<AppAction>
+): void {
+    // If there is no offer, preserve the existing dialogue-only NPC behavior.
+    if (!offer) return;
+
+    const quest = INITIAL_QUESTS[offer.questId];
+    const alreadyKnownQuest = gameState.questLog.some(existingQuest => existingQuest.id === offer.questId);
+
+    // Missing or duplicate offers should not interrupt ordinary NPC dialogue.
+    // The reducer also blocks duplicates, but skipping here avoids noisy
+    // dispatches from repeated dialogue outcomes.
+    if (!quest || alreadyKnownQuest) return;
+
+    dispatch({ type: 'ACCEPT_QUEST', payload: quest });
 }
 
 function buildConversationContext(state: GameState): BanterContext {
@@ -322,6 +359,11 @@ export async function handleTalk({
 
       // Dispatch START_DIALOGUE_SESSION to open the UI
       dispatch({ type: 'START_DIALOGUE_SESSION', payload: { npcId: npc.id } });
+
+      // Dialogue topics can now hand off a minimal quest offer after the NPC
+      // response succeeds. Ordinary NPC talks have no offer, so they keep the
+      // same session-opening behavior without quest side effects.
+      acceptDialogueQuestOffer(getDialogueQuestOffer(action), gameState, dispatch);
 
       try {
         const ttsResult = await synthesizeSpeech(responseText, npc.voice?.name || 'Kore', gameState.devModelOverride);

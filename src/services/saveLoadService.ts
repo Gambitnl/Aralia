@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 08/06/2026, 13:34:25
+ * Last Sync: 19/06/2026, 00:47:30
  * Dependents: App.tsx, components/SaveLoad/LoadGameModal.tsx, components/SaveLoad/SaveSlotSelector.tsx, components/layout/MainMenu.tsx, hooks/actions/handleSystemAndUi.ts, hooks/useAutoSave.ts, hooks/useGameInitialization.ts, state/appState.ts
- * Imports: 10 files
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -44,6 +44,7 @@ import { logger } from '../utils/logger';
 import { simpleHash } from '../utils/hashUtils';
 import * as IDBStorage from './indexedDBStorageService';
 import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
+import { countUnreadDiscoveryEntries, retainDiscoveryLogEntries } from '@/state/reducers/logReducer';
 
 //
 // Save slot configuration
@@ -365,9 +366,11 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     loadedState.phase = GamePhase.PLAYING; // Ensure game phase is set to playing
     loadedState.characterSheetModal = loadedState.characterSheetModal || { isOpen: false, character: null }; // Ensure it exists
 
-    // Initialize new fields if loading an older save that might not have them
-    loadedState.discoveryLog = loadedState.discoveryLog || [];
-    loadedState.unreadDiscoveryCount = loadedState.unreadDiscoveryCount || 0;
+    // Initialize and prune the discovery log for older saves. Runtime Logbook
+    // writes now cap the list, but old payloads may still carry unbounded
+    // history, so loading is the safest place to heal them before play resumes.
+    loadedState.discoveryLog = retainDiscoveryLogEntries(loadedState.discoveryLog || []);
+    loadedState.unreadDiscoveryCount = countUnreadDiscoveryEntries(loadedState.discoveryLog);
     loadedState.ollamaInteractionLog = loadedState.ollamaInteractionLog || [];
     loadedState.notifications = []; // Reset notifications
 

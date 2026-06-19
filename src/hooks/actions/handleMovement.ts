@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:28:14
- * Dependents: actionHandlers.ts
- * Imports: 16 files
+ * Last Sync: 18/06/2026, 02:34:59
+ * Dependents: hooks/actions/actionHandlers.ts
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -16,7 +16,15 @@
 
 /**
  * @file src/hooks/actions/handleMovement.ts
- * Handles 'move' actions for the game.
+ * Handles player movement across local submap tiles, world-map cells, and named
+ * destinations.
+ *
+ * This file is the bridge between player intent ("move north", "enter town")
+ * and the world state update that follows. It checks terrain blockers, advances
+ * in-game time, generates travel narration, records discoveries, and dispatches
+ * the final `MOVE_PLAYER` action. World-map discovery/current-marker writes now
+ * pass through the World geography adapter so the legacy tile-grid can remain
+ * compatible while the newer Azgaar/worldSim geography model is phased in.
  */
 import React from 'react';
 import { GameState, Action, Location, MapData, PlayerCharacter, GamePhase } from '../../types';
@@ -32,6 +40,14 @@ import { INITIAL_QUESTS } from '../../data/quests';
 import { generateTravelEvent } from '../../services/travelEventService';
 import { getSeasonalEffects } from '../../systems/time/SeasonalSystem';
 import { getTimeModifiers } from '../../utils/core';
+import {
+  applyMutationsToMapData,
+  buildLegacyDiscoveryMutations,
+  createLegacyTileId,
+  createSetCurrentMutation,
+  type LegacyTileCoordinates,
+  type WorldGeographyMutation,
+} from '../../utils/world/worldGeographyAdapter';
 // TODO(lint-intent): 'TravelEvent' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
@@ -51,6 +67,34 @@ interface HandleMovementProps {
   playerCharacter: PlayerCharacter;
 }
 
+// -----------------------------------------------------------------------------
+// Legacy world-map marker updates
+// -----------------------------------------------------------------------------
+// These helpers keep the old movement behavior in one place while routing the
+// actual discovery/current marker writes through the world geography adapter.
+// The movement handler still dispatches legacy `MapData` because save/load,
+// MapPane, and 3D entry have not been migrated yet.
+// -----------------------------------------------------------------------------
+
+function applyLegacyWorldMapMutations(
+  mapData: MapData,
+  mutations: readonly WorldGeographyMutation[],
+): MapData {
+  return applyMutationsToMapData(mapData, mutations).mapData;
+}
+
+function applyCurrentWorldTileReveal(
+  mapData: MapData,
+  center: LegacyTileCoordinates,
+  radius = 1,
+): MapData {
+  const mutations = [
+    createSetCurrentMutation(createLegacyTileId(center.x, center.y)),
+    ...buildLegacyDiscoveryMutations(mapData, center, radius),
+  ];
+  return applyLegacyWorldMapMutations(mapData, mutations);
+}
+
 /**
  * Helper to apply consequences from meaningful discoveries.
  */
@@ -66,28 +110,17 @@ function applyDiscoveryConsequences(
     switch (consequence.type) {
       case 'map_reveal':
         if (consequence.value) {
-          // Update discovery state for surrounding tiles
           const radius = consequence.value;
-          const newTiles = mapData.tiles.map(row => row.map(tile => ({ ...tile })));
-
-          let revealedCount = 0;
-          for (let y = currentY - radius; y <= currentY + radius; y++) {
-            for (let x = currentX - radius; x <= currentX + radius; x++) {
-              if (y >= 0 && y < mapData.gridSize.rows && x >= 0 && x < mapData.gridSize.cols) {
-                if (!newTiles[y][x].discovered) {
-                  newTiles[y][x].discovered = true;
-                  revealedCount++;
-                }
-              }
-            }
-          }
+          const result = applyMutationsToMapData(
+            mapData,
+            buildLegacyDiscoveryMutations(mapData, { x: currentX, y: currentY }, radius),
+          );
+          const revealedCount = result.changedLegacyTiles.length;
 
           if (revealedCount > 0) {
-            // Modifying mapData in place works here because newMapDataForDispatch is a copy,
-            // but to be clean we should assign it back or assume mapData passed is the mutable copy.
-            // In handleMovement, newMapDataForDispatch is already a deep-ish copy of tiles.
-            // We need to ensure the caller uses the updated tiles.
-            mapData.tiles = newTiles;
+            // Preserve the legacy map object that movement dispatch already
+            // passes along, but let the adapter own the copied tile updates.
+            mapData.tiles = result.mapData.tiles;
             addMessage(`[Effect] Map Revealed (Radius: ${radius}) - ${revealedCount} new tiles charted.`, 'system');
           } else {
             addMessage(`[Effect] Map Revealed - No new areas found.`, 'system');
@@ -151,7 +184,7 @@ export async function handleMovement({
 
   let newLocationId = gameState.currentLocationId;
   let newSubMapCoordinates = { ...gameState.subMapCoordinates };
-  const newMapDataForDispatch: MapData | undefined = gameState.mapData ? { ...gameState.mapData, tiles: gameState.mapData.tiles.map(row => row.map(tile => ({ ...tile }))) } : undefined;
+  let newMapDataForDispatch: MapData | undefined = gameState.mapData ? { ...gameState.mapData, tiles: gameState.mapData.tiles.map(row => row.map(tile => ({ ...tile }))) } : undefined;
   let activeDynamicNpcIdsForNewLocation: string[] | null = null;
   let timeToAdvanceSeconds = 0;
   let movedToNewNamedLocation: Location | null = null;
@@ -346,21 +379,10 @@ export async function handleMovement({
       baseDescriptionForFallback = targetLocation.baseDescription;
 
       if (newMapDataForDispatch) {
-        const newTiles = newMapDataForDispatch.tiles.map(row => row.map(t => ({ ...t, isPlayerCurrent: false })));
-        if (newTiles[targetLocation.mapCoordinates.y]?.[targetLocation.mapCoordinates.x]) {
-          newTiles[targetLocation.mapCoordinates.y][targetLocation.mapCoordinates.x].isPlayerCurrent = true;
-          newTiles[targetLocation.mapCoordinates.y][targetLocation.mapCoordinates.x].discovered = true;
-          for (let y_offset = -1; y_offset <= 1; y_offset++) {
-            for (let x_offset = -1; x_offset <= 1; x_offset++) {
-              const adjY = targetLocation.mapCoordinates.y + y_offset;
-              const adjX = targetLocation.mapCoordinates.x + x_offset;
-              if (adjY >= 0 && adjY < newMapDataForDispatch.gridSize.rows && adjX >= 0 && adjX < newMapDataForDispatch.gridSize.cols) {
-                newTiles[adjY][adjX].discovered = true;
-              }
-            }
-          }
-        }
-        newMapDataForDispatch.tiles = newTiles;
+        newMapDataForDispatch = applyCurrentWorldTileReveal(
+          newMapDataForDispatch,
+          targetLocation.mapCoordinates,
+        );
       }
       geminiFunctionName = 'generateLocationDescription';
       descriptionGenerationFn = () => OllamaTextService.generateLocationDescription(targetLocation.name, playerContext);
@@ -491,24 +513,13 @@ export async function handleMovement({
         travelEventHandled = true;
       }
 
-      // Mark the entered tile as discovered (and adjacent if it's a new named location, but we are in procedural wilderness)
-      // The map reveal logic in applyDiscoveryConsequences might have already revealed more tiles.
-      // But we always reveal the current tile at minimum.
-      const newTiles = newMapDataForDispatch.tiles.map(row => row.map(tile => ({ ...tile, isPlayerCurrent: false })));
-      if (newTiles[targetWorldMapY]?.[targetWorldMapX]) {
-        newTiles[targetWorldMapY][targetWorldMapX].isPlayerCurrent = true;
-        newTiles[targetWorldMapY][targetWorldMapX].discovered = true;
-        for (let y_offset = -1; y_offset <= 1; y_offset++) {
-          for (let x_offset = -1; x_offset <= 1; x_offset++) {
-            const adjY = targetWorldMapY + y_offset;
-            const adjX = targetWorldMapX + x_offset;
-            if (adjY >= 0 && adjY < newMapDataForDispatch.gridSize.rows && adjX >= 0 && adjX < newMapDataForDispatch.gridSize.cols) {
-              newTiles[adjY][adjX].discovered = true;
-            }
-          }
-        }
-      }
-      newMapDataForDispatch.tiles = newTiles;
+      // The entered world tile becomes current and the surrounding legacy
+      // cells are revealed exactly as before, but the mutation itself is now
+      // expressed through the World geography adapter contract.
+      newMapDataForDispatch = applyCurrentWorldTileReveal(
+        newMapDataForDispatch,
+        { x: targetWorldMapX, y: targetWorldMapY },
+      );
 
       if (LOCATIONS[newLocationId]) {
         const targetDefLocation = LOCATIONS[newLocationId];

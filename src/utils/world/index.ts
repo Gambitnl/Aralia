@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * RE-EXPORT BRIDGE / MIDDLEMAN: Forwards exports to another file.
  *
- * Last Sync: 27/02/2026, 09:35:22
- * Dependents: useCompanionBanter.ts, useCompanionCommentary.ts, utils/index.ts
- * Imports: 13 files
+ * Last Sync: 18/06/2026, 03:31:31
+ * Dependents: state/migrations/worldDataMigration.ts, utils/index.ts
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,3 +32,4 @@ export * from './provenanceUtils';
 export * from './memoryUtils';
 export * from './sceneUtils';
 export * from './dialogueUtils';
+export * from './worldGeographyAdapter';

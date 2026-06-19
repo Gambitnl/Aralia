@@ -159,4 +159,65 @@ describe('handleMovement - Seasonal Effects', () => {
     expect(timeCall).toBeDefined();
     expect(timeCall?.[0].payload.seconds).toBe(2700);
   });
+
+  it('routes world-map discovery/current markers through the dispatched map data', async () => {
+    const movementMapData = createMovementMapData();
+    const originalCurrentTile = movementMapData.tiles[10][10];
+    const originalTargetTile = movementMapData.tiles[9][10];
+    const worldTransitionState: GameState = {
+      ...mockGameState,
+      currentLocationId: 'coord_10_10',
+      subMapCoordinates: { x: 5, y: 0 },
+      mapData: movementMapData,
+    };
+
+    await handleMovement({
+      action: mockAction,
+      gameState: worldTransitionState,
+      dispatch: mockDispatch as unknown as React.Dispatch<any>,
+      addMessage: mockAddMessage as any,
+      addGeminiLog: mockAddGeminiLog as any,
+      logDiscovery: mockLogDiscovery as any,
+      getTileTooltipText: mockGetTileTooltipText as any,
+      playerContext: 'context',
+      playerCharacter: mockPlayerCharacter,
+    });
+
+    // The original map is owned by current state and should not be mutated by
+    // movement. The dispatched copy carries the adapter-backed marker changes.
+    expect(movementMapData.tiles[10][10]).toBe(originalCurrentTile);
+    expect(movementMapData.tiles[9][10]).toBe(originalTargetTile);
+    expect(movementMapData.tiles[10][10].isPlayerCurrent).toBe(true);
+    expect(movementMapData.tiles[9][10].discovered).toBe(false);
+
+    const moveCall = mockDispatch.mock.calls.find((call) => call[0].type === 'MOVE_PLAYER');
+    const dispatchedMap = moveCall?.[0].payload.mapData;
+
+    expect(moveCall?.[0].payload).toMatchObject({
+      newLocationId: 'coord_10_9',
+      newSubMapCoordinates: { x: 5, y: 19 },
+    });
+    expect(dispatchedMap.tiles[10][10].isPlayerCurrent).toBe(false);
+    expect(dispatchedMap.tiles[9][10].isPlayerCurrent).toBe(true);
+    expect(dispatchedMap.tiles[9][10].discovered).toBe(true);
+    expect(dispatchedMap.tiles[8][9].discovered).toBe(true);
+    expect(dispatchedMap.tiles[8][11].discovered).toBe(true);
+    expect(dispatchedMap.tiles[10][9].discovered).toBe(true);
+    expect(dispatchedMap.tiles[10][11].discovered).toBe(true);
+  });
 });
+
+function createMovementMapData(): GameState['mapData'] {
+  return {
+    gridSize: { rows: 20, cols: 20 },
+    tiles: Array.from({ length: 20 }, (_, y) =>
+      Array.from({ length: 20 }, (_, x) => ({
+        x,
+        y,
+        biomeId: 'forest',
+        discovered: x === 10 && y === 10,
+        isPlayerCurrent: x === 10 && y === 10,
+      })),
+    ),
+  };
+}

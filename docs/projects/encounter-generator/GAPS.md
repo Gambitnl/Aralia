@@ -6,13 +6,13 @@ slug: encounter-generator
 status: review-required
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-09"
+last_updated: "2026-06-18"
 gap_count: 1
 open_gap_count: 0
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
-decision_required_count: 0
+decision_required_count: 1
 visual_proof_required_count: 0
 highest_severity: high
 proof_freshness: recorded
@@ -101,7 +101,7 @@ supported_optional_sections:
 ---
 project: Encounter Generator
 slug: encounter-generator
-last_updated: \"2026-06-09\"
+last_updated: \"2026-06-18\"
 gap_count: 1
 open_gap_count: 0
 north_star: docs/projects/encounter-generator/NORTH_STAR.md
@@ -113,7 +113,7 @@ registry_mode: canonical
 # Encounter Generator Gap Registry
 
 Status: review-required
-Last updated: 2026-06-09
+Last updated: 2026-06-18
 
 Use this file for durable unresolved findings that belong directly to encounter generation in this project.
 

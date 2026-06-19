@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:28:48
- * Dependents: mapService.ts
- * Imports: 3 files
+ * Last Sync: 19/06/2026, 00:45:39
+ * Dependents: services/mapService.ts
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,10 +14,20 @@
  */
 // @dependencies-end
 
+/**
+ * This file builds the Azgaar-derived world map used by the main map generator.
+ *
+ * It turns a world seed into an Azgaar-like heightfield, biome grid, climate layers,
+ * atlas river mask, and the matching WorldData snapshot consumed by 3D/world systems.
+ * The WSS-005a bridge starts here because this is where the canonical Azgaar feature
+ * hints are first available before they are passed into the world-sim artifact.
+ */
+
 import { Biome, Location, MapData, MapTile } from '../types';
 import { STARTING_LOCATION_ID } from '../constants';
 import { SeededRandom } from '@/utils/random';
 import { runWorldSim } from './worldSim';
+import type { WorldFeatureHints } from './worldSim/types';
 
 type TemplateTool = 'Hill' | 'Pit' | 'Range' | 'Trough' | 'Strait' | 'Mask' | 'Invert' | 'Add' | 'Multiply' | 'Smooth';
 type Grid = { rows: number; cols: number; points: Array<[number, number]>; neighbors: number[][] };
@@ -485,6 +495,17 @@ export function generateAzgaarDerivedMap(
     }
   }
 
+  // WSS-005 decided that Azgaar is the canonical feature source. This first
+  // bridge step records the available Azgaar feature channels in WorldData
+  // without replacing the existing generated geometry yet; sites and roads stay
+  // empty until the Azgaar-derived producer grows those richer hints.
+  const featureHints: WorldFeatureHints = {
+    source: 'azgaar',
+    rivers: [...rivers],
+    sites: [],
+    roads: [],
+  };
+
   const worldData = runWorldSim({
     seed: worldSeed,
     templateId,
@@ -494,6 +515,7 @@ export function generateAzgaarDerivedMap(
     temperatures,
     moisture: moistureValues,
     biomeIds: biomeIdFlat,
+    featureHints,
   });
 
   return {

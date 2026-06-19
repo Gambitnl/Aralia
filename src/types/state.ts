@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 12/06/2026, 08:04:28
- * Dependents: state/reducers/craftingReducer.ts, types/index.ts, utils/world/sceneUtils.ts
+ * Last Sync: 18/06/2026, 03:59:00
+ * Dependents: state/reducers/craftingReducer.ts, types/index.ts, utils/world/sceneUtils.ts, utils/world/worldGeographyAdapter.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -179,6 +179,8 @@ export interface GameState {
   error: string | null;
   worldSeed: number;
   mapData: MapData | null;
+  /** Center point used by minimap consumers after map data changes. */
+  minimapFocus?: { x: number; y: number };
   isMapVisible: boolean;
   isSubmapVisible: boolean;
   isThreeDVisible?: boolean;
@@ -255,9 +257,9 @@ export interface GameState {
 
   notoriety: NotorietyState;
 
-  activeRumors?: WorldRumor[];
+  activeRumors: WorldRumor[];
 
-  worldHistory?: WorldHistory;
+  worldHistory: WorldHistory;
 
   questLog: Quest[];
   isQuestLogVisible: boolean;

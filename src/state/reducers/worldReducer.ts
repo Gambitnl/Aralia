@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 04:34:01
+ * Last Sync: 18/06/2026, 03:59:51
  * Dependents: state/appState.ts
  * Imports: 17 files
  *
@@ -18,10 +18,7 @@
  * @file src/state/reducers/worldReducer.ts
  * A slice reducer that handles world-related state changes.
  */
-// TODO(lint-intent): 'DiscoveryResidue' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { GameState, DiscoveryResidue as _DiscoveryResidue, Location as _Location, Faction as _Faction } from '../../types';
+import { GameState } from '../../types';
 import { withLegacyWeatherBridge } from '../../types/environment';
 import { AppAction } from '../actionTypes';
 import { LOCATIONS } from '../../data/world/locations';
@@ -40,6 +37,25 @@ import { processPlayerBusinessManagement } from '../../systems/economy/BusinessM
 import { SeededRandom } from '@/utils/random';
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
+
+type SetMapDataPayload = Extract<AppAction, { type: 'SET_MAP_DATA' }>['payload'];
+type UpdateInspectedTileDescriptionPayload = Extract<AppAction, { type: 'UPDATE_INSPECTED_TILE_DESCRIPTION' }>['payload'];
+
+const resolveMinimapFocus = (
+  mapData: SetMapDataPayload,
+  currentFocus: GameState['minimapFocus']
+): GameState['minimapFocus'] => {
+  // The typed map contract exposes gridSize, not the old width/height placeholder.
+  // Keeping this helper local avoids turning G5 into a broader reducer refactor.
+  if (!mapData) {
+    return currentFocus;
+  }
+
+  return {
+    x: Math.floor(mapData.gridSize.cols / 2),
+    y: Math.floor(mapData.gridSize.rows / 2),
+  };
+};
 
 const hashStringToSeed = (value: string): number => {
   let hash = 2166136261;
@@ -103,22 +119,17 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
     }
 
     case 'SET_MAP_DATA': {
-      const mapDataPayload = (action as Extract<AppAction, { type: 'SET_MAP_DATA' }>).payload;
-      const mapPayload = mapDataPayload as { width?: number; height?: number } | null;
-      // TODO(2026-01-03 pass 4 Codex-CLI): minimapFocus computed from width/height placeholder; replace when map payload is typed.
-      const minimapFocus = mapPayload
-        ? { x: Math.floor((mapPayload.width || 0) / 2), y: Math.floor((mapPayload.height || 0) / 2) }
-        : (state as unknown as { minimapFocus?: unknown }).minimapFocus;
-      return { mapData: mapDataPayload, minimapFocus } as Partial<GameState>;
+      const mapDataPayload: SetMapDataPayload = action.payload;
+      const minimapFocus = resolveMinimapFocus(mapDataPayload, state.minimapFocus);
+      return { mapData: mapDataPayload, minimapFocus };
     }
 
     case 'UPDATE_INSPECTED_TILE_DESCRIPTION': {
-      const tilePayload = (action as Extract<AppAction, { type: 'UPDATE_INSPECTED_TILE_DESCRIPTION' }>).payload as { tileKey?: string; description?: string };
+      const tilePayload: UpdateInspectedTileDescriptionPayload = action.payload;
       return {
         inspectedTileDescriptions: {
           ...state.inspectedTileDescriptions,
-          // TODO(2026-01-03 pass 4 Codex-CLI): tile description payload typing placeholder until action payload is formalized.
-          [tilePayload.tileKey ?? 'unknown_tile']: tilePayload.description ?? '',
+          [tilePayload.tileKey]: tilePayload.description,
         },
       };
     }

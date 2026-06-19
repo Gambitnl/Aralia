@@ -145,8 +145,8 @@ export interface HeistPlan {
   entryPoint?: string; // Location Exit ID
   escapeRoute?: string;
   collectedIntel: HeistIntel[];
-  intelGathered?: HeistIntel[];
-  approaches?: HeistApproach[];
+  intelGathered: HeistIntel[];
+  approaches: HeistApproach[];
   selectedApproach?: HeistApproach | null;
   complications?: string[];
   lootSecured: StolenItem[];
@@ -278,3 +278,4 @@ export interface GuildMembership {
   completedJobs: string[]; // IDs of completed jobs
   servicesUnlocked: string[]; // IDs of services
 }
+

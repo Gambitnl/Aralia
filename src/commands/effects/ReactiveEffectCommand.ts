@@ -19,13 +19,25 @@
  * Command for handling effects that trigger based on future events or require sustaining.
  */
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
+import { CommandContext, SpellCommand } from '../base/SpellCommand';
+import { CommandExecutor } from '../base/CommandExecutor';
 import { CombatState } from '../../types/combat';
+import { SpellEffect } from '../../types/spells';
 import { generateId } from '../../utils/combatUtils';
 import { movementEvents, MovementEvent } from '../../systems/combat/MovementEventEmitter';
 import { attackEvents, AttackEvent } from '../../systems/combat/AttackEventEmitter';
 import { combatEvents, CastEvent } from '../../systems/events/CombatEvents';
 import { sustainActionSystem, SustainedSpell } from '../../systems/combat/SustainActionSystem';
 import { logger } from '../../utils/logger';
+import { DamageCommand } from './DamageCommand';
+import { HealingCommand } from './HealingCommand';
+import { StatusConditionCommand } from './StatusConditionCommand';
+import { MovementCommand } from './MovementCommand';
+import { AttackRollModifierCommand } from './AttackRollModifierCommand';
+import { SummoningCommand } from './SummoningCommand';
+import { TerrainCommand } from './TerrainCommand';
+import { UtilityCommand } from './UtilityCommand';
+import { DefensiveCommand } from './DefensiveCommand';
 
 type ReactiveEvent = MovementEvent | AttackEvent | CastEvent;
 type DurationLike = { type?: string; unit?: string; value?: number };
@@ -177,10 +189,88 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
      * @param event - The event data (Movement, Attack, or Cast).
      */
     private async executeReactiveEffect(event: ReactiveEvent): Promise<void> {
-        // This would execute the actual effect when triggered
-        // For now, we'll emit a log message - in a full implementation,
-        // this would create and execute the appropriate command
-        logger.info(`Reactive effect triggered: ${this.effect.type} for ${this.context.spellName}`, { event });
+        const delegatedPayload = this.context.delegatedReactivePayload;
+
+        // Older reactive registrations do not yet carry a delegated payload.
+        // Preserve their existing behavior: report the trigger and leave any
+        // inline executor behavior untouched instead of inventing missing data.
+        if (!delegatedPayload) {
+            logger.info(`Reactive effect triggered: ${this.effect.type} for ${this.context.spellName}`, { event });
+            return;
+        }
+
+        const currentState = delegatedPayload.getState();
+        const delegatedTargets = delegatedPayload.resolveTargets?.({
+            event,
+            state: currentState,
+            commandContext: this.context
+        }) ?? this.context.targets;
+        const delegatedContext: CommandContext = {
+            ...this.context,
+            targets: delegatedTargets
+        };
+
+        // Rehydrate the payload as the same concrete effect commands used for
+        // immediate spell execution, then run that list through CommandExecutor
+        // so reactive effects share logging, ordering, and failure behavior.
+        const commands = delegatedPayload.effects
+            .map(effect => this.createDelegatedCommand(effect, delegatedContext))
+            .filter((command): command is SpellCommand => command !== null);
+
+        if (commands.length === 0) {
+            logger.warn(`Reactive effect for ${this.context.spellName} had no supported delegated commands`, {
+                event,
+                effectTypes: delegatedPayload.effects.map(effect => effect.type)
+            });
+            return;
+        }
+
+        const result = await CommandExecutor.execute(commands, currentState);
+        if (result.success) {
+            delegatedPayload.commitState(result.finalState);
+            logger.info(`Reactive effect triggered: ${this.effect.type} for ${this.context.spellName}`, { event });
+            return;
+        }
+
+        // Failed delegated commands leave the old live state in place. The
+        // executor has already logged the command-level failure, so this warning
+        // only ties the failure back to the waiting reactive spell.
+        logger.warn(`Reactive effect for ${this.context.spellName} failed during delegated execution`, {
+            event,
+            error: result.error?.message
+        });
+    }
+
+    /**
+     * Builds the normal command object for a delegated payload effect.
+     *
+     * This intentionally supports the already-owned sibling effect command set
+     * and leaves nested reactive effects or rider registration for later scoped
+     * work. That keeps this T2 slice focused on delegated payload execution.
+     */
+    private createDelegatedCommand(effect: SpellEffect, context: CommandContext): SpellCommand | null {
+        switch (effect.type) {
+            case 'DAMAGE':
+                return new DamageCommand(effect, context);
+            case 'HEALING':
+                return new HealingCommand(effect, context);
+            case 'STATUS_CONDITION':
+                return new StatusConditionCommand(effect, context);
+            case 'ATTACK_ROLL_MODIFIER':
+                return new AttackRollModifierCommand(effect, context);
+            case 'MOVEMENT':
+                return new MovementCommand(effect, context);
+            case 'SUMMONING':
+                return new SummoningCommand(effect, context);
+            case 'TERRAIN':
+                return new TerrainCommand(effect, context);
+            case 'UTILITY':
+                return new UtilityCommand(effect, context);
+            case 'DEFENSIVE':
+                return new DefensiveCommand(effect, context);
+            default:
+                return null;
+        }
     }
 
     /**

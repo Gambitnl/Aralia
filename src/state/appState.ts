@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 00:04:52
+ * Last Sync: 18/06/2026, 03:45:27
  * Dependents: App.tsx
- * Imports: 41 files
+ * Imports: 43 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -673,6 +673,10 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // Use loaded or fallback
                 factions: loadedFactions,
                 playerFactionStandings: loadedStandings,
+                // Older saves may not carry rumor arrays at all. Normalize them
+                // once at load so world simulation and UI code receive a stable
+                // world-state shape without rejecting the save.
+                activeRumors: loadedState.activeRumors ?? [],
                 // Older saves can still load without a first-build payload; keep
                 // an empty registry so the rest of the game can treat history as present.
                 worldHistory: loadedState.worldHistory ?? createEmptyHistory(),

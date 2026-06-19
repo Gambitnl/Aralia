@@ -6,10 +6,10 @@ slug: command-factory-runtime
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-14"
+last_updated: "2026-06-18"
 gap_count: 6
-open_gap_count: 5
-resolved_gap_count: 0
+open_gap_count: 4
+resolved_gap_count: 1
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
@@ -113,7 +113,7 @@ Use this file for durable unresolved findings that are too important or too larg
 
 | Gap ID | Status | Classification | Owner | Owning tracker | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof |
 |---|---|---|---|---|---|---|---|---|---|
-| G1 | not_started | in_scope_now | Worker C | `docs/projects/command-factory-runtime/TRACKER.md` | Project doc sweep | No explicit command registration registry for factory creation paths | `src/hooks/useAbilitySystem.ts`, `src/commands/index.ts`, `src/commands/factory/*.ts` | Hardcoded use of factory entry points works now, but factory onboarding for new command sources lacks a cataloged registry pattern | Decide whether registry metadata is needed for discoverability when adding new command sources | Re-check entry points after next factory-capability expansion |
+| G1 | done | in_scope_now | Codex CLI agent, repaired by Matrix orchestrator | `docs/projects/command-factory-runtime/TRACKER.md` | Project doc + source sweep | No explicit command registration registry for factory creation paths | `src/commands/index.ts`, `src/commands/factory/SpellCommandFactory.ts`, `src/commands/factory/AbilityCommandFactory.ts` | Hardcoded use of factory entry points had no cataloged registry, making onboarding brittle | Added `commandFactoryRegistry` in `src/commands/index.ts` to make spell and ability creators explicitly discoverable | Verified by `npx vitest run src/commands/factory` on 2026-06-18; re-check registry call-site consistency during G3/G4 |
 | G2 | done | support_needed_now | Worker C | `docs/projects/command-factory-runtime/TRACKER.md` | Source/docs scan and source-backed drift pass | `SpellCommandFactory.matchesFilter(...)` is a deprecated pass-through wrapper, but the ability path now calls `TargetValidationUtils.matchesFilter(...)` directly so only the legacy spell-factory wrapper still carries the old path | `src/commands/factory/AbilityCommandFactory.ts`, `src/commands/factory/SpellCommandFactory.ts`, `src/systems/spells/targeting/TargetValidationUtils.ts` | Mixed filter call-sites have been reduced, but the second validation entry point still exists and can drift if the wrapper lingers too long | Resolved: Redirected internal call site in `SpellCommandFactory.ts` to `TargetValidationUtils.matchesFilter` directly. Wrapper is deprecated with no internal callers remaining. | Verified by running factory unit tests. |
 | G3 | not_started | adjacent_follow_up | Worker C | `docs/projects/command-factory-runtime/TRACKER.md` | Source/docs sweep | Factory scaling helpers duplicate older number resolution logic and are not yet standardized | `src/commands/factory/SpellCommandFactory.ts`, `src/types/spells.ts` | Future scale-rule changes can diverge if duplicated parsing logic remains | Route to shared utility decision if scale format changes again | Verify no logic drift in tests after utility merge |
 | G4 | not_started | adjacent_follow_up | Worker C | `docs/projects/command-factory-runtime/TRACKER.md` | Test sweep | Command factory tests cover major paths but do not cover all invalid mode-choice + AI arbitration edge behavior combinations | `src/commands/factory/__tests__/*.test.ts` | Regression risk remains as package spell shapes grow | Expand test matrix in implementation slice for command creation behavior | Add focused factory tests for missing edge combinations |

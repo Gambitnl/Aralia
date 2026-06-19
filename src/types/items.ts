@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 19/06/2026, 00:48:21
+ * Dependents: components/Crime/ThievesGuild/FenceInterface.tsx, components/puzzles/LockpickingModal.tsx, services/travelService.ts, systems/crafting/alchemySystem.ts, systems/crafting/craftingService.ts, systems/crime/BlackMarketSystem.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/travel/TravelCalculations.ts, types/index.ts, utils/world/provenanceUtils.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { AbilityScoreName, AbilityScores } from './core.js';
 import type { MagicItemProperties } from './magicItems.js';
 import type { ItemProvenance } from './provenance.js';
@@ -304,6 +320,12 @@ export interface Item {
   costInGp?: number;
   isConsumed?: boolean;
   substitutable?: boolean;
+  /**
+   * Real-world epoch milliseconds for when this item entered the inventory.
+   * Optional keeps older saves and template data valid while new item instances
+   * can carry durable freshness timing for perishable food.
+   */
+  acquiredAt?: number;
   shelfLife?: string;
   nutritionValue?: number;
   perishable?: boolean;
