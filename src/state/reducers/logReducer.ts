@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 19/06/2026, 00:47:31
+ * Last Sync: 20/06/2026, 01:44:57
  * Dependents: services/saveLoadService.ts, state/appState.ts
  * Imports: 2 files
  *

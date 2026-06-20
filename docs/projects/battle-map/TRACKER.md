@@ -1,7 +1,7 @@
 ﻿# Battle Map Living Tracker
 
-Status: active (G6 tactical spawn scoring implemented 2026-06-19)
-Last updated: 2026-06-19
+Status: active (D17 utility contract documented 2026-06-20; G6 tactical spawn scoring implemented 2026-06-19; awaiting routed CMA slices G5 and CMA-G15)
+Last updated: 2026-06-20
 
 ## Status Vocabulary
 
@@ -17,6 +17,7 @@ Last updated: 2026-06-19
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
+| T-D17-docs | done | Document the D17 `generateBattleSetup` utility contract concretely enough for a follow-up implementation agent to rely on without inventing scope | Battle Map documentation worker | 2026-06-20 | `docs/projects/battle-map/NORTH_STAR.md` (new "D17 Utility Contract: `generateBattleSetup`" section), `docs/projects/battle-map/AUDIT_OR_PROOF.md` 2026-06-20 row | None this slice; await an implementation agent accepting G5 VFX renderer-boundary proof or CMA-G15 actor/terrain render-parity proof | Docs consistency sweep passed; no code moved |
 
 ## Gap Log
 

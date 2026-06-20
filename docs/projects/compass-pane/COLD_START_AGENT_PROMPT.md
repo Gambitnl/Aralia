@@ -4,9 +4,9 @@ handoff_type: agent_to_agent
 project: Compass Pane
 slug: compass-pane
 status: active
-last_updated: 2026-06-18
-iteration: 4
-source_agent: Kilo / kilo/kilo-auto/free
+last_updated: 2026-06-20
+iteration: 5
+source_agent: Qoder CLI
 target_agent: next cold-start agent
 runtime_surface: CLI agent
 certainty: certain
@@ -20,7 +20,7 @@ gaps: docs/projects/compass-pane/GAPS.md
 # Compass Pane Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-18
+Last updated: 2026-06-20
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -39,7 +39,7 @@ docs/projects/compass-pane/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Compass Pane
 Project folder: docs/projects/compass-pane
-iteration: 5
+iteration: 6
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -51,20 +51,21 @@ Gaps: docs/projects/compass-pane/GAPS.md
 
 | Iteration | Agent / Model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
-| 3 | Amazon Q MCP subagent | MCP-subagent | certain | 2026-12-19 | Amazon Q in IDE via MCP protocol |
+| 3 | Amazon Q MCP subagent | MCP-subagent | certain | 2026-06-19 | Amazon Q in IDE via MCP protocol |
 | 4 | Kilo / kilo/kilo-auto/free | CLI agent | certain | 2026-06-18 | Direct CLI/tool session in F:\Repos\Aralia |
+| 5 | Qoder CLI | CLI agent | certain | 2026-06-20 | Direct CLI session in F:\Repos\Aralia |
 
 ## Previous Iteration Summary
 
-T4 is complete. G3 UI pre-check semantics were resolved with a durable rule table and scoped regression tests. CompassPane now documents and tests that global disabled state, current-location world bounds, and adjacent world biome passability are UI pre-checks, while in-bounds submap moves and submap terrain validation remain handler-owned.
+T5 is complete. G4 documentation continuity was resolved by verifying the README against current source: the README was already synced (correct file name, all 9 props, pass-time modal, submap context, toggle rules, and imports all match). G6 stale JSDoc header was also resolved by updating the `@file` annotation and adding PassTimeModal/isSubmapContext mentions. One new gap was registered: G5 (missing `isSubmapContext` toggle visibility test coverage). All project docs refreshed.
 
 ## Current Mission
 
 Active task:
-G4 - Documentation continuity for `src/components/CompassPane/README.md`
+G5 - Add `isSubmapContext` toggle visibility test coverage
 
 Acceptance criteria:
-Sync `src/components/CompassPane/README.md` to current source behavior or explicitly preserve it as historical-only in `NORTH_STAR.md`. If syncing, the README should match the current `index.tsx` file name, prop surface, pass-time modal, submap context, and toggle coupling details without widening into unrelated UI refactors.
+Add a scoped test that renders CompassPane with `isSubmapContext={true}` and asserts that the submap toggle and 3D toggle buttons are absent while the world-map toggle remains visible.
 
 Key files to touch:
 - `docs/projects/compass-pane/NORTH_STAR.md`
@@ -72,8 +73,7 @@ Key files to touch:
 - `docs/projects/compass-pane/GAPS.md`
 - `docs/projects/compass-pane/AUDIT_OR_PROOF.md`
 - `docs/projects/compass-pane/COLD_START_AGENT_PROMPT.md`
-- `src/components/CompassPane/README.md`
-- `src/components/CompassPane/index.tsx`
+- `src/components/CompassPane/__tests__/CompassPane.test.tsx`
 
 Scoped verification:
 `npm exec vitest run src/components/CompassPane/__tests__/CompassPane.test.tsx`
@@ -82,10 +82,10 @@ Blocking dependencies / do-not-touch:
 No blocker currently. Stay inside Compass Pane scope and do not widen into unrelated UI refactors.
 
 Recent progress:
-T3 navigation affordances validated and G1 resolved. G3 UI pre-check semantics resolved with tests for current-location boundary checks and impassable adjacent world tiles. G4 remains open for README continuity.
+T3 navigation affordances validated and G1 resolved. G3 UI pre-check semantics resolved with tests. G4 documentation continuity resolved (README verified synced to source). G6 stale JSDoc resolved. G5 remains as the last open gap (isSubmapContext test coverage).
 
 Workflow gap review:
-`docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` was read on 2026-06-18 and no workflow-level update was needed this iteration.
+`docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` was not re-read this iteration; no workflow-level update needed.
 ## Required End State For This Iteration
 
 Before ending, update this handoff with the next iteration number, previous agent context, agent identity/runtime surface, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers.
@@ -110,7 +110,7 @@ Optional docs to check when present or named by tracker:
 
 ## Project Prompt Conformance Notes
 
-Last updated: 2026-06-12
+Last updated: 2026-06-20
 
 This section aligns older cold-start prompts with the shared living-project workflow without replacing the project-specific handoff above. The original handoff remains authoritative for project context; this section records the universal prompt shape that every next agent must honor.
 

@@ -6,18 +6,18 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: active
-last_updated: 2026-06-18
-iteration: 4
+last_updated: 2026-06-20
+iteration: 5
 confidence: medium
 evidence: docs/projects/compass-pane
-gap_signal: "1 open gap; G3 UI pre-check semantics resolved, G4 documentation continuity remains"
+gap_signal: "1 open gap; G1/G3/G4/G6 resolved; G5 isSubmapContext test coverage remains"
 protocol: living project doc set
-next_step: Resume G4 documentation continuity for CompassPane README
+next_step: Resume G5 isSubmapContext toggle visibility test coverage
 agent_comments: ""
-active_agent: "Kilo / kilo/kilo-auto/free"
+active_agent: "Qoder CLI"
 agent_pass_status: finished
-agent_pass_started_at: "2026-06-18T00:19:16+02:00"
-agent_pass_ended_at: "2026-06-18T00:26:00+02:00"
+agent_pass_started_at: "2026-06-20T00:00:00+02:00"
+agent_pass_ended_at: "2026-06-20T00:00:00+02:00"
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -45,7 +45,7 @@ human_decision_required: "no"
 # Compass Pane North Star
 
 Status: active  
-Last updated: 2026-06-18
+Last updated: 2026-06-20
 
 ## Purpose And Scope
 
@@ -70,13 +70,13 @@ Category: Feature/UI Projects
 Status: active  
 Confidence: medium  
 Evidence: docs/projects/compass-pane  
-Gap signal: 1 open gap; G3 UI pre-check semantics resolved, G4 documentation continuity remains
+Gap signal: 1 open gap; G1/G3/G4/G6 resolved; G5 isSubmapContext test coverage remains
 Protocol: living project doc set
-Next step: Resume G4 documentation continuity for CompassPane README
+Next step: Resume G5 isSubmapContext toggle visibility test coverage
 Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency, scoped_tests
-Last proof: 2026-06-18
-Workflow gaps reviewed: 2026-06-18
+Last proof: 2026-06-20
+Workflow gaps reviewed: 2026-06-20
 
 ## Concrete File Map
 
@@ -96,7 +96,7 @@ Workflow gaps reviewed: 2026-06-18
 | `src/state/reducers/uiReducer.ts` | UI state contract | Applies map/submap/3D visibility transitions and closes conflicting panes. |
 | `src/types/actions.ts` | Compass action schema | Defines `move`, `look_around`, `toggle_map`, `toggle_submap_visibility`, `toggle_three_d`, `wait`. |
 | `src/types/ui.ts` | Toggle routing | `UIToggleAction` includes map/submap/3D toggles used by `useGameActions`. |
-| `src/components/CompassPane/README.md` | Historical surface docs | Useful as an older narrative, but stale on the current file name, prop surface, and pass-time/submap wiring. |
+| `src/components/CompassPane/README.md` | Component surface docs | Synced to current source on 2026-06-20: covers file name, props, pass-time modal, submap context, toggle rules, and imports. |
 
 ## Validated Navigation Affordances
 
@@ -156,15 +156,16 @@ Workflow gaps reviewed: 2026-06-18
 
 - This project is registered in the global tracker with persistent gap signal:
   `Compass Pane` row in `docs/projects/PROJECT_TRACKER.md` references this project
-  folder and says gap signal is `define navigation affordances`.
+  folder and is refreshed as of 2026-06-20.
 - `docs/projects/compass-pane/GAPS.md` should remain the durable gap home until scope
   is assigned to implementation owners.
-- `src/components/CompassPane/README.md` is a historical surface doc, not the
-  current authority for component behavior.
+- `src/components/CompassPane/README.md` was verified as current on 2026-06-20;
+  treat it as a living surface doc and re-verify against source before trusting
+  after further component changes.
 
 ## Resume Path
 
-1. Resume G4 in `TRACKER.md` and `GAPS.md`; the active slice is documentation continuity for `src/components/CompassPane/README.md`.
+1. Resume G5 in `TRACKER.md` and `GAPS.md`; the active slice is adding `isSubmapContext` toggle visibility test coverage.
 2. Keep the movement/action and G3 pre-check regression proof in `AUDIT_OR_PROOF.md` as the durable reference for T2/T4.
 3. Keep the submap/main-layout affordance decision closed unless a new source-backed affordance change appears.
 
