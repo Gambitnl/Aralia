@@ -4,7 +4,7 @@ handoff_type: agent_to_agent
 project: Spells
 slug: spells
 status: active
-last_updated: 2026-06-11
+last_updated: 2026-06-20
 iteration: 2
 source_agent: Not recorded
 target_agent: next cold-start agent
@@ -16,11 +16,12 @@ dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
 north_star: docs/projects/spells/NORTH_STAR.md
 tracker: docs/projects/spells/TRACKER.md
 gaps: docs/projects/spells/GAPS.md
+subprojects: docs/projects/spells/SUBPROJECTS.md
 ---
 # Spells Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-11
+Last updated: 2026-06-20
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -52,17 +53,20 @@ Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
 North Star: docs/projects/spells/NORTH_STAR.md
 Tracker: docs/projects/spells/TRACKER.md
 Gaps: docs/projects/spells/GAPS.md
+Subprojects: docs/projects/spells/SUBPROJECTS.md
 
 ## Previous Agent Handoff
 
 The first project packet is now established. This pass refreshed the packet and preserved the current queue. Use
 NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+GAPS.md for unresolved findings. Read SUBPROJECTS.md before choosing broad work
+when GAPS.md has no open rows; it routes existing spell task surfaces into owned
+lanes, linked support, and adjacent dependencies.
 
 ## Current Mission
 
 Active task:
-T2 - Track unresolved spell runtime gaps in this living project (ontology, triggers, targeting allocation, typed effect flow).
+T4 - Maintain the Spells parent-project subproject registry and route broad lanes before importing concrete gaps.
 
 Acceptance criteria:
 Use the active TRACKER.md row and any acceptance criteria listed in
@@ -73,6 +77,7 @@ Key files to touch:
 - docs/projects/spells/NORTH_STAR.md
 - docs/projects/spells/TRACKER.md
 - docs/projects/spells/GAPS.md
+- docs/projects/spells/SUBPROJECTS.md
 - docs/projects/spells/COLD_START_AGENT_PROMPT.md
 - Any source/docs named by the active tracker task
 
@@ -93,6 +98,7 @@ Key files to touch:
 - docs/projects/spells/NORTH_STAR.md
 - docs/projects/spells/TRACKER.md
 - docs/projects/spells/GAPS.md
+- docs/projects/spells/SUBPROJECTS.md
 - docs/projects/spells/COLD_START_AGENT_PROMPT.md
 - docs/projects/spells/DECISIONS.md
 - docs/projects/spells/AUDIT_OR_PROOF.md

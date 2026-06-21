@@ -82,12 +82,29 @@ export function localArtifactToWorldData(
     heights[i] = Math.max(0, Math.min(100, (meters / HEIGHT_DOMAIN_M) * 100));
   }
 
-  const biomeNameByIndex = materials.map(
-    (m) => MATERIAL_BIOME[m] ?? "plains",
-  );
+  // No-fallback directive (2026-06-15): an unmapped material or an
+  // out-of-range material index surfaces honestly instead of silently
+  // collapsing to "plains" — a corrupt artifact must fail loudly, not render
+  // a fake meadow over the real terrain.
+  const biomeNameByIndex = materials.map((m) => {
+    const biome = MATERIAL_BIOME[m];
+    if (biome === undefined) {
+      throw new Error(
+        `[groundWorldAdapter] material '${m}' has no biome mapping`,
+      );
+    }
+    return biome;
+  });
   const biomeIds: string[] = new Array(materialIndex.length);
   for (let i = 0; i < materialIndex.length; i++) {
-    biomeIds[i] = biomeNameByIndex[materialIndex[i]] ?? "plains";
+    const biome = biomeNameByIndex[materialIndex[i]];
+    if (biome === undefined) {
+      throw new Error(
+        `[groundWorldAdapter] material index ${materialIndex[i]} at cell ${i} ` +
+          `is out of range (materials.length=${materials.length})`,
+      );
+    }
+    biomeIds[i] = biome;
   }
 
   return {

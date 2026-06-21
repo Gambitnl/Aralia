@@ -18,6 +18,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WindowFrame } from './WindowFrame';
 import { UI_ID } from '../../styles/uiIds';
+import { canUseDevTools } from '../../utils/core/permissions';
 import { BanterMoment, Companion } from '../../types/companions';
 
 export interface BanterHistoryLine {
@@ -60,6 +61,18 @@ interface CollapsibleBanterPanelProps {
   forceExpand?: boolean;
   /** Extends the player response deadline by 60 seconds. */
   onExtendDeadline?: () => void;
+  /**
+   * Whether auto-banter generation is currently paused (disabled). Surfaced as a
+   * dev-only status badge in the panel header so testers can see at a glance
+   * whether ambient banter will fire. Has no effect when dev tools are off.
+   */
+  isBanterPaused?: boolean;
+  /**
+   * Toggles the paused state. When provided, the dev-only header badge becomes a
+   * clickable button (the same control as the Banter & AI Inspector's Active/Paused
+   * toggle); without it the badge is a read-only status pill.
+   */
+  onToggleBanterPause?: () => void;
 }
 
 type PanelMode = 'COLLAPSED' | 'EXPANDED' | 'FLOATING';
@@ -82,6 +95,8 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
   forceExpand = false,
   onExtendDeadline,
   onExtendNpcDelay,
+  isBanterPaused = false,
+  onToggleBanterPause,
 }) => {
   const [mode, setMode] = useState<PanelMode>('COLLAPSED');
   const [activeTab, setActiveTab] = useState<Tab>('LIVE');
@@ -124,6 +139,39 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
     if (companion?.identity?.name) return companion.identity.name;
     return id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
   };
+
+  // Dev-only status pill: shows whether ambient auto-banter is enabled or paused.
+  // Rendered in the panel header (EXPANDED + FLOATING). Hidden unless dev tools are on.
+  // When onToggleBanterPause is supplied it doubles as the enable/disable toggle.
+  const badgeColors = isBanterPaused
+    ? 'bg-red-900/50 text-red-300 border-red-500/50'
+    : 'bg-emerald-900/50 text-emerald-300 border-emerald-500/50';
+  const badgeLabel = isBanterPaused ? 'Banter Off' : 'Banter On';
+  const devBanterBadge = canUseDevTools() ? (
+    onToggleBanterPause ? (
+      <button
+        type="button"
+        data-testid="banter-mode-indicator"
+        onClick={onToggleBanterPause}
+        className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded border whitespace-nowrap transition-colors hover:brightness-125 cursor-pointer ${badgeColors}`}
+        title={isBanterPaused
+          ? 'DEV: ambient auto-banter is DISABLED — click to enable'
+          : 'DEV: ambient auto-banter is ENABLED — click to disable'}
+      >
+        {badgeLabel}
+      </button>
+    ) : (
+      <span
+        data-testid="banter-mode-indicator"
+        className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded border whitespace-nowrap ${badgeColors}`}
+        title={isBanterPaused
+          ? 'DEV: ambient auto-banter is DISABLED'
+          : 'DEV: ambient auto-banter is ENABLED'}
+      >
+        {badgeLabel}
+      </span>
+    )
+  ) : null;
 
   // ─── Renderers ──────────────────────────────────────────────────────────────
 
@@ -364,16 +412,19 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
   if (mode === 'FLOATING') {
     return (
       <WindowFrame
-        title="Conversation"
+        title="Party Member Banter"
         onClose={() => setMode('COLLAPSED')}
         headerActions={
-          <button
-            onClick={() => setMode('EXPANDED')}
-            className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
-            title="Dock to side"
-          >
-            ⇲
-          </button>
+          <div className="flex items-center gap-2">
+            {devBanterBadge}
+            <button
+              onClick={() => setMode('EXPANDED')}
+              className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+              title="Dock to side"
+            >
+              ⇲
+            </button>
+          </div>
         }
       >
         <div className="p-4 h-full bg-gray-800 flex flex-col">
@@ -405,10 +456,11 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
             <span className="text-gray-200 font-medium text-sm">
               {isPlayerDirected && isWaitingForPlayerResponse
                 ? `${generatingSpeakerName || 'Companion'} speaks to you`
-                : 'Conversation'}
+                : 'Party Member Banter'}
             </span>
           </div>
-          <div className="flex gap-1">
+          <div className="flex items-center gap-2">
+            {devBanterBadge}
             <button onClick={() => setMode('FLOATING')} className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Pop out">⇱</button>
             <button onClick={() => setMode('COLLAPSED')} className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Collapse">→</button>
           </div>
@@ -443,7 +495,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
       >
         <span className="text-amber-400 text-lg group-hover:scale-110 transition-transform">💬</span>
         <div className="flex flex-col items-start">
-          <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">Chat</span>
+          <span className="text-xs font-bold text-gray-300 uppercase tracking-wider whitespace-nowrap">Party Chat</span>
           {isNudging && (
             <span className="text-[10px] text-amber-300 font-medium whitespace-nowrap">
               {generatingSpeakerName || 'Companion'} asks you!

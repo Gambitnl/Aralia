@@ -195,5 +195,7 @@
     "bonusPerLevel": "+1 hour duration",
     "notes": "Each spell slot level above 3 increases Magic Circle's duration by 1 hour."
   },
-  "tags": []
+  "tags": [
+    "ritual"
+  ]
 }

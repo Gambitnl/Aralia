@@ -59,6 +59,7 @@ import { initialGameState } from './state/initialState';
 import { useAudio } from './hooks/useAudio';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameInitialization } from './hooks/useGameInitialization';
+import { useOllamaLogBridge } from './hooks/useOllamaLogBridge';
 import { useHistorySync } from './hooks/useHistorySync';
 import { useCompanionCommentary } from './hooks/useCompanionCommentary';
 import { useCompanionBanter } from './hooks/useCompanionBanter';
@@ -155,6 +156,10 @@ const App: React.FC = () => {
 
   const [gameState, dispatch] = useReducer(appReducer, initialGameState);
 
+  // Mirror every Ollama task call into the in-app log viewer via the central
+  // sink (see useOllamaLogBridge). One subscription covers all AI traffic.
+  useOllamaLogBridge(dispatch);
+
   // ── Storage initialization (GAP-001) ──────────────────────────────────
   // Initializes IndexedDB, recovers emergency saves, and migrates legacy
   // localStorage payloads to IDB. Runs once on mount, before any save/load
@@ -212,8 +217,9 @@ const App: React.FC = () => {
 
   // 💕 Heartkeeper: Companion Commentary (Reactions 2.0)
   useCompanionCommentary(gameState, dispatch);
-  // Companion Banter
-  const [isBanterPaused, setIsBanterPaused] = useState(false);
+  // Companion Banter — starts PAUSED: auto-generation is opt-in, toggled via the
+  // "Active/Paused" control in the Banter & AI Inspector (gated in useCompanionBanter).
+  const [isBanterPaused, setIsBanterPaused] = useState(true);
   const {
     forceBanter,
     isBanterActive,
@@ -1372,6 +1378,8 @@ const App: React.FC = () => {
               forceExpand={isPlayerDirected && isWaitingForPlayerResponse}
               onExtendDeadline={extendPlayerResponseDeadline}
               onExtendNpcDelay={extendNpcLineDelay}
+              isBanterPaused={isBanterPaused}
+              onToggleBanterPause={() => setIsBanterPaused(prev => !prev)}
             />
           )}
 

@@ -231,7 +231,12 @@ const DevMenu: React.FC<DevMenuProps> = ({
     <div
       id={UI_ID.DEV_MENU}
       data-testid={UI_ID.DEV_MENU}
-      className={`fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[${Z_INDEX.DEBUG_OVERLAY}] p-4`} // Higher z-index than map/submap
+      // z-index must be an inline style, not a Tailwind `z-[${...}]` class: the
+      // template-literal arbitrary value is never emitted by Tailwind's JIT, so
+      // the class resolved to `z-index: auto` and the menu rendered BELOW the
+      // conversation panel (z 1000), appearing as a dimmed/frozen screen.
+      style={{ zIndex: Z_INDEX.DEBUG_OVERLAY }}
+      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4"
       aria-modal="true"
       role="dialog"
       aria-labelledby="dev-menu-title"

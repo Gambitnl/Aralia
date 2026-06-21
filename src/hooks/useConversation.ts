@@ -151,19 +151,8 @@ export function useConversation(
             context
         );
 
-        if (result.metadata) {
-            dispatch({
-                type: 'ADD_OLLAMA_LOG_ENTRY',
-                payload: {
-                    id: result.metadata.id || generateId(),
-                    timestamp: new Date(),
-                    model: result.metadata.model,
-                    prompt: result.metadata.prompt,
-                    response: result.metadata.response || '',
-                    context
-                }
-            });
-        }
+        // AI-call logging is centralized in the Ollama client (ollamaLogSink /
+        // useOllamaLogBridge); call sites no longer log individually.
 
         const response = result.success ? result.data : null;
 
@@ -254,19 +243,8 @@ export function useConversation(
 
         const result = await OllamaService.continueConversation(participants, history, context);
 
-        if (result.metadata) {
-            dispatch({
-                type: 'ADD_OLLAMA_LOG_ENTRY',
-                payload: {
-                    id: result.metadata.id || generateId(),
-                    timestamp: new Date(),
-                    model: result.metadata.model,
-                    prompt: result.metadata.prompt,
-                    response: result.metadata.response || '',
-                    context
-                }
-            });
-        }
+        // AI-call logging is centralized in the Ollama client (ollamaLogSink /
+        // useOllamaLogBridge); call sites no longer log individually.
 
         const response = result.success ? result.data : null;
 
@@ -308,19 +286,8 @@ export function useConversation(
 
             const result = await OllamaService.summarizeConversation(participants, history, context);
 
-            if (result.metadata) {
-                dispatch({
-                    type: 'ADD_OLLAMA_LOG_ENTRY',
-                    payload: {
-                        id: result.metadata.id || generateId(),
-                        timestamp: new Date(),
-                        model: result.metadata.model,
-                        prompt: result.metadata.prompt,
-                        response: result.metadata.response || '',
-                        context
-                    }
-                });
-            }
+            // AI-call logging is centralized in the Ollama client (ollamaLogSink /
+            // useOllamaLogBridge); call sites no longer log individually.
 
             const summary = result.success ? result.data : null;
 

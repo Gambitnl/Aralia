@@ -114,6 +114,10 @@ export interface OllamaLogEntry {
   response: string;
   context?: any;
   isPending?: boolean;
+  /** The task profile that drove the call (e.g. 'opening_situation'). */
+  taskType?: string;
+  /** True when the call failed at the transport layer (model down / timeout). */
+  isError?: boolean;
 }
 
 // ---------------------------------------------------------------------------

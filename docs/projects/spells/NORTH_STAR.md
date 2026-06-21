@@ -6,18 +6,23 @@ category: active project
 main_category: "Content & Rules"
 subcategory: "Rules, Spells & Source Data"
 status: active
-last_updated: 2026-06-12
+last_updated: 2026-06-20
 iteration: 2
 confidence: unknown
 evidence: "docs/projects/spells/TRACKER.md; docs/projects/spells/GAPS.md"
-gap_signal: 0 open gaps; all current GAPS.md rows are done; keep tracker alignment work active
+gap_signal: 0 open gaps; G10-G13 are resolved; SUBPROJECTS.md routes broad spell lanes before gap import
 protocol: living-project
 next_step: Resume from TRACKER.md and keep the gap log aligned.
+project_mode: parent_with_subprojects
+subproject_tracker: docs/projects/spells/SUBPROJECTS.md
+subproject_count: 8
+subproject_signal: "8 tracked lanes; spell-system-overhaul, spell-completeness-audit, and docs/tasks/spells route under Spells; scripts-spell-runtime-template-audit is linked support"
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
   - GAPS.md
+  - SUBPROJECTS.md
   - COLD_START_AGENT_PROMPT.md
   - DECISIONS.md
   - AUDIT_OR_PROOF.md
@@ -29,7 +34,7 @@ completed_verification:
   - docs refresh
   - SpellIntegrityValidator monolithic soft-hit proof
   - status docs inventory-runtime boundary refresh
-last_proof: 2026-06-11
+last_proof: 2026-06-20
 workflow_gaps_reviewed: ""
 compaction_status: not_needed
 lifecycle_status: active
@@ -41,7 +46,7 @@ human_decision_required: "no"
 # Spells System North Star
 
 Status: active
-Last updated: 2026-06-12
+Last updated: 2026-06-20
 
 ## Dashboard Card Schema
 
@@ -53,12 +58,12 @@ Last updated: 2026-06-12
 | Status | active |
 | Confidence | unknown |
 | Evidence | docs/projects/spells/TRACKER.md; docs/projects/spells/GAPS.md |
-| Gap signal | present |
+| Gap signal | 0 open gaps; G10-G13 resolved; SUBPROJECTS.md routes broad spell lanes |
 | Protocol | living-project |
 | Next step | Resume from TRACKER.md and keep the gap log aligned. |
 | Required verification | docs consistency |
-| Completed verification | docs refresh; spell integrity proof; placeholder-description audit |
-| Last proof | 2026-06-11 placeholder-description cleanup and corpus audit |
+| Completed verification | docs refresh; spell integrity proof; placeholder-description audit; concentration, duration progression, mode-choice, and action-cost validator gates |
+| Last proof | 2026-06-20 concentration, ritual, duration progression, mode-choice, and action-cost validator gates |
 | Workflow gaps reviewed | yes |
 
 ## Why This Project Exists
@@ -76,6 +81,8 @@ Preserve source-backed context for what is already implemented, what is still in
 - Combat integration exists through command and hook adapters.
 - Manifest and schema checks are wired via focused spell scripts.
 - Overhaul task docs provide implementation intent history, not the live runtime contract.
+- `SUBPROJECTS.md` now makes Spells a parent project with owned lanes for structured execution, completeness audit, mechanics-discovery packages, choice/mode execution, targeting/object/area behavior, summons/control, and validator integrity.
+- Each subproject lane now has a nested full project packet under `docs/projects/spells/subprojects/<subproject-id>/`.
 - `docs/spells/STATUS_LEVEL_*.md` files are inventory and orientation notes, not behavior-complete runtime proof; use validation scripts and focused runtime tests before claiming a level or spell is execution-ready.
 
 ## Active Task
@@ -148,6 +155,13 @@ The `docs/spells/STATUS_LEVEL_*.md` files are useful for inventory and migration
 - This project folder is the durable handoff layer: current state, file map, and unresolved
   follow-ups that should survive handoff and context shifts.
 
+## Relationship To Subprojects
+
+- `docs/projects/spells/SUBPROJECTS.md` is the routing map for broad spell lanes.
+- Existing task surfaces that belong under Spells are `docs/tasks/spell-system-overhaul`, `docs/tasks/spell-completeness-audit`, and `docs/tasks/spells`.
+- `docs/projects/scripts-spell-runtime-template-audit` is linked support, not a child runtime lane, unless it exposes a product behavior gap that should be imported here.
+- Command runtime, Combat, Battle Map, Visibility, Glossary UI, and 3D Combat Map are adjacent dependencies, not Spells children.
+
 ## Global Gap Imports
 
 Check global gaps first:
@@ -167,6 +181,7 @@ Check global gaps first:
 | Active debt markers | Runtime and architecture debt are explicit and intentional | `src/systems/spells/effects/AreaEffectTracker.ts`; `src/systems/spells/effects/triggerHandler.ts`; `src/systems/spells/targeting/TargetAllocator.ts` |
 | Validator/type modularization boundary | G7 scorecard records why validator/type splitting must be proof-first and declaration-aware | `docs/projects/spells/AUDIT_OR_PROOF.md`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G9 |
 | Effect-description completeness | G8 and G9 cleared generic and blank effect descriptions; SpellIntegrityValidator now hard-gates future blank/generic regressions | `docs/projects/spells/GAPS.md` G8-G9; `src/systems/spells/validation/SpellIntegrityValidator.ts` |
+| Metadata parity gates | G10-G13 lock concentration tags, ritual tags, duration progression metadata, mode-choice menus, and action-cost metadata into corpus-wide validator proof | `docs/projects/spells/GAPS.md`; `src/systems/spells/validation/SpellIntegrityValidator.ts`; `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` |
 
 ## Supporting Files
 
@@ -177,21 +192,24 @@ Check global gaps first:
 | docs/spells/* | Current spell references and status notes | active |
 | docs/projects/spells/TRACKER.md | Queue + gap workflow for this project | active |
 | docs/projects/spells/GAPS.md | Durable unresolved findings | active |
+| docs/projects/spells/SUBPROJECTS.md | Parent-project lane routing and existing-project classification | active |
+| docs/projects/spells/subprojects/* | Full nested setup packets for each Spells subproject lane | active |
 
 ## Resume Path For A Cold Agent
 
 1. Read this file.
 2. Read `docs/projects/spells/TRACKER.md`.
 3. Read `docs/projects/spells/GAPS.md`.
-4. Re-run `npm run validate:spells -- --spell <path>` or the relevant corpus validation command, then run `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` plus any mechanic-specific tests named by the active gap row.
-5. Treat `docs/spells/STATUS_LEVEL_*.md` as inventory/orientation only, not runtime proof.
-6. Continue with the first in-project gap that has external verification.
+4. Read `docs/projects/spells/SUBPROJECTS.md` before importing broad task or audit findings into `GAPS.md`.
+5. Re-run `npm run validate:spells -- --spell <path>` or the relevant corpus validation command, then run `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` plus any mechanic-specific tests named by the active gap row.
+6. Treat `docs/spells/STATUS_LEVEL_*.md` as inventory/orientation only, not runtime proof.
+7. Continue with the first in-project gap that has external verification, or use `SUBPROJECTS.md` to choose the next high-impact lane when `GAPS.md` has no open rows.
 
 
 ## Cold-Start Gap Routing
 
 The next cold-start agent must:
-- read `TRACKER.md` and `GAPS.md` first
+- read `TRACKER.md`, `GAPS.md`, and `SUBPROJECTS.md` first
 - tackle one real, evidence-backed project gap in the same pass
 - identify and register 2 additional real project gaps tied to this project in `GAPS.md`
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there

@@ -635,7 +635,11 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
     return assemblePlayerCharacter(currentState, currentName);
   }, []);
 
-  const assembleAndSubmitCharacter = useCallback((currentState: CharacterCreationState, name: string): void => {
+  // Returns true when the character was successfully assembled and submitted,
+  // false when assembly failed. Callers must check this before doing anything
+  // destructive (e.g. clearing the saved draft) — a failed submit must not
+  // silently discard the player's in-progress work.
+  const assembleAndSubmitCharacter = useCallback((currentState: CharacterCreationState, name: string): boolean => {
     const character = generatePreviewCharacter(currentState, name);
     if (character) {
       const startingInventory: Item[] = currentState.selectedWeaponMasteries
@@ -643,9 +647,10 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
         .filter((item): item is Item => !!item) || [];
 
       onCharacterCreate(character, startingInventory);
-    } else {
-      console.error("Character assembly failed in useCharacterAssembly. Cannot submit.");
+      return true;
     }
+    console.error("Character assembly failed in useCharacterAssembly. Cannot submit.");
+    return false;
   }, [onCharacterCreate, generatePreviewCharacter]);
 
   return { assembleAndSubmitCharacter, generatePreviewCharacter };

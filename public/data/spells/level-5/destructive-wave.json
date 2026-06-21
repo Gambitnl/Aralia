@@ -147,7 +147,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Each chosen creature in the 30-foot Emanation makes a Constitution save, taking 5d6 Thunder damage on a failed save or half as much on a success.",
+      "description": "Each chosen creature in the 30-foot Emanation makes one Constitution save for Destructive Wave, taking 5d6 Thunder damage on a failed save or half as much on a success.",
       "conditionalEndings": []
     },
     {
@@ -211,7 +211,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The caster chooses Radiant or Necrotic damage; each chosen creature in the Emanation makes the same Constitution save, taking 5d6 of the chosen damage type on a failed save or half as much on a success.",
+      "description": "Using the same Constitution save, each chosen creature also takes 5d6 Radiant or Necrotic damage chosen by the caster on a failed save, or half as much on a success.",
       "conditionalEndings": []
     },
     {
@@ -273,7 +273,7 @@
         },
         "level": 0
       },
-      "description": "On a failed Constitution save, the chosen target has the Prone condition.",
+      "description": "A chosen creature that fails the Destructive Wave Constitution save also has the Prone condition; a successful save prevents the Prone rider.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

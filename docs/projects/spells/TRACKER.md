@@ -1,7 +1,7 @@
-﻿# Spells Living Tracker
+# Spells Living Tracker
 
 Status: active
-Last updated: 2026-06-11
+Last updated: 2026-06-20
 
 ## Status Vocabulary
 
@@ -17,8 +17,9 @@ Last updated: 2026-06-11
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T2 | active | Track unresolved spell runtime gaps in this living project (ontology, triggers, targeting allocation, typed effect flow). | Working agent | 2026-05-31 | `src/systems/spells/effects/AreaEffectTracker.ts`; `src/systems/spells/validation/spellValidator.ts`; `src/systems/spells/targeting/TargetAllocator.ts`; `src/systems/spells/effects/triggerHandler.ts` | Keep `TRACKER` and `GAPS` aligned as gap evidence matures. | Run spell validation and targeted integration checks before each gap transition. |
+| T2 | active | Track unresolved spell runtime/data gaps in this living project (ontology, triggers, targeting allocation, typed effect flow, and metadata parity). | Working agent | 2026-06-20 | `src/systems/spells/validation/SpellIntegrityValidator.ts`; `src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts`; `docs/projects/spells/GAPS.md` | Keep `TRACKER` and `GAPS` aligned as gap evidence matures; G10 concentration tag parity, ritual tag parity, G11 durationProgression integrity coverage, G12 modeChoice integrity coverage, and G13 action-cost metadata integrity are resolved and locked by corpus tests. | Run spell validation and targeted integration checks before each gap transition. |
 | T3 | active | Preserve integration map to `docs/tasks/spell-system-overhaul` for implementation continuity. | Working agent | 2026-05-31 | `docs/tasks/spell-system-overhaul/README.md`; `docs/tasks/spell-system-overhaul/GAPS.md` | Add/refresh "relationship" notes in `NORTH_STAR` and this tracker. | Confirm that future edits only reference this project. |
+| T4 | active | Maintain the Spells parent-project subproject registry and route broad lanes before importing concrete gaps. | Working agent | 2026-06-20 | `docs/projects/spells/SUBPROJECTS.md`; `docs/projects/PROJECT_TRACKER.md`; `docs/tasks/spell-system-overhaul`; `docs/tasks/spell-completeness-audit`; `docs/tasks/spells` | Use `SUBPROJECTS.md` to choose the highest-impact spell lane when `GAPS.md` has no open rows; import only evidence-backed implementation gaps into `GAPS.md`. | Docs consistency proof plus focused source/path check for any newly routed project or task surface. |
 
 ## Gap Log
 

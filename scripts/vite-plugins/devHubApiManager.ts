@@ -96,6 +96,14 @@ export const devHubApiManager = () => ({
       { key: 'runbook', token: 'R', label: 'Runbook', fileName: 'RUNBOOK.md', required: true },
     ];
 
+    const subprojectDocRole: ProjectDocRole = {
+      key: 'subprojects',
+      token: 'S',
+      label: 'Subprojects',
+      fileName: 'SUBPROJECTS.md',
+      required: true,
+    };
+
     const requiredProjectSchemaFields = [
       'schemaversion',
       'project',
@@ -232,6 +240,55 @@ export const devHubApiManager = () => ({
       }
 
       return fields;
+    };
+
+    const markdownTableRows = (content: string, requiredHeader: string) => {
+      // Parent-project registries store their lane data in ordinary markdown
+      // tables. This parser intentionally handles only simple pipe tables so
+      // SUBPROJECTS.md remains readable and editable by humans instead of
+      // becoming a hidden JSON source.
+      const rows: Array<Record<string, string>> = [];
+      const lines = content.split(/\r?\n/);
+      for (let i = 0; i < lines.length; i += 1) {
+        const headerLine = lines[i];
+        if (!headerLine.trim().startsWith('|') || !headerLine.toLowerCase().includes(requiredHeader.toLowerCase())) continue;
+
+        const separatorLine = lines[i + 1] || '';
+        if (!/^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(separatorLine)) continue;
+
+        const headers = headerLine.split('|').slice(1, -1).map((cell) => stripMarkdownInline(cell).trim());
+        for (const line of lines.slice(i + 2)) {
+          if (!line.trim().startsWith('|')) break;
+          const cells = line.split('|').slice(1, -1).map((cell) => stripMarkdownInline(cell).trim());
+          if (cells.length < headers.length) continue;
+          rows.push(Object.fromEntries(headers.map((header, index) => [header, cells[index] || ''])));
+        }
+        break;
+      }
+
+      return rows;
+    };
+
+    const subprojectsFromMarkdown = (content: string) => {
+      // The live project detail UI needs real lane objects, not just the raw
+      // SUBPROJECTS.md document card. Keep the markdown table as source of truth
+      // and translate it into the small shape shared by project_ui.js.
+      return markdownTableRows(content, 'Subproject ID').map((row) => {
+        const id = row['Subproject ID'] || '';
+        return {
+          id,
+          name: toProjectDisplayName(id || 'unnamed-subproject'),
+          setupPath: row['Project setup'] || '',
+          status: row.Status || '',
+          relationship: row.Relationship || '',
+          scope: row.Scope || '',
+          evidence: row['Existing project/task evidence'] || '',
+          currentGapIds: row['Current gap IDs'] || '',
+          nextAction: row['Next high-impact slice'] || '',
+          proof: row['Proof boundary'] || '',
+          notes: row.Notes || '',
+        };
+      });
     };
 
     const readProjectCardJson = (projectDir: string) => {
@@ -691,7 +748,11 @@ export const devHubApiManager = () => ({
         ...frontmatterSchema,
       };
       const northStarDate = normalizeProjectDate(markdownField(northStarContent, 'Last updated'));
-      const docSet = projectDocRoles.map((role) => readProjectDocSignal(projectDir, slug, role, northStarDate));
+      const projectMode = projectCardSchemaField(dashboardSchema, 'projectmode', 'projectMode') || 'single';
+      const declaredRequiredDocs = projectCardSchemaList(dashboardSchema, 'requireddocs', 'requiredDocs');
+      const usesSubprojects = projectMode === 'parent_with_subprojects' || declaredRequiredDocs.includes('SUBPROJECTS.md');
+      const activeDocRoles = usesSubprojects ? [...projectDocRoles, subprojectDocRole] : projectDocRoles;
+      const docSet = activeDocRoles.map((role) => readProjectDocSignal(projectDir, slug, role, northStarDate));
       const docs = Object.fromEntries(docSet.map((doc) => [doc.key, doc]));
       const declaredDocDates = docSet.map((doc) => doc.declaredUpdated).filter(Boolean).sort();
       const inferredLastUpdated = declaredDocDates[declaredDocDates.length - 1] || northStarDate;
@@ -704,9 +765,8 @@ export const devHubApiManager = () => ({
       const yamlSchemaKeys = new Set(Object.keys(frontmatterSchema));
       const missingYamlSchemaFields = requiredProjectSchemaFields.filter((field) => !yamlSchemaKeys.has(field));
       const yamlStatus = missingYamlSchemaFields.length ? 'not-yaml' : 'yaml';
-      const declaredRequiredDocs = projectCardSchemaList(dashboardSchema, 'requireddocs', 'requiredDocs');
       const declaredOptionalDocs = projectCardSchemaList(dashboardSchema, 'optionaldocs', 'optionalDocs');
-      const requiredDocNames = declaredRequiredDocs.length ? declaredRequiredDocs : projectDocRoles.map((role) => role.fileName);
+      const requiredDocNames = declaredRequiredDocs.length ? declaredRequiredDocs : activeDocRoles.map((role) => role.fileName);
       const missingDeclaredDocs = requiredDocNames
         .filter((fileName) => /\.md$/i.test(fileName))
         .filter((fileName) => !fs.existsSync(path.join(projectDir, fileName)));
@@ -729,6 +789,8 @@ export const devHubApiManager = () => ({
       const trackerNextStep = nextStepFromTracker(trackerContent);
       const requiredReviewBrief = requiredReviewBriefFromDocs(northStarContent, trackerContent, gapsContent);
       const decisionVisualizations = decisionVisualizationsFromDocs(northStarContent, trackerContent, gapsContent);
+      const subprojectsContent = usesSubprojects ? readOptionalProjectText(projectDir, 'SUBPROJECTS.md') : '';
+      const subprojects = subprojectsFromMarkdown(subprojectsContent);
 
       return {
         slug,
@@ -743,6 +805,11 @@ export const devHubApiManager = () => ({
         gapSignal: gapSignalFromGaps(gapsContent, Boolean(docs.gaps?.exists)) || projectCardSchemaField(dashboardSchema, 'gapsignal', 'gapSignal') || trackerFallback.gapSignal || 'See project gap file',
         protocol: projectCardSchemaField(dashboardSchema, 'protocol') || trackerFallback.protocol || (docsComplete ? 'living project doc set' : 'incomplete project doc set'),
         nextStep: projectCardSchemaField(dashboardSchema, 'nextstep', 'nextStep') || trackerNextStep || resumePath || purpose || trackerFallback.nextStep || 'Add next action to TRACKER.md',
+        projectMode,
+        subprojectTracker: projectCardSchemaField(dashboardSchema, 'subprojecttracker', 'subprojectTracker') || (usesSubprojects ? `docs/projects/${slug}/SUBPROJECTS.md` : ''),
+        subprojectCount: Number(projectCardSchemaField(dashboardSchema, 'subprojectcount', 'subprojectCount') || subprojects.length || 0),
+        subprojectSignal: projectCardSchemaField(dashboardSchema, 'subprojectsignal', 'subprojectSignal') || (subprojects.length ? `${subprojects.length} subproject lanes tracked` : ''),
+        subprojects,
         iteration,
         iterationLabel: iteration > 0 ? `Iteration ${iteration}` : 'Iteration not recorded',
         iterationAgents,

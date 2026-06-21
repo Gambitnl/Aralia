@@ -131,6 +131,398 @@ describe('SpellIntegrityValidator', () => {
   });
 
   // -------------------------------------------------------------------------
+  // Unit tests: Ritual Sync rule
+  // -------------------------------------------------------------------------
+  // Ritual casting is represented in both the boolean rule field and the tag
+  // list used by spellbook filters. These tests keep the validator from letting
+  // the two player-facing surfaces drift apart.
+  describe('Rule: Ritual Sync', () => {
+
+    it('fails if ritual tag is missing', () => {
+      const badSpell = {
+        id: 'ritual-without-tag',
+        ritual: true,
+        duration: { concentration: false },
+        tags: ['utility']
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Ritual Mismatch: ritual is true but \'tags\' is missing "ritual"');
+    });
+
+    it('passes if ritual sync is correct', () => {
+      const goodSpell = {
+        id: 'ritual-with-tag',
+        ritual: true,
+        duration: { concentration: false },
+        tags: ['utility', 'ritual']
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      expect(SpellIntegrityValidator.validate(goodSpell)).toHaveLength(0);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Unit tests: Duration Progression Integrity rule
+  // -------------------------------------------------------------------------
+  // Duration progression records permanence and extension paths that matter to
+  // player-facing summaries and future runtime state. These tests keep the
+  // validator strict enough to reject malformed rows without narrowing valid
+  // future permanence mechanics to one spell family.
+  describe('Rule: Duration Progression Integrity', () => {
+
+    it('fails if a duration progression trigger is unknown', () => {
+      const badSpell = {
+        id: 'unknown-duration-progression-trigger',
+        duration: { concentration: false },
+        tags: [],
+        durationProgression: [
+          {
+            trigger: 'monthly_reroll',
+            requiredCasts: 3,
+            cadence: 'daily',
+            sameTargetRequired: true,
+            sameLocationRequired: 'not_applicable',
+            sameConfigurationRequired: 'not_applicable',
+            requiresFullConcentration: 'not_applicable',
+            outcomeDuration: 'until_dispelled',
+            dispellable: true,
+            notes: 'Invalid trigger for regression coverage.'
+          }
+        ]
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Duration Progression Invalid: entry 0 uses unknown trigger "monthly_reroll"');
+    });
+
+    it('fails if repeated casts do not name a stable repeated context', () => {
+      const badSpell = {
+        id: 'unstable-repeated-duration-progression',
+        duration: { concentration: false },
+        tags: [],
+        durationProgression: [
+          {
+            trigger: 'repeated_casts',
+            requiredCasts: 30,
+            cadence: 'daily',
+            sameTargetRequired: 'not_applicable',
+            sameLocationRequired: 'not_applicable',
+            sameConfigurationRequired: 'not_applicable',
+            requiresFullConcentration: 'not_applicable',
+            outcomeDuration: 'until_dispelled',
+            dispellable: true,
+            notes: 'Repeated casting must identify what stays the same.'
+          }
+        ]
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Duration Progression Invalid: entry 0 repeated_casts must require the same target, location, or configuration');
+    });
+
+    it('fails if full-duration concentration progression is attached to a non-concentration spell', () => {
+      const badSpell = {
+        id: 'full-duration-without-concentration',
+        duration: { concentration: false },
+        tags: [],
+        durationProgression: [
+          {
+            trigger: 'full_duration_concentration',
+            requiredCasts: 'not_applicable',
+            cadence: 'not_applicable',
+            sameTargetRequired: 'not_applicable',
+            sameLocationRequired: 'not_applicable',
+            sameConfigurationRequired: 'not_applicable',
+            requiresFullConcentration: true,
+            outcomeDuration: 'non_dispellable_permanent',
+            dispellable: false,
+            notes: 'The progression says full concentration, but the spell does not.'
+          }
+        ]
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Duration Progression Mismatch: entry 0 requires full concentration but spell duration is not concentration');
+    });
+
+    it('passes recognized repeated-cast and full-concentration progression rows', () => {
+      const goodSpell = {
+        id: 'valid-duration-progression',
+        duration: { concentration: true },
+        tags: ['concentration'],
+        durationProgression: [
+          {
+            trigger: 'repeated_casts',
+            requiredCasts: 365,
+            cadence: 'daily',
+            sameTargetRequired: 'not_applicable',
+            sameLocationRequired: true,
+            sameConfigurationRequired: 'not_applicable',
+            requiresFullConcentration: 'not_applicable',
+            outcomeDuration: 'permanent',
+            dispellable: false,
+            notes: 'Daily same-location casting makes this spell permanent.'
+          },
+          {
+            trigger: 'full_duration_concentration',
+            requiredCasts: 'not_applicable',
+            cadence: 'not_applicable',
+            sameTargetRequired: 'not_applicable',
+            sameLocationRequired: 'not_applicable',
+            sameConfigurationRequired: 'not_applicable',
+            requiresFullConcentration: true,
+            outcomeDuration: 'non_dispellable_permanent',
+            dispellable: false,
+            notes: 'Maintaining concentration for the full duration makes this permanent.'
+          }
+        ]
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      expect(SpellIntegrityValidator.validate(goodSpell)).toHaveLength(0);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Unit tests: Mode Choice Integrity rule
+  // -------------------------------------------------------------------------
+  // Mode-choice menus are player-facing UI metadata and command-routing data.
+  // These tests keep option labels, counts, and payload indexes aligned without
+  // requiring every menu to route through direct effect indexes.
+  describe('Rule: Mode Choice Integrity', () => {
+
+    it('fails if optionCount no longer matches the option list', () => {
+      const badSpell = {
+        id: 'mode-choice-count-drift',
+        duration: { concentration: false },
+        tags: [],
+        effects: [],
+        modeChoice: {
+          type: 'choose_one',
+          timing: 'on_cast',
+          optionCount: 2,
+          optionsSource: 'modeChoice.options',
+          options: [
+            { label: 'Only Option', summary: 'Only one option remains.' }
+          ]
+        }
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Mode Choice Invalid: optionCount 2 does not match options length 1');
+    });
+
+    it('fails if a mode option points at a missing effect index', () => {
+      const badSpell = {
+        id: 'mode-choice-bad-effect-index',
+        duration: { concentration: false },
+        tags: [],
+        effects: [
+          {
+            type: 'UTILITY',
+            description: 'A valid utility branch.'
+          }
+        ],
+        modeChoice: {
+          type: 'choose_one',
+          timing: 'on_cast',
+          optionCount: 1,
+          optionsSource: 'effects',
+          options: [
+            { label: 'Missing Effect', summary: 'Points outside effects.', effectIndices: [1] }
+          ]
+        }
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Mode Choice Invalid: option 0 points at missing effect index 1');
+    });
+
+    it('passes if mode options are summary-only or point at existing payload rows', () => {
+      const goodSpell = {
+        id: 'mode-choice-valid',
+        duration: { concentration: false },
+        tags: [],
+        effects: [
+          {
+            type: 'UTILITY',
+            description: 'First valid utility branch.',
+            controlOptions: [
+              { name: 'Control Branch', effect: 'Use this control branch.' }
+            ]
+          },
+          {
+            type: 'UTILITY',
+            description: 'Second valid utility branch.'
+          }
+        ],
+        modeChoice: {
+          type: 'choose_one',
+          timing: 'on_cast',
+          optionCount: 3,
+          optionsSource: 'mixed',
+          options: [
+            { label: 'Summary Only', summary: 'The option is described directly in the menu.' },
+            { label: 'Effect Branch', summary: 'The option routes to an effect.', effectIndices: [1] },
+            { label: 'Control Branch', summary: 'The option routes to a control option.', controlOptionIndices: [0] }
+          ]
+        }
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      expect(SpellIntegrityValidator.validate(goodSpell)).toHaveLength(0);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Unit tests: Action Cost Metadata Integrity rule
+  // -------------------------------------------------------------------------
+  // Created-object and sustained-hazard spells often expose their runtime
+  // economy through casting combat costs, trigger sustain costs, or granted
+  // follow-up actions. These tests keep that metadata internally usable without
+  // claiming a full object-lifecycle engine exists.
+  describe('Rule: Action Cost Metadata Integrity', () => {
+
+    it('fails if casting combat cost drifts away from the casting unit', () => {
+      const badSpell = {
+        id: 'combat-cost-unit-drift',
+        castingTime: {
+          value: 1,
+          unit: 'bonus_action',
+          combatCost: {
+            type: 'action',
+            condition: ''
+          }
+        },
+        duration: { concentration: false },
+        tags: [],
+        effects: []
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Action Cost Mismatch: castingTime.unit "bonus_action" does not match combatCost.type "action"');
+    });
+
+    it('fails if sustain cost optional is not boolean', () => {
+      const badSpell = {
+        id: 'bad-sustain-cost',
+        castingTime: {
+          value: 1,
+          unit: 'action',
+          combatCost: {
+            type: 'action',
+            condition: ''
+          }
+        },
+        duration: { concentration: false },
+        tags: [],
+        effects: [
+          {
+            type: 'UTILITY',
+            description: 'A sustained utility effect.',
+            trigger: {
+              type: 'on_caster_action',
+              sustainCost: {
+                actionType: 'bonus_action',
+                optional: 'sometimes'
+              }
+            }
+          }
+        ]
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Action Cost Invalid: effect 0 sustainCost.optional must be boolean');
+    });
+
+    it('fails if a granted action has no action label', () => {
+      const badSpell = {
+        id: 'bad-granted-action',
+        castingTime: {
+          value: 1,
+          unit: 'action',
+          combatCost: {
+            type: 'action',
+            condition: ''
+          }
+        },
+        duration: { concentration: false },
+        tags: [],
+        effects: [
+          {
+            type: 'UTILITY',
+            description: 'A utility effect with a malformed granted action.',
+            trigger: {
+              type: 'immediate'
+            },
+            grantedActions: [
+              {
+                type: 'bonus_action',
+                action: '',
+                frequency: 'each_turn'
+              }
+            ]
+          }
+        ]
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Action Cost Invalid: effect 0 granted action 0 must include a non-empty action label');
+    });
+
+    it('passes valid casting, sustain, and granted-action cost metadata', () => {
+      const goodSpell = {
+        id: 'valid-action-cost-metadata',
+        castingTime: {
+          value: 1,
+          unit: 'bonus_action',
+          combatCost: {
+            type: 'bonus_action',
+            condition: ''
+          }
+        },
+        duration: { concentration: true },
+        tags: ['concentration'],
+        effects: [
+          {
+            type: 'UTILITY',
+            description: 'A valid sustained utility effect.',
+            trigger: {
+              type: 'on_caster_action',
+              sustainCost: {
+                actionType: 'bonus_action',
+                optional: false
+              }
+            },
+            grantedActions: [
+              {
+                type: 'bonus_action',
+                action: 'Move Object',
+                frequency: 'each_turn',
+                rangeLimit: 30
+              }
+            ]
+          }
+        ]
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      expect(SpellIntegrityValidator.validate(goodSpell)).toHaveLength(0);
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // Unit tests: Effect Description Completeness rule
   // -------------------------------------------------------------------------
   // These tests lock G8/G9's cleanup into the validator itself. A spell effect
@@ -316,6 +708,7 @@ describe('SpellIntegrityValidator', () => {
     const protectionFromPoison = getSpells(2).find(spell => spell.id === 'protection-from-poison');
     const intellectFortress = getSpells(3).find(spell => spell.id === 'intellect-fortress');
     const seeInvisibility = getSpells(2).find(spell => spell.id === 'see-invisibility');
+    const lesserRestoration = getSpells(2).find(spell => spell.id === 'lesser-restoration');
 
     // These defensive and sensory spells are common UI cards where the
     // top-level prose can easily leak into every effect row. Each row should
@@ -331,6 +724,22 @@ describe('SpellIntegrityValidator', () => {
     ]);
     expect(seeInvisibility?.effects.map(effect => effect.description)).toEqual([
       'For 1 hour, the caster sees Invisible creatures and objects as visible and perceives into the Ethereal Plane, where creatures and objects appear ghostly.'
+    ]);
+    expect(lesserRestoration?.effects.map(effect => effect.description)).toEqual([
+      'Touch one creature and choose one removable condition on it; Blinded, Deafened, Paralyzed, or Poisoned ends immediately.'
+    ]);
+  });
+
+  it('keeps Spare the Dying rows tied to 0-HP target gate and scaling range', () => {
+    const spareTheDying = getSpells(0).find(spell => spell.id === 'spare-the-dying');
+    const effectDescriptions = spareTheDying?.effects.map(effect => effect.description) ?? [];
+
+    // Spare the Dying appears in low-level recovery UI. Both rows should keep
+    // the 0-Hit-Point, not-dead target gate and cantrip range scaling visible
+    // instead of relying on the top-level card text.
+    expect(effectDescriptions).toEqual([
+      'Choose one creature within 15 feet that has 0 Hit Points and is not dead; the creature becomes Stable and is no longer dying. The range increases to 30 feet at level 5, 60 feet at level 11, and 120 feet at level 17.',
+      'The 0-Hit-Point creature within the current Spare the Dying range gains the Stable condition immediately, provided it is not dead.'
     ]);
   });
 
@@ -615,9 +1024,9 @@ describe('SpellIntegrityValidator', () => {
     // implementation terms like "overrides" or pointing back to "this damage."
     expect(friendsEffect?.description).toBe('One nearby Humanoid that is not fighting the caster or the caster\'s allies and has not been affected by this casting within the last 24 hours must succeed on a Wisdom save or gain the Charmed condition for 1 minute.');
     expect(destructiveWaveDescriptions).toEqual([
-      'Each chosen creature in the 30-foot Emanation makes a Constitution save, taking 5d6 Thunder damage on a failed save or half as much on a success.',
-      'The caster chooses Radiant or Necrotic damage; each chosen creature in the Emanation makes the same Constitution save, taking 5d6 of the chosen damage type on a failed save or half as much on a success.',
-      'On a failed Constitution save, the chosen target has the Prone condition.'
+      'Each chosen creature in the 30-foot Emanation makes one Constitution save for Destructive Wave, taking 5d6 Thunder damage on a failed save or half as much on a success.',
+      'Using the same Constitution save, each chosen creature also takes 5d6 Radiant or Necrotic damage chosen by the caster on a failed save, or half as much on a success.',
+      'A chosen creature that fails the Destructive Wave Constitution save also has the Prone condition; a successful save prevents the Prone rider.'
     ]);
   });
 
@@ -810,7 +1219,7 @@ describe('SpellIntegrityValidator', () => {
     // Hit Points after a Charisma save, and Harm depends on failed Constitution
     // save damage. The row text should name both the save and the condition so
     // combat logs do not display a bare "failed save" outcome.
-    expect(divineWordDeath?.description).toBe('On a failed Charisma save, a chosen creature within 30 feet with 20 Hit Points or fewer dies; failed Celestial, Elemental, Fey, or Fiend targets also resolve the planar return branch.');
+    expect(divineWordDeath?.description).toBe('On a failed Charisma save, a chosen creature within 30 feet with 20 Hit Points or fewer dies; Celestial, Elemental, Fey, or Fiend targets also resolve the planar return branch on the same failed save.');
     expect(harmMaxHpReduction?.description).toBe("On a failed Constitution save, the target's Hit Point maximum is reduced by the Necrotic damage it took from Harm, but not below 1.");
   });
 
@@ -1954,7 +2363,7 @@ describe('SpellIntegrityValidator', () => {
     // Divine Word already has sibling rows for each HP-band condition and the
     // planar-return movement payload. The utility row should explain the
     // routing table and return block without copying those payloads.
-    expect(utilityEffect?.description).toBe('Choose creatures within 30 feet to make a Charisma save. Failed targets with 50 Hit Points or fewer resolve the Divine Word Hit Point table, while failed Celestial, Elemental, Fey, or Fiend targets return to their plane of origin and cannot come back to the current plane for 24 hours except by Wish.');
+    expect(utilityEffect?.description).toBe('Choose creatures within 30 feet to make a Charisma save. Failed targets with 50 Hit Points or fewer resolve the Divine Word HP table: death at 20 or fewer, Blinded/Deafened/Stunned at 21 to 30, 10-minute Deafened at 31 to 40, and 1-minute Deafened at 41 to 50; failed Celestial, Elemental, Fey, or Fiend targets also resolve planar return and the 24-hour Wish-only return block.');
   });
 
   it('keeps Incendiary Cloud utility description focused on cloud wrapper facts', () => {
@@ -2098,12 +2507,14 @@ describe('SpellIntegrityValidator', () => {
   it('keeps Astral Projection utility description focused on astral-travel wrapper facts', () => {
     const astralProjection = getSpells(9).find(spell => spell.id === 'astral-projection');
     const utilityEffect = astralProjection?.effects.find(effect => effect.type === 'UTILITY');
+    const statusEffect = astralProjection?.effects.find(effect => effect.type === 'STATUS_CONDITION');
 
     // Astral Projection already has a sibling status row for the suspended
     // bodies becoming Unconscious. The utility row should summarize the
     // projection shell, silver cord, damage separation, planar re-entry, and
     // dismissal routing without copying that status payload.
-    expect(utilityEffect?.description).toBe('Project the caster and up to eight willing creatures into the Astral Plane unless the caster is already there, leaving each body suspended while an astral form travels by silver cord. Cutting the cord kills both body and astral form, body and astral-form damage and effects stay separate, leaving the Astral Plane pulls body and possessions to the new plane, dropping either form to 0 Hit Points ends the spell for that target, and the caster can use a Magic action to dismiss the spell for all targets.');
+    expect(utilityEffect?.description).toBe('Project the caster and up to eight willing creatures into the Astral Plane unless the caster is already there. Each astral form travels by silver cord, cord-cutting kills both forms, body and astral-form damage stay separate, leaving the Astral Plane pulls the body and possessions to the new plane, either form dropping to 0 Hit Points ends the spell for that target, and the caster can dismiss the spell for all targets with a Magic action.');
+    expect(statusEffect?.description).toBe('Each target body left behind by Astral Projection is suspended with the Unconscious condition, needs no food or air, does not age, and exits suspended animation when the spell ends for that target while it is not dead.');
   });
 
   it('keeps Invulnerability utility description focused on self-only defensive wrapper facts', () => {
@@ -2142,12 +2553,21 @@ describe('SpellIntegrityValidator', () => {
   it('keeps Wish utility description focused on mode and stress routing facts', () => {
     const wish = getSpells(9).find(spell => spell.id === 'wish');
     const utilityEffect = wish?.effects.find(effect => effect.type === 'UTILITY');
+    const healingEffect = wish?.effects.find(effect => effect.type === 'HEALING');
+    const defensiveEffects = wish?.effects.filter(effect => effect.type === 'DEFENSIVE') ?? [];
+    const stressDamage = wish?.effects.find(effect => effect.type === 'DAMAGE');
 
     // Wish has sibling rows for Instant Health, Resistance, Spell Immunity, and
     // post-stress Necrotic damage. The utility row should summarize the choice
     // menu and stress wrapper without copying every payload already owned by
     // those structured rows.
-    expect(utilityEffect?.description).toBe('Choose either level-8-or-lower spell duplication without normal requirements or a non-duplication Wish mode: Object Creation, Instant Health, Resistance, Spell Immunity, Sudden Learning, Roll Redo, or Reshape Reality. Any non-duplication use triggers Wish stress: Strength becomes 3 for 2d4 days with rest-based recovery reduction, each spell cast before a Long Rest deals irreducible Necrotic damage per spell level, and there is a 33 percent chance the caster can never cast Wish again.');
+    expect(utilityEffect?.description).toBe('Choose either level-8-or-lower spell duplication without normal casting requirements or one non-duplication Wish mode: Object Creation, Instant Health, Resistance, Spell Immunity, Sudden Learning, Roll Redo, or Reshape Reality. Any non-duplication mode triggers Wish stress: Strength becomes 3 for 2d4 days with rest-based recovery reduction, each spell cast before a Long Rest deals irreducible Necrotic damage per spell level, and there is a 33 percent chance the caster can never cast Wish again.');
+    expect(healingEffect?.description).toBe('Instant Health mode restores all Hit Points to the caster and up to twenty visible creatures and ends every effect on those targets that Greater Restoration can end.');
+    expect(defensiveEffects.map(effect => effect.description)).toEqual([
+      'Resistance mode grants up to ten visible creatures permanent Resistance to one chosen damage type.',
+      'Spell Immunity mode grants up to ten visible creatures immunity to one chosen spell or magical effect for 8 hours.'
+    ]);
+    expect(stressDamage?.description).toBe('After non-duplication Wish stress, each spell the caster casts before finishing a Long Rest deals irreducible Necrotic damage to the caster equal to 1d10 per spell level.');
   });
 
   it('keeps Symbol utility description focused on glyph trigger wrapper facts', () => {
@@ -2797,8 +3217,8 @@ describe('SpellIntegrityValidator', () => {
       ]);
       expect(mindSliver?.effects[1]?.description).toBe('On a failed Intelligence save, subtract 1d4 from the next saving throw the target makes before the end of the caster\'s next turn.');
       expect(spareDescriptions).toEqual([
-        'Choose one creature within 15 feet that has 0 Hit Points and is not dead; the creature becomes Stable and is no longer dying.',
-        'The target at 0 Hit Points gains the Stable condition.'
+        'Choose one creature within 15 feet that has 0 Hit Points and is not dead; the creature becomes Stable and is no longer dying. The range increases to 30 feet at level 5, 60 feet at level 11, and 120 feet at level 17.',
+        'The 0-Hit-Point creature within the current Spare the Dying range gains the Stable condition immediately, provided it is not dead.'
       ]);
       expect(protectionDescriptions).toEqual([
         'For up to 10 minutes with concentration, Aberration, Celestial, Elemental, Fey, Fiend, and Undead creatures have Disadvantage on attack rolls against the touched target.',
@@ -3694,7 +4114,7 @@ describe('SpellIntegrityValidator', () => {
       // These rows should describe the player-facing hit chain, not importer
       // plumbing. Blinding Smite's damage is the strike's extra damage, while
       // Grasping Vine's pull is part of the vine's melee spell attack package.
-      expect(blindingSmite?.effects[0]?.description).toBe('The strike that hit deals an extra 3d8 Radiant damage.');
+      expect(blindingSmite?.effects[0]?.description).toBe('The triggering weapon hit deals an extra 3d8 Radiant damage to the target, and each slot level above 3 adds +1d8 damage.');
       expect(graspingVine?.effects[2]?.description).toBe('On a melee spell attack hit from the vine, the target is pulled up to 30 feet toward the vine.');
     });
 
@@ -4013,8 +4433,8 @@ describe('SpellIntegrityValidator', () => {
       // These rows are the player-facing status entries for high-level control
       // spells. They need to show the save gate, threshold or option branch, and
       // repeat-save/ending facts without forcing the UI to reopen the full card.
-      expect(divineWordDeath?.description).toBe('On a failed Charisma save, a chosen creature within 30 feet with 20 Hit Points or fewer dies; failed Celestial, Elemental, Fey, or Fiend targets also resolve the planar return branch.');
-      expect(divineWordStunned?.description).toBe('On a failed Charisma save, a target with 30 Hit Points or fewer is Stunned for 1 hour; the same HP band also carries the Blinded and Deafened Divine Word conditions.');
+      expect(divineWordDeath?.description).toBe('On a failed Charisma save, a chosen creature within 30 feet with 20 Hit Points or fewer dies; Celestial, Elemental, Fey, or Fiend targets also resolve the planar return branch on the same failed save.');
+      expect(divineWordStunned?.description).toBe('On a failed Charisma save, a target with 21 to 30 Hit Points has the Stunned condition for 1 hour; that same HP band also receives Blinded and Deafened from the Divine Word table.');
       expect(dominateMonsterCharmed?.description).toBe('One visible creature within 60 feet has Advantage on the Wisdom save if you or your allies are fighting it; on a failed save, it is Charmed for the concentration duration, linked telepathically for commands, and repeats the save whenever it takes damage, ending the spell on a success.');
       expect(imprisonmentBase?.description).toBe('One visible creature within 30 feet that fails the Wisdom save is imprisoned until the spell ends; on a successful save it is unaffected and immune to this spell for 24 hours, while a failed target no longer needs to breathe, eat, drink, or age, cannot be found by Divination, and cannot teleport.');
       expect(imprisonmentRestrained?.description).toBe('The Chaining imprisonment option holds the failed-save target in place with rooted chains, gives it the Restrained condition, and prevents it from being moved until the chosen ending trigger, ninth-level Dispel Magic route, or other spell ending resolves.');
@@ -4467,14 +4887,14 @@ describe('SpellIntegrityValidator', () => {
         'Emit eight rays in a 60-foot Cone. Each creature in the cone makes a Dexterity save, then rolls 1d8 for its Prismatic Rays table color; a result of 8 strikes the target with two rays, rolling twice and rerolling any further 8s.'
       ]);
       expect(divineWordDescriptions).toEqual([
-        'On a failed Charisma save, a chosen creature within 30 feet with 20 Hit Points or fewer dies; failed Celestial, Elemental, Fey, or Fiend targets also resolve the planar return branch.',
-        'On a failed Charisma save, a target with 21 to 30 Hit Points has the Blinded condition for 1 hour.',
-        'On a failed Charisma save, a target with 21 to 30 Hit Points has the Deafened condition for 1 hour.',
-        'On a failed Charisma save, a target with 30 Hit Points or fewer is Stunned for 1 hour; the same HP band also carries the Blinded and Deafened Divine Word conditions.',
+        'On a failed Charisma save, a chosen creature within 30 feet with 20 Hit Points or fewer dies; Celestial, Elemental, Fey, or Fiend targets also resolve the planar return branch on the same failed save.',
+        'On a failed Charisma save, a target with 21 to 30 Hit Points has the Blinded condition for 1 hour; that same HP band also receives Deafened and Stunned from the Divine Word table.',
+        'On a failed Charisma save, a target with 21 to 30 Hit Points has the Deafened condition for 1 hour; that same HP band also receives Blinded and Stunned from the Divine Word table.',
+        'On a failed Charisma save, a target with 21 to 30 Hit Points has the Stunned condition for 1 hour; that same HP band also receives Blinded and Deafened from the Divine Word table.',
         'On a failed Charisma save, a target with 31 to 40 Hit Points has the Deafened condition for 10 minutes.',
         'On a failed Charisma save, a target with 41 to 50 Hit Points has the Deafened condition for 1 minute.',
-        'Regardless of Hit Points, a Celestial, Elemental, Fey, or Fiend target that fails its Charisma save is forced back to its plane of origin if it is not already there.',
-        'Choose creatures within 30 feet to make a Charisma save. Failed targets with 50 Hit Points or fewer resolve the Divine Word Hit Point table, while failed Celestial, Elemental, Fey, or Fiend targets return to their plane of origin and cannot come back to the current plane for 24 hours except by Wish.'
+        'Regardless of Hit Points, a Celestial, Elemental, Fey, or Fiend target that fails its Charisma save is forced back to its plane of origin if it is not already there and cannot return to the current plane for 24 hours except by Wish.',
+        'Choose creatures within 30 feet to make a Charisma save. Failed targets with 50 Hit Points or fewer resolve the Divine Word HP table: death at 20 or fewer, Blinded/Deafened/Stunned at 21 to 30, 10-minute Deafened at 31 to 40, and 1-minute Deafened at 41 to 50; failed Celestial, Elemental, Fey, or Fiend targets also resolve planar return and the 24-hour Wish-only return block.'
       ]);
       expect(powerWordKillDescriptions).toEqual([
         'If the visible target within 60 feet has more than 100 Hit Points, it takes 12d12 Psychic damage instead of dying.',
@@ -4528,6 +4948,154 @@ describe('SpellIntegrityValidator', () => {
         'The failed-save target cannot cast spells, activate magic items, understand language, or communicate intelligibly, but can still recognize, follow, and protect friends. It repeats the Intelligence save every 30 days, and Greater Restoration, Heal, or Wish can also end the spell.',
         'On a failed Intelligence save, the creature Intelligence and Charisma scores become 1, and it loses spellcasting, magic item activation, language understanding, and intelligible communication.'
       ]);
+    });
+
+    it('hard-fails concentration tag mismatches across all spells', () => {
+      const concentrationFailures: string[] = [];
+
+      allSpells.forEach(spell => {
+        const errors = SpellIntegrityValidator.validate(spell);
+        const relevantErrors = errors.filter(error => error.includes('Concentration Mismatch'));
+
+        if (relevantErrors.length > 0) {
+          concentrationFailures.push(`${spell.id || spell.name}: ${relevantErrors.join(', ')}`);
+        }
+      });
+
+      // Concentration is both runtime state and player-facing spell metadata.
+      // This corpus gate keeps duration.concentration and tags aligned so UI,
+      // audit, and glossary surfaces do not silently diverge from command logic.
+      if (concentrationFailures.length > 0) {
+        console.warn(`Concentration Tag Failures (${concentrationFailures.length}):\n${concentrationFailures.join('\n')}`);
+      }
+
+      expect(concentrationFailures).toHaveLength(0);
+    });
+
+    it('hard-fails ritual tag mismatches across all spells', () => {
+      const ritualFailures: string[] = [];
+
+      allSpells.forEach(spell => {
+        const errors = SpellIntegrityValidator.validate(spell);
+        const relevantErrors = errors.filter(error => error.includes('Ritual Mismatch'));
+
+        if (relevantErrors.length > 0) {
+          ritualFailures.push(`${spell.id || spell.name}: ${relevantErrors.join(', ')}`);
+        }
+      });
+
+      // Ritual tags drive spellbook and glossary filtering. This corpus gate
+      // keeps those player-facing surfaces aligned with ritual casting rules.
+      if (ritualFailures.length > 0) {
+        console.warn(`Ritual Tag Failures (${ritualFailures.length}):\n${ritualFailures.join('\n')}`);
+      }
+
+      expect(ritualFailures).toHaveLength(0);
+    });
+
+    it('hard-fails duration progression mismatches across all spells', () => {
+      const durationProgressionFailures: string[] = [];
+      const durationProgressionSpellIds: string[] = [];
+
+      allSpells.forEach(spell => {
+        const progression = (spell as Spell & { durationProgression?: unknown[] }).durationProgression;
+        const errors = SpellIntegrityValidator.validate(spell);
+        const relevantErrors = errors.filter(error => error.includes('Duration Progression'));
+
+        if (Array.isArray(progression) && progression.length > 0) {
+          durationProgressionSpellIds.push(spell.id || spell.name);
+        }
+
+        if (relevantErrors.length > 0) {
+          durationProgressionFailures.push(`${spell.id || spell.name}: ${relevantErrors.join(', ')}`);
+        }
+      });
+
+      // These four current corpus rows carry the first modeled permanence
+      // progressions: same-target daily casting, same-location daily casting,
+      // and full-duration concentration. The exact list makes accidental row
+      // removal visible while the validator keeps future added rows honest.
+      expect(durationProgressionSpellIds.sort()).toEqual([
+        'mordenkainens-private-sanctum',
+        'nystuls-magic-aura',
+        'temple-of-the-gods',
+        'wall-of-stone'
+      ]);
+
+      if (durationProgressionFailures.length > 0) {
+        console.warn(`Duration Progression Failures (${durationProgressionFailures.length}):\n${durationProgressionFailures.join('\n')}`);
+      }
+
+      expect(durationProgressionFailures).toHaveLength(0);
+    });
+
+    it('hard-fails mode choice mismatches across all spells', () => {
+      const modeChoiceFailures: string[] = [];
+      const modeChoiceSpellIds: string[] = [];
+
+      allSpells.forEach(spell => {
+        const modeChoice = (spell as Spell & { modeChoice?: unknown }).modeChoice;
+        const errors = SpellIntegrityValidator.validate(spell);
+        const relevantErrors = errors.filter(error => error.includes('Mode Choice Invalid'));
+
+        if (modeChoice) {
+          modeChoiceSpellIds.push(spell.id || spell.name);
+        }
+
+        if (relevantErrors.length > 0) {
+          modeChoiceFailures.push(`${spell.id || spell.name}: ${relevantErrors.join(', ')}`);
+        }
+      });
+
+      // The current corpus uses modeChoice for cantrip utility menus plus early
+      // choice spells such as Blindness/Deafness, Alter Self, Enlarge/Reduce,
+      // Plant Growth, Alarm, and Control Water. Keeping the list explicit makes
+      // accidental menu removal visible while the validator checks index sanity.
+      expect(modeChoiceSpellIds.sort()).toEqual([
+        'alarm',
+        'alter-self',
+        'blindness-deafness',
+        'control-water',
+        'dancing-lights',
+        'druidcraft',
+        'elementalism',
+        'enlarge-reduce',
+        'minor-illusion',
+        'mold-earth',
+        'plant-growth',
+        'prestidigitation',
+        'shape-water',
+        'thaumaturgy'
+      ]);
+
+      if (modeChoiceFailures.length > 0) {
+        console.warn(`Mode Choice Failures (${modeChoiceFailures.length}):\n${modeChoiceFailures.join('\n')}`);
+      }
+
+      expect(modeChoiceFailures).toHaveLength(0);
+    });
+
+    it('hard-fails malformed action-cost metadata across all spells', () => {
+      const actionCostFailures: string[] = [];
+
+      allSpells.forEach(spell => {
+        const errors = SpellIntegrityValidator.validate(spell);
+        const relevantErrors = errors.filter(error => error.includes('Action Cost'));
+
+        if (relevantErrors.length > 0) {
+          actionCostFailures.push(`${spell.id || spell.name}: ${relevantErrors.join(', ')}`);
+        }
+      });
+
+      // Created-object, sustained-hazard, and re-commanded rows rely on these
+      // fields for player-facing action economy. This gate does not close the
+      // broader Package 19 object-lifecycle work; it only prevents malformed
+      // action-cost metadata from entering the corpus unnoticed.
+      if (actionCostFailures.length > 0) {
+        console.warn(`Action Cost Failures (${actionCostFailures.length}):\n${actionCostFailures.join('\n')}`);
+      }
+
+      expect(actionCostFailures).toHaveLength(0);
     });
 
     it('hard-fails monolithic spell effects across all spells', () => {

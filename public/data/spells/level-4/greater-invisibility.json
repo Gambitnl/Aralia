@@ -159,5 +159,7 @@
   },
   "description": "A creature you touch has the Invisible condition until the spell ends.",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "concentration"
+  ]
 }

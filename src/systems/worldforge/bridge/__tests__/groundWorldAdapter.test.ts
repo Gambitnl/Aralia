@@ -75,4 +75,34 @@ describe('groundWorldAdapter (LocalArtifact → WorldData)', () => {
     expect(b.biomeIds).toEqual(a.biomeIds);
     expect(b.templateId).toBe(a.templateId);
   });
+
+  // No-fallback directive (2026-06-15, WF-G6): a corrupt artifact must fail
+  // loudly. The adapter no longer collapses unmapped materials / out-of-range
+  // indices to "plains" — these guards prove the throws actually fire.
+  const stubArtifact = (
+    materials: string[],
+    materialIndex: number[],
+  ): LocalArtifact =>
+    ({
+      seedPath: 'wf:test/local',
+      bounds: { x: 0, y: 0, width: 10, height: 5 },
+      terrain: {
+        widthCells: materialIndex.length,
+        heightCells: 1,
+        elevationFt: materialIndex.map(() => 10),
+        materialIndex,
+        materials,
+      },
+    }) as unknown as LocalArtifact;
+
+  it('throws on an out-of-range material index instead of defaulting to plains', () => {
+    // materials has 1 entry; index 5 has no mapping.
+    const corrupt = stubArtifact(['grass'], [0, 5]);
+    expect(() => localArtifactToWorldData(corrupt, 42)).toThrow(/out of range/);
+  });
+
+  it('throws on a material with no biome mapping instead of defaulting to plains', () => {
+    const corrupt = stubArtifact(['lava'], [0]);
+    expect(() => localArtifactToWorldData(corrupt, 42)).toThrow(/no biome mapping/);
+  });
 });

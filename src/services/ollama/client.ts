@@ -21,6 +21,8 @@ import type {
 import { DEFAULT_OLLAMA_CONFIG } from '../../types/ollama';
 import { getTaskProfile } from './taskProfiles';
 import { resolveModelForTask, resetRouterCache } from './router';
+import { emitOllamaLog } from './ollamaLogSink';
+import { generateId } from '../../utils/core/idGenerator';
 
 /**
  * Low-level HTTP client for Ollama API.
@@ -366,8 +368,16 @@ export class OllamaClient {
         | { ok: false; error: string; model?: string }
     > {
         const profile = getTaskProfile(options.taskType);
+        // Emit the attempt to the central log sink so every task is visible in
+        // the in-app Ollama viewer without each call site logging individually.
+        const logId = generateId();
+        emitOllamaLog({ id: logId, phase: 'start', taskType: options.taskType, prompt: options.prompt });
+
         const model = await this.resolveModel(options.taskType);
-        if (!model) return { ok: false, error: 'NO_MODEL' };
+        if (!model) {
+            emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, error: 'NO_MODEL' });
+            return { ok: false, error: 'NO_MODEL' };
+        }
 
         const merged: ModelParams = { ...profile.params, ...(options.overrides ?? {}) };
         const result = await this.generate({
@@ -382,7 +392,14 @@ export class OllamaClient {
             keepAlive: merged.keepAlive ?? profile.keepAlive
         });
 
-        if (!result.ok) return { ok: false, error: result.error, model };
+        if (!result.ok) {
+            emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, model, error: result.error });
+            return { ok: false, error: result.error, model };
+        }
+        // A successful transport call logs the RAW response — even when a caller
+        // later fails to parse it (e.g. opening_situation at high temperature),
+        // the unparseable output is captured here for diagnosis.
+        emitOllamaLog({ id: logId, phase: 'success', taskType: options.taskType, model, response: result.data.response });
         return { ok: true, data: result.data, model };
     }
 
@@ -399,8 +416,17 @@ export class OllamaClient {
         | { ok: false; error: string; model?: string; statusCode?: number }
     > {
         const profile = getTaskProfile(options.taskType);
+        const logId = generateId();
+        // Serialize the chat turns as the logged "prompt" so chat tasks show
+        // their full input in the viewer like generate tasks do.
+        const promptForLog = options.messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
+        emitOllamaLog({ id: logId, phase: 'start', taskType: options.taskType, prompt: promptForLog });
+
         const model = await this.resolveModel(options.taskType);
-        if (!model) return { ok: false, error: 'NO_MODEL' };
+        if (!model) {
+            emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, error: 'NO_MODEL' });
+            return { ok: false, error: 'NO_MODEL' };
+        }
 
         const merged: ModelParams = { ...profile.params, ...(options.overrides ?? {}) };
         const result = await this.chat({
@@ -416,8 +442,10 @@ export class OllamaClient {
         });
 
         if (!result.ok) {
+            emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, model, error: result.error });
             return { ok: false, error: result.error, model, statusCode: result.statusCode };
         }
+        emitOllamaLog({ id: logId, phase: 'success', taskType: options.taskType, model, response: result.data.message?.content ?? '' });
         return { ok: true, data: result.data, model };
     }
 }

@@ -138,7 +138,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You touch a creature and end one condition on it: Blinded, Deafened, Paralyzed, or Poisoned.",
+      "description": "Touch one creature and choose one removable condition on it; Blinded, Deafened, Paralyzed, or Poisoned ends immediately.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

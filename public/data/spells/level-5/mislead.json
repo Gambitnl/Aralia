@@ -132,7 +132,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-    "description": "For up to 1 hour with concentration, the caster becomes Invisible while an illusory double appears in the caster space; the double lasts for the duration, the invisibility ends if the caster attacks or casts a spell, the caster can use a Magic action to move the double up to twice Speed and make it gesture, speak, or behave, and can use a Bonus Action each turn to switch between the double senses and their own, becoming Blinded and Deafened to their own surroundings while using the double senses.",
+      "description": "For up to 1 hour with concentration, the caster becomes Invisible while an illusory double appears in the caster space; the double lasts for the duration, the invisibility ends if the caster attacks or casts a spell, the caster can use a Magic action to move the double up to twice Speed and make it gesture, speak, or behave, and can use a Bonus Action each turn to switch between the double senses and their own, becoming Blinded and Deafened to their own surroundings while using the double senses.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -179,6 +179,7 @@
   "description": "You become invisible at the same time that an illusory double of you appears where you are standing. The double lasts for the duration, but the invisibility ends if you attack or cast a spell. You can use your action to move your illusory double up to twice your Speed and make it gesture, speak, and behave in whatever way you choose. You can see through its eyes and hear through its ears as if you were located where it is. On each of your turns as a bonus action, you can switch from using its senses to using your own, or back again. While you are using its senses, you are blinded and deafened in regard to your own surroundings.",
   "higherLevels": "",
   "tags": [
-    "legacy"
+    "legacy",
+    "concentration"
   ]
 }

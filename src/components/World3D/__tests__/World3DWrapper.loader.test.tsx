@@ -3,7 +3,7 @@
  * Guards W3DUI-1: PLAYING uses createWorkerChunkLoader (not inline handleChunkRequest).
  */
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { render, cleanup, waitFor } from '@testing-library/react';
+import { render, cleanup } from '@testing-library/react';
 import type { ChunkLoader } from '@/systems/world3d/types';
 import type { WorldData } from '@/services/worldSim/types';
 
@@ -83,7 +83,7 @@ describe('World3DWrapper chunk loader (W3DUI-1)', () => {
     cleanup();
   });
 
-  it('builds a worker-backed loader when worldData is present', async () => {
+  it('no-fallback: ground mode with no resolvable tile does NOT substitute the legacy worker loader', async () => {
     const World3DWrapper = (await import('../World3DWrapper')).default;
     const world = flatWorld();
 
@@ -94,15 +94,13 @@ describe('World3DWrapper chunk loader (W3DUI-1)', () => {
       />,
     );
 
-    // Ground mode is the default since 2026-06-12; with no resolvable tile
-    // (mocked empty state) the wrapper falls back to the worker loader
-    // AFTER its dynamic bridge imports resolve — hence waitFor.
-    await waitFor(() => expect(mockCreateWorkerChunkLoader).toHaveBeenCalledTimes(1), { timeout: 20000 });
-    expect(mockCreateWorkerChunkLoader).toHaveBeenCalledWith(
-      world,
-      expect.any(Number),
-      expect.any(Function),
-    );
+    // Ground mode is the default since 2026-06-12. No-fallback directive
+    // (2026-06-15, WF-G6): a Worldforge ground entry that can't resolve a tile
+    // (mocked empty state) surfaces nothing rather than silently substituting
+    // the legacy continent worker loader. Give the dynamic bridge imports +
+    // async effect time to settle, then prove the legacy loader stayed unused.
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    expect(mockCreateWorkerChunkLoader).not.toHaveBeenCalled();
   }, 30000);
 
   it('does not create a loader when worldData is null', async () => {

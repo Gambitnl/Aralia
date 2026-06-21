@@ -187,11 +187,13 @@
     "entries": {
       "3": "duration 1 minute with concentration",
       "4": "duration up to 10 minutes with concentration",
+      "9": "duration until dispelled without concentration",
       "5-6": "duration 8 hours without concentration",
-      "7-8": "duration 24 hours without concentration",
-      "9": "duration until dispelled without concentration"
+      "7-8": "duration 24 hours without concentration"
     },
     "notes": "Higher slots change both Bestow Curse's duration and whether concentration is required."
   },
-  "tags": []
+  "tags": [
+    "concentration"
+  ]
 }

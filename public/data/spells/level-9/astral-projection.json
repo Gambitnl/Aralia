@@ -139,7 +139,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Project the caster and up to eight willing creatures into the Astral Plane unless the caster is already there, leaving each body suspended while an astral form travels by silver cord. Cutting the cord kills both body and astral form, body and astral-form damage and effects stay separate, leaving the Astral Plane pulls body and possessions to the new plane, dropping either form to 0 Hit Points ends the spell for that target, and the caster can use a Magic action to dismiss the spell for all targets.",
+      "description": "Project the caster and up to eight willing creatures into the Astral Plane unless the caster is already there. Each astral form travels by silver cord, cord-cutting kills both forms, body and astral-form damage stay separate, leaving the Astral Plane pulls the body and possessions to the new plane, either form dropping to 0 Hit Points ends the spell for that target, and the caster can dismiss the spell for all targets with a Magic action.",
       "utilityType": "other",
       "grantedActions": [
         {
@@ -260,7 +260,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Each target body left behind by Astral Projection has the Unconscious condition while suspended.",
+      "description": "Each target body left behind by Astral Projection is suspended with the Unconscious condition, needs no food or air, does not age, and exits suspended animation when the spell ends for that target while it is not dead.",
       "statusCondition": {
         "name": "Unconscious",
         "duration": {

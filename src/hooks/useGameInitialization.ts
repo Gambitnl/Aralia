@@ -278,6 +278,7 @@ export function useGameInitialization({
         initialSubMapCoordinates: initialSubMapCoords,
         initialActiveDynamicNpcIds: initialActiveDynamicNpcs,
         worldHistory: createBootstrapWorldHistory(worldSeed),
+        worldSeed,
       };
 
       // Dispatch transitions the game phase from character creation into active gameplay.

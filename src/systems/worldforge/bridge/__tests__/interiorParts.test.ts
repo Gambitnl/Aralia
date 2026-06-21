@@ -9,6 +9,8 @@ import {
   buildInteriorParts,
   INTERIOR_WALL_COLOR,
   PERIMETER_WALL_COLORS,
+  type OccupantFigure,
+  type OccupantBody,
 } from '../interiorParts';
 
 const isWallColor = (c: string): boolean =>
@@ -34,6 +36,25 @@ const plot = (): InteriorPlotInput => ({
   role: 'house',
   storeys: 1,
 });
+
+/** A plausible adult body (meters + hex) — the BODY-1 projection the renderer
+ * now consumes. Placement tests use a fixed body; the variation test below
+ * supplies distinct bodies to prove the renderer reads them. */
+const body = (over: Partial<OccupantBody> = {}): OccupantBody => ({
+  heightM: 1.7,
+  shoulderWidthM: 0.45,
+  depthM: 0.28,
+  headSizeM: 0.25,
+  skinToneHex: '#e0ac69',
+  clothingHex: '#6e4a3a',
+  ...over,
+});
+
+const fig = (
+  id: number,
+  ageBand: 'child' | 'adult' | 'elder',
+  atWork?: boolean,
+): OccupantFigure => ({ id, ageBand, atWork, body: body() });
 
 it('is deterministic', () => {
   expect(buildInteriorParts(plot(), SEED_PATH, 3)).toEqual(buildInteriorParts(plot(), SEED_PATH, 3));
@@ -117,11 +138,7 @@ it('leaves the entry doorway open in the street wall', () => {
 });
 
 it('places occupant figures inside the envelope with stable heights', () => {
-  const occupants = [
-    { id: 1, ageBand: 'adult' as const },
-    { id: 2, ageBand: 'child' as const },
-    { id: 3, ageBand: 'elder' as const },
-  ];
+  const occupants = [fig(1, 'adult'), fig(2, 'child'), fig(3, 'elder')];
   const base = buildInteriorParts(plot(), SEED_PATH, 3);
   const withPeople = buildInteriorParts(plot(), SEED_PATH, 3, occupants);
   // Each villager is now two parts: a clothed body box + a skin-toned head.
@@ -137,15 +154,37 @@ it('places occupant figures inside the envelope with stable heights', () => {
 
   // Time-of-day: a worker stands front-of-house (closer to the street wall
   // at z = -depth/2) than the same person at home.
-  const [home] = buildInteriorParts(plot(), SEED_PATH, 3, [{ id: 1, ageBand: 'adult' }]).slice(-1);
-  const [atWork] = buildInteriorParts(plot(), SEED_PATH, 3, [
-    { id: 1, ageBand: 'adult', atWork: true },
-  ]).slice(-1);
+  const [home] = buildInteriorParts(plot(), SEED_PATH, 3, [fig(1, 'adult')]).slice(-1);
+  const [atWork] = buildInteriorParts(plot(), SEED_PATH, 3, [fig(1, 'adult', true)]).slice(-1);
   expect(atWork.z).toBeLessThan(home.z);
 });
 
+it('renders each occupant from its parametric body, not a uniform crate', () => {
+  const tall: OccupantFigure = {
+    id: 1,
+    ageBand: 'adult',
+    body: body({ heightM: 1.95, shoulderWidthM: 0.52, depthM: 0.34, headSizeM: 0.27, skinToneHex: '#8d5524', clothingHex: '#4a5e6e' }),
+  };
+  const small: OccupantFigure = {
+    id: 2,
+    ageBand: 'child',
+    body: body({ heightM: 1.05, shoulderWidthM: 0.3, depthM: 0.2, headSizeM: 0.2, skinToneHex: '#ffdbac', clothingHex: '#5e6e4a' }),
+  };
+  const base = buildInteriorParts(plot(), SEED_PATH, 3).length;
+  const [bodyTall, headTall] = buildInteriorParts(plot(), SEED_PATH, 3, [tall]).slice(base);
+  const [bodySmall] = buildInteriorParts(plot(), SEED_PATH, 3, [small]).slice(base);
+
+  // Dimensions and palette track the body, not a hardcoded constant.
+  expect(bodyTall.h).toBeGreaterThan(bodySmall.h); // taller body → taller box
+  expect(bodyTall.w).toBeCloseTo(0.52, 5); // shoulders → body width
+  expect(bodyTall.colorHex).toBe('#4a5e6e'); // clothing palette
+  expect(headTall.colorHex).toBe('#8d5524'); // skin tone
+  expect(headTall.h).toBeCloseTo(0.27, 5); // head size
+  expect(headTall.baseY).toBeCloseTo(bodyTall.h, 5); // head sits on the body
+});
+
 it('places every occupant center away from wall rectangles', () => {
-  const occupants = Array.from({ length: 20 }, (_, id) => ({ id, ageBand: 'adult' as const }));
+  const occupants = Array.from({ length: 20 }, (_, id) => fig(id, 'adult'));
   const parts = buildInteriorParts(plot(), SEED_PATH, 3, occupants);
   const walls = parts.filter((p) => isWallColor(p.colorHex));
   const figures = parts.slice(-occupants.length);

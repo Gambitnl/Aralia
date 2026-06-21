@@ -183,16 +183,26 @@ export const UnifiedDebugLogViewer: React.FC<UnifiedDebugLogViewerProps> = ({
                                     <p className="text-gray-500 text-center italic py-10">No Ollama interactions logged yet.</p>
                                 ) : (
                                     ollamaLogs.map((entry, index) => (
-                                        <div key={entry.id || index} className={`mb-3 p-2 border rounded bg-gray-800/40 ${entry.isPending ? 'border-amber-500/50 animate-pulse-slow' : 'border-gray-700'}`}>
+                                        <div key={entry.id || index} className={`mb-3 p-2 border rounded bg-gray-800/40 ${entry.isError ? 'border-red-500/60' : entry.isPending ? 'border-amber-500/50 animate-pulse-slow' : 'border-gray-700'}`}>
                                             <div className="flex justify-between items-start mb-1 text-gray-500 text-[10px] uppercase tracking-wider">
                                                 <span>{new Date(entry.timestamp).toLocaleString()}</span>
-                                                <div className="flex gap-2">
+                                                <div className="flex gap-2 items-center">
+                                                    {entry.taskType && (
+                                                        <span className="px-1.5 py-0.5 bg-sky-900/40 text-sky-300 border border-sky-500/30 rounded font-bold normal-case">
+                                                            {entry.taskType}
+                                                        </span>
+                                                    )}
+                                                    {entry.isError && (
+                                                        <span className="px-1.5 py-0.5 bg-red-900/50 text-red-300 border border-red-500/40 rounded font-bold">
+                                                            ERROR
+                                                        </span>
+                                                    )}
                                                     {entry.isPending && (
                                                         <span className="px-1.5 py-0.5 bg-amber-900/40 text-amber-400 border border-amber-500/30 rounded font-bold animate-pulse">
                                                             PENDING
                                                         </span>
                                                     )}
-                                                    <span className="text-emerald-500">{entry.model}</span>
+                                                    <span className={entry.isError ? 'text-red-400' : 'text-emerald-500'}>{entry.model}</span>
                                                 </div>
                                             </div>
 

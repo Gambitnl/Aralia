@@ -341,7 +341,7 @@
             <h2>AGENT MATRIX</h2>
             <p id="operator-agent-matrix-desc">Standalone operator dashboard. Click to start if needed and open.</p>
             <!-- Manual start hint stays visible so the operator can recover if the automatic launcher cannot start the sibling app. -->
-            <p class="operator-manual-start">Manual start: <code>cd F:\Repos\Aralia-operator-dashboard</code> then <code>npm run dev</code></p>
+            <p class="operator-manual-start">Manual start: <code>npm --prefix F:\Repos\Aralia-operator-dashboard run dev</code></p>
         </div>
 
         <div id="operator-pat-vault-card" class="card dev-only" onclick="openOperatorDashboard('pat_vault.html')">
@@ -349,7 +349,7 @@
             <h2>PAT VAULT</h2>
             <p id="operator-pat-vault-desc">Credential presence map and Windows Credential Manager controls in the standalone operator app.</p>
             <!-- PAT Vault uses the same sibling app, so the same fallback command belongs on this card too. -->
-            <p class="operator-manual-start">Manual start: <code>cd F:\Repos\Aralia-operator-dashboard</code> then <code>npm run dev</code></p>
+            <p class="operator-manual-start">Manual start: <code>npm --prefix F:\Repos\Aralia-operator-dashboard run dev</code></p>
         </div>
 
         <a href="/Aralia/misc/chronicle.html" class="card dev-only">

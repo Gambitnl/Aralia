@@ -84,7 +84,13 @@ Invent a fresh, specific predicament that is ALREADY HAPPENING as the player arr
 something that demands a response in the next breath. Place 1 to 3 strangers (not the
 player's allies) in the scene. One of them speaks first, directly drawing the player in.
 Make it grounded in who this character is (their class, race, and background should matter)
-and where they are. Be concrete, not generic.
+and where they are. Be concrete, not generic.${
+        location.timeOfDay || location.weather
+            ? `\n\nThe time of day and weather above are FIXED by the world clock. Your ` +
+              `"setting.timeOfDay" and "setting.weather" MUST match them — do not invent a ` +
+              `different time or weather, and keep the predicament consistent with them.`
+            : ''
+    }
 
 ## OUTPUT
 Output ONLY this JSON shape, nothing else:

@@ -132,7 +132,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Choose either level-8-or-lower spell duplication without normal requirements or a non-duplication Wish mode: Object Creation, Instant Health, Resistance, Spell Immunity, Sudden Learning, Roll Redo, or Reshape Reality. Any non-duplication use triggers Wish stress: Strength becomes 3 for 2d4 days with rest-based recovery reduction, each spell cast before a Long Rest deals irreducible Necrotic damage per spell level, and there is a 33 percent chance the caster can never cast Wish again.",
+      "description": "Choose either level-8-or-lower spell duplication without normal casting requirements or one non-duplication Wish mode: Object Creation, Instant Health, Resistance, Spell Immunity, Sudden Learning, Roll Redo, or Reshape Reality. Any non-duplication mode triggers Wish stress: Strength becomes 3 for 2d4 days with rest-based recovery reduction, each spell cast before a Long Rest deals irreducible Necrotic damage per spell level, and there is a 33 percent chance the caster can never cast Wish again.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -274,7 +274,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Instant Health restores all Hit Points to the caster and up to twenty visible creatures.",
+      "description": "Instant Health mode restores all Hit Points to the caster and up to twenty visible creatures and ends every effect on those targets that Greater Restoration can end.",
       "healing": {
         "dice": "all_hit_points"
       },
@@ -335,7 +335,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Resistance grants up to ten visible creatures permanent Resistance to one chosen damage type.",
+      "description": "Resistance mode grants up to ten visible creatures permanent Resistance to one chosen damage type.",
       "defenseType": "resistance",
       "duration": {
         "type": "special"
@@ -400,7 +400,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Spell Immunity grants up to ten visible creatures immunity to one chosen spell or magical effect for 8 hours.",
+      "description": "Spell Immunity mode grants up to ten visible creatures immunity to one chosen spell or magical effect for 8 hours.",
       "defenseType": "immunity",
       "duration": {
         "type": "special"
@@ -475,7 +475,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "After Wish stress, each spell cast before a Long Rest deals irreducible Necrotic damage per spell level to the caster.",
+      "description": "After non-duplication Wish stress, each spell the caster casts before finishing a Long Rest deals irreducible Necrotic damage to the caster equal to 1d10 per spell level.",
       "conditionalEndings": []
     }
   ],

@@ -73,11 +73,11 @@ export function logReducer(state: GameState, action: AppAction): Partial<GameSta
       };
 
     case 'UPDATE_OLLAMA_LOG_ENTRY': {
-      const { id, response, model } = action.payload;
+      const { id, response, model, isError } = action.payload;
       return {
         ollamaInteractionLog: (state.ollamaInteractionLog || []).map(entry =>
           entry.id === id
-            ? { ...entry, response, model: model || entry.model, isPending: false }
+            ? { ...entry, response, model: model || entry.model, isPending: false, isError: isError ?? entry.isError }
             : entry
         ),
       };

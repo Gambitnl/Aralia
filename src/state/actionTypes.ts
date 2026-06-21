@@ -160,7 +160,7 @@ export type AppAction =
   // Gemini Log
   | { type: 'ADD_GEMINI_LOG_ENTRY'; payload: GeminiLogEntry }
   | { type: 'ADD_OLLAMA_LOG_ENTRY'; payload: import('../types/index.js').OllamaLogEntry }
-  | { type: 'UPDATE_OLLAMA_LOG_ENTRY'; payload: { id: string; response: string; model?: string } }
+  | { type: 'UPDATE_OLLAMA_LOG_ENTRY'; payload: { id: string; response: string; model?: string; isError?: boolean } }
   | { type: 'TOGGLE_OLLAMA_LOG_VIEWER' } | { type: 'TOGGLE_UNIFIED_LOG_VIEWER' }
   | { type: 'ADD_BANTER_DEBUG_LOG'; payload: { timestamp: Date; check: string; result: boolean | string; details?: string } }
   | { type: 'CLEAR_BANTER_DEBUG_LOG' }

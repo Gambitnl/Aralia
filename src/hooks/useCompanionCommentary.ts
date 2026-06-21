@@ -39,7 +39,6 @@ import { getWeatherSummary } from '../types/environment';
 import { isPlayerFocused } from '../utils/world/sceneUtils';
 import { Companion, ReactionTriggerType, CompanionReactionRule } from '../types/companions';
 import { OllamaService, BanterContext } from '../services/ollama';
-import { createOllamaLogEntry } from '../utils/createOllamaLogEntry';
 
 // Cooldown tracking: companionId -> triggerType -> timestamp
 type CooldownMap = Record<string, Record<string, number>>;
@@ -194,18 +193,8 @@ export const useCompanionCommentary = (
             context
           );
 
-          if (result.metadata) {
-            dispatch({
-              type: 'ADD_OLLAMA_LOG_ENTRY',
-              payload: createOllamaLogEntry({
-                timestamp: new Date(),
-                model: result.metadata.model,
-                prompt: result.metadata.prompt,
-                response: result.metadata.response || '',
-                context
-              })
-            });
-          }
+          // AI-call logging is centralized in the Ollama client (ollamaLogSink /
+          // useOllamaLogBridge); call sites no longer log individually.
 
           if (result.success) {
             dialogue = result.data.text;

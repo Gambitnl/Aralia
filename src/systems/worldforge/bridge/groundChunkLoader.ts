@@ -38,9 +38,12 @@ import { biomeColor } from "../../world3d/terrainColor";
 import type { LocalArtifact, RegionArtifact } from "../artifacts";
 import { localArtifactToWorldData, GROUND_METERS_PER_CELL } from "./groundWorldAdapter";
 import { generateTownPlan } from "../town/generateTownPlan";
-import { buildInteriorParts, interiorEnvelopeM, type SitePart } from "./interiorParts";
+import { buildInteriorParts, interiorEnvelopeM, type SitePart, type OccupantBody } from "./interiorParts";
 import { generateTownRoster } from "../roster/generateTownRoster";
 import type { TownRoster, Occupant } from "../roster/types";
+import { generateBody } from "../body/generateBody";
+import type { BodyPlan } from "../body/types";
+import { childSeedPath } from "../seedPath";
 import { localWithDeltas } from "./groundDeltas";
 import type { WorldDelta } from "../delta/types";
 import { getBurgNamer } from "./legacySubmapBridge";
@@ -389,19 +392,21 @@ function sampleEncodedHeight(
 }
 
 /**
- * Deterministic v0 person namer for rosters: two seeded syllables + suffix.
- * The FMG culture-aware NamesGenerator needs live pack state and the global
- * FMG PRNG — wiring that here risks cross-contaminating generation seeds, so
- * culture names wait for the occupant-UI slice (names are not rendered yet).
+ * Project a parametric BodyPlan (feet, BODY-1) into the renderer's OccupantBody
+ * (meters + hex). Torso box depth derives from the chest girth treated as a
+ * circumference (girth / π), so a stockier build reads as a deeper figure.
  */
-const NAME_ONSETS = ['bel', 'dor', 'fen', 'gal', 'hil', 'jor', 'kas', 'lin', 'mar', 'nor', 'pel', 'ros', 'tam', 'ven', 'wil', 'yse'];
-const NAME_CODAS = ['a', 'an', 'el', 'i', 'ia', 'in', 'is', 'o', 'or', 'ric', 'ta', 'wen'];
-function syllableName(rng: { next(): number }): string {
-  const a = NAME_ONSETS[Math.floor(rng.next() * NAME_ONSETS.length)];
-  const b = NAME_CODAS[Math.floor(rng.next() * NAME_CODAS.length)];
-  return a.charAt(0).toUpperCase() + a.slice(1) + b;
+function bodyPlanToOccupantBody(plan: BodyPlan): OccupantBody {
+  const p = plan.proportions;
+  return {
+    heightM: p.height * FEET_TO_METERS,
+    shoulderWidthM: p.shoulderWidth * FEET_TO_METERS,
+    depthM: (p.torsoGirth / Math.PI) * FEET_TO_METERS,
+    headSizeM: p.headSize * FEET_TO_METERS,
+    skinToneHex: plan.skinToneHex,
+    clothingHex: plan.clothingPrimaryHex,
+  };
 }
-
 
 function getBusinessTypeForPlot(role: string, plotId: number): BusinessType {
   const types: BusinessType[] = role === 'market'
@@ -468,10 +473,10 @@ function groundTowns(
     }
     // Occupants live where the floor plans say they can (ROSTER-1), and
     // stand at work during business hours (time-of-day v0).
-    // Culture-true names when the burg's culture resolves (FMG Markov
-    // chains under a scoped PRNG swap in getBurgNamer); deterministic
-    // syllables otherwise.
-    const nameFor = getBurgNamer(worldSeed, t.burgId) ?? syllableName;
+    // Culture-true names from the burg's culture (FMG Markov chains under a
+    // scoped PRNG swap in getBurgNamer). No-fallback directive (2026-06-15):
+    // getBurgNamer throws if the culture can't resolve — no syllable substitute.
+    const nameFor = getBurgNamer(worldSeed, t.burgId);
     const roster = generateTownRoster(plan, region!.seedPath, { nameFor });
 
     // Post-process the roster: map each shopkeeper/artisan to the business owner name
@@ -570,7 +575,16 @@ function groundTowns(
           plotInput,
           region!.seedPath,
           heightM,
-          byPlot.get(p.id) ?? [],
+          // Each occupant gets a parametric body (BODY-1) from its own seed
+          // path, so villagers vary in height/build/palette deterministically.
+          (byPlot.get(p.id) ?? []).map((o) => ({
+            id: o.id,
+            ageBand: o.ageBand,
+            atWork: o.atWork,
+            body: bodyPlanToOccupantBody(
+              generateBody(o, childSeedPath(region!.seedPath, `occ:${o.id}`)),
+            ),
+          })),
         ),
       });
     }

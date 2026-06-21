@@ -139,7 +139,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "The strike that hit deals an extra 3d8 Radiant damage.",
+      "description": "The triggering weapon hit deals an extra 3d8 Radiant damage to the target, and each slot level above 3 adds +1d8 damage.",
       "conditionalEndings": []
     },
     {

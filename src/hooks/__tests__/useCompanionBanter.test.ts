@@ -189,9 +189,10 @@ describe('useCompanionBanter', () => {
         });
 
         expect(OllamaService.generateBanterLine).toHaveBeenCalled();
-        expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
-            type: 'ADD_OLLAMA_LOG_ENTRY'
-        }));
+        // AI-call logging moved out of this hook and into the central Ollama
+        // client sink (ollamaLogSink / useOllamaLogBridge), so the hook no longer
+        // dispatches ADD_OLLAMA_LOG_ENTRY itself. It still surfaces the line as a
+        // message.
         expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
             type: 'ADD_MESSAGE'
         }));
@@ -274,12 +275,13 @@ describe('useCompanionBanter', () => {
             await vi.advanceTimersByTimeAsync(10000);
         });
 
-        // If it didn't crash, it passed the iterability check
+        // If it didn't crash, it passed the iterability check. Logging now lives
+        // in the central Ollama client sink, so the hook no longer dispatches
+        // ADD_OLLAMA_LOG_ENTRY; assert it still ran and surfaced the line.
+        expect(OllamaService.generateBanterLine).toHaveBeenCalled();
         expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
-            type: 'ADD_OLLAMA_LOG_ENTRY'
+            type: 'ADD_MESSAGE'
         }));
-
-
     });
 
     it('should open a player-directed response window and clear it on player interrupt', async () => {

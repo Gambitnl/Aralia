@@ -318,24 +318,14 @@ export const useCompanionBanter = (
       npcParticipant,
       contextRef.current,
       banterHistoryRef.current,
-      ignoreCountRef.current,
-      (id, prompt, model) => {
-        dispatch({
-          type: 'ADD_OLLAMA_LOG_ENTRY',
-          payload: { id, timestamp: new Date(), model, prompt, response: 'Waiting for response...', context: contextRef.current, isPending: true }
-        });
-      }
+      ignoreCountRef.current
     );
 
     setIsGenerating(false);
     setGeneratingSpeakerName(null);
 
-    if (result.metadata) {
-      dispatch({
-        type: 'UPDATE_OLLAMA_LOG_ENTRY',
-        payload: { id: result.metadata.id || '', response: result.metadata.response || '', model: result.metadata.model }
-      });
-    }
+    // AI-call logging is centralized in the Ollama client (ollamaLogSink /
+    // useOllamaLogBridge); the banter line is logged when chatForTask runs.
 
     if (!result.success) {
       // Escalation generation failed — just end banter
@@ -421,13 +411,6 @@ export const useCompanionBanter = (
       memories: c.memories?.map(m => m.text) || []
     }));
 
-    const onPending = (id: string, prompt: string, model: string) => {
-      dispatch({
-        type: 'ADD_OLLAMA_LOG_ENTRY',
-        payload: { id, timestamp: new Date(), model, prompt, response: 'Waiting for response...', context: contextRef.current, isPending: true }
-      });
-    };
-
     // ── Generate the line ────────────────────────────────────────────────────
     let result;
     const isFirstPlayerDirectedTurn = mode === 'PLAYER_DIRECTED' && banterHistoryRef.current.length === 0;
@@ -442,8 +425,7 @@ export const useCompanionBanter = (
         participants[0],
         contextRef.current,
         banterHistoryRef.current,
-        turnRef.current,
-        onPending
+        turnRef.current
       );
     } else {
       // Standard NPC line (NPC_TO_NPC or PLAYER_DIRECTED after player has responded)
@@ -451,20 +433,15 @@ export const useCompanionBanter = (
         participants,
         banterHistoryRef.current,
         contextRef.current,
-        turnRef.current,
-        onPending
+        turnRef.current
       );
     }
 
     setIsGenerating(false);
     setGeneratingSpeakerName(null);
 
-    if (result.metadata) {
-      dispatch({
-        type: 'UPDATE_OLLAMA_LOG_ENTRY',
-        payload: { id: result.metadata.id || '', response: result.metadata.response || '', model: result.metadata.model }
-      });
-    }
+    // AI-call logging is centralized in the Ollama client (ollamaLogSink /
+    // useOllamaLogBridge); the banter line is logged when chatForTask runs.
 
     // ── Handle failures ──────────────────────────────────────────────────────
     if (!result.success) {

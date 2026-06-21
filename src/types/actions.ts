@@ -291,6 +291,10 @@ export interface StartGameSuccessPayload {
   initialActiveDynamicNpcIds: string[] | null;
   startingInventory: Item[];
   worldHistory?: import('./history.js').WorldHistory;
+  // The seed used to generate this game's world. Passed explicitly so the seed
+  // stored in game state is guaranteed to match the one used to build mapData
+  // and worldHistory, rather than relying on a separately-set state field.
+  worldSeed?: number;
 }
 
 export type Action =

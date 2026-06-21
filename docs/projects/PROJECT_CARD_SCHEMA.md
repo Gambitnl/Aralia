@@ -1,7 +1,7 @@
 # Project Dashboard Schema
 
 Status: active
-Last updated: 2026-06-15
+Last updated: 2026-06-20
 
 This file documents how top-level Project Tracker cards get their content and
 what agents must keep current when they finish a project iteration.
@@ -48,6 +48,10 @@ evidence: docs/projects/readable-project-name
 gap_signal: "3 open gaps; short source-backed summary"
 protocol: living project doc set
 next_step: Define the next concrete handoff action.
+project_mode: single
+subproject_tracker: ""
+subproject_count: 0
+subproject_signal: ""
 agent_comments: "Optional note outside the normal flow; keep empty when not needed."
 active_agent: ""
 agent_pass_status: not_started
@@ -106,6 +110,36 @@ report instead of forgetting the file exists.
 notes, architecture notes, generated proof summaries, or domain-specific docs.
 The point is awareness: agents should scan whether these exist or are named by
 the tracker before claiming the project docs are current.
+
+## Project-With-Subprojects Extension
+
+Most projects stay in `project_mode: single`. Broad parent projects can opt into
+`project_mode: parent_with_subprojects` when the owner needs durable lanes under
+one project without promoting each lane to a separate top-level project.
+
+When `project_mode` is `parent_with_subprojects`:
+
+- Add `SUBPROJECTS.md` to `required_docs`.
+- Set `subproject_tracker` to `docs/projects/<slug>/SUBPROJECTS.md`.
+- Set `subproject_count` to the number of active rows in the registry.
+- Use `subproject_signal` for the dashboard-sized summary, such as
+  `8 lanes tracked; 3 existing project/task rows route under this parent`.
+- Keep actionable implementation gaps in `GAPS.md`; use `SUBPROJECTS.md` for
+  routing, ownership, and proof boundaries.
+
+`SUBPROJECTS.md` uses this table shape:
+
+```markdown
+| Subproject ID | Project setup | Status | Relationship | Scope | Existing project/task evidence | Current gap IDs | Next high-impact slice | Proof boundary | Notes |
+|---|---|---|---|---|---|---|---|---|---|
+```
+
+Relationship values should be plain language:
+
+- `owned lane`: belongs under the parent project and should route future work
+  through the parent docs.
+- `linked support`: helps the parent, but stays owned by another project.
+- `adjacent dependency`: affects the parent, but is not a child lane.
 
 During schema migration, any real project-specific document that is not part of
 the canonical living-project surface belongs in `optional_docs` first. If the
@@ -275,6 +309,10 @@ Evidence: docs/projects/readable-project-name
 Gap signal: 3 open gaps; short source-backed summary
 Protocol: living project doc set
 Next step: Define the next concrete handoff action.
+Project mode: single
+Subproject tracker:
+Subproject count: 0
+Subproject signal:
 Agent comments: Optional note outside the normal flow; keep empty when not needed.
 Active agent:
 Agent pass status: not_started
@@ -330,6 +368,10 @@ Field meanings:
 | Gap signal | Dashboard-readable summary from `GAPS.md`; do not hide open gaps. Start with a parseable open-gap count such as `0 open gaps`, `1 open gap`, or `5 open gaps`, then add short context after a semicolon if useful. If the project is reference-only, archived, or merged but still has unresolved historical gaps, keep the count honest and explain the lifecycle state after the count. |
 | Protocol | Whether the living-project protocol is implemented and current. |
 | Next step | One concrete action for the next agent. |
+| Project mode | `single` for ordinary projects; `parent_with_subprojects` when the project uses `SUBPROJECTS.md` for child-lane routing. |
+| Subproject tracker | Path to `SUBPROJECTS.md` when project mode is `parent_with_subprojects`; empty otherwise. |
+| Subproject count | Number of active rows in `SUBPROJECTS.md`; `0` for ordinary projects. |
+| Subproject signal | Dashboard-sized summary of lane count, owned child work, linked support, or adjacent dependencies. |
 | Required verification | Comma-separated verification types from `PROJECT_VERIFICATION_SCHEMA.md`. |
 | Completed verification | Comma-separated verification types completed for the current active slice. |
 | Last proof | Date of the most recent durable proof update. |

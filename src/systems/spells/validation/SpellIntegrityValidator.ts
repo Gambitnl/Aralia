@@ -167,7 +167,234 @@ export class SpellIntegrityValidator {
     }
 
     // =========================================================================
-    // Rule 2: Enchantment Targeting
+    // Rule 2: Ritual Sync
+    // =========================================================================
+    // The ritual boolean is the casting-rule source of truth, while the ritual
+    // tag is used by spellbook, glossary, and audit surfaces. Keep them aligned
+    // so a ritual spell does not disappear from player-facing filters.
+    if (spell.ritual) {
+      if (!spell.tags || !spell.tags.includes('ritual')) {
+        errors.push(`Ritual Mismatch: ritual is true but 'tags' is missing "ritual"`);
+      }
+    }
+
+    // =========================================================================
+    // Rule 3: Duration Progression Integrity
+    // =========================================================================
+    // Duration progression is the structured home for rules that turn a normal
+    // duration into a longer-lived, until-dispelled, or permanent outcome. This
+    // rule keeps those records executable enough for future UI/runtime surfaces
+    // without rewriting spell mechanics from description text.
+    const durationProgression = (spell as Spell & {
+      durationProgression?: Array<{
+        trigger?: unknown;
+        requiredCasts?: unknown;
+        cadence?: unknown;
+        sameTargetRequired?: unknown;
+        sameLocationRequired?: unknown;
+        sameConfigurationRequired?: unknown;
+        requiresFullConcentration?: unknown;
+        outcomeDuration?: unknown;
+        dispellable?: unknown;
+        notes?: unknown;
+      }>;
+    }).durationProgression;
+
+    if (durationProgression !== undefined) {
+      const knownTriggers = ['repeated_casts', 'recast_while_active', 'full_duration_concentration', 'not_applicable'];
+      const knownOutcomes = ['extend_current_duration', 'until_dispelled', 'permanent', 'non_dispellable_permanent', 'not_applicable'];
+
+      if (!Array.isArray(durationProgression) || durationProgression.length === 0) {
+        errors.push('Duration Progression Invalid: durationProgression must be a non-empty array when present');
+      } else {
+        durationProgression.forEach((entry, index) => {
+          if (!knownTriggers.includes(String(entry.trigger))) {
+            errors.push(`Duration Progression Invalid: entry ${index} uses unknown trigger "${String(entry.trigger)}"`);
+          }
+
+          if (!knownOutcomes.includes(String(entry.outcomeDuration))) {
+            errors.push(`Duration Progression Invalid: entry ${index} uses unknown outcomeDuration "${String(entry.outcomeDuration)}"`);
+          }
+
+          if (typeof entry.dispellable !== 'boolean' && entry.dispellable !== 'not_applicable') {
+            errors.push(`Duration Progression Invalid: entry ${index} must declare boolean or not_applicable dispellable metadata`);
+          }
+
+          if (typeof entry.notes !== 'string' || entry.notes.trim().length === 0) {
+            errors.push(`Duration Progression Invalid: entry ${index} must include explanatory notes`);
+          }
+
+          if (entry.trigger === 'repeated_casts') {
+            const repeatsAcrossStableContext = entry.sameTargetRequired === true
+              || entry.sameLocationRequired === true
+              || entry.sameConfigurationRequired === true;
+
+            if (typeof entry.requiredCasts !== 'number' || entry.requiredCasts <= 0) {
+              errors.push(`Duration Progression Invalid: entry ${index} repeated_casts requires a positive requiredCasts number`);
+            }
+
+            if (entry.cadence === 'not_applicable') {
+              errors.push(`Duration Progression Invalid: entry ${index} repeated_casts requires an applicable cadence`);
+            }
+
+            if (!repeatsAcrossStableContext) {
+              errors.push(`Duration Progression Invalid: entry ${index} repeated_casts must require the same target, location, or configuration`);
+            }
+          }
+
+          if (entry.trigger === 'full_duration_concentration') {
+            if (entry.requiresFullConcentration !== true) {
+              errors.push(`Duration Progression Invalid: entry ${index} full_duration_concentration must require full concentration`);
+            }
+
+            if (!spell.duration.concentration) {
+              errors.push(`Duration Progression Mismatch: entry ${index} requires full concentration but spell duration is not concentration`);
+            }
+          }
+
+          if (entry.trigger !== 'full_duration_concentration' && entry.requiresFullConcentration === true && !spell.duration.concentration) {
+            errors.push(`Duration Progression Mismatch: entry ${index} requires full concentration but spell duration is not concentration`);
+          }
+        });
+      }
+    }
+
+    // =========================================================================
+    // Rule 4: Mode Choice Integrity
+    // =========================================================================
+    // Mode-choice spells let the player choose one branch before command
+    // creation. When a menu points at effect or control-option indexes, those
+    // links must stay inside the real payload arrays or the UI can offer a
+    // choice that silently creates no runtime command.
+    const modeChoice = (spell as Spell & {
+      modeChoice?: {
+        optionCount?: unknown;
+        optionsSource?: unknown;
+        options?: Array<{
+          label?: unknown;
+          summary?: unknown;
+          effectIndices?: unknown;
+          controlOptionIndices?: unknown;
+        }>;
+      };
+    }).modeChoice;
+
+    if (modeChoice !== undefined) {
+      if (!Array.isArray(modeChoice.options) || modeChoice.options.length === 0) {
+        errors.push('Mode Choice Invalid: modeChoice must include at least one option');
+      } else {
+        if (modeChoice.optionCount !== modeChoice.options.length) {
+          errors.push(`Mode Choice Invalid: optionCount ${String(modeChoice.optionCount)} does not match options length ${modeChoice.options.length}`);
+        }
+
+        const controlOptionLengths = spell.effects
+          .map(effect => (effect as { controlOptions?: unknown[] }).controlOptions)
+          .filter((controlOptions): controlOptions is unknown[] => Array.isArray(controlOptions))
+          .map(controlOptions => controlOptions.length);
+
+        modeChoice.options.forEach((option, optionIndex) => {
+          if (typeof option.label !== 'string' || option.label.trim().length === 0) {
+            errors.push(`Mode Choice Invalid: option ${optionIndex} must include a non-empty label`);
+          }
+
+          if (typeof option.summary !== 'string' || option.summary.trim().length === 0) {
+            errors.push(`Mode Choice Invalid: option ${optionIndex} must include a non-empty summary`);
+          }
+
+          if (option.effectIndices !== undefined) {
+            if (!Array.isArray(option.effectIndices)) {
+              errors.push(`Mode Choice Invalid: option ${optionIndex} effectIndices must be an array when present`);
+            } else {
+              option.effectIndices.forEach(effectIndex => {
+                if (!Number.isInteger(effectIndex) || effectIndex < 0 || effectIndex >= spell.effects.length) {
+                  errors.push(`Mode Choice Invalid: option ${optionIndex} points at missing effect index ${String(effectIndex)}`);
+                }
+              });
+            }
+          }
+
+          if (option.controlOptionIndices !== undefined) {
+            if (!Array.isArray(option.controlOptionIndices)) {
+              errors.push(`Mode Choice Invalid: option ${optionIndex} controlOptionIndices must be an array when present`);
+            } else {
+              option.controlOptionIndices.forEach(controlOptionIndex => {
+                const pointsAtKnownControlOption = Number.isInteger(controlOptionIndex)
+                  && controlOptionIndex >= 0
+                  && controlOptionLengths.some(length => controlOptionIndex < length);
+
+                if (!pointsAtKnownControlOption) {
+                  errors.push(`Mode Choice Invalid: option ${optionIndex} points at missing control option index ${String(controlOptionIndex)}`);
+                }
+              });
+            }
+          }
+        });
+      }
+    }
+
+    // =========================================================================
+    // Rule 5: Action Cost Metadata Integrity
+    // =========================================================================
+    // Created-object, sustained hazard, and re-commanded spell effects often
+    // depend on action-cost metadata rather than new effect rows. These checks
+    // keep the existing structured fields usable without requiring a broad
+    // object-lifecycle engine or forcing optional legacy granted-action fields.
+    const knownActionCosts = ['action', 'bonus_action', 'reaction'];
+    const castingCombatCost = spell.castingTime?.combatCost;
+
+    if (castingCombatCost !== undefined) {
+      if (!knownActionCosts.includes(castingCombatCost.type)) {
+        errors.push(`Action Cost Invalid: castingTime.combatCost uses unknown type "${String(castingCombatCost.type)}"`);
+      }
+
+      if (knownActionCosts.includes(String(spell.castingTime?.unit)) && castingCombatCost.type !== spell.castingTime?.unit) {
+        errors.push(`Action Cost Mismatch: castingTime.unit "${spell.castingTime.unit}" does not match combatCost.type "${castingCombatCost.type}"`);
+      }
+    }
+
+    (spell.effects ?? []).forEach((effect, effectIndex) => {
+      const sustainCost = effect.trigger?.sustainCost;
+
+      if (sustainCost !== undefined) {
+        if (!knownActionCosts.includes(sustainCost.actionType)) {
+          errors.push(`Action Cost Invalid: effect ${effectIndex} sustainCost uses unknown actionType "${String(sustainCost.actionType)}"`);
+        }
+
+        if (typeof sustainCost.optional !== 'boolean') {
+          errors.push(`Action Cost Invalid: effect ${effectIndex} sustainCost.optional must be boolean`);
+        }
+      }
+
+      const grantedActions = (effect as { grantedActions?: Array<{
+        type?: unknown;
+        action?: unknown;
+        frequency?: unknown;
+        rangeLimit?: unknown;
+      }> }).grantedActions;
+
+      if (Array.isArray(grantedActions)) {
+        grantedActions.forEach((grantedAction, actionIndex) => {
+          if (!knownActionCosts.includes(String(grantedAction.type))) {
+            errors.push(`Action Cost Invalid: effect ${effectIndex} granted action ${actionIndex} uses unknown type "${String(grantedAction.type)}"`);
+          }
+
+          if (typeof grantedAction.action !== 'string' || grantedAction.action.trim().length === 0) {
+            errors.push(`Action Cost Invalid: effect ${effectIndex} granted action ${actionIndex} must include a non-empty action label`);
+          }
+
+          if (typeof grantedAction.frequency !== 'string' || grantedAction.frequency.trim().length === 0) {
+            errors.push(`Action Cost Invalid: effect ${effectIndex} granted action ${actionIndex} must include a non-empty frequency`);
+          }
+
+          if (grantedAction.rangeLimit !== undefined && typeof grantedAction.rangeLimit !== 'number') {
+            errors.push(`Action Cost Invalid: effect ${effectIndex} granted action ${actionIndex} rangeLimit must be numeric when present`);
+          }
+        });
+      }
+    });
+
+    // =========================================================================
+    // Rule 6: Enchantment Targeting
     // =========================================================================
     // Enchantment spells (mind-affecting magic like Charm Person or Hold Person)
     // in D&D 2024 only work on specific creature types — usually Humanoids,

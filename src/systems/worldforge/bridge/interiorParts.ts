@@ -97,8 +97,25 @@ function cutRuns(runs: Run[], gapLo: number, gapHi: number): Run[] {
   return out;
 }
 
-/** Clothing palette — picked by occupant id so villagers vary stably. */
-const CLOTHING = ['#6e4a3a', '#4a5e6e', '#5e6e4a', '#7a6a4a', '#6a4a6e'];
+/**
+ * Render-ready body for one occupant, in METERS + hex — the projection of the
+ * parametric BodyPlan (BODY-1, body/generateBody) the figure renderer needs.
+ * Kept structural (no BodyPlan import) so this module stays decoupled from the
+ * roster/body data types; the bridge maps BodyPlan → OccupantBody at the call
+ * site.
+ */
+export interface OccupantBody {
+  /** Total standing height (heel to crown), meters. */
+  heightM: number;
+  /** Shoulder width → body box width, meters. */
+  shoulderWidthM: number;
+  /** Torso depth (front-to-back) → body box depth, meters. */
+  depthM: number;
+  /** Head height (chin to crown) → head box, meters. */
+  headSizeM: number;
+  skinToneHex: string;
+  clothingHex: string;
+}
 
 /** Minimal occupant view (structural — avoids coupling to roster types). */
 export interface OccupantFigure {
@@ -106,6 +123,10 @@ export interface OccupantFigure {
   ageBand: 'child' | 'adult' | 'elder';
   /** Standing at their work plot (front-of-house) vs at home (back half). */
   atWork?: boolean;
+  /** Parametric body (BODY-1): per-person proportions + palette. Required —
+   * every roster occupant has an identity, so there is one real path and no
+   * fallback to uniform crates. */
+  body: OccupantBody;
 }
 
 /**
@@ -257,30 +278,31 @@ export function buildInteriorParts(
     const angle = (Math.PI * 2 * slotInRoom) / totalInRoom + room.id * 0.37;
     const offsetXFt = (Math.cos(angle) * ringRadiusM) / FT;
     const offsetYFt = (Math.sin(angle) * ringRadiusM) / FT;
-    const total = o.ageBand === 'child' ? 1.05 : o.ageBand === 'elder' ? 1.6 : 1.7;
     const px = toX(centerX + offsetXFt);
     const pz = toZ(centerY + offsetYFt);
     // A villager reads as a person, not a crate: a clothed body box under a
-    // skin-toned head box. Heads vary by id so a crowd isn't uniform.
-    const headH = Math.min(0.28, total * 0.18);
-    const bodyH = total - headH;
-    const SKIN = ['#c79a6b', '#a9764b', '#e0b48c', '#8a5a36'];
+    // skin-toned head. Dimensions and palette come from the occupant's
+    // parametric BodyPlan (BODY-1) — height, build, skin and clothing all vary
+    // per person, so a crowd reads as a population rather than clones.
+    const body = o.body;
+    const headH = body.headSizeM;
+    const bodyH = Math.max(0.1, body.heightM - headH);
     parts.push({
       x: px,
       z: pz,
-      w: 0.42,
-      d: 0.3,
+      w: body.shoulderWidthM,
+      d: body.depthM,
       h: bodyH,
-      colorHex: CLOTHING[o.id % CLOTHING.length],
+      colorHex: body.clothingHex,
     });
     parts.push({
       x: px,
       z: pz,
-      w: 0.26,
-      d: 0.24,
+      w: body.headSizeM * 0.85,
+      d: body.headSizeM * 0.8,
       h: headH,
       baseY: bodyH,
-      colorHex: SKIN[o.id % SKIN.length],
+      colorHex: body.skinToneHex,
     });
   });
 

@@ -1,3 +1,240 @@
+
+## 2026-06-20 - Action-cost metadata integrity validator gate
+
+Status: verified 2026-06-20.
+
+Scope:
+- src/systems/spells/validation/SpellIntegrityValidator.ts
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts
+- public/data/spells/level-0/elementalism.json
+- public/data/spells/level-2/flame-blade.json
+- public/data/spells/level-2/flaming-sphere.json
+- public/data/spells/level-3/wall-of-water.json
+- public/data/spells/level-3/tidal-wave.json
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/NORTH_STAR.md
+
+Proof:
+- Bounded `gpt-5.3-codex-spark` explorer ranked Package 19 `created_object_or_structure` as the next high-impact non-description lane.
+- The user correctly noted that Package 19 evidence was not yet represented in the Spells project gap registry. Registered G13 before closing the slice.
+- Added an `Action Cost Metadata Integrity` validator rule for bounded safe invariants: casting `combatCost` type validity and casting-unit parity, trigger `sustainCost` action type and boolean optional flags, and minimum `grantedActions` type/action/frequency/range shape.
+- A strict `grantedActions.actor` / `actionKind` requirement was intentionally not added because a corpus scan found 55 broader existing omissions outside this slice.
+- Failed-first focused proof initially exposed two validator robustness bugs for minimal synthetic spell objects: missing `castingTime` and missing `effects`. Both were fixed with optional guards so the rule evaluates only present action-cost metadata.
+- Focused validator proof passed: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts -- -t "Rule: Action Cost Metadata Integrity|hard-fails malformed action-cost metadata across all spells" --reporter=dot` reported 298 passed tests.
+- Representative spell JSON validation passed: `npm run validate:spells -- --spell public/data/spells/level-0/elementalism.json --spell public/data/spells/level-2/flame-blade.json --spell public/data/spells/level-2/flaming-sphere.json --spell public/data/spells/level-3/wall-of-water.json --spell public/data/spells/level-3/tidal-wave.json` reported 459 valid and 0 invalid.
+- Type tests passed: `npm run test:types`.
+
+Boundary:
+- This pass adds action-cost integrity coverage only. It does not close Package 19 created-object lifecycle work, object HP, persistent hazard simulation, bucket-row implementation/classification, or rendered UI proof.
+
+## 2026-06-20 - Mode choice integrity validator gate
+
+Status: verified 2026-06-20.
+
+Scope:
+- src/systems/spells/validation/SpellIntegrityValidator.ts
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts
+- public/data/spells/level-1/alarm.json
+- public/data/spells/level-2/blindness-deafness.json
+- public/data/spells/level-3/plant-growth.json
+- public/data/spells/level-4/control-water.json
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/TRACKER.md
+
+Proof:
+- Bounded `gpt-5.3-codex-spark` explorer ranked choice-spell metadata parity as the next highest-impact local slice after G10/G11.
+- Corpus scan found 14 current `modeChoice` spells and 1 current `perTargetChoice` spell; no current mode-choice option-index mismatches were present before the gate.
+- Added a `Mode Choice Integrity` validator rule for player-facing choice menus and command-routing indexes.
+- The rule rejects empty option menus, option-count drift, blank option labels or summaries, out-of-bounds effect indexes, and out-of-bounds control-option indexes.
+- The rule preserves summary-only `modeChoice.options` menus and existing per-target-choice runtime work; it does not require every menu option to point directly at an effect.
+- Added focused unit coverage for option-count drift, bad effect indexes, and valid summary/effect/control-option routing.
+- Added an all-spell hard gate that keeps the current 14 mode-choice spells visible and rejects future `Mode Choice Invalid` errors.
+- Focused validator proof passed: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts -- -t "Rule: Mode Choice Integrity|hard-fails mode choice mismatches across all spells" --reporter=dot` reported 293 passed tests.
+- Spell JSON validation passed: `npm run validate:spells -- --spell public/data/spells/level-1/alarm.json --spell public/data/spells/level-2/blindness-deafness.json --spell public/data/spells/level-3/plant-growth.json --spell public/data/spells/level-4/control-water.json` reported 459 valid and 0 invalid.
+- Type tests passed: `npm run test:types`.
+
+Boundary:
+- This pass adds integrity coverage only. It does not change spell JSON data, command behavior, UI prompts, per-target choice assignment, rendered modal behavior, or schema definitions.
+
+## 2026-06-20 - Duration progression integrity validator gate
+
+Status: verified 2026-06-20.
+
+Scope:
+- src/systems/spells/validation/SpellIntegrityValidator.ts
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts
+- public/data/spells/level-2/nystuls-magic-aura.json
+- public/data/spells/level-4/mordenkainens-private-sanctum.json
+- public/data/spells/level-5/wall-of-stone.json
+- public/data/spells/level-7/temple-of-the-gods.json
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/TRACKER.md
+
+Proof:
+- Added a `Duration Progression Integrity` validator rule for structured permanence and extension metadata.
+- The rule rejects empty progression arrays, unknown triggers, unknown outcome durations, missing dispellable metadata, missing explanatory notes, repeated-cast rows without positive cast counts or stable repeated context, and full-duration concentration rows attached to non-concentration spells.
+- The rule preserves existing modeled mechanics and schema-supported future optionality, including `recast_while_active`, `extend_current_duration`, and `not_applicable` sentinel values.
+- Added focused unit coverage for unknown triggers, missing repeated-cast stable context, full-duration concentration mismatch, and valid repeated-cast/full-concentration rows.
+- Added an all-spell hard gate that keeps the current modeled progression spell set visible: Nystul's Magic Aura, Mordenkainen's Private Sanctum, Wall of Stone, and Temple of the Gods.
+- Focused validator proof passed: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts -- -t "Rule: Duration Progression Integrity|hard-fails duration progression mismatches across all spells" --reporter=dot` reported 289 passed tests.
+- Spell JSON validation passed: `npm run validate:spells -- --spell public/data/spells/level-2/nystuls-magic-aura.json --spell public/data/spells/level-4/mordenkainens-private-sanctum.json --spell public/data/spells/level-5/wall-of-stone.json --spell public/data/spells/level-7/temple-of-the-gods.json` reported 459 valid and 0 invalid.
+- Type tests passed: `npm run test:types`.
+
+Boundary:
+- This pass adds integrity coverage only. It does not change spell JSON data, targeting, effects, durations, descriptions, runtime behavior, or schema definitions.
+
+## 2026-06-20 - Ritual tag parity validator gate
+
+Status: verified 2026-06-20.
+
+Scope:
+- src/systems/spells/validation/SpellIntegrityValidator.ts
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts
+- public/data/spells/level-2/magic-mouth.json
+- public/data/spells/level-2/silence.json
+- public/data/spells/level-3/feign-death.json
+- public/data/spells/level-3/magic-circle.json
+- public/data/spells/level-3/phantom-steed.json
+- public/data/spells/level-5/commune-with-nature.json
+- public/data/spells/level-5/contact-other-plane.json
+- public/data/spells/level-5/rarys-telepathic-bond.json
+- public/data/spells/level-6/drawmijs-instant-summons.json
+- public/data/spells/level-6/forbiddance.json
+- public/data/spells/level-6/heroes-feast.json
+- docs/projects/spells/GAPS.md
+
+Proof:
+- Local corpus scan found 11 spells with `ritual: true` but no `ritual` tag.
+- Added a `Ritual Sync` validator rule so ritual casting metadata and spellbook/glossary tag metadata cannot silently diverge.
+- Added unit tests for missing and present ritual tags plus an all-spell hard-failure corpus gate.
+- Added the missing `ritual` tag to the 11 current corpus mismatches without changing casting time, components, duration, targeting, effects, or descriptions.
+- Post-fix ritual parity scan passed with `count: 0` and no sample mismatches.
+- Focused validator proof passed: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts -- -t "Rule: Ritual Sync|hard-fails ritual tag mismatches across all spells" --reporter=dot` reported 284 passed tests.
+- Spell JSON validation passed: `npm run validate:spells` reported 459 valid and 0 invalid.
+- Type tests passed: `npm run test:types`.
+- Bounded `gpt-5.3-codex-spark` subagent identified `durationProgression` integrity gating as the next high-impact non-description candidate; this was registered as G11 instead of being mixed into this patch.
+
+Boundary:
+- This pass aligns data metadata for existing ritual declarations. It does not change ritual casting behavior, casting time, component costs, spell effects, runtime UI rendering, or any spell-specific mechanics beyond tag parity.
+
+## 2026-06-20 - Wish mode and stress row clarity
+
+Status: verified 2026-06-20.
+
+Scope:
+- public/data/spells/level-9/wish.json
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts
+
+Proof:
+- Selected Wish from the bounded subagent candidate list because its mode menu and stress branches are high-impact for runtime/UI interpretability.
+- Strengthened the focused real-data expectation to cover the utility mode row plus sibling Instant Health, Resistance, Spell Immunity, and stress-damage rows.
+- The utility row now distinguishes level-8-or-lower spell duplication from one non-duplication Wish mode, and keeps the stress consequences tied to non-duplication use.
+- The sibling rows now expose Greater Restoration cleanup on Instant Health, permanent chosen-type Resistance, 8-hour chosen spell/magical-effect immunity, and irreducible 1d10-per-spell-level Necrotic stress damage before Long Rest.
+- Focused validator proof passed: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts -- -t "keeps Wish utility description focused on mode and stress routing facts" --reporter=dot` reported 281 passed tests.
+- Changed-spell validation passed: `npm run validate:spells -- --spell public/data/spells/level-9/wish.json` reported 459 valid and 0 invalid.
+- Type tests passed: `npm run test:types`.
+
+Boundary:
+- This pass changes only player-facing row text. It preserves existing mode choices, player-input prompt, healing payload, defensive payloads, stress-damage payload, targeting, duration, and current Wish modeling boundaries.
+
+## 2026-06-20 - Divine Word HP-band and planar return clarity
+
+Status: verified 2026-06-20.
+
+Scope:
+- public/data/spells/level-7/divine-word.json
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts
+
+Proof:
+- Selected Divine Word from the bounded subagent candidate list because its HP-band table and planar-return branch are high-impact for runtime/UI outcome summaries.
+- Updated existing real-data expectations and row text so death, Blinded, Deafened, Stunned, planar return, and utility summary rows name their exact HP band or branch instead of relying on overlapping shortcut phrasing.
+- The Stunned row now states the 21-to-30 Hit Point band rather than broad `30 Hit Points or fewer`, preserving the separate 20-or-fewer death branch.
+- The planar return row now includes the 24-hour Wish-only return block, and the utility row summarizes the full HP table plus planar branch routing.
+- Focused validator proof passed: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts -- -t "keeps threshold status rows tied to save and condition names|keeps Divine Word utility description focused on table and planar routing facts|keeps high-level control and imprisonment status rows tied to save, option, and repeat-save facts|keeps ray table and threshold rows tied to branch outcomes" --reporter=dot` reported 281 passed tests.
+- Changed-spell validation passed: `npm run validate:spells -- --spell public/data/spells/level-7/divine-word.json` reported 459 valid and 0 invalid.
+- Type tests passed: `npm run test:types`.
+
+Boundary:
+- This pass changes only player-facing row text. It preserves existing Charisma save routing, HP thresholds, status durations, planar creature filters, movement payload, utility control options, and targeting data.
+
+## 2026-06-20 - Astral Projection split-state row clarity
+
+Status: verified 2026-06-20.
+
+Scope:
+- public/data/spells/level-9/astral-projection.json
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts
+
+Proof:
+- Selected Astral Projection from the bounded subagent candidate list because its body-vs-astral-form split is high-impact for runtime/UI interpretability and already had a focused validator expectation to strengthen.
+- Updated the real-data expectation to cover both the astral-travel utility row and the suspended-body Unconscious status row.
+- The utility row now keeps astral travel, silver cord death, damage separation, planar re-entry, 0-Hit-Point endings, and Magic-action dismissal together without copying the body-state payload.
+- The status row now carries suspended-body facts: Unconscious, no food or air, no aging, and ending suspended animation when the spell ends for a living target.
+- Focused validator proof passed: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts -- -t "keeps Astral Projection utility description focused on astral-travel wrapper facts" --reporter=dot` reported 281 passed tests.
+- Changed-spell validation passed: `npm run validate:spells -- --spell public/data/spells/level-9/astral-projection.json` reported 459 valid and 0 invalid.
+- Type tests passed: `npm run test:types`.
+
+Boundary:
+- This pass changes only player-facing row text. It preserves existing targeting, consumed components, duration, granted action, control options, Unconscious status payload, and all modeled split-state rules.
+
+## 2026-06-20 - Destructive Wave shared-save branch clarity
+
+Status: verified 2026-06-20.
+
+Scope:
+- public/data/spells/level-5/destructive-wave.json
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts
+
+Proof:
+- Selected Destructive Wave from the bounded subagent's larger candidate list because it was a compact shared-save damage/status branch with lower edit risk than Wish or Astral Projection.
+- Updated the existing real-data expectation so the Thunder damage row, Radiant/Necrotic damage row, and Prone rider all name the single shared Constitution save and the success/failure branch clearly.
+- Focused validator proof passed: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts -- -t "keeps social and chosen-damage descriptions player-facing" --reporter=dot` reported 281 passed tests.
+- Changed-spell validation passed: `npm run validate:spells -- --spell public/data/spells/level-5/destructive-wave.json` reported 459 valid and 0 invalid.
+- Type tests passed: `npm run test:types`.
+
+Boundary:
+- This pass changes only player-facing row text. It preserves the existing 5d6 Thunder damage, 5d6 caster-chosen Radiant/Necrotic damage, Constitution save-half behavior, chosen-creature Emanation targeting, and Prone failed-save rider.
+
+## 2026-06-20 - Focused recovery and hit-rider row cleanup
+
+Status: verified 2026-06-20.
+
+Scope:
+- public/data/spells/level-2/lesser-restoration.json
+- public/data/spells/level-0/spare-the-dying.json
+- public/data/spells/level-3/blinding-smite.json
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts
+
+Proof:
+- Mechanical scan found three remaining obvious description defects: Lesser Restoration copied top-level utility prose, Spare the Dying had a terse Stable status row, and Blinding Smite had a terse hit-rider damage row.
+- Added focused real-data expectations for Lesser Restoration condition cleanup, Spare the Dying's 0-Hit-Point/not-dead gate and cantrip range scaling, and Blinding Smite's triggering weapon hit and +1d8 slot scaling.
+- Focused validator proof passed: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts -- -t "keeps defensive utility rows distinct from top-level spell prose|keeps Spare the Dying rows tied to 0-HP target gate and scaling range|keeps hit-chained smite and vine rows tied to their triggering attacks|keeps status gates and protective filters tied to condition names and target facts" --reporter=dot` reported 281 passed tests.
+- Changed-spell validation passed: `npm run validate:spells -- --spell public/data/spells/level-2/lesser-restoration.json --spell public/data/spells/level-0/spare-the-dying.json --spell public/data/spells/level-3/blinding-smite.json` reported 459 valid and 0 invalid.
+- Type tests passed: `npm run test:types`.
+- Bounded `gpt-5.3-codex-spark` subagent ranked larger next-slice candidates: Wish, Astral Projection, Divine Word, and Destructive Wave. Those are not part of this patch and should be treated as future high-complexity branch-row candidates.
+
+Boundary:
+- This pass improves player-facing row clarity for existing modeled fields. It does not change modeled dice, saves, targeting, duration, scaling data, condition application, runtime healing/stabilization, smite trigger resolution, or rendered UI behavior.
+
+## 2026-06-20 - Concentration tag parity corpus cleanup
+
+Status: verified 2026-06-20.
+
+Scope:
+- public/data/spells/level-*/ selected concentration spells missing the `concentration` tag (117 JSON files)
+- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/TRACKER.md
+
+Proof:
+- Current-state Node scan found 117 spells where `duration.concentration === true` but `tags` did not include `concentration`.
+- Added the missing `concentration` tag to those 117 spell JSON files without changing modeled duration, saves, targeting, scaling, or effect payloads.
+- Added a corpus-wide hard-failure validator expectation for `Concentration Mismatch` errors across all real spell JSON.
+- Post-fix parity scan passed with `count: 0` and no sample mismatches.\n- Focused validator proof passed: `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts -- --reporter=dot` reported 280 passed tests.\n- Spell JSON validation passed: `npm run validate:spells` reported 459 valid and 0 invalid.\n- Type tests passed: `npm run test:types`.
+
+Boundary:
+- This pass aligns data metadata for existing concentration declarations. It does not claim new runtime support for concentration enforcement, interruption, UI rendering, or any spell-specific mechanics beyond tag parity.
 # Spells Audit / Proof
 
 Status: active

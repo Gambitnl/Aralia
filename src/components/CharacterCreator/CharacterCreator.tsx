@@ -361,8 +361,15 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   const handleVisualsChange = useCallback((visuals: Partial<CharacterVisualConfig>) => dispatch({ type: 'SELECT_VISUALS', payload: visuals }), [dispatch]);
   const handleNameAndReviewSubmit = useCallback((name: string) => {
     dispatch({ type: 'SET_CHARACTER_NAME', payload: name });
-    assembleAndSubmitCharacter(state, name);
-    SafeStorage.removeItem(STORAGE_KEY);
+    const submitted = assembleAndSubmitCharacter(state, name);
+    if (submitted) {
+      // Only discard the saved draft once the character has actually been
+      // handed off to the game. If assembly failed, keep the draft so the
+      // player doesn't lose their in-progress work.
+      SafeStorage.removeItem(STORAGE_KEY);
+    } else {
+      window.alert('Something went wrong finalizing your character. Your progress has been kept — please review your selections and try again.');
+    }
   }, [state, assembleAndSubmitCharacter, dispatch]);
 
   const handleAgeChange = useCallback((age: number) => {

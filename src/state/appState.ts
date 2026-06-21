@@ -506,7 +506,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 phase: GamePhase.PLAYING,
                 // Preserve user preference across resets.
                 autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
-                worldSeed: state.worldSeed, // Carry over the seed from the new game setup
+                // Prefer the seed the world was actually generated with (carried
+                // in the payload); fall back to the seed set during new-game setup.
+                worldSeed: restOfPayload.worldSeed ?? state.worldSeed,
                 party: [{ ...restOfPayload.character, equippedItems: restOfPayload.character.equippedItems || {} }],
                 inventory: filteredInventory,
                 gold: startingGold,

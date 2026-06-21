@@ -206,8 +206,9 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
     // Worldforge ground entry (the DEFAULT): build the village/terrain
     // loader at the clicked/party tile — gameTime drives occupant hours,
     // saved worldforge deltas replay into the town. The bridge modules are
-    // dynamically imported (they pull the whole FMG stack); any failure
-    // falls back to the continent worker loader so 3D can never brick.
+    // dynamically imported (they pull the whole FMG stack). No-fallback
+    // directive (2026-06-15): a failure here surfaces honestly instead of
+    // silently substituting the legacy continent streamer — one real path.
     (async () => {
       try {
         const [bridge, loaderMod, adapter] = await Promise.all([
@@ -250,14 +251,6 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           );
 
           // Generate/register any missing businesses/NPCs for the town(s) in the local area
-          const nameForFallback = (rng: { next(): number }) => {
-            const NAME_ONSETS = ['Ad', 'Bel', 'Car', 'Dar', 'El', 'Fa', 'Gla', 'Har', 'Is', 'Jul', 'Kel', 'Lon', 'Mor', 'Nor', 'O', 'Pan', 'Qu', 'Ro', 'Sil', 'Tor', 'Ul', 'Val', 'Wen', 'Xan', 'Yor', 'Zel'];
-            const NAME_CODAS = ['a', 'an', 'el', 'i', 'ia', 'in', 'is', 'o', 'or', 'ric', 'ta', 'wen'];
-            const a = NAME_ONSETS[Math.floor(rng.next() * NAME_ONSETS.length)];
-            const b = NAME_CODAS[Math.floor(rng.next() * NAME_CODAS.length)];
-            return a.charAt(0).toUpperCase() + a.slice(1) + b;
-          };
-
           const helperGetBusinessTypeForPlot = (role: string, plotId: number): BusinessType => {
             const types: BusinessType[] = role === 'market'
               ? ['general_store', 'tavern', 'apothecary', 'trading_company', 'enchanter_shop']
@@ -268,7 +261,9 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
 
           for (const t of bridged.region?.townSites ?? []) {
             const plan = generateTownPlan(t, bridged.region.seedPath);
-            const nameFor = getBurgNamer(wfSeed, t.burgId) ?? nameForFallback;
+            // No-fallback directive (2026-06-15): getBurgNamer throws if the
+            // culture can't resolve — no syllable substitute.
+            const nameFor = getBurgNamer(wfSeed, t.burgId);
             const roster = generateTownRoster(plan, bridged.region.seedPath, { nameFor });
             
             for (const p of plan.plots) {
@@ -387,10 +382,12 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           return;
         }
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('[wf_ground] village entry failed; using continent loader', err);
+        // No-fallback directive (2026-06-15): surface the failure loudly
+        // instead of masking it with the legacy continent loader.
+        throw new Error(
+          `[wf_ground] village entry failed: ${err instanceof Error ? err.message : String(err)}`,
+        );
       }
-      if (!cancelled) activeCleanup = startLegacy();
     })();
 
     return () => {

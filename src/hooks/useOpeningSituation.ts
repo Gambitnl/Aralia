@@ -19,6 +19,7 @@ import { GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { LOCATIONS, STARTING_LOCATION_ID } from '../data/world/locations';
 import { generateId } from '../utils/core/idGenerator';
+import { getTimeOfDay, getTimeModifiers } from '../utils/core/timeUtils';
 import type { ConversationMessage, ConversationNpcParticipant } from '../types/conversation';
 import {
     generateOpeningSituation,
@@ -60,9 +61,16 @@ export function buildSituationCharacter(state: GameState): OpeningSituationChara
 export function buildSituationLocation(state: GameState): OpeningSituationLocation {
     const locId = state.currentLocationId || STARTING_LOCATION_ID;
     const loc = LOCATIONS[locId];
+    // Ground the situation in the REAL world clock so the generated scene cannot
+    // contradict the HUD (previously the model invented "dusk, misty" while the
+    // game read 7 AM / sun high). gameTime may be a Date or an ISO string.
+    const gameTime = state.gameTime ? new Date(state.gameTime) : null;
+    const validTime = gameTime && !Number.isNaN(gameTime.getTime()) ? gameTime : null;
     return {
         name: loc?.name ?? locId,
         biome: loc?.biomeId,
+        timeOfDay: validTime ? getTimeOfDay(validTime) : undefined,
+        weather: validTime ? getTimeModifiers(validTime).description : undefined,
     };
 }
 
@@ -124,6 +132,10 @@ export function useOpeningSituation(
         }
         const location = buildSituationLocation(gameState);
 
+        // The model call itself is logged centrally by the Ollama client (see
+        // ollamaLogSink / useOllamaLogBridge): a successful transport call records
+        // the RAW response there even when the JSON below fails to parse, so the
+        // unparseable output is always inspectable in the in-app viewer.
         try {
             const situation = await generate(character, location);
 
@@ -145,6 +157,10 @@ export function useOpeningSituation(
             dispatch({ type: 'RESOLVE_OPENING_SITUATION', payload: situation });
         } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
+            // The entry gate surfaces both transport and parse failures as
+            // "model-unavailable"; log the real error so the two are
+            // distinguishable (the raw model output is in the central Ollama log).
+            console.error('[opening-situation] generation failed:', err);
             dispatch({ type: 'FAIL_OPENING_SITUATION', payload: message });
         }
     }, [gameState, dispatch, generate]);

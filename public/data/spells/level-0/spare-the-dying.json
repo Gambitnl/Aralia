@@ -136,7 +136,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Choose one creature within 15 feet that has 0 Hit Points and is not dead; the creature becomes Stable and is no longer dying.",
+      "description": "Choose one creature within 15 feet that has 0 Hit Points and is not dead; the creature becomes Stable and is no longer dying. The range increases to 30 feet at level 5, 60 feet at level 11, and 120 feet at level 17.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -232,7 +232,7 @@
         },
         "level": 0
       },
-      "description": "The target at 0 Hit Points gains the Stable condition.",
+      "description": "The 0-Hit-Point creature within the current Spare the Dying range gains the Stable condition immediately, provided it is not dead.",
       "conditionalEndings": []
     }
   ],
