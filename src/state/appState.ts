@@ -512,10 +512,16 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 party: [{ ...restOfPayload.character, equippedItems: restOfPayload.character.equippedItems || {} }],
                 inventory: filteredInventory,
                 gold: startingGold,
-                messages: [
-                    { id: Date.now() + Math.random(), text: `Welcome, ${restOfPayload.character.name} the ${restOfPayload.character.race.name} ${restOfPayload.character.class.name}! Your adventure begins.`, sender: 'system', timestamp: new Date() },
-                    { id: Date.now() + Math.random() + 1, text: restOfPayload.initialLocationDescription, sender: 'system', timestamp: new Date() }
-                ],
+                // The opening-situation conversation (triggered by the
+                // BEGIN_OPENING_SITUATION dispatched right after this) is the entry
+                // narrative now — it REPLACES the static "you are in a clearing"
+                // spawn text. Seeding the legacy welcome + initialLocationDescription
+                // here produced a second, contradictory narration in the log (the
+                // game-entry brief calls for the player to no longer spawn into the
+                // static description). START_GAME_SUCCESS is exclusively the real
+                // new-game path, so the conversation always follows; dummy/auto-start
+                // and load flows keep their own seeded messages elsewhere.
+                messages: [],
                 currentLocationId: STARTING_LOCATION_ID,
                 subMapCoordinates: restOfPayload.initialSubMapCoordinates,
                 mapData: restOfPayload.mapData,

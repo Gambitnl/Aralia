@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/06/2026, 18:57:35
+ * Last Sync: 21/06/2026, 15:26:40
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
  * Imports: 12 files
  *
@@ -33,7 +33,7 @@
  * - No texture atlas consolidation for sprite batching
  */
 import React, { useMemo, useCallback } from 'react';
-import { BattleMapData, CombatCharacter, BattleMapTile as BattleMapTileData, CombatState, LightSource } from '../../types/combat';
+import { BattleMapData, CombatCharacter, BattleMapTile as BattleMapTileData, CombatState, LightSource, Position } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
 import { useVisibility } from '../../hooks/combat/useVisibility';
@@ -49,6 +49,13 @@ import { selectVisibilityObserver } from './visibilityObserverPolicy';
 interface BattleMapProps {
   mapData: BattleMapData | null;
   characters: CombatCharacter[];
+  showCoverLabels?: boolean;
+  objectInteraction?: {
+    activeObjectId: string | null;
+    movableObjectIds: string[];
+    onObjectSelect: (objectId: string) => void;
+    onObjectMove: (objectId: string, destination: Position) => void;
+  };
   combatState: {
     turnManager: ReturnType<typeof useTurnManager>;
     turnState: ReturnType<typeof useTurnManager>['turnState'];
@@ -58,7 +65,7 @@ interface BattleMapProps {
   };
 }
 
-const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState }) => {
+const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLabels = false, objectInteraction, combatState }) => {
   const { turnManager, turnState, abilitySystem, isCharacterTurn } = combatState;
 
   const battleMapState = useBattleMap(mapData, characters, turnManager, abilitySystem);
@@ -76,6 +83,23 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
     handleTileClick,
     handleCharacterClick,
   } = battleMapState;
+
+  const activeObjectId = objectInteraction?.activeObjectId ?? null;
+  const activeObject = activeObjectId
+    ? mapData?.targetableObjects?.find(targetObject => targetObject.id === activeObjectId) ?? null
+    : null;
+
+  const handleObjectAwareTileClick = useCallback((tile: BattleMapTileData) => {
+    // When a movable object is selected, a tile click becomes an object move
+    // instead of a normal creature movement or attack click. This path is
+    // opt-in so production combat maps keep their existing click behavior.
+    if (activeObject && objectInteraction && !tile.blocksMovement) {
+      objectInteraction.onObjectMove(activeObject.id, tile.coordinates);
+      return;
+    }
+
+    handleTileClick(tile);
+  }, [activeObject, handleTileClick, objectInteraction]);
 
   // Live AoE preview when hovering tiles while targeting
   const handleTileHover = useCallback((tile: BattleMapTileData) => {
@@ -245,6 +269,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
             const lightLevel = visibility.getLightLevel(tile.id);
             const isValidMove = actionMode === 'move' && validMoves.has(tile.id);
             const isInPath = activePathSet.has(tile.id);
+            const isObjectMoveDestination = Boolean(activeObject && !tile.blocksMovement);
           
             return (
               <BattleMapTile
@@ -255,14 +280,48 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
                 isTargetable={isTargetable}
                 isAoePreview={isAoePreview}
                 isTeleportDestinationPreview={isTeleportDestinationPreview}
+                isObjectMoveDestination={isObjectMoveDestination}
                 isVisible={isVisible}
                 lightLevel={lightLevel}
+                showCoverLabel={showCoverLabels}
                 targetingMode={abilitySystem.targetingMode}
-                onTileClick={handleTileClick}
+                onTileClick={handleObjectAwareTileClick}
                 onTileHover={handleTileHover}
               />
             )
           })}
+
+          {objectInteraction && (mapData.targetableObjects ?? [])
+            .filter(targetObject => objectInteraction.movableObjectIds.includes(targetObject.id))
+            .map(targetObject => {
+              const isSelectedObject = targetObject.id === objectInteraction.activeObjectId;
+              return (
+                <button
+                  key={`targetable-object-${targetObject.id}`}
+                  type="button"
+                  aria-label={`Select ${targetObject.name ?? targetObject.id} object`}
+                  title={`${targetObject.name ?? targetObject.id} object`}
+                  onClick={(event) => {
+                    // Object markers sit on top of tiles. Stop the click here
+                    // so selecting the object does not immediately also move it
+                    // to its current tile.
+                    event.stopPropagation();
+                    objectInteraction.onObjectSelect(targetObject.id);
+                  }}
+                  className={`absolute flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-xs font-black leading-none shadow-[0_0_14px_rgba(251,191,36,0.5)] transition-transform ${
+                    isSelectedObject
+                      ? 'z-30 scale-110 border-yellow-50 bg-amber-300 text-amber-950 ring-2 ring-yellow-100'
+                      : 'z-20 border-amber-100/80 bg-amber-500/90 text-amber-950 hover:scale-105'
+                  }`}
+                  style={{
+                    left: targetObject.position.x * TILE_SIZE_PX + TILE_SIZE_PX / 2,
+                    top: targetObject.position.y * TILE_SIZE_PX + TILE_SIZE_PX / 2
+                  }}
+                >
+                  ✦
+                </button>
+              );
+            })}
                 
           {characters.map(character => {
             // Optimized: Iterate characters directly instead of looking them up via characterPositions map

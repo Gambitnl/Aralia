@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 13:30:01
+ * Last Sync: 21/06/2026, 15:26:40
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
  * Imports: 1 files
  *
@@ -34,8 +34,10 @@ interface BattleMapTileProps {
   isTargetable: boolean;
   isAoePreview: boolean;
   isTeleportDestinationPreview: boolean;
+  isObjectMoveDestination?: boolean;
   isVisible?: boolean;
   lightLevel?: LightLevel;
+  showCoverLabel?: boolean;
   targetingMode: boolean;
   onTileClick: (tile: BattleMapTileData) => void;
   onTileHover?: (tile: BattleMapTileData) => void;
@@ -53,6 +55,12 @@ interface BattleMapTileProps {
 type EnvironmentalEffectVisual = {
   label: string;
   overlayClass: string;
+  textClass: string;
+};
+
+type CoverTileVisual = {
+  label: string;
+  description: string;
   textClass: string;
 };
 
@@ -103,7 +111,41 @@ function getEnvironmentalEffectVisual(tile: BattleMapTileData): EnvironmentalEff
   return ENVIRONMENTAL_EFFECT_VISUALS[tile.environmentalEffects[0].type];
 }
 
-const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, isTeleportDestinationPreview, isVisible = true, lightLevel = 'bright', targetingMode, onTileClick, onTileHover }) => {
+function getCoverTileVisual(tile: BattleMapTileData): CoverTileVisual | null {
+  // Wall tiles are the sandbox's total-cover teaching pieces: they stop line of
+  // sight entirely, so they need a different badge from AC-boosting cover.
+  if (tile.blocksLoS && tile.blocksMovement && tile.terrain === 'wall') {
+    return {
+      label: 'TC',
+      description: 'total cover',
+      textClass: 'text-red-50 bg-red-950/90 border-red-300/80'
+    };
+  }
+
+  // Pillars use the same special case as calculateCover: they are cover tiles,
+  // but they protect more strongly than brush, logs, or similar low obstacles.
+  if (tile.providesCover && tile.decoration === 'pillar') {
+    return {
+      label: '3/4',
+      description: 'three-quarters cover',
+      textClass: 'text-amber-50 bg-amber-950/90 border-amber-300/80'
+    };
+  }
+
+  // Any other cover-providing tile follows the combat utility's default half
+  // cover rule. The badge is deliberately short so it fits inside a 32px tile.
+  if (tile.providesCover) {
+    return {
+      label: 'HC',
+      description: 'half cover',
+      textClass: 'text-yellow-950 bg-yellow-300/95 border-yellow-50/80'
+    };
+  }
+
+  return null;
+}
+
+const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, isTeleportDestinationPreview, isObjectMoveDestination = false, isVisible = true, lightLevel = 'bright', showCoverLabel = false, targetingMode, onTileClick, onTileHover }) => {
   // Terrain color is the underlying ground. Spell-mutated environmental effects
   // are layered later so they can appear on grass, stone, water, or any biome.
   const getTerrainColor = (terrain: string) => {
@@ -137,6 +179,7 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
   const terrainColor = getTerrainColor(tile.terrain);
   const decoration = getDecoration(tile.decoration);
   const environmentalVisual = getEnvironmentalEffectVisual(tile);
+  const coverVisual = showCoverLabel ? getCoverTileVisual(tile) : null;
   const environmentalSummary = tile.environmentalEffects?.map(effect => effect.type).join(', ') ?? 'none';
 
   let overlayClass = '';
@@ -150,6 +193,8 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
     overlayClass = 'bg-yellow-500/50';
   } else if (isValidMove) {
     overlayClass = 'bg-blue-500/40';
+  } else if (isObjectMoveDestination) {
+    overlayClass = 'bg-amber-400/20';
   }
 
   // Visibility is separate from targeting and movement overlays. Hidden tiles
@@ -166,7 +211,7 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
   // Teleport destination tiles are selectable even when the spell's real target
   // is the caster. This keeps Misty Step-style destination picking distinct
   // from normal enemy/ally targeting.
-  const isInteractive = isValidMove || isTargetable || isTeleportDestinationPreview;
+  const isInteractive = isValidMove || isTargetable || isTeleportDestinationPreview || isObjectMoveDestination;
 
   const handleActivate = () => {
     if (!isInteractive) return;
@@ -187,9 +232,9 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
       role="button"
       tabIndex={isInteractive ? 0 : -1}
       aria-disabled={!isInteractive}
-      aria-label={`Tile ${tile.terrain} at ${tile.coordinates.x}, ${tile.coordinates.y}`}
+      aria-label={`Tile ${tile.terrain} at ${tile.coordinates.x}, ${tile.coordinates.y}${coverVisual ? `, ${coverVisual.description}` : ''}`}
       style={{ cursor: targetingMode ? 'crosshair' : (isInteractive ? 'pointer' : 'default') }}
-      title={`(${tile.coordinates.x}, ${tile.coordinates.y}) - ${tile.terrain} - Elev: ${tile.elevation} - ${isVisible ? lightLevel : 'hidden'} - Effects: ${environmentalSummary}`}
+      title={`(${tile.coordinates.x}, ${tile.coordinates.y}) - ${tile.terrain}${coverVisual ? ` - ${coverVisual.description}` : ''} - Elev: ${tile.elevation} - ${isVisible ? lightLevel : 'hidden'} - Effects: ${environmentalSummary}`}
     >
       {tile.elevation > 0 && (
         <div className="absolute top-0 right-1 text-xs font-bold text-gray-400/50 pointer-events-none filter drop-shadow(0 1px 1px black)">
@@ -204,6 +249,11 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
             {environmentalVisual.label}
           </div>
         </>
+      )}
+      {coverVisual && (
+        <div className={`absolute top-0 left-0 z-10 rounded-br border px-0.5 text-[8px] font-black leading-3 tracking-wide shadow-sm pointer-events-none ${coverVisual.textClass}`}>
+          {coverVisual.label}
+        </div>
       )}
       {visibilityOverlayClass && <div className={`absolute inset-0 ${visibilityOverlayClass} pointer-events-none`}></div>}
       {overlayClass && <div className={`absolute inset-0 ${overlayClass} pointer-events-none`}></div>}

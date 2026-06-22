@@ -1,7 +1,7 @@
 # Design Preview Runbook
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-22
 
 This runbook captures the minimum manual checks for the standalone Design
 Preview surface. It is the durable proof path for the checklist gap that used
@@ -23,3 +23,10 @@ to live in G2.
 Use this checklist when a future visual pass is required. If a check cannot be
 completed, record the blocked surface and the next visual verification step in
 the current project handoff.
+
+## Scenario Parent Route
+
+For Tactical Sandbox / Combat Scenarios work, start from
+`docs/projects/design-preview-scenarios/RUNBOOK.md` and verify the runtime at
+`misc/design.html?step=scenarios`. This broad runbook remains the checklist for
+the overall Design Preview page.

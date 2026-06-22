@@ -154,7 +154,7 @@ export function parseHexColor(hex: string): { r: number; g: number; b: number } 
  * Some ported entities can be present before the color field is populated, so
  * overlay drawing must not depend on the upstream color always existing.
  */
-function isHexColor(value: string | undefined): value is string {
+export function isHexColor(value: string | undefined): value is string {
   return typeof value === "string" && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value);
 }
 
@@ -163,7 +163,7 @@ function isHexColor(value: string | undefined): value is string {
  * This preserves visual distinctions for unfinished or partially generated FMG
  * records without adding random colors that would change between renders.
  */
-function stableHashColor(
+export function stableHashColor(
   kind: AtlasOverlayMode,
   id: number,
   entity?: AtlasOverlayEntity
@@ -218,7 +218,7 @@ function stableHashColor(
  * Cell id 0 / neutral assignments intentionally return null so the base biome
  * terrain remains visible for wildlands, no-religion, and no-province cells.
  */
-function getOverlayColor(
+export function getOverlayColor(
   atlas: FmgAtlasResult,
   cellId: number,
   mode: AtlasOverlayMode
@@ -417,9 +417,35 @@ export function drawAtlas(
   const overlayMode = view.overlayMode ?? "political";
 
   // --------------------------------------------------------------------------
+  // Terrain texture buffer (polish pass): the per-cell biome/ocean fills
+  // (layers 0–2) render to an offscreen canvas, then blit back with a light
+  // blur so hard Voronoi facets read as soft gradients — Azgaar blurs its
+  // texture layer and keeps the ink (coastlines, rivers, borders, labels)
+  // crisp on top. Falls back to direct draw when no offscreen 2D context is
+  // available (unit tests with a mock context).
+  // --------------------------------------------------------------------------
+  let terrainCtx: CanvasRenderingContext2D = ctx;
+  let terrainCanvas: HTMLCanvasElement | null = null;
+  try {
+    if (typeof document !== "undefined") {
+      const oc = document.createElement("canvas");
+      oc.width = canvasWidth;
+      oc.height = canvasHeight;
+      const octx = oc.getContext("2d");
+      if (octx) {
+        terrainCtx = octx;
+        terrainCanvas = oc;
+      }
+    }
+  } catch {
+    terrainCtx = ctx;
+    terrainCanvas = null;
+  }
+
+  // --------------------------------------------------------------------------
   // Layer 0: Radial Ocean Depth Gradient Background
   // --------------------------------------------------------------------------
-  const grad = ctx.createRadialGradient(
+  const grad = terrainCtx.createRadialGradient(
     tx(atlas.graphWidth / 2),
     ty(atlas.graphHeight / 2),
     50 * view.scale,
@@ -427,10 +453,10 @@ export function drawAtlas(
     ty(atlas.graphHeight / 2),
     Math.max(atlas.graphWidth, atlas.graphHeight) * view.scale
   );
-  grad.addColorStop(0, "#1c497d");
-  grad.addColorStop(1, "#091a33");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+  grad.addColorStop(0, "#3d6ea4");
+  grad.addColorStop(1, "#15375d");
+  terrainCtx.fillStyle = grad;
+  terrainCtx.fillRect(0, 0, canvasWidth, canvasHeight);
 
   // --------------------------------------------------------------------------
   // Layer 1: Ocean Cell Fill with depth tint
@@ -444,19 +470,19 @@ export function drawAtlas(
 
     const t = Math.max(0, h / 20);
     // Draw with partial transparency to let the smooth radial background shine through
-    ctx.fillStyle = `rgba(${Math.round(15 + 40 * t)},${Math.round(55 + 70 * t)},${Math.round(115 + 75 * t)}, 0.45)`;
+    terrainCtx.fillStyle = `rgba(${Math.round(15 + 40 * t)},${Math.round(55 + 70 * t)},${Math.round(115 + 75 * t)}, 0.45)`;
 
-    ctx.beginPath();
+    terrainCtx.beginPath();
     const firstVert = verts[vIds[0]];
     if (firstVert) {
-      ctx.moveTo(tx(firstVert[0]), ty(firstVert[1]));
+      terrainCtx.moveTo(tx(firstVert[0]), ty(firstVert[1]));
       for (let k = 1; k < vIds.length; k++) {
         const p = verts[vIds[k]];
-        if (p) ctx.lineTo(tx(p[0]), ty(p[1]));
+        if (p) terrainCtx.lineTo(tx(p[0]), ty(p[1]));
       }
     }
-    ctx.closePath();
-    ctx.fill();
+    terrainCtx.closePath();
+    terrainCtx.fill();
   }
 
   // --------------------------------------------------------------------------
@@ -523,19 +549,33 @@ export function drawAtlas(
     const shade = Math.max(-0.06, Math.min(0.06, slope));
     const adjust = Math.max(0.75, Math.min(1.25, 1 - shade * 6.0));
 
-    ctx.fillStyle = `rgb(${Math.round(rFinal * adjust)},${Math.round(gFinal * adjust)},${Math.round(bFinal * adjust)})`;
+    terrainCtx.fillStyle = `rgb(${Math.round(rFinal * adjust)},${Math.round(gFinal * adjust)},${Math.round(bFinal * adjust)})`;
 
-    ctx.beginPath();
+    terrainCtx.beginPath();
     const firstVert = verts[vIds[0]];
     if (firstVert) {
-      ctx.moveTo(tx(firstVert[0]), ty(firstVert[1]));
+      terrainCtx.moveTo(tx(firstVert[0]), ty(firstVert[1]));
       for (let k = 1; k < vIds.length; k++) {
         const p = verts[vIds[k]];
-        if (p) ctx.lineTo(tx(p[0]), ty(p[1]));
+        if (p) terrainCtx.lineTo(tx(p[0]), ty(p[1]));
       }
     }
-    ctx.closePath();
-    ctx.fill();
+    terrainCtx.closePath();
+    terrainCtx.fill();
+  }
+
+  // Blit the terrain buffer back with a light blur (Azgaar-style texture
+  // softening), then continue drawing crisp ink layers on the main context.
+  if (terrainCanvas) {
+    const blurPx = Math.max(0.8, 1.8 * view.scale);
+    ctx.save();
+    try {
+      ctx.filter = `blur(${blurPx}px)`;
+    } catch {
+      /* filter unsupported — blit sharp */
+    }
+    ctx.drawImage(terrainCanvas, 0, 0);
+    ctx.restore();
   }
 
   // --------------------------------------------------------------------------

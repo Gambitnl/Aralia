@@ -53,6 +53,22 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  // The pane starts in the top-right corner and stays anchored there while collapsing.
+  // This avoids an intermediate jump from center-right to top-right when the user minimizes it.
+  const positioningClass = 'items-start justify-end';
+
+  // The expanded pane keeps the original readable width. The collapsed pane uses a fixed
+  // compact width so the still-animating body text cannot stretch the frame while it exits.
+  const paneWidthClass = isCollapsed ? 'w-64 max-w-[calc(100vw-2rem)]' : 'w-full max-w-md';
+
+  // The title bar is slightly tighter in the collapsed state so the remaining tab is compact
+  // while preserving the same expand and close controls for recovery.
+  const titleBarClass = isCollapsed ? 'px-3 py-2' : 'px-5 py-3';
+
+  // Collapse should feel deliberate without letting the frame sweep across the play area.
+  // A shared duration keeps the body and arrow from finishing at different moments.
+  const collapseAnimationDurationSeconds = 0.4;
+
   const handleClose = () => {
     if (dontShowAgain) {
       onDontShowAgain(true);
@@ -83,21 +99,21 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
         <div
           id={UI_ID.OLLAMA_DEPENDENCY_MODAL}
           data-testid={UI_ID.OLLAMA_DEPENDENCY_MODAL}
-          className={`fixed inset-0 flex items-center justify-end p-4 pointer-events-none z-[${Z_INDEX.MODAL_BACKGROUND}]`}
+          className={`fixed inset-0 flex ${positioningClass} p-4 pointer-events-none z-[${Z_INDEX.MODAL_BACKGROUND}]`}
         >
           <motion.aside
-            className="pointer-events-auto bg-gray-900 border border-amber-500/60 rounded-xl shadow-2xl w-full max-w-md text-gray-100 focus:outline-none flex flex-col max-h-[calc(100vh-2rem)] overflow-hidden"
+            className={`pointer-events-auto bg-gray-900 border border-amber-500/60 rounded-xl shadow-2xl ${paneWidthClass} text-gray-100 focus:outline-none flex flex-col max-h-[calc(100vh-2rem)] overflow-hidden`}
             role="region"
             aria-labelledby="ollama-modal-title"
             tabIndex={-1}
             initial={{ x: 48, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 48, opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+            transition={{ duration: collapseAnimationDurationSeconds, ease: 'easeOut' }}
           >
             {/* Window-frame title bar — always visible; click to collapse/expand. */}
             <div
-              className="flex items-center justify-between gap-2 px-5 py-3 border-b border-amber-500/20 bg-gray-900/80 cursor-pointer select-none"
+              className={`flex items-center justify-between gap-2 ${titleBarClass} border-b border-amber-500/20 bg-gray-900/80 cursor-pointer select-none`}
               onClick={() => setIsCollapsed((c) => !c)}
               role="button"
               aria-expanded={!isCollapsed}
@@ -133,7 +149,7 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className={`transition-transform duration-200 ${isCollapsed ? '' : 'rotate-180'}`}
+                    className={`transition-transform duration-[400ms] ${isCollapsed ? '' : 'rotate-180'}`}
                     aria-hidden="true"
                   >
                     <polyline points="18 15 12 9 6 15" />
@@ -176,7 +192,7 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  transition={{ duration: collapseAnimationDurationSeconds, ease: 'easeOut' }}
                   className="overflow-y-auto"
                 >
                   <div className="p-5">

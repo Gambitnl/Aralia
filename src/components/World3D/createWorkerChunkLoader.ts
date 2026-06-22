@@ -17,8 +17,8 @@
  */
 
 import type { WorldData } from '@/services/worldSim/types';
-import type { ChunkMeshBundle, ChunkLoader } from '@/systems/world3d/types';
-import { WORLD3D_CONFIG } from '@/systems/world3d/config';
+import type { ChunkMeshBundle, ChunkLoader, LodTier } from '@/systems/world3d/types';
+import { WORLD3D_CONFIG, resolutionForLod } from '@/systems/world3d/config';
 
 type WorkerFactory = () => Worker;
 
@@ -31,6 +31,8 @@ const defaultWorkerFactory: WorkerFactory = () =>
 interface PendingRequest {
   cx: number;
   cy: number;
+  /** Resolution this request was dispatched at (per requested LOD tier). */
+  resolution: number;
   resolve: (bundle: ChunkMeshBundle) => void;
 }
 
@@ -62,20 +64,24 @@ export function createWorkerChunkLoader(
       if (worker === w) worker = null;
     };
     w.postMessage({ type: 'init', world });
-    // Re-send any in-flight requests stranded on a previous (now-dead) worker.
+    // Re-send any in-flight requests stranded on a previous (now-dead) worker,
+    // each at the resolution it was originally dispatched with.
     for (const [id, req] of pending) {
-      w.postMessage({ type: 'load', id, cx: req.cx, cy: req.cy, resolution });
+      w.postMessage({ type: 'load', id, cx: req.cx, cy: req.cy, resolution: req.resolution });
     }
     worker = w;
   };
 
-  const load = ((cx: number, cy: number): Promise<ChunkMeshBundle> =>
+  const load = ((cx: number, cy: number, lod?: LodTier): Promise<ChunkMeshBundle> =>
     new Promise<ChunkMeshBundle>((resolve) => {
       if (disposed) return;
       if (!worker) spawn();
       const id = nextId++;
-      pending.set(id, { cx, cy, resolve });
-      worker!.postMessage({ type: 'load', id, cx, cy, resolution });
+      // Honor the requested LOD tier's resolution (W3D-G10 / T7); fall back to
+      // the loader's default resolution when no tier is supplied.
+      const reqResolution = lod ? resolutionForLod(lod) : resolution;
+      pending.set(id, { cx, cy, resolution: reqResolution, resolve });
+      worker!.postMessage({ type: 'load', id, cx, cy, resolution: reqResolution });
     })) as DisposableChunkLoader;
 
   load.dispose = (): void => {

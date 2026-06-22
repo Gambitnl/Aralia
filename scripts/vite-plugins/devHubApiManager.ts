@@ -272,21 +272,35 @@ export const devHubApiManager = () => ({
     const subprojectsFromMarkdown = (content: string) => {
       // The live project detail UI needs real lane objects, not just the raw
       // SUBPROJECTS.md document card. Keep the markdown table as source of truth
-      // and translate it into the small shape shared by project_ui.js.
+      // and translate it into the small shape shared by project_ui.js. When a
+      // child lane points at its own NORTH_STAR.md, read that packet's
+      // frontmatter too so the parent dashboard shows the child project's
+      // iteration/pass state instead of leaving every row as "not recorded."
       return markdownTableRows(content, 'Subproject ID').map((row) => {
         const id = row['Subproject ID'] || '';
+        const setupPath = row['Project setup'] || '';
+        const setupAbsPath = setupPath ? path.resolve(process.cwd(), setupPath) : '';
+        const setupContent = setupAbsPath && fs.existsSync(setupAbsPath)
+          ? fs.readFileSync(setupAbsPath, 'utf-8')
+          : '';
+        const setupSchema = setupContent ? markdownFrontmatterFields(setupContent) : {};
         return {
           id,
-          name: toProjectDisplayName(id || 'unnamed-subproject'),
-          setupPath: row['Project setup'] || '',
-          status: row.Status || '',
-          relationship: row.Relationship || '',
+          name: projectCardSchemaField(setupSchema, 'project') || toProjectDisplayName(id || 'unnamed-subproject'),
+          setupPath,
+          status: projectCardSchemaField(setupSchema, 'status') || row.Status || '',
+          relationship: projectCardSchemaField(setupSchema, 'relationship') || row.Relationship || '',
           scope: row.Scope || '',
-          evidence: row['Existing project/task evidence'] || '',
+          evidence: projectCardSchemaField(setupSchema, 'evidence') || row['Existing project/task evidence'] || '',
           currentGapIds: row['Current gap IDs'] || '',
-          nextAction: row['Next high-impact slice'] || '',
-          proof: row['Proof boundary'] || '',
+          nextAction: projectCardSchemaField(setupSchema, 'nextstep', 'nextStep') || row['Next high-impact slice'] || '',
+          proof: projectCardSchemaField(setupSchema, 'requiredverification', 'requiredVerification') || row['Proof boundary'] || '',
           notes: row.Notes || '',
+          iteration: Number(projectCardSchemaField(setupSchema, 'iteration') || 0),
+          activeAgent: projectCardSchemaField(setupSchema, 'activeagent', 'activeAgent'),
+          agentPassStatus: projectCardSchemaField(setupSchema, 'agentpassstatus', 'agentPassStatus'),
+          agentPassStartedAt: projectCardSchemaField(setupSchema, 'agentpassstartedat', 'agentPassStartedAt'),
+          agentPassEndedAt: projectCardSchemaField(setupSchema, 'agentpassendedat', 'agentPassEndedAt'),
         };
       });
     };

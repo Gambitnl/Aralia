@@ -1,7 +1,7 @@
 # Iteration Agent Workflow
 
 Status: active
-Last updated: 2026-06-15
+Last updated: 2026-06-22
 
 This is the shared workflow for every agent that performs an iteration pass on a
 living project. Project-specific context belongs in
@@ -64,13 +64,16 @@ whole workflow into every project handoff file.
    actionable item from this project's `GAPS.md`, `TRACKER.md`,
    `docs/projects/GLOBAL_GAPS.md`, or `WORKFLOW_GAPS.md`; record it as the new
    active task in `COLD_START_AGENT_PROMPT.md` before executing.
-4. If no actionable project, global, or workflow gap exists after the scan,
-   register the project as `idle` instead of repeating a scan-only iteration.
-   Refresh the tracker, North Star/frontmatter, project tracker row when
-   applicable, and cold-start handoff so the next dispatcher sees that the
-   project is alive but currently has no safe forward slice. Do not mark the
-   project `done`, `dormant`, or `paused` without explicit evidence or human
-   direction.
+4. If no actionable project, global, or workflow gap appears after the read
+   scan, do not register the project as `idle` yet. First perform the active
+   edge-case sweep described in Bounded Gap Sweep against adjacent components,
+   integration points, state boundaries, and recent project changes. Only when
+   that active probing finds no actionable work may the agent register the
+   project as `idle` instead of repeating a scan-only iteration. Refresh the
+   tracker, North Star/frontmatter, project tracker row when applicable, and
+   cold-start handoff so the next dispatcher sees that the project is alive but
+   currently has no safe forward slice. Do not mark the project `done`,
+   `dormant`, or `paused` without explicit evidence or human direction.
 5. Implement the selected task unless the tracker explicitly says design-only.
 6. If you deviate from the active tracker task, justify the deviation in one
    line and update the tracker so the next agent is not misled.
@@ -136,22 +139,40 @@ Every iteration must perform a bounded gap sweep. Check:
 1. the active task surface
 2. files touched this iteration
 3. nearby integration points named by the tracker or North Star
-4. this project's `GAPS.md`
-5. `docs/projects/GLOBAL_GAPS.md`
-6. `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` for
+4. closely coupled adjacent files/components, including unedited files that
+   call into, are called by, render beside, or share state with the active task
+   surface
+5. recent commits or handoff notes for this project that may have changed
+   assumptions around the active surface
+6. this project's `GAPS.md`
+7. `docs/projects/GLOBAL_GAPS.md`
+8. `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` for
    process-level ambiguity that affects the iteration workflow itself
-7. inbound routed gaps from known routing projects, including
+9. inbound routed gaps from known routing projects, including
    `code-modularization-audit`, architecture sweep docs, global gaps, roadmap
    reviews, or any tracker/gap file that names this project as the destination
    owner
-8. expansion opportunities observed while executing the task, including
+10. expansion opportunities observed while executing the task, including
    missing capabilities, reusable systems, automation opportunities, adjacent
    owner tasks, and scope boundaries worth preserving
+
+The sweep must include active edge-case or chaos probes when the project has an
+observable UI, command flow, state machine, data parser, integration boundary,
+or other executable behavior. Do not rely only on static reading or the files
+you changed. Try representative invalid states, unusual action order, missing
+or stale data, disabled/loading/error states, and adjacent controls or callers
+that share the same state. Keep the probes bounded to the active project
+surface, but make them adversarial enough to test whether nearby unedited code
+actually holds.
 
 Record real gaps found. If fewer than two related or unrelated gaps are real,
 the final report must name the checked surfaces and state that no additional
 real gap was found. Also state whether a source-backed expansion opportunity
 was found; if none was found, name the checked surfaces and do not invent one.
+If the agent claims no additional real gaps, gap-free, or idle, the final
+report must also name the active edge-case/chaos probe vectors used and the
+result. If no active probe was possible, explain the concrete reason and avoid
+calling the project gap-free.
 
 Use the standard classifications:
 
@@ -221,9 +242,10 @@ Before ending the iteration, update or explicitly report on:
    gap is not complete unless the owner stub exists or the closeout explains
    why it could not be written.
 4. `COLD_START_AGENT_PROMPT.md`: next iteration handoff context.
-   If no actionable work remains, set the mission to an explicit idle handoff:
-   status `idle`, active task `None - no actionable gap found on YYYY-MM-DD`,
-   recent progress naming the scan surfaces, and next resume trigger such as
+   If no actionable work remains after the read scan and active edge-case
+   sweep, set the mission to an explicit idle handoff: status `idle`, active
+   task `None - no actionable gap found on YYYY-MM-DD`, recent progress naming
+   the scan surfaces, active probe vectors, and next resume trigger such as
    "resume only when a new project/global/workflow gap is registered or the
    operator supplies a new task."
 5. `WORKFLOW_GAPS.md`: workflow-level ambiguity read, updated, or explicitly
@@ -289,7 +311,8 @@ End with a concise report covering:
 3. agent identity and runtime surface, including whether it was certain or
    inferred
 4. verification performed or skipped
-5. bounded gap sweep surfaces checked
+5. bounded gap sweep surfaces checked, including adjacent components and active
+   edge-case/chaos probe vectors when no new gap is found
 6. expansion opportunities found, routed, or explicitly not found
 7. gaps recorded
 8. workflow gaps read or updated

@@ -31,9 +31,9 @@
  * axis (CHUNK_WORLD_SIZE = 128 m). Vertices beyond the artifact clamp to its
  * edge values (flat continuation), mirroring chunkSampler's clamping.
  */
-import type { ChunkData, ChunkMeshBundle, VegetationScatter } from "../../world3d/types";
+import type { ChunkData, ChunkMeshBundle, VegetationScatter, LodTier } from "../../world3d/types";
 import { buildChunkBundle } from "../../world3d/chunkBundle";
-import { WORLD3D_CONFIG, heightToMeters } from "../../world3d/config";
+import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from "../../world3d/config";
 import { biomeColor } from "../../world3d/terrainColor";
 import type { LocalArtifact, RegionArtifact } from "../artifacts";
 import { localArtifactToWorldData, GROUND_METERS_PER_CELL } from "./groundWorldAdapter";
@@ -969,9 +969,11 @@ export function createGroundChunkLoader(
   const ground = makeGroundWorld(local, seed, region, opts);
   return {
     ground,
-    loader: async (cx: number, cy: number): Promise<ChunkMeshBundle> => {
+    loader: async (cx: number, cy: number, lod?: LodTier): Promise<ChunkMeshBundle> => {
+      // Honor the requested LOD tier's mesh resolution (W3D-G10 / T7); distant
+      // ground chunks build coarser, near ones stay full-detail.
       const bundle = buildChunkBundle(
-        sampleGroundChunk(ground, cx, cy, WORLD3D_CONFIG.HEIGHTFIELD_RESOLUTION),
+        sampleGroundChunk(ground, cx, cy, resolutionForLod(lod)),
       );
       // Artifact features replace the generic per-vertex scatter (see
       // buildGroundVegetation — determinism + no lattice banding). Trees

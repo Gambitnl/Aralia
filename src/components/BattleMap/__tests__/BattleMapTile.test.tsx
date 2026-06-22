@@ -134,4 +134,34 @@ describe('BattleMapTile', () => {
     expect(screen.getByRole('button', { name: 'Tile grass at 0, 0' })).toHaveAttribute('title', expect.stringContaining('(0, 0) - grass - Elev: 0 - dim'));
     expect(container.querySelector('.bg-slate-950\\/25')).toBeInTheDocument();
   });
+
+  it('shows a short cover badge when cover labels are enabled', () => {
+    const halfCoverTile: BattleMapTileData = {
+      ...mockTile,
+      id: '7-3',
+      coordinates: { x: 7, y: 3 },
+      terrain: 'difficult',
+      decoration: 'bush',
+      providesCover: true
+    };
+
+    render(
+      <BattleMapTile
+        tile={halfCoverTile}
+        isValidMove={false}
+        isInPath={false}
+        isTargetable={false}
+        isAoePreview={false}
+        isTeleportDestinationPreview={false}
+        showCoverLabel
+        targetingMode={false}
+        onTileClick={mockOnTileClick}
+      />
+    );
+
+    // The cover sandbox needs the board itself to identify which tiles match
+    // the sidebar rules, so the label should be visible without hovering.
+    expect(screen.getByText('HC')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tile difficult at 7, 3, half cover' })).toBeInTheDocument();
+  });
 });

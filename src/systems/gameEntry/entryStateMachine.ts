@@ -26,6 +26,7 @@ export type GameEntryEvent =
     | { type: 'RESOLVED'; situation: OpeningSituation }
     | { type: 'UNAVAILABLE'; error: string }
     | { type: 'RETRY' }
+    | { type: 'SKIP' }
     | { type: 'RESET' };
 
 /**
@@ -68,6 +69,13 @@ export function gameEntryTransition(
         case 'RETRY':
             if (state.status !== 'model-unavailable') return state;
             return { status: 'generating', situation: null, error: null };
+
+        case 'SKIP':
+            // Let the player continue normal play when the optional generated
+            // opening cannot be made. This preserves the no-fallback rule: the
+            // game returns to ordinary play instead of pretending a scene exists.
+            if (state.status !== 'model-unavailable') return state;
+            return { ...INITIAL_GAME_ENTRY_STATE };
 
         case 'RESET':
             return { ...INITIAL_GAME_ENTRY_STATE };

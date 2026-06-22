@@ -10,7 +10,7 @@
  */
 
 import React from 'react';
-import { PlayerCharacter, MissingChoice, ShortRestTracker } from '../../types';
+import { PlayerCharacter, MissingChoice, ShortRestTracker, Companion } from '../../types';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import PartyPane from './PartyPane';
@@ -35,6 +35,8 @@ interface PartyOverlayProps {
     onClose: () => void;
     /** Array of party members to display */
     party: PlayerCharacter[];
+    /** Optional record of companions in state */
+    companions?: Record<string, Companion>;
     /** Callback when viewing a character's full sheet */
     onViewCharacterSheet: (character: PlayerCharacter) => void;
     /** Callback when fixing a missing character choice */
@@ -126,6 +128,7 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
     isOpen,
     onClose,
     party,
+    companions,
     onViewCharacterSheet,
     onFixMissingChoice,
     onLongRest,
@@ -153,6 +156,7 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
                 <div className="flex-1 overflow-y-auto scrollable-content p-4">
                     <PartyPane
                         party={party}
+                        companions={companions}
                         onViewCharacterSheet={onViewCharacterSheet}
                         onFixMissingChoice={onFixMissingChoice}
                     />

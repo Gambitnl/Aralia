@@ -1,0 +1,538 @@
+- generic [ref=e478]:
+  - generic "Decision visualizations" [ref=e479]:
+    - generic [ref=e480]:
+      - generic [ref=e481]:
+        - text: Decision Visualizations
+        - generic [ref=e482]:
+          - button "Decision Visualizations info" [ref=e483]: i
+          - tooltip "Decision Visualizations A set of isolated visual pages that show user-facing choices needing review.":
+            - strong: Decision Visualizations
+            - generic: A set of isolated visual pages that show user-facing choices needing review.
+      - strong [ref=e484]: Open visual examples for user-facing decisions
+    - article [ref=e486]:
+      - generic [ref=e487]:
+        - text: needs decision
+        - strong [ref=e488]: Choose the player-facing layout direction
+      - paragraph [ref=e489]: Isolated comparison page showing what each UI direction means before implementation continues.
+      - generic [ref=e490]:
+        - generic [ref=e491]: Human/product owner
+        - link "Open visual" [ref=e492] [cursor=pointer]:
+          - /url: /Aralia/misc/project_ui_template.html#decision-visual-example
+  - generic [ref=e493]:
+    - generic [ref=e494]:
+      - generic [ref=e495]:
+        - text: Parent Project Documents
+        - generic [ref=e496]:
+          - button "Parent Project Document Set info" [ref=e497]: i
+          - tooltip "Parent Project Document Set Parent projects keep ownership, routing, and registry files here. Iteration/pass files belong to the child subproject packets.":
+            - strong: Parent Project Document Set
+            - generic: Parent projects keep ownership, routing, and registry files here. Iteration/pass files belong to the child subproject packets.
+      - strong [ref=e498]: Parent routing and living-project files
+    - generic [ref=e499]:
+      - generic "Parent project document set" [ref=e500]:
+        - link "N" [ref=e501] [cursor=pointer]:
+          - /url: "#north-star-template"
+        - link "T" [ref=e502] [cursor=pointer]:
+          - /url: "#tracker-template"
+        - link "G" [ref=e503] [cursor=pointer]:
+          - /url: "#gaps-template"
+        - link "A" [ref=e504] [cursor=pointer]:
+          - /url: "#agent-prompt-template"
+        - 'generic "Decisions: missing; optional file missing" [ref=e505]': D
+        - link "P" [ref=e506] [cursor=pointer]:
+          - /url: "#proof-template"
+        - 'generic "Runbook: missing; optional file missing" [ref=e507]': R
+        - link "S" [ref=e508] [cursor=pointer]:
+          - /url: "#subprojects-template"
+      - generic [ref=e509]: SUBPROJECTS.md routes active lanes before gaps are imported
+      - generic [ref=e510]: docs/projects/parent-project-slug/SUBPROJECTS.md
+  - generic [ref=e511]:
+    - generic [ref=e512]:
+      - text: Subprojects
+      - generic [ref=e513]:
+        - button "Parent Subproject Count info" [ref=e514]: i
+        - tooltip "Parent Subproject Count The number of child lanes parsed from SUBPROJECTS.md.":
+          - strong: Parent Subproject Count
+          - generic: The number of child lanes parsed from SUBPROJECTS.md.
+    - strong [ref=e515]: "3"
+  - generic [ref=e516]:
+    - generic [ref=e517]:
+      - text: Active Lanes
+      - generic [ref=e518]:
+        - button "Parent Active Lanes info" [ref=e519]: i
+        - tooltip "Parent Active Lanes Child lanes currently marked active in the parent registry.":
+          - strong: Parent Active Lanes
+          - generic: Child lanes currently marked active in the parent registry.
+    - strong [ref=e520]: "2"
+  - generic [ref=e521]:
+    - generic [ref=e522]:
+      - text: Owned Lanes
+      - generic [ref=e523]:
+        - button "Parent Owned Lanes info" [ref=e524]: i
+        - tooltip "Parent Owned Lanes Child lanes owned by this parent project instead of adjacent or support projects.":
+          - strong: Parent Owned Lanes
+          - generic: Child lanes owned by this parent project instead of adjacent or support projects.
+    - strong [ref=e525]: "2"
+  - generic [ref=e526]:
+    - generic [ref=e527]:
+      - text: Linked Support
+      - generic [ref=e528]:
+        - button "Parent Linked Support info" [ref=e529]: i
+        - tooltip "Parent Linked Support Support projects that help this parent but keep separate ownership.":
+          - strong: Parent Linked Support
+          - generic: Support projects that help this parent but keep separate ownership.
+    - strong [ref=e530]: "1"
+  - generic [ref=e531]:
+    - generic [ref=e532]:
+      - text: Status
+      - generic [ref=e533]:
+        - button "Parent Status info" [ref=e534]: i
+        - tooltip "Parent Status The status of the parent routing shell, not a child implementation pass.":
+          - strong: Parent Status
+          - generic: The status of the parent routing shell, not a child implementation pass.
+    - strong [ref=e535]: tracked
+  - generic [ref=e536]:
+    - generic [ref=e537]:
+      - text: Confidence
+      - generic [ref=e538]:
+        - button "Parent Confidence info" [ref=e539]: i
+        - tooltip "Parent Confidence Confidence in the parent routing/project document state.":
+          - strong: Parent Confidence
+          - generic: Confidence in the parent routing/project document state.
+    - strong [ref=e540]: unknown
+  - generic [ref=e541]:
+    - generic [ref=e542]:
+      - text: Next Routing Action
+      - generic [ref=e543]:
+        - button "Parent Next Routing Action info" [ref=e544]: i
+        - tooltip "Parent Next Routing Action The next parent-level action. Implementation work should happen in a chosen subproject lane.":
+          - strong: Parent Next Routing Action
+          - generic: The next parent-level action. Implementation work should happen in a chosen subproject lane.
+    - strong [ref=e545]: Choose one high-impact subproject lane, then import only actionable gaps into GAPS.md.
+  - generic [ref=e546]:
+    - generic [ref=e547]:
+      - text: Boundary
+      - generic [ref=e548]:
+        - button "Parent Boundary info" [ref=e549]: i
+        - tooltip "Parent Boundary What the parent owns and where its registry lives.":
+          - strong: Parent Boundary
+          - generic: What the parent owns and where its registry lives.
+    - strong [ref=e550]: implemented
+  - region "Parent project subproject dashboard" [ref=e551]:
+    - generic [ref=e552]:
+      - generic [ref=e553]:
+        - generic [ref=e554]: "3"
+        - generic [ref=e555]:
+          - text: Subprojects
+          - generic [ref=e556]:
+            - button "Scoped Dashboard Stat info" [ref=e557]: i
+            - tooltip "Scoped Dashboard Stat A parent-project metric counted only from this parent SUBPROJECTS.md registry.":
+              - strong: Scoped Dashboard Stat
+              - generic: A parent-project metric counted only from this parent SUBPROJECTS.md registry.
+      - generic [ref=e558]:
+        - generic [ref=e559]: "2"
+        - generic [ref=e560]:
+          - text: Active lanes
+          - generic [ref=e561]:
+            - button "Scoped Dashboard Stat info" [ref=e562]: i
+            - tooltip "Scoped Dashboard Stat Child lanes currently marked active.":
+              - strong: Scoped Dashboard Stat
+              - generic: Child lanes currently marked active.
+      - generic [ref=e563]:
+        - generic [ref=e564]: "2"
+        - generic [ref=e565]:
+          - text: Owned lanes
+          - generic [ref=e566]:
+            - button "Scoped Dashboard Stat info" [ref=e567]: i
+            - tooltip "Scoped Dashboard Stat Child lanes owned by this parent project.":
+              - strong: Scoped Dashboard Stat
+              - generic: Child lanes owned by this parent project.
+      - generic [ref=e568]:
+        - generic [ref=e569]: "1"
+        - generic [ref=e570]:
+          - text: Linked support
+          - generic [ref=e571]:
+            - button "Scoped Dashboard Stat info" [ref=e572]: i
+            - tooltip "Scoped Dashboard Stat Support lanes that help the parent while keeping separate ownership.":
+              - strong: Scoped Dashboard Stat
+              - generic: Support lanes that help the parent while keeping separate ownership.
+      - generic [ref=e573]:
+        - generic [ref=e574]: docs/projects/parent-project-slug/SUBPROJECTS.md
+        - generic [ref=e575]:
+          - text: Registry
+          - generic [ref=e576]:
+            - button "Subproject Registry info" [ref=e577]: i
+            - tooltip "Subproject Registry The parent-owned file that feeds this scoped dashboard.":
+              - strong: Subproject Registry
+              - generic: The parent-owned file that feeds this scoped dashboard.
+    - generic "Scoped subproject filters" [ref=e579]:
+      - generic [ref=e580]:
+        - generic [ref=e581]: Search
+        - strong [ref=e582]: Search subprojects
+        - generic [ref=e583]:
+          - strong [ref=e585]: Subproject name
+          - strong [ref=e587]: Subproject slug
+          - strong [ref=e589]: Relationship
+          - strong [ref=e591]: Evidence path
+          - strong [ref=e593]: Next action
+      - generic [ref=e594]:
+        - generic [ref=e595]: Status
+        - strong [ref=e596]: All subproject statuses
+        - generic [ref=e597]:
+          - generic [ref=e598]:
+            - strong [ref=e599]: active
+            - generic [ref=e600]: "2"
+          - generic [ref=e601]:
+            - strong [ref=e602]: linked_support
+            - generic [ref=e603]: "1"
+      - generic [ref=e604]:
+        - generic [ref=e605]: Relationship
+        - strong [ref=e606]: All lane types
+        - generic [ref=e607]:
+          - generic [ref=e608]:
+            - strong [ref=e609]: owned lane
+            - generic [ref=e610]: "2"
+          - generic [ref=e611]:
+            - strong [ref=e612]: supporting project
+            - generic [ref=e613]: "1"
+      - generic [ref=e614]:
+        - generic [ref=e615]: Schema
+        - strong [ref=e616]: All setup states
+        - generic [ref=e618]:
+          - strong [ref=e619]: valid
+          - generic [ref=e620]: "3"
+      - generic [ref=e621]:
+        - generic [ref=e622]: Lifecycle
+        - strong [ref=e623]: All lane states
+        - generic [ref=e624]:
+          - generic [ref=e625]:
+            - strong [ref=e626]: owned lane
+            - generic [ref=e627]: "2"
+          - generic [ref=e628]:
+            - strong [ref=e629]: supporting project
+            - generic [ref=e630]: "1"
+      - generic [ref=e631]:
+        - generic [ref=e632]: Sort
+        - strong [ref=e633]: Registry order
+        - generic [ref=e634]:
+          - strong [ref=e636]: Status A-Z
+          - strong [ref=e638]: Relationship A-Z
+          - strong [ref=e640]: Name A-Z
+          - strong [ref=e642]: Most open gaps
+          - strong [ref=e644]: Setup path present
+    - generic [ref=e645]:
+      - group [ref=e646]:
+        - generic [ref=e647]:
+          - generic [ref=e648]:
+            - heading "Core runtime lane" [level=3] [ref=e649]
+            - generic [ref=e650]: Core runtime lane
+            - generic [ref=e651]:
+              - button "Project Row Card info" [ref=e652]: i
+              - tooltip "Project Row Card A clickable project summary row. On the tracker dashboard it opens the in-place project viewer; the full standalone page remains available from that viewer.":
+                - strong: Project Row Card
+                - generic: A clickable project summary row. On the tracker dashboard it opens the in-place project viewer; the full standalone page remains available from that viewer.
+          - generic [ref=e653]:
+            - generic [ref=e654]: active
+            - generic [ref=e655]: owned lane confidence
+            - generic [ref=e656]: owned lane
+            - generic [ref=e657]: "Updated: not recorded"
+            - generic [ref=e658]: valid
+            - generic [ref=e659]: owned lane
+          - paragraph [ref=e660]: Pick the highest-impact runtime slice and record any new actionable gap in GAPS.md.
+          - generic [ref=e661]:
+            - 'generic "Project iteration counter: Iteration not recorded" [ref=e662]':
+              - generic [ref=e663]: Iteration
+              - strong [ref=e664]: Not recorded
+            - 'generic "Open project gaps: No gap IDs recorded" [ref=e665]':
+              - generic [ref=e666]: Open gaps
+              - strong [ref=e667]: Not recorded
+            - 'generic "Active agent: Not recorded" [ref=e668]':
+              - generic [ref=e669]: Active agent
+              - strong [ref=e670]: Not recorded
+            - 'generic "Agent pass status: Not recorded" [ref=e671]':
+              - generic [ref=e672]: Pass status
+              - strong [ref=e673]: Not recorded
+            - 'generic "Agent pass start time: Not recorded" [ref=e674]':
+              - generic [ref=e675]: Start time
+              - strong [ref=e676]: Not recorded
+            - 'generic "Agent pass end time: Not recorded" [ref=e677]':
+              - generic [ref=e678]: End time
+              - strong [ref=e679]: Not recorded
+        - generic [ref=e680]:
+          - 'generic "Project YAML schema status: yaml" [ref=e681]':
+            - generic [ref=e682]: Schema
+            - generic [ref=e683]:
+              - strong [ref=e684]: YAML
+              - strong [ref=e685]: Not YAML
+          - generic "Project document set" [ref=e686]:
+            - link "N" [ref=e687] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/core-runtime-lane/NORTH_STAR.md
+            - link "T" [ref=e688] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/core-runtime-lane/TRACKER.md
+            - link "G" [ref=e689] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/core-runtime-lane/GAPS.md
+            - link "A" [ref=e690] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/core-runtime-lane/COLD_START_AGENT_PROMPT.md
+            - link "D" [ref=e691] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/core-runtime-lane/DECISIONS.md
+            - link "P" [ref=e692] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/core-runtime-lane/AUDIT_OR_PROOF.md
+            - link "R" [ref=e693] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/core-runtime-lane/RUNBOOK.md
+          - link "Open setup" [ref=e694] [cursor=pointer]:
+            - /url: /Aralia/docs/projects/parent-project-slug/subprojects/core-runtime-lane/NORTH_STAR.md
+          - button "Copy a directive that tells an agent to read and execute the cold-start prompt" [ref=e695] [cursor=pointer]: Copy A path
+          - generic [ref=e696]: "Verification: Focused runtime or document proof named by the lane."
+          - generic [ref=e697]: Required docs present
+          - generic [ref=e698]: No gap IDs recorded
+          - generic [ref=e699]: docs/projects/parent-project-slug/TRACKER.md; docs/tasks/parent-lane
+      - group [ref=e700]:
+        - generic [ref=e701]:
+          - generic [ref=e702]:
+            - heading "Audit and completeness lane" [level=3] [ref=e703]
+            - generic [ref=e704]: Audit and completeness lane
+            - generic [ref=e705]:
+              - button "Project Row Card info" [ref=e706]: i
+              - tooltip "Project Row Card A clickable project summary row. On the tracker dashboard it opens the in-place project viewer; the full standalone page remains available from that viewer.":
+                - strong: Project Row Card
+                - generic: A clickable project summary row. On the tracker dashboard it opens the in-place project viewer; the full standalone page remains available from that viewer.
+          - generic [ref=e707]:
+            - generic [ref=e708]: active
+            - generic [ref=e709]: owned lane confidence
+            - generic [ref=e710]: owned lane
+            - generic [ref=e711]: "Updated: not recorded"
+            - generic [ref=e712]: valid
+            - generic [ref=e713]: owned lane
+          - paragraph [ref=e714]: Promote only confirmed in-scope findings into the parent project gap register.
+          - generic [ref=e715]:
+            - 'generic "Project iteration counter: Iteration not recorded" [ref=e716]':
+              - generic [ref=e717]: Iteration
+              - strong [ref=e718]: Not recorded
+            - 'generic "Open project gaps: No gap IDs recorded" [ref=e719]':
+              - generic [ref=e720]: Open gaps
+              - strong [ref=e721]: Not recorded
+            - 'generic "Active agent: Not recorded" [ref=e722]':
+              - generic [ref=e723]: Active agent
+              - strong [ref=e724]: Not recorded
+            - 'generic "Agent pass status: Not recorded" [ref=e725]':
+              - generic [ref=e726]: Pass status
+              - strong [ref=e727]: Not recorded
+            - 'generic "Agent pass start time: Not recorded" [ref=e728]':
+              - generic [ref=e729]: Start time
+              - strong [ref=e730]: Not recorded
+            - 'generic "Agent pass end time: Not recorded" [ref=e731]':
+              - generic [ref=e732]: End time
+              - strong [ref=e733]: Not recorded
+        - generic [ref=e734]:
+          - 'generic "Project YAML schema status: yaml" [ref=e735]':
+            - generic [ref=e736]: Schema
+            - generic [ref=e737]:
+              - strong [ref=e738]: YAML
+              - strong [ref=e739]: Not YAML
+          - generic "Project document set" [ref=e740]:
+            - link "N" [ref=e741] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/audit-completeness-lane/NORTH_STAR.md
+            - link "T" [ref=e742] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/audit-completeness-lane/TRACKER.md
+            - link "G" [ref=e743] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/audit-completeness-lane/GAPS.md
+            - link "A" [ref=e744] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/audit-completeness-lane/COLD_START_AGENT_PROMPT.md
+            - link "D" [ref=e745] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/audit-completeness-lane/DECISIONS.md
+            - link "P" [ref=e746] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/audit-completeness-lane/AUDIT_OR_PROOF.md
+            - link "R" [ref=e747] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/audit-completeness-lane/RUNBOOK.md
+          - link "Open setup" [ref=e748] [cursor=pointer]:
+            - /url: /Aralia/docs/projects/parent-project-slug/subprojects/audit-completeness-lane/NORTH_STAR.md
+          - button "Copy a directive that tells an agent to read and execute the cold-start prompt" [ref=e749] [cursor=pointer]: Copy A path
+          - generic [ref=e750]: "Verification: Audit output plus explicit routing decision."
+          - generic [ref=e751]: Required docs present
+          - generic [ref=e752]: No gap IDs recorded
+          - generic [ref=e753]: docs/tasks/parent-completeness-audit
+      - group [ref=e754]:
+        - generic [ref=e755]:
+          - generic [ref=e756]:
+            - heading "Tooling support project" [level=3] [ref=e757]
+            - generic [ref=e758]: Tooling support project
+            - generic [ref=e759]:
+              - button "Project Row Card info" [ref=e760]: i
+              - tooltip "Project Row Card A clickable project summary row. On the tracker dashboard it opens the in-place project viewer; the full standalone page remains available from that viewer.":
+                - strong: Project Row Card
+                - generic: A clickable project summary row. On the tracker dashboard it opens the in-place project viewer; the full standalone page remains available from that viewer.
+          - generic [ref=e761]:
+            - generic [ref=e762]: linked_support
+            - generic [ref=e763]: supporting project confidence
+            - generic [ref=e764]: supporting project
+            - generic [ref=e765]: "Updated: not recorded"
+            - generic [ref=e766]: valid
+            - generic [ref=e767]: supporting project
+          - paragraph [ref=e768]: Keep tooling gaps in the tooling project unless they expose parent-project product debt.
+          - generic [ref=e769]:
+            - 'generic "Project iteration counter: Iteration not recorded" [ref=e770]':
+              - generic [ref=e771]: Iteration
+              - strong [ref=e772]: Not recorded
+            - 'generic "Open project gaps: No gap IDs recorded" [ref=e773]':
+              - generic [ref=e774]: Open gaps
+              - strong [ref=e775]: Not recorded
+            - 'generic "Active agent: Not recorded" [ref=e776]':
+              - generic [ref=e777]: Active agent
+              - strong [ref=e778]: Not recorded
+            - 'generic "Agent pass status: Not recorded" [ref=e779]':
+              - generic [ref=e780]: Pass status
+              - strong [ref=e781]: Not recorded
+            - 'generic "Agent pass start time: Not recorded" [ref=e782]':
+              - generic [ref=e783]: Start time
+              - strong [ref=e784]: Not recorded
+            - 'generic "Agent pass end time: Not recorded" [ref=e785]':
+              - generic [ref=e786]: End time
+              - strong [ref=e787]: Not recorded
+        - generic [ref=e788]:
+          - 'generic "Project YAML schema status: yaml" [ref=e789]':
+            - generic [ref=e790]: Schema
+            - generic [ref=e791]:
+              - strong [ref=e792]: YAML
+              - strong [ref=e793]: Not YAML
+          - generic "Project document set" [ref=e794]:
+            - link "N" [ref=e795] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/tooling-support-project/NORTH_STAR.md
+            - link "T" [ref=e796] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/tooling-support-project/TRACKER.md
+            - link "G" [ref=e797] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/tooling-support-project/GAPS.md
+            - link "A" [ref=e798] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/tooling-support-project/COLD_START_AGENT_PROMPT.md
+            - link "D" [ref=e799] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/tooling-support-project/DECISIONS.md
+            - link "P" [ref=e800] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/tooling-support-project/AUDIT_OR_PROOF.md
+            - link "R" [ref=e801] [cursor=pointer]:
+              - /url: /Aralia/docs/projects/parent-project-slug/subprojects/tooling-support-project/RUNBOOK.md
+          - link "Open setup" [ref=e802] [cursor=pointer]:
+            - /url: /Aralia/docs/projects/parent-project-slug/subprojects/tooling-support-project/NORTH_STAR.md
+          - button "Copy a directive that tells an agent to read and execute the cold-start prompt" [ref=e803] [cursor=pointer]: Copy A path
+          - generic [ref=e804]: "Verification: Tooling proof plus any imported parent gap."
+          - generic [ref=e805]: Required docs present
+          - generic [ref=e806]: No gap IDs recorded
+          - generic [ref=e807]: docs/projects/supporting-tooling-project
+  - generic [ref=e808]:
+    - generic [ref=e809]:
+      - button "North Star" [expanded] [ref=e810] [cursor=pointer]:
+        - heading "North Star" [level=3] [ref=e811]: North Star
+      - button "Project Document Card info" [ref=e813]: i
+      - tooltip "Project Document Card A collapsible card containing one project markdown document.":
+        - strong: Project Document Card
+        - generic: A collapsible card containing one project markdown document.
+      - generic [ref=e814]:
+        - button "Edit" [ref=e815] [cursor=pointer]
+        - button "Copy" [ref=e816] [cursor=pointer]
+        - button "Copy path" [ref=e817] [cursor=pointer]
+        - generic [ref=e818]: 4.0 KB
+        - generic [ref=e819]: 6/4/2026, 12:38:32 AM
+        - link "Open raw" [ref=e820] [cursor=pointer]:
+          - /url: "#north-star-template"
+      - generic "NORTH_STAR.md" [ref=e821]
+      - generic [ref=e823]: "# North Star Status: active Last updated: 2026-06-03 Purpose, scope, boundaries, file map, and handoff notes appear here."
+    - generic [ref=e824]:
+      - button "Tracker" [ref=e825] [cursor=pointer]:
+        - heading "Tracker" [level=3] [ref=e826]: Tracker
+      - button "Project Document Card info" [ref=e828]: i
+      - tooltip "Project Document Card A collapsible card containing one project markdown document.":
+        - strong: Project Document Card
+        - generic: A collapsible card containing one project markdown document.
+      - generic [ref=e829]:
+        - button "Edit" [ref=e830] [cursor=pointer]
+        - button "Copy" [ref=e831] [cursor=pointer]
+        - button "Copy path" [ref=e832] [cursor=pointer]
+        - generic [ref=e833]: 4.5 KB
+        - generic [ref=e834]: 6/4/2026, 12:38:32 AM
+        - link "Open raw" [ref=e835] [cursor=pointer]:
+          - /url: "#tracker-template"
+      - generic "TRACKER.md" [ref=e836]
+    - generic [ref=e837]:
+      - button "Gaps" [ref=e838] [cursor=pointer]:
+        - heading "Gaps" [level=3] [ref=e839]: Gaps
+      - button "Project Document Card info" [ref=e841]: i
+      - tooltip "Project Document Card A collapsible card containing one project markdown document.":
+        - strong: Project Document Card
+        - generic: A collapsible card containing one project markdown document.
+      - generic [ref=e842]:
+        - button "Edit" [ref=e843] [cursor=pointer]
+        - button "Copy" [ref=e844] [cursor=pointer]
+        - button "Copy path" [ref=e845] [cursor=pointer]
+        - generic [ref=e846]: 3.0 KB
+        - generic [ref=e847]: 6/4/2026, 12:38:32 AM
+        - link "Open raw" [ref=e848] [cursor=pointer]:
+          - /url: "#gaps-template"
+      - generic "GAPS.md" [ref=e849]
+    - generic [ref=e850]:
+      - button "Agent Prompt" [ref=e851] [cursor=pointer]:
+        - heading "Agent Prompt" [level=3] [ref=e852]: Agent Prompt
+      - button "Project Document Card info" [ref=e854]: i
+      - tooltip "Project Document Card A collapsible card containing one project markdown document.":
+        - strong: Project Document Card
+        - generic: A collapsible card containing one project markdown document.
+      - generic [ref=e855]:
+        - button "Edit" [ref=e856] [cursor=pointer]
+        - button "Copy" [ref=e857] [cursor=pointer]
+        - button "Copy path" [ref=e858] [cursor=pointer]
+        - generic [ref=e859]: 3.5 KB
+        - generic [ref=e860]: 6/4/2026, 12:38:32 AM
+        - link "Open raw" [ref=e861] [cursor=pointer]:
+          - /url: "#agent-prompt-template"
+      - generic "COLD_START_AGENT_PROMPT.md" [ref=e862]
+    - generic [ref=e863]:
+      - button "Decisions" [ref=e864] [cursor=pointer]:
+        - heading "Decisions" [level=3] [ref=e865]: Decisions
+      - button "Project Document Card info" [ref=e867]: i
+      - tooltip "Project Document Card A collapsible card containing one project markdown document.":
+        - strong: Project Document Card
+        - generic: A collapsible card containing one project markdown document.
+      - generic [ref=e868]:
+        - button "Copy path" [ref=e869] [cursor=pointer]
+        - generic [ref=e870]: Missing
+      - generic "DECISIONS.md" [ref=e871]
+    - generic [ref=e872]:
+      - button "Proof" [ref=e873] [cursor=pointer]:
+        - heading "Proof" [level=3] [ref=e874]: Proof
+      - button "Project Document Card info" [ref=e876]: i
+      - tooltip "Project Document Card A collapsible card containing one project markdown document.":
+        - strong: Project Document Card
+        - generic: A collapsible card containing one project markdown document.
+      - generic [ref=e877]:
+        - button "Edit" [ref=e878] [cursor=pointer]
+        - button "Copy" [ref=e879] [cursor=pointer]
+        - button "Copy path" [ref=e880] [cursor=pointer]
+        - generic [ref=e881]: 2.0 KB
+        - generic [ref=e882]: 6/4/2026, 12:38:32 AM
+        - link "Open raw" [ref=e883] [cursor=pointer]:
+          - /url: "#proof-template"
+      - generic "AUDIT_OR_PROOF.md" [ref=e884]
+    - generic [ref=e885]:
+      - button "Runbook" [ref=e886] [cursor=pointer]:
+        - heading "Runbook" [level=3] [ref=e887]: Runbook
+      - button "Project Document Card info" [ref=e889]: i
+      - tooltip "Project Document Card A collapsible card containing one project markdown document.":
+        - strong: Project Document Card
+        - generic: A collapsible card containing one project markdown document.
+      - generic [ref=e890]:
+        - button "Copy path" [ref=e891] [cursor=pointer]
+        - generic [ref=e892]: Missing
+      - generic "RUNBOOK.md" [ref=e893]
+    - generic [ref=e894]:
+      - button "Subprojects" [ref=e895] [cursor=pointer]:
+        - heading "Subprojects" [level=3] [ref=e896]: Subprojects
+      - button "Project Document Card info" [ref=e898]: i
+      - tooltip "Project Document Card A collapsible card containing one project markdown document.":
+        - strong: Project Document Card
+        - generic: A collapsible card containing one project markdown document.
+      - generic [ref=e899]:
+        - button "Edit" [ref=e900] [cursor=pointer]
+        - button "Copy" [ref=e901] [cursor=pointer]
+        - button "Copy path" [ref=e902] [cursor=pointer]
+        - generic [ref=e903]: 5.0 KB
+        - generic [ref=e904]: 6/20/2026, 5:00:00 PM
+        - link "Open raw" [ref=e905] [cursor=pointer]:
+          - /url: "#subprojects-template"
+      - generic "SUBPROJECTS.md" [ref=e906]

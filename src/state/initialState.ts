@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/06/2026, 03:45:27
+ * Last Sync: 22/06/2026, 00:45:16
  * Dependents: App.tsx, state/appState.ts
  * Imports: 15 files
  *
@@ -98,6 +98,8 @@ export const initialGameState: GameState = {
     worldSeed: Date.now(), // Default seed, will be overwritten on new game
     mapData: null,
     isMapVisible: false,
+    isLongRestModalVisible: false,
+    isShortRestModalVisible: false,
     isSubmapVisible: false,
     isThreeDVisible: false,
     isPartyOverlayVisible: false,

@@ -4,11 +4,11 @@ handoff_type: agent_to_agent
 project: Design Preview
 slug: design-preview
 status: idle
-last_updated: 2026-06-12
-iteration: 8
-source_agent: Gemini CLI
+last_updated: 2026-06-22
+iteration: 9
+source_agent: Codex
 target_agent: next cold-start agent
-runtime_surface: CLI agent
+runtime_surface: desktop app
 certainty: certain
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
@@ -20,7 +20,7 @@ gaps: docs/projects/design-preview/GAPS.md
 # Design Preview Cold Start Agent Handoff
 
 status: idle
-Last updated: 2026-06-12
+Last updated: 2026-06-22
 This file is the project-specific context package and directive checklist for
 the next cold-start agent. It does not duplicate the full workflow rules. The
 agent must follow the shared workflow file and use this file for current
@@ -41,7 +41,7 @@ docs/projects/design-preview/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Design Preview
 Project folder: docs/projects/design-preview
-Iteration: 8
+Iteration: 9
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -58,18 +58,22 @@ Audit/proof: docs/projects/design-preview/AUDIT_OR_PROOF.md
 | 5 | Gemini CLI | CLI agent | certain | 2026-06-08 | T2 closure, self-contained workflow update |
 | 6 | gpt-5.4-mini high | CLI agent | certain | 2026-06-09 | Source-backed lane steward map, split-readiness proof gates, and G1/G3/G4 closure |
 | 7 | Gemini CLI | CLI agent | certain | 2026-06-10 | Routine docs consistency verification and handoff update |
+| 8 | Codex | desktop app | certain | 2026-06-22 | Tactical Sandbox scenarios routed into `docs/projects/design-preview-scenarios` parent/subproject docs |
 
 ## Previous Agent Handoff
 
-Iteration 7 was a routine verification pass. It confirmed the project docs are consistent via `npm run projects:audit` and `git diff --check`. No new gaps were identified, and the project remains in a steady state. The lane steward map and split-readiness proof anchors in `NORTH_STAR.md` were preserved.
+Iteration 8 created `docs/projects/design-preview-scenarios` as the parent-with-subprojects route for the Tactical Sandbox / Combat Scenarios lane. The broad Design Preview project remains the steward for the whole preview tool, while scenario-specific work now starts from the scenario parent and its child packets.
 
 ## Current Mission
 
 Active task:
-None.
+None for the broad Design Preview project.
+
+Scenario-specific active work should be selected from:
+`docs/projects/design-preview-scenarios/SUBPROJECTS.md`
 
 Acceptance criteria:
-The project is in a steady documented state. The next agent should preserve the source-backed lane steward map, keep the split-readiness proof anchors current, and only touch runtime code if a new request or a routed split plan makes that necessary.
+The project is in a steady documented state. The next agent should preserve the source-backed lane steward map, keep the split-readiness proof anchors current, and route Tactical Sandbox scenario work through the new scenario parent.
 
 Key files to touch:
 - docs/projects/design-preview/NORTH_STAR.md
@@ -78,6 +82,8 @@ Key files to touch:
 - docs/projects/design-preview/COLD_START_AGENT_PROMPT.md
 - docs/projects/design-preview/RUNBOOK.md
 - docs/projects/design-preview/AUDIT_OR_PROOF.md
+- docs/projects/design-preview-scenarios/NORTH_STAR.md when the task is scenario-specific
+- docs/projects/design-preview-scenarios/SUBPROJECTS.md when the task is scenario-specific
 
 Optional docs to check when present or named by tracker:
 - DECISIONS.md
@@ -89,19 +95,19 @@ Optional docs to check when present or named by tracker:
 Scoped verification:
 - `git diff --check` for all touched files, including any new file.
 - `npm run projects:audit` and a Design Preview row check to confirm the registry still points at this project folder.
-- Visual checks using `RUNBOOK.md` only if any runtime or styling features are added later.
+- Visual checks using `RUNBOOK.md` only if broad preview runtime or styling features are added later. Scenario visual checks should use the scenario parent runbook and `misc/design.html?step=scenarios`.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Do not implement large new lanes without a registered task or explicitly updating the scope in `NORTH_STAR.md`.
+Stay inside this project's scope boundaries. Do not implement large new lanes without a registered task or explicitly updating the scope in `NORTH_STAR.md`. Do not collapse the scenario child packets back into this broad tracker.
 
 Recent progress:
-T2 is closed. A self-contained cold-start resume path exists in `NORTH_STAR.md`. The manual launch and smoke checklist is maintained in `RUNBOOK.md`. The lane steward map now covers the active router, and the only large helper called out as dormant is `PreviewMdLibrary.tsx`.
+T2 is closed. A self-contained cold-start resume path exists in `NORTH_STAR.md`. The manual launch and smoke checklist is maintained in `RUNBOOK.md`. The lane steward map now covers the active router, the only large helper called out as dormant is `PreviewMdLibrary.tsx`, and the scenarios lane now points to `docs/projects/design-preview-scenarios`.
 
 Workflow gaps reviewed:
-Checked `WORKFLOW_GAPS.md` and `GLOBAL_GAPS.md`. No new workflow-level gaps were found affecting this state.
+Checked `GLOBAL_GAPS.md` and the living-project protocol while creating the scenario parent. No global gap was imported into Design Preview.
 
 Dashboard schema updates:
-`gap_signal` now reads as 0 open gaps. `next_step` now points at maintaining the lane steward map and awaiting new preview work.
+`gap_signal` now reads as 0 open gaps with the scenario parent route noted. `next_step` now points at maintaining the lane steward map and routing Tactical Sandbox scenario work through `docs/projects/design-preview-scenarios`.
 
 ## Required End State For This Iteration
 

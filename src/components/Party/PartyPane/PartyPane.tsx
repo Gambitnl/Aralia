@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { PlayerCharacter, MissingChoice } from '../../../types';
+import { PlayerCharacter, MissingChoice, Companion } from '../../../types';
 import PartyMemberCard from './PartyMemberCard';
 
 // -----------------------------------------------------------------------------
@@ -15,6 +15,8 @@ import PartyMemberCard from './PartyMemberCard';
 interface PartyPaneProps {
     /** Array of party member characters to display */
     party: PlayerCharacter[];
+    /** Optional companion data to enrich the party cards */
+    companions?: Record<string, Companion>;
     /** Callback when a character's "more" button is clicked (opens character sheet) */
     onViewCharacterSheet: (character: PlayerCharacter) => void;
     /** Callback when a missing choice warning is clicked */
@@ -31,6 +33,7 @@ interface PartyPaneProps {
  */
 const PartyPane: React.FC<PartyPaneProps> = ({
     party,
+    companions,
     onViewCharacterSheet,
     onFixMissingChoice
 }) => {
@@ -49,14 +52,18 @@ const PartyPane: React.FC<PartyPaneProps> = ({
     return (
         <div className="w-full space-y-3">
             {/* Render a card for each party member */}
-            {party.map(member => (
-                <PartyMemberCard
-                    key={member.id || member.name}
-                    character={member}
-                    onMoreClick={() => onViewCharacterSheet(member)}
-                    onMissingChoiceClick={onFixMissingChoice}
-                />
-            ))}
+            {party.map(member => {
+                const companion = companions?.[member.id];
+                return (
+                    <PartyMemberCard
+                        key={member.id || member.name}
+                        character={member}
+                        companion={companion}
+                        onMoreClick={() => onViewCharacterSheet(member)}
+                        onMissingChoiceClick={onFixMissingChoice}
+                    />
+                );
+            })}
         </div>
     );
 };

@@ -1,4 +1,5 @@
 import { buildChunkBundle } from '../chunkBundle';
+import { terrainVertexCount } from '../chunkGeometry';
 import type { ChunkData } from '../types';
 
 const forestChunk = (): ChunkData => ({
@@ -16,8 +17,8 @@ it('assembles a bundle with terrain always present', () => {
   const bundle = buildChunkBundle(forestChunk());
   expect(bundle.cx).toBe(1);
   expect(bundle.cy).toBe(1);
-  expect(bundle.terrain.positions.length).toBe(6 * 6 * 3);
-  expect(bundle.terrain.colors.length).toBe(6 * 6 * 3);
+  expect(bundle.terrain.positions.length).toBe(terrainVertexCount(6, true) * 3);
+  expect(bundle.terrain.colors.length).toBe(terrainVertexCount(6, true) * 3);
   expect(bundle.sites).toEqual([]);
 });
 

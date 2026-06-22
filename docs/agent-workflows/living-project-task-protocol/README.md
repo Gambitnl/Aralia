@@ -159,7 +159,14 @@ During the task:
    capability, reusable system, automation opportunity, adjacent owner task, or
    scope boundary that should be preserved for future agents. Expansion radar
    is continuous, not only a closeout sweep.
-5. Classify every discovered gap or expansion opportunity:
+5. Keep an active edge-case radar alongside expansion radar. When the active
+   surface has UI, command flow, state, parser, data, or integration behavior,
+   test nearby boundaries instead of only reading the files you changed. Try
+   representative invalid states, unusual action order, missing or stale data,
+   disabled/loading/error states, and adjacent controls or callers that share
+   the same state. Keep this bounded to the active project, but do not assume
+   adjacent unedited code works just because it was not touched.
+6. Classify every discovered gap or expansion opportunity:
    - in_scope_now: required to complete the current task.
    - support_needed_now: not the product task, but needed so the task can move.
    - adjacent_follow_up: useful, but should not widen this slice.
@@ -167,18 +174,18 @@ During the task:
    - blocked_human_decision: needs operator or owner choice.
    - blocked_external_state: waiting on another system, person, PR, job, or
      environment.
-6. Fix small support gaps immediately when they are clearly needed, bounded,
+7. Fix small support gaps immediately when they are clearly needed, bounded,
    and safe.
-7. For larger or adjacent gaps that belong to this project, record them in the
+8. For larger or adjacent gaps that belong to this project, record them in the
    living tracker or project gap file with source evidence, owner, next action,
    and next proof.
-8. For gaps or expansion opportunities that do not belong to this project,
+9. For gaps or expansion opportunities that do not belong to this project,
    record them in the global gap tracker with enough routing context that a
    later agent can decide whether to import, route, reject, or leave them
    unowned.
-9. Preserve future possibility. Do not delete unfinished intent, scaffolds, or
+10. Preserve future possibility. Do not delete unfinished intent, scaffolds, or
    branches of work just because they are messy or incomplete.
-10. If a finding belongs to another subsystem, link to that subsystem's tracker
+11. If a finding belongs to another subsystem, link to that subsystem's tracker
    from the global row instead of making the current project own everything.
 
 Evidence and artifact boundary:
@@ -417,7 +424,7 @@ Prefer a small shared vocabulary so future agents do not guess what a row means.
 |---|---|
 | `not_started` | Known work, not active yet. |
 | `active` | Work is being handled now. |
-| `idle` | Project is alive and may resume, but the latest scan found no actionable project, global, or workflow gap. Do not dispatch another forward iteration until a new gap or operator task appears. |
+| `idle` | Project is alive and may resume, but the latest read scan and active edge-case sweep found no actionable project, global, or workflow gap. Do not dispatch another forward iteration until a new gap or operator task appears. |
 | `waiting` | Waiting for external checks, another actor, or scheduled follow-up. Include a next check condition. |
 | `blocked` | Next action is known but cannot proceed until a blocker is removed. Include owner and unblock condition. |
 | `done` | Complete with evidence linked or summarized. |
@@ -439,9 +446,9 @@ An empty or `None` active-task field is not a stop signal for an `active`
 project. It means the next iteration agent must complete the scan phase, choose
 the next actionable project/global/workflow gap if one exists, and record that
 gap as the active task before executing. If no actionable gap exists, set the
-project to `idle`, record the scan outcome in the North Star, tracker, project
-tracker row when applicable, and cold-start handoff, and name the trigger that
-would make the project actionable again.
+project to `idle`, record the read scan and active edge-case sweep outcome in
+the North Star, tracker, project tracker row when applicable, and cold-start
+handoff, and name the trigger that would make the project actionable again.
 
 ## Gap Classification
 
@@ -457,18 +464,23 @@ Use these classifications when new work appears.
 | `blocked_external_state` | Waiting on PR, CI, vendor, service, environment, or another person. | Record evidence and next refresh/check condition. |
 
 Every iteration must perform a bounded gap sweep. Check the active task
-surface, touched files, nearby integration points, this project GAPS.md,
-GLOBAL_GAPS.md, and inbound routes from known routing projects. Known routing
-projects include `docs/projects/GLOBAL_GAPS.md`, architecture sweep docs,
-code-modularization audits, and any project whose tracker or gap file names the
-current project as the destination owner. During the sweep, also report whether
-the iteration surfaced any real expansion opportunity: a new capability, system
-owner, project slice, automation target, reuse path, or explicit boundary worth
-preserving. Record real gaps found. If fewer than two related or unrelated gaps
-are real, the final report must name the checked surfaces and state that no
-additional real gap was found. If no expansion opportunity was found, say which
-surfaces were checked and that no source-backed expansion opportunity appeared.
-Do not invent filler gaps or speculative expansion just to satisfy the workflow.
+surface, touched files, nearby integration points, closely coupled adjacent
+files/components, recent project commits or handoff notes, this project
+GAPS.md, GLOBAL_GAPS.md, and inbound routes from known routing projects. Known
+routing projects include `docs/projects/GLOBAL_GAPS.md`, architecture sweep
+docs, code-modularization audits, and any project whose tracker or gap file
+names the current project as the destination owner. During the sweep, also
+report whether the iteration surfaced any real expansion opportunity: a new
+capability, system owner, project slice, automation target, reuse path, or
+explicit boundary worth preserving. Record real gaps found. If fewer than two
+related or unrelated gaps are real, the final report must name the checked
+surfaces and state that no additional real gap was found. If no expansion
+opportunity was found, say which surfaces were checked and that no
+source-backed expansion opportunity appeared. When claiming no additional gaps,
+gap-free, or idle, the final report must also name the active edge-case or
+chaos probe vectors used, such as invalid states, unusual action order, missing
+data, disabled/loading/error states, or adjacent shared-state callers. Do not
+invent filler gaps or speculative expansion just to satisfy the workflow.
 
 Every durable gap should include:
 
@@ -560,8 +572,9 @@ Minimum closeout for every project iteration:
    with the North Star.
 
 The final report must include: files updated, files intentionally not updated,
-verification performed or skipped, bounded gap sweep surfaces checked, gaps
-recorded, assumptions made, and the next safe resume action.
+verification performed or skipped, bounded gap sweep surfaces checked, active
+edge-case/chaos probe vectors when claiming no new gaps or idle, gaps recorded,
+assumptions made, and the next safe resume action.
 
 ## Durable Evidence Boundary
 

@@ -1,4 +1,5 @@
 import { handleChunkRequest } from '../chunkWorkerCore';
+import { terrainVertexCount } from '../chunkGeometry';
 import { WORLD3D_CONFIG } from '../config';
 import { runWorldSim } from '@/services/worldSim';
 
@@ -30,8 +31,8 @@ it('builds well-formed bundles across a window of a realistic world', () => {
   for (let cy = 40; cy < 49; cy++) {
     for (let cx = 40; cx < 49; cx++) {
       const bundle = handleChunkRequest(world, { cx, cy, resolution: res });
-      expect(bundle.terrain.positions.length).toBe(res * res * 3);
-      expect(bundle.terrain.colors.length).toBe(res * res * 3);
+      expect(bundle.terrain.positions.length).toBe(terrainVertexCount(res, true) * 3);
+      expect(bundle.terrain.colors.length).toBe(terrainVertexCount(res, true) * 3);
       for (const v of bundle.terrain.positions) expect(Number.isFinite(v)).toBe(true);
       if (bundle.water) withWater++;
       if (bundle.vegetation) withVegetation++;

@@ -91,3 +91,20 @@ it('tags loaded chunks with an LOD tier', async () => {
   const center = streamer.getLoaded().find((c) => c.cx === 0 && c.cy === 0);
   expect(center?.lod).toBe('full');
 });
+
+it('passes the requested LOD tier to the loader by chunk distance (W3D-G10 / T7)', async () => {
+  // Record the LOD tier each chunk is requested with.
+  const requested = new Map<string, string | undefined>();
+  const recordingLoader: ChunkLoader = async (cx, cy, lod) => {
+    requested.set(`${cx},${cy}`, lod);
+    return fakeBundle(cx, cy);
+  };
+  const streamer = new ChunkStreamer(recordingLoader, { loadRadius: 6, unloadRadius: 6, maxConcurrent: 64 });
+  streamer.update(0, 0);
+  await streamer.whenSettled();
+
+  // The center chunk is full; a dist-2 chunk is mid; a dist-5 chunk is low.
+  expect(requested.get('0,0')).toBe('full');
+  expect(requested.get('2,0')).toBe('mid');
+  expect(requested.get('5,0')).toBe('low');
+});

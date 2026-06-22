@@ -6,7 +6,7 @@ slug: scripts-spell-runtime-template-audit
 status: active
 status_note: SRTA-001 decision recorded 2026-06-10
 registry_mode: canonical
-last_updated: "2026-06-10"
+last_updated: "2026-06-22"
 gap_count: 2
 open_gap_count: 2
 resolved_gap_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Scripts: Spell Runtime Template Audit Gap Registry
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-22
 
 Use this file only for durable unresolved findings that belong to this project through the lens of runtime-template auditing.
 
@@ -133,3 +133,8 @@ Use this file for durable unresolved findings that are too important or too larg
 - If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
 - Do not mark a gap done unless completion evidence is linked or summarized.
 - Add dated testimony or status notes to an existing gap instead of opening duplicates.
+
+
+## Linked Support Boundary
+
+Decision recorded 2026-06-22: this project remains a standalone scripts/tooling project and is linked support for Spells. Keep SRTA-001 and SRTA-002 here unless a finding changes product spell behavior; product-runtime findings should be imported into `docs/projects/spells/GAPS.md` with explicit evidence and proof boundaries.

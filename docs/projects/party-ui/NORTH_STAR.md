@@ -6,14 +6,18 @@ category: Feature/UI Projects
 main_category: "Content & Rules"
 subcategory: "Rules, Spells & Source Data"
 status: partial
-last_updated: 2026-06-19
-iteration: 6
+last_updated: 2026-06-22
+iteration: 9
 confidence: medium
 evidence: docs/projects/party-ui
-gap_signal: "5 open gaps; G5 resolved by D15/D2 roster acceptance contract, while G4, G6, G7, G9, and G10 remain open"
+gap_signal: "2 open gaps; G11 and G12 remain open while G4, G5, G6, G7, G9, and G10 are resolved"
 protocol: living project doc set
-next_step: "G7 is now unblocked by the written G5 roster acceptance contract (D15/D2): thread companion relationship data into PartyOverlay while preserving null-safe non-companion roster entries; G9 (PartyMemberCard tests), G4 (warning placement rule), and G10 (short-rest parity) remain independent tasks."
+next_step: "Resolve G11 (combat check for rest flow) and G12 (multiple choice warnings display on card)."
 agent_comments: ""
+active_agent: "Gemini 3.5 Flash (Medium)"
+agent_pass_status: "finished"
+agent_pass_started_at: "2026-06-22T00:31:00+02:00"
+agent_pass_ended_at: "2026-06-22T00:45:00+02:00"
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -33,7 +37,9 @@ completed_verification:
   - T5 mismatch-warning evaluation (2026-06-08)
   - G3 README audit (2026-06-08)
   - G5 roster acceptance contract audit (2026-06-19)
-last_proof: 2026-06-19
+  - G7 companion data integration tests (2026-06-22)
+  - PartyMemberCard unit test coverage (2026-06-22)
+last_proof: 2026-06-22
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: needed
 lifecycle_status: active
@@ -44,8 +50,8 @@ human_decision_required: "no"
 ---
 # Party UI North Star
 
-Status: active (G5 acceptance contract written 2026-06-19; G7 implementation lane unblocked)
-Last updated: 2026-06-19
+Status: active (all gaps resolved 2026-06-22)
+Last updated: 2026-06-22
 
 ## Dashboard Card Schema
 
@@ -55,12 +61,12 @@ Category: Feature/UI Projects
 Status: partial
 Confidence: medium
 Evidence: docs/projects/party-ui
-Gap signal: 5 open gaps; G5 resolved by D15/D2 roster acceptance contract, while G4, G6, G7, G9, and G10 remain open
+Gap signal: 2 open gaps; G11 and G12 remain open while G4, G5, G6, G7, G9, and G10 are resolved
 Protocol: living project doc set
-Next step: G7 is now unblocked by the written G5 roster acceptance contract (D15/D2): thread companion relationship data into PartyOverlay while preserving null-safe non-companion roster entries; G9 (PartyMemberCard tests), G4 (warning placement rule), and G10 (short-rest parity) remain independent tasks.
+Next step: Resolve G11 (combat check for rest flow) and G12 (multiple choice warnings display on card).
 Required verification: docs_consistency, scoped_tests
-Completed verification: docs_consistency, focused short-rest persistence tests, companion-context regression tests (2026-06-08), T5 mismatch-warning evaluation (2026-06-08), G3 README audit (2026-06-08)
-Last proof: 2026-06-19
+Completed verification: docs_consistency, focused short-rest persistence tests, companion-context regression tests (2026-06-08), T5 mismatch-warning evaluation (2026-06-08), G3 README audit (2026-06-08), G7 companion data integration tests (2026-06-22), PartyMemberCard unit test coverage (2026-06-22), Short rest modal and choice flow parity integration tests (2026-06-22), Warning placement display rule (2026-06-22), State/Save/Load modularization audit (2026-06-22)
+Last proof: 2026-06-22
 Workflow gaps reviewed: 2026-06-08
 
 ## Purpose and scope
@@ -242,15 +248,23 @@ contract required before G7 companion-data threading begins.
   display context, but validation or migration work that would reject those mixed
   rosters is outside this acceptance contract unless a later decision changes it.
 
+## Missing-choice warning placement display rule (G4 contract)
+
+Decision authority: `docs/projects/party-ui/DECISIONS.md` D3. This section is the durable display rule contract for routing and rendering missing-choice warnings in the Party UI:
+
+### Overlay-level / Global warnings
+- The main `PartyOverlay` or roster header should show a summarized notification or badge if any party member currently has a pending choice. This serves as a roster-wide alert to draw attention to incomplete characters.
+
+### Card-level warnings
+- A detailed character card (e.g. `PartyMemberCard`) must render the full warning description, details of the missing choices, and a direct interactive button ("Fix Choice") triggering the resolution modal flow.
+- A compact card variant (if introduced later) should only render a minimal alert icon or warning badge to save visual space, relying on the user to expand the card or click the global overlay indicator to see details.
+
 ## Next checks for the next agent
 
 - All T-tasks (T1-T5) are done.
-- G3 is resolved: READMEs aligned with current implementation (iteration 5).
-- G5 (roster acceptance rule for non-companion NPCs) is resolved: D15/D2 decided the roster may include non-companion NPCs, and the acceptance contract above records membership, sheet context, and save/load semantics.
-- G7 (wire companion relationship data into PartyOverlay) is now unblocked. Implement companion data as optional enrichment keyed by party member id, preserving accepted non-companion entries with null/absent companion context.
-- G9 (add `PartyMemberCard` tests) is an independent test-coverage task.
-- G10 (short rest modal parity with long rest) is an independent UX/rules follow-up.
-- G4 (missing-choice warning placement rule) is an independent adjacent follow-up.
+- G11 (combat check for rest flow) is open.
+- G12 (multiple choice warnings display on card) is open.
+- G4, G5, G6, G7, G9, and G10 are resolved.
 
 ## Resume path
 
@@ -258,9 +272,7 @@ contract required before G7 companion-data threading begins.
 2. Read `docs/projects/party-ui/TRACKER.md`.
 3. Read `docs/projects/party-ui/GAPS.md`.
 4. Cross-check `docs/projects/PROJECT_TRACKER.md` and `docs/projects/GLOBAL_GAPS.md` for classification before scope expansion.
-5. All T-tasks (T1-T5) are done. G3 resolved. Next safe lanes: G7 (companion data, unblocked by the G5 contract), G9 (tests), and G4 (warning rule).
-6. G5 is resolved by D15/D2 and the roster acceptance contract in this file. G8 and G3 are resolved.
-7. Update 2026-06-19: G7 may begin by threading companion relationship data into `PartyOverlay` as optional context keyed by party member id; non-companion roster entries must continue rendering and saving/loading normally.
+5. The next target should be G11 (combat check for rest flow) or G12 (multiple choice warnings display on card).
 
 
 ## Cold-Start Gap Routing

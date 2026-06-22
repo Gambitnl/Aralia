@@ -9,7 +9,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { PlayerCharacter, MissingChoice, HitDieSize } from '../../../types';
+import { PlayerCharacter, MissingChoice, HitDieSize, Companion, RelationshipLevel } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
 import { GlossaryIcon } from '../../Glossary/IconRegistry';
 import { validateCharacterChoices } from '@/utils/character';
@@ -31,6 +31,8 @@ import {
 interface PartyMemberCardProps {
     /** The character data to display */
     character: PlayerCharacter;
+    /** Optional companion data to show relationship/approval status */
+    companion?: Companion;
     /** Callback when the "more" button is clicked (opens character sheet) */
     onMoreClick: () => void;
     /** Callback when missing choice warning is clicked */
@@ -244,12 +246,27 @@ const ExpendableAbilities: React.FC<ExpendableAbilitiesProps> = ({
     );
 };
 
+const LEVEL_COLORS: Record<RelationshipLevel, string> = {
+    hated: 'text-red-700',
+    enemy: 'text-red-500',
+    rival: 'text-orange-500',
+    distrusted: 'text-orange-300',
+    wary: 'text-yellow-300',
+    stranger: 'text-gray-400',
+    acquaintance: 'text-blue-300',
+    friend: 'text-green-400',
+    close: 'text-green-300',
+    devoted: 'text-yellow-300',
+    romance: 'text-pink-400'
+};
+
 // -----------------------------------------------------------------------------
 // Main Component
 // -----------------------------------------------------------------------------
 
 const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
     character,
+    companion,
     onMoreClick,
     onMissingChoiceClick
 }) => {
@@ -308,13 +325,13 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                 {hasMissingChoices && (
                     <Tooltip content={`Missing Selection: ${missingChoices[0].label}. Click to fix.`}>
                         <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                onMissingChoiceClick(character, missingChoices[0]);
-                            }}
-                            className="absolute -top-1 -right-1 w-5 h-5 bg-red-900/90 rounded-full flex items-center justify-center border border-red-500/50 text-red-200 shadow-md animate-pulse hover:scale-110 transition-transform"
-                            aria-label="Fix missing character selection"
+                             onClick={(e) => {
+                                 e.preventDefault();
+                                 e.stopPropagation();
+                                 onMissingChoiceClick(character, missingChoices[0]);
+                             }}
+                             className="absolute -top-1 -right-1 w-5 h-5 bg-red-900/90 rounded-full flex items-center justify-center border border-red-500/50 text-red-200 shadow-md animate-pulse hover:scale-110 transition-transform"
+                             aria-label="Fix missing character selection"
                         >
                             <span className="text-[10px]">!</span>
                         </button>
@@ -342,9 +359,20 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                                 </Tooltip>
                             )}
                         </div>
-                        <span className="text-xs font-medium text-amber-500/80 uppercase tracking-wider">
+                        <span className="text-xs font-medium text-amber-500/80 uppercase tracking-wider block">
                             {raceClassName}
                         </span>
+                        {companion && (
+                            <div className="flex items-center gap-1.5 mt-1 text-[10px]">
+                                <span className="text-gray-500">Relationship:</span>
+                                <span className={`${LEVEL_COLORS[companion.relationships['player']?.level || 'stranger'] || 'text-gray-400'} font-bold uppercase tracking-wider`}>
+                                    {companion.relationships['player']?.level || 'stranger'}
+                                </span>
+                                <span className="text-gray-400 font-mono">
+                                    ({(companion.relationships['player']?.approval ?? 0) >= 0 ? `+${companion.relationships['player']?.approval ?? 0}` : companion.relationships['player']?.approval})
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Stats Row: AC, Save DC, Movement, Initiative */}

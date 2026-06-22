@@ -1,4 +1,4 @@
-import { buildTerrainMesh } from '../chunkGeometry';
+import { buildTerrainMesh, terrainVertexCount, skirtTriangleCount } from '../chunkGeometry';
 import type { ChunkData } from '../types';
 
 const chunk = (res: number, biome: string): ChunkData => ({
@@ -12,9 +12,19 @@ const chunk = (res: number, biome: string): ChunkData => ({
   sites: [],
 });
 
-it('produces a colors buffer parallel to positions', () => {
+it('produces a colors buffer parallel to positions (including the skirt)', () => {
   const res = 4;
   const mesh = buildTerrainMesh(chunk(res, 'forest'));
+  // Terrain meshes carry a perimeter skirt by default to hide mixed-LOD seams.
+  const verts = terrainVertexCount(res, true);
+  expect(mesh.positions).toHaveLength(verts * 3);
+  expect(mesh.colors).toHaveLength(verts * 3);
+  expect(mesh.indices).toHaveLength(((res - 1) * (res - 1) * 2 + skirtTriangleCount(res)) * 3);
+});
+
+it('omits the skirt when skirtDepth is 0', () => {
+  const res = 4;
+  const mesh = buildTerrainMesh(chunk(res, 'forest'), { skirtDepth: 0 });
   expect(mesh.positions).toHaveLength(res * res * 3);
   expect(mesh.colors).toHaveLength(res * res * 3);
   expect(mesh.indices).toHaveLength((res - 1) * (res - 1) * 6);
@@ -54,5 +64,6 @@ it('uses precomputed per-vertex biome colors when available', () => {
   const mesh = buildTerrainMesh({ ...data, biomeColors: override });
   expect(mesh.colors.slice(0, 3)).toEqual(new Float32Array([0.1, 0.2, 0.3]));
   expect(mesh.colors[3]).toBeCloseTo(0.4);
-  expect(mesh.colors[mesh.colors.length - 1]).toBeCloseTo(0.8);
+  // Last *base* vertex color (skirt colors are appended after the base grid).
+  expect(mesh.colors[res * res * 3 - 1]).toBeCloseTo(0.8);
 });

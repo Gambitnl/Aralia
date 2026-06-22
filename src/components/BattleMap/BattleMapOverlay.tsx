@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 18:57:37
+ * Last Sync: 21/06/2026, 15:26:40
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
  * Imports: 7 files
  *
@@ -292,6 +292,20 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
                 zIndex: Z_INDEX.CONTENT_OVERLAY_LOW,
               }}
             />
+            <div
+              className="absolute flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-yellow-100/80 bg-amber-400/95 text-[11px] font-black leading-none text-amber-950 shadow-[0_0_16px_rgba(251,191,36,0.65)]"
+              title={`${source.sourceSpellId} light source`}
+              style={{
+                left: centerX,
+                top: centerY,
+                zIndex: Z_INDEX.CONTENT_OVERLAY_LOW + 1,
+              }}
+            >
+              {/* This marker names the source of the radius circles. Without a
+                  center point, teaching scenarios show bright/dim areas but do
+                  not explain what object is producing the light. */}
+              ✦
+            </div>
           </React.Fragment>
         );
       })}

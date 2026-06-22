@@ -1,7 +1,7 @@
 ﻿# World3d Living Tracker
 
-Status: active â€” T7/W3D-G10 decision recorded 2026-06-10; implementation lane open
-Last updated: 2026-06-12
+Status: active â€” T7/W3D-G10 implemented 2026-06-21
+Last updated: 2026-06-21
 
 North Star: `docs/projects/world3d/NORTH_STAR.md`
 Gap registry: `docs/projects/world3d/GAPS.md`
@@ -19,7 +19,7 @@ Gap registry: `docs/projects/world3d/GAPS.md`
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check |
 |---|---|---|---|---|---|---|---|
-| T7 | not_started | Per-LOD geometry detail (lower mesh resolution for mid/low tiers, W3D-G10) | unassigned | 2026-06-10 | Worker review found the current loader request only carries `cx/cy`; `ChunkStreamer` computes/stores `lod` after load dispatch, and `chunkGeometry.ts` has no mixed-resolution seam/skirt contract. **Decision recorded 2026-06-10 (Remy, `docs/projects/DECISION_BLITZ_2026-06-10.md` D4):** extend the chunk-loader request contract to carry the requested LOD tier; skirt geometry hides mixed-resolution seams. Lane reopened. | Implement the extended loader contract (requested LOD tier on chunk loads) + skirt geometry per the decided contract. | Mixed near/mid/low chunk regression tests land with the implementation. |
+| T7 | done | Per-LOD geometry detail (lower mesh resolution for mid/low tiers, W3D-G10) | iteration-agent | 2026-06-21 | Implemented the decided D4 contract. `ChunkLoader` now carries the requested `lod` tier (`types.ts`); `ChunkStreamer.pump` computes the tier from chunk distance at request time and passes it (`chunkStreamer.ts`). `config.LOD_RESOLUTION` maps full=16/mid=9/low=5 with `resolutionForLod()`; all loaders honor it (`createWorkerChunkLoader.ts`, `groundChunkLoader.ts`, `World3DDemo` inline). `chunkGeometry.ts` adds an opt-in perimeter **skirt** (adaptive depth = max(SKIRT_MIN_DEPTH_M, chunk relief)) on `buildTerrainMesh`; `buildPlaceholderHeightfield` stays skirtless. Tests: 91 world3d + 30 World3D-component pass, incl. new mixed near/mid/low regression (`chunkSkirt.test.ts`), loader-tier (`createWorkerChunkLoader.test.ts`), streamer-passes-tier (`chunkStreamer.test.ts`), `resolutionForLod` (`config.test.ts`). Visual: `?phase=world3d` renders seam-free, no console errors (`.agent/3d-visual-quality/captures/lod-after.png`). | Done. Follow-up W3D-G16 (view-window widening) is a separate decision; W3D-G13 `culled`-tier dead branch remains. | â€” |
 | â€” | routed | Cold-load `?phase=world3d` entry bounce | world-3d-ui | 2026-06-01 | routed from world3d | Owned by `world-3d-ui` (entry) | see `docs/projects/world-3d-ui/GAPS.md` W3DUI-5 |
 | â€” | routed | Plan 4: 2Dâ†”3D transition + marker sync + gameplay routing | world-3d-ui | 2026-06-01 | routed from world3d | Owned by `world-3d-ui` (transition) | see `docs/projects/world-3d-ui/` |
 

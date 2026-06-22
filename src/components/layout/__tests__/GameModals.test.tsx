@@ -76,6 +76,8 @@ vi.mock('../../Combat/EncounterModal', () => ({ default: () => <div data-testid=
 vi.mock('../../dice/DiceRollerModal', () => ({ default: () => <div data-testid="dice-roller-modal" /> }));
 vi.mock('../../Economy/LedgerBook', () => ({ default: () => <div data-testid="ledger-book" /> }));
 vi.mock('../../Economy/CourierPouch', () => ({ default: () => <div data-testid="courier-pouch" /> }));
+vi.mock('../../ui/LongRestModal', () => ({ default: () => <div data-testid="long-rest-modal" /> }));
+vi.mock('../../ui/RestModal', () => ({ default: () => <div data-testid="rest-modal" /> }));
 
 let GameModals: ComponentType<React.ComponentProps<typeof import('../GameModals').default>>;
 
@@ -363,5 +365,15 @@ describe('GameModals focus-trap coverage', () => {
                 durationDays: 7,
             },
         });
+    });
+
+    it('renders LongRestModal when isLongRestModalVisible is true', async () => {
+        createProps(withOpenModal({ isLongRestModalVisible: true }));
+        expect(await screen.findByTestId('long-rest-modal')).toBeInTheDocument();
+    });
+
+    it('renders RestModal when isShortRestModalVisible is true', async () => {
+        createProps(withOpenModal({ isShortRestModalVisible: true }));
+        expect(await screen.findByTestId('rest-modal')).toBeInTheDocument();
     });
 });

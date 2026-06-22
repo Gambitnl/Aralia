@@ -66,6 +66,19 @@ describe('gameEntryTransition', () => {
         expect(next.error).toBeNull();
     });
 
+    it('model-unavailable -> idle on SKIP so play can continue without a fake scene', () => {
+        const failed = gameEntryTransition(
+            gameEntryTransition(INITIAL_GAME_ENTRY_STATE, { type: 'BEGIN' }),
+            { type: 'UNAVAILABLE', error: 'down' },
+        );
+
+        // Skipping clears only the failed opening gate. The player gets normal
+        // play back, while the generated situation remains absent.
+        const next = gameEntryTransition(failed, { type: 'SKIP' });
+
+        expect(next).toEqual(INITIAL_GAME_ENTRY_STATE);
+    });
+
     it('RESET returns to idle from any state', () => {
         const generating = gameEntryTransition(INITIAL_GAME_ENTRY_STATE, { type: 'BEGIN' });
         expect(gameEntryTransition(generating, { type: 'RESET' }).status).toBe('idle');

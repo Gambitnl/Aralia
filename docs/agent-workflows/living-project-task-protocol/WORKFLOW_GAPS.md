@@ -1,7 +1,7 @@
-﻿# Living Project Workflow Gaps
+# Living Project Workflow Gaps
 
 Status: active
-Last updated: 2026-06-15
+Last updated: 2026-06-22
 
 This file tracks gaps in the living-project workflow itself. It is not a
 project blocker list. Use it only when an agent finds ambiguity, unsafe
@@ -63,7 +63,7 @@ Do not add anonymous vote counts. The testimony is the evidence.
 
 | ID | Status | Severity | Workflow Area | Issue | Testimonies | Next Action | Owner | Last Updated |
 |---|---|---|---|---|---|---|---|---|
-| _None_ | _n/a_ | _n/a_ | _n/a_ | No active workflow gaps after WFG-007 resolution. | _n/a_ | Keep checking this file during each iteration. | _n/a_ | 2026-06-15 |
+| _None_ | _n/a_ | _n/a_ | _n/a_ | No active workflow gaps after WFG-008 resolution. | _n/a_ | Keep checking this file during each iteration. | _n/a_ | 2026-06-22 |
 
 ### WFG-002 - Routing projects have no required write obligation into owner project docs
 
@@ -566,6 +566,49 @@ schema; rendering active agent, pass status, start time, and end time tiles in
 the project tracker UI and template data; and updating the README, shared
 iteration workflow, and cold-start prompt template with start-of-pass and
 closeout requirements.
+
+### WFG-008 - Passive sweep bias misses adjacent component flaws (needs active chaos testing)
+
+Status: resolved
+Severity: medium
+Workflow area: Bounded Gap Sweep / Choose The Work / End Of Iteration Response
+Opened: 2026-06-22
+Last updated: 2026-06-22
+
+#### Problem
+
+The warning against "inventing gaps just to satisfy the count" and the suggestion to focus sweeps on "touched files only" creates a systemic bias. When performing a bounded gap sweep, agents tend to only audit files they have directly modified during the iteration. As a result, they may declare a project "gap-free" (or recommend it go `idle`), missing pre-existing bugs or incomplete features in unedited but closely related/adjacent files in the same project.
+
+Without active, adversarial probing—or **chaos testing** of system boundaries—agents default to a passive, static inspection of their own code changes. They assume adjacent code works correctly, missing hidden integration failures and logic gaps in untouched files.
+
+#### Why This Is Workflow-Level
+
+This is a cognitive and process bias induced by the shared workflow guidelines. It affects all living projects. If the workflow encourages agents to look only at their own modified code, they will consistently fail to see adjacent debt, causing projects to be falsely flagged as "idle" or "gap-free".
+
+#### Current Safe Handling
+
+When performing a gap sweep, agents must actively scan adjacent or closely coupled components, integration boundaries, and recent commits in the project, rather than strictly limiting sweeps to the files they modified. They must engage in active **chaos testing** (e.g., executing actions in invalid states, triggering buttons in unexpected sequences, simulating missing state values) to explicitly verify that system boundaries are resilient.
+
+#### Testimonies
+
+- 2026-06-22 | docs/projects/party-ui iteration 9 | Gemini:
+  I performed a sweep and initially claimed the project was gap-free because I only focused on the files I touched. When prompted by the user to look closer and audit adjacent components, I discovered two severe open bugs: resting mid-combat (G11) and warning card UI rendering only the first issue (G12). Focus on touched-files-only created a systemic blind spot that was only resolved by actively auditing and attempting to break adjacent behaviors.
+
+#### Proposed Workflow Refinement
+
+Update the "Bounded Gap Sweep" guidelines to specify that declaring a project "gap-free" or "idle" requires performing active **chaos testing** of the system's integration points, state boundaries, and edge cases. Instead of restricting audits to static analysis or touched files, agents must actively attempt to break the UI or state machine by testing combinations of state and actions in adjacent modules. A project cannot be declared gap-free without documenting these active edge-case and chaos testing vectors.
+
+#### Resolution
+
+Resolved on 2026-06-22 by updating the shared iteration workflow, protocol
+README, cold-start prompt template, project dashboard schema, and gap/tracker
+templates. The workflow now requires active edge-case or chaos probes against
+adjacent components, shared state, integration points, recent project changes,
+invalid states, unusual action order, missing/stale data, and
+disabled/loading/error states before an agent may claim no additional gaps,
+gap-free, or idle. Final reports and handoffs must name the checked adjacent
+surfaces and probe vectors; static reading of touched files is no longer
+enough to support an idle/no-gap claim.
 
 ## Resolved Workflow Gaps
 

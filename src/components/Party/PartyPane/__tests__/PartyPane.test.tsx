@@ -12,7 +12,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import PartyPane from '../PartyPane';
-import { PlayerCharacter } from '../../../../types';
+import { PlayerCharacter, Companion } from '../../../../types';
 
 // Mock Tooltip as it might use portal or other things
 vi.mock('../../../ui/Tooltip', () => ({
@@ -57,6 +57,46 @@ describe('PartyPane', () => {
     statusEffects: [],
   };
 
+  const mockCompanion: Companion = {
+    id: 'char1',
+    identity: {
+      id: 'char1',
+      name: 'Test Character',
+      race: 'Human',
+      class: 'Fighter',
+      background: 'Soldier',
+      sex: 'male',
+      age: 30,
+      physicalDescription: '',
+      avatarUrl: '',
+    },
+    personality: {
+      openness: 50,
+      conscientiousness: 50,
+      extraversion: 50,
+      agreeableness: 50,
+      neuroticism: 50,
+      values: ['Honor'],
+      fears: ['Failure'],
+      quirks: ['Polite'],
+    },
+    goals: [],
+    relationships: {
+      player: {
+        targetId: 'player',
+        level: 'friend',
+        approval: 250,
+        history: [],
+        unlocks: [],
+      },
+    },
+    loyalty: 80,
+    approvalHistory: [],
+    memories: [],
+    discoveredFacts: [],
+    reactionRules: [],
+  };
+
   const mockProps = {
     party: [mockCharacter],
     onViewCharacterSheet: vi.fn(),
@@ -80,5 +120,24 @@ describe('PartyPane', () => {
     // Check Aria label
     const button = screen.getByRole('button', { name: /More options for Test Character/i });
     expect(button).toBeInTheDocument();
+  });
+
+  it('renders companion relationship status when companions prop is provided', () => {
+    const companionsRecord = {
+      char1: mockCompanion,
+    };
+    render(<PartyPane {...mockProps} companions={companionsRecord} />);
+
+    expect(screen.getByText('Relationship:')).toBeInTheDocument();
+    expect(screen.getByText('friend')).toBeInTheDocument();
+    expect(screen.getByText('(+250)')).toBeInTheDocument();
+  });
+
+  it('does not render companion relationship details when companion context is missing', () => {
+    render(<PartyPane {...mockProps} />);
+
+    expect(screen.queryByText('Relationship:')).not.toBeInTheDocument();
+    expect(screen.queryByText('friend')).not.toBeInTheDocument();
+    expect(screen.queryByText('(+250)')).not.toBeInTheDocument();
   });
 });

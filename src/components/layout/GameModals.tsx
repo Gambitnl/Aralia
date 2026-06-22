@@ -83,6 +83,7 @@ const ShipPane = lazy(() => import('../Naval/ShipPane').then(module => ({ defaul
 const LockpickingModal = lazy(() => import('../puzzles/LockpickingModal'));
 const DiceRollerModal = lazy(() => import('../dice/DiceRollerModal'));
 const LongRestModal = lazy(() => import('../ui/LongRestModal'));
+const RestModal = lazy(() => import('../ui/RestModal'));
 const OllamaDependencyModal = lazy(() => import('../ui/OllamaDependencyModal').then(module => ({ default: module.OllamaDependencyModal })));
 const TradeRouteDashboard = lazy(() => import('../Trade/TradeRouteDashboard'));
 const InvestmentBoard = lazy(() => import('../Economy/InvestmentBoard'));
@@ -375,10 +376,11 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 isOpen={gameState.isPartyOverlayVisible}
                                 onClose={handleClosePartyOverlay}
                                 party={gameState.party}
+                                companions={gameState.companions}
                                 onViewCharacterSheet={handleOpenCharacterSheet}
                                 onFixMissingChoice={onFixMissingChoice}
                                 onLongRest={() => onAction({ type: 'TOGGLE_LONG_REST_MODAL', label: 'Long Rest' })}
-                                onShortRest={() => onAction({ type: 'SHORT_REST', label: 'Short Rest' })}
+                                onShortRest={() => dispatch({ type: 'TOGGLE_SHORT_REST_MODAL' })}
                                 shortRestTracker={gameState.shortRestTracker}
                             />
                         </ErrorBoundary>
@@ -397,6 +399,23 @@ const GameModals: React.FC<GameModalsProps> = ({
                             onConfirm={(choices) => {
                                 onAction({ type: 'LONG_REST', label: 'Long Rest', payload: { racialRestChoices: choices } });
                                 dispatch({ type: 'TOGGLE_LONG_REST_MODAL' });
+                            }}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Short Rest Modal */}
+            {gameState.isShortRestModalVisible && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Short Rest Modal.">
+                        <RestModal
+                            isOpen={gameState.isShortRestModalVisible}
+                            party={gameState.party}
+                            onClose={() => dispatch({ type: 'TOGGLE_SHORT_REST_MODAL' })}
+                            onConfirm={(spend) => {
+                                onAction({ type: 'SHORT_REST', label: 'Short Rest', payload: { hitPointDiceSpend: spend } });
+                                dispatch({ type: 'TOGGLE_SHORT_REST_MODAL' });
                             }}
                         />
                     </ErrorBoundary>

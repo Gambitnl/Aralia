@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 18/06/2026, 03:59:00
+ * Last Sync: 22/06/2026, 00:46:20
  * Dependents: state/reducers/craftingReducer.ts, types/index.ts, utils/world/sceneUtils.ts, utils/world/worldGeographyAdapter.ts
  * Imports: None
  *
@@ -189,6 +189,10 @@ export interface GameState {
   isSubmapVisible: boolean;
   isThreeDVisible?: boolean;
   isPartyOverlayVisible: boolean;
+  /** Whether the long rest modal is currently visible to prompt racial choices. */
+  isLongRestModalVisible?: boolean;
+  /** Whether the short rest modal is currently visible to prompt Hit Dice spending. */
+  isShortRestModalVisible?: boolean;
   isNpcTestModalVisible: boolean;
   isLogbookVisible: boolean;
   isGameGuideVisible: boolean;

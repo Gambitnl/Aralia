@@ -1,7 +1,7 @@
 ﻿# Design Preview Living Tracker
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-22
 
 ## Status Vocabulary
 
@@ -17,6 +17,7 @@ Last updated: 2026-06-09
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
+| DP-T4 | done | Route Tactical Sandbox scenarios into a parent-with-subprojects project. | Codex | 2026-06-22 | `docs/projects/design-preview-scenarios/NORTH_STAR.md`; `SUBPROJECTS.md` | Use the new parent for scenario-specific work. | Docs consistency check; parent DPS-G1 tracks rendered dashboard proof. |
 
 ## Gap Log
 

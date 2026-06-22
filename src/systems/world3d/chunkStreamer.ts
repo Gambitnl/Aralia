@@ -100,7 +100,12 @@ export class ChunkStreamer {
       if (this.loaded.has(key) || this.pending.has(key)) continue;
 
       this.pending.add(key);
-      this.loader(cx, cy)
+      // Carry the requested LOD tier into the loader so it builds the chunk at
+      // the matching mesh resolution (W3D-G10 / T7). The tier is computed from
+      // the chunk's distance at request time; the final stored tier is
+      // recomputed on resolve in case the camera moved while loading.
+      const requestDist = Math.max(Math.abs(cx - this.centerCx), Math.abs(cy - this.centerCy));
+      this.loader(cx, cy, selectLodTier(requestDist))
         .then((bundle) => {
           this.pending.delete(key);
           if (this.disposed) return;

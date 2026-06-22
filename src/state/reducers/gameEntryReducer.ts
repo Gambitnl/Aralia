@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 21/06/2026, 13:17:11
+ * Dependents: state/appState.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -37,6 +53,12 @@ export function gameEntryReducer(state: GameState, action: AppAction): Partial<G
             return {
                 gameEntry: gameEntryTransition(current, { type: 'UNAVAILABLE', error: action.payload }),
             };
+
+        case 'SKIP_OPENING_SITUATION':
+            // The generated opening is optional enrichment. If the local model
+            // is unavailable, this action dismisses only that gate and leaves
+            // the rest of the live game state untouched.
+            return { gameEntry: gameEntryTransition(current, { type: 'SKIP' }) };
 
         case 'RESET_OPENING_SITUATION':
             return { gameEntry: gameEntryTransition(current, { type: 'RESET' }) };

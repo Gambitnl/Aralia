@@ -6,13 +6,13 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: idle
-last_updated: 2026-06-12
+last_updated: 2026-06-22
 iteration: 8
 confidence: medium
 evidence: docs/projects/design-preview
-gap_signal: "0 open gaps; lane steward map and split-proof notes added"
+gap_signal: "0 open gaps; lane steward map, split-proof notes, and scenarios parent route added"
 protocol: living project doc set
-next_step: Maintain the lane steward map and await new preview requests or a re-route from the modularization audit.
+next_step: Maintain the lane steward map; route Tactical Sandbox scenario work through docs/projects/design-preview-scenarios.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -42,7 +42,7 @@ human_decision_required: "no"
 # Design Preview North Star
 
 status: idle
-Last updated: 2026-06-12
+Last updated: 2026-06-22
 ## Why This Project Exists
 
 Design Preview is a standalone developer-facing UI surface for visual checks,
@@ -64,6 +64,7 @@ by policy.
 - The project evidence path in `docs/projects/PROJECT_TRACKER.md` is `src/components/DesignPreview` with registry status `in-progress`.
 - This pass refreshed the cold-start handoff so the next agent can resume from the doc set without re-deriving the workflow, and the manual launch/checklist proof now lives in `RUNBOOK.md`.
 - The project now carries a source-backed lane steward and split-readiness map so future agents know which active preview lanes belong to which local systems and what proof is required before moving a large step file.
+- The `scenarios` lane now has its own parent-with-subprojects project at `docs/projects/design-preview-scenarios`, so Tactical Sandbox scenario work can route to scenario-specific child packets instead of overloading this broad tracker.
 
 ## File Map
 
@@ -116,7 +117,7 @@ The table below ties each active preview lane to the local system that should st
 |---|---|---|---|---|
 | Character creation pack | `race`, `class`, `background`, `stats`, `skills`, `features`, `mastery`, `feats`, `age`, `visuals`, `review` | `character-creator` with `racial-mechanics` for the race/visuals branch | `PreviewRace.tsx`, `PreviewClass.tsx`, `PreviewBackground.tsx`, `PreviewStats.tsx`, `PreviewSkills.tsx`, `PreviewClassFeatures.tsx`, `PreviewWeaponMastery.tsx`, `PreviewFeats.tsx`, `PreviewAge.tsx`, `PreviewVisuals.tsx`, `PreviewReview.tsx` | Capture a rendered `misc/design.html?step=<lane>` screenshot for the target lane and add a focused step test before any extraction. The creator pack already uses `CreationStepLayout`, `ChoiceCard`, `LegacyCard`, `StatCounter`, `RangeSlider`, and `SkillTile`, so visual parity matters more than file size alone. |
 | Equipment / trade / dialogue | `equipment`, `trade`, `dialogue` | `character-sheet` for equipment, `trade-ui` for trade, and `dialogue` for the conversation lane | `PreviewEquipment.tsx`, `PreviewTrade.tsx`, `PreviewDialogue.tsx` | Capture screenshots that show the interactive slot toggles, buy/sell routing, or dialogue history before moving code. These lanes already embed local list/card layouts, so a move should prove the same interactions still render. |
-| Combat suite | `combat`, `sandbox`, `scenarios` | `combat` | `PreviewCombat.tsx`, `PreviewCombatSandbox.tsx`, `PreviewCombatScenarios.tsx` | Require the combat scenario smoke path and a rendered preview screenshot. `PreviewCombatScenarios.tsx` wires real `useTurnManager` and `useAbilitySystem` hooks, so any split needs proof that the combat log, turn flow, and 2D/3D render modes still line up. |
+| Combat suite | `combat`, `sandbox`, `scenarios` | `combat`, with `docs/projects/design-preview-scenarios` owning Tactical Sandbox child routing | `PreviewCombat.tsx`, `PreviewCombatSandbox.tsx`, `PreviewCombatScenarios.tsx` | Require the combat scenario smoke path and a rendered preview screenshot. `PreviewCombatScenarios.tsx` wires real `useTurnManager` and `useAbilitySystem` hooks, so any split needs proof that the combat log, turn flow, and 2D/3D render modes still line up. Scenario-specific work should start from `docs/projects/design-preview-scenarios/SUBPROJECTS.md`. |
 | Environment / 3D / biome | `environment`, `biome`, `3d` | `environment` for the environmental labs, with `three-d-modal` for the 3D tree lab | `PreviewEnvironment.tsx`, `PreviewBiome.tsx`, `PreviewThreeDTest.tsx` | Require a rendered scene screenshot before any move. `PreviewEnvironment.tsx` currently has no direct `*.test.tsx` in the folder, so any extraction from that lane should add a targeted test or equivalent render proof instead of relying on the page wrapper alone. |
 | Window frame shell | `frame` | `layout` | `PreviewWindowFrame.tsx` | Capture the open/close/reopen states of the frame shell. The proof should show the window chrome, not just the inner content, because the frame wrapper is the split boundary. |
 | Image generation tool | `imagegen` | `gemini-service` / imagegen tooling | `PreviewImageGen.tsx` | Capture the browser-automation response log and the rendered output image before moving or modularizing the lane. The lane is a tool surface, not a gameplay system, so proof needs to show both request and result. |
@@ -131,6 +132,9 @@ The table below ties each active preview lane to the local system that should st
 ## Active Task
 
 None. All tracked tasks (T1, T2, T3) are complete. See `GAPS.md` for follow-up work such as assigning stable local owners (G3).
+
+Scenario-specific Tactical Sandbox work is now routed through
+`docs/projects/design-preview-scenarios/SUBPROJECTS.md`.
 
 ## Scope Boundaries
 
@@ -151,6 +155,7 @@ Out of scope:
 - The set of lane-level preview surfaces and the style variant workflow.
 - The intent that Design Preview is used for visual inspection and design-system alignment, not only for runtime feature behavior.
 - The unresolved gap around workflow ownership in the registry row.
+- The Tactical Sandbox scenario parent route at `docs/projects/design-preview-scenarios`; do not collapse those child packets back into this broad tracker.
 
 ## Known Gaps And Follow-Ups
 
@@ -182,6 +187,7 @@ Check the global gap tracker before expanding cross-project:
 | Variant metadata and live state | Style comparison workflow is present | `src/components/DesignPreview/VariantSwitcher.tsx`, `src/components/DesignPreview/StyleVariants.tsx` |
 | Component inventory surface | UI primitive catalog is in place | `src/components/DesignPreview/steps/PreviewComponents.tsx` |
 | Registry evidence | Living scope alignment exists | `docs/projects/PROJECT_TRACKER.md` |
+| Scenario parent route | Tactical Sandbox scenarios now have a parent/subproject dashboard surface | `docs/projects/design-preview-scenarios/NORTH_STAR.md`, `docs/projects/design-preview-scenarios/SUBPROJECTS.md` |
 
 ## Supporting Files
 
@@ -193,6 +199,7 @@ Check the global gap tracker before expanding cross-project:
 | [docs/projects/design-preview/DECISIONS.md](docs/projects/design-preview/DECISIONS.md) | Durable lane ownership and split-proof decisions |
 | [docs/projects/design-preview/RUNBOOK.md](docs/projects/design-preview/RUNBOOK.md) | Manual launch and smoke checklist for future proof passes |
 | [docs/projects/design-preview/AUDIT_OR_PROOF.md](docs/projects/design-preview/AUDIT_OR_PROOF.md) | Durable proof summaries for docs-only and visual passes |
+| [docs/projects/design-preview-scenarios/NORTH_STAR.md](docs/projects/design-preview-scenarios/NORTH_STAR.md) | Parent-with-subprojects project for Tactical Sandbox scenarios |
 | [docs/projects/GLOBAL_GAPS.md](docs/projects/GLOBAL_GAPS.md) | Cross-project routing for out-of-scope gaps |
 
 ## Next Checks

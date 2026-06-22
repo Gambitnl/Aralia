@@ -17,7 +17,7 @@ import { fileURLToPath } from "url";
 import { generateFmgAtlas } from "../../src/systems/worldforge/fmg/generateAtlas";
 import { generateFmgWorld } from "../../src/systems/worldforge/fmg/generateWorld";
 import { FEET_PER_FMG_PIXEL } from "../../src/systems/worldforge/adapter/atlasArtifact";
-import { drawAtlas, drawGraticule, drawScaleBar, parseHexColor, isStateBorder, shouldShowBurgLabel, intersects, getCleanNumber } from "../../src/components/Worldforge/atlasDraw";
+import { drawAtlas, drawGraticule, drawScaleBar, parseHexColor, isStateBorder, shouldShowBurgLabel, intersects, getCleanNumber, getOverlayColor, isHexColor, stableHashColor } from "../../src/components/Worldforge/atlasDraw";
 import { generateRegion } from "../../src/systems/worldforge/region/generateRegion";
 import { rootSeedPath } from "../../src/systems/worldforge/seedPath";
 import { drawRegion } from "../../src/components/Worldforge/regionDraw";
@@ -40,10 +40,13 @@ async function main() {
 
   const injectAtlasFn = async (p: any) => {
     await p.evaluate(
-      ({ drawAtlasStr, drawGraticuleStr, drawScaleBarStr, parseHexColorStr, isStateBorderStr, shouldShowBurgLabelStr, intersectsStr, getCleanNumberStr, feetPerPixel }) => {
+      ({ drawAtlasStr, drawGraticuleStr, drawScaleBarStr, parseHexColorStr, isStateBorderStr, shouldShowBurgLabelStr, intersectsStr, getCleanNumberStr, getOverlayColorStr, isHexColorStr, stableHashColorStr, feetPerPixel }) => {
         const g = window as any;
         g.FEET_PER_FMG_PIXEL = feetPerPixel;
         g.parseHexColor = new Function("const __name = (fn) => fn; return " + parseHexColorStr)();
+        g.isHexColor = new Function("const __name = (fn) => fn; return " + isHexColorStr)();
+        g.stableHashColor = new Function("const __name = (fn) => fn; return " + stableHashColorStr)();
+        g.getOverlayColor = new Function("const __name = (fn) => fn; return " + getOverlayColorStr)();
         g.isStateBorder = new Function("const __name = (fn) => fn; return " + isStateBorderStr)();
         g.shouldShowBurgLabel = new Function("const __name = (fn) => fn; return " + shouldShowBurgLabelStr)();
         g.intersects = new Function("const __name = (fn) => fn; return " + intersectsStr)();
@@ -57,6 +60,9 @@ async function main() {
         drawGraticuleStr: drawGraticule.toString(),
         drawScaleBarStr: drawScaleBar.toString(),
         parseHexColorStr: parseHexColor.toString(),
+        isHexColorStr: isHexColor.toString(),
+        stableHashColorStr: stableHashColor.toString(),
+        getOverlayColorStr: getOverlayColor.toString(),
         isStateBorderStr: isStateBorder.toString(),
         shouldShowBurgLabelStr: shouldShowBurgLabel.toString(),
         intersectsStr: intersects.toString(),

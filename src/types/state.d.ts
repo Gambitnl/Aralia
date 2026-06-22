@@ -118,6 +118,10 @@ export interface GameState {
     isSubmapVisible: boolean;
     isThreeDVisible?: boolean;
     isPartyOverlayVisible: boolean;
+    /** Whether the long rest modal is currently visible to prompt racial choices. */
+    isLongRestModalVisible?: boolean;
+    /** Whether the short rest modal is currently visible to prompt Hit Dice spending. */
+    isShortRestModalVisible?: boolean;
     isNpcTestModalVisible: boolean;
     isLogbookVisible: boolean;
     isGameGuideVisible: boolean;

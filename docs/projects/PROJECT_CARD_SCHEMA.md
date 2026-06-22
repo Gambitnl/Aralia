@@ -1,7 +1,7 @@
 # Project Dashboard Schema
 
 Status: active
-Last updated: 2026-06-20
+Last updated: 2026-06-22
 
 This file documents how top-level Project Tracker cards get their content and
 what agents must keep current when they finish a project iteration.
@@ -126,6 +126,11 @@ When `project_mode` is `parent_with_subprojects`:
   `8 lanes tracked; 3 existing project/task rows route under this parent`.
 - Keep actionable implementation gaps in `GAPS.md`; use `SUBPROJECTS.md` for
   routing, ownership, and proof boundaries.
+- Do not treat the parent project as one implementation pass. The parent page
+  should render a scoped subproject dashboard with filters, sort options, and
+  project-row-style cards for each child lane. The child subproject packet owns
+  iteration/pass telemetry; the parent owns routing, registry health, and
+  boundary decisions.
 
 `SUBPROJECTS.md` uses this table shape:
 
@@ -361,11 +366,11 @@ Field meanings:
 | Category | Dashboard grouping/filter label. |
 | Main category | Broad dashboard bucket from `PROJECT_CATEGORY_TAXONOMY.md`. |
 | Subcategory | More granular bucket inside the main category. |
-| Status | Current project state: `active`, `idle`, `planned`, `blocked`, `partial`, `done`, or a clearly explained local status. Use `idle` when the project is alive but the latest required scan found no actionable project, global, or workflow gap; do not dispatch another forward iteration until a new gap or operator task appears. |
+| Status | Current project state: `active`, `idle`, `planned`, `blocked`, `partial`, `done`, or a clearly explained local status. Use `idle` when the project is alive but the latest required read scan and active edge-case sweep found no actionable project, global, or workflow gap; do not dispatch another forward iteration until a new gap or operator task appears. |
 | Last updated | Date the project docs were last intentionally refreshed. Prefer the North Star `Last updated` date. |
 | Confidence | Low/medium/high confidence in the current handoff state. |
 | Evidence | Primary durable source path for the card. |
-| Gap signal | Dashboard-readable summary from `GAPS.md`; do not hide open gaps. Start with a parseable open-gap count such as `0 open gaps`, `1 open gap`, or `5 open gaps`, then add short context after a semicolon if useful. If the project is reference-only, archived, or merged but still has unresolved historical gaps, keep the count honest and explain the lifecycle state after the count. |
+| Gap signal | Dashboard-readable summary from `GAPS.md`; do not hide open gaps. Start with a parseable open-gap count such as `0 open gaps`, `1 open gap`, or `5 open gaps`, then add short context after a semicolon if useful. `0 open gaps` is not a claim that adjacent code was tested unless the current handoff or proof file also names the active edge-case/chaos probe vectors used. If the project is reference-only, archived, or merged but still has unresolved historical gaps, keep the count honest and explain the lifecycle state after the count. |
 | Protocol | Whether the living-project protocol is implemented and current. |
 | Next step | One concrete action for the next agent. |
 | Project mode | `single` for ordinary projects; `parent_with_subprojects` when the project uses `SUBPROJECTS.md` for child-lane routing. |
@@ -389,6 +394,13 @@ Field meanings:
 | Deprecation reason | Compact reason such as `duplicate_owner`, `stale_pointer`, `task_not_project`, `reference_only`, `corrupted_surface`, or `superseded_by`. |
 | Canonical owner | Project that should own the work if this card is merged or archived. |
 | Human decision required | `yes` when merge/archive could lose intent. |
+
+For `parent_with_subprojects` projects, the four agent/pass fields above are
+allowed to stay empty at the parent level. They should be maintained inside the
+relevant child lane's full project setup under
+`docs/projects/<parent>/subprojects/<subproject>/` instead. This prevents the
+parent card from implying a fake "iteration 1" when no single parent-level pass
+can advance all child lanes at once.
 
 ## Optional `PROJECT_CARD.json` Fields
 

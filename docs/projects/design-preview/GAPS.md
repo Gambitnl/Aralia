@@ -6,7 +6,7 @@ slug: design-preview
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-09"
+last_updated: "2026-06-22"
 gap_count: 0
 open_gap_count: 0
 resolved_gap_count: 0
@@ -101,7 +101,7 @@ supported_optional_sections:
 ---
 project: Design Preview
 slug: design-preview
-last_updated: \"2026-06-09\"
+last_updated: \"2026-06-22\"
 gap_count: 0
 open_gap_count: 0
 north_star: docs/projects/design-preview/NORTH_STAR.md
@@ -111,10 +111,15 @@ global_gaps: docs/projects/GLOBAL_GAPS.md
 # Design Preview Gap Registry
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-22
 
 Use this file for durable unresolved findings that genuinely belong to this
 project.
+
+Scenario-specific Tactical Sandbox gaps now belong in
+`docs/projects/design-preview-scenarios/subprojects/*/GAPS.md`. The broad
+Design Preview project retains no open gap from the 2026-06-22 scenario-parent
+setup pass.
 
 ## Gap Log
 

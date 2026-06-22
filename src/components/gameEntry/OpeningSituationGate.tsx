@@ -32,6 +32,9 @@ export const OpeningSituationGate: React.FC<OpeningSituationGateProps> = ({ game
     useOpeningSituation(gameState, dispatch, options);
 
     const status = gameState.gameEntry?.status ?? 'idle';
+    // This shared dismiss path removes only the failed opening overlay. It keeps
+    // the no-fallback promise intact because no substitute scene is created.
+    const skipOpening = () => dispatch({ type: 'SKIP_OPENING_SITUATION' });
 
     if (status === 'generating') {
         return (
@@ -52,7 +55,7 @@ export const OpeningSituationGate: React.FC<OpeningSituationGateProps> = ({ game
             <>
                 <OllamaDependencyModal
                     isOpen
-                    onClose={() => { /* explanatory pane; retry is the primary action below */ }}
+                    onClose={skipOpening}
                     onDontShowAgain={() => { /* no-op: entry is gated on a live model */ }}
                 />
                 <div
@@ -71,7 +74,15 @@ export const OpeningSituationGate: React.FC<OpeningSituationGateProps> = ({ game
                                 Details: {gameState.gameEntry.error}
                             </p>
                         )}
-                        <div className="flex justify-end">
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                data-testid="opening-situation-dismiss"
+                                onClick={skipOpening}
+                                className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold transition-colors"
+                            >
+                                Dismiss
+                            </button>
                             <button
                                 type="button"
                                 data-testid="opening-situation-retry"

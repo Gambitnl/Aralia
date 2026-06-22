@@ -120,10 +120,16 @@ Scoped verification:
 
 Bounded gap sweep:
 <Check active task surface, touched files, nearby integrations, this project's
-GAPS.md, docs/projects/GLOBAL_GAPS.md, WORKFLOW_GAPS.md, and inbound routed
-gaps from known routing projects. If another project names this project as the
-destination owner and no local gap row exists, add or explicitly reject/reroute
-the inbound stub before closeout.>
+GAPS.md, docs/projects/GLOBAL_GAPS.md, WORKFLOW_GAPS.md, closely coupled
+adjacent components/files, recent project commits or handoff notes, and inbound
+routed gaps from known routing projects. If another project names this project
+as the destination owner and no local gap row exists, add or explicitly
+reject/reroute the inbound stub before closeout. If you find no new actionable
+gap or propose idle, also perform active edge-case/chaos probes against nearby
+state boundaries, adjacent controls/callers, unusual action order, missing or
+stale data, and disabled/loading/error states. Name the probe vectors and
+results in the final report; do not call the project gap-free from static
+reading alone.>
 
 Expansion radar:
 <While executing, look for source-backed opportunities to expand or preserve
@@ -159,11 +165,12 @@ Recent progress:
 <brief handoff summary from the previous agent>
 
 Idle registration:
-<Use only when the scan finds no actionable project, global, or workflow gap.
-Record the checked surfaces, set status/frontmatter to idle where project docs
-use a status field, update docs/projects/PROJECT_TRACKER.md when it has a row
-for this project, and state the next resume trigger. Do not mark the project
-done, dormant, or paused unless the operator or source evidence says so.>
+<Use only when the read scan and active edge-case/chaos probes find no
+actionable project, global, or workflow gap. Record the checked surfaces and
+probe vectors, set status/frontmatter to idle where project docs use a status
+field, update docs/projects/PROJECT_TRACKER.md when it has a row for this
+project, and state the next resume trigger. Do not mark the project done,
+dormant, or paused unless the operator or source evidence says so.>
 
 ## Required End State For This Iteration
 
@@ -171,7 +178,8 @@ Before ending, update this handoff with the next iteration number, previous
 agent context, agent identity/runtime surface, active task, acceptance criteria,
 key files, verification method, blockers, recent progress, workflow-gap review
 result, expansion-radar result, dashboard-schema updates, active agent, pass
-status, pass start time, and pass end time. Account for every required doc,
+status, pass start time, pass end time, and active edge-case/chaos probe
+vectors when claiming no new gap or idle. Account for every required doc,
 mention optional docs touched or skipped, update `agent_comments` only when an
 out-of-flow note is useful, and keep only the current handoff between the same
 BEGIN/END markers. Keep the iteration agent ledger as one compact row per

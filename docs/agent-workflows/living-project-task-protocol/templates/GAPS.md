@@ -152,6 +152,10 @@ cleanly by the schema yet.
 - Keep each gap tied to evidence and a next proof/check.
 - Record real expansion opportunities as gaps or tracker follow-ups when they
   are source-backed and belong to this project.
+- When a sweep finds no new gap, record the active edge-case/chaos probe
+  vectors in the handoff or proof file instead of treating a passive read as
+  proof. Useful vectors include invalid state, unusual action order, missing or
+  stale data, disabled/loading/error states, and adjacent shared-state callers.
 - Link back to a global gap ID when this project imports one.
 - Link back to the source gap ID and source tracker when this project receives
   an inbound routed gap from another project.

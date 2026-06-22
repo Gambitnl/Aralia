@@ -3,13 +3,13 @@ schema_version: 1
 gap_schema: project_gap_registry
 project: World3d
 slug: world3d
-status: "active â€” W3D-G10 decision recorded 2026-06-10; implementation lane open"
-status_note: "Preserved as routed_reference to avoid flattening existing gap provenance. D4 decision recorded."
+status: "active â€” W3D-G10 resolved 2026-06-21 (T7 LOD loader contract + skirts)"
+status_note: "Preserved as routed_reference to avoid flattening existing gap provenance. W3D-G10 resolved (D4 implemented)."
 registry_mode: routed_reference
-last_updated: "2026-06-10"
+last_updated: "2026-06-21"
 gap_count: 9
-open_gap_count: 9
-resolved_gap_count: 0
+open_gap_count: 8
+resolved_gap_count: 1
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
@@ -101,8 +101,8 @@ supported_optional_sections:
 ---
 # World3d Gap Registry
 
-Status: active â€” W3D-G10 decision recorded 2026-06-10; implementation lane open
-Last updated: 2026-06-10 (D4 decision recorded)
+Status: active â€” W3D-G10 resolved 2026-06-21 (T7 LOD loader contract + skirts implemented)
+Last updated: 2026-06-21
 
 North Star: `docs/projects/world3d/NORTH_STAR.md`
 
@@ -118,7 +118,7 @@ retained with `done`/`superseded` status as history; do not silently delete.
 | W3D-G1 | not_started | adjacent_follow_up | unassigned | 2026-05-31 scan | `World3DDemo` uses inline `handleChunkRequest`, not the worker-backed loader | `src/components/World3D/World3DDemo.tsx`, `createWorkerChunkLoader.ts` | Worker path is unverified in the real scene entry | Decide inline vs worker for the demo; if worker, wire `createWorkerChunkLoader` | Trace loaded-chunk call stack under `WORLD3D_DEMO` |
 | W3D-G3 | routed | blocked_human_decision | world-3d-ui | 2026-05-31 scan | `WORLD3D_DEMO` is a sandbox, not connected to gameplay/saved world-actor state | `src/App.tsx`, `useHistorySync.ts` | Without routing from real play, the 3D world ships as test-only | **Routed to `world-3d-ui`** (entry/transition owner); tracked as its Plan 4 | see `docs/projects/world-3d-ui/GAPS.md` |
 | W3D-G7 | routed | blocked_human_decision | world-3d-ui | 2026-06-01 live debug | `?phase=world3d` cold-load intermittently bounces to `main_menu` | live nav this session; `optimizeDeps` change did not fix; server logs show no Vite re-optimize â†’ app-level race | Deep link is unreliable for testing/demo | **Routed to `world-3d-ui`** (entry/transition owner) | see `docs/projects/world-3d-ui/GAPS.md` (W3DUI-5) |
-| W3D-G10 | not_started | in_scope_now | unassigned | 2026-06-08 T7 worker review | Per-LOD geometry detail cannot be safely implemented as a sampler-only change because the loader API requests chunks by `cx/cy` before `ChunkStreamer` records each chunk's LOD tier. Mixed-resolution meshes also need an explicit seam/skirt strategy. | `src/components/World3D/createWorkerChunkLoader.ts`, `src/systems/world3d/chunkStreamer.ts`, `src/systems/world3d/chunkGeometry.ts`, `src/systems/world3d/lod.ts` | A local resolution change would either ignore the computed LOD or introduce visible cracks between adjacent chunks with different mesh densities. | **Decided 2026-06-10 (Remy, DECISION_BLITZ D4):** extend the chunk-loader request contract to carry the requested LOD tier; use skirt geometry to hide mixed-resolution seams. T7 lane reopens â€” implement the extended loader contract + skirts. See `docs/projects/DECISION_BLITZ_2026-06-10.md` and `docs/projects/world3d/DECISIONS.md` D2. | Mixed near/mid/low chunk regression tests land with the loader/skirt implementation. |
+| W3D-G10 | resolved | in_scope_now | iteration-agent | 2026-06-08 T7 worker review | Per-LOD geometry detail cannot be safely implemented as a sampler-only change because the loader API requests chunks by `cx/cy` before `ChunkStreamer` records each chunk's LOD tier. Mixed-resolution meshes also need an explicit seam/skirt strategy. | `src/components/World3D/createWorkerChunkLoader.ts`, `src/systems/world3d/chunkStreamer.ts`, `src/systems/world3d/chunkGeometry.ts`, `src/systems/world3d/lod.ts` | A local resolution change would either ignore the computed LOD or introduce visible cracks between adjacent chunks with different mesh densities. | **Resolved 2026-06-21 (D4 implemented):** `ChunkLoader` carries the requested `lod` (types.ts); `ChunkStreamer.pump` computes the tier from chunk distance and passes it; `config.LOD_RESOLUTION`/`resolutionForLod` map full=16/mid=9/low=5 and every loader honors it; `chunkGeometry.buildTerrainMesh` adds an adaptive-depth perimeter skirt to hide mixed-resolution seams (`buildPlaceholderHeightfield` stays skirtless). | DONE — 91 world3d + 30 component tests green incl. `chunkSkirt.test.ts` (mixed near/mid/low), `createWorkerChunkLoader` LOD-tier, `chunkStreamer` passes-tier, `config` resolutionForLod; `?phase=world3d` renders seam-free (`.agent/3d-visual-quality/captures/lod-after.png`). |
 | W3D-G12 | not_started | adjacent_follow_up | unassigned | 2026-06-01 T4 live verify | Hard biome-color seams: terrain color is per-vertex nearest-neighbor biome (`sampleBiomeNearest`) with no cross-boundary blending, so biome edges are abrupt color steps | `chunkSampler.ts` `sampleBiomeNearest`, `chunkGeometry.ts` per-vertex `biomeColor` | Biome transitions look banded/unnatural at world scale | Blend biome colors across a feather band (e.g., sample neighbor biomes and lerp by distance to boundary) | Adjacent biomes show a gradient, not a hard line |
 | W3D-G13 | not_started | adjacent_follow_up | unassigned | 2026-06-01 unrelated scan | The `culled` LOD tier is unreachable dead logic: `lod.ts` only returns `culled` for Chebyshev distance > `LOD_RINGS.low` (6), but `ChunkStreamer` unloads any chunk beyond `UNLOAD_RADIUS` (6) â€” so a chunk is removed before it can ever be tagged `culled`. Any future `culled`-tier handling will never run. | `src/systems/world3d/lod.ts` (`LOD_RINGS.low=6`), `src/systems/world3d/chunkStreamer.ts` (`UNLOAD_RADIUS=6` unload + `dist <= unloadRadius` guard) | Dead branch hides the intended "draw far chunks cheaply instead of unloading them" behavior; LOD ring config is misleading | Either raise `UNLOAD_RADIUS` above `LOD_RINGS.low` so a `culled`/billboard tier renders beyond the detailed rings, or delete the `culled` tier and document that the unload radius is the true horizon | A chunk exists in the `culled` tier and renders cheaply, OR the tier is removed and tests assert the new contract |
 | W3D-G14 | not_started | adjacent_follow_up | unassigned | 2026-06-01 unrelated scan | Floating-origin never rebases: `World3DScene` fixes `sceneOrigin` at the mount `start` and never recenters. The streamer follows the camera in absolute world coords fine, but rendered scene-local coordinates grow without bound as the player pans â€” after enough travel the float-precision problem the floating-origin was introduced to solve returns (vertex jitter, shadow/camera math drift). | `src/components/World3D/World3DScene.tsx` (`sceneOrigin = useMemo(..., [start])`), `src/components/World3D/FreeRoamCameraController.tsx` (reports world coords via `sceneToWorld`) | Long-range traversal silently degrades rendering precision; this is the "moving floating-origin" the NORTH_STAR lists as future but has no gap row | Rebase `sceneOrigin` (and offset the camera/controls + loaded chunk positions) when the camera drifts beyond a threshold (e.g., > N chunks) from the current origin | After panning > a few km, vertex positions stay near 0 (no jitter); a unit test covers the rebase offset math |

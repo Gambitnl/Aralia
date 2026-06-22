@@ -39,7 +39,7 @@ if (urlParams.get('stubForgeAssets') === '1') {
 import { generateMap } from '@/services/mapService';
 import { BIOMES } from '@/constants';
 import { handleChunkRequest } from '@/systems/world3d/chunkWorkerCore';
-import { WORLD3D_CONFIG, heightToMeters } from '@/systems/world3d/config';
+import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from '@/systems/world3d/config';
 import type { ChunkLoader } from '@/systems/world3d/types';
 import { getWorldforgeLocalForLocation } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { createGroundChunkLoader } from '@/systems/worldforge/bridge/groundChunkLoader';
@@ -91,8 +91,8 @@ const World3DDemo: React.FC = () => {
       throw new Error('World3DDemo: generateMap did not produce worldData (v2). Check the worldSim pipeline.');
     }
 
-    const inlineLoader: ChunkLoader = async (cx, cy) =>
-      handleChunkRequest(world, { cx, cy, resolution: WORLD3D_CONFIG.HEIGHTFIELD_RESOLUTION });
+    const inlineLoader: ChunkLoader = async (cx, cy, lod) =>
+      handleChunkRequest(world, { cx, cy, resolution: resolutionForLod(lod) });
 
     // Spawn on the town with the greatest *local relief* (maxâˆ’min terrain height in its
     // neighborhood) so the camera frames varied, hilly ground where the now vertically-exaggerated

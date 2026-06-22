@@ -5,14 +5,14 @@ slug: scripts-spell-runtime-template-audit
 category: Scripts / Audit Projects
 main_category: Review / Archive
 subcategory: Deprecation Review
-status: review-required
-last_updated: 2026-06-12
+status: linked-support
+last_updated: 2026-06-22
 iteration: 2
 confidence: medium
 evidence: docs/projects/scripts-spell-runtime-template-audit/NORTH_STAR.md; docs/projects/DECISION_BLITZ_2026-06-10.md (D22)
-gap_signal: "2 open gaps; SRTA-001 and SRTA-002 remain open while routing review continues"
+gap_signal: "2 open gaps; linked support for Spells; SRTA-001/SRTA-002 remain scripts-owned unless product-runtime gaps are imported"
 protocol: living project doc set
-next_step: Human review should decide whether this remains standalone or routes into Structured Spell Execution / scripts quality before worker assignment.
+next_step: Keep audit/vocabulary work in this scripts project; import only product-runtime gaps into docs/projects/spells/GAPS.md.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -31,37 +31,37 @@ completed_verification:
 last_proof: 2026-06-05
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: needed
-lifecycle_status: merge-candidate
-deprecation_confidence: weak
-deprecation_reason: overlap_with_spell_system_overhaul_and_scripts_audit_ownership
-canonical_owner: docs/tasks/spell-system-overhaul or docs/projects/scripts-quality pending review
-human_decision_required: "yes"
+lifecycle_status: linked-support
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: docs/projects/scripts-spell-runtime-template-audit
+human_decision_required: "no"
 ---
 # NORTH_STAR: Scripts: Spell Runtime Template Audit
 
-Status: review-required (standalone-vs-routing question only) Ã¢â‚¬â€ SRTA-001 decision recorded 2026-06-10; implementation lane open
-Last updated: 2026-06-12
+Status: linked-support for Spells -- SRTA-001 decision recorded 2026-06-10; implementation lane open
+Last updated: 2026-06-22
 
 ## Dashboard Card Schema
 
 Project: Scripts: Spell Runtime Template Audit
 Slug: scripts-spell-runtime-template-audit
 Category: Scripts / Audit Projects
-Status: review-required
+Status: linked-support
 Confidence: medium
 Evidence: docs/projects/scripts-spell-runtime-template-audit/NORTH_STAR.md
 Gap signal: SRTA-001 decided 2026-06-10 (register both recurring labels with migration notes); SRTA-002 pending; standalone-vs-routing review remains open
 Protocol: living project doc set
-Next step: Human review should decide whether this remains standalone or routes into Structured Spell Execution / scripts quality before worker assignment. SRTA-001 decision recorded 2026-06-10 Ã¢â‚¬â€ implement the vocabulary registration with migration notes and rerun `npm run audit:spell-template`.
+Next step: Keep audit/vocabulary work in this scripts project; import only product-runtime gaps into docs/projects/spells/GAPS.md. SRTA-001 decision recorded 2026-06-10 Ã¢â‚¬â€ implement the vocabulary registration with migration notes and rerun `npm run audit:spell-template`.
 Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-05
 Workflow gaps reviewed: 2026-06-08
-Lifecycle status: merge-candidate
-Deprecation confidence: weak
-Deprecation reason: overlap_with_spell_system_overhaul_and_scripts_audit_ownership
-Canonical owner: docs/tasks/spell-system-overhaul or docs/projects/scripts-quality pending review
-Human decision required: yes
+Lifecycle status: linked-support
+Deprecation confidence: none
+Deprecation reason: none
+Canonical owner: docs/projects/scripts-spell-runtime-template-audit
+Human decision required: no
 
 ## Why This Project Exists
 
@@ -189,7 +189,7 @@ notes** (not a separate deferred migration slice).
 - Decider: Remy (project owner), batched decision session 2026-06-10.
 - Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D22); local
   record: `docs/projects/scripts-spell-runtime-template-audit/DECISIONS.md` D2.
-- Status: decision recorded 2026-06-10; implementation lane open Ã¢â‚¬â€ add both
+- Status: decision recorded 2026-06-10; implementation lane open -- add both
   labels to `scripts/spellRuntimeTemplateAudit/vocabulary.ts` with migration
   notes, rerun `npm run audit:spell-template`, and confirm the 28
   `structured-unregistered-label` warnings clear. SRTA-002 (spell-system-overhaul
@@ -215,15 +215,8 @@ The next cold-start agent must:
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
 
-## Required Review Brief
+## Linked Support Decision
 
-Title: Spell runtime template audit needs ownership review
-Question: Should this remain standalone or route into Structured Spell Execution / scripts quality?
-Issue: The project is review-required because recurring-label remediation is decided but standalone-vs-routing ownership remains open.
-Current behavior: SRTA-001 is decided, SRTA-002 is pending as a follow-up note, and canonical owner is still pending review.
-Why blocked: Assigning workers before ownership is resolved can split remediation across spell-system-overhaul and scripts-quality.
-Option A: Keep standalone for the vocabulary implementation lane, then route follow-up to the spell-system-overhaul tracker.
-Option B: Merge this into scripts-quality or the spell-system-overhaul task path before assigning implementation.
-Evidence: NORTH_STAR.md next_step; GAPS.md SRTA-001 and SRTA-002; DECISION_BLITZ D22.
-Decision owner: Human operator / spell-system-overhaul owner / scripts-quality owner
-Proof after decision: A chosen owner is recorded, SRTA-001 implementation reruns npm run audit:spell-template, and the 28-warning family clears or is explicitly migrated.
+Decision recorded: 2026-06-22.
+
+This project remains the standalone owner for spell runtime template audit and scripts vocabulary work. The Spells parent project links it as support through `docs/projects/spells/SUBPROJECTS.md`, but it is not an owned Spells child lane. Only product-runtime findings discovered here should be imported into `docs/projects/spells/GAPS.md`; audit-script, vocabulary, and report-generation gaps stay in this project.

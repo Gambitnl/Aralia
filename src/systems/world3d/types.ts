@@ -226,8 +226,13 @@ export interface ChunkMeshBundle {
   bushes?: VegetationScatter;
 }
 
-/** Async producer of a chunk's full mesh bundle. Worker-backed in production, inline in tests. */
-export type ChunkLoader = (cx: number, cy: number) => Promise<ChunkMeshBundle>;
+/**
+ * Async producer of a chunk's full mesh bundle. Worker-backed in production,
+ * inline in tests. The optional `lod` carries the requested LOD tier so the
+ * loader can sample/build the chunk at the matching mesh resolution
+ * (W3D-G10 / T7); loaders fall back to full resolution when it is omitted.
+ */
+export type ChunkLoader = (cx: number, cy: number, lod?: LodTier) => Promise<ChunkMeshBundle>;
 
 /** A chunk currently held in memory by the streamer. */
 export interface LoadedChunk {

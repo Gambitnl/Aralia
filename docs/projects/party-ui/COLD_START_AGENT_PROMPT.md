@@ -4,9 +4,9 @@ handoff_type: agent_to_agent
 project: Party UI
 slug: party-ui
 status: partial
-last_updated: 2026-06-12
-iteration: 6
-source_agent: Qoder
+last_updated: 2026-06-22
+iteration: 9
+source_agent: Gemini 3.5 Flash (Medium)
 target_agent: next cold-start agent
 runtime_surface: MCP/subagent
 certainty: certain
@@ -20,7 +20,7 @@ gaps: docs/projects/party-ui/GAPS.md
 # Party UI Cold Start Agent Handoff
 
 Status: partial
-Last updated: 2026-06-12
+Last updated: 2026-06-22
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -39,7 +39,7 @@ docs/projects/party-ui/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Party UI
 Project folder: docs/projects/party-ui
-iteration: 6
+iteration: 9
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -54,44 +54,42 @@ Gaps: docs/projects/party-ui/GAPS.md
 | 3 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Spawned by the foreman as a bounded living-project iteration worker; reducer-backed companion-context regression tests and Party UI docs refresh |
 | 4 | Qoder | MCP/subagent | certain | 2026-06-08 | Living-project iteration worker; T5 companion-context verification and mismatch-warning evaluation; G8 resolved |
 | 5 | Qoder | MCP/subagent | certain | 2026-06-08 | G3 resolved: both Party READMEs rewritten from source audit to match current implementation; G9 and G10 registered from gap sweep |
+| 6 | Gemini 3.5 Flash | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G7 resolved by threading companion relationship data into PartyOverlay and PartyMemberCard; added unit test coverage. |
+| 7 | Gemini 3.5 Flash | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G9 resolved by adding comprehensive unit test suite in PartyMemberCard.test.tsx. |
+| 8 | Gemini 3.5 Flash | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G10 resolved by wiring RestModal to PartyOverlay short rest button; G4 resolved by adding warning placement rules. |
+| 9 | Gemini 3.5 Flash (Medium) | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G6 resolved by conducting state/save/load modularization audit. |
 
 ## Previous Agent Handoff
 
-Iteration 5 resolved G3 (README alignment). Both `PartyOverlay.README.md` and `PartyPane.README.md` were audited against source and rewritten to document all current props, sub-components, integration points, and rest footer behavior. `PartyPane/PartyPane.README.md` confirmed non-existent (covered by parent README). G9 (PartyMemberCard test coverage) and G10 (short rest modal parity) were registered from the bounded gap sweep. 17/17 scoped tests pass.
+Iteration 9 resolved G6 (state/save/load modularization audit). Documented pipeline pattern sequencing, load/save backfill rules, class/hit-dice data normalizations, and day-tick tracker sync rules in `DECISIONS.md` D4. Recorded audit proof in `AUDIT_OR_PROOF.md`. Rerun vitest suites which remain fully green.
 
 ## Current Mission
 
 Active task:
-All T-tasks (T1â€“T5) are done. G3 and G8 are resolved. The next safe work is gap-driven:
-- G5 remains blocked on human decision (roster acceptance rule for non-companion NPCs). Do not touch G5 except to keep it recorded.
-- G7 (wire companion relationship data into PartyOverlay) is the next safe implementation lane, but it depends on G5 being decided first.
-- G9 (add `PartyMemberCard` test coverage) is an independent test-coverage task any agent can pick up.
-- G10 (short rest modal parity with long rest) is an independent UX/rules follow-up.
-- G4 (missing-choice warning placement rule) is an independent adjacent follow-up.
+The project now has 2 open gaps identified during the Iteration 9 sweep. The next safe work is:
+- G11 (combat check for rest flow): Disable short/long rest buttons in PartyOverlay and display a warning if the party is in combat (gameState.currentEnemies is active).
+- G12 (multiple choice warnings display on card): Display and support selecting/fixing secondary missing choices in PartyMemberCard instead of only showing the first one.
 
 Acceptance criteria:
-- If picking up G9: add `PartyMemberCard.test.tsx` covering stat row, HP bar, spell slots, missing-choice warning, and more-button callback.
-- If picking up G10: decide whether short rest needs a modal for Hit Dice spending or racial rest choices; implement or document the decision.
-- If picking up G4: add explicit display rule text in NORTH_STAR for missing-choice warning placement.
-- Do not touch G5 except to keep it recorded as blocked on human decision.
+- Rest buttons are disabled and tooltip explains why when combat is active.
+- PartyMemberCard warning badge handles multiple issues gracefully.
 
 Key files to touch:
 - docs/projects/party-ui/NORTH_STAR.md
 - docs/projects/party-ui/TRACKER.md
 - docs/projects/party-ui/GAPS.md
 - docs/projects/party-ui/COLD_START_AGENT_PROMPT.md
-- For G9: `src/components/Party/PartyPane/__tests__/PartyMemberCard.test.tsx` (new file)
-- For G10: `src/components/layout/GameModals.tsx`, `src/components/Party/PartyOverlay.tsx`, potentially a new `ShortRestModal`
-- For G4: `docs/projects/party-ui/NORTH_STAR.md` (display rule text)
+- src/components/Party/PartyOverlay.tsx
+- src/components/Party/PartyPane/PartyMemberCard.tsx
 
 Scoped verification:
-Run the targeted Party UI tests (`npx vitest run src/components/layout/__tests__/GameModals.test.tsx`) plus `git diff --check`. For G9, also run the new `PartyMemberCard` tests.
+Run the targeted Party UI and layout tests (`npx vitest run src/components/Party/` and `npx vitest run src/components/layout/__tests__/` and `npx vitest run src/components/ui/__tests__/RestModal.test.tsx`) plus `git diff --check`.
 
 Blocking dependencies / do-not-touch:
-G5 remains blocked on human decision. Stay inside the Party UI scope and preserve existing unrelated dirty work.
+None. Stay inside the Party UI scope.
 
 Recent progress:
-Iteration 5 audited both Party READMEs against source, rewrote them to match current implementation (8 props, WindowFrame host, rest footer, PartyMemberCard sub-component), confirmed the third README does not exist, registered G9 and G10 from gap sweep, and verified 17/17 scoped tests pass.
+Iteration 9 conducted state/save/load modularization audit and recorded findings/rules in `DECISIONS.md` D4.
 
 ## Required End State For This Iteration
 
@@ -134,6 +132,10 @@ Before selecting work, identify yourself and the surface you are running through
 | Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
 | pre-standardization | not recorded | unknown | unknown | before 2026-06-12 | Original party-ui handoff predates the ledger requirement. |
+| 6 | Gemini 3.5 Flash | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G7 resolved by threading companion relationship data into PartyOverlay and PartyMemberCard; added unit test coverage. |
+| 7 | Gemini 3.5 Flash | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G9 resolved by adding comprehensive unit test suite in PartyMemberCard.test.tsx. |
+| 8 | Gemini 3.5 Flash | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G10 resolved by wiring RestModal to PartyOverlay short rest button; G4 resolved by adding warning placement rules. |
+| 9 | Gemini 3.5 Flash (Medium) | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G6 resolved by conducting state/save/load modularization audit. |
 
 ### Required project docs to account for
 

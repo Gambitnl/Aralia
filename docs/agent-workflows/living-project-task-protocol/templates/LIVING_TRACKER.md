@@ -33,4 +33,8 @@ Last updated: <YYYY-MM-DD>
   or next proof, and next action.
 - Record new gaps and source-backed expansion opportunities here or link the
   owning subsystem tracker.
+- When closing a task with no new gap found, name the adjacent components and
+  active edge-case/chaos probes checked in the evidence or next-proof field.
+  Do not use "no gaps found" unless the sweep tested nearby boundaries, not
+  only touched files.
 - Keep raw process artifacts out unless a concise summary helps future work.

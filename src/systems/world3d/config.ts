@@ -11,6 +11,8 @@
  * - MAX_CONCURRENT_LOADS throttles requests to prevent the Web Worker pool from saturating CPU/main thread.
  */
 
+import type { LodTier } from './types';
+
 export const WORLD3D_CONFIG = {
   /** World-space edge length of one chunk, in meters. */
   CHUNK_WORLD_SIZE: 128,
@@ -18,6 +20,27 @@ export const WORLD3D_CONFIG = {
   METERS_PER_CELL: 1024,
   /** Vertices per chunk edge for the placeholder heightfield (Plan 3 refines per-LOD). */
   HEIGHTFIELD_RESOLUTION: 16,
+  /**
+   * Per-LOD-tier mesh resolution (vertices per chunk edge). Distant chunks use
+   * a coarser grid so the GPU/worker cost drops with distance (W3D-G10 / T7).
+   * `full` matches HEIGHTFIELD_RESOLUTION; `mid`/`low` step down. `culled` is
+   * unreachable today (see W3D-G13) but kept defined for completeness.
+   * Skirt geometry (see SKIRT_MIN_DEPTH_M) hides the seams between tiers.
+   */
+  LOD_RESOLUTION: {
+    full: 16,
+    mid: 9,
+    low: 5,
+    culled: 5,
+  },
+  /**
+   * Minimum downward skirt depth in world meters. Each rendered terrain chunk
+   * drops a vertical skirt around its perimeter so cracks between neighbors of
+   * different mesh resolution are hidden behind the skirt wall instead of
+   * showing the void. The actual depth is max(this, the chunk's own relief) so
+   * it always covers the worst-case seam without being needlessly deep.
+   */
+  SKIRT_MIN_DEPTH_M: 40,
   /** WorldData height (0..100) maps linearly to [0, MAX_TERRAIN_HEIGHT_M] meters (before exaggeration). */
   MAX_TERRAIN_HEIGHT_M: 150,
   /**
@@ -57,4 +80,16 @@ export function heightToMeters(height: number): number {
     WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M *
     WORLD3D_CONFIG.VERTICAL_EXAGGERATION
   );
+}
+
+/**
+ * Mesh resolution (vertices per chunk edge) for a given LOD tier. This is the
+ * single source of truth the chunk loaders use to honor the requested tier
+ * carried through the loader contract (W3D-G10 / T7). Falls back to the full
+ * resolution when no tier is supplied so callers that don't request a tier keep
+ * the previous behavior.
+ */
+export function resolutionForLod(lod?: LodTier): number {
+  if (!lod) return WORLD3D_CONFIG.HEIGHTFIELD_RESOLUTION;
+  return WORLD3D_CONFIG.LOD_RESOLUTION[lod] ?? WORLD3D_CONFIG.HEIGHTFIELD_RESOLUTION;
 }

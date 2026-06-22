@@ -54,6 +54,17 @@ describe('gameEntryReducer', () => {
         expect(retried.gameEntry?.error).toBeNull();
     });
 
+    it('SKIP after a failure dismisses the opening gate without inventing a situation', () => {
+        const state = createMockGameState();
+        const failed = { gameEntry: { status: 'model-unavailable' as const, situation: null, error: 'NO_MODEL' } };
+
+        // This is the player's escape hatch when Ollama is unavailable: the
+        // failed entry gate clears, and no generated or canned situation appears.
+        const skipped = gameEntryReducer({ ...state, ...failed }, { type: 'SKIP_OPENING_SITUATION' });
+
+        expect(skipped.gameEntry).toEqual(INITIAL_GAME_ENTRY_STATE);
+    });
+
     it('PLACE_SITUATION_NPCS registers NPCs and adds them to the active scene list', () => {
         const state = createMockGameState();
         const npc = {

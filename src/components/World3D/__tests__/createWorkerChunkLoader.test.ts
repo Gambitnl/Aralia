@@ -1,5 +1,7 @@
 import { createWorkerChunkLoader } from '../createWorkerChunkLoader';
 import { handleChunkRequest } from '@/systems/world3d/chunkWorkerCore';
+import { terrainVertexCount } from '@/systems/world3d/chunkGeometry';
+import { resolutionForLod } from '@/systems/world3d/config';
 import type { WorldData } from '@/services/worldSim/types';
 
 const flatWorld = (cols: number, rows: number, h: number): WorldData => ({
@@ -33,16 +35,27 @@ class FakeWorker {
   terminate() {}
 }
 
-it('resolves a chunk load with geometry from the worker', async () => {
+it('resolves a chunk load with geometry from the worker (default resolution, skirted)', async () => {
   const loader = createWorkerChunkLoader(flatWorld(8, 8, 25), 4, () => new FakeWorker() as unknown as Worker);
   const bundle = await loader(0, 0);
-  expect(bundle.terrain.positions.length).toBe(4 * 4 * 3);
-  expect(bundle.terrain.indices.length).toBe((4 - 1) * (4 - 1) * 6);
+  // No LOD tier supplied → loader's default resolution (4); terrain is skirted.
+  expect(bundle.terrain.positions.length).toBe(terrainVertexCount(4, true) * 3);
 });
 
 it('correlates concurrent requests to the right responses', async () => {
   const loader = createWorkerChunkLoader(flatWorld(64, 8, 10), 3, () => new FakeWorker() as unknown as Worker);
   const [a, b] = await Promise.all([loader(0, 0), loader(5, 1)]);
-  expect(a.terrain.positions.length).toBe(3 * 3 * 3);
-  expect(b.terrain.positions.length).toBe(3 * 3 * 3);
+  expect(a.terrain.positions.length).toBe(terrainVertexCount(3, true) * 3);
+  expect(b.terrain.positions.length).toBe(terrainVertexCount(3, true) * 3);
+});
+
+it('honors the requested LOD tier resolution (W3D-G10 / T7)', async () => {
+  const loader = createWorkerChunkLoader(flatWorld(64, 64, 30), 16, () => new FakeWorker() as unknown as Worker);
+  const [full, mid, low] = await Promise.all([loader(0, 0, 'full'), loader(2, 0, 'mid'), loader(5, 0, 'low')]);
+  expect(full.terrain.positions.length).toBe(terrainVertexCount(resolutionForLod('full'), true) * 3);
+  expect(mid.terrain.positions.length).toBe(terrainVertexCount(resolutionForLod('mid'), true) * 3);
+  expect(low.terrain.positions.length).toBe(terrainVertexCount(resolutionForLod('low'), true) * 3);
+  // Coarser tiers must have strictly fewer vertices than finer ones.
+  expect(low.terrain.positions.length).toBeLessThan(mid.terrain.positions.length);
+  expect(mid.terrain.positions.length).toBeLessThan(full.terrain.positions.length);
 });
