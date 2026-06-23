@@ -228,6 +228,15 @@ symphony-*.png
 dashboard-*.png
 take_screenshot.js
 
+# Temporary agent render/screenshot proofs — scratch only, never versioned.
+# Default scratch dir for throwaway proofs is .agent/scratch/. Verify with
+# `git check-ignore <path>` before writing proof anywhere new.
+.agent/scratch/
+.agent/azgaar-ref/
+.agent/town-compare/
+public/wf-atlas-sample.html
+public/wf-*-sample.html
+
 # Generated spell review reports. These are useful local review surfaces, but
 # the active sync sources are the spell files, schema/template parts, validators,
 # and manual-review override data that regenerate these reports.

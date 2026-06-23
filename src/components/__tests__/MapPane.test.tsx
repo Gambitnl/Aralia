@@ -1,15 +1,15 @@
 import React from 'react';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { MapData } from '@/types/world';
 import MapPane from '../MapPane';
 
-// These tests focus on the legacy grid read path because T8 routes MapPane's
-// discovery/current marker reads through the World geography adapter while
-// preserving the visible tile-grid behavior players already use.
+// These tests protect the first legacy-world-map deprecation slice.
+// The gameplay state still uses MapData tiles for travel/discovery, but the
+// player-facing MapPane should no longer expose the old square grid renderer.
 
 describe('MapPane', () => {
-  it('preserves discovered/current tile rendering and click payloads through adapter-backed reads', () => {
+  it('hides the legacy grid view control while keeping the atlas controls available', () => {
     const onTileClick = vi.fn();
     const onClose = vi.fn();
     const mapData = createMapData();
@@ -23,32 +23,32 @@ describe('MapPane', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Legacy Grid' }));
+    expect(screen.getByRole('button', { name: 'Azgaar Atlas' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'World Forge' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Legacy Grid' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('grid')).not.toBeInTheDocument();
+    expect(onTileClick).not.toHaveBeenCalled();
+  });
 
-    const grid = screen.getByRole('grid');
-    const cells = within(grid).getAllByRole('gridcell');
+  it('keeps atlas mode active when the embedded atlas reports a load error', async () => {
+    const onTileClick = vi.fn();
+    const onClose = vi.fn();
+    const mapData = createMapData();
 
-    expect(cells).toHaveLength(4);
-    expect(within(cells[0]).getByRole('img', { name: /Player Location/i })).toBeInTheDocument();
-    expect(cells[0]).toHaveAttribute('aria-selected', 'true');
-    expect(cells[1]).not.toBeDisabled();
-    expect(cells[2]).toBeDisabled();
-    expect(cells[2]).toHaveTextContent('?');
-
-    fireEvent.click(cells[1]);
-
-    expect(onTileClick).toHaveBeenCalledWith(
-      1,
-      0,
-      expect.objectContaining({
-        x: 1,
-        y: 0,
-        discovered: true,
-        isPlayerCurrent: false,
-      }),
+    render(
+      <MapPane
+        mapData={mapData}
+        onTileClick={onTileClick}
+        onClose={onClose}
+        allowTravel={false}
+      />,
     );
-    expect(mapData.tiles[0][0].isPlayerCurrent).toBe(true);
-    expect(mapData.tiles[1][0].discovered).toBe(false);
+
+    fireEvent.error(screen.getByTitle('Azgaar World Atlas'));
+
+    expect(screen.getByTitle('Azgaar World Atlas')).toBeInTheDocument();
+    expect(await screen.findByText('Azgaar world map could not be loaded.')).toBeInTheDocument();
+    expect(screen.queryByRole('grid')).not.toBeInTheDocument();
   });
 });
 

@@ -4,12 +4,12 @@ handoff_type: agent_to_agent
 project: Spells
 slug: spells
 status: active
-last_updated: 2026-06-20
-iteration: 2
-source_agent: Not recorded
+last_updated: 2026-06-22
+iteration: 0
+source_agent: Codex
 target_agent: next cold-start agent
-runtime_surface: unknown
-certainty: unknown
+runtime_surface: desktop app
+certainty: certain
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -18,12 +18,11 @@ tracker: docs/projects/spells/TRACKER.md
 gaps: docs/projects/spells/GAPS.md
 subprojects: docs/projects/spells/SUBPROJECTS.md
 ---
-# Spells Cold Start Agent Handoff
+# Spells Parent Routing Prompt
 
-Status: active
-Last updated: 2026-06-20
+Last updated: 2026-06-22
 
-This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
+You are entering the Spells parent scoped-dashboard. Do not treat this folder as a single executable spell-work pass. Your first job is to choose the child lane that owns the work, then run the implementation or audit pass inside that child packet.
 
 Shared workflow:
 docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
@@ -34,110 +33,44 @@ docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema:
 docs/projects/PROJECT_CARD_SCHEMA.md
 
-Project entry point:
-docs/projects/spells/NORTH_STAR.md
+---BEGIN NEXT AGENT HANDOFF---
+Project: Spells
+Project folder: docs/projects/spells
+Iteration field: 0
+agent_comments: Parent is a scoped routing dashboard; child packets own executable pass state and proof.
 
-## Iteration Agent Ledger
+## Iteration Ledger
 
 | Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
-| 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
+| 0 | Codex | desktop app | certain | 2026-06-22 | Parent/subproject template reshape from annotated project UI template request. |
 
----BEGIN NEXT AGENT HANDOFF---
-Project: Spells System
-Project folder: docs/projects/spells
-iteration: 2
-Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
-Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
-North Star: docs/projects/spells/NORTH_STAR.md
-Tracker: docs/projects/spells/TRACKER.md
-Gaps: docs/projects/spells/GAPS.md
-Subprojects: docs/projects/spells/SUBPROJECTS.md
+## Mission
 
-## Previous Agent Handoff
+Route spell work through the correct child lane before coding. Update the parent only when routing, ownership, imported gaps, dashboard state, or cross-lane priority changes.
 
-The first project packet is now established. This pass refreshed the packet and preserved the current queue. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings. Read SUBPROJECTS.md before choosing broad work
-when GAPS.md has no open rows; it routes existing spell task surfaces into owned
-lanes, linked support, and adjacent dependencies.
+## Required Read Order
 
-## Current Mission
+1. `docs/projects/spells/NORTH_STAR.md`
+2. `docs/projects/spells/SUBPROJECTS.md`
+3. `docs/projects/spells/GAPS.md` for parent-visible imported gaps only.
+4. The child packet named by the user, the active tracker row, or the highest-impact gap.
+5. `docs/projects/spells/DECISIONS.md` if lane ownership, parent import, or support-project routing is ambiguous.
+6. `docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md` if you are doing a full project iteration.
 
-Active task:
-T4 - Maintain the Spells parent-project subproject registry and route broad lanes before importing concrete gaps.
+## Routing Rules
 
-Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+- Use an owned lane when Spells directly owns the implementation or audit slice.
+- Use linked support when another project provides evidence or tooling but Spells decides whether to import the product gap.
+- Use adjacent dependency when a project is related but should not be folded into Spells.
+- Keep child proof, child iteration status, and child local gaps in the child setup packet.
 
-Key files to touch:
-- docs/projects/spells/NORTH_STAR.md
-- docs/projects/spells/TRACKER.md
-- docs/projects/spells/GAPS.md
-- docs/projects/spells/SUBPROJECTS.md
-- docs/projects/spells/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+## Current Priority Signal
 
-Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
-
-Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
-
-Key files to touch:
-- docs/projects/spells/NORTH_STAR.md
-- docs/projects/spells/TRACKER.md
-- docs/projects/spells/GAPS.md
-- docs/projects/spells/SUBPROJECTS.md
-- docs/projects/spells/COLD_START_AGENT_PROMPT.md
-- docs/projects/spells/DECISIONS.md
-- docs/projects/spells/AUDIT_OR_PROOF.md
-- docs/projects/spells/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- docs/projects/spells plus source/docs named by the active tracker task
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
-
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
-
-Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+The current highest-impact parent-visible lane is the created-object / persistent-structure mechanics stream. Start with `SUBPROJECTS.md`, confirm the owning child packet, then handle G15 or its successor from that child context.
 
 ## Required End State For This Iteration
 
-Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers; do not preserve old handoff transcripts in this file.
+Before closing a future iteration, update this handoff with the latest active child lane, parent-routing changes, files touched, verification performed, parent-visible gaps imported, workflow gaps checked, dashboard schema changes, and next safe resume action. Keep only the current handoff between the BEGIN/END markers.
 
-Final response must report:
-- files updated
-- files intentionally not updated
-- verification performed or skipped
-- bounded gap sweep surfaces checked
-- project gaps recorded
-- workflow gaps read or updated
-- dashboard schema fields updated
-- required docs accounted for
-- optional docs touched, skipped, or not present
-- documentation compaction performed or not needed
-- agent comments added or intentionally left empty
-- assumptions made
-- next safe resume action
 ---END NEXT AGENT HANDOFF---

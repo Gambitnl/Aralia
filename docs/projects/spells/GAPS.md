@@ -99,12 +99,12 @@ supported_optional_sections:
   - Open / Uncertain Notes
   - Appendix
 ---
-# Spells Gap Registry
+# Spells Parent Gap Intake
 
 Status: active
 Last updated: 2026-06-22
 
-Use this file for durable unresolved findings that are in-scope for this project.
+Use this file for parent-visible imported gaps, cross-lane spell-domain gaps, and ownership/routing gaps. Child-lane TODOs should stay in the child packet until they affect parent routing, priority, or product behavior.
 
 ## Gap Log
 
@@ -137,3 +137,4 @@ Use this file for durable unresolved findings that are in-scope for this project
 ## Open / Uncertain Notes
 
 - 2026-06-20: Bounded `gpt-5.3-codex-spark` candidate ranking flagged Wish, Astral Projection, Divine Word, and Destructive Wave as larger high-complexity row-clarity candidates. These are candidate slices, not registered gaps yet; inspect current rows and add a formal gap only if a future pass confirms stale, misleading, or under-specified runtime/UI text.
+

@@ -8,7 +8,6 @@ The World Map domain handles region-level navigation, high-level geography, and 
 
 High-signal current entry points verified in this pass:
 - src/components/MapPane.tsx
-- src/components/MapTile.tsx
 - src/components/WorldPane.tsx
 - src/components/Minimap.tsx
 - src/services/mapService.ts
@@ -20,13 +19,14 @@ The current MapPane implementation is more specific:
 - it is a world map modal surface
 - the default mode is an embedded Azgaar atlas
 - the app uses a click-to-world-cell bridge to preserve Aralia travel logic
-- the file still renders tile-aware components such as MapTile, but the overall interaction model is no longer just a simple CSS-scaled grid
+- the old player-facing `MapTile` grid renderer has been removed from MapPane, and the standalone React component file has been deleted
+- `MapData.tiles` remains a compatibility contract for travel, discovery, save/load, submap anchoring, POI visibility, AI context, and 3D entry
 
 ## Historical Drift Corrected
 
 The older navigation-mechanics section drifted in a concrete way:
 - it described zoom and pan as a CSS transform model with local scale and offset as the core implementation
-- the live MapPane now centers on the Azgaar embed bridge and related interaction state
+- the live MapPane now centers on the Azgaar embed bridge, native World Forge render-port, and related interaction state
 
 That older explanation should not be treated as the current implementation guide.
 
@@ -40,7 +40,7 @@ That older explanation should not be treated as the current implementation guide
 
 This pass verified that the world-map domain already has:
 - a live MapPane surface
-- MapTile and supporting world-map UI pieces
+- an Azgaar atlas UI path with World Forge render-port option
 - a map service layer
 - minimap and overview surfaces
 - a real bridge between the embedded atlas presentation and Aralia's world/travel logic

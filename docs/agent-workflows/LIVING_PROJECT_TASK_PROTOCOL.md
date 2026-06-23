@@ -10,6 +10,7 @@ README below.
 The living project task protocol now lives as a small workflow package:
 
 - [Protocol README](./living-project-task-protocol/README.md)
+- [Parent project with subprojects protocol](./living-project-task-protocol/PARENT_PROJECT_WITH_SUBPROJECTS.md)
 - [North Star template](./living-project-task-protocol/templates/NORTH_STAR.md)
 - [Living tracker template](./living-project-task-protocol/templates/LIVING_TRACKER.md)
 - [Task slice template](./living-project-task-protocol/templates/TASK_SLICE.md)

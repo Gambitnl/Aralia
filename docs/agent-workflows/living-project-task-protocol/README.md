@@ -44,6 +44,10 @@ docs/projects/GLOBAL_GAPS.md
 docs/projects/PROJECT_WORKFLOW_DOC_MIGRATION_NOTES.md
 ```
 
+For broad projects that need child lanes under one owner, read
+`docs/agent-workflows/living-project-task-protocol/PARENT_PROJECT_WITH_SUBPROJECTS.md`
+before creating or upgrading project files.
+
 Template filenames under `docs/agent-workflows/living-project-task-protocol/templates/`
 are scaffolds only. Do not treat generic names such as `PROJECT_NORTH_STAR.md`
 or `PROJECT_REGISTRY.md` as live Aralia paths.
@@ -671,6 +675,7 @@ tracker. Add the other files only when the project needs that supporting role.
 | Template | Use when |
 |---|---|
 | [NORTH_STAR.md](./templates/NORTH_STAR.md) | The project needs a cold-start drop-in file. |
+| [PARENT_PROJECT_WITH_SUBPROJECTS.md](./PARENT_PROJECT_WITH_SUBPROJECTS.md) | A broad parent project needs child-lane routing through `SUBPROJECTS.md`. |
 | [LIVING_TRACKER.md](./templates/LIVING_TRACKER.md) | The project needs an active queue, blockers, and next actions. |
 | [TASK_SLICE.md](./templates/TASK_SLICE.md) | A bounded task needs acceptance criteria, allowed boundaries, and verification. |
 | [GAPS.md](./templates/GAPS.md) | Durable unresolved findings are too large for the tracker alone. |

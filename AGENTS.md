@@ -16,6 +16,15 @@ local run state, and other orchestration artifacts should stay external or
 ignored unless a small excerpt is intentionally copied into an Aralia-facing
 task packet or temporary migration note.
 
+**Temporary screenshots and render/proof captures must NEVER be saved to a
+git-tracked location.** The repo auto-commits the entire working tree on a daily
+snapshot, so any image that is not gitignored gets pushed to GitHub. Write
+throwaway image/proof captures to **`.agent/scratch/`** (gitignored) and run
+`git check-ignore <path>` to confirm before writing proof anywhere new — `.agent/`
+is NOT wholesale-ignored, only specific subdirs are. Reusable tooling/scripts
+belong in `scripts/` (tracked); only disposable artifacts go in scratch. A Stop
+hook warns when untracked, non-ignored image files are about to be committed.
+
 For Symphony/Jules work, preserve Aralia-facing intent and proof rather than
 raw process exhaust. Track task packets, prompts, acceptance criteria, package
 tracker updates, final product PR links, and short blocker or repair summaries.

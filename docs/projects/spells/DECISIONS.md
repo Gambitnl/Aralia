@@ -1,7 +1,7 @@
 # Spells Decisions
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-22
 
 Use this file for durable choices that affect project scope, required documentation, or protocol interpretation. Keep operational notes in `AUDIT_OR_PROOF.md` and re-openable workflow deltas in `TRACKER.md` or `GAPS.md`.
 
@@ -48,3 +48,23 @@ Rationale and evidence:
 
 Reopen condition:
 Reopen G2 or create a successor gap only when a concrete canonical spell row needs pool allocation semantics again, or when product/rules direction explicitly requires converting a spell to `targeting.allocation`.
+
+### D3: Spells parent is a scoped routing dashboard
+
+Date: 2026-06-22
+
+Owner: Codex
+
+Decision point:
+The Spells project now contains child lanes for runtime, completeness audit, UI, data taxonomy, automation, documentation, mechanics discovery, and linked support. The parent page needed to stop reading like one executable implementation project.
+
+Decision made:
+Treat `docs/projects/spells` as the parent scoped-dashboard. Child packets selected through `SUBPROJECTS.md` own executable pass status, active agent, proof, and local gaps. The parent owns routing, ownership decisions, imported parent-visible gaps, and dashboard discoverability.
+
+Rationale and evidence:
+- Parent template: `misc/project_ui_template.html`
+- Parent protocol: `docs/agent-workflows/living-project-task-protocol/PARENT_PROJECT_WITH_SUBPROJECTS.md`
+- Child registry: `docs/projects/spells/SUBPROJECTS.md`
+
+Follow-up:
+When a future agent wants to implement spell runtime/data/UI/audit work, route to the child packet first and update this parent only for cross-lane visibility or ownership changes.

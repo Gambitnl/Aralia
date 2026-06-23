@@ -1,4 +1,31 @@
+# Spells Parent Proof
 
+Status: active
+Last updated: 2026-06-22
+
+Use this file for concise parent-dashboard proof and imported child-proof summaries. Detailed implementation proof should stay in the child packet or task packet that owns the executable pass.
+
+
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-20 - Action-cost metadata integrity validator gate
 
 Status: verified 2026-06-20.
@@ -28,6 +55,26 @@ Proof:
 Boundary:
 - This pass adds action-cost integrity coverage only. It does not close Package 19 created-object lifecycle work, object HP, persistent hazard simulation, bucket-row implementation/classification, or rendered UI proof.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-20 - Mode choice integrity validator gate
 
 Status: verified 2026-06-20.
@@ -57,6 +104,26 @@ Proof:
 Boundary:
 - This pass adds integrity coverage only. It does not change spell JSON data, command behavior, UI prompts, per-target choice assignment, rendered modal behavior, or schema definitions.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-20 - Duration progression integrity validator gate
 
 Status: verified 2026-06-20.
@@ -84,6 +151,26 @@ Proof:
 Boundary:
 - This pass adds integrity coverage only. It does not change spell JSON data, targeting, effects, durations, descriptions, runtime behavior, or schema definitions.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-20 - Ritual tag parity validator gate
 
 Status: verified 2026-06-20.
@@ -118,6 +205,26 @@ Proof:
 Boundary:
 - This pass aligns data metadata for existing ritual declarations. It does not change ritual casting behavior, casting time, component costs, spell effects, runtime UI rendering, or any spell-specific mechanics beyond tag parity.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-20 - Wish mode and stress row clarity
 
 Status: verified 2026-06-20.
@@ -138,6 +245,26 @@ Proof:
 Boundary:
 - This pass changes only player-facing row text. It preserves existing mode choices, player-input prompt, healing payload, defensive payloads, stress-damage payload, targeting, duration, and current Wish modeling boundaries.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-20 - Divine Word HP-band and planar return clarity
 
 Status: verified 2026-06-20.
@@ -158,6 +285,26 @@ Proof:
 Boundary:
 - This pass changes only player-facing row text. It preserves existing Charisma save routing, HP thresholds, status durations, planar creature filters, movement payload, utility control options, and targeting data.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-20 - Astral Projection split-state row clarity
 
 Status: verified 2026-06-20.
@@ -178,6 +325,26 @@ Proof:
 Boundary:
 - This pass changes only player-facing row text. It preserves existing targeting, consumed components, duration, granted action, control options, Unconscious status payload, and all modeled split-state rules.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-20 - Destructive Wave shared-save branch clarity
 
 Status: verified 2026-06-20.
@@ -196,6 +363,26 @@ Proof:
 Boundary:
 - This pass changes only player-facing row text. It preserves the existing 5d6 Thunder damage, 5d6 caster-chosen Radiant/Necrotic damage, Constitution save-half behavior, chosen-creature Emanation targeting, and Prone failed-save rider.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-20 - Focused recovery and hit-rider row cleanup
 
 Status: verified 2026-06-20.
@@ -217,6 +404,26 @@ Proof:
 Boundary:
 - This pass improves player-facing row clarity for existing modeled fields. It does not change modeled dice, saves, targeting, duration, scaling data, condition application, runtime healing/stabilization, smite trigger resolution, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-20 - Concentration tag parity corpus cleanup
 
 Status: verified 2026-06-20.
@@ -244,6 +451,26 @@ Use this file for durable proof summaries, scoped verification notes, and accept
 
 ## Proof Log
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-15 - High-impact Shining Smite row cleanup
 
 Status: verified 2026-06-15.
@@ -264,6 +491,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for next-hit rider tracking, attack-roll Advantage, Invisible-benefit denial, light emission, higher-slot damage scaling, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-15 - High-impact Catnap row cleanup
 
 Status: verified 2026-06-15.
@@ -284,6 +531,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Short Rest application, Long Rest lockout tracking, early wake action routing, damage-break handling, higher-slot target routing, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-15 - High-impact Spike Growth terrain row cleanup
 
 Status: verified 2026-06-15.
@@ -304,6 +571,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for terrain recognition checks, Search action routing, Difficult Terrain movement cost, per-5-foot damage accounting, camouflaged-area visibility, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-15 - High-impact Aura of Life payload row cleanup
 
 Status: verified 2026-06-15.
@@ -324,6 +611,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Necrotic Resistance, Hit Point maximum protection, 0-HP start-turn healing, aura membership tracking, concentration enforcement, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-15 - High-impact Maelstrom row cleanup
 
 Status: verified 2026-06-15.
@@ -344,6 +651,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for ground/body-of-water placement checks, water creation, Difficult Terrain movement cost, start-turn Strength save resolution, Bludgeoning damage application, pull movement, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-15 - High-impact morale and life-support buff row cleanup: Beacon of Hope, Motivational Speech, Heroism
 
 Status: verified 2026-06-15.
@@ -366,6 +693,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Beacon of Hope max-healing enforcement, Death Saving Throw Advantage, Motivational Speech hearing gates, Temporary Hit Point cleanup, next-attack Advantage consumption, Heroism recurring Temporary Hit Points, Frightened immunity, higher-slot target routing, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-15 - High-impact Hunger of Hadar row cleanup
 
 Status: verified 2026-06-15.
@@ -386,6 +733,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for magical darkness illumination blocking, Blinded enforcement, Difficult Terrain movement cost, start-turn Cold damage, end-turn Acid save damage, higher-slot damage-choice routing, sound propagation, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact elemental investiture row cleanup: Investiture of Flame, Investiture of Ice, Investiture of Wind
 
 Status: verified 2026-06-14.
@@ -408,6 +775,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Investiture immunity/resistance enforcement, adjacent fire damage triggers, light emission, granted action routing, icy terrain, freezing-wind speed halving, Fly Speed, push movement, fall cleanup, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact copied top-level row cleanup: Mass Healing Word, Protection from Energy, Far Step
 
 Status: verified 2026-06-14.
@@ -431,6 +818,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for healing application, higher-slot healing scaling, chosen resistance selection, concentration enforcement, cast-time teleport resolution, repeat Bonus Action teleport grants, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact defensive utility row cleanup: Protection from Poison, Intellect Fortress, See Invisibility
 
 Status: verified 2026-06-14.
@@ -453,6 +860,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Poisoned-condition cleanup automation, save Advantage enforcement, Poison or Psychic resistance application, Intellect Fortress target clustering or scaling, See Invisibility visibility handling, Ethereal Plane perception, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact Beast-form transformation row cleanup: Gaseous Form, Animal Shapes, Polymorph
 
 Status: verified 2026-06-14.
@@ -475,6 +902,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Gaseous Form target scaling, only-movement-mode enforcement, object-drop blocking, Animal Shapes repeated retransform routing, Bonus Action self-ending, Polymorph Beast-form stat replacement, Temporary Hit Point depletion cleanup, gear merge enforcement, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact stone and ethereal body-state row cleanup: Stone Shape, Meld into Stone, Etherealness
 
 Status: verified.
@@ -497,6 +944,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Stone Shape geometry enforcement, hinge/latch object simulation, Meld into Stone perception penalties, self-only spell gating, ejection placement, Force damage application, Etherealness planar travel, shunt movement/damage, invalid-plane ending, higher-slot target routing, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact service, suggestion, and memory row cleanup: Planar Ally, Mass Suggestion, Modify Memory
 
 Status: verified.
@@ -519,6 +986,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Planar Ally negotiation, payment adjudication, service acceptance/refusal, return-home automation, Mass Suggestion duration scaling, suggestion validity adjudication, damage/completion break enforcement, Modify Memory language-understanding gates, memory rewrite execution, restoration cleanup, higher-slot lookback routing, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact undead and binding control row cleanup: Animate Dead, Create Undead, Planar Binding
 
 Status: verified.
@@ -541,6 +1028,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for undead command dispatch, same-command fanout, Dodge fallback AI, control-expiry enforcement, recast reassertion routing, Create Undead slot-table actor creation, Planar Binding source-duration extension, hostile instruction twisting, higher-slot duration enforcement, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact summon command-economy row cleanup: Find Steed, Summon Beast, Summon Greater Demon
 
 Status: verified.
@@ -563,6 +1070,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for controlled-mount behavior, steed independent-protection AI, telepathy, recast replacement, slot-level steed stat mutation, Bestial Spirit command dispatch, form-specific movement or attack-count enforcement, demon initiative rolling, end-turn Charisma control saves, true-name Disadvantage, uncontrolled demon hostility, delayed disappearance, blood-circle constraints, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact fear, pattern, and geas row cleanup: Fear, Hypnotic Pattern, Geas
 
 Status: verified.
@@ -585,6 +1112,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Fear item dropping, safest-route Dash movement, sight-gated repeat-save scheduling, Hypnotic Pattern damage or shake-awake cleanup, derived Incapacitated/Speed-0 synchronization, Geas higher-slot duration enforcement, once-per-day punishment tracking, restoration spell cleanup, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact command, paralysis, and confusion row cleanup: Command, Hold Person, Confusion
 
 Status: verified.
@@ -607,6 +1154,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Command option execution, shortest-route or fastest-route pathing, forced Prone application, Halt action-lock enforcement, Hold Person multi-target application, Paralyzed condition semantics, Confusion behavior-table automation, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact psychic burst, radiance, and slow row cleanup: Synaptic Static, Sickening Radiance, Slow
 
 Status: verified.
@@ -629,6 +1196,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Muddled Thoughts subtraction, exhaustion stacking or cleanup, invisibility-benefit denial, dim-light rendering on failed-save targets, Slow action-economy enforcement, Somatic spell failure automation, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact dominate and Feeblemind row cleanup: Dominate Monster, Dominate Person, Feeblemind
 
 Status: verified.
@@ -651,6 +1238,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Dominate command dispatch, same-plane link tracking, Reaction command execution, precise-control action handling, damage-triggered repeat saves, Feeblemind ability-score mutation, spell or magic-item lockout enforcement, 30-day repeat-save scheduling, restoration endings, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact threshold, pain, and hostile-target row cleanup: Power Word Stun, Power Word Pain, Enemies Abound
 
 Status: verified.
@@ -673,6 +1280,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Power Word Stun HP-threshold routing, Stunned repeat-save automation, Speed-0 cleanup, Power Word Pain spellcasting interception, Charmed-immunity gating, speed-cap enforcement, disadvantage application, Enemies Abound random target selection, forced opportunity attacks, damage-triggered repeat saves, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact ray table and threshold row cleanup: Prismatic Spray, Divine Word, Power Word Kill
 
 Status: verified.
@@ -695,6 +1322,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Prismatic Spray table rolling, double-ray rerolls, indigo save counters, violet planar teleport execution, Divine Word HP table automation, planar return blocking, Power Word Kill threshold routing, fallback damage application, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact storm, cloud, and curse row cleanup: Call Lightning, Bestow Curse, Cloudkill
 
 Status: verified.
@@ -717,6 +1364,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Call Lightning storm-cloud placement, outdoor storm detection, repeat strike targeting, Bestow Curse modal UI, curse option enforcement, Remove Curse automation, Cloudkill fog movement, strong-wind dispersal, once-per-turn trigger accounting, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact disease, mode, and plant-restraint row cleanup: Contagion, Eyebite, Entangle
 
 Status: verified.
@@ -739,6 +1406,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Contagion three-success/three-failure counters, Poisoned-ending interception, chosen-ability UI, Eyebite retarget tracking, Panicked pathfinding, Asleep wake actions, Sickened repeat saves, Entangle area painting, escape-action execution, listed end-turn save handling, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact control and prison row cleanup: Confusion, Geas, Mental Prison
 
 Status: verified.
@@ -761,6 +1448,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Confusion behavior-table automation, Bonus Action or Reaction enforcement, Geas command adjudication, daily damage tracking, removal-spell automation, Mental Prison sensory blocking, forced-movement detection, escape-trigger execution, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact command-loop row cleanup: Find Familiar, Tiny Servant, Animate Objects
 
 Status: verified.
@@ -783,6 +1490,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for familiar initiative, dismissal/resummon, carried-item drop behavior, one-familiar enforcement, Tiny Servant multi-command execution, object reversion damage carryover, Animate Objects object-size accounting, shared initiative execution, command dispatch, default Dodge behavior, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact low-level zone row cleanup: Fog Cloud, Grease, Web
 
 Status: verified.
@@ -805,6 +1532,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for fog rendering, wind dispersal, slot-radius scaling, Grease area painting, repeated Prone trigger enforcement, Web anchoring, web ignition/destruction timing, restraint escape handling, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact lower-level transformation row cleanup: Alter Self, Enlarge/Reduce, Polymorph
 
 Status: verified.
@@ -827,6 +1574,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Alter Self mode switching, disguise inspection, natural-weapon attack substitution, Enlarge/Reduce token resizing, carried-gear resizing, Polymorph Beast stat-block lookup, equipment merging, temporary-HP depletion cleanup, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact transformation row cleanup: Mass Polymorph, Shapechange, True Polymorph
 
 Status: verified.
@@ -849,6 +1616,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Beast stat-block lookup, CR validation, temporary-HP replacement enforcement, Shapechange form switching, equipment state transitions, True Polymorph mode execution, object-creature control handoff, full-hour persistence, dispel cleanup, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact runtime-debt row cleanup: Investiture of Stone, Otto's Irresistible Dance
 
 Status: verified.
@@ -871,6 +1658,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for first-class ignore-terrain-cost modeling, solid-stone movement collision/ejection, Otto's attacker-advantage targeting field, dance movement enforcement, repeat-save handling, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact portal/summon/terrain row cleanup: Arcane Gate, Conjure Fey, Plant Growth
 
 Status: verified.
@@ -893,6 +1700,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for portal placement, occupied-space failure, portal facing toggles, opaque sight blocking, Conjure Fey summon ownership, teleport timing, attack execution, Frightened source tracking, Plant Growth terrain rendering, excluded-area painting, harvest simulation, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact reaction/control row cleanup: Shield, Counterspell, Silence
 
 Status: verified.
@@ -915,6 +1742,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for reaction timing, Counterspell interrupt resolution, spell-slot accounting, Silence zone rendering, verbal-component enforcement, Thunder damage prevention, concentration cleanup, or rendered UI behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact mode row cleanup: Wind Walk, Control Water, Invulnerability
 
 Status: verified.
@@ -937,6 +1784,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for cloud movement modes, transformation scheduling, safe descent/fall handling, Control Water mode execution, whirlpool pull/escape, vehicle capsize, Invulnerability damage prevention, concentration cleanup, or rendered map behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact terrain row cleanup: Move Earth, Freedom of Movement, Passwall
 
 Status: verified.
@@ -959,6 +1826,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for terrain execution, structure instability simulation, magical-vs-nonmagical restraint enforcement, swim speed, nonmagical escape movement spending, Passwall pathfinding, safe ejection placement, or rendered map behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact control row cleanup: Mind Blank, Power Word Stun, Telekinesis
 
 Status: verified.
@@ -981,6 +1868,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for anti-divination enforcement, Wish information blocking, threshold dispatch, repeat-save scheduling, Speed-0 application, object manipulation, worn/carried object contests, fine-control UI, or rendered map behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact modifier row cleanup: Foresight, Holy Aura, Illusory Dragon
 
 Status: verified.
@@ -1002,6 +1909,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for D20-test breadth, recast cleanup, chosen-creature aura membership, reactive creature-family filtering, line-of-sight repeat saves, movement-breath coupling, or rendered map behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact mechanic row cleanup: Power Word Pain, Fire Storm, Draconic Transformation
 
 Status: verified.
@@ -1023,6 +1950,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for charm-immunity filtering, spellcasting interruption, repeat-save scheduling, speed-cap enforcement, contiguous-cube placement, object ignition persistence, flight-mode handling, blindsight, breath-weapon reuse, or rendered map behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact status row cleanup: Sequester, Reverse Gravity, Prismatic Spray
 
 Status: verified.
@@ -1044,6 +1991,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for Sequester anti-divination enforcement, damage/end-condition cleanup, Reverse Gravity vertical physics, fall-damage application, Prismatic Spray random ray routing, progression counters, planar routing, or rendered map behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact status row cleanup: Storm of Vengeance, Psychic Scream, Sunburst
 
 Status: verified.
@@ -1065,6 +2032,26 @@ Proof:
 Boundary:
 - This pass improves row interpretability for existing modeled fields. It does not claim new runtime support for staged storm scheduling, ranged-weapon blocking, strong-wind behavior, Intelligence-floor target filtering, repeat-save scheduling, darkness dispel execution, or rendered map behavior.
 
+## 2026-06-22 - Parent scoped-dashboard reshape
+
+Status: documented.
+
+Scope:
+- docs/projects/spells/NORTH_STAR.md
+- docs/projects/spells/TRACKER.md
+- docs/projects/spells/GAPS.md
+- docs/projects/spells/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/DECISIONS.md
+- docs/projects/spells/RUNBOOK.md
+
+Proof:
+- The parent project now describes itself as a routing dashboard rather than a single executable implementation pass.
+- The cold-start prompt tells agents to choose a child lane before coding or auditing spell systems.
+- Existing implementation proof below remains preserved as historical child/runtime evidence rather than parent iteration state.
+
+Boundary:
+- This pass changes living-project routing docs only. It does not implement spell runtime behavior, data changes, validators, or UI behavior.
 ## 2026-06-14 - High-impact status row cleanup: Divine Word, Dominate Monster, Imprisonment
 
 Status: verified.
@@ -1472,6 +2459,7 @@ pm run test:types (passed). This keeps SSO-SPELL-FILTER-DATA-COMPLETENESS-001 op
 pm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts (15 passed), 
 pm run validate:spells -- --spell public/data/spells/level-2/animal-messenger.json (459 valid / 0 invalid), and 
 pm run test:types (passed). |
+
 
 
 

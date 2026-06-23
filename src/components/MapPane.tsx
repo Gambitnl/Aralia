@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/06/2026, 02:39:54
+ * Last Sync: 22/06/2026, 23:30:15
  * Dependents: components/layout/GameModals.tsx
  * Imports: 10 files
  *
@@ -16,24 +16,21 @@
 
 /**
  * @file MapPane.tsx
- * World map modal surface. Stage R1 default is an embedded, read-only Azgaar
- * atlas with a click-to-hidden-cell bridge to preserve existing travel logic.
+ * World map modal surface. The player-facing map is now the Azgaar atlas, with
+ * an optional World Forge render-port for native cartography work.
  *
  * The pane still receives legacy `MapData`, but discovery/current-player reads
- * now pass through the World geography adapter before the grid or click overlay
- * consumes them. That keeps today's tile-grid UI intact while future Azgaar or
- * Worldforge cell identities can replace the backing fields behind one adapter.
+ * now pass through the World geography adapter before the atlas click overlay
+ * consumes them. That preserves today's travel, discovery, and 3D-entry
+ * contracts while the old square-grid renderer is deprecated from the UI.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MapData, MapMarker, MapTile as MapTileType } from '../types';
+import { MapData, MapTile as MapTileType } from '../types';
 import { BIOMES } from '../constants';
-import { POIS } from '../data/world/pois';
 import type { AzgaarAtlasTransform } from '@/utils/spatial';
 import {
-  buildPoiMarkers,
   getCellOverlayPercentRect,
 } from '@/utils/spatial';
-import MapTile from './MapTile';
 import oldPaperBg from '../assets/images/old-paper.svg';
 import { WindowFrame } from './ui/WindowFrame';
 import { WINDOW_KEYS } from '../styles/uiIds';
@@ -44,6 +41,8 @@ import {
   resolveLegacyTile,
   type WorldGeographySnapshot,
 } from '@/utils/world/worldGeographyAdapter';
+import AtlasSvgView from './Worldforge/AtlasSvgView';
+import { generateFmgAtlas } from '@/systems/worldforge/fmg/generateAtlas';
 
 interface MapPaneProps {
   mapData: MapData;
@@ -63,7 +62,7 @@ interface MapPaneProps {
   onRegenerateWorld?: (seed?: number) => void;
 }
 
-type WorldMapViewMode = 'azgaar' | 'grid';
+type WorldMapViewMode = 'azgaar' | 'worldforge';
 type WorldMapInteractionMode = 'pan' | 'travel' | 'enter3d';
 
 const AZGAAR_EMBED_STYLE_ID = 'aralia-azgaar-embed-style';
@@ -206,22 +205,13 @@ const MapPane: React.FC<MapPaneProps> = ({
     return `${azgaarBasePath}?seed=${azgaarSeed}&options=default&runtime=${AZGAAR_RUNTIME_REV}`;
   }, [azgaarSeed]);
 
-  const flattenedTiles = useMemo(() => projectedTiles.flat(), [projectedTiles]);
-
-  const poiMarkers: MapMarker[] = useMemo(() => buildPoiMarkers(POIS, projectedMapData), [projectedMapData]);
-
-  const markersByCoordinate = useMemo(() => {
-    const markerMap = new Map<string, MapMarker[]>();
-    poiMarkers.forEach(marker => {
-      if (!marker.isDiscovered) return;
-      const key = `${marker.coordinates.x}-${marker.coordinates.y}`;
-      if (!markerMap.has(key)) {
-        markerMap.set(key, []);
-      }
-      markerMap.get(key)?.push(marker);
-    });
-    return markerMap;
-  }, [poiMarkers]);
+  // Native Worldforge SVG render-port (SP0). Generated lazily from the same seed
+  // the Azgaar embed uses, only while the World Forge view is active. A throw
+  // here surfaces honestly via the surrounding ErrorBoundary (no silent fallback).
+  const worldforgeAtlas = useMemo(
+    () => (viewMode === 'worldforge' ? generateFmgAtlas(String(azgaarSeed)) : null),
+    [viewMode, azgaarSeed],
+  );
 
   const applyReadOnlyAzgaarMode = useCallback(() => {
     const iframe = iframeRef.current;
@@ -408,7 +398,7 @@ const MapPane: React.FC<MapPaneProps> = ({
 
     setIsFrameReady(true);
     setFrameError(null);
-  }, [azgaarSeed]);
+  }, []);
 
   const clearReadinessTimers = useCallback(() => {
     readinessTimersRef.current.forEach(timerId => window.clearTimeout(timerId));
@@ -672,8 +662,11 @@ const MapPane: React.FC<MapPaneProps> = ({
   }, [interactionMode, isFrameReady, viewMode]);
 
   const handleIframeError = useCallback(() => {
-    setFrameError('Azgaar world map could not be loaded. Switched to legacy grid view.');
-    setViewMode('grid');
+    // The legacy square-grid fallback is intentionally gone. Keeping the player
+    // on the atlas surface makes map failures honest and prevents the deprecated
+    // renderer from remaining a hidden gameplay path.
+    setFrameError('Azgaar world map could not be loaded.');
+    setIsFrameReady(false);
   }, []);
 
   const handleRegenerateWithSeed = useCallback(() => {
@@ -690,32 +683,6 @@ const MapPane: React.FC<MapPaneProps> = ({
     if (!onRegenerateWorld) return;
     onRegenerateWorld();
   }, [onRegenerateWorld]);
-
-  const renderLegacyGrid = () => (
-    <div className="overflow-auto flex-grow p-2 bg-black bg-opacity-10 rounded relative">
-      <div
-        className="grid gap-0.5"
-        style={{
-          gridTemplateColumns: `repeat(${gridSize.cols}, minmax(0, 1fr))`,
-          gridTemplateRows: `repeat(${gridSize.rows}, minmax(0, 1fr))`,
-        }}
-        role="grid"
-      >
-        {flattenedTiles.map((tile, index) => {
-          const markers = markersByCoordinate.get(`${tile.x}-${tile.y}`);
-          return (
-            <MapTile
-              key={`${tile.x}-${tile.y}-${index}`}
-              tile={tile}
-              isFocused={tile.isPlayerCurrent}
-              markers={markers}
-              onClick={onTileClick}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
 
   return (
     <WindowFrame
@@ -737,11 +704,12 @@ const MapPane: React.FC<MapPaneProps> = ({
               Azgaar Atlas
             </button>
             <button
-              onClick={() => setViewMode('grid')}
-              className={`px-2 py-1 rounded ${viewMode === 'grid' ? 'bg-blue-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+              onClick={() => setViewMode('worldforge')}
+              className={`px-2 py-1 rounded ${viewMode === 'worldforge' ? 'bg-blue-700 text-white' : 'bg-gray-600 text-gray-100'}`}
               type="button"
+              title="Native Worldforge SVG render-port (replaces the Azgaar embed)"
             >
-              Legacy Grid
+              World Forge
             </button>
             {viewMode === 'azgaar' && (
               <>
@@ -831,6 +799,7 @@ const MapPane: React.FC<MapPaneProps> = ({
               className="absolute inset-0 h-full w-full border-0"
               onLoad={scheduleReadOnlyInitialization}
               onError={handleIframeError}
+              onErrorCapture={handleIframeError}
             />
 
             <div
@@ -938,7 +907,13 @@ const MapPane: React.FC<MapPaneProps> = ({
             )}
           </div>
         ) : (
-          renderLegacyGrid()
+          <div className="relative overflow-hidden flex-grow rounded bg-slate-950 border border-slate-700 flex items-center justify-center">
+            {worldforgeAtlas ? (
+              <AtlasSvgView atlas={worldforgeAtlas} />
+            ) : (
+              <div className="text-slate-100 text-sm">Forging world…</div>
+            )}
+          </div>
         )}
 
         <p className="text-xs text-center mt-2 text-gray-700">

@@ -9,8 +9,9 @@ Document the coupling between the world-map UI, travel behavior, save/load, and 
 
 ## Verified Current Anchors
 
-A 2026-03-14 repo check confirmed:
-- `src/components/MapPane.tsx` exists and already carries the Azgaar atlas bridge plus fallback grid mode
+A 2026-06-22 repo check confirmed:
+- `src/components/MapPane.tsx` exists and carries the Azgaar atlas bridge plus a native World Forge render-port option
+- the player-facing legacy `MapTile` grid mode/fallback has been removed from `MapPane`
 - `src/services/mapService.ts` still owns the world-map generation entry path
 - `src/services/azgaarDerivedMapService.ts` still exists as the current Azgaar-derived generation lane
 - `src/hooks/useGameInitialization.ts` and reducer/state surfaces still preserve the map and seed contracts this file talks about
@@ -30,8 +31,26 @@ It should not be read as proof that all parity checks have already been fully cl
 
 The important current truth is:
 - the renderer-bridge phase has already landed
-- the legacy assumptions have not been fully retired yet
+- the visible legacy square-grid renderer is no longer exposed from `MapPane`
+- the legacy `MapData.tiles` gameplay/state assumptions have not been fully retired yet
 - the high-risk contracts are still map seed stability, travel correctness, and submap anchoring
+
+## Preserved Compatibility Contracts
+
+This deprecation pass intentionally preserves `MapData.tiles` and `MapTile`
+data payloads behind the atlas click bridge. The removed React grid renderer was
+only a presentation path; these state contracts still feed:
+- world-map travel and `MOVE_PLAYER` dispatch payloads
+- discovery/current-tile state mutation
+- save/load and `WorldData` v2 migration
+- submap biome anchoring and neighbor-biome blending
+- POI visibility and marker derivation
+- AI observation/location context
+- Enter-3D cell-to-world-position resolution
+
+Do not delete `MapData.tiles`, the `MapTile` data type, or the migration adapter
+as part of renderer cleanup. They need a separate contract migration before
+removal is safe.
 
 ## Next Practical Use
 

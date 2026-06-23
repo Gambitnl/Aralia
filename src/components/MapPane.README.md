@@ -2,92 +2,62 @@
 
 ## Purpose
 
-The `MapPane.tsx` component is responsible for rendering the game's world map as a visual overlay. It allows players to see discovered areas, their current position, and the biomes of different regions. Players can interact with the map by clicking on discovered tiles to potentially travel to linked locations. It now features enhanced keyboard navigation and an icon glossary.
+`MapPane.tsx` renders the game's world-map overlay. The player-facing square-grid
+renderer has been deprecated: the default surface is now the embedded Azgaar
+atlas, with a World Forge render-port option for native cartography work.
 
-## Visual Reference
-
-![MapPane overlay with legend and keyboard guidance](../../docs/images/map-pane-overlay.svg)
+The component still receives `MapData` and emits `MapTile` payloads because
+travel, discovery, save/load migration, submap anchoring, AI context, POI
+visibility, and Enter-3D positioning still depend on that compatibility
+contract.
 
 ## Props
 
-*   **`mapData: MapData`**:
-    *   **Type**: `MapData` (from `src/types.ts`)
-    *   **Purpose**: The core data object representing the map, including `gridSize` (rows, cols) and the 2D array of `MapTile` objects.
-    *   **Required**: Yes
+* **`mapData: MapData`**
+  * Core world-map state, including `gridSize`, legacy `tiles`, optional
+    `worldData`, and optional `worldGeography`.
+  * Required.
 
-*   **`onTileClick: (x: number, y: number, tile: MapTile) => void`**:
-    *   **Type**: Function
-    *   **Purpose**: A callback function invoked when the player clicks on a map tile or activates it via keyboard (Enter/Space). It receives the `x`, `y` coordinates of the clicked tile and the `MapTile` object itself.
-    *   **Required**: Yes
+* **`onTileClick: (x: number, y: number, tile: MapTile) => void`**
+  * Called when the atlas overlay resolves a click back to an Aralia travel cell.
+  * Required until travel migrates away from legacy tile payloads.
 
-*   **`onClose: () => void`**:
-    *   **Type**: Function
-    *   **Purpose**: A callback function invoked when the player clicks the "Close Map" button or presses the Escape key. This is used to hide the map overlay.
-    *   **Required**: Yes
+* **`onEnter3DAtCell?: (x: number, y: number, tile: MapTile) => void`**
+  * Called when Enter 3D mode resolves a discovered atlas cell to a world tile.
 
-## Core Functionality
+* **`onClose: () => void`**
+  * Closes the map overlay.
 
-1.  **Modal Display**:
-    *   Renders as a fixed-position overlay covering the screen.
-    *   The map itself is contained within a styled panel with a parchment paper-like texture.
+## Current Behavior
 
-2.  **Grid Rendering**:
-    *   Uses CSS Grid to display map tiles.
-    *   Each tile is a button.
+1. **Atlas Surface**
+   * Embeds the Azgaar atlas in read-only mode.
+   * Adds an overlay that maps pointer clicks back to Aralia grid cells.
+   * Shows Azgaar cell details in Travel mode.
 
-3.  **Tile Styling (`getTileStyle`)**:
-    *   **Discovered Tiles**: Background color based on biome, displays biome icon.
-    *   **Undiscovered Tiles**: "Fog of war" appearance with a "?".
-    *   **Player's Current Tile**: Highlighted with a distinct border and a "📍" emoji.
+2. **World Forge Surface**
+   * Offers a native SVG render-port generated from the same world seed.
+   * Does not restore the old square-grid renderer.
 
-4.  **Interaction**:
-    *   **Mouse**: Clicking a clickable tile calls `onTileClick`.
-    *   **Keyboard (Roving Tabindex & Arrow Keys)**:
-        *   The "Close" button is focused initially when the map opens.
-        *   Users can Tab from the close button to the map grid. When the grid (or specifically, the first focusable tile) receives focus, arrow keys can be used.
-        *   **Arrow Keys (Up, Down, Left, Right)**: Move focus between map tiles. The `focusedCoords` state tracks the currently focused tile.
-        *   **Enter or Space**: When a tile is focused, pressing Enter or Space activates it (calls `onTileClick` if the tile is clickable).
-        *   **Tab**: Only the currently "arrow-focused" tile (or the close button) is part of the Tab order. Tabbing out of the grid will move focus away from the map tiles.
-        *   **Escape Key**: Closes the map pane (calls `onClose`).
-    *   The "Close Map" button calls `onClose`.
+3. **Removed Grid Renderer**
+   * `MapPane` no longer exposes the `Legacy Grid` button.
+   * Azgaar iframe load failures now stay on the atlas surface and show an honest error instead of switching to the deprecated grid.
+   * The old `src/components/MapTile.tsx` React renderer and its direct component test have been removed.
 
-5.  **State Management (Internal)**:
-    *   `focusedCoords: { x: number; y: number } | null`: Tracks the coordinates of the tile that currently has keyboard focus within the grid. Initialized to the player's current tile.
-
-6.  **Glossary/Legend**:
-    *   Integrates the `GlossaryDisplay` component.
-    *   Dynamically collects icons from `BIOMES` and predefined map markers (player location, undiscovered area) to populate `mapGlossaryItems`.
-    *   Renders the `GlossaryDisplay` below the map grid, providing a legend for the icons used.
-
-## Styling
-
-*   Uses Tailwind CSS.
-*   Parchment paper background for the map container.
-*   Dynamic tile background colors.
-*   Focus states are visually indicated (e.g., `ring-sky-400`).
-
-## Accessibility
-
-*   The map pane modal has `aria-modal="true"`, `role="dialog"`, and `aria-labelledby`.
-*   The close button has an `aria-label` and is focused initially.
-*   Each map tile button:
-    *   Has `role="gridcell"`.
-    *   Has an `aria-label` describing its state (biome, coordinates, location name if any, current location status, focused status).
-    *   Has `aria-selected={isFocused}` to indicate keyboard focus.
-    *   Uses `tabIndex` for the roving tabindex implementation (`0` for the active/focused tile, `-1` for others).
-*   Biome icons have `role="img"` and `aria-label`.
-*   Disabled states for undiscovered/unclickable tiles prevent interaction and are visually distinct.
-*   Keyboard navigation instructions are provided at the bottom of the map.
+4. **Compatibility Bridge**
+   * Discovery/current-player reads pass through the World geography adapter.
+   * The atlas click bridge still returns legacy map cells so existing travel and 3D-entry behavior keeps working while downstream contracts migrate.
 
 ## Data Dependencies
 
-*   **`MapData`, `MapTile`, `Biome`, `GlossaryItem` types** (from `src/types.ts`).
-*   **`BIOMES` constant** (from `src/constants.ts`).
-*   **`LOCATIONS` constant** (from `src/constants.ts`).
-*   **`GlossaryDisplay` component** (from `./GlossaryDisplay.tsx`).
+* `MapData` and `MapTile` from `src/types/world`.
+* `WorldGeographyAdapter` from `src/utils/world`.
+* Azgaar embed files under `public/vendor/azgaar`.
+* World Forge atlas generation and SVG view components.
 
-## Future Considerations
+## Migration Notes
 
-*   Support for map panning and zooming for larger maps.
-*   More sophisticated visual representation of biomes.
-*   Displaying points of interest or quest markers.
+Do not delete `MapData.tiles`, the `MapTile` data type, or the world-data
+migration bridge as part of renderer cleanup. Those are still active gameplay
+contracts. Remove them only after travel, save/load, submap, POI, AI context, and
+3D entry have moved to `worldGeography` or `WorldData` directly.
