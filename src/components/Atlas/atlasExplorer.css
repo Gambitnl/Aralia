@@ -1,0 +1,296 @@
+/**
+ * Styles for the Aralia Atlas Knowledge Tree explorer.
+ *
+ * The Atlas is a dense operator-facing tool, so the layout favors calm scanable
+ * panels, stable counters, and compact document rows over decorative marketing
+ * treatment. The page is separate from the main game UI but still uses Aralia's
+ * dark tool-surface tone.
+ *
+ * Called by: AtlasExplorer.tsx
+ * Depends on: standard browser CSS only
+ */
+
+/* ============================================================================
+   Page Shell
+   ============================================================================
+   This section creates the full-screen tool surface and keeps the page readable
+   at desktop and tablet sizes without placing cards inside cards.
+   ============================================================================ */
+
+.atlas-shell {
+  box-sizing: border-box;
+  height: 100vh;
+  overflow: hidden;
+  padding: 24px;
+  background: #101418;
+  color: #ecf3f1;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.atlas-shell-centered {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.atlas-shell-centered code {
+  padding: 10px 12px;
+  border: 1px solid #40515a;
+  border-radius: 6px;
+  background: #151d22;
+  color: #d9eee6;
+}
+
+.atlas-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 18px;
+}
+
+.atlas-header h1,
+.atlas-detail-header h2 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.atlas-kicker,
+.atlas-generated {
+  margin: 0 0 5px;
+  color: #94b7ae;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+/* ============================================================================
+   Summary And Layout
+   ============================================================================
+   This section defines stable counters and the two-column branch/detail layout
+   that makes the Knowledge Tree visible without requiring raw JSON inspection.
+   ============================================================================ */
+
+.atlas-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.atlas-summary div {
+  min-height: 74px;
+  padding: 14px;
+  border: 1px solid #2a3a3d;
+  border-radius: 6px;
+  background: #172024;
+}
+
+.atlas-summary strong {
+  display: block;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.atlas-summary span {
+  display: block;
+  margin-top: 8px;
+  color: #a8bdb8;
+  font-size: 13px;
+}
+
+.atlas-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 16px;
+  height: calc(100vh - 170px);
+  min-height: 0;
+}
+
+.atlas-branch-panel,
+.atlas-detail-panel {
+  min-height: 0;
+  border: 1px solid #2a3a3d;
+  border-radius: 6px;
+  background: #141c20;
+}
+
+/* ============================================================================
+   Branch List
+   ============================================================================
+   This section keeps branch controls compact and stable, so counts changing after
+   a nightly reconciliation do not resize the whole page.
+   ============================================================================ */
+
+.atlas-branch-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+}
+
+.atlas-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid #34494e;
+  border-radius: 6px;
+  background: #0f171a;
+}
+
+.atlas-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #edf7f4;
+  font: inherit;
+}
+
+.atlas-branch-list {
+  display: grid;
+  flex: 1;
+  align-content: start;
+  gap: 8px;
+  margin-top: 12px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.atlas-branch {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #25363a;
+  border-radius: 6px;
+  background: #11191d;
+  color: #edf7f4;
+  text-align: left;
+  cursor: pointer;
+}
+
+.atlas-branch:hover,
+.atlas-branch-active {
+  border-color: #5da892;
+  background: #18272a;
+}
+
+.atlas-branch small {
+  color: #9eb3af;
+}
+
+/* ============================================================================
+   Document Detail
+   ============================================================================
+   This section renders the selected branch's attached documents and plan states
+   as dense rows for review and wrap-up use.
+   ============================================================================ */
+
+.atlas-detail-panel {
+  padding: 16px;
+  overflow: hidden;
+}
+
+.atlas-detail-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+
+.atlas-detail-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.atlas-detail-badges span,
+.atlas-doc-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 5px 8px;
+  border: 1px solid #33474c;
+  border-radius: 6px;
+  color: #c9d9d4;
+  background: #10181b;
+  font-size: 12px;
+}
+
+.atlas-doc-table {
+  display: grid;
+  gap: 8px;
+  max-height: calc(100vh - 270px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.atlas-doc-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #26383c;
+  border-radius: 6px;
+  background: #10181b;
+}
+
+.atlas-doc-row h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.atlas-doc-row p {
+  margin: 0;
+  color: #9eb3af;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.atlas-doc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.atlas-spin {
+  animation: atlas-spin 1s linear infinite;
+}
+
+@keyframes atlas-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .atlas-header,
+  .atlas-detail-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .atlas-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .atlas-grid,
+  .atlas-doc-row {
+    grid-template-columns: 1fr;
+  }
+
+  .atlas-doc-table {
+    max-height: none;
+  }
+}

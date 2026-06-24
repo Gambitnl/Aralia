@@ -185,8 +185,8 @@ export async function saveGame(
       saveVersion: SAVE_GAME_VERSION,
       saveTimestamp: Date.now(),
       // Ensure transient states are not saved or are reset if needed.
-      // Player-facing overlay flags (isMapVisible/isSubmapVisible/
-      // isDiscoveryLogVisible) are deliberately persisted as-is so resume
+      // Player-facing overlay flags (isMapVisible/isDiscoveryLogVisible) are
+      // deliberately persisted as-is so resume
       // reopens the panel the player was using (resume-journey task 4).
       // Dev/debug surfaces and object-holding modals stay forced closed.
       isLoading: false,
@@ -350,7 +350,6 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     // strict booleans survive — legacy/hand-edited saves heal to closed rather
     // than resuming into an undefined panel state.
     loadedState.isMapVisible = loadedState.isMapVisible === true;
-    loadedState.isSubmapVisible = loadedState.isSubmapVisible === true;
     loadedState.isDiscoveryLogVisible = loadedState.isDiscoveryLogVisible === true;
     loadedState.isDevMenuVisible = false;
     loadedState.isGeminiLogViewerVisible = false;

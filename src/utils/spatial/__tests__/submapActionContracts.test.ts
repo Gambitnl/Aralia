@@ -9,7 +9,18 @@ import {
   getInspectableTileKeys,
   INSPECT_TILE_TIME_ADVANCE_SECONDS,
   normalizeQuickTravelHandlerInputs,
+  computeQuickTravelPath,
+  type QuickTravelPathNode,
 } from '../submapActionContracts';
+
+/** Build a clear straight-line grid of walkable nodes for path tests. */
+function gridLine(n: number): Map<string, QuickTravelPathNode> {
+  const g = new Map<string, QuickTravelPathNode>();
+  for (let x = 0; x < n; x++) {
+    g.set(`${x}-0`, { id: `${x}-0`, coordinates: { x, y: 0 }, movementCost: 15, blocksMovement: false });
+  }
+  return g;
+}
 
 describe('submapActionContracts', () => {
   describe('getInspectableTileKeys', () => {
@@ -27,6 +38,40 @@ describe('submapActionContracts', () => {
       expect(keys.has('1,0')).toBe(true);
       expect(keys.has('0,1')).toBe(true);
       expect(keys.has('1,1')).toBe(true);
+    });
+  });
+
+  describe('computeQuickTravelPath', () => {
+    it('finds a straight path and reports an ordered route + time', () => {
+      const grid = gridLine(4);
+      const r = computeQuickTravelPath({
+        start: { x: 0, y: 0 },
+        end: { x: 3, y: 0 },
+        pathfindingGrid: grid,
+        submapDimensions: { rows: 1, cols: 4 },
+        worldBiomeId: 'plains',
+        simpleHash: () => 1,
+      });
+      expect(r.isBlocked).toBe(false);
+      expect(r.orderedPath.length).toBeGreaterThanOrEqual(2);
+      expect(r.orderedPath[0]).toEqual({ x: 0, y: 0 });
+      expect(r.orderedPath[r.orderedPath.length - 1]).toEqual({ x: 3, y: 0 });
+      expect(r.path.has('3-0')).toBe(true);
+    });
+
+    it('flags a blocked destination and returns an empty route', () => {
+      const grid = gridLine(3);
+      grid.set('2-0', { id: '2-0', coordinates: { x: 2, y: 0 }, movementCost: Infinity, blocksMovement: true });
+      const r = computeQuickTravelPath({
+        start: { x: 0, y: 0 },
+        end: { x: 2, y: 0 },
+        pathfindingGrid: grid,
+        submapDimensions: { rows: 1, cols: 3 },
+        worldBiomeId: 'plains',
+        simpleHash: () => 1,
+      });
+      expect(r.isBlocked).toBe(true);
+      expect(r.orderedPath).toEqual([]);
     });
   });
 

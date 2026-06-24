@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Spell } from '../../types/spells';
+import { ENV } from '../../config/env';
 
 export function useSpellRegistry() {
   const [manifest, setManifest] = useState<Record<string, any> | null>(null);
@@ -7,7 +8,7 @@ export function useSpellRegistry() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}data/spells_manifest.json`)
+    fetch(`${ENV.BASE_URL}data/spells_manifest.json`)
       .then(res => res.json())
       .then(data => {
         setManifest(data);
@@ -34,7 +35,7 @@ export function useSpellRegistry() {
 
     if (entry && entry.path) {
       try {
-        const basePath = entry.path.startsWith('/') ? `${import.meta.env.BASE_URL}${entry.path.slice(1)}` : entry.path;
+        const basePath = entry.path.startsWith('/') ? `${ENV.BASE_URL}${entry.path.slice(1)}` : entry.path;
       const res = await fetch(basePath);
         const spell = await res.json() as Spell;
         setRegistry(prev => {

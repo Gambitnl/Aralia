@@ -23,6 +23,7 @@
  * - Render order inside EffectComposer: Clouds → ToneMapping.
  */
 import { useMemo, useRef } from 'react';
+import { ENV } from '../../config/env';
 import { useFrame } from '@react-three/fiber';
 import type { Vector3 } from 'three';
 import {
@@ -102,7 +103,7 @@ const _ecefSunDir = new ThreeVector3();
 // stbn.bin (STBN noise) is not shipped in any npm package — downloaded once from GitHub
 // CDN and cached locally in public/data/takram-atmosphere/ alongside the other assets.
 // BASE_URL handles the /Aralia/ prefix in dev and production builds.
-const _base = import.meta.env.BASE_URL || '/';
+const _base = ENV.BASE_URL || '/';
 const _atm = `${_base}data/takram-atmosphere`;
 const ATMOSPHERE_TEXTURES_URL = _atm;
 const STARS_DATA_URL = `${_atm}/stars.bin`;

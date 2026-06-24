@@ -102,8 +102,6 @@ export type AppAction = {
 } | {
     type: 'TOGGLE_MINIMAP_VISIBILITY';
 } | {
-    type: 'TOGGLE_SUBMAP_VISIBILITY';
-} | {
     type: 'TOGGLE_THREE_D_VISIBILITY';
 } | {
     type: 'SET_WORLD_SEED';
@@ -237,6 +235,31 @@ export type AppAction = {
     payload: {
         itemId: string;
         value: number;
+    };
+} | {
+    type: 'ATTUNE_ITEM';
+    payload: {
+        characterId: string;
+        itemId: string;
+    };
+} | {
+    type: 'UNATTUNE_ITEM';
+    payload: {
+        characterId: string;
+        itemId: string;
+    };
+} | {
+    type: 'TOGGLE_ITEM_JUNK';
+    payload: {
+        itemId: string;
+    };
+} | {
+    type: 'SELL_ALL_JUNK';
+    payload: {
+        items: {
+            itemId: string;
+            value: number;
+        }[];
     };
 } | {
     type: 'OPEN_TEMPLE';

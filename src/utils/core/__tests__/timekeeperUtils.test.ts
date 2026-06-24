@@ -26,7 +26,6 @@ const createOpenExplorationClockState = (overrides: Partial<PassiveGameClockStat
   isImageLoading: false,
   isCharacterSheetOpen: false,
   isMapVisible: false,
-  isSubmapVisible: false,
   isDevMenuVisible: false,
   isGeminiLogViewerVisible: false,
   isDiscoveryLogVisible: false,

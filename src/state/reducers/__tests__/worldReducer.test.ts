@@ -217,6 +217,28 @@ describe('worldReducer', () => {
         expect(clearResult.playerGroundPos).toBeNull();
     });
 
+    it('REVEAL_HIDDEN_SITE records a discovered hidden place (with tile), deduped by id', () => {
+        const a = { id: 'hp:2', tileX: 3, tileY: 4, name: 'Cave', kind: 'cave' };
+        const b = { id: 'hp:5', tileX: 7, tileY: 1, name: 'Ruins', kind: 'ruin' };
+        const baseState = createMockGameState({ discoveredHiddenSites: [] });
+        const first = worldReducer(baseState, { type: 'REVEAL_HIDDEN_SITE', payload: a });
+        expect(first.discoveredHiddenSites).toEqual([a]);
+
+        // Re-revealing the same id is idempotent (no duplicate, empty slice).
+        const again = worldReducer(
+            { ...baseState, discoveredHiddenSites: first.discoveredHiddenSites! },
+            { type: 'REVEAL_HIDDEN_SITE', payload: { ...a } },
+        );
+        expect(again.discoveredHiddenSites).toBeUndefined();
+
+        // A different id appends.
+        const second = worldReducer(
+            { ...baseState, discoveredHiddenSites: [a] },
+            { type: 'REVEAL_HIDDEN_SITE', payload: b },
+        );
+        expect(second.discoveredHiddenSites).toEqual([a, b]);
+    });
+
     // ============================================================================
     // Worldforge Delta Persistence
     // ============================================================================

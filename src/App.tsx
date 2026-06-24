@@ -428,7 +428,6 @@ const App: React.FC = () => {
         ? gameState.gameTime.toISOString()
         : String(gameState.gameTime),
       isMapVisible: gameState.isMapVisible,
-      isSubmapVisible: gameState.isSubmapVisible,
       isThreeDVisible: gameState.isThreeDVisible ?? false,
       saveTimestamp: gameState.saveTimestamp ?? null,
       error: gameState.error ?? null,
@@ -509,7 +508,6 @@ const App: React.FC = () => {
       isImageLoading: gameState.isImageLoading,
       isCharacterSheetOpen: gameState.characterSheetModal.isOpen,
       isMapVisible: gameState.isMapVisible,
-      isSubmapVisible: gameState.isSubmapVisible,
       isDevMenuVisible: gameState.isDevMenuVisible,
       isGeminiLogViewerVisible: gameState.isGeminiLogViewerVisible,
       isDiscoveryLogVisible: gameState.isDiscoveryLogVisible,
@@ -541,7 +539,6 @@ const App: React.FC = () => {
     gameState.isImageLoading,
     gameState.characterSheetModal.isOpen,
     gameState.isMapVisible,
-    gameState.isSubmapVisible,
     gameState.isDevMenuVisible,
     gameState.isGeminiLogViewerVisible,
     gameState.isDiscoveryLogVisible,
@@ -990,7 +987,6 @@ const App: React.FC = () => {
     !gameState.isImageLoading &&
     !gameState.characterSheetModal.isOpen &&
     !gameState.isMapVisible &&
-    !gameState.isSubmapVisible &&
     !gameState.isDevMenuVisible &&
     !gameState.isGeminiLogViewerVisible &&
     !gameState.isDiscoveryLogVisible &&
@@ -1007,24 +1003,6 @@ const App: React.FC = () => {
     !gameState.isEconomyLedgerVisible &&
     !gameState.isCourierPouchVisible &&
     !missingChoiceModal.isOpen;
-
-  // Specific check for Submap interaction disabling
-  const submapPaneDisabled = gameState.isLoading ||
-    gameState.isImageLoading ||
-    gameState.characterSheetModal.isOpen ||
-    gameState.isMapVisible ||
-    gameState.isDevMenuVisible ||
-    gameState.isGeminiLogViewerVisible ||
-    gameState.isDiscoveryLogVisible ||
-    gameState.isGlossaryVisible ||
-    gameState.isNpcTestModalVisible ||
-    gameState.isLogbookVisible ||
-    gameState.isQuestLogVisible ||
-    gameState.isGameGuideVisible ||
-    gameState.isInvestmentBoardVisible ||
-    gameState.merchantModal.isOpen ||
-    missingChoiceModal.isOpen;
-
 
   const handleGoBackFromMainMenu = useCallback(() => {
     const prevPhase: GamePhase | undefined = gameState.previousPhase;
@@ -1329,7 +1307,6 @@ const App: React.FC = () => {
             npcsInLocation={npcs}
             itemsInLocation={itemsInCurrentLocation}
             isUIInteractive={isUIInteractive}
-            submapPaneDisabled={!!submapPaneDisabled}
             missingChoiceModal={missingChoiceModal}
             onCloseMissingChoice={() => setMissingChoiceModal({ isOpen: false, character: null, missingChoice: null })}
             onConfirmMissingChoice={handleConfirmMissingChoice}

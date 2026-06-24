@@ -93,6 +93,17 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
         return playerInventory.filter(i => (typeof i.costInGp === 'number' && i.costInGp > 0) || Boolean(i.cost));
     }, [playerInventory]);
 
+    const junkItems = useMemo(() => {
+        return sellableItems.filter(item => item.isJunk === true);
+    }, [sellableItems]);
+
+    const junkValue = useMemo(() => {
+        return junkItems.reduce((total, item) => {
+            const { finalPrice } = calculatePrice(item, economy, 'sell', regionId, priceContext);
+            return total + finalPrice;
+        }, 0);
+    }, [junkItems, economy, regionId, priceContext]);
+
     const handleBuy = (item: Item) => {
         const { finalPrice } = calculatePrice(item, economy, 'buy', regionId, priceContext);
         if (finalPrice > 0 && playerGold >= finalPrice) {
@@ -246,7 +257,27 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
 
                             {/* Player Column */}
                             <div className="w-1/2 p-4 flex flex-col bg-gray-900/30">
-                                <h3 className="text-lg font-bold text-amber-300 mb-3 sticky top-0">Your Inventory</h3>
+                                <div className="flex justify-between items-center mb-3 sticky top-0 bg-gray-900/10 py-1">
+                                    <h3 className="text-lg font-bold text-amber-300">Your Inventory</h3>
+                                    {junkItems.length > 0 && (
+                                        <button
+                                            onClick={() => {
+                                                const itemsPayload = junkItems.map(item => {
+                                                    const { finalPrice } = calculatePrice(item, economy, 'sell', regionId, priceContext);
+                                                    return { itemId: item.id, value: finalPrice };
+                                                });
+                                                onAction({
+                                                    type: 'SELL_ALL_JUNK',
+                                                    label: `Sell All Junk (${junkItems.length} items)`,
+                                                    payload: { items: itemsPayload }
+                                                });
+                                            }}
+                                            className="px-2 py-1 bg-amber-700 hover:bg-amber-600 text-white rounded text-xs font-semibold shadow-sm transition-colors"
+                                        >
+                                            Sell All Junk ({formatGpAsCoins(junkValue)})
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="flex-grow overflow-y-auto scrollable-content space-y-2 pr-2">
                                     {sellableItems.map((item, idx) => {
                                         const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'sell', regionId, priceContext);

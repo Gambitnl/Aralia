@@ -12,6 +12,8 @@ import type {
   QuickTravelPayload,
   UpdateInspectedTileDescriptionPayload,
 } from '../../types';
+import type { BattleMapData, BattleMapTile } from '../../types/combat';
+import { findPath } from './pathfinding';
 
 /** Default encounter chance SubmapPane passes today; handler clamps to [0, 1]. */
 export const DEFAULT_QUICK_TRAVEL_ENCOUNTER_CHANCE = 0.16;
@@ -24,6 +26,69 @@ export const INSPECT_TILE_TIME_ADVANCE_SECONDS = 300;
 
 export interface PathNodeMovementCost {
   movementCost: number;
+}
+
+/** A pathfinding-grid node (renderer-independent shape used by quick travel). */
+export interface QuickTravelPathNode extends PathNodeMovementCost {
+  id: string;
+  coordinates: { x: number; y: number };
+  blocksMovement: boolean;
+}
+
+export interface ComputeQuickTravelPathInput {
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+  pathfindingGrid: Map<string, QuickTravelPathNode>;
+  submapDimensions: { rows: number; cols: number };
+  worldBiomeId: string;
+  /** Deterministic hash (seed source for the pathfinder), e.g. proc-data simpleHash. */
+  simpleHash: (x: number, y: number, seed: string) => number;
+}
+
+export interface ComputedQuickTravelPath {
+  path: Set<string>;
+  orderedPath: Array<{ x: number; y: number }>;
+  /** Total travel time in minutes (matches the legacy useQuickTravelData.time). */
+  timeMinutes: number;
+  isBlocked: boolean;
+}
+
+/** Map an arbitrary world biome id to a pathfinder theme (mirrors the legacy rule). */
+function pathfinderThemeFor(worldBiomeId: string): BattleMapData['theme'] {
+  const valid: BattleMapData['theme'][] = ['forest', 'cave', 'dungeon', 'desert', 'swamp'];
+  if ((valid as string[]).includes(worldBiomeId)) return worldBiomeId as BattleMapData['theme'];
+  if (worldBiomeId === 'plains' || worldBiomeId === 'hills') return 'forest';
+  if (worldBiomeId === 'mountain') return 'cave';
+  return 'forest';
+}
+
+/**
+ * Renderer-independent quick-travel path computation — the pure core formerly
+ * inside `useQuickTravelData`. Given a pathfinding grid and start/end, returns the
+ * ordered path, the key set, the travel time (minutes) and a blocked flag, so any
+ * navigation surface can feed `buildQuickTravelPayload` without React.
+ */
+export function computeQuickTravelPath(input: ComputeQuickTravelPathInput): ComputedQuickTravelPath {
+  const empty: ComputedQuickTravelPath = { path: new Set<string>(), orderedPath: [], timeMinutes: 0, isBlocked: false };
+  const startNode = input.pathfindingGrid.get(`${input.start.x}-${input.start.y}`);
+  const endNode = input.pathfindingGrid.get(`${input.end.x}-${input.end.y}`);
+  if (!startNode || !endNode) return empty;
+  if (endNode.blocksMovement) return { ...empty, isBlocked: true };
+
+  const mapForPathfinder: BattleMapData = {
+    dimensions: { width: input.submapDimensions.cols, height: input.submapDimensions.rows },
+    tiles: input.pathfindingGrid as unknown as Map<string, BattleMapTile>,
+    theme: pathfinderThemeFor(input.worldBiomeId),
+    seed: input.simpleHash(0, 0, 'pathfinder_seed'),
+  };
+
+  const pathNodes = findPath(startNode as unknown as BattleMapTile, endNode as unknown as BattleMapTile, mapForPathfinder);
+  if (pathNodes.length === 0 && startNode !== endNode) return { ...empty, isBlocked: true };
+
+  const path = new Set(pathNodes.map((p) => p.id));
+  const orderedPath = pathNodes.map((p) => p.coordinates);
+  const timeMinutes = pathNodes.reduce((acc, node) => acc + (node as unknown as PathNodeMovementCost).movementCost, 0) - (startNode.movementCost || 0);
+  return { path, orderedPath, timeMinutes, isBlocked: false };
 }
 
 export interface QuickTravelPathInput {

@@ -522,7 +522,9 @@ export const canEquipItem = (character: PlayerCharacter, item: Item): { can: boo
 
   if (item.type === 'armor') {
     if (item.strengthRequirement && character.finalAbilityScores.Strength < item.strengthRequirement) {
-      return { can: false, reason: `Requires ${item.strengthRequirement} Strength.` };
+      // 5e rules: Wearing heavy armor without meeting the Strength requirement is allowed
+      // but reduces movement speed by 10 feet. We return can: true with a warning reason.
+      return { can: true, reason: `Low Strength: speed penalty active. Requires Strength ${item.strengthRequirement}.` };
     }
 
     if (item.armorCategory) {
@@ -1413,6 +1415,30 @@ export function calculateCharacterSpeedFromRace(race: PlayerCharacter['race'], r
   return speed;
 }
 
+/**
+ * Calculates a character's final movement speed, accounting for race, feats,
+ * and heavy armor Strength requirement penalties.
+ *
+ * Called by: updateDerivedStats, normalizeCharacterRaceData
+ * Depends on: PlayerCharacter, calculateCharacterSpeedFromRace, getSpeedBonusFromFeats
+ */
+export function calculateCharacterSpeed(character: PlayerCharacter): number {
+  const baseSpeed = calculateCharacterSpeedFromRace(character.race, character.racialSelections);
+  const featBonus = getSpeedBonusFromFeats(character.feats || []);
+  let finalSpeed = baseSpeed + featBonus;
+
+  // Deduct 10 feet if wearing heavy armor without meeting its Strength requirement
+  const torso = character.equippedItems?.Torso;
+  if (torso && torso.type === 'armor' && torso.armorCategory === 'Heavy' && torso.strengthRequirement) {
+    const strength = character.finalAbilityScores?.Strength ?? 10;
+    if (strength < torso.strengthRequirement) {
+      finalSpeed = Math.max(0, finalSpeed - 10);
+    }
+  }
+
+  return finalSpeed;
+}
+
 export function calculateCharacterDarkvisionFromRace(race: PlayerCharacter['race'], racialSelections: PlayerCharacter['racialSelections'] = {}): number {
   let range = 0;
   const darkvisionTrait = race.traits.find(t => t.toLowerCase().includes('darkvision') || t.toLowerCase().includes('vision:'));
@@ -1467,7 +1493,11 @@ export const updateDerivedStats = (character: PlayerCharacter): PlayerCharacter 
   }
 
   // 3. Armor Class
+  // 3. Armor Class
   updated.armorClass = calculateArmorClass(updated, updated.activeEffects);
+
+  // 3.5. Movement Speed
+  updated.speed = calculateCharacterSpeed(updated);
 
   // 4. Proficiency Bonus
   updated.proficiencyBonus = Math.floor((level - 1) / 4) + 2;
@@ -1503,7 +1533,7 @@ export const normalizeCharacterRaceData = (character: PlayerCharacter): PlayerCh
   // mechanics. If a race definition changes, loaded premades should inherit it.
   // PRESERVED: Non-race rebuilds still use updateDerivedStats without touching
   // movement, so temporary/manual speed changes are not broadly overwritten.
-  updated.speed = calculateCharacterSpeedFromRace(updated.race, updated.racialSelections) + getSpeedBonusFromFeats(updated.feats || []);
+  updated.speed = calculateCharacterSpeed(updated);
   updated.darkvisionRange = calculateCharacterDarkvisionFromRace(updated.race, updated.racialSelections);
 
   return updated;

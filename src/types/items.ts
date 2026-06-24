@@ -358,6 +358,18 @@ export interface Item {
 
   /** If true, this item is stolen and can only be sold to a Fence. */
   isStolen?: boolean;
+
+  /** If true, this item requires attunement before its magic properties/bonuses function. */
+  requiresAttunement?: boolean;
+
+  /** If true, this item is actively attuned by a character. */
+  isAttuned?: boolean;
+
+  /** The ID of the character who has attuned this item. */
+  attunedCharacterId?: string;
+
+  /** If true, the item is marked as junk for quick merchant selling. */
+  isJunk?: boolean;
 }
 
 /**

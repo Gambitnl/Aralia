@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:27:09
- * Dependents: CharacterCreator.tsx
- * Imports: 12 files
+ * Last Sync: 23/06/2026, 18:11:40
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -28,6 +28,7 @@ import {
   RacialSelectionData,
 } from '../../types';
 import { SKILLS_DATA } from '../../data/skills';
+import { BACKGROUNDS } from '../../data/backgrounds';
 import Tooltip from '../ui/Tooltip';
 import { Button } from '../ui/Button';
 import { CreationStepLayout } from './ui/CreationStepLayout';
@@ -49,6 +50,7 @@ interface SkillSelectionProps {
   abilityScores: AbilityScores;
   race: Race;
   racialSelections: Record<string, RacialSelectionData>;
+  selectedBackground?: string;
   onSkillsSelect: (skills: Skill[]) => void;
   onBack: () => void;
 }
@@ -63,6 +65,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
   abilityScores,
   race,
   racialSelections,
+  selectedBackground,
   onSkillsSelect,
   onBack,
 }) => {
@@ -80,13 +83,6 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
     resetSelectedClassSkills,
   } = useSkillSelectionState();
 
-  // Filter and map available skills from class data
-  const availableSkillsFromClass = useMemo(() => {
-    return charClass.skillProficienciesAvailable
-      .map((id) => SKILLS_DATA[id])
-      .filter((skill): skill is Skill => !!skill);
-  }, [charClass.skillProficienciesAvailable]);
-
   const headerActions = (
     <Button
       variant="ghost"
@@ -101,6 +97,57 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
       Reset
     </Button>
   );
+
+  // Prepare options for Elf Keen Senses racial feature
+  const keenSensesOptions = useMemo(() => getKeenSensesOptions(SKILLS_DATA), []);
+
+  const racialGrantsBySkillId = useMemo(() => {
+    return deriveRacialSkillGrants({
+      raceId: race.id,
+      racialSelections,
+      selectedKeenSensesSkillId,
+    });
+  }, [race.id, racialSelections, selectedKeenSensesSkillId]);
+
+  // Compute all skills automatically granted by race or background.
+  const autoSkillIds = useMemo(() => {
+    const ids = new Set<string>();
+    
+    // Add skills automatically granted by chosen racial traits.
+    Object.entries(racialGrantsBySkillId).forEach(([skillId, info]) => {
+      if (info.granted) {
+        ids.add(skillId);
+      }
+    });
+
+    // Add skills automatically granted by the chosen background.
+    if (selectedBackground && BACKGROUNDS[selectedBackground]) {
+      BACKGROUNDS[selectedBackground].skillProficiencies.forEach(id => {
+        ids.add(id);
+      });
+    }
+
+    return ids;
+  }, [racialGrantsBySkillId, selectedBackground]);
+
+  // Determine if there is any overlap between class skill lists and auto-granted skills.
+  const hasOverlap = useMemo(() => {
+    return charClass.skillProficienciesAvailable.some(id => autoSkillIds.has(id));
+  }, [charClass.skillProficienciesAvailable, autoSkillIds]);
+
+  // Filter and map available skills from class data, or expand to the entire game skill pool
+  // if an overlap exists under the D&D 2024 rules.
+  const availableSkillsFromClass = useMemo(() => {
+    if (hasOverlap) {
+      // If there is an overlap, the player can choose from any skill in the game (excluding auto-granted ones).
+      return Object.values(SKILLS_DATA)
+        .filter((skill): skill is Skill => !!skill && !autoSkillIds.has(skill.id));
+    }
+    // Otherwise, they choose from their standard class list (excluding auto-granted ones).
+    return charClass.skillProficienciesAvailable
+      .map((id) => SKILLS_DATA[id])
+      .filter((skill): skill is Skill => !!skill && !autoSkillIds.has(skill.id));
+  }, [charClass.skillProficienciesAvailable, hasOverlap, autoSkillIds]);
 
   const filteredSkillsFromClass = useMemo(() => {
     const q = skillSearchQuery.trim().toLowerCase();
@@ -128,17 +175,6 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
       setViewedSkillId(filteredSkillsFromClass[0].id);
     }
   }, [filteredSkillsFromClass, setViewedSkillId, viewedSkillId]);
-
-  // Prepare options for Elf Keen Senses racial feature
-  const keenSensesOptions = useMemo(() => getKeenSensesOptions(SKILLS_DATA), []);
-
-  const racialGrantsBySkillId = useMemo(() => {
-    return deriveRacialSkillGrants({
-      raceId: race.id,
-      racialSelections,
-      selectedKeenSensesSkillId,
-    });
-  }, [race.id, racialSelections, selectedKeenSensesSkillId]);
 
   const EMPTY_GRANT_INFO = useMemo(() => ({ granted: false as const, source: '' as const }), []);
 
@@ -221,9 +257,12 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
   // Current skill being viewed in detail panel
   const viewedSkill = viewedSkillId ? SKILLS_DATA[viewedSkillId] : null;
   const viewedGrantInfo = viewedSkillId ? (racialGrantsBySkillId[viewedSkillId] ?? EMPTY_GRANT_INFO) : EMPTY_GRANT_INFO;
+  const isViewedRacialGranted = viewedGrantInfo.granted;
+  const isViewedBackgroundGranted = !!(viewedSkillId && selectedBackground && BACKGROUNDS[selectedBackground]?.skillProficiencies.includes(viewedSkillId));
+  const isViewedAutoGranted = isViewedRacialGranted || isViewedBackgroundGranted;
   const isViewedSelected = viewedSkillId && selectedClassSkillIds.has(viewedSkillId);
   const isViewedDisabled = viewedSkillId && (
-    viewedGrantInfo.granted ||
+    isViewedAutoGranted ||
     (!selectedClassSkillIds.has(viewedSkillId) && selectedClassSkillIds.size >= charClass.numberOfSkillProficiencies)
   );
 
@@ -276,7 +315,9 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
               >
                 {filteredSkillsFromClass.map((skill) => {
                   const grantInfo = racialGrantsBySkillId[skill.id] ?? EMPTY_GRANT_INFO;
-                  const granted = grantInfo.granted;
+                  const isRacialGranted = grantInfo.granted;
+                  const isBackgroundGranted = !!(selectedBackground && BACKGROUNDS[selectedBackground]?.skillProficiencies.includes(skill.id));
+                  const isAutoGranted = isRacialGranted || isBackgroundGranted;
                   const isSelected = selectedClassSkillIds.has(skill.id);
                   const isViewed = viewedSkillId === skill.id;
 
@@ -286,7 +327,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                       key={skill.id}
                       onClick={() => {
                         setViewedSkillId(skill.id);
-                        if (!granted) toggleClassSkill(skill.id, charClass.numberOfSkillProficiencies);
+                        if (!isAutoGranted) toggleClassSkill(skill.id, charClass.numberOfSkillProficiencies);
                       }}
                       className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 border border-transparent flex items-center justify-between ${
                         isViewed
@@ -298,30 +339,39 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                         {/* Selection indicator */}
                         <div
                           className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                            isSelected || granted
+                            isSelected || isAutoGranted
                               ? 'bg-sky-600 border-sky-500'
                               : 'border-gray-500 bg-gray-900/50'
                           }`}
                         >
-                          {(isSelected || granted) && (
+                          {(isSelected || isAutoGranted) && (
                             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                             </svg>
                           )}
                         </div>
-                        <span className={isSelected || granted ? 'text-sky-300 font-medium' : ''}>
+                        <span className={isSelected || isAutoGranted ? 'text-sky-300 font-medium' : ''}>
                           {skill.name}
                         </span>
                       </div>
                       
-                      {/* Racial grant indicator */}
-                      {granted && (
-                        <Tooltip content={grantInfo.source}>
-                          <span className="text-[10px] bg-yellow-900/40 text-yellow-400 px-1.5 py-0.5 rounded border border-yellow-700/30">
-                            Racial
-                          </span>
-                        </Tooltip>
-                      )}
+                      {/* Auto grant indicators */}
+                      <div className="flex items-center gap-1.5">
+                        {isRacialGranted && (
+                          <Tooltip content={grantInfo.source}>
+                            <span className="text-[10px] bg-yellow-900/40 text-yellow-400 px-1.5 py-0.5 rounded border border-yellow-700/30">
+                              Racial
+                            </span>
+                          </Tooltip>
+                        )}
+                        {isBackgroundGranted && selectedBackground && BACKGROUNDS[selectedBackground] && (
+                          <Tooltip content={`Granted by your ${BACKGROUNDS[selectedBackground].name} background`}>
+                            <span className="text-[10px] bg-sky-900/40 text-sky-400 px-1.5 py-0.5 rounded border border-sky-700/30">
+                              Background
+                            </span>
+                          </Tooltip>
+                        )}
+                      </div>
                     </button>
                   );
                 })}
@@ -379,8 +429,8 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                     </span>
                   </div>
                   
-                  {/* Selection toggle button (hidden for racial grants) */}
-                  {!viewedGrantInfo.granted && (
+                  {/* Selection toggle button (hidden for automatically granted skills) */}
+                  {!isViewedAutoGranted && (
                     <button
                       onClick={() => toggleClassSkill(viewedSkill.id, charClass.numberOfSkillProficiencies)}
                       disabled={!!(isViewedDisabled && !isViewedSelected)}
@@ -415,9 +465,9 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                     </div>
                   </div>
 
-                  {/* Proficiency Bonus Indicator - Only shown when skill is selected or racially granted */}
+                  {/* Proficiency Bonus Indicator - Only shown when skill is selected or automatically granted */}
                   {/* Helps players understand the additional bonus they'll get on skill checks */}
-                  {(isViewedSelected || viewedGrantInfo.granted) && (
+                  {(isViewedSelected || isViewedAutoGranted) && (
                     <div className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
                       <span className="text-blue-200">Proficiency Bonus:</span>
                       <span className="text-blue-400 font-bold">+{calculateProficiencyBonus(assumedCharacterLevel)}</span>
@@ -431,23 +481,33 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                     <span className="text-green-400 font-bold text-xl">
                       {calculateTotalSkillModifier({
                         abilityScore: abilityScores[viewedSkill.ability],
-                        hasProficiency: isViewedSelected || viewedGrantInfo.granted,
+                        hasProficiency: isViewedSelected || isViewedAutoGranted,
                         level: assumedCharacterLevel,
                       }) >= 0 ? '+' : ''}
                       {calculateTotalSkillModifier({
                         abilityScore: abilityScores[viewedSkill.ability],
-                        hasProficiency: isViewedSelected || viewedGrantInfo.granted,
+                        hasProficiency: isViewedSelected || isViewedAutoGranted,
                         level: assumedCharacterLevel,
                       })}
                     </span>
                   </div>
 
                   {/* Racial proficiency explanation */}
-                  {viewedGrantInfo.granted && (
+                  {isViewedRacialGranted && (
                     <div className="p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
                       <p className="text-yellow-200 text-sm">
                         <strong className="block mb-1">Racial Proficiency</strong>
                         You are automatically proficient in this skill thanks to your {viewedGrantInfo.source}.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Background proficiency explanation */}
+                  {isViewedBackgroundGranted && selectedBackground && BACKGROUNDS[selectedBackground] && (
+                    <div className="p-3 bg-sky-900/20 border border-sky-700/50 rounded-lg">
+                      <p className="text-sky-200 text-sm">
+                        <strong className="block mb-1">Background Proficiency</strong>
+                        You are automatically proficient in this skill thanks to your {BACKGROUNDS[selectedBackground].name} background.
                       </p>
                     </div>
                   )}

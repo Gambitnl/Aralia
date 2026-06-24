@@ -52,6 +52,17 @@ export interface StatusEffect {
         immunity?: DamageType[];
     };
     visualEffect?: string;
+    light?: {
+        brightRadius: number;
+        dimRadius?: number;
+        attachedTo?: 'caster' | 'target' | 'point';
+        color?: string;
+    };
+    savePenalty?: {
+        dice: string;
+        flat?: number;
+        applies: 'next_save' | 'all_saves';
+    };
 }
 /**
  * Represents an active, ongoing effect on a character (e.g., from a spell like Shield of Faith or Mage Armor).

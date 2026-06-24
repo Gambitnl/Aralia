@@ -101,6 +101,14 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       };
     }
 
+    case 'REVEAL_HIDDEN_SITE': {
+      // SP4 discovery: record a hidden place the player revealed by 3D proximity.
+      // Deduped by id so re-entering its radius is idempotent and saves don't grow.
+      const discovered = state.discoveredHiddenSites ?? [];
+      if (discovered.some((s) => s.id === action.payload.id)) return {};
+      return { discoveredHiddenSites: [...discovered, action.payload] };
+    }
+
     case 'APPLY_WORLDFORGE_DELTA': {
       const currentDeltas = state.worldforgeDeltas ?? [];
 

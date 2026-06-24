@@ -197,6 +197,8 @@ const buildScatter = ({
   return placements;
 };
 
+import { ENV } from '../../config/env';
+
 const LabGrass = ({
   seed,
   grassEnabled = true,
@@ -207,7 +209,7 @@ const LabGrass = ({
   avoidCenter = { x: 0, z: 0 },
   avoidRadius = 50,
 }: LabGrassProps) => {
-  const baseUrl = import.meta.env.BASE_URL;
+  const baseUrl = ENV.BASE_URL;
 
   const [grassGltf, flowerWhiteGltf, flowerBlueGltf, flowerYellowGltf] = useLoader(GLTFLoader, [
     `${baseUrl}assets/ez-tree-lab/grass.glb`,

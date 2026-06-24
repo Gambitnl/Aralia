@@ -131,16 +131,27 @@ export function generateTownPlan(
   const cy = envelope.y + envelope.height / 2 + jitterY;
   const center: [Feet, Feet] = [cx, cy];
 
-  // Town scale from envelope area
+  // Town scale from envelope area + population thresholds (typology per SPEC §6)
   const envelopeArea = envelope.width * envelope.height;
   const halfDiag = Math.sqrt(envelopeArea) / 2;
+
+  // Typology scaling by population (hamlet < 1k, village 1k-5k, town 5k-20k, city 20k-100k, capital 100k+)
+  // Envelope area proxy: ~40 sq ft per capita at town scale
+  const estimatedPopulation = envelopeArea / 40;
+  type TownTypology = 'hamlet' | 'village' | 'town' | 'city' | 'capital';
+  const typology: TownTypology =
+    estimatedPopulation < 1000 ? 'hamlet' :
+    estimatedPopulation < 5000 ? 'village' :
+    estimatedPopulation < 20000 ? 'town' :
+    estimatedPopulation < 100000 ? 'city' :
+    'capital';
 
   // If no gates, produce minimal plan (isolated hamlet)
   const effectiveGates = gates.length > 0 ? gates : generateFallbackGates(envelope, townPath);
 
   // ── Grow streets ──────────────────────────────────────────────────────
   const streetRng = rngFromPath(streamPath(townPath, 'streets'));
-  const streets = growStreets(effectiveGates, center, envelope, halfDiag, streetRng, townPath);
+  const streets = growStreets(effectiveGates, center, envelope, halfDiag, streetRng, townPath, typology);
 
   // ── Generate plots ────────────────────────────────────────────────────
   const plotRng = rngFromPath(streamPath(townPath, 'plots'));
@@ -190,9 +201,18 @@ function growStreets(
   halfDiag: number,
   rng: Rng,
   townPath: SeedPath,
+  typology: 'hamlet' | 'village' | 'town' | 'city' | 'capital' = 'town',
 ): InternalStreet[] {
   const streets: InternalStreet[] = [];
   let streetId = 0;
+
+  // Scale street complexity by typology
+  const branchComplexity =
+    typology === 'hamlet' ? 0.3 :
+    typology === 'village' ? 0.6 :
+    typology === 'town' ? 1.0 :
+    typology === 'city' ? 1.5 :
+    2.0; // capital
 
   // ── Primary streets: gate → center ────────────────────────────────────
   const primaryStreets: InternalStreet[] = [];
@@ -211,7 +231,7 @@ function growStreets(
   // ── Secondary streets: branches from primaries ────────────────────────
   for (const primary of primaryStreets) {
     const branchRng = rngFromPath(streamPath(townPath, `branch-${primary.id}`));
-    const numBranches = Math.max(1, Math.floor(2 + branchRng.next() * (halfDiag / 500)));
+    const numBranches = Math.max(1, Math.floor((2 + branchRng.next() * (halfDiag / 500)) * branchComplexity));
 
     for (let b = 0; b < numBranches; b++) {
       // Pick a random point along the primary (not too close to center or end)
@@ -267,8 +287,14 @@ function growStreets(
     }
   }
 
-  // ── Ring road (optional) ──────────────────────────────────────────────
-  if (gates.length >= RING_MIN_GATES) {
+  // ── Ring road (optional, scales with typology) ────────────────────────
+  // Hamlets: never; villages: if 3+ gates; towns/cities/capitals: if 2+ gates
+  const ringGateThreshold =
+    typology === 'hamlet' ? 999 : // effectively disabled
+    typology === 'village' ? 3 :
+    2; // town, city, capital
+
+  if (gates.length >= ringGateThreshold) {
     const ringRng = rngFromPath(streamPath(townPath, 'ring'));
     const ringRadius = halfDiag * RING_RADIUS_FRACTION;
     const ringPoints = growRing(center, ringRadius, envelope, ringRng);
@@ -491,8 +517,30 @@ function generatePlots(
           plotCenters.push([plotCx, plotCy]);
           acceptedFootprints.push(footprint);
 
-          const storeys = isBiz ? 2 : (distRatio < 0.4 ? 2 + Math.floor(rng.next() * 2) : 1);
-          const role = isMarket ? 'market' : (isWorkshop ? 'workshop' : 'house');
+          // Civic anatomy: temples, keeps, gates based on position and town size
+          let role = isMarket ? 'market' : (isWorkshop ? 'workshop' : 'house');
+          let storeys = isBiz ? 2 : (distRatio < 0.4 ? 2 + Math.floor(rng.next() * 2) : 1);
+
+          // Central 15% radius: candidate for civic (temple, keep, administrative)
+          if (distFromCenter < halfDiag * 0.15 && rng.next() > 0.7) {
+            const civicType = rng.next();
+            if (civicType > 0.6) {
+              role = 'temple';
+              storeys = 3;
+            } else if (civicType > 0.3) {
+              role = 'keep';
+              storeys = 4;
+            } else {
+              role = 'administrative';
+              storeys = 3;
+            }
+          }
+
+          // Perimeter ring (70-90% radius): candidate for defensive structures
+          if (distRatio > 0.7 && distRatio < 0.9 && rng.next() > 0.8) {
+            role = 'barracks';
+            storeys = 2;
+          }
 
           plots.push({
             id: plotId++,

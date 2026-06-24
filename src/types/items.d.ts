@@ -182,6 +182,10 @@ export interface Item {
     provenance?: ItemProvenance;
     /** If true, this item is stolen and can only be sold to a Fence. */
     isStolen?: boolean;
+    requiresAttunement?: boolean;
+    isAttuned?: boolean;
+    attunedCharacterId?: string;
+    isJunk?: boolean;
 }
 /**
  * ItemContainer is a specialization of Item that can hold other items.

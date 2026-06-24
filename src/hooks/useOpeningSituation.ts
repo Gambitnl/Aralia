@@ -66,9 +66,13 @@ export function buildSituationLocation(state: GameState): OpeningSituationLocati
     // game read 7 AM / sun high). gameTime may be a Date or an ISO string.
     const gameTime = state.gameTime ? new Date(state.gameTime) : null;
     const validTime = gameTime && !Number.isNaN(gameTime.getTime()) ? gameTime : null;
+    // Prefer the player's ACTUAL spawn tile biome (WF-derived spawn) over the
+    // static location's biome, so the opening matches where the player really is
+    // on the map instead of the hardcoded starting node's flavor.
+    const playerTile = state.mapData?.tiles?.flat().find((t) => t.isPlayerCurrent);
     return {
         name: loc?.name ?? locId,
-        biome: loc?.biomeId,
+        biome: playerTile?.biomeId ?? loc?.biomeId,
         timeOfDay: validTime ? getTimeOfDay(validTime) : undefined,
         weather: validTime ? getTimeModifiers(validTime).description : undefined,
     };

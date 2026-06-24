@@ -29,7 +29,6 @@ const mockGameState: GameState = {
     worldSeed: 12345,
     mapData: null,
     isMapVisible: false,
-    isSubmapVisible: false,
     isPartyOverlayVisible: false,
     isNpcTestModalVisible: false,
     isLogbookVisible: false,
@@ -315,11 +314,10 @@ describe('SaveLoadService', () => {
             expect(JSON.stringify(result.data?.playerGroundPos)).toBe(JSON.stringify(playerGroundPos));
         });
 
-        it('round-trips open player-facing overlays (map/submap/journal) so resume reopens them', async () => {
+        it('round-trips open player-facing overlays (map/journal) so resume reopens them', async () => {
             const stateWithOverlays = {
                 ...mockGameState,
                 isMapVisible: false,
-                isSubmapVisible: true,
                 isDiscoveryLogVisible: true,
             };
             await SaveLoadService.saveGame(stateWithOverlays as GameState, 'overlay_open_slot');
@@ -328,7 +326,6 @@ describe('SaveLoadService', () => {
 
             expect(result.success).toBe(true);
             expect(result.data?.isMapVisible).toBe(false);
-            expect(result.data?.isSubmapVisible).toBe(true);
             expect(result.data?.isDiscoveryLogVisible).toBe(true);
         });
 
@@ -353,7 +350,6 @@ describe('SaveLoadService', () => {
             await SaveLoadService.saveGame(mockGameState, 'overlay_heal_slot');
             const key = SaveLoadService.getSlotStorageKey('overlay_heal_slot');
             const payload = JSON.parse(localStorage.getItem(key)!);
-            payload.state.isSubmapVisible = 'yes';
             payload.state.isMapVisible = 1;
             delete payload.state.isDiscoveryLogVisible;
             delete payload.checksum; // hand-edit scenario: checksum intentionally absent
@@ -362,7 +358,6 @@ describe('SaveLoadService', () => {
             const result = await SaveLoadService.loadGame('overlay_heal_slot');
 
             expect(result.success).toBe(true);
-            expect(result.data?.isSubmapVisible).toBe(false);
             expect(result.data?.isMapVisible).toBe(false);
             expect(result.data?.isDiscoveryLogVisible).toBe(false);
         });

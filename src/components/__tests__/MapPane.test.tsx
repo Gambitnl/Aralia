@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { MapData } from '@/types/world';
 import MapPane from '../MapPane';
@@ -9,7 +9,7 @@ import MapPane from '../MapPane';
 // player-facing MapPane should no longer expose the old square grid renderer.
 
 describe('MapPane', () => {
-  it('hides the legacy grid view control while keeping the atlas controls available', () => {
+  it('renders the native Worldforge atlas as the sole map (no legacy grid, no Azgaar iframe)', () => {
     const onTileClick = vi.fn();
     const onClose = vi.fn();
     const mapData = createMapData();
@@ -23,32 +23,11 @@ describe('MapPane', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'Azgaar Atlas' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'World Forge' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Legacy Grid' })).not.toBeInTheDocument();
+    // Worldforge is the sole cartography system (the Azgaar iframe was retired).
+    expect(screen.getByTestId('worldforge-map-viewport')).toBeInTheDocument();
+    expect(screen.queryByTitle('Azgaar World Atlas')).not.toBeInTheDocument();
     expect(screen.queryByRole('grid')).not.toBeInTheDocument();
     expect(onTileClick).not.toHaveBeenCalled();
-  });
-
-  it('keeps atlas mode active when the embedded atlas reports a load error', async () => {
-    const onTileClick = vi.fn();
-    const onClose = vi.fn();
-    const mapData = createMapData();
-
-    render(
-      <MapPane
-        mapData={mapData}
-        onTileClick={onTileClick}
-        onClose={onClose}
-        allowTravel={false}
-      />,
-    );
-
-    fireEvent.error(screen.getByTitle('Azgaar World Atlas'));
-
-    expect(screen.getByTitle('Azgaar World Atlas')).toBeInTheDocument();
-    expect(await screen.findByText('Azgaar world map could not be loaded.')).toBeInTheDocument();
-    expect(screen.queryByRole('grid')).not.toBeInTheDocument();
   });
 });
 

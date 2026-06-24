@@ -139,7 +139,6 @@ export function getDiegeticPlayerActionMessage(
         return null; // The reducer adds a system message for this.
     case 'ask_oracle':
     case 'toggle_map':
-    case 'toggle_submap_visibility':
     case 'save_game':
     case 'go_to_main_menu':
     case 'toggle_dev_menu':

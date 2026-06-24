@@ -65,11 +65,6 @@ export function handleToggleMap(dispatch: React.Dispatch<AppAction>): void {
   dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
 }
 
-export function handleToggleSubmap(dispatch: React.Dispatch<AppAction>): void {
-  dispatch({ type: 'TOGGLE_SUBMAP_VISIBILITY' });
-  dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
-}
-
 export function handleToggleDevMenu(dispatch: React.Dispatch<AppAction>): void {
   dispatch({ type: 'TOGGLE_DEV_MENU' });
 }

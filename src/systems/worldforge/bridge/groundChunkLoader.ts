@@ -43,7 +43,9 @@ import { generateTownRoster } from "../roster/generateTownRoster";
 import type { TownRoster, Occupant } from "../roster/types";
 import { generateBody } from "../body/generateBody";
 import type { BodyPlan } from "../body/types";
-import { childSeedPath } from "../seedPath";
+import { childSeedPath, rootSeedPath } from "../seedPath";
+import { generateHiddenPlaces, type HiddenPlaceKind } from "../discovery/hiddenPlaces";
+import type { Pt } from "../submap/submapEngine";
 import { localWithDeltas } from "./groundDeltas";
 import type { WorldDelta } from "../delta/types";
 import { getBurgNamer } from "./legacySubmapBridge";
@@ -93,6 +95,17 @@ export interface GroundHostile {
 }
 
 /** Pre-extracted, chunk-samplable view of a LocalArtifact. */
+/** SP4 hidden place placed in the 3D ground world (meters). */
+export interface GroundHiddenSite {
+  id: string;
+  kind: HiddenPlaceKind;
+  name: string;
+  xM: number;
+  zM: number;
+  /** Proximity radius (meters) within which the player reveals it. */
+  discoveryRadiusM: number;
+}
+
 export interface GroundWorld {
   cols: number;
   rows: number;
@@ -106,6 +119,8 @@ export interface GroundWorld {
   features: GroundFeature[];
   /** Hostile monsters placed deterministically on the ground map. */
   hostiles: GroundHostile[];
+  /** SP4 hidden places (off-map, revealed by 3D proximity), ground meters. */
+  hiddenSites: GroundHiddenSite[];
   /** River/road centerlines crossing the artifact, ground meters. */
   rivers: GroundPolyline[];
   roads: GroundPolyline[];
@@ -222,6 +237,29 @@ export function makeGroundWorld(
     local.bounds.height,
   );
 
+  // SP4 discovery: deterministic off-map hidden places inside this artifact
+  // window, expressed in ground meters (start undiscovered; revealed by 3D
+  // proximity in World3DWrapper). Seeded per window so the same spot always hides
+  // the same site — discovery is exploration, not regeneration.
+  const boundsPoly: Pt[] = [
+    [local.bounds.x, local.bounds.y],
+    [local.bounds.x + local.bounds.width, local.bounds.y],
+    [local.bounds.x + local.bounds.width, local.bounds.y + local.bounds.height],
+    [local.bounds.x, local.bounds.y + local.bounds.height],
+  ];
+  const hiddenSeed = childSeedPath(rootSeedPath(seed), `hidden:${Math.round(local.bounds.x)}:${Math.round(local.bounds.y)}`);
+  const hiddenSites: GroundHiddenSite[] = generateHiddenPlaces(boundsPoly, hiddenSeed, {
+    count: 6,
+    discoveryRadius: 250, // feet
+  }).map((hp) => ({
+    id: hp.id,
+    kind: hp.kind,
+    name: hp.name,
+    xM: (hp.position[0] - local.bounds.x) * FEET_TO_METERS,
+    zM: (hp.position[1] - local.bounds.y) * FEET_TO_METERS,
+    discoveryRadiusM: hp.discoveryRadius * FEET_TO_METERS,
+  }));
+
   return {
     cols: wd.gridSize.cols,
     rows: wd.gridSize.rows,
@@ -231,6 +269,7 @@ export function makeGroundWorld(
     extentMetersZ: extentZ,
     features,
     hostiles,
+    hiddenSites,
     rivers: region ? regionPolylinesToGround(region.rivers, local) : [],
     // Region routes + the town plan's own streets ride the same ribbon path
     roads: [

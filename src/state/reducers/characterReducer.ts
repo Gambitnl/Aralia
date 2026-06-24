@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 19/06/2026, 00:50:16
+ * Last Sync: 23/06/2026, 17:59:16
  * Dependents: state/appState.ts
  * Imports: 9 files
  *
@@ -456,8 +456,19 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'CAST_SPELL': {
-            const { characterId, spellLevel, spellId, castSource } = action.payload;
-            if (spellLevel === 0) return {};
+            const { characterId, spellLevel, spellId, castSource, materialComponentItemIdToConsume } = action.payload;
+
+            // Resolve the new inventory state if a material component was consumed during casting.
+            let nextInventory = state.inventory;
+            if (materialComponentItemIdToConsume) {
+                nextInventory = state.inventory.filter(item => item.id !== materialComponentItemIdToConsume);
+            }
+
+            // Cantrips (spellLevel === 0) do not consume spell slots, so we skip slot consumption
+            // but still return the updated inventory if a component was consumed.
+            if (spellLevel === 0) {
+                return materialComponentItemIdToConsume ? { inventory: nextInventory } : {};
+            }
             const explicitRacialCastSource = castSource?.type === 'racial';
             const defaultRacialConsumption = castSource == null || explicitRacialCastSource;
             const allowSlotFallbackForRacialCast = explicitRacialCastSource
@@ -523,7 +534,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                     },
                 };
             });
-            return { party: newParty };
+            return { party: newParty, inventory: nextInventory };
         }
 
         case 'USE_LIMITED_ABILITY': {
@@ -1010,6 +1021,184 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 : state.characterSheetModal;
 
             return { party: newParty, inventory: newInventory, characterSheetModal: newCharacterSheetModalState };
+        }
+
+        // ============================================================================
+        // Magic Item Attunement Actions
+        // ============================================================================
+        // These cases handle attuning and unattuning magic items to character slots,
+        // enforcing the 3-item attunement limit per character.
+        // ============================================================================
+
+        case 'ATTUNE_ITEM': {
+            const { characterId, itemId } = action.payload as { characterId: string; itemId: string };
+            const charIndex = state.party.findIndex(c => c.id === characterId);
+            if (charIndex === -1) return {};
+
+            const character = state.party[charIndex];
+            
+            // Limit check: D&D 5e restricts active attunement to 3 magic items per character
+            const equippedAttunedCount = Object.values(character.equippedItems).filter(
+                item => item && item.requiresAttunement && item.isAttuned
+            ).length;
+            const inventoryAttunedCount = state.inventory.filter(
+                item => item && item.requiresAttunement && item.isAttuned && item.attunedCharacterId === characterId
+            ).length;
+            
+            if (equippedAttunedCount + inventoryAttunedCount >= 3) {
+                // Reject attunement if the character is at the 3-item limit
+                return {};
+            }
+
+            // Find and attune the target item, whether it resides in the player's general bag or is equipped
+            let itemFound = false;
+            const newEquippedItems = { ...character.equippedItems };
+            const newInventory = state.inventory.map(item => {
+                if (item.id === itemId) {
+                    itemFound = true;
+                    return { ...item, isAttuned: true, attunedCharacterId: characterId };
+                }
+                return item;
+            });
+
+            if (!itemFound) {
+                for (const slot of Object.keys(newEquippedItems) as EquipmentSlotType[]) {
+                    const item = newEquippedItems[slot];
+                    if (item && item.id === itemId) {
+                        newEquippedItems[slot] = { ...item, isAttuned: true, attunedCharacterId: characterId };
+                        itemFound = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!itemFound) return {};
+
+            // Recalculate all ability scores and AC since magical bonuses are now active
+            const updatedChar = updateDerivedStats({ ...character, equippedItems: newEquippedItems });
+            const newParty = [...state.party];
+            newParty[charIndex] = updatedChar;
+
+            const newCharacterSheetModalState = state.characterSheetModal.isOpen && state.characterSheetModal.character?.id === updatedChar.id
+                ? { ...state.characterSheetModal, character: updatedChar }
+                : state.characterSheetModal;
+
+            return { party: newParty, inventory: newInventory, characterSheetModal: newCharacterSheetModalState };
+        }
+
+        case 'UNATTUNE_ITEM': {
+            const { characterId, itemId } = action.payload as { characterId: string; itemId: string };
+            const charIndex = state.party.findIndex(c => c.id === characterId);
+            if (charIndex === -1) return {};
+
+            const character = state.party[charIndex];
+            const newEquippedItems = { ...character.equippedItems };
+            let itemFound = false;
+
+            // Clear attunement state on the target item in player inventory or equipment slots
+            const newInventory = state.inventory.map(item => {
+                if (item.id === itemId) {
+                    itemFound = true;
+                    return { ...item, isAttuned: false, attunedCharacterId: undefined };
+                }
+                return item;
+            });
+
+            if (!itemFound) {
+                for (const slot of Object.keys(newEquippedItems) as EquipmentSlotType[]) {
+                    const item = newEquippedItems[slot];
+                    if (item && item.id === itemId) {
+                        newEquippedItems[slot] = { ...item, isAttuned: false, attunedCharacterId: undefined };
+                        itemFound = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!itemFound) return {};
+
+            // Recalculate derived attributes since magical stat/AC modifiers are no longer active
+            const updatedChar = updateDerivedStats({ ...character, equippedItems: newEquippedItems });
+            const newParty = [...state.party];
+            newParty[charIndex] = updatedChar;
+
+            const newCharacterSheetModalState = state.characterSheetModal.isOpen && state.characterSheetModal.character?.id === updatedChar.id
+                ? { ...state.characterSheetModal, character: updatedChar }
+                : state.characterSheetModal;
+
+            return { party: newParty, inventory: newInventory, characterSheetModal: newCharacterSheetModalState };
+        }
+
+        // ============================================================================
+        // Inventory Junk Management Actions
+        // ============================================================================
+        // These cases handle marking items as junk and mass-selling all marked junk
+        // items when trading with a merchant.
+        // ============================================================================
+
+        case 'TOGGLE_ITEM_JUNK': {
+            const { itemId } = action.payload as { itemId: string };
+            let itemFound = false;
+
+            // Toggle junk status in player inventory
+            const newInventory = state.inventory.map(item => {
+                if (item.id === itemId) {
+                    itemFound = true;
+                    return { ...item, isJunk: !item.isJunk };
+                }
+                return item;
+            });
+
+            // Toggle junk status in equipped slots if needed
+            const newParty = state.party.map(char => {
+                let charUpdated = false;
+                const newEquipped = { ...char.equippedItems };
+                
+                for (const slot of Object.keys(newEquipped) as EquipmentSlotType[]) {
+                    const item = newEquipped[slot];
+                    if (item && item.id === itemId) {
+                        newEquipped[slot] = { ...item, isJunk: !item.isJunk };
+                        charUpdated = true;
+                        itemFound = true;
+                    }
+                }
+
+                if (charUpdated) {
+                    return { ...char, equippedItems: newEquipped };
+                }
+                return char;
+            });
+
+            if (!itemFound) return {};
+
+            const activeCharId = state.characterSheetModal.character?.id;
+            const updatedActiveChar = activeCharId ? newParty.find(c => c.id === activeCharId) : undefined;
+            const newCharacterSheetModalState = state.characterSheetModal.isOpen && updatedActiveChar
+                ? { ...state.characterSheetModal, character: updatedActiveChar }
+                : state.characterSheetModal;
+
+            return { inventory: newInventory, party: newParty, characterSheetModal: newCharacterSheetModalState };
+        }
+
+        case 'SELL_ALL_JUNK': {
+            const { items } = action.payload as { items: { itemId: string; value: number }[] };
+            const newInventory = [...state.inventory];
+            let goldEarned = 0;
+
+            // Remove sold junk items and calculate total transaction earnings
+            items.forEach(({ itemId, value }) => {
+                const itemIndex = newInventory.findIndex(i => i.id === itemId);
+                if (itemIndex > -1) {
+                    newInventory.splice(itemIndex, 1);
+                    goldEarned += value;
+                }
+            });
+
+            return {
+                inventory: newInventory,
+                // Round gold amount to copper decimal precision
+                gold: Math.round((state.gold + goldEarned) * 100) / 100
+            };
         }
 
         default:

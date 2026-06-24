@@ -341,10 +341,16 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           // Spawn at the SAVED ground position when it belongs to this tile
           // (WF-STORE-2 contract item 3); else the artifact center.
           const saved = (state as { playerGroundPos?: { tileX: number; tileY: number; xM: number; zM: number } | null }).playerGroundPos;
+          // SP3 leaf→3D handoff contract: spawn on the inherited burg when this
+          // leaf is settled (the town the player saw in 2D), else the artifact
+          // center. The burg town sites already ride on the ground world.
+          const burgSpawn = ground.towns && ground.towns.length > 0
+            ? { x: ground.towns[0].xM, z: ground.towns[0].zM }
+            : { x: ground.extentMetersX / 2, z: ground.extentMetersZ / 2 };
           const spawn =
             saved && saved.tileX === coords.x && saved.tileY === coords.y
               ? { x: saved.xM, z: saved.zM }
-              : { x: ground.extentMetersX / 2, z: ground.extentMetersZ / 2 };
+              : burgSpawn;
           const cell = adapter.GROUND_METERS_PER_CELL;
           const sgx = Math.max(0, Math.min(ground.cols - 1, Math.round(spawn.x / cell)));
           const sgy = Math.max(0, Math.min(ground.rows - 1, Math.round(spawn.z / cell)));
@@ -461,6 +467,8 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
   const groundRef = useRef<GroundWorld | null>(null);
   const extractPatchRef = useRef<typeof import('../../systems/worldforge/bridge/groundChunkLoader').extractLocalTerrainPatch | null>(null);
   const combatTriggered = useRef(false);
+  // SP4: ids of hidden places the player has already revealed this session.
+  const discoveredHiddenRef = useRef<Set<string>>(new Set());
 
   const handleGroundPositionChange = useCallback(
     (x: number, z: number) => {
@@ -473,6 +481,30 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
         type: 'SET_PLAYER_GROUND_POS',
         payload: { position: { tileX: tile.x, tileY: tile.y, xM: x, zM: z } },
       });
+
+      // SP4 discovery: reveal any hidden place the player comes within range of
+      // (off-map sites placed by makeGroundWorld; revealed by 3D proximity).
+      // Persist to GameState so discoveries survive reload and pin on the atlas.
+      const gwForDiscovery = groundRef.current;
+      if (gwForDiscovery?.hiddenSites?.length) {
+        for (const hs of gwForDiscovery.hiddenSites) {
+          if (discoveredHiddenRef.current.has(hs.id)) continue;
+          if (Math.hypot(x - hs.xM, z - hs.zM) <= hs.discoveryRadiusM) {
+            discoveredHiddenRef.current.add(hs.id);
+            dispatch({ type: 'REVEAL_HIDDEN_SITE', payload: { id: hs.id, tileX: tile.x, tileY: tile.y, name: hs.name, kind: hs.kind } });
+            // Surface the discovery in the game log (SP4 in-game message).
+            dispatch({
+              type: 'ADD_MESSAGE',
+              payload: {
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                text: `You discovered a hidden place: ${hs.name}.`,
+                sender: 'system',
+                timestamp: new Date(),
+              },
+            });
+          }
+        }
+      }
 
       // Combat handoff check: walking near a hostile creature in 3D ground mode
       // triggers combat by extracting the local 40x30 (5ft) terrain patch.

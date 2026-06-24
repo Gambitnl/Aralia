@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 07:25:50
+ * Last Sync: 23/06/2026, 18:12:31
  * Dependents: hooks/actions/actionHandlers.ts
- * Imports: 9 files
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -28,6 +28,7 @@ import { buildHitPointDicePools, getAbilityModifierValue } from '../../utils/cha
 import { rollDice } from '../../utils/combatUtils';
 import { formatDuration, getGameDay } from '../../utils/core';
 import { CastSpellPayload } from '../../types/actions';
+import { spellService } from '../../services/SpellService';
 
 interface HandleRestProps {
     gameState: GameState; // Pass full gameState for context
@@ -44,8 +45,70 @@ const SHORT_REST_DURATION_SECONDS = 1 * 3600;
 const SHORT_REST_COOLDOWN_SECONDS = 2 * 3600;
 const SHORT_REST_MAX_PER_DAY = 3;
 
-export function handleCastSpell(dispatch: React.Dispatch<AppAction>, payload: CastSpellPayload): void {
-    dispatch({ type: 'CAST_SPELL', payload });
+// ============================================================================
+// Spellcasting Actions
+// ============================================================================
+// Asynchronously handles spellcasting processes, verifying material components,
+// resolving consumption of components, and dispatching to state.
+// ============================================================================
+
+export async function handleCastSpell(
+    dispatch: React.Dispatch<AppAction>,
+    payload: CastSpellPayload,
+    gameState: GameState,
+    addMessage: AddMessageFn
+): Promise<void> {
+    // If there is no spell ID, dispatch immediately (e.g. legacy/direct spell casts).
+    if (!payload.spellId) {
+        dispatch({ type: 'CAST_SPELL', payload });
+        return;
+    }
+
+    try {
+        // Fetch spell specifications from the central database.
+        const spell = await spellService.getSpellDetails(payload.spellId);
+        if (!spell) {
+            addMessage(`Unable to cast spell: details not found for ${payload.spellId}.`, "system");
+            return;
+        }
+
+        // Validate that the party has the required material components.
+        // Under D&D rules, spells with costing materials (e.g. 300 gp diamond for Revivify)
+        // require the caster to have that component in their inventory.
+        if (spell.components?.material && spell.components.materialCost && spell.components.materialCost > 0) {
+            const materialCost = spell.components.materialCost;
+            
+            // Search the party's shared inventory for a matching spell component.
+            // It must have the correct type and its worth in gold pieces must meet or exceed the cost.
+            const componentItem = gameState.inventory.find(item => 
+                item.type === 'spell_component' && 
+                item.costInGp !== undefined && 
+                item.costInGp >= materialCost
+            );
+
+            // If the party doesn't have the necessary component, prevent the cast and log a warning.
+            if (!componentItem) {
+                const desc = spell.components.materialDescription || `${materialCost} gp worth of components`;
+                addMessage(`Cannot cast ${spell.name}: missing required material components (${desc}).`, "system");
+                return;
+            }
+
+            // If the spell description specifies that the material component is consumed on casting,
+            // we attach the item's unique identifier so the reducer can remove it from the inventory.
+            if (spell.components.isConsumed) {
+                payload = {
+                    ...payload,
+                    materialComponentItemIdToConsume: componentItem.id
+                };
+                addMessage(`Consumed material component: ${componentItem.name} (valued at ${componentItem.costInGp} gp) to cast ${spell.name}.`, "system");
+            }
+        }
+
+        dispatch({ type: 'CAST_SPELL', payload });
+    } catch (error) {
+        // Fallback to standard casting if the spell database lookup fails, to prevent soft-locks.
+        dispatch({ type: 'CAST_SPELL', payload });
+    }
 }
 
 export function handleUseLimitedAbility(dispatch: React.Dispatch<AppAction>, payload: { characterId: string; abilityId: string }): void {

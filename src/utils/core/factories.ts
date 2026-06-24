@@ -453,7 +453,6 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       worldSeed: 12345,
       mapData: null,
       isMapVisible: true,
-      isSubmapVisible: true,
       isPartyOverlayVisible: true,
       isNpcTestModalVisible: false,
       isLogbookVisible: false,
@@ -625,6 +624,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       // Worldforge plot edits start empty in test states; reducers append JSON-safe
       // deltas here so save/load tests do not need a live generator.
       worldforgeDeltas: [],
+      // SP4 discovery: no hidden places revealed yet.
+      discoveredHiddenSites: [],
 
       // TODO: Fix TS2322 - missing or incompatible archivedBanters
       archivedBanters: [],
@@ -661,7 +662,6 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       worldSeed: 0,
       mapData: null,
       isMapVisible: false,
-      isSubmapVisible: false,
       isPartyOverlayVisible: false,
       isNpcTestModalVisible: false,
       isLogbookVisible: false,
@@ -773,7 +773,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       // Keep the tile-local ground resume field present even in fallback states.
       playerGroundPos: null,
       // Keep the fallback GameState structurally complete even if factory setup fails.
-      worldforgeDeltas: []
+      worldforgeDeltas: [],
+      discoveredHiddenSites: []
     };
   }
 }

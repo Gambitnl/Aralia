@@ -52,17 +52,34 @@ describe('skillSelectionUtils', () => {
       changeling: { skillIds: ['deception', 'insight'] },
     };
 
-    const grants = deriveRacialSkillGrants({
+    const grantsBugbear = deriveRacialSkillGrants({
       raceId: 'bugbear',
       racialSelections,
       selectedKeenSensesSkillId: null,
     });
+    expect(grantsBugbear.stealth).toEqual({ granted: true, source: "Bugbear 'Sneaky' trait" });
 
-    expect(grants.athletics).toEqual({ granted: true, source: "Human 'Skillful' trait" });
-    expect(grants.survival).toEqual({ granted: true, source: "Centaur 'Natural Affinity' trait" });
-    expect(grants.deception).toEqual({ granted: true, source: "Changeling 'Instincts' trait" });
-    expect(grants.insight).toEqual({ granted: true, source: "Changeling 'Instincts' trait" });
-    expect(grants.stealth).toEqual({ granted: true, source: "Bugbear 'Sneaky' trait" });
+    const grantsHuman = deriveRacialSkillGrants({
+      raceId: 'human',
+      racialSelections,
+      selectedKeenSensesSkillId: null,
+    });
+    expect(grantsHuman.athletics).toEqual({ granted: true, source: "Human 'Skillful' trait" });
+
+    const grantsCentaur = deriveRacialSkillGrants({
+      raceId: 'centaur',
+      racialSelections,
+      selectedKeenSensesSkillId: null,
+    });
+    expect(grantsCentaur.survival).toEqual({ granted: true, source: "Racial trait choice" });
+
+    const grantsChangeling = deriveRacialSkillGrants({
+      raceId: 'changeling',
+      racialSelections,
+      selectedKeenSensesSkillId: null,
+    });
+    expect(grantsChangeling.deception).toEqual({ granted: true, source: "Racial trait choice" });
+    expect(grantsChangeling.insight).toEqual({ granted: true, source: "Racial trait choice" });
   });
 
   it('buildSkillsForSubmit aggregates uniquely across class and racial sources', () => {
@@ -72,18 +89,37 @@ describe('skillSelectionUtils', () => {
       changeling: { skillIds: ['deception', 'insight'] },
     };
 
-    const selectedClassSkillIds = new Set(['athletics', 'stealth']); // athletics duplicates human
+    const selectedClassSkillIds = new Set(['athletics', 'stealth']);
 
-    const skills = buildSkillsForSubmit({
+    // Test for Bugbear (sneaky trait auto-grants stealth)
+    const bugbearSkills = buildSkillsForSubmit({
       skillsById: SKILLS,
       selectedClassSkillIds,
       raceId: 'bugbear',
       racialSelections,
       selectedKeenSensesSkillId: null,
     });
+    expect(bugbearSkills.map((s) => s.id).sort()).toEqual(['athletics', 'stealth']);
 
-    const ids = skills.map((s) => s.id).sort();
-    expect(ids).toEqual(['athletics', 'deception', 'insight', 'stealth', 'survival']);
+    // Test for Human (human trait choice grants athletics which duplicates selectedClassSkillIds)
+    const humanSkills = buildSkillsForSubmit({
+      skillsById: SKILLS,
+      selectedClassSkillIds,
+      raceId: 'human',
+      racialSelections,
+      selectedKeenSensesSkillId: null,
+    });
+    expect(humanSkills.map((s) => s.id).sort()).toEqual(['athletics', 'stealth']);
+
+    // Test for Changeling (grants deception and insight)
+    const changelingSkills = buildSkillsForSubmit({
+      skillsById: SKILLS,
+      selectedClassSkillIds,
+      raceId: 'changeling',
+      racialSelections,
+      selectedKeenSensesSkillId: null,
+    });
+    expect(changelingSkills.map((s) => s.id).sort()).toEqual(['athletics', 'deception', 'insight', 'stealth']);
   });
 });
 

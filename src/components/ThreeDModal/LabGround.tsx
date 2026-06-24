@@ -16,9 +16,11 @@ interface LabGroundProps {
   patchiness?: number;
 }
 
+import { ENV } from '../../config/env';
+
 const LabGround = ({ size, tint = new ThreeColor(0xffffff), noiseScale = 100, patchiness = 0.7 }: LabGroundProps) => {
   const materialRef = useRef<MeshStandardMaterial>(null);
-  const baseUrl = import.meta.env.BASE_URL;
+  const baseUrl = ENV.BASE_URL;
   const [grassTexture, dirtTexture, dirtNormal] = useLoader(TextureLoader, [
     `${baseUrl}assets/ez-tree-lab/grass.jpg`,
     `${baseUrl}assets/ez-tree-lab/dirt_color.jpg`,

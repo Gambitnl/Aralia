@@ -179,20 +179,6 @@ const CompassPane: React.FC<CompassPaneProps> = ({
               </motion.button>
             </Tooltip>
             {!isSubmapContext && (
-              <Tooltip content="Open Local Submap">
-                <motion.button
-                  onClick={() => onAction({ type: 'toggle_submap_visibility', label: 'Toggle Submap' })}
-                  disabled={disabled}
-                  whileTap={!disabled ? { scale: 0.9 } : undefined}
-                  whileHover={!disabled ? { scale: 1.1 } : undefined}
-                  className="p-2 rounded-full bg-cyan-600 hover:bg-cyan-500 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors text-xl"
-                  aria-label="Toggle Submap"
-                >
-                  🗺️
-                </motion.button>
-              </Tooltip>
-            )}
-            {!isSubmapContext && (
               <Tooltip content="Enter 3D World">
                 <motion.button
                   onClick={() => onAction({ type: 'toggle_three_d', label: 'Enter 3D' })}

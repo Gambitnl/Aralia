@@ -39,7 +39,6 @@ export interface PassiveGameClockState {
   isImageLoading: boolean;
   isCharacterSheetOpen: boolean;
   isMapVisible: boolean;
-  isSubmapVisible: boolean;
   isDevMenuVisible: boolean;
   isGeminiLogViewerVisible: boolean;
   isDiscoveryLogVisible: boolean;
@@ -76,7 +75,6 @@ export const shouldPassiveGameClockRun = (state: PassiveGameClockState): boolean
     !state.isImageLoading &&
     !state.isCharacterSheetOpen &&
     !state.isMapVisible &&
-    !state.isSubmapVisible &&
     !state.isDevMenuVisible &&
     !state.isGeminiLogViewerVisible &&
     !state.isDiscoveryLogVisible &&

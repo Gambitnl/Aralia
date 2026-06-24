@@ -100,7 +100,6 @@ export const initialGameState: GameState = {
     isMapVisible: false,
     isLongRestModalVisible: false,
     isShortRestModalVisible: false,
-    isSubmapVisible: false,
     isThreeDVisible: false,
     isPartyOverlayVisible: false,
     isNpcTestModalVisible: false,
@@ -338,4 +337,7 @@ export const initialGameState: GameState = {
     // Fresh games have no plot edits yet. Runtime actions append deltas here so
     // regenerated village geometry can replay saved player/world changes.
     worldforgeDeltas: [],
+
+    // SP4 discovery: no hidden off-map places revealed yet.
+    discoveredHiddenSites: [],
 };

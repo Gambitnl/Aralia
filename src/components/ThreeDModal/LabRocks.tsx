@@ -18,8 +18,10 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useLoader } from '@react-three/fiber';
 import type { InstancedMesh } from 'three';
 import { Object3D } from 'three';
-import { GLTFLoader, DRACOLoader } from 'three-stdlib';
+import { GLTFLoader } from 'three-stdlib';
+import { DRACOLoader } from 'three-stdlib';
 import { SeededRandom } from '../../utils/random/seededRandom';
+import { ENV } from '../../config/env';
 
 interface LabRocksProps {
   seed: number;
@@ -97,7 +99,7 @@ const LabRocks = ({
   avoidCenter = { x: 0, z: 0 },
   avoidRadius = 50,
 }: LabRocksProps) => {
-  const baseUrl = import.meta.env.BASE_URL;
+  const baseUrl = ENV.BASE_URL;
   const dracoLoader = useMemo(() => {
     const loader = new DRACOLoader();
     loader.setDecoderPath(`${baseUrl}assets/ez-tree-lab/draco/`);

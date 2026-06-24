@@ -225,6 +225,9 @@ export const FEATS_DATA: Feat[] = [
     id: 'elemental_adept',
     name: 'Elemental Adept',
     description: 'You have bent a primal force entirely to your will. Gain a spellcasting ability +1; choose Acid, Cold, Fire, Lightning, or Thunder — your spells ignore Resistance to that type, and damage dice showing 1 count as 2.',
+    prerequisites: {
+      requiresSpellcasting: true,
+    },
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
@@ -474,6 +477,9 @@ export const FEATS_DATA: Feat[] = [
     id: 'spell_sniper',
     name: 'Spell Sniper',
     description: 'You thread spells through arrow-slits and around pillars that lesser casters never attempt. Gain a spellcasting ability +1; double the range of spell attacks, ignore half and three-quarters cover, learn one attack cantrip, and your spell attacks score a critical hit on a 19 or 20.',
+    prerequisites: {
+      requiresSpellcasting: true,
+    },
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
@@ -516,6 +522,9 @@ export const FEATS_DATA: Feat[] = [
     id: 'war_caster',
     name: 'War Caster',
     description: 'Battle is your crucible — the incantation holds even when the blade falls. Gain Intelligence, Wisdom, or Charisma +1; Advantage on Concentration saving throws, perform somatic components with weapons or a shield in hand, and cast a spell instead of making an opportunity attack.',
+    prerequisites: {
+      requiresSpellcasting: true,
+    },
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],

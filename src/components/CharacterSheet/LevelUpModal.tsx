@@ -136,6 +136,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
           classId,
           knownFeats: character.feats || [],
           hasFightingStyle,
+          hasSpellcasting: !!character.class?.spellcasting || classIds.some((id) => !!CLASSES_DATA[id]?.spellcasting),
         }),
       );
       const isEligible = evaluations.some((entry) => entry.isEligible);

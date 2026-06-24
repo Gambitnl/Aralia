@@ -15,6 +15,7 @@
  */
 
 import * as PIXI from 'pixi.js';
+import { ENV } from '../config/env';
 
 export type CharacterGender = 'Male' | 'Female';
 
@@ -48,7 +49,7 @@ export class CharacterAssetService {
         // WHY IT CHANGED: To support relative-path deployments. Without 
         // this, asset links break when the site is hosted at 
         // username.github.io/repo-name/.
-        const base = import.meta.env.BASE_URL || '/';
+        const base = ENV.BASE_URL || '/';
         return `${base}assets/images/Character Asset Pack/${category}/${filename}`;
     }
 

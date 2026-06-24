@@ -29,6 +29,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react';
 import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType, ItemType as _ItemType } from '../../../types';
 import { canEquipItem, calculatePotentialAcChange } from '../../../utils/characterUtils';
+import { ENV } from '../../../config/env';
 import { resolveItemVisual } from '../../../utils/visuals/visualUtils';
 import Tooltip from '../../ui/Tooltip';
 import { CoinBadge } from '../../ui/CoinPurseDisplay';
@@ -168,7 +169,7 @@ const ITEM_TYPE_FILTERS: { id: ItemTypeFilter; label: string; icon: string; type
 const resolveInventoryAssetSrc = (src?: string): string | undefined => {
   if (!src) return undefined;
   if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
-  return `${import.meta.env.BASE_URL}${src}`;
+  return `${ENV.BASE_URL}${src}`;
 };
 
 // ============================================================================
@@ -240,6 +241,24 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
   const totalInventoryWeight = useMemo(() => {
     return inventory.reduce((total, item) => total + (item.weight || 0), 0).toFixed(2);
   }, [inventory]);
+
+  // Find all equipped items that require attunement
+  const equippedAttunementItems = useMemo(() => {
+    return Object.entries(character.equippedItems)
+      .filter(([slot, item]) => item && item.requiresAttunement)
+      .map(([slot, item]) => ({ slot: slot as EquipmentSlotType, item: item! }));
+  }, [character.equippedItems]);
+
+  // Compute total number of attuned magic items
+  const totalAttunedCount = useMemo(() => {
+    const equippedAttuned = Object.values(character.equippedItems).filter(
+      item => item && item.requiresAttunement && item.isAttuned
+    ).length;
+    const inventoryAttuned = inventory.filter(
+      item => item && item.requiresAttunement && item.isAttuned && item.attunedCharacterId === character.id
+    ).length;
+    return equippedAttuned + inventoryAttuned;
+  }, [character.equippedItems, character.id, inventory]);
 
   // Calculate unified currency breakdown
   // Combines the "liquid" gold variable (which handles fractional GP from sales) 
@@ -533,6 +552,11 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                             )}
                             {isWarningOnly && <AlertTriangle size={12} className="text-amber-500" aria-label="Warning" />}
                             {isBlocked && <span className="text-[10px]" role="img" aria-label="Blocked">⛔</span>}
+                            {child.isJunk && (
+                              <span className="text-[9px] bg-amber-905/60 text-amber-300 border border-amber-500/40 rounded px-1 font-semibold uppercase flex-shrink-0" aria-label="Junk item">
+                                Junk
+                              </span>
+                            )}
                           </div>
                           {child.perishable && (
                             <span className={`text-[10px] ${isExpired ? 'text-red-300 font-semibold' : 'text-orange-300'}`}>
@@ -579,6 +603,16 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                           </button>
                         </Tooltip>
                       )}
+                      <button onClick={() => onAction({ type: 'TOGGLE_ITEM_JUNK', label: `Toggle Junk ${child.name}`, payload: { itemId: child.id } })}
+                        className={`text-xs px-2 py-1 rounded transition-colors shadow-sm ${
+                          child.isJunk
+                            ? 'bg-amber-700 hover:bg-amber-600 text-white'
+                            : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                        }`}
+                        aria-label={`Toggle junk status for ${child.name}`}
+                      >
+                        {child.isJunk ? 'Junk' : 'Mark Junk'}
+                      </button>
                       <button onClick={() => onAction({ type: 'DROP_ITEM', label: `Drop ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
                         className="text-xs bg-red-800 hover:bg-red-700 text-white px-2 py-1 rounded transition-colors shadow-sm"
                         aria-label={`Drop ${child.name}`}
@@ -615,6 +649,56 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
           <CoinBadge type="cp" amount={currency.CP} />
         </div>
       </div>
+
+      {/* Equipped Attunement Items */}
+      {equippedAttunementItems.length > 0 && (
+        <div className="mb-3 bg-gray-900/60 p-3 rounded-lg border border-purple-500/30">
+          <div className="flex justify-between items-center mb-2 border-b border-gray-700 pb-1">
+            <h4 className="text-xs font-semibold font-cinzel text-purple-400 uppercase tracking-widest">
+              Attunement ({totalAttunedCount}/3)
+            </h4>
+            {totalAttunedCount >= 3 && (
+              <span className="text-[10px] text-amber-400 font-medium">Attunement limit reached</span>
+            )}
+          </div>
+          <ul className="space-y-1.5">
+            {equippedAttunementItems.map(({ slot, item }) => (
+              <li key={item.id} className="flex items-center justify-between text-xs p-1.5 rounded bg-gray-800/40 border border-gray-700/50">
+                <div className="flex flex-col min-w-0">
+                  <span className="font-medium text-amber-200 truncate">{item.name}</span>
+                  <span className="text-[10px] text-gray-400 capitalize">{slot.replace(/([A-Z])/g, ' $1').trim()} slot</span>
+                </div>
+                <div>
+                  {item.isAttuned ? (
+                    <button
+                      onClick={() => onAction({
+                        type: 'UNATTUNE_ITEM',
+                        label: `Unattune ${item.name}`,
+                        payload: { characterId: character.id!, itemId: item.id }
+                      })}
+                      className="px-2 py-1 bg-purple-750 hover:bg-purple-650 text-white rounded text-[10px] font-medium transition-colors shadow-sm"
+                    >
+                      Attuned
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => onAction({
+                        type: 'ATTUNE_ITEM',
+                        label: `Attune ${item.name}`,
+                        payload: { characterId: character.id!, itemId: item.id }
+                      })}
+                      disabled={totalAttunedCount >= 3}
+                      className="px-2 py-1 bg-gray-700 hover:bg-purple-800 text-purple-200 hover:text-white rounded disabled:opacity-50 disabled:bg-gray-800 disabled:text-gray-500 text-[10px] font-medium transition-all shadow-sm"
+                    >
+                      Attune
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Filter Indicator */}
       {filterBySlot && (

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 12:05:13
+ * Last Sync: 23/06/2026, 17:58:58
  * Dependents: utils/character/index.ts, utils/combat/combatUtils.ts
  * Imports: 4 files
  *
@@ -359,6 +359,52 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
                             effect: { type: 'stat_modifier', value: -1 }
                         }
                     });
+                } else if (jsonEffect.type === 'UTILITY') {
+                    // UTILITY effects represent spell mechanisms that do not deal direct damage or heals,
+                    // but create physical changes (light sources) or debuff enemy saves (e.g. Mind Sliver).
+                    if (jsonEffect.light) {
+                        effects.push({
+                            type: 'status',
+                            statusEffect: {
+                                id: `spell_${spell.id}_light`,
+                                name: `${spell.name} (Light Source)`,
+                                type: 'neutral',
+                                duration: (typeof spell.duration === 'object' && spell.duration?.concentration) ? 100 : 1000,
+                                light: {
+                                    brightRadius: jsonEffect.light.brightRadius,
+                                    dimRadius: jsonEffect.light.dimRadius,
+                                    attachedTo: jsonEffect.light.attachedTo || 'target',
+                                    color: jsonEffect.light.color
+                                }
+                            }
+                        });
+                    } else if (jsonEffect.savePenalty) {
+                        effects.push({
+                            type: 'status',
+                            statusEffect: {
+                                id: `spell_${spell.id}_save_penalty`,
+                                name: `${spell.name} Penalty`,
+                                type: 'debuff',
+                                duration: 1, // Mind Sliver's penalty lasts until the start of the caster's next turn.
+                                savePenalty: {
+                                    dice: jsonEffect.savePenalty.dice,
+                                    flat: jsonEffect.savePenalty.flat,
+                                    applies: jsonEffect.savePenalty.applies
+                                }
+                            }
+                        });
+                    } else {
+                        // Generic status/utility mapping fallback if no special sub-fields are present.
+                        effects.push({
+                            type: 'status',
+                            statusEffect: {
+                                id: `spell_${spell.id}_utility`,
+                                name: spell.name,
+                                type: 'neutral',
+                                duration: 10
+                            }
+                        });
+                    }
                 }
             });
         } else {

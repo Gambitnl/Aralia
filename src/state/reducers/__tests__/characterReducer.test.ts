@@ -450,4 +450,49 @@ describe('characterReducer', () => {
         expect(dropState.inventory.some(item => item.id === 'dried_meat')).toBe(false);
         expect(dropState.dynamicLocationItemIds.town_square).toContain('dried_meat');
     });
+
+    it('should consume spell material components when materialComponentItemIdToConsume is provided in CAST_SPELL', () => {
+        const character = createMockPlayerCharacter({
+            id: 'caster-char',
+            spellSlots: {
+                level_1: { current: 1, max: 1 },
+                level_2: { current: 0, max: 0 },
+                level_3: { current: 1, max: 1 },
+                level_4: { current: 0, max: 0 },
+                level_5: { current: 0, max: 0 },
+                level_6: { current: 0, max: 0 },
+                level_7: { current: 0, max: 0 },
+                level_8: { current: 0, max: 0 },
+                level_9: { current: 0, max: 0 },
+            }
+        });
+
+        const diamondItem: Item = {
+            id: 'diamond_300gp',
+            name: 'Diamond (300 gp)',
+            type: 'spell_component',
+            costInGp: 300
+        };
+
+        const state = {
+            ...initialState,
+            party: [character],
+            inventory: [diamondItem]
+        } as GameState;
+
+        // Cast spell and consume the component
+        const action: AppAction = {
+            type: 'CAST_SPELL',
+            payload: {
+                characterId: 'caster-char',
+                spellId: 'revivify',
+                spellLevel: 3,
+                materialComponentItemIdToConsume: 'diamond_300gp'
+            }
+        };
+
+        const newState = characterReducer(state, action);
+        expect(newState.inventory?.some(item => item.id === 'diamond_300gp')).toBe(false);
+        expect(newState.party?.[0].spellSlots?.level_3.current).toBe(0);
+    });
 });

@@ -29,7 +29,7 @@
  * 
  * @file src/state/actionTypes.ts
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices, PlayerWorldPosition, PlayerGroundPosition, WorldViewMode, MapSurface, WorldHistory } from '../types/index.js';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices, PlayerWorldPosition, PlayerGroundPosition, DiscoveredHiddenSite, WorldViewMode, MapSurface, WorldHistory } from '../types/index.js';
 import { RitualState } from '../types/rituals.js';
 // TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
@@ -66,7 +66,6 @@ export type AppAction =
   | { type: 'APPLY_TAKE_ITEM_UPDATE'; payload: { item: Item; locationId: string; discoveryEntry: DiscoveryEntry } }
   | { type: 'TOGGLE_MAP_VISIBILITY' }
   | { type: 'TOGGLE_MINIMAP_VISIBILITY' }
-  | { type: 'TOGGLE_SUBMAP_VISIBILITY' }
   | { type: 'TOGGLE_THREE_D_VISIBILITY' }
   | { type: 'SET_WORLD_SEED'; payload: number }
   | { type: 'SET_MAP_DATA'; payload: MapData }
@@ -107,6 +106,10 @@ export type AppAction =
   | { type: 'CLOSE_MERCHANT' }
   | { type: 'BUY_ITEM'; payload: { item: Item; cost: number } }
   | { type: 'SELL_ITEM'; payload: { itemId: string; value: number } }
+  | { type: 'ATTUNE_ITEM'; payload: { characterId: string; itemId: string } }
+  | { type: 'UNATTUNE_ITEM'; payload: { characterId: string; itemId: string } }
+  | { type: 'TOGGLE_ITEM_JUNK'; payload: { itemId: string } }
+  | { type: 'SELL_ALL_JUNK'; payload: { items: { itemId: string; value: number }[] } }
   | { type: 'OPEN_TEMPLE'; payload: { villageContext: VillageActionContext & { personality?: VillagePersonality } } }
   | { type: 'CLOSE_TEMPLE' }
   // Encounter Actions
@@ -179,6 +182,8 @@ export type AppAction =
   // Ground positions are tile-local meter anchors for village ground mode. They
   // intentionally do not reuse playerWorldPos because that field uses continent meters.
   | { type: 'SET_PLAYER_GROUND_POS'; payload: { position: PlayerGroundPosition | null } }
+  // SP4 discovery: mark a hidden off-map place revealed (deduped by id).
+  | { type: 'REVEAL_HIDDEN_SITE'; payload: DiscoveredHiddenSite }
   // Gemini Intelligence Action
   | { type: 'ANALYZE_SITUATION' }
   // Dynamic Actions

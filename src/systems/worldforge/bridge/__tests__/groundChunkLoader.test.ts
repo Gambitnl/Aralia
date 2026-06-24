@@ -40,6 +40,7 @@ function makeGroundWorldFixture(overrides: Partial<GroundWorld> = {}): GroundWor
     extentMetersZ: rows,
     features: [],
     hostiles: [],
+    hiddenSites: [],
     rivers: [],
     roads: [],
     towns: [],
@@ -345,6 +346,22 @@ describe('makeGroundWorld building terrain pads', () => {
     // Pad construction must be pure and deterministic: no random jitter, and
     // no shared artifact mutation leaking between makeGroundWorld calls.
     expect(second.heights).toEqual(first.heights);
+  });
+
+  it('places SP4 hidden sites in-bounds, deterministically (proximity discovery)', () => {
+    const local = makeLocalArtifact();
+    const region = makeRegionArtifact();
+    const a = makeGroundWorld(local, 42, region);
+    const b = makeGroundWorld(local, 42, region);
+    expect(a.hiddenSites.length).toBeGreaterThan(0);
+    for (const hs of a.hiddenSites) {
+      expect(hs.xM).toBeGreaterThanOrEqual(-1e-6);
+      expect(hs.xM).toBeLessThanOrEqual(a.extentMetersX + 1e-6);
+      expect(hs.zM).toBeGreaterThanOrEqual(-1e-6);
+      expect(hs.zM).toBeLessThanOrEqual(a.extentMetersZ + 1e-6);
+      expect(hs.discoveryRadiusM).toBeGreaterThan(0);
+    }
+    expect(b.hiddenSites).toEqual(a.hiddenSites); // deterministic per seed + window
   });
 
   it('correctly maps worldBusinesses and NPC owner names to buildings and keepers', () => {

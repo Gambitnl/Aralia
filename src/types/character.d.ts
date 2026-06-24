@@ -267,6 +267,7 @@ export interface Feat {
         raceId?: string;
         classId?: string;
         requiresFightingStyle?: boolean;
+        requiresSpellcasting?: boolean;
     };
     benefits?: {
         abilityScoreIncrease?: Partial<AbilityScores>;
@@ -301,6 +302,7 @@ export interface FeatPrerequisiteContext {
     classId?: string;
     knownFeats?: string[];
     hasFightingStyle?: boolean;
+    hasSpellcasting?: boolean;
 }
 export interface FeatChoice {
     selectedAbilityScore?: AbilityScoreName;

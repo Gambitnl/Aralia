@@ -73,6 +73,10 @@ export const calculateFinalAbilityScores = (
   // 2. Add bonuses from equipped items
   Object.values(equippedItems).forEach(item => {
     if (item && item.statBonuses) {
+      // Ignore bonuses from magic items that require attunement but are not attuned
+      if (item.requiresAttunement && !item.isAttuned) {
+        return;
+      }
       (Object.keys(item.statBonuses) as Array<keyof AbilityScores>).forEach(stat => {
         if (item.statBonuses![stat]) {
           scores[stat] += item.statBonuses![stat]!;
@@ -85,6 +89,10 @@ export const calculateFinalAbilityScores = (
   // Logic: score = Math.max(current, override)
   Object.values(equippedItems).forEach(item => {
     if (item && item.statOverrides) {
+      // Ignore overrides from magic items that require attunement but are not attuned
+      if (item.requiresAttunement && !item.isAttuned) {
+        return;
+      }
       (Object.keys(item.statOverrides) as Array<keyof AbilityScores>).forEach(stat => {
         const overrideVal = item.statOverrides![stat];
         if (overrideVal) {
@@ -272,8 +280,10 @@ export const calculateArmorClass = (character: PlayerCharacter, activeEffects: A
   }
 
   // 2. Shield
+  // If the shield requires attunement but is not attuned, we ignore its magical AC properties
+  // by capping the AC bonus at the standard shield value (+2).
   const shieldBonus = (shield && shield.type === 'armor' && shield.armorCategory === 'Shield' && shield.armorClassBonus)
-    ? shield.armorClassBonus
+    ? (shield.requiresAttunement && !shield.isAttuned ? Math.min(shield.armorClassBonus, 2) : shield.armorClassBonus)
     : 0;
 
   // 2.5 Racial Modifiers

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 01:20:01
+ * Last Sync: 23/06/2026, 18:12:19
  * Dependents: hooks/useGameActions.ts
  * Imports: 17 files
  *
@@ -88,7 +88,6 @@ import {
   handleSaveGame,
   handleGoToMainMenu,
   handleToggleMap,
-  handleToggleSubmap,
   handleToggleDevMenu,
   handleToggleDiscoveryLog,
   handleToggleGlossary,
@@ -209,6 +208,44 @@ export function buildActionHandlers({
     AUTO_EQUIP: (action) => {
       dispatch({ type: 'AUTO_EQUIP', payload: action.payload as { characterId: string } });
     },
+    ATTUNE_ITEM: (action) => {
+      const payload = action.payload as { characterId: string; itemId: string };
+      const char = gameState.party.find(c => c.id === payload.characterId);
+      if (char) {
+        const equippedAttuned = Object.values(char.equippedItems).filter(i => i && i.requiresAttunement && i.isAttuned).length;
+        const invAttuned = gameState.inventory.filter(i => i && i.requiresAttunement && i.isAttuned && i.attunedCharacterId === char.id).length;
+        if (equippedAttuned + invAttuned >= 3) {
+          addMessage(`${char.name} is already attuned to the maximum of 3 items.`, 'system');
+          return;
+        }
+        
+        let item = Object.values(char.equippedItems).find(i => i && i.id === payload.itemId);
+        if (!item) {
+          item = gameState.inventory.find(i => i.id === payload.itemId);
+        }
+        dispatch({ type: 'ATTUNE_ITEM', payload });
+        addMessage(`${char.name} attuned to ${item ? item.name : 'the item'}.`, 'system');
+      }
+    },
+    UNATTUNE_ITEM: (action) => {
+      const payload = action.payload as { characterId: string; itemId: string };
+      const char = gameState.party.find(c => c.id === payload.characterId);
+      let item = char ? Object.values(char.equippedItems).find(i => i && i.id === payload.itemId) : undefined;
+      if (!item) {
+        item = gameState.inventory.find(i => i.id === payload.itemId);
+      }
+      dispatch({ type: 'UNATTUNE_ITEM', payload });
+      addMessage(`${char ? char.name : 'You'} broke attunement to ${item ? item.name : 'the item'}.`, 'system');
+    },
+    TOGGLE_ITEM_JUNK: (action) => {
+      dispatch({ type: 'TOGGLE_ITEM_JUNK', payload: action.payload as { itemId: string } });
+    },
+    SELL_ALL_JUNK: (action) => {
+      const payload = action.payload as { items: { itemId: string; value: number }[] };
+      dispatch({ type: 'SELL_ALL_JUNK', payload });
+      const totalGold = payload.items.reduce((sum, item) => sum + item.value, 0);
+      addMessage(`You sold ${payload.items.length} junk items for ${totalGold.toFixed(2)} gold.`, 'system');
+    },
     HARVEST_RESOURCE: async (action) => {
       await handleHarvestResource({ action, gameState, dispatch, addMessage, addGeminiLog });
     },
@@ -234,8 +271,9 @@ export function buildActionHandlers({
     },
 
     // Spellcasting and resource management (handleResourceActions.ts).
-    CAST_SPELL: (action) => {
-      handleCastSpell(dispatch, action.payload as CastSpellPayload);
+    // CAST_SPELL triggers the spell casting lifecycle asynchronously, validating material component requirements.
+    CAST_SPELL: async (action) => {
+      await handleCastSpell(dispatch, action.payload as CastSpellPayload, gameState, addMessage);
     },
     USE_LIMITED_ABILITY: (action) => {
       handleUseLimitedAbility(dispatch, action.payload as { characterId: string; abilityId: string });
@@ -269,9 +307,6 @@ export function buildActionHandlers({
     },
     toggle_map: () => {
       handleToggleMap(dispatch);
-    },
-    toggle_submap_visibility: () => {
-      handleToggleSubmap(dispatch);
     },
     toggle_three_d: () => {
       // PLAYING: streamed world via worldViewMode (W3DUI-21/22). Other phases: legacy ThreeDModal.

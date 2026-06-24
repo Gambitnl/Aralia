@@ -31,6 +31,7 @@
  * ============================================================================
  */
 import { useRef, useState, useCallback, useEffect } from 'react';
+import { ENV } from '../config/env';
 
 /**
  * Module-level DiceBox constructor cache.
@@ -143,7 +144,7 @@ export function useDiceBox(options: UseDiceBoxOptions): UseDiceBoxReturn {
     // but we provide a fallback in case it's empty or '/' in some build contexts.
     // Without the correct path, the physics engine (ammo.wasm) and dice textures
     // won't load, causing 404 errors and invisible dice.
-    const baseUrl = import.meta.env.BASE_URL || '/Aralia/';
+    const baseUrl = ENV.BASE_URL || '/Aralia/';
     const defaultAssetPath = `${baseUrl}assets/dice-box/`;
 
     // Destructure options with defaults

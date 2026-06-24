@@ -102,6 +102,7 @@ public/assets/ez-tree-lab/
 deprecated/uplink/
 .agent/roadmap/
 .agent/roadmap-local/
+.agent/atlas/
 
 # Jules Agent State
 .jules/claude_last_seen_id.txt

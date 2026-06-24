@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 05/04/2026, 17:44:09
- * Dependents: components/DesignPreview/steps/PreviewSpellGlossary.tsx, components/Glossary/index.ts
+ * Last Sync: 23/06/2026, 12:36:14
+ * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/PreviewSpellGlossary.tsx, components/Glossary/index.ts
  * Imports: 16 files
  *
  * MULTI-AGENT SAFETY:
@@ -227,7 +227,7 @@ const Glossary: React.FC<GlossaryProps> = ({
     // handler that didn't wrap the call), silently bail out to prevent "[object Object]" errors.
     if (typeof termId !== 'string') return;
 
-    if (displayGlossaryIndex) {
+    if (displayGlossaryIndex.length > 0) {
       const { entry: targetEntry, path: entryPath } = findGlossaryEntryAndPath(termId, displayGlossaryIndex);
 
       if (targetEntry) {
@@ -245,18 +245,22 @@ const Glossary: React.FC<GlossaryProps> = ({
             setExpandedParentEntries(prev => new Set(prev).add(parentId));
           }
         });
+        return true;
       } else {
         console.warn(`Glossary internal navigation: Term ID "${termId}" not found.`);
       }
     }
+    return false;
   }, [displayGlossaryIndex, expandedCategories, expandedParentEntries, setExpandedCategories, setExpandedParentEntries]);
 
   // Initialize on open
   useEffect(() => {
     if (isOpen && displayGlossaryIndex) {
       if (initialTermId && hasNavigatedInitial.current !== initialTermId) {
-        handleNavigateToGlossary(initialTermId);
-        hasNavigatedInitial.current = initialTermId;
+        const didNavigateToInitialEntry = handleNavigateToGlossary(initialTermId);
+        if (didNavigateToInitialEntry) {
+          hasNavigatedInitial.current = initialTermId;
+        }
       } else if (!selectedEntry && !hasNavigatedInitial.current && filteredGlossaryIndex.length > 0) {
         const firstCategory = sortedCategories[0];
         const firstSelectableEntry = findFirstSelectableGlossaryEntry(filteredGlossaryIndex);
@@ -283,6 +287,13 @@ const Glossary: React.FC<GlossaryProps> = ({
 
   // Auto-select first filtered entry
   useEffect(() => {
+    if (initialTermId && hasNavigatedInitial.current === initialTermId) {
+      // A caller-provided initial entry is an explicit navigation request. Let that
+      // selection settle instead of allowing the default first-entry fallback to
+      // overwrite it during the same open cycle.
+      return;
+    }
+
     if (!selectedEntry && filteredGlossaryIndex.length > 0) {
       // Default selection should only happen when nothing is selected yet.
       // This keeps first-open behavior convenient without overriding explicit

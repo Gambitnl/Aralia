@@ -196,6 +196,17 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
     const proficiencies = useCharacterProficiencies(character);
     const profBonus = character.proficiencyBonus || 2;
 
+    // Determine if the character has a heavy armor speed penalty active.
+    // In D&D 5e, equipping heavy armor without the Strength requirement reduces speed by 10ft.
+    const torsoItem = character.equippedItems.Torso;
+    const hasSpeedPenalty = !!(
+        torsoItem &&
+        torsoItem.type === 'armor' &&
+        torsoItem.armorCategory === 'Heavy' &&
+        torsoItem.strengthRequirement &&
+        (character.finalAbilityScores?.Strength ?? 10) < torsoItem.strengthRequirement
+    );
+
     // Passive scores
     const wisdomMod = getAbilityModifierValue(character.finalAbilityScores.Wisdom);
     const intelligenceMod = getAbilityModifierValue(character.finalAbilityScores.Intelligence);
@@ -284,9 +295,19 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                                 Armor Class: <span className="font-semibold text-blue-400">{character.armorClass}</span>
                             </p>
                         </Tooltip>
-                        <p className="text-sm">Speed: <span className="font-semibold">{character.speed}ft</span>
-                            {character.isFlying ? <span className="text-sky-300 ml-1"> (Flying)</span> : ''}
-                        </p>
+                        {hasSpeedPenalty && torsoItem ? (
+                            <Tooltip content={`Speed reduced by 10ft because Strength (${character.finalAbilityScores.Strength}) is lower than the requirement (${torsoItem.strengthRequirement}) for equipped heavy armor (${torsoItem.name}).`}>
+                                <p className="text-sm cursor-help border-b border-dotted border-red-400/50 flex items-center gap-1">
+                                    <span>Speed: <span className="font-semibold text-red-400">{character.speed}ft</span></span>
+                                    <span className="material-symbols-outlined text-red-400 text-sm flex items-center" style={{ fontSize: '16px' }}>warning</span>
+                                    {character.isFlying ? <span className="text-sky-300 ml-1"> (Flying)</span> : ''}
+                                </p>
+                            </Tooltip>
+                        ) : (
+                            <p className="text-sm">Speed: <span className="font-semibold">{character.speed}ft</span>
+                                {character.isFlying ? <span className="text-sky-300 ml-1"> (Flying)</span> : ''}
+                            </p>
+                        )}
                         <p className="text-sm">Prof. Bonus: <span className="font-semibold text-amber-300">+{profBonus}</span></p>
                         {character.darkvisionRange > 0 && <p className="text-sm col-span-2">Darkvision: {character.darkvisionRange}ft</p>}
                     </div>

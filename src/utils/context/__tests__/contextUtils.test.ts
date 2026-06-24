@@ -102,7 +102,6 @@ describe('contextUtils', () => {
     worldSeed: 123,
     mapData: null,
     isMapVisible: false,
-    isSubmapVisible: false,
     isPartyOverlayVisible: false,
     isNpcTestModalVisible: false,
     isLogbookVisible: false,

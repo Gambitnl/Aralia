@@ -55,7 +55,6 @@ vi.mock('../../QuestLog', () => ({
         ) : null
     ),
 }));
-vi.mock('../../Submap/SubmapPane', () => ({ default: () => <div data-testid="submap-pane" /> }));
 vi.mock('../../CharacterSheet/CharacterSheetModal', () => ({
     default: ({ companion }: { companion?: Companion | null }) => (
         <div
@@ -121,7 +120,6 @@ const createProps = (gameState: GameState, overrides: RenderOverrides = {}) => {
         npcsInLocation: [],
         itemsInLocation: [],
         isUIInteractive: true,
-        submapPaneDisabled: false,
         missingChoiceModal: {
             isOpen: false,
             character: null,
@@ -159,7 +157,6 @@ const createProps = (gameState: GameState, overrides: RenderOverrides = {}) => {
 
 const baseGameState = createMockGameState({
     isMapVisible: false,
-    isSubmapVisible: false,
     isQuestLogVisible: false,
     isPartyOverlayVisible: false,
     isLogbookVisible: false,
@@ -186,7 +183,6 @@ describe('GameModals focus-trap coverage', () => {
     const wrapperCases: Array<{ name: string; testId: string; state: Partial<GameState> }> = [
         { name: 'Map', testId: 'map-pane', state: { isMapVisible: true, mapData } },
         { name: 'Quest Log', testId: 'quest-first', state: { isQuestLogVisible: true } },
-        { name: 'Submap', testId: 'submap-pane', state: { isSubmapVisible: true, mapData, party: [basePlayer], playerWorldPos: baseLocation.mapCoordinates } },
         { name: 'Character Sheet', testId: 'character-sheet-modal', state: { characterSheetModal: { isOpen: true, character: basePlayer } } },
         { name: 'Dev Menu', testId: 'dev-menu', state: { isDevMenuVisible: true } },
         { name: 'Party Overlay', testId: 'party-overlay', state: { isPartyOverlayVisible: true } },

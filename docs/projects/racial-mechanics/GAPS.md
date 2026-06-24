@@ -6,10 +6,10 @@ slug: racial-mechanics
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-05"
+last_updated: "2026-06-23"
 gap_count: 16
-open_gap_count: 16
-resolved_gap_count: 0
+open_gap_count: 14
+resolved_gap_count: 2
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Racial Mechanics / Race Hierarchy Gap Registry
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-23
 
 Iteration note: this docs-only pass opened no new project-local gaps; the only new ambiguity was workflow-level and is recorded in shared `WORKFLOW_GAPS.md`.
 
@@ -120,9 +120,9 @@ Use this file for durable unresolved findings that are too important or too larg
 | RM-043 | open | adjacent_follow_up | Docs | Glossary | 2026-06-02 | `modernizationStatus` flag is missing from static glossary JSON files, preventing indicators from appearing in the glossary. | `public/data/glossary/entries/races/*.json` | UI indicators for rule versions are inconsistent if not supported by the underlying glossary data. | Propagate `modernizationStatus` to all relevant race glossary JSON files. | Verify indicator visibility in glossary for all modernized races. |
 | RM-044 | open | adjacent_follow_up | Codex | Character Utils | 2026-06-02 | `calculateCharacterSpeedFromRace` contains hardcoded speed overrides (e.g., Wood Elf 35ft) that bypass the race file's `traits` array. | `src/utils/character/characterUtils.ts:1347` | Hardcoded logic makes the system fragile and difficult to modernize via data-only changes. | Move specialized speed logic into the race data files (e.g., `speedOverride` field) and update the calculator. | Verify speed parser results match data overrides. |
 | RM-045 | open | adjacent_follow_up | Codex | Character Utils | 2026-06-02 | Racial resource ID generation is inconsistent (some use `racial_feature_<id>`, others `racial_<race>_<spell>`), creating brittle lookup paths. | `src/utils/character/characterUtils.ts` | Inconsistent naming conventions lead to "undefined" lookup crashes and maintainability debt. | Implement a unified `resolveRacialResourceId` helper and migrate all paths to use it. | Verify resource tracking for both traits and spells. |
-| RM-GG5-001 | open | in_scope_now | GLOBAL_GAPS.md (GG-5) | Selecting a race and class that grant overlapping skill proficiencies does not offer alternate skill choices or perform deduplication. | `src/components/CharacterCreator/hooks/useCharacterAssembly.ts` | Breaks D&D 2024 PHB rules, leading to redundant proficiencies. | Implement skill proficiency deduplication and alternate choice selection. | Character sheet validation tests. |
+| RM-GG5-001 | resolved | in_scope_now | GLOBAL_GAPS.md (GG-5) | Selecting a race and class that grant overlapping skill proficiencies does not offer alternate skill choices or perform deduplication. | `src/components/CharacterCreator/hooks/useCharacterAssembly.ts` | Breaks D&D 2024 PHB rules, leading to redundant proficiencies. | Implement skill proficiency deduplication and alternate choice selection. | Implemented custom selection pool expansion and background skill indicators, verified in UI and tests 2026-06-23. |
 | RM-GG6-001 | open | in_scope_now | GLOBAL_GAPS.md (GG-6) | "Powerful Build" trait (Orc, Goliath) is not wired into carrying capacity or encumbrance logic. | `src/types/character.ts` (modifier exists), `src/utils/characterUtils.ts` (logic missing) | Racial traits affecting physical capability have no mechanical impact on inventory/encumbrance systems. | Update carrying capacity calculation to check for `powerfulBuild` modifier. | Inventory weight capacity tests. |
-| RM-GG7-001 | open | in_scope_now | GLOBAL_GAPS.md (GG-7) | `CharacterOverview.tsx` only displays a single base `Speed` value, failing to show `Flying`, `Swimming`, or `Climbing` speeds. | `src/components/CharacterSheet/Overview/CharacterOverview.tsx:243` | 2024 races (Dragonborn, Sea Elf) rely on alternate movement speeds which are currently invisible in the UI. | Update Vitals section to display all movement speeds from the character state. | Character sheet UI visual check. |
+| RM-GG7-001 | resolved | in_scope_now | GLOBAL_GAPS.md (GG-7) | `CharacterOverview.tsx` only displays a single base `Speed` value, failing to show `Flying`, `Swimming`, or `Climbing` speeds. | `src/components/CharacterSheet/Overview/CharacterOverview.tsx:243` | 2024 races (Dragonborn, Sea Elf) rely on alternate movement speeds which are currently invisible in the UI. | Update Vitals section to display all movement speeds from the character state. | Implemented alternate speed calculations in characterUtils and side-by-side display in CharacterOverview, checked 2026-06-23. |
 | RM-GG9-001 | open | in_scope_now | GLOBAL_GAPS.md (GG-9) | Racial condition immunities (e.g., Yuan-ti's immunity to the Poisoned condition) are not automatically enforced when effects are applied. | `src/state/reducers/characterReducer.ts` (status effect logic) | Mechanical benefits of certain races are ignored by the automated status effect systems. | Update status effect application logic to check character immunities before applying conditions. | Test applying 'poisoned' to a Yuan-ti character. |
 | RM-LR-CHOICE-003 | untriaged | in_scope_now | Codex | TRACKER.md | 2026-06-03 | The `LongRestModal` does not currently prompt for spells when a racial trait grants a choice of spell on long rest (e.g., future races or variants). | `LongRestModal.tsx` | Spell choices during rests are a common mechanic that is currently unsupported by the generic rest choice UI. | Add support for spell selection in `RacialRestChoice` and the `LongRestModal` UI. | Verify a character can choose a spell during a long rest and have it added to their prepared list. |
 | RM-SAVE-001 | open | adjacent_follow_up | Codex | Combat Utils | 2026-06-03 | `rollSavingThrow` lacks context (e.g. damage type, effect type) needed to resolve contextual saves like "advantage on saving throws against poison". | `src/utils/character/savingThrowUtils.ts` | Contextual saving throws currently apply too broadly to all saving throws if we aren't careful. | Thread `effectContext` into `rollSavingThrow` for precise advantage matching. | Unit test verifying advantage applies ONLY to poison effects. |

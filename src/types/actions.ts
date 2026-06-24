@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 19/06/2026, 00:47:03
+ * Last Sync: 23/06/2026, 18:12:45
  * Dependents: hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, types/index.ts
  * Imports: None
  *
@@ -41,6 +41,7 @@ export interface CastSpellPayload {
   spellLevel: number;
   spellId?: string;
   castSource?: CastSpellSource;
+  materialComponentItemIdToConsume?: string;
 }
 
 export type ActionType =
@@ -52,7 +53,6 @@ export type ActionType =
   | 'custom'
   | 'ask_oracle'
   | 'toggle_map'
-  | 'toggle_submap_visibility'
   | 'toggle_three_d'
   | 'toggle_auto_save'
   | 'gemini_custom_action'
@@ -118,6 +118,10 @@ export type ActionType =
   | 'AUTO_EQUIP'
   | 'TOGGLE_THIEVES_GUILD'
   | 'REGISTER_DYNAMIC_ENTITY'
+  | 'ATTUNE_ITEM'
+  | 'UNATTUNE_ITEM'
+  | 'TOGGLE_ITEM_JUNK'
+  | 'SELL_ALL_JUNK'
   | 'START_DIALOGUE_SESSION'
   | 'UPDATE_DIALOGUE_SESSION'
   | 'END_DIALOGUE_SESSION'
@@ -142,7 +146,6 @@ export interface ActionMetadata {
  */
 export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   toggle_map: { isUiToggle: true },
-  toggle_submap_visibility: { isUiToggle: true },
   toggle_three_d: { isUiToggle: true },
   toggle_auto_save: { isUiToggle: true },
   toggle_dev_menu: { isUiToggle: true },
@@ -165,6 +168,10 @@ export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   UPDATE_QUEST_OBJECTIVE: { isUiToggle: true },
   UPDATE_NPC_GOAL_STATUS: { isUiToggle: true },
   UPDATE_CHARACTER_CHOICE: { isUiToggle: true },
+  ATTUNE_ITEM: { isUiToggle: true },
+  UNATTUNE_ITEM: { isUiToggle: true },
+  TOGGLE_ITEM_JUNK: { isUiToggle: true },
+  SELL_ALL_JUNK: { isUiToggle: true },
   // Actions that manage their own loading state
   save_game: { managesLoading: true },
   GENERATE_ENCOUNTER: { managesLoading: true },
@@ -307,7 +314,6 @@ export type Action =
   | { type: 'custom'; payload?: { villageContext?: VillageActionContext }; label?: string }
   | { type: 'ask_oracle'; payload: { query: string }; label?: string }
   | { type: 'toggle_map'; payload?: never; label?: string }
-  | { type: 'toggle_submap_visibility'; payload?: never; label?: string }
   | { type: 'toggle_three_d'; payload?: never; label?: string }
   | { type: 'toggle_auto_save'; payload?: never; label?: string }
   | { type: 'gemini_custom_action'; payload: { query?: string; geminiPrompt?: string; check?: string; targetNpcId?: string; eventResidue?: unknown; isEgregious?: boolean }; label?: string }
@@ -370,6 +376,10 @@ export type Action =
   | { type: 'TOGGLE_QUEST_LOG'; payload?: never; label?: string }
   | { type: 'PRAY'; payload: { deityId: string; offering?: number }; label?: string }
   | { type: 'AUTO_EQUIP'; payload: { characterId: string }; label?: string }
+  | { type: 'ATTUNE_ITEM'; payload: { characterId: string; itemId: string }; label?: string }
+  | { type: 'UNATTUNE_ITEM'; payload: { characterId: string; itemId: string }; label?: string }
+  | { type: 'TOGGLE_ITEM_JUNK'; payload: { itemId: string }; label?: string }
+  | { type: 'SELL_ALL_JUNK'; payload: { items: { itemId: string; value: number }[] }; label?: string }
   | { type: 'TOGGLE_THIEVES_GUILD'; payload?: never; label?: string }
   | { type: 'REGISTER_DYNAMIC_ENTITY'; payload: { entityType: 'location' | 'faction'; entity: Location | Faction }; label?: string }
   | { type: 'START_DIALOGUE_SESSION'; payload: { npcId: string }; label?: string }

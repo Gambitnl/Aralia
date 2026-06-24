@@ -8,6 +8,7 @@
  */
 
 import { rollDice as silentRollDice } from '../utils/combat/combatUtils';
+import { ENV } from '../config/env';
 
 // Dynamic import to avoid SSR issues
 let DiceBox: any = null;
@@ -92,7 +93,7 @@ class DiceServiceClass {
             // v1.1.0 API: single config object with container property
             this.diceBox = new DiceBox({
                 container: containerId,
-                assetPath: `${import.meta.env.BASE_URL}assets/dice-box/`, // Trailing slash required for path concatenation
+                assetPath: `${ENV.BASE_URL}assets/dice-box/`, // Trailing slash required for path concatenation
                 theme: 'default', // Use built-in theme (custom themes need specific setup)
                 scale: 13.5,
                 gravity: 3,

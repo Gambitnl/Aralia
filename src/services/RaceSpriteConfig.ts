@@ -31,6 +31,8 @@
  * Used by: VisualsSelection.tsx
  */
 
+import { ENV } from '../config/env';
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -627,6 +629,6 @@ export function getVisualFamily(raceId: string | null | undefined): RaceVisualFa
  * Prepends the Vite base URL for correct asset serving.
  */
 export function resolveRaceSpritePath(relativePath: string): string {
-    const base = import.meta.env.BASE_URL || '/';
+    const base = ENV.BASE_URL || '/';
     return `${base}${relativePath}`;
 }

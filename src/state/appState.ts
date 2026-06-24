@@ -131,7 +131,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     ...additionalUpdates,
                     geminiGeneratedActions: null,
                     isMapVisible: false,
-                    isSubmapVisible: false,
                     error: null,
                     characterSheetModal: { isOpen: false, character: null },
                     lastInteractedNpcId: null,
@@ -647,7 +646,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // (resume-journey task 4); strict-boolean check heals legacy
                 // saves. Dev/debug surfaces stay forced closed.
                 isMapVisible: loadedState.isMapVisible === true,
-                isSubmapVisible: loadedState.isSubmapVisible === true,
                 isDiscoveryLogVisible: loadedState.isDiscoveryLogVisible === true,
                 isDevMenuVisible: false, isPartyEditorVisible: false,
                 isPartyOverlayVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
@@ -729,7 +727,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 subMapCoordinates: action.payload.initialSubMapCoordinates,
                 isLoading: false, loadingMessage: null, isImageLoading: false,
                 mapData: action.payload.mapData,
-                isSubmapVisible: false,
                 dynamicLocationItemIds: action.payload.dynamicLocationItemIds,
                 inventory: [...action.payload.initialInventory],
                 gold: 100,
@@ -776,7 +773,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return {
                 ...state,
                 phase: GamePhase.BATTLE_MAP_DEMO,
-                isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }
+                isMapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }
             };
         }
 
@@ -794,7 +791,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 extractedBattleMap: encounterPayload.extractedBattleMap ?? null,
                 isEncounterModalVisible: false,
                 isLongRestModalVisible: false,
-                isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }
+                isMapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }
             };
         }
 

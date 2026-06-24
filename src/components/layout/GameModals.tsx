@@ -43,7 +43,6 @@ import React, { lazy, Suspense, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
-import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { NPCS } from '../../data/world/npcs';
 import { canUseDevTools } from '../../utils/permissions';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
@@ -56,7 +55,6 @@ import ErrorBoundary from '../ui/ErrorBoundary';
 const MapPane = lazy(() => import('../MapPane'));
 const ThreeDModal = lazy(() => import('../ThreeDModal/ThreeDModal'));
 const QuestLog = lazy(() => import('../QuestLog'));
-const SubmapPane = lazy(() => import('../Submap/SubmapPane'));
 const CharacterSheetModal = lazy(() => import('../CharacterSheet/CharacterSheetModal'));
 const DevMenu = lazy(() => import('../debug/DevMenu'));
 const PartyOverlay = lazy(() => import('../Party/PartyOverlay'));
@@ -103,7 +101,6 @@ interface GameModalsProps {
     npcsInLocation: NPC[];
     itemsInLocation: Item[];
     isUIInteractive: boolean;
-    submapPaneDisabled: boolean;
     missingChoiceModal: {
         isOpen: boolean;
         character: PlayerCharacter | null;
@@ -144,7 +141,6 @@ const GameModals: React.FC<GameModalsProps> = ({
     // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
     // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
     isUIInteractive: _isUIInteractive,
-    submapPaneDisabled,
     missingChoiceModal,
     onCloseMissingChoice,
     onConfirmMissingChoice,
@@ -188,12 +184,10 @@ const GameModals: React.FC<GameModalsProps> = ({
         if (gameState.isCourierPouchVisible) { dispatch({ type: 'TOGGLE_COURIER_POUCH' }); return; }
         if (gameState.isEconomyLedgerVisible) { dispatch({ type: 'TOGGLE_ECONOMY_LEDGER' }); return; }
         if (gameState.isMapVisible) { onAction({ type: 'toggle_map', label: 'Close Map' }); return; }
-        if (gameState.isSubmapVisible) { onAction({ type: 'toggle_submap_visibility', label: 'Close Submap' }); return; }
     }, [gameState, missingChoiceModal, dispatch, onAction, onCloseMissingChoice, handleOpenGlossary]);
 
     const isMapModalOpen = Boolean(gameState.isMapVisible && gameState.mapData);
     const isQuestLogModalOpen = gameState.isQuestLogVisible;
-    const isSubmapModalOpen = Boolean(gameState.isSubmapVisible && gameState.party[0] && gameState.mapData && gameState.subMapCoordinates);
     const isCharacterSheetModalOpen = gameState.characterSheetModal.isOpen;
     const isDevMenuModalOpen = Boolean(gameState.isDevMenuVisible && canUseDevTools());
     const isPartyOverlayModalOpen = gameState.isPartyOverlayVisible;
@@ -209,7 +203,6 @@ const GameModals: React.FC<GameModalsProps> = ({
 
     const mapPaneFocusRef = useFocusTrap<HTMLDivElement>(isMapModalOpen);
     const questLogFocusRef = useFocusTrap<HTMLDivElement>(isQuestLogModalOpen);
-    const submapPaneFocusRef = useFocusTrap<HTMLDivElement>(isSubmapModalOpen);
     const characterSheetFocusRef = useFocusTrap<HTMLDivElement>(isCharacterSheetModalOpen);
     const devMenuFocusRef = useFocusTrap<HTMLDivElement>(isDevMenuModalOpen);
     const partyOverlayFocusRef = useFocusTrap<HTMLDivElement>(isPartyOverlayModalOpen);
@@ -243,6 +236,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 playerWorldPos={playerWorldPos}
                                 allow3DEntry={allow3DEntry}
                                 onClose={() => onAction({ type: 'toggle_map', label: 'Close Map' })}
+                                discoveredHiddenSites={gameState.discoveredHiddenSites}
                                 allowTravel={gameState.phase === GamePhase.PLAYING}
                                 showGenerationControls={gameState.phase === GamePhase.MAIN_MENU}
                                 canRegenerateWorld={canRegenerateWorldMap}
@@ -263,39 +257,6 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 isOpen={gameState.isQuestLogVisible}
                                 onClose={() => dispatch({ type: 'TOGGLE_QUEST_LOG' })}
                                 quests={gameState.questLog}
-                            />
-                        </ErrorBoundary>
-                    </Suspense>
-                </div>
-            )}
-
-            {/* Submap / Tactical View Overlay */}
-            {isSubmapModalOpen && (
-                <div ref={submapPaneFocusRef} tabIndex={-1}>
-                    <Suspense fallback={<LoadingSpinner />}>
-                        <ErrorBoundary fallbackMessage="Error displaying the Submap.">
-                            <SubmapPane
-                                currentLocation={currentLocation}
-                                currentWorldBiomeId={currentLocation.biomeId}
-                                playerSubmapCoords={gameState.subMapCoordinates}
-                                onClose={() => onAction({ type: 'toggle_submap_visibility', label: 'Close Submap' })}
-                                submapDimensions={SUBMAP_DIMENSIONS}
-                                parentWorldMapCoords={currentLocation.mapCoordinates || { x: 0, y: 0 }}
-                                onAction={onAction}
-                                disabled={submapPaneDisabled}
-                                inspectedTileDescriptions={gameState.inspectedTileDescriptions}
-                                mapData={gameState.mapData}
-                                gameTime={gameState.gameTime}
-                                playerCharacter={gameState.party[0]}
-                                partyMembers={gameState.party}
-                                worldSeed={gameState.worldSeed}
-                                npcsInLocation={npcsInLocation}
-                                itemsInLocation={itemsInLocation}
-                                geminiGeneratedActions={gameState.geminiGeneratedActions}
-                                isDevDummyActive={canUseDevTools()}
-                                unreadDiscoveryCount={gameState.unreadDiscoveryCount}
-                                hasNewRateLimitError={gameState.hasNewRateLimitError}
-                                autoSaveEnabled={gameState.autoSaveEnabled ?? true}
                             />
                         </ErrorBoundary>
                     </Suspense>

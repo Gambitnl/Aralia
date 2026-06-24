@@ -23,6 +23,7 @@
 
 import type { PlayerCharacter } from '../types';
 import { FEATURES } from '../config/features';
+import { ENV } from '../config/env';
 import { normalizeCharacterRaceData } from '../utils/character/characterUtils';
 
 // ============================================================================
@@ -62,7 +63,7 @@ export interface PremadeManifest {
 // to resolve the correct base URL so the paths work in both dev and production.
 // ============================================================================
 
-const BASE_URL = import.meta.env.BASE_URL || '/';
+const BASE_URL = ENV.BASE_URL || '/';
 const PREMADE_DIR = `${BASE_URL}premade-characters`;
 
 // ============================================================================

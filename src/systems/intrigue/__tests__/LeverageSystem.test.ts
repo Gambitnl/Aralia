@@ -76,7 +76,6 @@ describe('LeverageSystem', () => {
             worldSeed: 54321,
             mapData: null,
             isMapVisible: false,
-            isSubmapVisible: false,
             isPartyOverlayVisible: false,
             isNpcTestModalVisible: false,
             isLogbookVisible: false,

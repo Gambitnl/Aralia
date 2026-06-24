@@ -340,6 +340,11 @@ export interface Feat {
     raceId?: string;
     classId?: string;
     requiresFightingStyle?: boolean; // For Fighting Style feats
+    /**
+     * Set to true if this feat requires the Spellcasting or Pact Magic class feature.
+     * Maps to D&D 2024 prerequisites (e.g. War Caster, Elemental Adept).
+     */
+    requiresSpellcasting?: boolean;
   };
   benefits?: {
     abilityScoreIncrease?: Partial<AbilityScores>;
@@ -388,6 +393,11 @@ export interface FeatPrerequisiteContext {
   classId?: string;
   knownFeats?: string[];
   hasFightingStyle?: boolean; // Whether character's class has Fighting Style feature
+  /**
+   * Set to true if the character has the ability to cast spells (via class Spellcasting/Pact Magic).
+   * Used to validate spellcasting-requiring feats.
+   */
+  hasSpellcasting?: boolean;
 }
 
 export interface FeatChoice {

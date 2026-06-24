@@ -109,5 +109,38 @@ describe('spellAbilityFactory', () => {
             // expects instead of showing one flattened generic status ability.
             expect((ability as any).modeChoice).toEqual(modeChoiceSpell.modeChoice);
         });
+
+        it('translates UTILITY effects (light and savePenalty) correctly', () => {
+            const utilitySpell = {
+                ...baseSpell,
+                effects: [
+                    {
+                        type: 'UTILITY',
+                        utilityType: 'light',
+                        light: { brightRadius: 20, dimRadius: 20 }
+                    },
+                    {
+                        type: 'UTILITY',
+                        utilityType: 'other',
+                        savePenalty: { dice: '1d4', applies: 'next_save' }
+                    }
+                ]
+            } as unknown as Spell;
+
+            const ability = createAbilityFromSpell(utilitySpell, baseCaster);
+            expect(ability.effects.length).toBe(2);
+            expect(ability.effects[0].type).toBe('status');
+            expect(ability.effects[0].statusEffect?.light).toEqual({
+                brightRadius: 20,
+                dimRadius: 20,
+                attachedTo: 'target',
+                color: undefined
+            });
+            expect(ability.effects[1].statusEffect?.savePenalty).toEqual({
+                dice: '1d4',
+                flat: undefined,
+                applies: 'next_save'
+            });
+        });
     });
 });

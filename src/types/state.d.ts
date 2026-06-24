@@ -115,7 +115,6 @@ export interface GameState {
         y: number;
     };
     isMapVisible: boolean;
-    isSubmapVisible: boolean;
     isThreeDVisible?: boolean;
     isPartyOverlayVisible: boolean;
     /** Whether the long rest modal is currently visible to prompt racial choices. */

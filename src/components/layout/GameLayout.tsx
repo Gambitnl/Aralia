@@ -33,7 +33,6 @@ import { VersionDisplay } from '../ui/VersionDisplay';
 import CompassPane from '../CompassPane';
 import ActionPane from '../ActionPane';
 import WorldPane from '../WorldPane';
-import Minimap from '../Minimap';
 import WorldAtlasStrip from '../World3D/WorldAtlasStrip';
 import { UI_ID } from '../../styles/uiIds';
 import type { PlayerWorldPosition } from '../../types';
@@ -136,19 +135,13 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                 </ErrorBoundary>
             </div>
 
-            {/* Right Column: Narrative Log and Minimap */}
+            {/* Right Column: Narrative Log + atlas strip. The old square Minimap
+                was removed 2026-06-23 — it has no valid local/submap dataset to
+                render yet; revisit once the WF local layer is the source. */}
             <div id={UI_ID.RIGHT_COLUMN} data-testid={UI_ID.RIGHT_COLUMN} className="md:w-3/5 lg:w-2/3 flex flex-col gap-2 sm:gap-4 min-h-0 relative">
                 <ErrorBoundary fallbackMessage="Error in World Pane.">
                     <WorldPane messages={messages} />
                 </ErrorBoundary>
-                <Minimap
-                    mapData={mapData}
-                    currentLocationCoords={currentLocation.mapCoordinates}
-                    submapCoords={subMapCoordinates ?? null}
-                    visible={true} // Always visible in this layout
-                    toggleSubmap={() => onAction({ type: 'toggle_submap_visibility', label: 'Open Submap' })}
-                    worldSeed={worldSeed}
-                />
                 <WorldAtlasStrip
                     mapData={mapData}
                     playerWorldPos={playerWorldPos}

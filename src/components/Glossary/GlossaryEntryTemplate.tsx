@@ -7,6 +7,8 @@ import { GlossaryItemStatBlock } from './GlossaryItemStatBlock';
 import ImageModal from '../ImageModal';
 import { GlossaryEntry } from '../../types';
 
+import { ENV } from '../../config/env';
+
 /**
  * Helper to resolve image URLs for Vite deployments.
  * Prepends the BASE_URL environment variable for local asset paths.
@@ -20,7 +22,7 @@ const resolveImageUrl = (url: string | undefined): string | undefined => {
     // If already absolute URL (external), use as-is
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
     // For local asset paths, prepend the Vite base URL to handle subdirectory deployments
-    const baseUrl = import.meta.env.BASE_URL || '/';
+    const baseUrl = ENV.BASE_URL;
     return `${baseUrl}${url.startsWith('/') ? url.slice(1) : url}`;
 };
 

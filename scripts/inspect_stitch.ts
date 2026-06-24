@@ -96,10 +96,19 @@ async function callToolWithTimeout(
         console.error(`[Bridge] Tool Call: ${name}`);
         console.error(`[Bridge] Arguments: ${JSON.stringify(args, null, 2)}`);
 
+        // WHAT CHANGED: Pass the bridge timeout through to the MCP SDK request.
+        // WHY IT CHANGED: Stitch screen generation routinely takes longer than
+        // the SDK's 60-second default, so the local 3-minute guard was not
+        // actually protecting long-running UI concept calls.
         const result = await client.callTool(
             { name, arguments: args },
             undefined,
-            { signal: controller.signal }
+            {
+                signal: controller.signal,
+                timeout: REQUEST_TIMEOUT,
+                maxTotalTimeout: REQUEST_TIMEOUT,
+                resetTimeoutOnProgress: true
+            }
         );
         clearTimeout(timeoutId);
         return result;

@@ -15,6 +15,7 @@ import {
 
 import { visualizerManager } from './scripts/vite-plugins/visualizerManager';
 import { devHubApiManager } from './scripts/vite-plugins/devHubApiManager';
+import { atlasApiManager } from './scripts/vite-plugins/atlasApiManager';
 
 import {
   devHubLauncherManager,
@@ -153,6 +154,7 @@ export default defineConfig(async ({ mode, command }) => {
     scanManager(),
     gitStatusManager(),
     devHubApiManager(),
+    atlasApiManager(),
     glossarySpellGateManager(),
     glossaryIndexManager(),
     scriptRegistryManager(),
@@ -175,6 +177,7 @@ export default defineConfig(async ({ mode, command }) => {
     scanManager(),
     gitStatusManager(),
     devHubApiManager(),
+    atlasApiManager(),
     glossarySpellGateManager(),
     glossaryIndexManager(),
     scriptRegistryManager(),
@@ -307,6 +310,10 @@ export default defineConfig(async ({ mode, command }) => {
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'md_library.html'))
             && fs.existsSync(path.resolve(__dirname, 'src', 'md-library-entry.tsx'))
             ? { md_library: path.resolve(__dirname, 'misc', 'md_library.html') }
+            : {}),
+          ...(fs.existsSync(path.resolve(__dirname, 'misc', 'aralia_atlas.html'))
+            && fs.existsSync(path.resolve(__dirname, 'src', 'atlas-entry.tsx'))
+            ? { aralia_atlas: path.resolve(__dirname, 'misc', 'aralia_atlas.html') }
             : {}),
           ...(includeRoadmapBuildEntries && fs.existsSync(path.resolve(__dirname, 'devtools', 'roadmap', 'roadmap.html'))
             ? { roadmap: path.resolve(__dirname, 'devtools', 'roadmap', 'roadmap.html') }

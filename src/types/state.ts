@@ -161,6 +161,19 @@ export interface PlayerGroundPosition {
   zM: number;
 }
 
+/**
+ * A hidden off-map place the player has revealed by 3D proximity (SP4). Carries
+ * the world tile where it was found so the atlas can pin it (the site itself is
+ * off-map; tile-level position is enough — "near here").
+ */
+export interface DiscoveredHiddenSite {
+  id: string;
+  tileX: number;
+  tileY: number;
+  name?: string;
+  kind?: string;
+}
+
 // -----------------------------------------------------------------------------
 // Game State
 // -----------------------------------------------------------------------------
@@ -186,7 +199,6 @@ export interface GameState {
   /** Center point used by minimap consumers after map data changes. */
   minimapFocus?: { x: number; y: number };
   isMapVisible: boolean;
-  isSubmapVisible: boolean;
   isThreeDVisible?: boolean;
   isPartyOverlayVisible: boolean;
   /** Whether the long rest modal is currently visible to prompt racial choices. */
@@ -382,4 +394,8 @@ export interface GameState {
   // Plot/building edits are stored as JSON-safe deltas so regenerated village
   // geometry can be replayed after loading a save.
   worldforgeDeltas: WorldDelta[];
+
+  // SP4 discovery: hidden off-map places the player has revealed by 3D proximity,
+  // with the tile where found. Persisted so discoveries survive reload + pin on the atlas.
+  discoveredHiddenSites: DiscoveredHiddenSite[];
 }

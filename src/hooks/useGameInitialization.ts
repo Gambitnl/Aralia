@@ -62,6 +62,11 @@ import { BIOMES } from '../data/biomes';
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from '../config/mapConfig';
 // Procedural map generator that produces the world grid from locations, biomes, and a seed.
 import { generateMap } from '../services/mapService';
+// WF-derived spawn: place the player where the generated FMG world says, not a hardcoded tile.
+import { generateFmgWorld } from '../systems/worldforge/fmg/generateWorld';
+import { resolveWorldSpawn, relocateStartTile } from '../systems/worldforge/local/resolveSpawn';
+import { wfBiomeIndexToLegacyId } from '../systems/worldforge/local/wfBiomeToLegacy';
+import { unifyMapBiomesWithWorld } from '../systems/worldforge/local/unifyMapBiomes';
 import { WorldHistoryService } from '../services/WorldHistoryService';
 // Save/load service for persisting and restoring game state from local storage.
 import * as SaveLoadService from '../services/saveLoadService';
@@ -262,7 +267,30 @@ export function useGameInitialization({
       // otherwise generate a new one (e.g. if the flow skipped map pre-generation).
       const mapDataToUse = currentMapData || generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, worldSeed);
 
-      // Place the player at the center of the starting location's sub-map grid.
+      // WF-derived spawn: relocate the start onto the FMG world's capital/burg
+      // cell (mapped to the grid via the atlas bridge), instead of a hardcoded
+      // tile. Kept walkable by forcing the start biome. The descriptive LOCATIONS
+      // node ('clearing') is the next migration; this makes the player's WORLD
+      // position come from the generated world. Guarded so a hiccup never bricks
+      // new-game boot.
+      try {
+        const wfWorld = generateFmgWorld(String(worldSeed));
+        const wfGridSize = { cols: MAP_GRID_SIZE.cols, rows: MAP_GRID_SIZE.rows };
+        // Keystone unification: rewrite the whole grid's biomes from the WF world
+        // (land = WF biome, water = ocean), preserving location anchors. The map
+        // is now a downsampled view of the generated world, not a separate sim.
+        unifyMapBiomesWithWorld(mapDataToUse, wfWorld, wfGridSize);
+        const spawn = resolveWorldSpawn(wfWorld, wfGridSize);
+        relocateStartTile(mapDataToUse, spawn.gridCell, {
+          biomeId: wfBiomeIndexToLegacyId(spawn.biomeIndex), // start tile reflects the WF biome
+          fallbackBiomeId: initialLocation.biomeId,
+          isWalkable: (biomeId) => BIOMES[biomeId]?.passable ?? false,
+        });
+      } catch (err) {
+        console.error('[startGame] WF spawn resolution failed; using legacy start tile.', err);
+      }
+
+      // Local position within the starting cell (vestigial submap center for now).
       const initialSubMapCoords = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
 
       // Determine which dynamic NPCs should be present at the starting location.

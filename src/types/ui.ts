@@ -145,7 +145,6 @@ export type NotificationType = 'success' | 'error' | 'info' | 'warning';
 
 export enum UIToggleAction {
   MAP = 'toggle_map',
-  SUBMAP = 'toggle_submap_visibility',
   THREE_D = 'toggle_three_d',
   AUTO_SAVE = 'toggle_auto_save',
   DEV_MENU = 'toggle_dev_menu',

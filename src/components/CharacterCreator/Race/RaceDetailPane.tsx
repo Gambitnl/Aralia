@@ -28,13 +28,15 @@ import { BTN_PRIMARY } from '../../../styles/buttonStyles';
 import { SKILLS_DATA } from '../../../data/skills';
 import { getTraitIcon } from '../../../utils/traits/traitIcons';
 
+import { ENV } from '../../../config/env';
+
 // Helper to resolve image URLs - prepends BASE_URL for local assets
 const resolveImageUrl = (url: string | undefined): string | undefined => {
     if (!url) return undefined;
     // If already absolute URL, use as-is
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
     // For local asset paths, prepend the Vite base URL
-    const baseUrl = import.meta.env.BASE_URL || '/';
+    const baseUrl = ENV.BASE_URL;
     return `${baseUrl}${url}`;
 };
 

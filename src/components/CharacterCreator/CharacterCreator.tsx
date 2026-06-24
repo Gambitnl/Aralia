@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:26:46
- * Dependents: None (Orphan)
- * Imports: 41 files
+ * Last Sync: 23/06/2026, 18:11:54
+ * Dependents: App.tsx
+ * Imports: 42 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -291,6 +291,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
           classId: selectedClass?.id,
           knownFeats: [],
           hasFightingStyle: !!(selectedClass?.fightingStyles && selectedClass.fightingStyles.length > 0),
+          hasSpellcasting: !!selectedClass?.spellcasting,
         });
 
         return { ...feat, isEligible: eligibility.isEligible, unmet: eligibility.unmet };
@@ -462,7 +463,17 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         return <HumanSkillSelection abilityScores={finalAbilityScores} onSkillSelect={handleHumanSkillSelect} onBack={goBack} />;
       case CreationStep.Skills:
         if (!selectedClass || !finalAbilityScores || !selectedRace) return <StepLockedPlaceholder message={!selectedRace ? "Select a race first to unlock this step." : !selectedClass ? "Select a class first to unlock this step." : "Assign ability scores first to unlock this step."} />;
-        return <SkillSelection charClass={selectedClass} abilityScores={finalAbilityScores} race={selectedRace} racialSelections={state.racialSelections} onSkillsSelect={handleSkillsSelect} onBack={goBack} />;
+        return (
+          <SkillSelection
+            charClass={selectedClass}
+            abilityScores={finalAbilityScores}
+            race={selectedRace}
+            racialSelections={state.racialSelections}
+            selectedBackground={state.selectedBackground || undefined}
+            onSkillsSelect={handleSkillsSelect}
+            onBack={goBack}
+          />
+        );
       case CreationStep.ClassFeatures:
         if (!selectedClass || !finalAbilityScores) return <StepLockedPlaceholder message={!selectedClass ? "Select a class first to unlock this step." : "Assign ability scores first to unlock this step."} />;
         if (selectedClass.id === 'fighter' && selectedClass.fightingStyles) { return <FighterFeatureSelection styles={selectedClass.fightingStyles} onStyleSelect={handleFighterFeaturesSelect} onBack={goBack} />; }
