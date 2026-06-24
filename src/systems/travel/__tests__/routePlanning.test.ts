@@ -1,0 +1,92 @@
+import { describe, it, expect } from 'vitest';
+import { planFastestRoute, transportSpeedMph, type TravelGraph } from '../routePlanning';
+import type { TravelTerrain } from '../../../types/travel';
+import { STANDARD_VEHICLES } from '../../../types/travel';
+
+/**
+ * 3x1 line of cells: 0 — 1 — 2, centroids 10 units apart. Cell 1's terrain is
+ * configurable so we can prove difficult terrain / impassability reroute & cost.
+ */
+function lineGraph(opts: {
+  terrain1?: TravelTerrain;
+  passable1?: boolean;
+  danger?: Record<number, number>;
+}): TravelGraph {
+  const pos: Record<number, [number, number]> = { 0: [0, 0], 1: [10, 0], 2: [20, 0], 3: [10, 10] };
+  // 0-1-2 in a line; 3 is a detour neighbor of 0 and 2 (so a reroute exists if 1 is blocked).
+  const adj: Record<number, number[]> = { 0: [1, 3], 1: [0, 2], 2: [1, 3], 3: [0, 2] };
+  return {
+    neighbors: (c) => adj[c] ?? [],
+    position: (c) => pos[c],
+    terrain: (c) => (c === 1 ? (opts.terrain1 ?? 'open') : 'open'),
+    passable: (c) => (c === 1 ? (opts.passable1 ?? true) : true),
+    danger: (c) => opts.danger?.[c] ?? 0,
+  };
+}
+
+describe('transportSpeedMph', () => {
+  it('walking is 3mph; a riding horse is 6mph; a puller-limited cart is 2mph', () => {
+    expect(transportSpeedMph({ method: 'walking' })).toBe(3);
+    expect(transportSpeedMph({ method: 'mounted', vehicle: STANDARD_VEHICLES.riding_horse })).toBe(6);
+    expect(transportSpeedMph({ method: 'vehicle', vehicle: STANDARD_VEHICLES.cart })).toBe(2);
+    expect(transportSpeedMph(null)).toBe(3);
+  });
+});
+
+describe('planFastestRoute', () => {
+  it('routes straight through open terrain and computes miles + minutes', () => {
+    const g = lineGraph({});
+    // milesPerUnit 0.1 → each 10-unit edge = 1 mile. 2 edges = 2 miles at 3mph = 40 min.
+    const r = planFastestRoute(g, 0, 2, { milesPerUnit: 0.1, speedMph: 3 })!;
+    expect(r.cells).toEqual([0, 1, 2]);
+    expect(r.miles).toBeCloseTo(2, 6);
+    expect(r.minutes).toBeCloseTo(40, 6);
+    expect(r.points).toHaveLength(3);
+  });
+
+  it('a faster transport reduces the travel time proportionally', () => {
+    const g = lineGraph({});
+    const foot = planFastestRoute(g, 0, 2, { milesPerUnit: 0.1, speedMph: 3 })!;
+    const horse = planFastestRoute(g, 0, 2, { milesPerUnit: 0.1, speedMph: 6 })!;
+    expect(horse.minutes).toBeCloseTo(foot.minutes / 2, 6);
+  });
+
+  it('reroutes around an impassable cell via the detour', () => {
+    const g = lineGraph({ passable1: false });
+    const r = planFastestRoute(g, 0, 2, { milesPerUnit: 0.1, speedMph: 3 })!;
+    expect(r.cells).toEqual([0, 3, 2]); // detours through cell 3, not blocked cell 1
+  });
+
+  it('prefers the detour when the direct cell is difficult terrain (half speed)', () => {
+    // Direct path 0-1-2: cell 1 difficult (×0.5 speed → double time on that edge).
+    // Detour 0-3-2: all open. Distances: direct edges 10+10; detour edges ~14.1+14.1.
+    // Direct minutes: (1mi/3) + (1mi/(3*0.5)) = 0.333h + 0.667h = 60 min.
+    // Detour minutes: 2 × (1.414mi/3) = ~56.6 min → detour wins.
+    const g = lineGraph({ terrain1: 'difficult' });
+    const r = planFastestRoute(g, 0, 2, { milesPerUnit: 0.1, speedMph: 3 })!;
+    expect(r.cells).toEqual([0, 3, 2]);
+  });
+
+  it('reports the max per-cell danger along the chosen route', () => {
+    const g = lineGraph({ danger: { 1: 0.7 } });
+    const r = planFastestRoute(g, 0, 2, { milesPerUnit: 0.1, speedMph: 3 })!;
+    expect(r.danger).toBeCloseTo(0.7, 6);
+  });
+
+  it('returns null when the goal is unreachable / impassable', () => {
+    const g: TravelGraph = {
+      neighbors: () => [],
+      position: () => [0, 0],
+      terrain: () => 'open',
+      passable: (c) => c === 0,
+    };
+    expect(planFastestRoute(g, 0, 2, { milesPerUnit: 1, speedMph: 3 })).toBeNull();
+  });
+
+  it('start === goal is a zero-length route', () => {
+    const g = lineGraph({});
+    const r = planFastestRoute(g, 1, 1, { milesPerUnit: 0.1, speedMph: 3 })!;
+    expect(r.cells).toEqual([1]);
+    expect(r.minutes).toBe(0);
+  });
+});
