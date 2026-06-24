@@ -47,6 +47,7 @@ import { generateTownPlan, type TownPlan } from '@/systems/worldforge/town/townE
 import { rootSeedPath, streamPath } from '@/systems/worldforge/seedPath';
 import { legacyGridToAtlasCell } from '@/systems/worldforge/local/gridAtlasBridge';
 import { buildAtlasTravelGraph, atlasMilesPerUnit, nearestLandCell, transportMobility } from '@/systems/worldforge/travel/atlasTravelGraph';
+import { buildSubmapTravelGraph } from '@/systems/worldforge/travel/submapTravelGraph';
 import { planRoutesFrom, transportSpeedMph } from '@/systems/travel/routePlanning';
 import { availableTransports } from '@/systems/travel/availableTransports';
 import { generateFmgWorld } from '@/systems/worldforge/fmg/generateWorld';
@@ -467,6 +468,19 @@ const MapPane: React.FC<MapPaneProps> = ({
   const tierName = (depth: number): string =>
     depth === 1 ? 'Region' : depth === 2 ? 'Local' : `Locale ${depth - 2}`;
 
+  // Submap-tier travel: a route field over the drilled tier's Voronoi cells from
+  // the player's sub-cell, so the same route preview works inside the drill.
+  const submapTravelField = useMemo(() => {
+    if (interactionMode !== 'travel') return null;
+    const top = submapStack[submapStack.length - 1];
+    if (!top?.model || top.playerCellIndex == null) return null;
+    return planRoutesFrom(buildSubmapTravelGraph(top.model), top.playerCellIndex, {
+      milesPerUnit: 0.02, // ~20 miles across a normalized region tier
+      speedMph: transportSpeedMph(selectedTransport.option),
+    });
+  }, [interactionMode, submapStack, selectedTransport]);
+  const planSubmapRoute = useCallback((idx: number) => submapTravelField?.to(idx) ?? null, [submapTravelField]);
+
   const handleRegenerateWithSeed = useCallback(() => {
     if (!onRegenerateWorld) return;
     const parsedSeed = Number.parseInt(seedInput.trim(), 10);
@@ -614,6 +628,9 @@ const MapPane: React.FC<MapPaneProps> = ({
                     height={worldforgeViewportSize.height}
                     onPickCell={handleSubmapDrill}
                     playerCellIndex={submapStack[submapStack.length - 1].playerCellIndex ?? null}
+                    travelActive={interactionMode === 'travel'}
+                    planRoute={planSubmapRoute}
+                    transportLabel={selectedTransport.readoutLabel}
                   />
                 )}
                 <div className="absolute top-2 left-2 flex flex-col gap-1 z-[2]">
