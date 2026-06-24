@@ -34,6 +34,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { Sky } from '@react-three/drei';
 import * as THREE from 'three';
 import FreeRoamCameraController from './FreeRoamCameraController';
 import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
@@ -77,6 +78,10 @@ interface World3DSceneProps {
 }
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
+
+// Sun direction shared by the atmospheric sky and the directional light so the
+// lit side of terrain/buildings matches where the sun visibly sits in the sky.
+const SUN_DIRECTION: [number, number, number] = [120, 150, 80];
 
 // --- per-chunk rendering ---
 
@@ -125,7 +130,9 @@ const WaterPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chu
   if (!water) return null;
   return (
     <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-      <meshStandardMaterial color="#2a5a8a" transparent opacity={0.75} />
+      {/* Low roughness + slight metalness gives the water a sun specular sheen
+          instead of reading as flat blue paint. */}
+      <meshStandardMaterial color="#1d4f7a" transparent opacity={0.82} roughness={0.18} metalness={0.15} />
     </mesh>
   );
 };
@@ -415,11 +422,12 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   }, [update, onPositionChangeOverride]);
 
   return (
-    <div style={{ width: '100%', height: '78vh', minHeight: '520px', flex: '1 1 auto', background: '#9fb8d0', borderRadius: '12px', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '78vh', minHeight: '520px', flex: '1 1 auto', background: '#cdd9e6', borderRadius: '12px', overflow: 'hidden' }}>
       <ForgeAssetContext.Provider value={forgeAssetService}>
       <Canvas
         shadows={SHADOWS}
-        camera={{ fov: 55, near: 1, far: 6000, position: camPosition }}
+        camera={{ fov: 55, near: 1, far: 60000, position: camPosition }}
+        gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
         onCreated={({ gl }) => {
           const el = gl.domElement;
           el.addEventListener(
@@ -441,11 +449,24 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           );
         }}
       >
-        <hemisphereLight args={[0x88bbff, 0x556644, 0.9]} />
-        <directionalLight position={[120, 200, 80]} intensity={1.6} />
+        {/* Atmospheric sky dome (Preetham scattering) — sun aligned to the
+            directional light so highlights match the visible sun. Replaces the
+            flat background colour with a real graduated sky + horizon haze. */}
+        <Sky
+          distance={45000}
+          sunPosition={SUN_DIRECTION}
+          turbidity={6}
+          rayleigh={1.2}
+          mieCoefficient={0.005}
+          mieDirectionalG={0.8}
+        />
+        {/* Cool sky / warm bounce hemisphere fill + a warm sun key light. */}
+        <hemisphereLight args={[0xbcd6ff, 0x6b6048, 0.75]} />
+        <directionalLight position={SUN_DIRECTION} intensity={1.9} color={0xfff1da} />
         {/* Ground profile pulls the fog in to meet the artifact-edge haze;
-            continent keeps the km-scale falloff. */}
-        <fog attach="fog" args={viewProfile === 'ground' ? [0x9fb8d0, 350, 1600] : [0x9fb8d0, 900, 4500]} />
+            continent keeps the km-scale falloff. Warm horizon haze matches the
+            sky so distant terrain dissolves into it instead of a flat wall. */}
+        <fog attach="fog" args={viewProfile === 'ground' ? [0xcdd9e6, 450, 2000] : [0xcdd9e6, 1100, 5200]} />
         <FreeRoamCameraController
           initialTarget={[0, startSurfaceY, 0]}
           sceneOrigin={sceneOrigin}

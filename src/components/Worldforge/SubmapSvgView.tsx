@@ -30,7 +30,16 @@ export interface SubmapSvgViewProps {
   height?: number;
   /** Fired with the picked sub-cell's siteIndex on click (drives the deeper drill). */
   onPickCell?: (siteIndex: number) => void;
+  /** Index (into model.cells) of the sub-cell the player occupies, or null. */
+  playerCellIndex?: number | null;
 }
+
+/** Vertex-mean centroid of a polygon (inside convex Voronoi cells). */
+const cellCentroid = (pts: Array<readonly [number, number]>): [number, number] => {
+  let x = 0, y = 0;
+  for (const [px, py] of pts) { x += px; y += py; }
+  return [x / pts.length, y / pts.length];
+};
 
 /**
  * SP2 renderer for an SP1 `SubmapModel`: the parent-shaped Voronoi submap — cells
@@ -38,7 +47,7 @@ export interface SubmapSvgViewProps {
  * fit-to-view + manual pan/zoom and click-to-drill. Clicking a cell resolves it
  * by point-in-polygon and reports its siteIndex so the host can recurse.
  */
-const SubmapSvgView: React.FC<SubmapSvgViewProps> = ({ model, width = 900, height = 560, onPickCell }) => {
+const SubmapSvgView: React.FC<SubmapSvgViewProps> = ({ model, width = 900, height = 560, onPickCell, playerCellIndex = null }) => {
   const bounds = useMemo(() => polygonBounds(model.boundary), [model]);
   const fit = useMemo(() => {
     const w = bounds.maxX - bounds.minX || 1;
@@ -86,8 +95,12 @@ const SubmapSvgView: React.FC<SubmapSvgViewProps> = ({ model, width = 900, heigh
     downPos.current = { x: e.clientX, y: e.clientY };
   };
   const onMove = (e: React.MouseEvent) => {
-    if (!drag.current) return;
-    setView((v) => ({ ...v, x: e.clientX - drag.current!.x, y: e.clientY - drag.current!.y }));
+    // Capture the drag origin locally — the setView updater runs after onUp may
+    // have nulled drag.current (avoids a null-read race).
+    const d = drag.current;
+    if (!d) return;
+    const { clientX, clientY } = e;
+    setView((v) => ({ ...v, x: clientX - d.x, y: clientY - d.y }));
   };
   const onUp = () => { drag.current = null; };
   const onClick = (e: React.MouseEvent) => {
@@ -136,6 +149,18 @@ const SubmapSvgView: React.FC<SubmapSvgViewProps> = ({ model, width = 900, heigh
             : <path key={`pl${i}`} d={d} fill="none" stroke="#8b5a2b" strokeWidth={1.2} strokeDasharray="3 2" strokeLinecap="round" vectorEffect="non-scaling-stroke" />;
         })}
         <path d={boundaryD} fill="none" stroke="#1a2233" strokeWidth={2.5} vectorEffect="non-scaling-stroke" />
+        {/* Player indicator — highlight the sub-cell the player occupies (gold ring). */}
+        {playerCellIndex != null && model.cells[playerCellIndex] ? (() => {
+          const [px, py] = cellCentroid(model.cells[playerCellIndex].polygon);
+          return (
+            <g pointerEvents="none" data-testid="submap-player-cell">
+              <polygon points={model.cells[playerCellIndex].polygon.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')}
+                fill="#f5c54222" stroke="#f5c542" strokeWidth={2} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+              <circle cx={px} cy={py} r={6} fill="none" stroke="#f5c542" strokeWidth={2} vectorEffect="non-scaling-stroke" />
+              <circle cx={px} cy={py} r={2.5} fill="#f5c542" stroke="#5a3e00" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+            </g>
+          );
+        })() : null}
         {burg ? (
           <>
             <circle cx={burg.x} cy={burg.y} r={5} fill="#fff" stroke="#7a1228" strokeWidth={2} vectorEffect="non-scaling-stroke" />

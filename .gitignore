@@ -235,6 +235,7 @@ take_screenshot.js
 .agent/scratch/
 .agent/azgaar-ref/
 .agent/town-compare/
+.understand-anything/
 public/wf-atlas-sample.html
 public/wf-*-sample.html
 

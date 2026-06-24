@@ -42,9 +42,10 @@ import TownPlanView from './Worldforge/TownPlanView';
 import NeighbourhoodSvgView from './Worldforge/NeighbourhoodSvgView';
 import { atlasCellToSubmapContext } from '@/systems/worldforge/submap/l0Adapter';
 import { buildAtlasNeighbourhood, type AtlasNeighbourhood } from '@/systems/worldforge/submap/neighbourhood';
-import { generateSubmap, submapCellToChildContext, polygonBounds, type SubmapModel, type SubmapParentContext, type Pt } from '@/systems/worldforge/submap/submapEngine';
+import { generateSubmap, submapCellToChildContext, polygonBounds, pointInPolygon, type SubmapModel, type SubmapParentContext, type Pt } from '@/systems/worldforge/submap/submapEngine';
 import { generateTownPlan, type TownPlan } from '@/systems/worldforge/town/townEngine';
 import { rootSeedPath, streamPath } from '@/systems/worldforge/seedPath';
+import { legacyGridToAtlasCell } from '@/systems/worldforge/local/gridAtlasBridge';
 import { generateFmgWorld } from '@/systems/worldforge/fmg/generateWorld';
 
 interface MapPaneProps {
@@ -94,6 +95,21 @@ function normalizeCtxScale(ctx: SubmapParentContext): SubmapParentContext {
 function clampIndex(value: number, maxExclusive: number): number {
   if (maxExclusive <= 0) return 0;
   return Math.max(0, Math.min(maxExclusive - 1, value));
+}
+
+/**
+ * The sub-cell index a player occupies within a submap tier. The player spawns
+ * at the burg, which the submap engine places (Bomnogorvan contract), so the
+ * burg sub-cell is the player's sub-cell. With no burg, fall back to the sub-cell
+ * at the tier's centroid. Frame-safe (model-internal indices, not raw coords).
+ */
+function playerSubCellIndex(model: SubmapModel): number | null {
+  if (model.cells.length === 0) return null;
+  if (model.burgCellIndex != null) return model.burgCellIndex;
+  const b = polygonBounds(model.boundary);
+  const c: Pt = [(b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2];
+  const idx = model.cells.findIndex((cell) => pointInPolygon(c, cell.polygon));
+  return idx >= 0 ? idx : 0;
 }
 
 function hashText(seed: number, text: string): number {
@@ -259,15 +275,33 @@ const MapPane: React.FC<MapPaneProps> = ({
     return null;
   }, [geographySnapshot]);
 
-  // "You are here" marker for the native World Forge atlas: the party's current
-  // grid cell projected into FMG graph coords (proportional placement).
-  const worldforgeMarker = useMemo(() => {
+  // The atlas Voronoi cell the player currently occupies (their grid cell mapped
+  // back through the grid↔atlas bridge). Drives the centered marker + the drill
+  // player sub-cell highlight.
+  const playerAtlasCell = useMemo(() => {
     if (!worldforgeAtlas || !playerCell) return null;
+    return legacyGridToAtlasCell(
+      worldforgeAtlas,
+      { x: playerCell.x, y: playerCell.y },
+      { cols: gridSize.cols, rows: gridSize.rows },
+    );
+  }, [worldforgeAtlas, playerCell, gridSize.cols, gridSize.rows]);
+
+  // "You are here" marker for the native World Forge atlas: centered on the
+  // player's actual VORONOI CELL (the atlas cell's site) rather than the coarse
+  // grid-cell-center projection — so the indicator sits inside the cell the
+  // player occupies, not adrift near a coastline.
+  const worldforgeMarker = useMemo(() => {
+    if (!worldforgeAtlas || playerAtlasCell == null) return null;
+    const site = worldforgeAtlas.pack.cells.p?.[playerAtlasCell];
+    if (site) return { x: site[0], y: site[1] };
+    // Fallback: proportional grid-cell center if the site is unavailable.
+    if (!playerCell) return null;
     return {
       x: ((playerCell.x + 0.5) / gridSize.cols) * worldforgeAtlas.graphWidth,
       y: ((playerCell.y + 0.5) / gridSize.rows) * worldforgeAtlas.graphHeight,
     };
-  }, [worldforgeAtlas, playerCell, gridSize.cols, gridSize.rows]);
+  }, [worldforgeAtlas, playerAtlasCell, playerCell, gridSize.cols, gridSize.rows]);
 
   // SP4 atlas pins: project each discovered hidden place's tile into FMG graph
   // coords (same proportional placement as the player marker) for the atlas.
@@ -290,7 +324,9 @@ const MapPane: React.FC<MapPaneProps> = ({
   // tier), or — at the region tier — a neighbourhood (focus cell + atlas
   // neighbours with fog-of-war). For a neighbourhood tier, `model`/`ctx` are the
   // focus cell's submap so deeper drilling flows through the same handler.
-  type DrillTier = { ctx: SubmapParentContext; model?: SubmapModel; town?: TownPlan; neighbourhood?: AtlasNeighbourhood };
+  type DrillTier = { ctx: SubmapParentContext; model?: SubmapModel; town?: TownPlan; neighbourhood?: AtlasNeighbourhood;
+    /** Sub-cell index the player occupies in this tier (drill player indicator), or null if the player isn't on this drill path. */
+    playerCellIndex?: number | null };
   const [submapStack, setSubmapStack] = useState<DrillTier[]>([]);
 
   useEffect(() => { setSubmapStack([]); }, [worldforgeSeed]);
@@ -312,8 +348,10 @@ const MapPane: React.FC<MapPaneProps> = ({
     const nbh = buildAtlasNeighbourhood(worldforgeAtlas, cellId, isExploredCell, rootSeedPath(worldforgeSeed), { submapCount: SUBMAP_COUNT });
     if (nbh.cells.length === 0) return null;
     const focusModel = nbh.cells.find((c) => c.isFocus)?.model;
-    return { ctx: nbh.focusCtx, model: focusModel, neighbourhood: nbh };
-  }, [worldforgeAtlas, worldforgeSeed, isExploredCell]);
+    // If this region IS the player's atlas cell, mark the sub-cell they occupy.
+    const playerCellIndex = cellId === playerAtlasCell && focusModel ? playerSubCellIndex(focusModel) : null;
+    return { ctx: nbh.focusCtx, model: focusModel, neighbourhood: nbh, playerCellIndex };
+  }, [worldforgeAtlas, worldforgeSeed, isExploredCell, playerAtlasCell]);
 
   const handleAtlasDrill = useCallback((info: CellTraits) => {
     const tier = buildNeighbourTier(info.i);
@@ -361,10 +399,17 @@ const MapPane: React.FC<MapPaneProps> = ({
 
   const handleSubmapDrill = useCallback((siteIndex: number) => {
     setSubmapStack((stack) => {
+      // Cap drill depth at L4 (Locale 2): World → Region → Local → Locale 1 → Locale 2 (stop)
+      if (stack.length >= 4) return stack;
+
       const top = stack[stack.length - 1];
       if (!top || !top.model) return stack; // town tiers are leaves — no deeper drill
-      const cell = top.model.cells.find((c) => c.siteIndex === siteIndex);
+      const cellIdx = top.model.cells.findIndex((c) => c.siteIndex === siteIndex);
+      const cell = top.model.cells[cellIdx];
       if (!cell) return stack;
+      // The drill stays on the player's path only if they drilled INTO the very
+      // sub-cell they occupy. Then the child's player sub-cell is re-derived.
+      const onPlayerPath = top.playerCellIndex != null && cellIdx === top.playerCellIndex;
       const childRaw = submapCellToChildContext(cell, top.ctx);
       if (childRaw.polygon.length < 3) return stack;
       // Normalize the sub-cell to a canonical span so each tier has healthy
@@ -378,9 +423,10 @@ const MapPane: React.FC<MapPaneProps> = ({
         const town = generateTownPlan(childCtx.polygon, streamPath(childCtx.seedPath, 'town'), {
           population: 4000, water, roads,
         });
-        return [...stack, { ctx: childCtx, town }];
+        return [...stack, { ctx: childCtx, town, playerCellIndex: onPlayerPath ? 0 : null }];
       }
-      return [...stack, { model: generateSubmap(childCtx, { count: SUBMAP_COUNT }), ctx: childCtx }];
+      const childModel = generateSubmap(childCtx, { count: SUBMAP_COUNT });
+      return [...stack, { model: childModel, ctx: childCtx, playerCellIndex: onPlayerPath ? playerSubCellIndex(childModel) : null }];
     });
   }, []);
 
@@ -516,6 +562,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                     neighbourhood={submapStack[submapStack.length - 1].neighbourhood!}
                     width={worldforgeViewportSize.width}
                     height={worldforgeViewportSize.height}
+                    playerCellId={playerAtlasCell}
                     onPickCell={handleSubmapDrill}
                     onPickNeighbour={handleRecenter}
                   />
@@ -525,6 +572,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                     width={worldforgeViewportSize.width}
                     height={worldforgeViewportSize.height}
                     onPickCell={handleSubmapDrill}
+                    playerCellIndex={submapStack[submapStack.length - 1].playerCellIndex ?? null}
                   />
                 )}
                 <div className="absolute top-2 left-2 flex flex-col gap-1 z-[2]">

@@ -7,9 +7,9 @@ status: "active (G2 resolved 2026-06-08; no pending review hold â€” confirm
 status_note: "G9-G17 added from the 20-character full-flow audit; G9/G10 fixes in progress in the same session."
 registry_mode: canonical
 last_updated: "2026-06-11"
-gap_count: 14
+gap_count: 15
 open_gap_count: 12
-resolved_gap_count: 0
+resolved_gap_count: 3
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
@@ -124,6 +124,7 @@ Use this file for durable unresolved findings that genuinely belong to this proj
 | G18 | resolved | adjacent_follow_up | Gemini (focus on racial traits) | `useCharacterAssembly.ts` / `sidebarSteps.ts` | cold-start gap discovery | Redundant base race validation checks remain in `useCharacterAssembly.ts` and `sidebarSteps.ts` for elf, goliath, and tiefling despite these being non-selectable base helper races | `useCharacterAssembly.ts:293-296`, `sidebarSteps.ts:52-55` | Leads to dead code and unnecessary validation maintenance for helper classes that are never selected by the user | Remove redundant base-race checks from `useCharacterAssembly.ts` and `sidebarSteps.ts` | Vitest and compiler checks pass after removal | None |
 | G19 | resolved | adjacent_follow_up | Gemini (focus on racial traits) | `characterReducer.ts` / `RacialRestChoiceData` | cold-start gap discovery | TypeScript and mapping error in `characterReducer.ts` rest choices: `RacialRestChoiceData` lacks `weaponIds` and the rest reducer maps skill choices to malformed `Skill` objects lacking `id`/`ability` | `types/character.ts:473-480`, `characterReducer.ts:626-628,638,644` | Causes TypeScript compiler check failures and corrupts the character's skill list on rest choice resolution | Add `weaponIds` to `RacialRestChoiceData` and look up the full `Skill` object from `SKILLS_DATA` inside the rest reducer mapping function | `npm run typecheck` passes; long rest resolves and successfully applies skill/weapon choices on characters | None |
 | G20 | not_started | adjacent_follow_up | Antigravity | `skillSelectionUtils.test.ts` | G18/G19 verification pass | The unit test `deriveRacialSkillGrants returns expected sources and ids` queries a human skill choice from a non-human `raceId` (bugbear) and expects it to be granted, which fails under proper raceId constraints | `src/components/CharacterCreator/utils/__tests__/skillSelectionUtils.test.ts:48-66` | Prevents skillSelectionUtils unit tests from passing successfully without mock bypasses | Fix test to query with matching raceId 'human' or update source logic | Vitest runs successfully for skillSelectionUtils.test.ts | None |
+| G21 | resolved | adjacent_follow_up | Antigravity | Character Creator Feats selection | Combat System Durations (2026-06-02) | The Character Creator allows selecting feats (e.g., "War Caster") without verifying if the character meets prerequisites like spellcasting capability or level thresholds. | `src/components/CharacterCreator/hooks/useCharacterAssembly.ts` | Permits illegal character builds violating D&D 2024 PHB rules, breaking mechanical integrity. | Implement prerequisite checking in the feat selection module. | Checked spellcasting prerequisite during creation feat selection in unit tests. | None |
 
 ## Classification Reference
 

@@ -68,6 +68,9 @@ describe('resolveWorldSpawn — real FMG world (integration)', () => {
     expect(s.gridCell.y).toBeLessThan(gs.rows);
     // A generated world has burgs, so the spawn anchors to a named one.
     expect(typeof s.burgName).toBe('string');
+    // The spawn grid cell's center maps to WF LAND — never the open ocean.
+    const atlasCell = legacyGridToAtlasCell(world, s.gridCell, gs);
+    expect(world.pack.cells.h[atlasCell]).toBeGreaterThanOrEqual(20);
     // Deterministic for the same seed.
     expect(resolveWorldSpawn(generateFmgWorld('4321'), gs).gridCell).toEqual(s.gridCell);
   }, 60000);

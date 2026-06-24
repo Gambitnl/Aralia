@@ -38,6 +38,7 @@ vi.mock('@react-three/fiber', () => ({
 
 vi.mock('@react-three/drei', () => ({
   Html: ({ children }: any) => <div>{children}</div>,
+  Sky: () => null,
 }));
 
 // The scene owns mount/camera wiring; the streamer is replaced with a deterministic hook

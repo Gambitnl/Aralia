@@ -6,6 +6,10 @@ export interface NeighbourhoodSvgViewProps {
   neighbourhood: AtlasNeighbourhood;
   width?: number;
   height?: number;
+  /** Atlas cell the party currently occupies — cell-level "You are here" fallback. */
+  playerCellId?: number | null;
+  /** Player's precise sub-cell index within the FOCUS submap (gold highlight). */
+  playerCellIndex?: number | null;
   /** Drill deeper: a focus-cell sub-cell was clicked (siteIndex into the focus submap). */
   onPickCell?: (siteIndex: number) => void;
   /** Recenter: a neighbour atlas cell was clicked (its cellId). */
@@ -27,7 +31,7 @@ const centroid = (pts: Pt[]): Pt => {
  * deeper; click a neighbour to recenter the neighbourhood on it.
  */
 const NeighbourhoodSvgView: React.FC<NeighbourhoodSvgViewProps> = ({
-  neighbourhood, width = 900, height = 560, onPickCell, onPickNeighbour,
+  neighbourhood, width = 900, height = 560, playerCellId = null, playerCellIndex = null, onPickCell, onPickNeighbour,
 }) => {
   const bounds = useMemo(() => {
     const all: Pt[] = neighbourhood.cells.flatMap((c) => c.polygon);
@@ -41,6 +45,38 @@ const NeighbourhoodSvgView: React.FC<NeighbourhoodSvgViewProps> = ({
     const k = Math.min((width - 2 * pad) / w, (height - 2 * pad) / h);
     return { k, x: pad - bounds.minX * k + (width - 2 * pad - w * k) / 2, y: pad - bounds.minY * k + (height - 2 * pad - h * k) / 2 };
   }, [bounds, width, height]);
+
+  // Per-cell label/marker anchors in graph space. A settlement is pinned to its
+  // actual burg sub-cell (not the atlas-cell centroid) so the town name points at
+  // the town; the player's cell carries a "You are here" anchor. Grey/unexplored
+  // cells fall back to the cell centroid for their basic biome/burg label.
+  const anchors = useMemo(() => {
+    return neighbourhood.cells.map((c) => {
+      // Cell-level "You are here" fires only as a fallback — when we lack a precise
+      // sub-cell index (which gets the gold polygon highlight instead).
+      const isPlayer = playerCellId != null && c.cellId === playerCellId && playerCellIndex == null;
+      let gx: number, gy: number, isBurg = false;
+      if (c.explored && c.model && c.model.burgCellIndex != null && c.model.cells[c.model.burgCellIndex]) {
+        [gx, gy] = centroid(c.model.cells[c.model.burgCellIndex].polygon);
+        isBurg = true;
+      } else {
+        [gx, gy] = centroid(c.polygon);
+      }
+      const label = c.explored ? (c.burgName ?? '') : (c.burgName ?? c.biome ?? 'Unknown');
+      return { cellId: c.cellId, gx, gy, label, isBurg, isPlayer, isFocus: c.isFocus, explored: c.explored };
+    });
+  }, [neighbourhood, playerCellId, playerCellIndex]);
+
+  // Player's precise sub-cell within the focus submap (gold highlight, matching
+  // SubmapSvgView). Present only when the party occupies the focus cell.
+  const playerSub = useMemo(() => {
+    if (playerCellIndex == null) return null;
+    const focus = neighbourhood.cells.find((c) => c.isFocus);
+    const cell = focus?.model?.cells[playerCellIndex];
+    if (!cell) return null;
+    const [gx, gy] = centroid(cell.polygon);
+    return { polygon: cell.polygon, gx, gy };
+  }, [neighbourhood, playerCellIndex]);
 
   const [view, setView] = useState(fit);
   useEffect(() => setView(fit), [fit]);
@@ -76,8 +112,12 @@ const NeighbourhoodSvgView: React.FC<NeighbourhoodSvgViewProps> = ({
     downPos.current = { x: e.clientX, y: e.clientY };
   };
   const onMove = (e: React.MouseEvent) => {
-    if (!drag.current) return;
-    setView((v) => ({ ...v, x: e.clientX - drag.current!.x, y: e.clientY - drag.current!.y }));
+    // Capture the drag origin locally — the setView updater runs after onUp may
+    // have nulled drag.current (avoids a null-read race).
+    const d = drag.current;
+    if (!d) return;
+    const { clientX, clientY } = e;
+    setView((v) => ({ ...v, x: clientX - d.x, y: clientY - d.y }));
   };
   const onUp = () => { drag.current = null; };
 
@@ -137,21 +177,63 @@ const NeighbourhoodSvgView: React.FC<NeighbourhoodSvgViewProps> = ({
             </g>
           );
         })}
+        {/* Player's precise sub-cell within the focus submap — gold ring (matches
+            SubmapSvgView), so the party reads at a glance even when zoomed in. */}
+        {playerSub && (
+          <g pointerEvents="none" data-testid="nbh-player-subcell">
+            <polygon points={playerSub.polygon.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')}
+              fill="#f5c54222" stroke="#f5c542" strokeWidth={2} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+            <circle cx={playerSub.gx} cy={playerSub.gy} r={6} fill="none" stroke="#f5c542" strokeWidth={2} vectorEffect="non-scaling-stroke" />
+            <circle cx={playerSub.gx} cy={playerSub.gy} r={2.5} fill="#f5c542" stroke="#5a3e00" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+          </g>
+        )}
       </g>
-      {/* Basic-info labels — screen space, constant size. */}
-      {neighbourhood.cells.map((c) => {
-        const [gx, gy] = centroid(c.polygon);
-        const label = c.explored ? (c.burgName ?? '') : (c.burgName ?? c.biome ?? 'Unknown');
-        if (!label) return null;
+      {/* Settlement glyphs, "You are here", and labels — screen space, constant size. */}
+      {anchors.map((a) => {
+        const sx = a.gx * view.k + view.x;
+        const sy = a.gy * view.k + view.y;
+        const labelDy = a.isBurg ? -9 : 0;
         return (
-          <text key={`lbl${c.cellId}`} x={gx * view.k + view.x} y={gy * view.k + view.y}
-            textAnchor="middle" fontFamily="Georgia, serif" fontSize={c.isFocus ? 13 : 11}
-            fill={c.explored ? '#2d1b38' : '#33372e'} stroke="#ffffff" strokeWidth={2.5} paintOrder="stroke"
-            style={{ pointerEvents: 'none' }}>
-            {label}
-          </text>
+          <g key={`anchor${a.cellId}`} style={{ pointerEvents: 'none' }} data-testid={a.isPlayer ? 'nbh-you-are-here' : undefined}>
+            {a.isBurg && (
+              <>
+                {/* Settlement marker: white-ringed ochre disc pinned at the burg. */}
+                <circle cx={sx} cy={sy} r={5.5} fill="#b5462f" stroke="#ffffff" strokeWidth={1.5} />
+                <circle cx={sx} cy={sy} r={1.8} fill="#ffffff" />
+              </>
+            )}
+            {a.isPlayer && (
+              <>
+                {/* "You are here": cyan double ring so the party's cell reads at a glance. */}
+                <circle cx={sx} cy={sy} r={11} fill="none" stroke="#22d3ee" strokeWidth={2.5} opacity={0.95} />
+                <circle cx={sx} cy={sy} r={15} fill="none" stroke="#22d3ee" strokeWidth={1} opacity={0.5} />
+              </>
+            )}
+            {a.label && (
+              <text x={sx} y={sy + labelDy} textAnchor="middle" fontFamily="Georgia, serif"
+                fontSize={a.isFocus ? 13 : 11} fontWeight={a.isBurg ? 600 : 400}
+                fill={a.explored ? '#2d1b38' : '#33372e'} stroke="#ffffff" strokeWidth={2.5} paintOrder="stroke">
+                {a.label}
+              </text>
+            )}
+            {a.isPlayer && (
+              <text x={sx} y={sy + 26} textAnchor="middle" fontFamily="Georgia, serif" fontSize={10}
+                fill="#0e7490" stroke="#ffffff" strokeWidth={2.5} paintOrder="stroke" fontWeight={600}>
+                You are here
+              </text>
+            )}
+          </g>
         );
       })}
+      {/* "You are here" label for the precise sub-cell (gold highlight drawn above). */}
+      {playerSub && (
+        <text x={playerSub.gx * view.k + view.x} y={playerSub.gy * view.k + view.y + 20}
+          textAnchor="middle" fontFamily="Georgia, serif" fontSize={10}
+          fill="#5a3e00" stroke="#ffffff" strokeWidth={2.5} paintOrder="stroke" fontWeight={600}
+          style={{ pointerEvents: 'none' }} data-testid="nbh-you-are-here">
+          You are here
+        </text>
+      )}
     </svg>
   );
 };

@@ -7,9 +7,9 @@ status: active
 status_note: ""
 registry_mode: canonical
 last_updated: "2026-06-05"
-gap_count: 4
+gap_count: 5
 open_gap_count: 4
-resolved_gap_count: 0
+resolved_gap_count: 1
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
@@ -115,6 +115,7 @@ Use this file for durable unresolved findings that are too important or too larg
 | G2 | not_started | adjacent_follow_up | worker | `docs/projects/trade-ui/TRACKER.md` | runtime scan | Legacy `activeEvents` remains in use while `activeEvents` is `unknown[]` | `src/types/economy.ts`, `src/components/Trade/MerchantModal.tsx`, `src/utils/economy/economyUtils.ts` | Hidden type debt can block reliable UI-to-economy contracts | Align merchant header and pricing paths to typed market-event inputs | economy-ui/economy alignment pass |
 | G3 | not_started | support_needed_now | worker | `docs/projects/trade-ui/TRACKER.md` | runtime scan | HAGGLE action is handled in actions but not exposed in current merchant modal controls | `src/hooks/actions/handleMerchantInteraction.ts`, `src/components/Trade/MerchantModal.tsx` | Player-facing feature exists in logic but is unreachable from UI path | add haggling control or log as deliberate holdback | manual UX behavior review |
 | G4 | not_started | adjacent_follow_up | worker | `docs/projects/trade-ui/TRACKER.md` | runtime scan | Route status and event assumptions are weakly typed (`booming` usage vs enum union) | `src/types/economy.ts`, `src/components/Trade/TradeRouteDashboard.tsx`, `src/systems/economy/TradeRouteManager.ts` | Route cards can continue to show stale or incorrect states if type contracts drift | reconcile status union and event tagging model | compatibility check before route-status feature work |
+| G5 | resolved | adjacent_follow_up | Antigravity | `src/components/Trade` | codebase audit | Inventory system lacks a "Junk" management feature, making it tedious for players to sell multiple low-value items. | `src/components/Trade/MerchantModal.tsx`, `src/components/CharacterSheet/Overview/InventoryList.tsx` | UI friction during merchant interactions reduces pace. | Implement "Mark as Junk" and "Sell All Junk" features. | Checked bulk-selling and junk toggle behavior in state/reducer tests. |
 
 ## Classification Reference
 

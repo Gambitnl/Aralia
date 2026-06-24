@@ -495,4 +495,114 @@ describe('characterReducer', () => {
         expect(newState.inventory?.some(item => item.id === 'diamond_300gp')).toBe(false);
         expect(newState.party?.[0].spellSlots?.level_3.current).toBe(0);
     });
+
+    it('should handle TOGGLE_ITEM_JUNK and SELL_ALL_JUNK actions', () => {
+        const character = createMockPlayerCharacter({
+            id: 'junk-char',
+        });
+        const item1: Item = { id: 'rusty_nail', name: 'Rusty Nail', type: 'junk', isJunk: false };
+        const item2: Item = { id: 'silver_chalice', name: 'Silver Chalice', type: 'valuable', isJunk: false };
+        let state = {
+            ...initialState,
+            party: [character],
+            inventory: [item1, item2],
+            gold: 10,
+        } as GameState;
+
+        const reduce = (currentState: GameState, action: AppAction): GameState => {
+            return { ...currentState, ...characterReducer(currentState, action) } as GameState;
+        };
+
+        // Toggle junk on item1
+        state = reduce(state, {
+            type: 'TOGGLE_ITEM_JUNK',
+            payload: { itemId: 'rusty_nail' }
+        });
+        expect(state.inventory.find(item => item.id === 'rusty_nail')?.isJunk).toBe(true);
+
+        // Sell all junk
+        state = reduce(state, {
+            type: 'SELL_ALL_JUNK',
+            payload: {
+                items: [{ itemId: 'rusty_nail', value: 5 }],
+                totalGold: 5
+            }
+        });
+        expect(state.inventory.some(item => item.id === 'rusty_nail')).toBe(false);
+        expect(state.inventory.some(item => item.id === 'silver_chalice')).toBe(true);
+        expect(state.gold).toBe(15);
+    });
+
+    it('should handle ATTUNE_ITEM and UNATTUNE_ITEM and enforce a 3-item attunement limit', () => {
+        const character = createMockPlayerCharacter({
+            id: 'attune-char',
+            equippedItems: {},
+        });
+        const ring1: Item = { id: 'ring_1', name: 'Ring of Protection', type: 'ring', requiresAttunement: true };
+        const ring2: Item = { id: 'ring_2', name: 'Ring of Evasion', type: 'ring', requiresAttunement: true };
+        const ring3: Item = { id: 'ring_3', name: 'Ring of Regeneration', type: 'ring', requiresAttunement: true };
+        const ring4: Item = { id: 'ring_4', name: 'Ring of Power', type: 'ring', requiresAttunement: true };
+
+        let state = {
+            ...initialState,
+            party: [character],
+            inventory: [ring1, ring2, ring3, ring4],
+        } as GameState;
+
+        const reduce = (currentState: GameState, action: AppAction): GameState => {
+            return { ...currentState, ...characterReducer(currentState, action) } as GameState;
+        };
+
+        // Attune 1st ring
+        state = reduce(state, { type: 'ATTUNE_ITEM', payload: { itemId: 'ring_1', characterId: 'attune-char' } });
+        expect(state.inventory.find(i => i.id === 'ring_1')?.isAttuned).toBe(true);
+
+        // Attune 2nd and 3rd rings
+        state = reduce(state, { type: 'ATTUNE_ITEM', payload: { itemId: 'ring_2', characterId: 'attune-char' } });
+        state = reduce(state, { type: 'ATTUNE_ITEM', payload: { itemId: 'ring_3', characterId: 'attune-char' } });
+
+        // Attempting to attune a 4th ring should fail/do nothing (due to 3-item limit)
+        const stateOverLimit = reduce(state, { type: 'ATTUNE_ITEM', payload: { itemId: 'ring_4', characterId: 'attune-char' } });
+        expect(stateOverLimit.inventory.find(i => i.id === 'ring_4')?.isAttuned).toBeFalsy();
+
+        // Unattune 1st ring on the valid state
+        const stateUnattuned = reduce(state, { type: 'UNATTUNE_ITEM', payload: { itemId: 'ring_1', characterId: 'attune-char' } });
+        expect(stateUnattuned.inventory.find(i => i.id === 'ring_1')?.isAttuned).toBe(false);
+    });
+
+    it('should reduce movement speed by 10ft if heavy armor is equipped and Strength is too low', () => {
+        const character = createMockPlayerCharacter({
+            id: 'strength-char',
+            finalAbilityScores: { Strength: 10 } as any,
+            equippedItems: {},
+            race: { traits: ['Speed: 30 feet'] } as any
+        });
+
+        const heavyArmor: Item = {
+            id: 'plate_armor',
+            name: 'Plate Armor',
+            type: 'armor',
+            slot: 'Torso',
+            armorCategory: 'Heavy',
+            strengthRequirement: 15,
+            baseArmorClass: 18
+        };
+
+        const state = {
+            ...initialState,
+            party: [character],
+            inventory: [heavyArmor],
+        } as GameState;
+
+        // Equip the heavy armor
+        const equippedState = characterReducer(state, {
+            type: 'EQUIP_ITEM',
+            payload: { itemId: 'plate_armor', characterId: 'strength-char' }
+        });
+
+        const char = equippedState.party?.[0];
+        expect(char?.equippedItems.Torso?.id).toBe('plate_armor');
+        // Speed should be reduced from 30ft to 20ft
+        expect(char?.speed).toBe(20);
+    });
 });
