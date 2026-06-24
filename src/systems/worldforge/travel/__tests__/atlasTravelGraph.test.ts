@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildAtlasTravelGraph, buildRoadCells, atlasMilesPerUnit, transportMobility } from '../atlasTravelGraph';
+import { buildAtlasTravelGraph, buildRoadCells, atlasMilesPerUnit, transportMobility, nearestLandCell } from '../atlasTravelGraph';
 import { planFastestRoute } from '../../../travel/routePlanning';
 import { STANDARD_VEHICLES } from '../../../../types/travel';
 
@@ -58,6 +58,16 @@ describe('buildAtlasTravelGraph', () => {
     expect(r.danger).toBeCloseTo(0.6, 6); // max along route (the Glacier cell)
     // Cell 3 (water) is unreachable for land travel.
     expect(planFastestRoute(g, 0, 3, { milesPerUnit: 0.1, speedMph: 3 })).toBeNull();
+  });
+});
+
+describe('nearestLandCell', () => {
+  it('returns the cell itself when already land', () => {
+    expect(nearestLandCell(atlas, 0)).toBe(0); // cell 0 is land (h=50)
+  });
+  it('snaps a sea cell to its nearest land neighbor', () => {
+    // cell 3 is water (h=5); its neighbor cell 2 is land (h=50).
+    expect(nearestLandCell(atlas, 3)).toBe(2);
   });
 });
 

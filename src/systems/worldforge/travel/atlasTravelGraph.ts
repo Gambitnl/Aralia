@@ -45,6 +45,32 @@ type Packish = {
   routes?: Array<{ cells?: number[] }>;
 };
 
+/**
+ * Nearest land cell to `start` (BFS over neighbors), so a route can begin from
+ * land even when the player's mapped atlas cell is sea/coastal — the integration
+ * mismatch where the grid says "on land" but the FMG height says water. Returns
+ * `start` if it is already land or no land is found within the search budget.
+ */
+export function nearestLandCell(atlas: FmgAtlasResult, start: number, maxVisited = 4000): number {
+  const cells = (atlas.pack as unknown as Packish).cells;
+  const isLand = (c: number): boolean => (cells.h?.[c] ?? 0) >= LAND_THRESHOLD;
+  if (isLand(start)) return start;
+  const seen = new Set<number>([start]);
+  const queue: number[] = [start];
+  let visited = 0;
+  while (queue.length && visited < maxVisited) {
+    const cur = queue.shift()!;
+    visited++;
+    for (const nb of cells.c?.[cur] ?? []) {
+      if (seen.has(nb)) continue;
+      seen.add(nb);
+      if (isLand(nb)) return nb;
+      queue.push(nb);
+    }
+  }
+  return start;
+}
+
 /** All cell ids that lie on a road/route (terrain = road there). */
 export function buildRoadCells(atlas: FmgAtlasResult): Set<number> {
   const set = new Set<number>();
