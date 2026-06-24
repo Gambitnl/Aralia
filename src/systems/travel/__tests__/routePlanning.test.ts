@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { planFastestRoute, transportSpeedMph, type TravelGraph } from '../routePlanning';
+import { planFastestRoute, planRoutesFrom, transportSpeedMph, type TravelGraph } from '../routePlanning';
 import type { TravelTerrain } from '../../../types/travel';
 import { STANDARD_VEHICLES } from '../../../types/travel';
 
@@ -88,5 +88,30 @@ describe('planFastestRoute', () => {
     const r = planFastestRoute(g, 1, 1, { milesPerUnit: 0.1, speedMph: 3 })!;
     expect(r.cells).toEqual([1]);
     expect(r.minutes).toBe(0);
+  });
+});
+
+describe('planRoutesFrom (single-source field)', () => {
+  it('computes one field that resolves routes to any cell (instant hover reconstruct)', () => {
+    const g = lineGraph({});
+    const field = planRoutesFrom(g, 0, { milesPerUnit: 0.1, speedMph: 3 });
+    // The field reaches every passable cell from the origin.
+    expect(field.dist.get(0)).toBe(0);
+    expect(field.dist.get(2)).toBeCloseTo(40, 6); // same as point-to-point
+    // to(goal) matches planFastestRoute for arbitrary goals.
+    expect(field.to(2)!.cells).toEqual([0, 1, 2]);
+    expect(field.to(3)!.cells).toEqual([0, 3]);
+    expect(field.to(0)!.minutes).toBe(0);
+  });
+
+  it('field.to returns null for an unreachable / impassable goal', () => {
+    const g: TravelGraph = {
+      neighbors: () => [],
+      position: () => [0, 0],
+      terrain: () => 'open',
+      passable: (c) => c === 0,
+    };
+    const field = planRoutesFrom(g, 0, { milesPerUnit: 1, speedMph: 3 });
+    expect(field.to(2)).toBeNull();
   });
 });

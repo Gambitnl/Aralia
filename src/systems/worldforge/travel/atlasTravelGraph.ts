@@ -11,7 +11,17 @@
  */
 import type { FmgAtlasResult } from '../fmg/generateAtlas';
 import type { TravelGraph } from '../../travel/routePlanning';
-import type { TravelTerrain } from '../../../types/travel';
+import type { TravelTerrain, TransportOption } from '../../../types/travel';
+
+/** Where a transport can go: land mounts/carts, water boats, or flying (both). */
+export type TravelMobility = 'land' | 'water' | 'air';
+
+/** Derive mobility from a transport option (vehicle.type drives water/air; else land). */
+export function transportMobility(transport?: TransportOption | null): TravelMobility {
+  const t = transport?.vehicle?.type;
+  if (t === 'water' || t === 'air') return t;
+  return 'land';
+}
 
 const LAND_THRESHOLD = 20;
 const KM_TO_MILES = 0.621371;
@@ -54,25 +64,42 @@ export function atlasMilesPerUnit(atlas: FmgAtlasResult): number {
 export interface AtlasTravelGraphOptions {
   /** Precomputed road cells (defaults to buildRoadCells). */
   roadCells?: Set<number>;
+  /** Where the chosen transport can travel: land (default) / water / air. */
+  mobility?: TravelMobility;
 }
 
-/** Build a `TravelGraph` over the atlas's land Voronoi cells. */
+/**
+ * Build a `TravelGraph` over the atlas Voronoi cells, scoped to the transport's
+ * mobility: land travel uses land cells (road/biome terrain), water travel uses
+ * sea/lake cells, and flying (air) can cross both, ignoring terrain. This is what
+ * stops a land mount from crossing the sea — or lets a flying mount cross it.
+ */
 export function buildAtlasTravelGraph(atlas: FmgAtlasResult, opts: AtlasTravelGraphOptions = {}): TravelGraph {
   const cells = (atlas.pack as unknown as Packish).cells;
   const roadCells = opts.roadCells ?? buildRoadCells(atlas);
+  const mobility = opts.mobility ?? 'land';
   const names = (atlas.biomesData as unknown as { name?: string[] }).name;
   const biomeName = (c: number): string => names?.[cells.biome?.[c] ?? -1] ?? '';
+  const isLand = (c: number): boolean => (cells.h?.[c] ?? 0) >= LAND_THRESHOLD;
+  const passable = (c: number): boolean => {
+    if (!cells.p?.[c]) return false;
+    if (mobility === 'air') return true;          // flying crosses land + water
+    return mobility === 'water' ? !isLand(c) : isLand(c);
+  };
   return {
     neighbors: (c) => cells.c?.[c] ?? [],
     position: (c) => {
       const p = cells.p?.[c];
       return p ? [p[0], p[1]] : [0, 0];
     },
-    terrain: (c): TravelTerrain => (roadCells.has(c) ? 'road' : (DIFFICULT_BIOMES.has(biomeName(c)) ? 'difficult' : 'open')),
-    passable: (c) => (cells.h?.[c] ?? 0) >= LAND_THRESHOLD,
+    terrain: (c): TravelTerrain => {
+      if (mobility !== 'land') return 'open';      // no roads at sea; flight ignores terrain
+      return roadCells.has(c) ? 'road' : (DIFFICULT_BIOMES.has(biomeName(c)) ? 'difficult' : 'open');
+    },
+    passable,
     danger: (c) => {
       const base = BIOME_DANGER[biomeName(c)] ?? DEFAULT_DANGER;
-      return roadCells.has(c) ? base * 0.5 : base;
+      return mobility === 'land' && roadCells.has(c) ? base * 0.5 : base;
     },
   };
 }

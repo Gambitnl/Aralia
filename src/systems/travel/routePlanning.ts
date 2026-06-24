@@ -105,21 +105,23 @@ class MinHeap {
 }
 
 /**
- * Plan the fastest (least-time) route from `start` to `goal` over the graph
- * (Dijkstra; edge cost = entering-cell travel minutes). Returns null if the goal
- * is unreachable / impassable. `start` is included even if impassable (you're
- * standing on it); other cells must be `passable`.
+ * Single-source travel field: fastest-time distances from `start` to every
+ * reachable cell, plus a `to(goal)` reconstructor. Compute this ONCE per origin
+ * (and transport), then resolve a route to any hovered cell instantly — the key
+ * to a responsive travel-mode route preview over a large cell graph (no repeated
+ * Dijkstra per mouse-move).
  */
-export function planFastestRoute(
-  graph: TravelGraph,
-  start: number,
-  goal: number,
-  opts: RoutePlanOptions,
-): RoutePlan | null {
-  if (start === goal) {
-    return { cells: [start], points: [graph.position(start)], miles: 0, minutes: 0, danger: graph.danger?.(start) ?? 0 };
-  }
-  if (!graph.passable(goal)) return null;
+export interface RouteField {
+  start: number;
+  /** Minutes from `start` to each reached cell. */
+  dist: Map<number, number>;
+  prev: Map<number, number>;
+  /** Reconstruct the fastest route to `goal`, or null if it is unreachable/impassable. */
+  to(goal: number): RoutePlan | null;
+}
+
+/** Run Dijkstra from `start` over the whole reachable (passable) graph. */
+export function planRoutesFrom(graph: TravelGraph, start: number, opts: RoutePlanOptions): RouteField {
   const speed = Math.max(0.1, opts.speedMph);
   const minutesOf = (from: number, to: number): number => {
     const miles = dist(graph.position(from), graph.position(to)) * opts.milesPerUnit;
@@ -131,13 +133,14 @@ export function planFastestRoute(
   const prev = new Map<number, number>();
   const heap = new MinHeap();
   heap.push(start, 0);
-  let reached = false;
+  const settled = new Set<number>();
   while (heap.size > 0) {
     const cur = heap.pop();
+    if (settled.has(cur)) continue;
+    settled.add(cur);
     const curCost = best.get(cur)!;
-    if (cur === goal) { reached = true; break; }
     for (const nb of graph.neighbors(cur)) {
-      if (nb !== goal && !graph.passable(nb)) continue;
+      if (!graph.passable(nb)) continue;
       const nc = curCost + minutesOf(cur, nb);
       if (nc < (best.get(nb) ?? Infinity)) {
         best.set(nb, nc);
@@ -146,23 +149,42 @@ export function planFastestRoute(
       }
     }
   }
-  if (!reached) return null;
 
-  // Reconstruct the path start → goal.
-  const cells: number[] = [];
-  for (let c: number | undefined = goal; c != null; c = prev.get(c)) {
-    cells.push(c);
-    if (c === start) break;
-  }
-  cells.reverse();
+  const to = (goal: number): RoutePlan | null => {
+    if (goal === start) {
+      return { cells: [start], points: [graph.position(start)], miles: 0, minutes: 0, danger: graph.danger?.(start) ?? 0 };
+    }
+    if (!graph.passable(goal) || !best.has(goal)) return null;
+    const cells: number[] = [];
+    for (let c: number | undefined = goal; c != null; c = prev.get(c)) {
+      cells.push(c);
+      if (c === start) break;
+    }
+    cells.reverse();
+    let miles = 0;
+    let danger = graph.danger?.(start) ?? 0;
+    const points: Array<[number, number]> = [graph.position(start)];
+    for (let i = 1; i < cells.length; i++) {
+      miles += dist(graph.position(cells[i - 1]), graph.position(cells[i])) * opts.milesPerUnit;
+      points.push(graph.position(cells[i]));
+      danger = Math.max(danger, graph.danger?.(cells[i]) ?? 0);
+    }
+    return { cells, points, miles, minutes: best.get(goal)!, danger };
+  };
 
-  let miles = 0;
-  let danger = graph.danger?.(start) ?? 0;
-  const points: Array<[number, number]> = [graph.position(start)];
-  for (let i = 1; i < cells.length; i++) {
-    miles += dist(graph.position(cells[i - 1]), graph.position(cells[i])) * opts.milesPerUnit;
-    points.push(graph.position(cells[i]));
-    danger = Math.max(danger, graph.danger?.(cells[i]) ?? 0);
-  }
-  return { cells, points, miles, minutes: best.get(goal)!, danger };
+  return { start, dist: best, prev, to };
+}
+
+/**
+ * Plan the fastest (least-time) route from `start` to `goal`. Convenience wrapper
+ * over `planRoutesFrom` for one-off point-to-point queries; for travel-mode hover
+ * previews prefer `planRoutesFrom` once + `field.to(cell)` per hover.
+ */
+export function planFastestRoute(
+  graph: TravelGraph,
+  start: number,
+  goal: number,
+  opts: RoutePlanOptions,
+): RoutePlan | null {
+  return planRoutesFrom(graph, start, opts).to(goal);
 }

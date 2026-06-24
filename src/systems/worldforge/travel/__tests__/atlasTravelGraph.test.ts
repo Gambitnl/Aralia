@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { buildAtlasTravelGraph, buildRoadCells, atlasMilesPerUnit } from '../atlasTravelGraph';
+import { buildAtlasTravelGraph, buildRoadCells, atlasMilesPerUnit, transportMobility } from '../atlasTravelGraph';
 import { planFastestRoute } from '../../../travel/routePlanning';
+import { STANDARD_VEHICLES } from '../../../../types/travel';
 
 // Minimal atlas stub: 3 land cells in a line + 1 water cell. Cell 1 has a road.
 const atlas = {
@@ -57,5 +58,30 @@ describe('buildAtlasTravelGraph', () => {
     expect(r.danger).toBeCloseTo(0.6, 6); // max along route (the Glacier cell)
     // Cell 3 (water) is unreachable for land travel.
     expect(planFastestRoute(g, 0, 3, { milesPerUnit: 0.1, speedMph: 3 })).toBeNull();
+  });
+});
+
+describe('transport mobility', () => {
+  it('maps transport → land/water/air', () => {
+    expect(transportMobility({ method: 'walking' })).toBe('land');
+    expect(transportMobility({ method: 'mounted', vehicle: STANDARD_VEHICLES.riding_horse })).toBe('land');
+    expect(transportMobility({ method: 'vehicle', vehicle: STANDARD_VEHICLES.rowboat })).toBe('water');
+    expect(transportMobility({ method: 'mounted', vehicle: { id: 'griffon', name: 'Griffon', speed: 80, capacityWeight: 400, type: 'air' } })).toBe('air');
+  });
+
+  it('land transport cannot enter water; water transport cannot enter land; air can do both', () => {
+    const land = buildAtlasTravelGraph(atlas, { mobility: 'land' });
+    const water = buildAtlasTravelGraph(atlas, { mobility: 'water' });
+    const air = buildAtlasTravelGraph(atlas, { mobility: 'air' });
+    expect(land.passable(2)).toBe(true);  expect(land.passable(3)).toBe(false);  // land cell vs sea
+    expect(water.passable(2)).toBe(false); expect(water.passable(3)).toBe(true);  // boats need water
+    expect(air.passable(2)).toBe(true);   expect(air.passable(3)).toBe(true);     // flight crosses both
+  });
+
+  it('a flying mount can reach a water cell a land mount cannot', () => {
+    const land = buildAtlasTravelGraph(atlas, { mobility: 'land' });
+    const air = buildAtlasTravelGraph(atlas, { mobility: 'air' });
+    expect(planFastestRoute(land, 0, 3, { milesPerUnit: 0.1, speedMph: 3 })).toBeNull();
+    expect(planFastestRoute(air, 0, 3, { milesPerUnit: 0.1, speedMph: 8 })!.cells).toEqual([0, 1, 2, 3]);
   });
 });
