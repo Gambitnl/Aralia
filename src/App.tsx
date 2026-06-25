@@ -141,6 +141,14 @@ const CombatMessagingDemo = lazy(() => import('./components/demo/CombatMessaging
 // ============================================================================
 // Main Component
 // ============================================================================
+
+/**
+ * Max time a global `isLoading` may gate the UI before the watchdog force-clears
+ * it. Generous so legitimate long ops (world/party/AI generation) finish first,
+ * but bounded so a hung or offline backend can't lock the menus forever.
+ */
+const LOADING_WATCHDOG_MS = 60_000;
+
 const App: React.FC = () => {
   const AUTO_SAVE_PREF_KEY = 'aralia_rpg_pref_auto_save_enabled';
   // Validate environment variables on startup
@@ -284,6 +292,23 @@ const App: React.FC = () => {
       cleanupAudioContext();
     };
   }, [cleanupAudioContext]); // Only re-run if cleanupAudioContext function changes
+
+  // Loading-state fail-safe: `isUIInteractive` gates the action menus on
+  // `!isLoading`, so if an async op (e.g. an AI/Ollama call) never resolves —
+  // backend offline, hung request, missing catch — the UI would stay disabled
+  // forever ("stuck menus"). This watchdog force-clears a loading state that
+  // outlives the ceiling, so a dead backend can never permanently lock controls.
+  useEffect(() => {
+    if (!gameState.isLoading) return;
+    const timer = setTimeout(() => {
+      dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
+      addMessage(
+        'The world took too long to respond — controls re-enabled. (Is the AI backend running?)',
+        'system',
+      );
+    }, LOADING_WATCHDOG_MS);
+    return () => clearTimeout(timer);
+  }, [gameState.isLoading, dispatch, addMessage]);
 
   const getCurrentLocation = useCallback((): Location => {
     const currentId = gameState.currentLocationId;
@@ -826,6 +851,20 @@ const App: React.FC = () => {
     gameState.worldSeed,
     worldGenerationLockedReason,
   ]);
+
+  // ?worldmap=1 — boot straight into the World Map (world-generation) page, the
+  // same view the main-menu "World Generation" button opens. Gives that view its
+  // own deep link (like ?phase=character_creation for the creator), so the world
+  // map / travel preview is reachable without clicking through the menu.
+  const worldMapDeepLinkRef = useRef(false);
+  useEffect(() => {
+    if (worldMapDeepLinkRef.current) return;
+    if (gameState.phase !== GamePhase.MAIN_MENU) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('worldmap') !== '1' && params.get('view') !== 'worldgen') return;
+    worldMapDeepLinkRef.current = true;
+    handleOpenWorldGenerationFromMainMenu();
+  }, [gameState.phase, handleOpenWorldGenerationFromMainMenu]);
 
   const handleNewGame = useCallback(() => {
     if (canRegenerateWorldMap && gameState.mapData) {
