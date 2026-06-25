@@ -6,9 +6,9 @@ slug: saveload
 status: active
 status_note: Preserved as routed_reference to avoid flattening existing gap provenance.
 registry_mode: routed_reference
-last_updated: "2026-06-05"
-gap_count: 6
-open_gap_count: 6
+last_updated: "2026-06-25"
+gap_count: 7
+open_gap_count: 7
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # SaveLoad Gap Registry
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-25
 
 Use this file for durable unresolved findings tied to SaveLoad behavior.
 
@@ -116,6 +116,7 @@ Use this file for durable unresolved findings tied to SaveLoad behavior.
 | G4 | active | high | in_scope_now | Worker B | confirmed | project |  | none | none | not_recorded | `docs/projects/saveload/TRACKER.md` | docs pass | Schema mismatch is hard-failed instead of migration/transform | `src/services/saveLoadService.ts` version check in `loadGame` | Risk of blocking older saves on format changes | Define migration policy before next schema increment | Update tests and policy docs before any version bump |  |
 | G5 | not_started | medium | support_needed_now | Worker B | confirmed | project |  | none | none | not_recorded | `docs/projects/saveload/TRACKER.md` | docs pass | Versioned migration behavior not covered for all payload shapes in tests | `src/services/saveLoadService.test.ts` plus migration tests are partial | Regression risk if older states include missing fields | Expand tests for mixed payload shapes and slot metadata anomalies | Add test cases with missing legacy fields and malformed metadata |  |
 | G6 | not_started | low | adjacent_follow_up | Codex | confirmed | code-modularization-audit | docs/projects/code-modularization-audit/GAPS.md | routed | none | not_recorded | `docs/projects/code-modularization-audit` CMA-G10 | Code modularization audit routing | Central state/save/load files are large split candidates, but save compatibility and migration behavior are the real risk. | `src/state/appState.ts`; `src/state/actionTypes.d.ts`; `src/state/reducers/characterReducer.ts`; `src/services/saveLoadService.ts` | Splitting these surfaces without migration/load proof can silently break older saves or reducer defaults. | Require migration/load regression boundaries before any state/save modularization. | `src/state/migrations/__tests__`, reducer tests, and save/load tests named in a split plan |  |
+| G7 | not_started | medium | support_needed_now | Codex | confirmed | `docs/BACKLOG.md` |  | none | rendered proof required | not_recorded | `src/components/SaveSlotSelector.tsx` | backlog migration 2026-06-25 | Save-slot focus-trap and keyboard-navigation behavior needs automated accessibility coverage. | `docs/BACKLOG.md`; `src/components/SaveSlotSelector.tsx` | Save/load flows are high-risk for keyboard-only users and for accidental destructive selection. | Add focused accessibility tests for focus trap, keyboard navigation, and selection/close behavior. | Automated component tests plus, if UI changes, rendered keyboard proof for the save-slot flow. |  |
 
 ## Schema Fit Notes
 

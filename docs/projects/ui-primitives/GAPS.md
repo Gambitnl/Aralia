@@ -6,9 +6,9 @@ slug: ui-primitives
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-08"
-gap_count: 0
-open_gap_count: 0
+last_updated: "2026-06-25"
+gap_count: 2
+open_gap_count: 2
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Ui Primitives Gap Registry
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-25
 
 Use this file for durable unresolved findings that genuinely belong to this project.
 
@@ -110,6 +110,8 @@ Use this file for durable unresolved findings that genuinely belong to this proj
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
+| G1 | not_started | adjacent_follow_up | Codex | Shared controls/buttons | `docs/BACKLOG.md` migration 2026-06-25 | Ad-hoc buttons need an audit and migration path toward shared button helpers or a common component. | `docs/BACKLOG.md`; `src/styles/buttonStyles.ts`; scattered UI surfaces | Button drift weakens accessibility, consistency, and future visual refreshes. | Audit button call sites and pick the first bounded shared-button migration slice. | Before/after component proof plus no visual regressions in touched controls. |
+| G2 | not_started | adjacent_follow_up | Codex | Tooltip placement | `docs/BACKLOG.md` migration 2026-06-25 | Tooltip edge and corner placements need exercised and refined if clipping persists. | `docs/BACKLOG.md`; `src/components/ui/Tooltip.tsx` | Tooltips that clip at edges hide rules and affordances. | Add focused placement fixtures or stories for edge/corner cases before changing placement math. | Rendered proof at viewport edges showing no clipped tooltip content. |
 
 ## Classification Reference
 

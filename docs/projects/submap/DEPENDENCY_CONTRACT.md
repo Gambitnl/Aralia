@@ -114,8 +114,8 @@ drop only after proof.
 | Movement handler | `handleMovement.ts`, `types/actions.ts` | `QUICK_TRAVEL` clamping, impassable checks, step loop | retain | action pipeline | Handler tests unchanged after UI wiring |
 | Observation handler | `handleObservation.ts` | `inspect_submap_tile` prompt + `UPDATE_INSPECTED_TILE_DESCRIPTION` | retain | action pipeline | Inspect handler test or proof note |
 | UI reducer / modal mutex | `uiReducer.ts`, `handleSystemAndUi.ts` | `isSubmapVisible` mutual exclusion | retain | layout state | Modal conflict matrix documented |
-| Minimap preview | `Minimap.tsx`, `useSubmapProceduralData.ts` | Local terrain/feature preview independent of full Submap UI | extract | Minimap + `GENERATION_MODULARIZATION.md` | Minimap renders from extracted generation core |
-| Procedural generation | `useSubmapProceduralData.ts`, `submapPathContinuity.ts`, CA/WFC services | CA, WFC, paths, seeded features, biome blend | extract | `submap-generation` / `GENERATION_MODULARIZATION.md` | Fixture parity for plains/cave/wetland |
+| Minimap preview | `Minimap.tsx`, `useSubmapProceduralData.ts` | Local terrain/feature preview independent of full Submap UI | extract | Minimap + `GAPS.md` G4/G8 imported plan appendix | Minimap renders from extracted generation core |
+| Procedural generation | `useSubmapProceduralData.ts`, `submapPathContinuity.ts`, CA/WFC services | CA, WFC, paths, seeded features, biome blend | extract | `submap-generation` / `GAPS.md` G4/G8 imported plan appendix | Fixture parity for plains/cave/wetland |
 | Visual projection | `submapVisuals.ts`, `submapVisualsConfig.ts` | `VisualLayerOutput` fields for tiles/tooltips | extract | map preview contract | Field list unchanged after core extraction |
 | Painter path | `Submap/painters/*` | Alternate renderer draw contracts, texture cache | retain | `submap` (G6, CMA-G16) | Inventory before any painter split |
 | Town/village overlap | `villageGenerator.ts`, `Town/*`, `RealmSmithTownGenerator.ts` | Settlement-local layout vs seeded village features | replace | human/product (G5) | Owner decision after inventory complete |
@@ -144,7 +144,7 @@ module is a follow-up (G7).
 Before component deprecation:
 
 1. Wire `SubmapPane` through `submapActionContracts` without behavior drift (G7).
-2. Extract `generateLocalTerrainData` per `GENERATION_MODULARIZATION.md` (G8).
+2. Extract `generateLocalTerrainData` per `GAPS.md` G4/G8 (retired generation-modularization plan imported there).
 3. Compare Minimap preview output before/after generation-core extraction.
 
 If a future renderer or navigation surface replaces the tile surface, it should

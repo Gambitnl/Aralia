@@ -64,17 +64,36 @@ export interface TownWalls {
 export interface TownWard {
   /** Ward (Voronoi cell) polygon clipped to the town footprint. */
   polygon: Pt[];
+  /** The buildable block: the ward inset by a street margin. Buildings pack on
+   *  THIS, so the gap between neighbouring blocks reads as the street network. */
+  block: Pt[];
   /** Party-wall building plots packed along this ward's street frontage. */
   plots: BuildingPlot[];
   /** Civic role of this ward, if any (plaza wards carry no plots). */
   civic?: CivicKind;
 }
 
+/** Land use of the ring between the built town core and the cell boundary. */
+export type OutskirtKind = 'farm' | 'pasture' | 'scrub';
+export interface TownOutskirt {
+  /** Parcel polygon (cell coords). */
+  polygon: Pt[];
+  /** farm (tilled fields near the core) → pasture (grassland) → scrub (barren edge). */
+  kind: OutskirtKind;
+}
+
 export interface TownPlan {
-  /** The burg footprint polygon = the town boundary (a leaf submap cell). */
+  /** The burg footprint = the whole parent cell (a leaf submap cell). */
   footprint: Pt[];
-  /** Voronoi wards subdividing the footprint. */
+  /**
+   * The ORGANIC built-up boundary INSIDE the cell. The town lives here; it does
+   * not adhere to the cell's exact shape. Wards/buildings/walls all sit within it.
+   */
+  core: Pt[];
+  /** Voronoi wards subdividing the CORE (not the whole cell). */
   wards: TownWard[];
+  /** Farmland/grassland/scrub parcels filling the ring between the core and cell edge. */
+  outskirts: TownOutskirt[];
   /** Defensive wall ring + gatehouses (criterion #3). */
   walls: TownWalls;
   /** Civic anatomy: market plaza, temple(s), castle/keep (criterion #3). */
@@ -335,6 +354,59 @@ function dist2(a: Pt, b: Pt): number {
 }
 
 /**
+ * Cheap polygon-overlap test: any vertex of one polygon inside the other. For the
+ * small convex-ish shapes here (axis-aligned civic squares vs building rects/Ls)
+ * checking both directions reliably catches containment and partial overlap — used
+ * to clear building plots out from under civic structures.
+ */
+function polysOverlap(a: Pt[], b: Pt[]): boolean {
+  for (const p of a) if (pointInPolygon(p, b)) return true;
+  for (const p of b) if (pointInPolygon(p, a)) return true;
+  return false;
+}
+
+/** True if segments p1p2 and p3p4 properly cross (orientation test). */
+function segmentsCross(p1: Pt, p2: Pt, p3: Pt, p4: Pt): boolean {
+  const o = (a: Pt, b: Pt, c: Pt) => Math.sign((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]));
+  const o1 = o(p1, p2, p3), o2 = o(p1, p2, p4), o3 = o(p3, p4, p1), o4 = o(p3, p4, p2);
+  return o1 !== o2 && o3 !== o4;
+}
+
+/**
+ * Robust polygon overlap for the building/civic shapes here (rotated rects and
+ * L-footprints): vertex containment either way OR any edge crossing. Catches the
+ * edge-only intersections that the vertex-only test misses (two rects clipping
+ * corners without a vertex inside the other).
+ */
+function polygonsIntersect(a: Pt[], b: Pt[]): boolean {
+  if (polysOverlap(a, b)) return true;
+  for (let i = 0; i < a.length; i++) {
+    const a1 = a[i], a2 = a[(i + 1) % a.length];
+    for (let j = 0; j < b.length; j++) {
+      if (segmentsCross(a1, a2, b[j], b[(j + 1) % b.length])) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Greedy collision resolution: keep plots in order, dropping any that intersect a
+ * plot already kept. Frontage is added before interior infill, so street-facing
+ * buildings win and colliding courtyard squares (or acute-corner frontage) drop.
+ */
+function resolveCollisions(plots: BuildingPlot[]): BuildingPlot[] {
+  const kept: BuildingPlot[] = [];
+  for (const p of plots) {
+    let ok = true;
+    for (let k = 0; k < kept.length; k++) {
+      if (polygonsIntersect(p.polygon, kept[k].polygon)) { ok = false; break; }
+    }
+    if (ok) kept.push(p);
+  }
+  return kept;
+}
+
+/**
  * Build the defensive wall ring (footprint inset toward its centroid) and seat
  * gatehouses where main roads enter — the midpoints of the longest footprint
  * edges, projected onto the ring. Criterion #3 (walls + gatehouses).
@@ -420,11 +492,101 @@ export function scaleProfile(population: number): TownScaleProfile {
   };
 }
 
+/** Distance from `center` to the polygon boundary along angle `ang` (radians). */
+function rayPolyRadius(center: Pt, ang: number, poly: Pt[]): number {
+  const dx = Math.cos(ang), dy = Math.sin(ang);
+  let best = Infinity;
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i], b = poly[(i + 1) % poly.length];
+    const ex = b[0] - a[0], ey = b[1] - a[1];
+    const det = ex * dy - dx * ey;
+    if (Math.abs(det) < 1e-9) continue;
+    const acx = a[0] - center[0], acy = a[1] - center[1];
+    const t = (ex * acy - ey * acx) / det; // ray param (distance from center)
+    const u = (dx * acy - dy * acx) / det; // edge param
+    if (t >= 0 && u >= -1e-6 && u <= 1 + 1e-6) best = Math.min(best, t);
+  }
+  return isFinite(best) ? best : 0;
+}
+
+/** Fraction of the cell radius the built-up core occupies, by settlement scale. */
+function coreFracFor(profile: TownScaleProfile | null): number {
+  if (!profile) return 0.7;
+  switch (profile.typology) {
+    case 'hamlet': return 0.42;
+    case 'village': return 0.52;
+    case 'walled town': return 0.64;
+    case 'city': return 0.76;
+    default: return 0.86; // capital
+  }
+}
+
 /**
- * SP-T: footprint → Voronoi wards (via the SP1 engine) → party-wall frontage
- * plots per ward + civic anatomy (plaza/temple/keep) + defensive walls with
- * gatehouses. Returns a 2D `TownPlan`. Scale (ward count) drives coarse density;
- * terrain/water + typology-by-scale are later passes.
+ * Build the ORGANIC built-up core inside the parent cell. Rather than adopting
+ * the cell's exact polygon, the core is a smooth blob centred in the cell whose
+ * radius is a fraction of the cell radius modulated by a few seeded harmonics —
+ * so the town has its own shape and leaves an outskirts ring out to the cell edge.
+ */
+export function buildTownCore(
+  footprint: Pt[],
+  center: Pt,
+  coreFrac: number,
+  seedPath: SeedPath,
+  segments = 28,
+): Pt[] {
+  const rng = rngFromPath(streamPath(seedPath, 'core'));
+  const p1 = rng.next() * Math.PI * 2, p2 = rng.next() * Math.PI * 2, p3 = rng.next() * Math.PI * 2;
+  const a1 = 0.1 + rng.next() * 0.14, a2 = 0.05 + rng.next() * 0.08, a3 = 0.03 + rng.next() * 0.05;
+  const pts: Pt[] = [];
+  for (let k = 0; k < segments; k++) {
+    const ang = (k / segments) * Math.PI * 2;
+    const cellR = rayPolyRadius(center, ang, footprint);
+    if (cellR <= 0) continue;
+    const noise = 1 + a1 * Math.sin(ang + p1) + a2 * Math.sin(2 * ang + p2) + a3 * Math.sin(3 * ang + p3);
+    let r = cellR * coreFrac * noise;
+    r = Math.min(r, cellR * 0.94); // keep a margin so the core stays inside the cell
+    r = Math.max(r, cellR * 0.16);
+    pts.push([center[0] + Math.cos(ang) * r, center[1] + Math.sin(ang) * r]);
+  }
+  return pts;
+}
+
+/**
+ * Subdivide the ring between the core and the cell edge into land-use parcels:
+ * farmland hugs the core, pasture beyond, scrub/barren at the rim. A coarse
+ * Voronoi over the whole cell; cells whose centroid is inside the core are the
+ * town and are dropped (the town renders on top). Distance from the core edge to
+ * the cell edge classifies the rest.
+ */
+export function buildOutskirts(
+  footprint: Pt[],
+  core: Pt[],
+  center: Pt,
+  seedPath: SeedPath,
+  count = 40,
+): TownOutskirt[] {
+  const model = generateSubmap({ polygon: footprint, seedPath: streamPath(seedPath, 'outskirts') }, { count });
+  const out: TownOutskirt[] = [];
+  for (const cell of model.cells) {
+    if (cell.polygon.length < 3) continue;
+    const c = polygonCentroid(cell.polygon);
+    if (pointInPolygon(c, core)) continue; // inside the town
+    const ang = Math.atan2(c[1] - center[1], c[0] - center[0]);
+    const coreR = rayPolyRadius(center, ang, core);
+    const cellR = rayPolyRadius(center, ang, footprint);
+    const dist = Math.hypot(c[0] - center[0], c[1] - center[1]);
+    const frac = cellR > coreR ? (dist - coreR) / (cellR - coreR) : 1;
+    const kind: OutskirtKind = frac < 0.45 ? 'farm' : frac < 0.78 ? 'pasture' : 'scrub';
+    out.push({ polygon: cell.polygon, kind });
+  }
+  return out;
+}
+
+/**
+ * SP-T: parent cell → organic town CORE inside it → Voronoi wards (via the SP1
+ * engine) → party-wall frontage plots + civic anatomy + walls; the ring between
+ * the core and the cell edge becomes farmland/pasture/scrub outskirts. The town
+ * lives inside the cell but does not adhere to its exact shape.
  */
 export function generateTownPlan(
   footprint: Pt[],
@@ -435,12 +597,22 @@ export function generateTownPlan(
   // which civic structures appear (hamlet → capital + citadel). Criterion #5.
   const profile = opts.population != null ? scaleProfile(opts.population) : null;
   const wardCount = opts.wardCount ?? profile?.wardCount ?? 12;
-  // Reuse SP1's clip-to-parent Voronoi tessellation to carve the footprint into
+  // Organic town core INSIDE the cell — the town doesn't adopt the cell's shape.
+  // The built town (wards/walls/buildings) lives within this blob; the ring out
+  // to the cell edge becomes outskirts (farm/pasture/scrub).
+  const cellCenter = polygonCentroid(footprint);
+  const core = buildTownCore(footprint, cellCenter, coreFracFor(profile), seedPath);
+  // Walls: for a walled town the wall RING is the build envelope — wards (and
+  // therefore every building) are carved INSIDE it. The core→ring band is the
+  // extramural margin. Unwalled settlements build out to the core edge.
+  const walls = !profile || profile.hasWalls ? buildWalls(core) : { ring: [], gatehouses: [] };
+  const envelope = walls.ring.length >= 3 ? walls.ring : core;
+  // Reuse SP1's clip-to-parent Voronoi tessellation to carve the envelope into
   // wards — the town is itself a submap, one tier deeper than the local map.
-  const model = generateSubmap({ polygon: footprint, seedPath }, { count: wardCount });
+  const model = generateSubmap({ polygon: envelope, seedPath }, { count: wardCount });
   const wardPolys = model.cells.map((c) => c.polygon);
   const wardCentroids = wardPolys.map(polygonCentroid);
-  const townCenter = polygonCentroid(footprint);
+  const townCenter = polygonCentroid(envelope);
   const req: CivicRoleRequest = profile
     ? { plaza: profile.hasPlaza, temple: profile.hasTemple, keep: profile.hasKeep, citadel: profile.hasCitadel }
     : { plaza: true, temple: true, keep: true };
@@ -455,27 +627,58 @@ export function generateTownPlan(
   // fills regardless of the absolute coord scale it's generated at (e.g. a tiny
   // burg sub-cell from the live drill vs a large standalone footprint). Without
   // this, absolute defaults can exceed ward-edge lengths → zero buildings.
+  //
+  // Plots scale to the WARD, not the whole footprint: denser towns have more, and
+  // therefore smaller, wards, so footprint-relative plots would be huge in a tiny
+  // ward → few buildings that mostly collide. A characteristic ward span (the
+  // footprint tiled into `wardCount` cells ≈ fpSpan/√wardCount) keeps buildings
+  // proportional to their ward, so coverage stays consistent and total building
+  // count scales UP with ward count (hamlet < … < capital).
+  // Ward span is measured over the BUILD ENVELOPE (the core), since wards now
+  // tessellate the core rather than the whole cell — keeps buildings proportioned.
+  const eb = polygonBounds(envelope);
+  const coreSpan = Math.max(eb.maxX - eb.minX, eb.maxY - eb.minY) || 1;
+  const wardSpan = coreSpan / Math.sqrt(Math.max(1, wardCount));
   const packOpts: GenerateTownOptions = {
     ...opts,
-    plotWidth: opts.plotWidth ?? Math.max(2, fpSpan * 0.022),
-    plotDepth: opts.plotDepth ?? Math.max(2.5, fpSpan * 0.028),
-    gap: opts.gap ?? Math.max(0.4, fpSpan * 0.005),
+    plotWidth: opts.plotWidth ?? Math.max(2, wardSpan * 0.16),
+    plotDepth: opts.plotDepth ?? Math.max(2.5, wardSpan * 0.2),
+    gap: opts.gap ?? Math.max(0.4, wardSpan * 0.035),
+  };
+
+  // Street margin: each ward shrinks to a buildable BLOCK inset toward its
+  // centroid, so the gap left between neighbouring blocks is the street network
+  // (Voronoi edges become streets). Without this, buildings on either side of a
+  // shared ward edge sit back-to-back with no street between them. The inset is a
+  // fraction of the ward span so street width scales with the town.
+  const blockInset = (poly: Pt[], c: Pt): Pt[] => {
+    const b = polygonBounds(poly);
+    const span = Math.max(b.maxX - b.minX, b.maxY - b.minY) || 1;
+    const streetHalf = Math.min(span * 0.5 - 1e-3, Math.max(wardSpan * 0.06, 1.2)); // clamp so the block stays valid
+    const k = Math.max(0.55, 1 - (2 * streetHalf) / span);
+    return scalePolygon(poly, c, k);
   };
 
   const civicSize: Record<CivicKind, number> = { plaza: 0, temple: 0.3, keep: 0.4, citadel: 0.5, dock: 0.22, bridge: 0 };
   const civic: CivicStructure[] = [];
   const wards: TownWard[] = wardPolys.map((polygon, i) => {
+    const block = blockInset(polygon, wardCentroids[i]);
     const role = roles.get(i);
     if (role === 'plaza') {
-      // Open market square: clear frontage, reserve the ward interior as plaza.
-      const plaza = scalePolygon(polygon, wardCentroids[i], 0.62);
+      // Open market square: clear frontage, reserve the block interior as plaza.
+      const plaza = scalePolygon(block, wardCentroids[i], 0.78);
       civic.push({ kind: 'plaza', polygon: plaza, wardIndex: i });
-      return { polygon, plots: [], civic: 'plaza' };
+      return { polygon, block, plots: [], civic: 'plaza' };
     }
     const wardSeed = streamPath(seedPath, `ward:${i}`);
-    const plots = packWardFrontage(polygon, wardSeed, packOpts);
+    const plots = packWardFrontage(block, wardSeed, packOpts);
     // Interior block infill (#6): freestanding buildings in the courtyard core.
-    if (opts.interiorInfill !== false) plots.push(...packWardInterior(polygon, wardSeed, packOpts));
+    if (opts.interiorInfill !== false) plots.push(...packWardInterior(block, wardSeed, packOpts));
+    // Drop buildings that overlap each other (acute-corner frontage collisions +
+    // interior squares landing on frontage); frontage is kept over infill.
+    const resolved = resolveCollisions(plots);
+    plots.length = 0;
+    plots.push(...resolved);
     // Waterfront ward → seat a dock on the water-facing edge (#4).
     const waterEdge = wardWaterEdge(polygon, water, waterMargin);
     if (waterEdge != null) {
@@ -491,12 +694,12 @@ export function generateTownPlan(
       civic.push({ kind: 'dock', polygon: squareAt(dockC, span * civicSize.dock), wardIndex: i });
     }
     if (role === 'temple' || role === 'keep' || role === 'citadel') {
-      const b = polygonBounds(polygon);
+      const b = polygonBounds(block);
       const span = Math.min(b.maxX - b.minX, b.maxY - b.minY);
       civic.push({ kind: role, polygon: squareAt(wardCentroids[i], span * civicSize[role]), wardIndex: i });
-      return { polygon, plots, civic: role };
+      return { polygon, block, plots, civic: role };
     }
-    return { polygon, plots, civic: waterEdge != null ? 'dock' : undefined };
+    return { polygon, block, plots, civic: waterEdge != null ? 'dock' : undefined };
   });
 
   // Bridges where a river crosses between wards (#4).
@@ -504,11 +707,61 @@ export function generateTownPlan(
     civic.push({ kind: 'bridge', polygon: squareAt(bp, fpSpan * 0.02), wardIndex: -1 });
   }
 
-  const walls = !profile || profile.hasWalls ? buildWalls(footprint) : { ring: [], gatehouses: [] };
+  // De-overlap solid civic structures: a waterfront keep/temple ward can seat
+  // both a dock and its civic building, and adjacent waterfront wards can seat
+  // docks that collide. Keep them by priority (citadel > keep > temple > dock),
+  // dropping any that intersect an already-kept one. Plazas/bridges are exempt.
+  const civicPriority: Record<CivicKind, number> = { citadel: 0, keep: 1, temple: 2, dock: 3, plaza: 9, bridge: 9 };
+  const passthrough = civic.filter((c) => c.kind === 'plaza' || c.kind === 'bridge');
+  const solidSorted = civic
+    .filter((c) => c.kind !== 'plaza' && c.kind !== 'bridge')
+    .sort((a, b) => civicPriority[a.kind] - civicPriority[b.kind]);
+  const solidCivic: CivicStructure[] = [];
+  for (const c of solidSorted) {
+    if (!solidCivic.some((o) => polygonsIntersect(c.polygon, o.polygon))) solidCivic.push(c);
+  }
+  // Rebuild the civic list (kept solids + plazas/bridges).
+  civic.length = 0;
+  civic.push(...passthrough, ...solidCivic);
+
+  // Clear building plots out from under the kept solid civic structures — including
+  // any that spill across a ward boundary. Fixes civic-on-house overlap.
+  if (solidCivic.length > 0) {
+    for (const w of wards) {
+      if (w.plots.length > 0) {
+        w.plots = w.plots.filter((p) => !solidCivic.some((c) => polygonsIntersect(p.polygon, c.polygon)));
+      }
+    }
+  }
+
+  // Cross-ward de-overlap: per-ward packing can't see neighbours, so frontage from
+  // adjacent wards can clip at shared corners. One bbox-gated pass drops the later
+  // of any colliding pair from DIFFERENT wards (intra-ward was already resolved).
+  const items = wards.flatMap((w, wi) => w.plots.map((plot) => ({ wi, plot, bb: polygonBounds(plot.polygon) })));
+  const dropped = new Set<BuildingPlot>();
+  for (let i = 0; i < items.length; i++) {
+    if (dropped.has(items[i].plot)) continue;
+    const A = items[i].bb;
+    for (let j = i + 1; j < items.length; j++) {
+      if (items[i].wi === items[j].wi || dropped.has(items[j].plot)) continue;
+      const B = items[j].bb;
+      if (A.maxX < B.minX || B.maxX < A.minX || A.maxY < B.minY || B.maxY < A.minY) continue; // bbox reject
+      if (polygonsIntersect(items[i].plot.polygon, items[j].plot.polygon)) dropped.add(items[j].plot);
+    }
+  }
+  if (dropped.size > 0) {
+    for (const w of wards) w.plots = w.plots.filter((p) => !dropped.has(p));
+  }
+
   // Road continuation (#6): inherited regional roads clipped to the town become
   // its main streets (entering at the gatehouses).
   const streets = (opts.roads ?? []).flatMap((r) => clipPolylineToPolygon(r, footprint));
-  return { footprint, wards, walls, civic, streets };
+
+  // Outskirts: the ring between the built core and the cell edge → farm/pasture/scrub.
+  const outskirtCount = Math.max(18, Math.min(80, Math.round(wardCount * 1.1)));
+  const outskirts = buildOutskirts(footprint, core, cellCenter, seedPath, outskirtCount);
+
+  return { footprint, core, wards, outskirts, walls, civic, streets };
 }
 
 /** Convenience: total building plots across all wards. */

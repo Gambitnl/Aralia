@@ -6,18 +6,18 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: active
-last_updated: 2026-06-20
-iteration: 5
+last_updated: 2026-06-24
+iteration: 6
 confidence: medium
 evidence: docs/projects/compass-pane
-gap_signal: "1 open gap; G1/G3/G4/G6 resolved; G5 isSubmapContext test coverage remains"
+gap_signal: "0 open gaps; G1/G3/G4/G5/G6 resolved"
 protocol: living project doc set
-next_step: Resume G5 isSubmapContext toggle visibility test coverage
-agent_comments: ""
-active_agent: "Qoder CLI"
+next_step: Run a fresh source-backed Compass Pane gap scan before assigning more forward work
+agent_comments: "G5 resolved by restoring the main-context submap toggle and adding toggle-visibility regression coverage."
+active_agent: "Codex application agent"
 agent_pass_status: finished
-agent_pass_started_at: "2026-06-20T00:00:00+02:00"
-agent_pass_ended_at: "2026-06-20T00:00:00+02:00"
+agent_pass_started_at: "2026-06-24T22:00:00+02:00"
+agent_pass_ended_at: "2026-06-24T22:22:00+02:00"
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -33,8 +33,8 @@ required_verification:
 completed_verification:
   - docs_consistency
   - scoped_tests
-last_proof: 2026-06-18
-workflow_gaps_reviewed: 2026-06-18
+last_proof: 2026-06-24
+workflow_gaps_reviewed: 2026-06-20
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -45,7 +45,7 @@ human_decision_required: "no"
 # Compass Pane North Star
 
 Status: active  
-Last updated: 2026-06-20
+Last updated: 2026-06-24
 
 ## Purpose And Scope
 
@@ -70,12 +70,12 @@ Category: Feature/UI Projects
 Status: active  
 Confidence: medium  
 Evidence: docs/projects/compass-pane  
-Gap signal: 1 open gap; G1/G3/G4/G6 resolved; G5 isSubmapContext test coverage remains
+Gap signal: 0 open gaps; G1/G3/G4/G5/G6 resolved
 Protocol: living project doc set
-Next step: Resume G5 isSubmapContext toggle visibility test coverage
+Next step: Run a fresh source-backed Compass Pane gap scan before assigning more forward work
 Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency, scoped_tests
-Last proof: 2026-06-20
+Last proof: 2026-06-24
 Workflow gaps reviewed: 2026-06-20
 
 ## Concrete File Map
@@ -86,7 +86,7 @@ Workflow gaps reviewed: 2026-06-20
 | `src/components/Submap/SubmapPane.tsx` | Integration surface | Embeds Compass Pane in submap modal context, disables controls during inspect/quick travel. |
 | `src/components/layout/GameLayout.tsx` | Integration surface | Renders Compass Pane in normal exploration layout. |
 | `src/components/ui/TimeWidget.tsx` | Time display + action entry | Provides clock, moon/season display, and pass-time button callback. |
-| `src/components/CompassPane/__tests__/CompassPane.test.tsx` | Test coverage | Covers time widget rendering, move/look-around dispatch, edge disablement, current-location boundary pre-checks, impassable adjacent world tiles, and pass-time wait confirmation. |
+| `src/components/CompassPane/__tests__/CompassPane.test.tsx` | Test coverage | Covers time widget rendering, main/submap context toggle visibility, submap toggle dispatch, move/look-around dispatch, edge disablement, current-location boundary pre-checks, impassable adjacent world tiles, and pass-time wait confirmation. |
 | `src/hooks/actions/actionHandlers.ts` | Action dispatch registry | Maps `move`, `look_around`, `toggle_map`, `toggle_submap_visibility`, `toggle_three_d`, `wait` to handlers. |
 | `src/hooks/actions/handleMovement.ts` | Movement contract | Performs submap/world movement, wrap and bounds logic, map tile validation, time advancement, and location dispatch. |
 | `src/hooks/actions/handleObservation.ts` | Look around contract | Generates `look_around` descriptions and sets custom actions. |
@@ -120,7 +120,7 @@ Workflow gaps reviewed: 2026-06-20
 - `CompassPane/index.tsx` lines 148-187: Conditional rendering based on `isSubmapContext` prop
 - `GameLayout.tsx`: Renders CompassPane without `isSubmapContext` (defaults to false)
 - `SubmapPane.tsx` line 513: Renders CompassPane with `isSubmapContext={true}`
-- `src/components/CompassPane/__tests__/CompassPane.test.tsx`: Covers current-location boundary pre-checks and impassable adjacent world tiles
+- `src/components/CompassPane/__tests__/CompassPane.test.tsx`: Covers current-location boundary pre-checks, impassable adjacent world tiles, and context-aware map/submap/3D toggle visibility.
 - Scoped verification: Tests pass for all navigation behaviors
 
 **Decision:** Current implementation is correct and intentional. No Required Review Brief needed.
@@ -136,7 +136,7 @@ Workflow gaps reviewed: 2026-06-20
 - `look_around` action is currently never movement-blocked by direction checks.
 - Time section is rendered through `TimeWidget` and pass-time launches `PassTimeModal`.
 - On pass-time confirm, Compass dispatches `wait` with seconds (`handlePassTimeConfirm`).
-- Regression proof now covers move dispatch, look-around dispatch, edge disablement, and pass-time wait confirmation in `src/components/CompassPane/__tests__/CompassPane.test.tsx`.
+- Regression proof now covers move dispatch, look-around dispatch, edge disablement, context-aware map/submap/3D toggle visibility, submap toggle dispatch, and pass-time wait confirmation in `src/components/CompassPane/__tests__/CompassPane.test.tsx`.
 - Toggling map/submap/3D actions are emitted from button handlers.
 - In `GameLayout`, compass sits in the left column and is wrapped by an `ErrorBoundary`.
 - In `SubmapPane`, compass is rendered in right-column controls with `isSubmapContext=true`.
@@ -165,9 +165,9 @@ Workflow gaps reviewed: 2026-06-20
 
 ## Resume Path
 
-1. Resume G5 in `TRACKER.md` and `GAPS.md`; the active slice is adding `isSubmapContext` toggle visibility test coverage.
-2. Keep the movement/action and G3 pre-check regression proof in `AUDIT_OR_PROOF.md` as the durable reference for T2/T4.
-3. Keep the submap/main-layout affordance decision closed unless a new source-backed affordance change appears.
+1. Compass Pane currently has no open project-owned gaps after G5.
+2. Keep the movement/action, G3 pre-check, and G5 toggle-visibility regression proof in `AUDIT_OR_PROOF.md` as the durable reference for future work.
+3. Run a fresh source-backed gap scan before assigning more forward Compass Pane work.
 
 
 ## Cold-Start Gap Routing

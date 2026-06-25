@@ -9,7 +9,8 @@
 - [`README.md`](./README.md) for the truthful subtree map
 - [`1A-PROJECT-MASTER-SPRINGBOARD.md`](./1A-PROJECT-MASTER-SPRINGBOARD.md) for the current springboard
 - [`1B-SPELL-MIGRATION-ROADMAP.md`](./1B-SPELL-MIGRATION-ROADMAP.md) for the rebased migration roadmap
-- [`TODO.md`](./TODO.md) for the current mixed technical backlog
+- [`../../projects/spells/SUBPROJECTS.md`](../../projects/spells/SUBPROJECTS.md) for the current Spells child-lane routing map
+- [`../../projects/spells/subprojects/structured-spell-execution/GAPS.md`](../../projects/spells/subprojects/structured-spell-execution/GAPS.md), [`../../projects/spells/subprojects/targeting-object-area/GAPS.md`](../../projects/spells/subprojects/targeting-object-area/GAPS.md), and sibling child `GAPS.md` files for the migrated technical backlog
 - [`../../SPELL_INTEGRATION_STATUS.md`](../../SPELL_INTEGRATION_STATUS.md) for high-level spell integration orientation
 
 ## Archived Historical Version

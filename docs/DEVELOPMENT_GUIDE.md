@@ -132,10 +132,45 @@ If full verification is blocked, say what blocked it, what you checked instead, 
 
 ---
 
-## 6. Manual QA Notes & Backlog
-These are intentionally left visible here because they remain open documentation tasks:
-- add a cross-browser testing checklist
-- add a mobile responsiveness checklist
-- add a console-error cleanup checklist for core flows
+## 6. Manual QA Checklists
 
-Additional backlog items are tracked in [`BACKLOG.md`](./BACKLOG.md).
+Use these checklists when a change affects a user-facing flow. They are intentionally
+practical rather than exhaustive, so agents can run the relevant pass without turning
+every feature task into a full QA project.
+
+### Cross-Browser Checklist
+
+- Verify the primary flow in the current Chrome or Chromium-based browser.
+- Spot-check the same flow in Firefox or Edge when the change touches layout, input,
+  focus, storage, canvas, audio, media, or browser APIs.
+- Confirm there are no browser-specific console errors during load, the main action,
+  and return/navigation out of the flow.
+- Check that fonts, icons, images, canvas layers, and scroll containers render
+  consistently enough that the player can complete the task.
+- Record any browser-specific limitation in the owning project proof or gap file
+  instead of leaving it as an untracked note.
+
+### Mobile Responsiveness Checklist
+
+- Check the flow at a narrow phone viewport and a tablet-width viewport.
+- Confirm primary buttons, form controls, modal close controls, and navigation targets
+  are reachable without hover-only interactions.
+- Confirm text wraps inside its container and does not overlap controls, counters,
+  panels, tooltips, or map overlays.
+- Confirm scroll ownership is clear: the page, modal, side panel, and any nested list
+  should not fight for the same gesture.
+- If a surface is intentionally desktop-only, record that boundary in the owning
+  project docs and provide a clear fallback or disabled state.
+
+### Console-Error Cleanup Checklist
+
+- Start from a fresh page load and clear the browser console before the target flow.
+- Exercise the main happy path, one back/cancel path, and one invalid or edge input
+  path when the flow has forms or selections.
+- Treat red console errors, failed asset loads, repeated proxy noise, and unhandled
+  promise rejections as findings unless the owning project already documents them.
+- Separate harmless known environmental noise from product errors in the proof note.
+- If the error cannot be fixed in the current slice, add a routed gap with the console
+  text, reproduction path, and suspected owner.
+
+Backlog-style work belongs in the owning project gap registry under [`docs/projects/`](./projects/) or in [`GLOBAL_GAPS.md`](./projects/GLOBAL_GAPS.md) when no owner exists yet.

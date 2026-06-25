@@ -6,9 +6,9 @@ slug: character-sheet
 status: "active (G7 implemented 2026-06-19; remaining gaps open)"
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-19"
-gap_count: 6
-open_gap_count: 3
+last_updated: "2026-06-25"
+gap_count: 9
+open_gap_count: 6
 resolved_gap_count: 3
 routed_gap_count: 0
 imported_gap_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Character Sheet Gap Registry
 
 Status: active (G7 implemented 2026-06-19; remaining gaps open)
-Last updated: 2026-06-19
+Last updated: 2026-06-25
 
 Use this file only for durable unresolved findings that belong to this project.
 
@@ -117,6 +117,9 @@ Use this file for durable unresolved findings that are too important or too larg
 | G9 | untriaged | adjacent_follow_up | Gemini 3.5 Flash | `src/components/CharacterSheet/Overview` | codebase audit | Equippable items without defined slots are incorrectly skipped or blocked in `InventoryList.tsx` | `src/components/CharacterSheet/Overview/InventoryList.tsx#L400-L407` | Valid equippable items that lack a slot property are treated as non-equippable/blocked rather than logging a warning. | Log a warning for equippable items without slots or handle them gracefully in the equip flow. | Test coverage or verification showing graceful handling of slotless equippable items. |
 | G10 | untriaged | adjacent_follow_up | Gemini 3.5 Flash | `src/components/CharacterSheet/Overview` | codebase audit | Container assignments live in transient local React state instead of persistent global state | `src/components/CharacterSheet/Overview/InventoryList.tsx#L274-L296` | Item assignments to bags/containers are lost whenever the character sheet modal closes and remounts. | Migrate container assignments to the global `gameState` or store `containerId` changes in the item model via reducer actions. | Verify bag assignments persist after closing and reopening the character sheet modal. |
 | G11 | resolved | adjacent_follow_up | Antigravity | `src/components/CharacterSheet/Overview` | Combat System Durations (2026-06-02) | Equipped items requiring attunement do not check or enforce the limit of 3 attuned items, nor do they prevent receiving benefits of unattuned items. | `src/state/reducers/characterReducer.ts` | Allows characters to equip unlimited attunement items, bypassing D&D balancing rules. | Enforce limit in equip and attunement pipelines. | Checked 3-item attunement limit and stat/AC omission of unattuned items in characterReducer/statUtils tests. |
+| G12 | not_started | support_needed_now | Codex | Level-up and character progression UI | `docs/BACKLOG.md` migration 2026-06-25 | Level-up UI flows for ASI, feat, and spell choices need a first-class in-game progression surface instead of living as a root backlog note. | `docs/BACKLOG.md`; `src/state/reducers/characterReducer.ts`; character sheet owns active character progression display and correction flows. | Players need a guided way to resolve progression choices after play begins; missing flows can leave level-up state invisible or unresolvable. | Define the minimum level-up interaction contract and route each choice family to the appropriate selector component. | Rendered flow or focused component tests proving ASI, feat, and spell-choice pending states can be opened and resolved. |
+| G13 | not_started | support_needed_now | Codex | Level-up state and spellbook persistence | `docs/BACKLOG.md` migration 2026-06-25 | Class abilities and spells granted on level-up must update character state and persist spellbook changes. | `docs/BACKLOG.md`; `src/utils/characterUtils.ts`; `src/state/reducers/characterReducer.ts`; `src/components/CharacterSheet/Spellbook` | Progression is not complete if the UI can select choices but class features, granted spells, or prepared/known spellbook state fail to survive reducer/save-load paths. | Add a bounded reducer/utility proof for one class level-up with a feature grant and spellbook update, then generalize. | Unit tests proving a level-up grant updates character state and survives save/load or reducer round-trip. |
+| G14 | not_started | adjacent_follow_up | Codex | Inventory container browsing and comparison | `docs/BACKLOG.md` migration 2026-06-25 | Inventory container browsing and item comparison UI need a Character Sheet-owned implementation lane. | `docs/BACKLOG.md`; `src/components/InventoryList.tsx`; existing Character Sheet G10 container persistence row | Browsing containers and comparing items are core inventory usability features and should align with the persistence model in G10. | Define container browsing UI after container assignments move into durable state, then add comparison affordances for equipment. | Tests or rendered proof showing container contents and item comparison remain available after closing/reopening the sheet. |
 
 ## Classification Reference
 

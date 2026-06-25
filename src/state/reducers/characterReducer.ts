@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/06/2026, 17:59:16
+ * Last Sync: 25/06/2026, 01:10:56
  * Dependents: state/appState.ts
  * Imports: 9 files
  *
@@ -777,6 +777,23 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             return {
                 inventory: newInventory,
                 // Round to the nearest copper (0.01 GP) to keep GP display stable.
+                gold: Math.round((state.gold + value) * 100) / 100
+            };
+        }
+
+        case 'SELL_FENCED_ITEM': {
+            const { itemId, value } = action.payload;
+            const newInventory = [...state.inventory];
+
+            const itemIndex = newInventory.findIndex(i => i.id === itemId);
+            if (itemIndex === -1) return {};
+
+            newInventory.splice(itemIndex, 1);
+
+            return {
+                inventory: newInventory,
+                // Fenced goods pay through the same wallet as legal sales, but
+                // the separate action lets the crime reducer add the risk.
                 gold: Math.round((state.gold + value) * 100) / 100
             };
         }

@@ -11,7 +11,7 @@ It is a compact pointer for the still-open level-1 integration concerns that rem
 ## Verified Current State
 
 A 2026-03-12 repo check confirmed:
-- docs/tasks/spell-system-overhaul/TODO.md still names level-1 concerns around material costs, vision or obscurement, behavior or charm logic, ongoing ticks, forced movement and concentration links, summons or familiar handling, buff stacking or duration UI, ritual casting flow, and reaction triggers.
+- the retired docs/tasks/spell-system-overhaul/TODO.md previously named level-1 concerns around material costs, vision or obscurement, behavior or charm logic, ongoing ticks, forced movement and concentration links, summons or familiar handling, buff stacking or duration UI, ritual casting flow, and reaction triggers.
 - hex.json already uses controlOptions for a narrow choice lane, but broader modal spell handling is still open.
 - find-familiar.json exists in public/data/spells/level-1, so familiar-related work is no longer a missing-data problem; it is an integration and follow-through problem.
 - several level-1 mechanics now have at least partial structured support, so this file should not overclaim that level 1 is broadly unmigrated.
@@ -28,6 +28,7 @@ A 2026-03-12 repo check confirmed:
 
 Use this file as a narrow pointer into the live gap surfaces.
 For concrete follow-through, consult:
-- docs/tasks/spell-system-overhaul/TODO.md
+- docs/projects/spells/SUBPROJECTS.md
+- docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md
 - docs/tasks/spell-system-overhaul/gaps/GAP-CHOICE-SPELLS.md
 - docs/spells/STATUS_LEVEL_1.md

@@ -232,6 +232,8 @@ See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.
 5. Run `npm run validate` after each batch
 
 ### User review checkpoints:
-- [ ] Validate that `followsCaster` semantics match official spell text
-- [ ] Review wall dimension calculations (some walls have variable sizing)
-- [ ] Confirm trigger zone distances match official spell text
+The remaining review checkpoints were routed on 2026-06-26 to `docs/projects/spells/subprojects/targeting-object-area/GAPS.md` under `targeting-object-area-G4`:
+
+- Validate that `followsCaster` semantics match official spell text.
+- Review wall dimension calculations, including variable sizing.
+- Confirm trigger zone distances match official spell text.

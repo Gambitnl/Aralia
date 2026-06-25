@@ -323,11 +323,69 @@ export default defineConfig(async ({ mode, command }) => {
             : {})
         },
         output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom', 'framer-motion'],
-            'vendor-utils': ['lucide-react', 'marked', 'dompurify', 'uuid', 'zod'],
-            'vendor-pixi': ['pixi.js'],
-            'vendor-ai': ['@google/genai']
+          manualChunks(id) {
+            // Isolate Vite's __vitePreload helper into its own ~1KB chunk.
+            // Otherwise Rollup parks it inside whichever vendor chunk it likes
+            // (here: vendor-react-three, which statically pulls vendor-three).
+            // Every lazy chunk imports the helper, so a heavy host chunk gets
+            // dragged onto the eager critical path — ~1MB of three.js the menu
+            // never renders. Keeping the helper standalone breaks that edge.
+            if (id.includes('vite/preload-helper')) {
+              return 'vendor-preload-helper';
+            }
+            if (id.includes('node_modules')) {
+              if (id.includes('react-dom') || id.includes('react/') || id.includes('scheduler')) {
+                return 'vendor-react';
+              }
+              if (id.includes('framer-motion')) {
+                return 'vendor-framer-motion';
+              }
+              if (id.includes('lucide-react')) {
+                return 'vendor-lucide';
+              }
+              if (id.includes('pixi.js') || id.includes('@pixi') || id.includes('mini-signals') || id.includes('ismobilejs') || id.includes('earcut')) {
+                return 'vendor-pixi';
+              }
+              if (id.includes('@google/genai')) {
+                return 'vendor-ai';
+              }
+              if (id.includes('zod')) {
+                return 'vendor-zod';
+              }
+              if (id.includes('marked') || id.includes('dompurify') || id.includes('uuid')) {
+                return 'vendor-markdown-utils';
+              }
+              // Heavy 3D libraries are ONLY reached through lazy-loaded 3D
+              // components (Scene3D, World3DWrapper, BattleMap3D, dice, etc).
+              // They must each get their own chunk so they are NOT glued into
+              // a shared "vendor-others" bucket — otherwise a single eager
+              // import that lands in that bucket forces the menu to preload
+              // megabytes of 3D engine code it never renders (LCP killer).
+              if (id.includes('@babylonjs')) {
+                return 'vendor-babylon';
+              }
+              if (id.includes('@takram')) {
+                return 'vendor-takram';
+              }
+              if (id.includes('@3d-dice')) {
+                return 'vendor-dice';
+              }
+              if (id.includes('@dgreenheck') || id.includes('ez-tree')) {
+                return 'vendor-eztree';
+              }
+              if (id.includes('postprocessing')) {
+                return 'vendor-postprocessing';
+              }
+              if (id.includes('@react-three')) {
+                return 'vendor-react-three';
+              }
+              // three core must come AFTER the @react-three/postprocessing
+              // checks above so those keep their own chunks.
+              if (id.includes('/three/') || id.includes('three-stdlib') || id.includes('/three-')) {
+                return 'vendor-three';
+              }
+              return 'vendor-others';
+            }
           }
         }
       }

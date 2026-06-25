@@ -6,9 +6,9 @@ slug: companions
 status: "active (G6 decision recorded 2026-06-10; implementation lane open)"
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-10"
-gap_count: 1
-open_gap_count: 1
+last_updated: "2026-06-25"
+gap_count: 2
+open_gap_count: 2
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Companions System Gap Registry
 
 Status: active (G6 decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-10
+Last updated: 2026-06-25
 
 Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
@@ -110,6 +110,7 @@ Use this file for durable unresolved findings that are too important or too larg
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
 | G6 | not_started | in_scope_now | Worker A | `docs/projects/companions/TRACKER.md` | `src/systems/companions/Companions_Ralph.md` review | Romance state lock-in can keep a companion flagged as `romance` even after approval collapses to hostile territory. Decision recorded 2026-06-10 (DECISION_BLITZ D10): hysteresis exit â€” romance survives temporary dips but exits after sustained low approval; threshold + duration are specified in the implementation slice. | `src/systems/companions/Companions_Ralph.md`, `src/systems/companions/RelationshipManager.ts`, `docs/projects/DECISION_BLITZ_2026-06-10.md` D10 | The system can present a companion as romantically committed while the approval state says the opposite; story logic needs an explicit breakup/downgrade contract. | Encode the hysteresis breakup semantics in `RelationshipManager` (define threshold and sustained-duration values first). | Run a regression that drops approval from romance to hostile and verifies the exit fires only after the sustained-low-approval condition. |
+| G7 | not_started | support_needed_now | Codex | `src/state/reducers/characterReducer.ts` / companion membership flow | `docs/BACKLOG.md` migration 2026-06-25 | Party recruitment and leave actions need gameplay-owned reducer/action support instead of living as a root backlog note. | `docs/BACKLOG.md`; `src/state/reducers/characterReducer.ts`; Party UI roster boundary already documented in `docs/projects/party-ui/GAPS.md` G5/G7 as resolved UI ownership, leaving gameplay membership actions to Companions. | Recruitment and departure are core companion lifecycle actions; without explicit reducer/action proof, UI roster work can display party members but cannot safely add or remove them through gameplay. | Define recruit/leave action payloads, reducer semantics, and any relationship or approval side effects before wiring UI affordances. | Focused reducer tests proving recruit, leave, duplicate prevention, and persistence-safe party membership updates. |
 
 ## Classification Reference
 

@@ -63,12 +63,16 @@ A 2026-03-12 repo check confirmed:
 - Level Rollup Coverage Drift Detection
 - Level Rollup Historical Batch Preservation
 
-## Open Concrete Tasks
+## Routed Concrete Tasks
 
-- [ ] Define concrete thresholds for Dataset Coverage Gate versus Runtime Verification Gate.
-- [ ] Add deterministic node-ID conventions so roadmap capability rows stop colliding across related spell docs.
-- [ ] Wire Spell Detail Term Linking into the live spell-detail rendering path.
-- [ ] Rebase historical level rollup docs when their listed spell IDs drift from actual folder counts.
+The remaining actionable work from this roadmap was routed into durable project gap registries on 2026-06-26:
+
+- Dataset Coverage Gate versus Runtime Verification Gate thresholds now belong to `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md` as `spell-completeness-audit-G4`.
+- Deterministic roadmap node-ID conventions now belong to `docs/projects/roadmap-maintenance/GAPS.md` as `G6`.
+- Spell Detail Term Linking now belongs to `docs/projects/glossary-ui/GAPS.md` as `G8`.
+- Historical level-rollup drift now belongs to `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md` as part of `spell-completeness-audit-G2` and `spell-completeness-audit-G4`.
+
+This file is now reference context, not an executable backlog.
 
 ## Historical Note
 

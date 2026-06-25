@@ -50,12 +50,14 @@ import { buildAtlasTravelGraph, atlasMilesPerUnit, nearestLandCell, transportMob
 import { buildSubmapTravelGraph } from '@/systems/worldforge/travel/submapTravelGraph';
 import { planRoutesFrom, transportSpeedMph } from '@/systems/travel/routePlanning';
 import { availableTransports } from '@/systems/travel/availableTransports';
+import { rollTravelEncounter } from '@/systems/travel/travelEncounter';
+import { formatTravelTime } from '@/systems/travel/travelReadout';
 import { generateFmgWorld } from '@/systems/worldforge/fmg/generateWorld';
 
 interface MapPaneProps {
   mapData: MapData;
   worldSeed?: number;
-  onTileClick: (x: number, y: number, tile: MapTileType) => void;
+  onTileClick: (x: number, y: number, tile: MapTileType, travelMeta?: { seconds: number; encounterMessage?: string | null }) => void;
   /** When set, clicking a discovered cell in Enter 3D mode starts streamed world entry. */
   onEnter3DAtCell?: (x: number, y: number, tile: MapTileType) => void;
   /** Last known 3D position — draws AtlasPlayerMarker on the Worldforge atlas. */
@@ -406,8 +408,24 @@ const MapPane: React.FC<MapPaneProps> = ({
     const tile = projectedTiles[ty]?.[tx];
     if (!tile) return;
     if (interactionMode === 'enter3d' && allow3DEntry && onEnter3DAtCell) { onEnter3DAtCell(tx, ty, tile); return; }
-    if (interactionMode === 'travel' && allowTravel) { onTileClick(tx, ty, tile); }
-  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, gridSize.cols, gridSize.rows, projectedTiles, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick]);
+    if (interactionMode === 'travel' && allowTravel) {
+      // Resolve the planned route to the picked cell → real trip duration + a
+      // pre-rolled "danger on the road" encounter, handed to the world-move
+      // contract so the game clock advances by travel time, not a flat hour.
+      const route = planAtlasRoute(info.i);
+      let travelMeta: { seconds: number; encounterMessage?: string | null } | undefined;
+      if (route) {
+        const roll = rollTravelEncounter(route, rootSeedPath(worldforgeSeed));
+        travelMeta = {
+          seconds: Math.round(route.minutes * 60),
+          encounterMessage: roll.encounter
+            ? `After ${formatTravelTime(route.minutes)} on the road, danger finds you — an encounter!`
+            : `You travel for ${formatTravelTime(route.minutes)} and arrive without incident.`,
+        };
+      }
+      onTileClick(tx, ty, tile, travelMeta);
+    }
+  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, gridSize.cols, gridSize.rows, projectedTiles, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planAtlasRoute, worldforgeSeed]);
 
   // Enter 3D from inside the drill: the leaf rung of World ▸ Region ▸ Local ▸ Town
   // ▸ 3D. Resolves the region's focus atlas cell (drill base) → world tile and

@@ -29,6 +29,8 @@ const panelMotion: MotionProps = {
   exit: { y: -30, opacity: 0 },
 };
 
+const DOSSIER_LIST_PAGE_SIZE = 25;
+
 const getDispositionDetails = (score: number): { label: string; colorClass: string } => {
   if (score > 80) return { label: 'Adored', colorClass: 'text-green-300' };
   if (score > 40) return { label: 'Friendly', colorClass: 'text-green-400' };
@@ -57,11 +59,26 @@ const getGoalStatusDetails = (status: GoalStatus): { label: string; colorClass: 
 
 const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, npcMemory, allNpcs }) => {
   const [selectedNpcId, setSelectedNpcId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const metNpcs = useMemo(() => {
     return metNpcIds.map(id => allNpcs[id]).filter((npc): npc is NPC => !!npc);
   }, [metNpcIds, allNpcs]);
+
+  const totalPages = Math.max(1, Math.ceil(metNpcs.length / DOSSIER_LIST_PAGE_SIZE));
+  const pagedNpcs = useMemo(() => {
+    // Keep the dossier list bounded per page so campaigns with many met NPCs
+    // do not render the entire memory index at once.
+    const pageStart = (currentPage - 1) * DOSSIER_LIST_PAGE_SIZE;
+    return metNpcs.slice(pageStart, pageStart + DOSSIER_LIST_PAGE_SIZE);
+  }, [currentPage, metNpcs]);
+
+  useEffect(() => {
+    // If the set of met NPCs changes, keep the current page within the
+    // available dossier pages instead of showing an empty page.
+    setCurrentPage(page => Math.min(page, totalPages));
+  }, [totalPages]);
 
   useEffect(() => {
     if (isOpen) {
@@ -112,23 +129,46 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
         {/* Main Content */}
         <div className="flex-grow flex flex-col md:flex-row gap-4 overflow-hidden min-h-0">
           {/* Left Pane: NPC List */}
-          <div className="md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-y-auto scrollable-content flex-shrink-0">
+          <div data-testid="dossier-npc-list" className="md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-hidden flex-shrink-0 flex flex-col min-h-0">
             {metNpcs.length === 0 ? (
                 <p className="text-gray-500 italic text-center py-4">You haven&apos;t spoken to anyone yet.</p>
             ) : (
-                <ul className="space-y-1">
-                {metNpcs.map(npc => (
-                    <li key={npc.id}>
-                    <button
-                        onClick={() => setSelectedNpcId(npc.id)}
-                        className={`w-full text-left p-2.5 rounded-md transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-400
-                                    ${selectedNpcId === npc.id ? 'bg-sky-700 text-white shadow-md' : 'bg-gray-700 hover:bg-gray-600/70 text-gray-300'}`}
-                    >
-                        <span className="font-semibold">{npc.name}</span>
-                    </button>
-                    </li>
-                ))}
-                </ul>
+                <>
+                  <ul className="space-y-1 flex-grow overflow-y-auto scrollable-content min-h-0">
+                  {pagedNpcs.map(npc => (
+                      <li key={npc.id}>
+                      <button
+                          onClick={() => setSelectedNpcId(npc.id)}
+                          className={`w-full text-left p-2.5 rounded-md transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-400
+                                      ${selectedNpcId === npc.id ? 'bg-sky-700 text-white shadow-md' : 'bg-gray-700 hover:bg-gray-600/70 text-gray-300'}`}
+                      >
+                          <span className="font-semibold">{npc.name}</span>
+                      </button>
+                      </li>
+                  ))}
+                  </ul>
+                  {totalPages > 1 && (
+                    <div className="mt-3 pt-3 border-t border-gray-700 flex items-center justify-between gap-2 text-xs text-gray-300">
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+                        disabled={currentPage === 1}
+                        className="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        Previous
+                      </button>
+                      <span aria-live="polite">Page {currentPage} of {totalPages}</span>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </>
             )}
           </div>
 

@@ -1,8 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { calculateDifficulty } from '../../combat/encounterDifficulty';
 import { generateBestiaryEncounter } from '../bestiaryEncounterGenerator';
+import { loadMonstersData } from '../../../data/monsters';
 
 describe('bestiaryEncounterGenerator', () => {
+  beforeAll(async () => {
+    await loadMonstersData();
+  });
   const party = [
     { id: 'w1', name: 'Rook', classId: 'fighter', level: 3 },
     { id: 'w2', name: 'Lark', classId: 'wizard', level: 3 },

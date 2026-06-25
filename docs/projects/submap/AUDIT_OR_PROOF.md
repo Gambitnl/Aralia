@@ -25,7 +25,7 @@ dependents and extracting retained functions before any component deprecation.
 |---|---|---|
 | T3 action contract extraction | `src/utils/spatial/submapActionContracts.ts`, `src/utils/spatial/__tests__/submapActionContracts.test.ts` | UI-independent helpers now build/normalize quick-travel and inspect payloads; 9 focused tests pass. SubmapPane not rewired yet (G7). |
 | T4 dependent-system matrix | `docs/projects/submap/DEPENDENCY_CONTRACT.md` extraction matrix | 18 dependent surfaces classified with retain/extract/replace/retire and owner routing. |
-| T5 generation modularization plan | `docs/projects/submap/GENERATION_MODULARIZATION.md` | Source-backed plan names `generateLocalTerrainData` extraction path and defers painter splits until G3/G6/CMA-G16. |
+| T5 generation modularization plan | `docs/projects/submap/GAPS.md` G4/G8 imported plan appendix | Source-backed plan names `generateLocalTerrainData` extraction path and defers painter splits until G3/G6/CMA-G16. |
 | Inventory scan | `rg -n -e Submap -e submap -e QUICK_TRAVEL -e inspect_submap_tile src` (2026-06-10) | 90+ non-test source files reference Submap concepts; matrix covers primary integration edges. |
 
 ### Verification commands run

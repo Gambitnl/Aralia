@@ -17,7 +17,7 @@ Use it only as a pointer to the archived historical batch record.
 
 - docs/archive/spell-system/cantrips/1I-MIGRATE-CANTRIPS-BATCH-1.md for the preserved Batch 1 record
 - docs/spells/STATUS_LEVEL_0.md for the current cantrip status surface
-- docs/tasks/spell-system-overhaul/TODO.md for live cross-level follow-through gaps
+- docs/projects/spells/SUBPROJECTS.md and the relevant Spells child `GAPS.md` file for live cross-level follow-through gaps
 
 ## Verified Drift
 

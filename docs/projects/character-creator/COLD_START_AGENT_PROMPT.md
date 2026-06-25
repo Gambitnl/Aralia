@@ -4,11 +4,11 @@ handoff_type: agent_to_agent
 project: Character Creator
 slug: character-creator
 status: active
-last_updated: 2026-06-14
-iteration: 6
-source_agent: Antigravity
+last_updated: 2026-06-25
+iteration: 12
+source_agent: Codex
 target_agent: next cold-start agent
-runtime_surface: CLI agent
+runtime_surface: application agent
 certainty: certain
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
@@ -20,7 +20,7 @@ gaps: docs/projects/character-creator/GAPS.md
 # Character Creator Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-14
+Last updated: 2026-06-25
 
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
@@ -34,35 +34,38 @@ Project entry point: docs/projects/character-creator/NORTH_STAR.md
 | 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
 | 5 | Gemini 3.5 Flash (Medium) | CLI agent | certain | 2026-06-12 | Reconciled T4 documentation drift and registered racial trait gaps G18, G19 |
 | 6 | Antigravity | CLI agent | certain | 2026-06-14 | Resolved G18 redundant validation checks and G19 rest choices mapping/type bugs |
+| 7 | Codex | application agent | certain | 2026-06-24 | Resolved G7 by updating CreationSidebar tests for human-only Racial Feat visibility and navigation |
+| 8 | Codex | application agent | certain | 2026-06-24 | Resolved G20 as already-current after verifying skillSelectionUtils checks Skillful with matching `raceId: 'human'` |
+| 9 | Codex | application agent | certain | 2026-06-25 | Resolved G14 by changing CreationSidebar footer progress to ignore future default-complete steps |
+| 10 | Codex | application agent | certain | 2026-06-25 | Resolved G15 by keeping background-granted class skill rows visible with source badges while preserving replacement choices |
+| 11 | Codex | application agent | certain | 2026-06-25 | Resolved G4 by removing unused alias imports from the CharacterCreator flow test and updating Changeling size selection |
+| 12 | Codex | application agent | certain | 2026-06-25 | Resolved G17 by keeping legacy Rusty Sword out of mastery choices and making weapon details reachable by focus/click |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Character Creator
 Project folder: docs/projects/character-creator
-iteration: 6
+iteration: 12
 North Star: docs/projects/character-creator/NORTH_STAR.md
 Tracker: docs/projects/character-creator/TRACKER.md
 Gaps: docs/projects/character-creator/GAPS.md
 
 ## Current Mission
 
-Redundant base-race validation checks are removed (G18), and rest choices are fully resolved and typed (G19). Next mission: Proceed to address G7 (CreationSidebar test alias mismatch), G14 (CreationSidebar progress counter jumps), and G20 (deriveRacialSkillGrants test mismatch).
+Redundant base-race validation checks are removed (G18), rest choices are fully resolved and typed (G19), the sidebar racial-feat visibility test now matches the live UI contract (G7), the Skillful raceId test mismatch is already resolved in the current checkout (G20), the sidebar progress counter no longer credits future default-complete steps (G14), background-granted class skills now remain visible with source badges (G15), the CharacterCreator flow test lint-intent cleanup is complete (G4), and Weapon Mastery selection now hides legacy Rusty Sword while exposing details by focus/click (G17). Next mission: proceed to the next audited Character Creator gap, likely G16.
 
 ## Required End State For This Iteration
 
-- Fix test in `CreationSidebar.test.tsx` to query with correct step labels and enums (resolving G7).
-- Update `CreationSidebar.tsx` to handle progress counter logically (e.g. counting visited steps only or showing remaining choices) to resolve G14.
-- Fix `skillSelectionUtils.test.ts` to expect either correct source or mock the `raceId` as `'human'` for the human check (resolving G20).
-- Run `npm run test` and `npm run typecheck` to verify that character creator and state tests pass.
+- Pick one remaining audited Character Creator gap from `GAPS.md`, keeping the slice small and source-backed.
+- Run focused Character Creator tests for the touched files and typecheck when production state/types are changed.
 
 ## Evidence
 
-- `CreationSidebar.test.tsx:37-41` (G7 evidence)
-- `CreationSidebar.tsx` progress bar logic (G14 evidence)
-- `src/components/CharacterCreator/utils/__tests__/skillSelectionUtils.test.ts:48-66` (G20 evidence)
+- Spell card surfaces across creator/sheet views (G16 evidence)
+- `SpellCard`/spell list components across `*FeatureSelection`, `FeatSpellPicker`, and `CharacterSheet` Spellbook (G16 evidence)
 
 ## agent_comments
 
-- Iteration 6 resolved G18 and G19 successfully, and all character creator hooks and reducer tests are passing.
+- Iteration 12 resolved G17. `WeaponMasterySelection.tsx` now uses current weapon categories for eligibility, excludes only the legacy `rusty_sword` duplicate from mastery choices, and previews details by hover, focus, or click/tap.
 Required docs to account for before closeout:
 - NORTH_STAR.md
 - TRACKER.md
@@ -103,6 +106,12 @@ Before selecting work, identify yourself and the surface you are running through
 | pre-standardization | not recorded | unknown | unknown | before 2026-06-12 | Original character-creator handoff predates the ledger requirement. |
 | 5 | Gemini 3.5 Flash (Medium) | CLI agent | certain | 2026-06-12 | Reconciled T4 documentation drift and registered racial trait gaps G18, G19 |
 | 6 | Antigravity | CLI agent | certain | 2026-06-14 | Resolved G18 redundant validation checks and G19 rest choices mapping/type bugs |
+| 7 | Codex | application agent | certain | 2026-06-24 | Resolved G7 by updating CreationSidebar tests for human-only Racial Feat visibility and navigation |
+| 8 | Codex | application agent | certain | 2026-06-24 | Resolved G20 as already-current after verifying skillSelectionUtils checks Skillful with matching `raceId: 'human'` |
+| 9 | Codex | application agent | certain | 2026-06-25 | Resolved G14 by changing CreationSidebar footer progress to ignore future default-complete steps |
+| 10 | Codex | application agent | certain | 2026-06-25 | Resolved G15 by keeping background-granted class skill rows visible with source badges while preserving replacement choices |
+| 11 | Codex | application agent | certain | 2026-06-25 | Resolved G4 by removing unused alias imports from the CharacterCreator flow test and updating Changeling size selection |
+| 12 | Codex | application agent | certain | 2026-06-25 | Resolved G17 by keeping legacy Rusty Sword out of mastery choices and making weapon details reachable by focus/click |
 
 ### Required project docs to account for
 

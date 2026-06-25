@@ -264,8 +264,19 @@ describe('buildBurgs', () => {
     } as any;
     const b = buildBurgs(a);
     expect(b).toHaveLength(2);          // i:1 (capital) + i:3 (town); i:0 placeholder + i:2 removed dropped
-    expect(b[0]).toEqual({ x: 10, y: 20, capital: true });
-    expect(b[1]).toEqual({ x: 7, y: 8, capital: false });
+    expect(b[0]).toEqual({ x: 10, y: 20, capital: true, tier: 'capital' });
+    expect(b[1]).toEqual({ x: 7, y: 8, capital: false, tier: 'village' }); // no population → village
+  });
+
+  it('tiers non-capital burgs by population percentile (city / town / village)', () => {
+    const burgs = [{ i: 0 }];
+    // 10 non-capitals with populations 1..10 → top 15% city, next 35% town, rest village.
+    for (let p = 1; p <= 10; p++) burgs.push({ i: p, x: p, y: p, population: p } as any);
+    const b = buildBurgs({ pack: { cells: {}, burgs } } as any);
+    const tierOf = (pop: number) => b.find((x) => x.x === pop)!.tier;
+    expect(tierOf(10)).toBe('city');    // highest population
+    expect(tierOf(6)).toBe('town');     // mid band
+    expect(tierOf(1)).toBe('village');  // lowest population
   });
 });
 

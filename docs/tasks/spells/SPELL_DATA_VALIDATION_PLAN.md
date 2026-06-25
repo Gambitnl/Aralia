@@ -31,11 +31,9 @@ This file captures the current plan for validating spell JSON structure and spel
   - `F:\Repos\Aralia\scripts\add_spell.js`
 - That `higherLevelScaling` field is intentionally optional for now so the live corpus can stay valid while scaling is normalized incrementally.
 
-The corpus-wide execution tracker that lists every spell in scope now lives at:
-- `F:\Repos\Aralia\docs\tasks\spells\SPELL_CORPUS_EXECUTION_TRACKER.md`
-
-That tracker should now be read as the historical corpus inventory and broad execution checklist.
-It is no longer the most up-to-date completion surface because the spell-truth lane has since split into:
+The old corpus-wide execution tracker that listed every spell in scope was retired on 2026-06-25.
+It had already become a historical corpus inventory and broad execution checklist, not the most up-to-date completion surface.
+The spell-truth lane has since split into:
 - canonical capture completion
 - structured-vs-canonical review
 - structured-vs-json runtime review
@@ -49,11 +47,7 @@ The live current-state surfaces are now:
 - `F:\Repos\Aralia\docs\tasks\spells\SPELL_DESCRIPTION_SUBBUCKET_REPORT.md`
 - `F:\Repos\Aralia\docs\tasks\spells\SPELL_HIGHER_LEVEL_DESCRIPTION_COVERAGE_REPORT.md`
 
-The tracker now also contains the corpus-completion plan and the current per-spell
-done definition, so the project has one place that answers:
-- what "done" means for one spell
-- what order the full corpus should be worked in
-- when a spell should remain unchecked and move into arbitration instead
+New corpus-level coverage work should route through the Spells parent and child-lane gaps instead of restoring the old per-spell checkbox backlog.
 
 The goal is not just to prove that the spell system exists. The goal is to prove that the spell data is shaped consistently, validated against the live schema, and documented faithfully enough that roadmap completion can later mean "validated" rather than only "implemented."
 

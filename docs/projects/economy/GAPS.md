@@ -6,9 +6,9 @@ slug: economy
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-08"
-gap_count: 0
-open_gap_count: 0
+last_updated: "2026-06-25"
+gap_count: 1
+open_gap_count: 1
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
@@ -101,9 +101,9 @@ supported_optional_sections:
 ---
 project: Economy System
 slug: economy
-last_updated: \"2026-06-08\"
-gap_count: 0
-open_gap_count: 0
+last_updated: "2026-06-25"
+gap_count: 1
+open_gap_count: 1
 north_star: docs/projects/economy/NORTH_STAR.md
 tracker: docs/projects/economy/TRACKER.md
 global_gaps: docs/projects/GLOBAL_GAPS.md
@@ -111,14 +111,15 @@ global_gaps: docs/projects/GLOBAL_GAPS.md
 # Economy System Gap Registry
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-25
 
 Use this file for durable unresolved findings that are required to preserve meaningful continuity.
 
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
-|---|---|---|---|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|---|---|---|---|
+| E-G1 | open | ui | Economy System | Economy UI | Root backlog retirement, 2026-06-25 | Player-facing business management and trade-map surfaces still need a clear in-world UI home. | `docs/tasks/worldsmith-economy-plan.md` still listed `src/components/Economy/BusinessManagement.tsx` and `src/components/Economy/TradeMap.tsx` as unchecked; current repo has system-level `BusinessManagement.ts`, `TradeRouteDashboard.tsx`, `LedgerBook.tsx`, `CourierPouch.tsx`, and `InvestmentBoard.tsx`, but not those two named player-facing components. | The economy runtime is live, but some management and route-reading affordances remain split between dev/menu surfaces and system internals, making the feature harder to discover and prove as gameplay. | Decide whether to add dedicated in-world components or fold the missing affordances into `LedgerBook`, `InvestmentBoard`, and `TradeRouteDashboard` without adding duplicate UI. | Render the economy UI path and prove a player can inspect owned businesses, route context, investments, and courier intel without relying on debug-only navigation. |
 
 ## Classification
 

@@ -181,14 +181,18 @@ Phase 5: Migration & Polish (Weeks 10-11)
 
 ---
 
-## Success Criteria
+## Historical Success Criteria Routing
 
-- [ ] All 27 tasks completed
-- [ ] 95% of D&D 5e spells (Cantrips-Level 3) implemented
-- [ ] AI DM arbitration working for edge cases
-- [ ] Performance: Spell execution < 100ms (mechanical), < 2s (AI-assisted)
-- [ ] Test coverage > 80%
-- [ ] Zero regressions in existing combat functionality
+This index is an older 27-task coordination packet and is no longer the live backlog.
+The remaining success criteria are owned by current Spells project gap rows:
+
+- Task completion and runtime orchestration proof: `docs/projects/spells/subprojects/structured-spell-execution/GAPS.md`.
+- Corpus coverage and migration thresholds: `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md`.
+- AI arbitration and edge-case mechanics: `docs/projects/spells/subprojects/mechanics-discovery-packages/GAPS.md`.
+- Targeting, area, cover, and map-visible spell behavior: `docs/projects/spells/subprojects/targeting-object-area/GAPS.md`.
+- Validation and integration check automation: `docs/projects/spells/subprojects/validator-data-integrity/GAPS.md`.
+
+Do not close this historical checklist directly; update the owning gap row with evidence.
 
 ---
 

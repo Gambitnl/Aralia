@@ -1,56 +1,52 @@
 # Item Icons North Star
 
-Status: active  
-Last updated: 2026-05-31
+Status: complete
+Last updated: 2026-06-25
 
 ## Purpose and Scope
 
-Create a living docs surface for item icon execution so agents can resume work quickly and consistently without re-discovering process.  
-This project stays scoped to `docs/tasks/item-icons` planning docs and does not request code changes.
+Create a living docs surface for item icon execution so agents can resume work quickly and consistently without re-discovering process.
+This project stays scoped to `docs/tasks/item-icons` planning docs and item SVG assets.
 
 ## Project State
 
 - Project is registered as planned in `docs/projects/PROJECT_TRACKER.md`.
 - The folder currently contains:
   - `JULES_ACCEPTANCE_CRITERIA.md`
-  - `BATCH-01-ITEMS.md` ... `BATCH-41-ITEMS.md`
   - `NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`
-- Batch checklists are present but no items are checked complete in the batch files currently reviewed.
-- There is currently only one observed item icon asset in `public/assets/icons/items` and it is not tied to a completed batch in docs.
+- The old `BATCH-01-ITEMS.md` ... `BATCH-41-ITEMS.md` backlog files were validated as still-relevant work, migrated into the gap/tracker record, executed, and deleted on 2026-06-25.
+- `public/assets/icons/items` now contains 810 generated item SVGs, one per checklist item.
 
 ## File Map
 
 - `NORTH_STAR.md`: project summary, scope, and execution resume path.
-- `TRACKER.md`: active queue, task posture, and gap routing.
-- `GAPS.md`: preserved open questions and blockers.
+- `TRACKER.md`: completed queue, task posture, and gap routing.
+- `GAPS.md`: completed gap record and remaining routing notes.
 - `JULES_ACCEPTANCE_CRITERIA.md`: source of output constraints for SVG generation.
-- `BATCH-01-ITEMS.md` to `BATCH-41-ITEMS.md`: execution slices (20 items per batch except final batch of 10).
+- `scripts/generateItemIconSvgs.mjs`: deterministic generator used for the 2026-06-25 SVG pass.
 
 ## Implemented vs Planned
 
 Implemented:
 - Registry-linked scaffolding files exist for this project.
-- Canonical execution split into 41 batches is documented.
+- Canonical execution split into 41 batches was completed and retired.
+- 810 item SVG assets exist under `public/assets/icons/items/{item_id}.svg`.
 
 Planned:
-- Generate SVG assets under `public/assets/icons/items/{item_id}.svg` for each listed item.
-- Keep execution in-bounds to documentation-defined acceptance rules and asset-only output.
-- Keep `TRACKER.md`/`GAPS.md` updated as batches advance.
+- Future art-direction passes may replace individual generated SVGs with more bespoke art if product quality requires it.
 
 ## Integrations / Runtime Touchpoints
 
-- Item glossary definitions mostly carry symbolic icon tokens in source docs (`src/data/items/generatedGlossaryItems.ts`) and are not fully expressed as direct `/assets/icons/items/*.svg` paths.
-- `public/assets/icons/general/*` contains existing general icons, but not the full item icon set under this project.
-- Direct item icon adoption flow is partially unknown until generation + consumption checks confirm.
+- `scripts/generateItemRegistry.ts` switches a generated item icon to `/assets/icons/items/{id}.svg` when the matching SVG exists.
+- `src/utils/visuals/visualUtils.ts` already renders item icons that are path-like strings.
+- `public/assets/icons/general/*` remains the curated general icon surface for older armor/weapon fallbacks.
 
 ## Gaps / Uncertainties
 
-- Canonical icon taxonomy is not discoverable in the current item-icons evidence.
-- The project currently has a potential gap between symbolic icon identifiers and file-path-based icon use.
-- There is no evidence of batch-level completion checkpoints tied to UI rendering verification.
+- The item icon pass uses deterministic type/name-based SVG generation, not final bespoke art direction.
+- Broader item taxonomy questions remain owned by `docs/projects/item_categorization/GAPS.md`.
 
 ## Next Checks
 
-- After each batch: verify all listed icon files exist and are valid SVG (`viewBox 0 0 24 24`, no non-file edits).
-- Confirm the runtime lookup path for item icon rendering and whether symbolic IDs require a mapping step.
-- Review updated batch state for any mismatch between batch list IDs and glossary entry IDs.
+- If product quality requires hand-authored art, replace icons in place without restoring the old batch checklist backlog.
+- Regenerate `src/data/items/generatedGlossaryItems.ts` after icon changes when a runtime proof needs the item registry to point at newly present SVGs.

@@ -23,6 +23,8 @@ interface DiscoveryLogPaneProps {
 
 type SortOrder = 'newest' | 'oldest' | 'title_asc' | 'title_desc';
 
+const LOGBOOK_LIST_PAGE_SIZE = 25;
+
 const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
   isOpen,
   entries,
@@ -36,6 +38,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<DiscoveryType | 'ALL'>('ALL');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
+  const [currentPage, setCurrentPage] = useState(1);
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
   const listContainerRef = useRef<HTMLDivElement>(null);
 
@@ -74,6 +77,27 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
     }
     return processedEntries;
   }, [entries, filterType, searchTerm, sortOrder]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredAndSortedEntries.length / LOGBOOK_LIST_PAGE_SIZE));
+  const pagedEntries = useMemo(() => {
+    // Show only one page of the matching journal list at a time. The full
+    // filtered list still drives detail selection so existing read/detail
+    // behavior remains intact while long campaigns avoid rendering 200 rows.
+    const pageStart = (currentPage - 1) * LOGBOOK_LIST_PAGE_SIZE;
+    return filteredAndSortedEntries.slice(pageStart, pageStart + LOGBOOK_LIST_PAGE_SIZE);
+  }, [currentPage, filteredAndSortedEntries]);
+
+  useEffect(() => {
+    // When filtering or sorting shrinks the result list, keep the page number
+    // on a valid page instead of leaving the player on an empty slice.
+    setCurrentPage(page => Math.min(page, totalPages));
+  }, [totalPages]);
+
+  useEffect(() => {
+    // Search, type filter, and sort change the meaning of the list, so return
+    // the player to the first page where the strongest matches are visible.
+    setCurrentPage(1);
+  }, [filterType, searchTerm, sortOrder]);
 
   useEffect(() => {
     if (isOpen) {
@@ -227,31 +251,54 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
         {/* Main Content: List and Detail Panes */}
         <div className="flex-grow flex flex-col md:flex-row gap-4 overflow-hidden min-h-0">
           {/* Left Pane: Entry List */}
-          <div ref={listContainerRef} className="md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-y-auto scrollable-content flex-shrink-0">
+          <div ref={listContainerRef} data-testid="discovery-log-entry-list" className="md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-hidden flex-shrink-0 flex flex-col min-h-0">
             {filteredAndSortedEntries.length === 0 ? (
               <p className="text-gray-500 italic text-center py-4">No entries match your criteria.</p>
             ) : (
-              <ul className="space-y-1">
-                {filteredAndSortedEntries.map(entry => (
-                  <li key={entry.id}>
+              <>
+                <ul className="space-y-1 flex-grow overflow-y-auto scrollable-content min-h-0">
+                  {pagedEntries.map(entry => (
+                    <li key={entry.id}>
+                      <button
+                        onClick={() => handleEntrySelect(entry)}
+                        className={`w-full text-left p-2.5 rounded-md transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-400
+                                      ${selectedEntry?.id === entry.id ? 'bg-sky-700 text-white shadow-md' : 'bg-gray-700 hover:bg-gray-600/70 text-gray-300'}`}
+                      >
+                        <div className="flex items-center">
+                          {!entry.isRead && (
+                            <Tooltip content="Unread">
+                              <span className="w-2 h-2 bg-amber-400 rounded-full mr-2 flex-shrink-0" aria-label="Unread entry"></span>
+                            </Tooltip>
+                          )}
+                          <span className={`flex-grow truncate ${!entry.isRead ? 'font-semibold' : ''}`}>{entry.title}</span>
+                        </div>
+                        <span className="text-xs text-gray-500 block mt-0.5">{entry.type} - {formatGameDate(new Date(entry.timestamp))}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                {totalPages > 1 && (
+                  <div className="mt-3 pt-3 border-t border-gray-700 flex items-center justify-between gap-2 text-xs text-gray-300">
                     <button
-                      onClick={() => handleEntrySelect(entry)}
-                      className={`w-full text-left p-2.5 rounded-md transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-400
-                                    ${selectedEntry?.id === entry.id ? 'bg-sky-700 text-white shadow-md' : 'bg-gray-700 hover:bg-gray-600/70 text-gray-300'}`}
+                      type="button"
+                      onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+                      disabled={currentPage === 1}
+                      className="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      <div className="flex items-center">
-                        {!entry.isRead && (
-                          <Tooltip content="Unread">
-                            <span className="w-2 h-2 bg-amber-400 rounded-full mr-2 flex-shrink-0" aria-label="Unread entry"></span>
-                          </Tooltip>
-                        )}
-                        <span className={`flex-grow truncate ${!entry.isRead ? 'font-semibold' : ''}`}>{entry.title}</span>
-                      </div>
-                      <span className="text-xs text-gray-500 block mt-0.5">{entry.type} - {formatGameDate(new Date(entry.timestamp))}</span>
+                      Previous
                     </button>
-                  </li>
-                ))}
-              </ul>
+                    <span aria-live="polite">Page {currentPage} of {totalPages}</span>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
 

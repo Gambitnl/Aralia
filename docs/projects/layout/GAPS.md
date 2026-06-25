@@ -6,9 +6,9 @@ slug: layout
 status: "active (G3/G4 decided 2026-06-10; implementation lane open)"
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-10"
-gap_count: 2
-open_gap_count: 2
+last_updated: "2026-06-25"
+gap_count: 4
+open_gap_count: 4
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
@@ -101,9 +101,9 @@ supported_optional_sections:
 ---
 project: Layout Project
 slug: layout
-last_updated: \"2026-06-10\"
-gap_count: 2
-open_gap_count: 2
+last_updated: \"2026-06-25\"
+gap_count: 4
+open_gap_count: 4
 north_star: docs/projects/layout/NORTH_STAR.md
 tracker: docs/projects/layout/TRACKER.md
 global_gaps: docs/projects/GLOBAL_GAPS.md
@@ -113,7 +113,7 @@ registry_mode: mixed
 # Layout Project Gap Registry
 
 Status: active (G3/G4 decided 2026-06-10; implementation lane open)
-Last updated: 2026-06-10
+Last updated: 2026-06-25
 
 Use this file for durable unresolved findings tied directly to Layout.
 
@@ -123,6 +123,8 @@ Use this file for durable unresolved findings tied directly to Layout.
 |---|---|---|---|---|---|---|---|---|---|
 | G4 | active | blocked_human_decision | human/product owner + layout/providers owners | `docs/projects/code-modularization-audit` CMA-G4 | Code modularization audit routing | `App.tsx` is a high-risk app-shell modularization candidate tied to layout, providers, phase routing, and modal orchestration. | `src/App.tsx`; `src/components/layout/GameModals.tsx`; `src/components/providers/AppProviders.tsx`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G4 | App-shell splits can change phase rendering, modal order, provider nesting, and interaction locks. | Decided 2026-06-10 (Remy, D7): app-shell split approved â€” move provider composition into a dedicated app-shell module with preservation tests (provider order, `DataLoaderGate`, `GameProvider` boundaries). Implementation lane open; see `docs/projects/DECISION_BLITZ_2026-06-10.md`. | Split lands with focused preservation tests proving provider order, `DataLoaderGate`, and `GameProvider` boundaries are unchanged. |
 | CMA-G17 | not_started | adjacent_follow_up | layout owner | `docs/projects/code-modularization-audit/GAPS.md` CMA-G17 | Code modularization audit routing | `GameModals.tsx` (~721 lines) is the central modal orchestration file; it crosses many owners and lazy-load boundaries, making regressions easy to hide. | `src/components/layout/GameModals.tsx`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G17 | A split of the modal manager without open/close smoke proof and interaction-lock clarity can break overlays across many surfaces. Blocked on G3 (`isUIInteractive` decision) and G4 (App-shell split contract) â€” both decided 2026-06-10 (D7), so the precondition is cleared. | Accept or defer the inbound CMA-G17 route; G3/G4 are resolved (2026-06-10, D7), so if accepting, create a narrow modal-manager split plan with open/close coverage. | Owner gap row exists and CMA-G17 status is updated to reflect acceptance or deferral. |
+| G5 | not_started | support_needed_now | Codex | Modal focus and keyboard navigation | `docs/BACKLOG.md` migration 2026-06-25 | Centralized modal focus management and keyboard navigation need a layout-owned contract. | `docs/BACKLOG.md`; `src/components/layout/GameModals.tsx` | Modal behavior spans many surfaces; without a shared focus/keyboard policy, fixes fragment across individual dialogs. | Define focus trap, escape, restore-focus, and tab-order expectations before refactoring modal orchestration. | Focused tests proving at least one modal opens, traps focus, closes with Escape, and restores focus. |
+| G6 | not_started | adjacent_follow_up | Codex | Shared UI action registry | `docs/BACKLOG.md` migration 2026-06-25 | The UI toggle list in `useGameActions` should derive from a shared action registry to reduce drift. | `docs/BACKLOG.md`; `src/hooks/useGameActions.ts`; `src/types/ui.ts` | Toggle drift can leave loading states or UI actions classified inconsistently across the app shell. | Move toggle classification to the shared action metadata path, preserving current exceptions. | Unit tests proving known UI toggles do not trigger global loading while gameplay actions still do. |
 
 ## Classification Reference
 

@@ -6,18 +6,18 @@ category: Feature/UI Projects
 main_category: "Content & Rules"
 subcategory: "Rules, Spells & Source Data"
 status: partial
-last_updated: 2026-06-22
-iteration: 9
+last_updated: 2026-06-24
+iteration: 11
 confidence: medium
 evidence: docs/projects/party-ui
-gap_signal: "2 open gaps; G11 and G12 remain open while G4, G5, G6, G7, G9, and G10 are resolved"
+gap_signal: "0 open gaps; G4, G5, G6, G7, G9, G10, G11, and G12 are resolved"
 protocol: living project doc set
-next_step: "Resolve G11 (combat check for rest flow) and G12 (multiple choice warnings display on card)."
+next_step: "Run the next Party UI expansion sweep and register any newly discovered gaps before implementing more work."
 agent_comments: ""
-active_agent: "Gemini 3.5 Flash (Medium)"
+active_agent: "Codex"
 agent_pass_status: "finished"
-agent_pass_started_at: "2026-06-22T00:31:00+02:00"
-agent_pass_ended_at: "2026-06-22T00:45:00+02:00"
+agent_pass_started_at: "2026-06-24T22:52:00+02:00"
+agent_pass_ended_at: "2026-06-24T23:01:00+02:00"
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -39,7 +39,9 @@ completed_verification:
   - G5 roster acceptance contract audit (2026-06-19)
   - G7 companion data integration tests (2026-06-22)
   - PartyMemberCard unit test coverage (2026-06-22)
-last_proof: 2026-06-22
+  - PartyOverlay combat rest gate tests (2026-06-24)
+  - PartyMemberCard multiple missing-choice warning tests (2026-06-24)
+last_proof: 2026-06-24
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: needed
 lifecycle_status: active
@@ -50,8 +52,8 @@ human_decision_required: "no"
 ---
 # Party UI North Star
 
-Status: active (all gaps resolved 2026-06-22)
-Last updated: 2026-06-22
+Status: active
+Last updated: 2026-06-24
 
 ## Dashboard Card Schema
 
@@ -61,12 +63,12 @@ Category: Feature/UI Projects
 Status: partial
 Confidence: medium
 Evidence: docs/projects/party-ui
-Gap signal: 2 open gaps; G11 and G12 remain open while G4, G5, G6, G7, G9, and G10 are resolved
+Gap signal: 0 open gaps; G4, G5, G6, G7, G9, G10, G11, and G12 are resolved
 Protocol: living project doc set
-Next step: Resolve G11 (combat check for rest flow) and G12 (multiple choice warnings display on card).
+Next step: Run the next Party UI expansion sweep and register any newly discovered gaps before implementing more work.
 Required verification: docs_consistency, scoped_tests
-Completed verification: docs_consistency, focused short-rest persistence tests, companion-context regression tests (2026-06-08), T5 mismatch-warning evaluation (2026-06-08), G3 README audit (2026-06-08), G7 companion data integration tests (2026-06-22), PartyMemberCard unit test coverage (2026-06-22), Short rest modal and choice flow parity integration tests (2026-06-22), Warning placement display rule (2026-06-22), State/Save/Load modularization audit (2026-06-22)
-Last proof: 2026-06-22
+Completed verification: docs_consistency, focused short-rest persistence tests, companion-context regression tests (2026-06-08), T5 mismatch-warning evaluation (2026-06-08), G3 README audit (2026-06-08), G7 companion data integration tests (2026-06-22), PartyMemberCard unit test coverage (2026-06-22), Short rest modal and choice flow parity integration tests (2026-06-22), Warning placement display rule (2026-06-22), State/Save/Load modularization audit (2026-06-22), PartyOverlay combat rest gate tests (2026-06-24), PartyMemberCard multiple missing-choice warning tests (2026-06-24)
+Last proof: 2026-06-24
 Workflow gaps reviewed: 2026-06-08
 
 ## Purpose and scope
@@ -85,7 +87,7 @@ This is a cold-start implementation snapshot, not a scaffold placeholder.
 
 - `src/components/Party/PartyOverlay.tsx` is the overlay entry view with party cards and rest footer.
 - `src/components/Party/PartyPane/PartyPane.tsx` renders `gameState.party` as a member list.
-- `src/components/Party/PartyPane/PartyMemberCard.tsx` and `PartyCharacterButton.tsx` render member stats, HP bars, missing-choice warnings, and open sheet callbacks.
+- `src/components/Party/PartyPane/PartyMemberCard.tsx` and `PartyCharacterButton.tsx` render member stats, HP bars, missing-choice warnings, and open sheet callbacks. Detailed `PartyMemberCard` rows expose each missing choice as its own fix action.
 - `src/components/Party/PartyEditorModal.tsx` is a dev tool that edits `TempPartyMember[]` and can save as full character arrays.
 - `src/components/Party/RelationshipsPane.tsx` displays companion relationships from `gameState.companions`.
 - `src/components/layout/GameModals.tsx` is the host that mounts `PartyOverlay`, `PartyEditorModal`, and `CharacterSheetModal`.
@@ -127,8 +129,9 @@ This is a cold-start implementation snapshot, not a scaffold placeholder.
   - `toggle_party_editor` is dev-only via `DevMenu` and routes to `TOGGLE_PARTY_EDITOR_MODAL`.
 - Rest flow:
   - Overlay short-rest button uses `gameState.shortRestTracker` to show remaining daily rests.
-  - `onShortRest` dispatches `SHORT_REST`, handled by `handleShortRest` with max-per-day and cooldown checks.
-  - `onLongRest` dispatches `LONG_REST`, handled by `handleLongRest` with world event/planar updates and timer advance.
+  - `GameModals` passes `Boolean(gameState.currentEnemies?.length)` into `PartyOverlay`, so active combat disables both rest buttons before rest modals can open.
+  - `onShortRest` opens the short rest modal flow and confirms into `SHORT_REST`, handled by `handleShortRest` with max-per-day and cooldown checks.
+  - `onLongRest` opens the long rest modal flow and confirms into `LONG_REST`, handled by `handleLongRest` with world event/planar updates and timer advance.
 - Party composition flow:
   - `SET_PARTY_COMPOSITION` maps `TempPartyMember[]` through `createPlayerCharacterFromTemp`.
   - `SET_FULL_PARTY` writes full `PlayerCharacter[]` directly.
@@ -183,6 +186,8 @@ Companions and party members occupy **separate identity spaces** with no enforce
 - ~~Add a companion-id coherence check when party is rebuilt via `SET_FULL_PARTY`~~ Ã¢â‚¬â€ **Resolved 2026-06-08**: regression coverage proves the id bridge for both rebuild paths.
 - Add `PartyMemberCard` test coverage (see GAPS.md G9).
 - Evaluate short rest modal parity with long rest choice flow (see GAPS.md G10).
+- ~~Disable rest actions while active combat is present~~ -- **Resolved 2026-06-24**: `PartyOverlay` receives combat state from `GameModals`, disables Short Rest and Long Rest, and shows the combat warning label/tooltip.
+- ~~Expose every missing-choice warning on detailed party cards~~ -- **Resolved 2026-06-24**: `PartyMemberCard` renders one compact fix button per missing choice, so secondary choices are visible and independently selectable.
 
 ## G5 decision (2026-06-10)
 
@@ -262,9 +267,8 @@ Decision authority: `docs/projects/party-ui/DECISIONS.md` D3. This section is th
 ## Next checks for the next agent
 
 - All T-tasks (T1-T5) are done.
-- G11 (combat check for rest flow) is open.
-- G12 (multiple choice warnings display on card) is open.
-- G4, G5, G6, G7, G9, and G10 are resolved.
+- G4, G5, G6, G7, G9, G10, G11, and G12 are resolved.
+- No Party UI gaps are currently registered as open; run a fresh expansion sweep before selecting more Party UI work.
 
 ## Resume path
 
@@ -272,7 +276,7 @@ Decision authority: `docs/projects/party-ui/DECISIONS.md` D3. This section is th
 2. Read `docs/projects/party-ui/TRACKER.md`.
 3. Read `docs/projects/party-ui/GAPS.md`.
 4. Cross-check `docs/projects/PROJECT_TRACKER.md` and `docs/projects/GLOBAL_GAPS.md` for classification before scope expansion.
-5. The next target should be G11 (combat check for rest flow) or G12 (multiple choice warnings display on card).
+5. Run a fresh Party UI expansion sweep before selecting more Party UI work.
 
 
 ## Cold-Start Gap Routing

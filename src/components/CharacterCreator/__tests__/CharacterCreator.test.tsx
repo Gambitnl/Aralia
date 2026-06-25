@@ -24,10 +24,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import CharacterCreator from '../CharacterCreator';
 import SpellContext from '../../../context/SpellContext';
-// TODO(lint-intent): 'RACES_DATA' is unused in this test; use it in the assertion path or remove it.
-import { RACES_DATA as _RACES_DATA } from '../../../constants';
-// TODO(lint-intent): 'initialCharacterCreatorState' is unused in this test; use it in the assertion path or remove it.
-import { initialCharacterCreatorState as _initialCharacterCreatorState, CreationStep as _CreationStep } from '../state/characterCreatorState';
 
 const motionComponent = (tag: keyof JSX.IntrinsicElements) => {
   return ({
@@ -106,6 +102,7 @@ describe('CharacterCreator Flow', () => {
     // Changeling Instincts is now selected inline during race selection (required before confirming).
     fireEvent.click(screen.getByRole('button', { name: /^Deception$/i }));
     fireEvent.click(screen.getByRole('button', { name: /^Insight$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Medium$/i }));
 
     // Confirm selection
     const confirmButton = screen.getByRole('button', { name: /^Confirm Changeling$/i });

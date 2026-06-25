@@ -135,38 +135,51 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
     return charClass.skillProficienciesAvailable.some(id => autoSkillIds.has(id));
   }, [charClass.skillProficienciesAvailable, autoSkillIds]);
 
-  // Filter and map available skills from class data, or expand to the entire game skill pool
-  // if an overlap exists under the D&D 2024 rules.
-  const availableSkillsFromClass = useMemo(() => {
+  // Keep class-list auto grants visible as disabled/badged rows while still
+  // expanding replacement choices when a background or racial grant overlaps.
+  const visibleSkillsFromClass = useMemo(() => {
+    const classSkillIds = new Set(charClass.skillProficienciesAvailable);
+    const autoGrantedClassSkills = charClass.skillProficienciesAvailable
+      .map((id) => SKILLS_DATA[id])
+      .filter((skill): skill is Skill => !!skill && autoSkillIds.has(skill.id));
+
     if (hasOverlap) {
-      // If there is an overlap, the player can choose from any skill in the game (excluding auto-granted ones).
-      return Object.values(SKILLS_DATA)
+      // If there is an overlap, the player can choose from any skill in the game
+      // (excluding auto-granted ones), but the original overlapping class rows
+      // remain visible so the source badge explains why they cannot be picked.
+      const replacementOptions = Object.values(SKILLS_DATA)
         .filter((skill): skill is Skill => !!skill && !autoSkillIds.has(skill.id));
+      return [
+        ...autoGrantedClassSkills,
+        ...replacementOptions.filter((skill) => !classSkillIds.has(skill.id)),
+        ...replacementOptions.filter((skill) => classSkillIds.has(skill.id)),
+      ];
     }
-    // Otherwise, they choose from their standard class list (excluding auto-granted ones).
+
+    // Otherwise, they choose from their standard class list.
     return charClass.skillProficienciesAvailable
       .map((id) => SKILLS_DATA[id])
-      .filter((skill): skill is Skill => !!skill && !autoSkillIds.has(skill.id));
+      .filter((skill): skill is Skill => !!skill);
   }, [charClass.skillProficienciesAvailable, hasOverlap, autoSkillIds]);
 
   const filteredSkillsFromClass = useMemo(() => {
     const q = skillSearchQuery.trim().toLowerCase();
-    if (!q) return availableSkillsFromClass;
-    return availableSkillsFromClass.filter((skill) => {
+    if (!q) return visibleSkillsFromClass;
+    return visibleSkillsFromClass.filter((skill) => {
       return (
         skill.name.toLowerCase().includes(q) ||
         skill.ability.toLowerCase().includes(q) ||
         skill.id.toLowerCase().includes(q)
       );
     });
-  }, [availableSkillsFromClass, skillSearchQuery]);
+  }, [visibleSkillsFromClass, skillSearchQuery]);
 
   // Set initial viewed skill when component mounts or available skills change
   useEffect(() => {
-    if (!viewedSkillId && availableSkillsFromClass.length > 0) {
-      setViewedSkillId(availableSkillsFromClass[0].id);
+    if (!viewedSkillId && visibleSkillsFromClass.length > 0) {
+      setViewedSkillId(visibleSkillsFromClass[0].id);
     }
-  }, [availableSkillsFromClass, setViewedSkillId, viewedSkillId]);
+  }, [visibleSkillsFromClass, setViewedSkillId, viewedSkillId]);
 
   useEffect(() => {
     if (filteredSkillsFromClass.length === 0) return;
@@ -217,7 +230,8 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
       e.preventDefault();
       if (!viewedSkillId) return;
       const grantInfo = racialGrantsBySkillId[viewedSkillId] ?? EMPTY_GRANT_INFO;
-      if (grantInfo.granted) return;
+      const isBackgroundGranted = !!(selectedBackground && BACKGROUNDS[selectedBackground]?.skillProficiencies.includes(viewedSkillId));
+      if (grantInfo.granted || isBackgroundGranted) return;
       toggleClassSkill(viewedSkillId, charClass.numberOfSkillProficiencies);
     }
   };

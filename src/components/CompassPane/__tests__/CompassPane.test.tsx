@@ -4,6 +4,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import CompassPane from '../index';
 import { Location } from '../../../types';
 
+/**
+ * These tests protect the Compass Pane movement and view-toggle controls.
+ *
+ * Compass Pane is reused in both the main exploration layout and inside the
+ * Submap modal. The assertions below make sure each context keeps the controls
+ * players expect without depending on the full game shell.
+ */
+
 // Mock framer-motion so the component can be exercised as plain DOM in tests.
 vi.mock('framer-motion', async (importOriginal) => {
   const actual = await importOriginal<typeof import('framer-motion')>();
@@ -133,6 +141,38 @@ describe('CompassPane', () => {
     // This proves the component still surfaces the time widget state that sits above the navigation grid.
     expect(screen.getByText(/1 Deepwinter/)).toBeInTheDocument();
     expect(screen.getByText(/The sun is high/)).toBeInTheDocument();
+  });
+
+  it('shows all view toggles in the main exploration context', () => {
+    const onAction = vi.fn();
+
+    render(<CompassPane {...defaultProps} onAction={onAction} />);
+
+    // Main exploration is the broad navigation context, so all map mode entry
+    // points must remain available from the Compass Pane.
+    expect(screen.getByLabelText('Toggle World Map')).toBeInTheDocument();
+    expect(screen.getByLabelText('Toggle Submap')).toBeInTheDocument();
+    expect(screen.getByLabelText('Enter 3D World')).toBeInTheDocument();
+
+    // The restored local-map entry must dispatch the existing UI action instead
+    // of becoming a decorative button.
+    fireEvent.click(screen.getByLabelText('Toggle Submap'));
+    expect(onAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'toggle_submap_visibility',
+        label: 'Toggle Submap',
+      })
+    );
+  });
+
+  it('keeps only the world-map toggle visible inside the submap context', () => {
+    render(<CompassPane {...defaultProps} isSubmapContext />);
+
+    // The Submap modal already is the local-map surface, so the Compass Pane
+    // should keep global map access while hiding redundant local/3D entries.
+    expect(screen.getByLabelText('Toggle World Map')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Toggle Submap')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Enter 3D World')).not.toBeInTheDocument();
   });
 
   it('dispatches move and look-around actions from the compass grid', () => {

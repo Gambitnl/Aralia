@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * This script generates the corpus-wide spell review tracker.
+ * This script generated the now-retired corpus-wide spell review tracker.
  *
  * The owner asked for a single execution surface that lists every spell in the
  * corpus, groups them by level, and gives each spell a checkbox so the whole
@@ -15,8 +15,16 @@ import { fileURLToPath } from 'node:url';
  *   them complete
  * - the file also includes a staged plan so the checklist has a clear workflow
  *
- * Called manually by: Codex during the spell-truth corpus expansion lane
- * Writes: `docs/tasks/spells/SPELL_CORPUS_EXECUTION_TRACKER.md`
+ * Called manually by: Codex during the spell-truth corpus expansion lane.
+ * Retired: 2026-06-25. The unchecked per-spell tracker became stale after the
+ * spell-truth lane split into canonical sync, structured-vs-canonical review,
+ * structured-vs-json review, and completeness child-lane gaps.
+ *
+ * This script is preserved for historical reconstruction only. It now refuses
+ * to write unless called with `--write-historical`, so normal maintenance does
+ * not recreate the deleted backlog file by accident.
+ *
+ * Historical output: `docs/tasks/spells/SPELL_CORPUS_EXECUTION_TRACKER.md`
  */
 
 // ============================================================================
@@ -142,6 +150,11 @@ function renderTracker(entries: SpellEntry[]): string {
 // ============================================================================
 
 function main(): void {
+  if (!process.argv.includes('--write-historical')) {
+    console.log('Spell corpus checklist generation is retired. Use --write-historical only to reconstruct the old deleted backlog for audit purposes.');
+    return;
+  }
+
   const entries = listSpellEntries();
   const content = renderTracker(entries);
   fs.writeFileSync(TRACKER_OUT, content, 'utf8');

@@ -6,10 +6,10 @@ slug: party-ui
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-22"
+last_updated: "2026-06-24"
 gap_count: 8
-open_gap_count: 2
-resolved_gap_count: 6
+open_gap_count: 0
+resolved_gap_count: 8
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Party UI Gap Registry
 
 Status: active
-Last updated: 2026-06-19
+Last updated: 2026-06-24
 
 Use this for durable unresolved findings that remain in Party UI scope.
 
@@ -117,8 +117,8 @@ Use this file for durable unresolved findings that are too important or too larg
 | G7 | resolved | adjacent_follow_up | Gemini | Party UI overlay/companion data threading | T2 companion-party boundary analysis (2026-06-08) | `PartyOverlay` accepts `party: PlayerCharacter[]` but does not thread `companions` data; `RelationshipsPane` is standalone and not mounted in the overlay; companion approval/relationship/banter context is invisible from the party roster | `src/components/Party/PartyOverlay.tsx` (props interface); `src/components/Party/RelationshipsPane.tsx`; `src/components/layout/GameModals.tsx` (PartyOverlay mount); `docs/projects/party-ui/NORTH_STAR.md` G5 contract | Party roster cannot show companion relationship status, approval, or banter context; the two surfaces are visually and architecturally disconnected | Resolved 2026-06-22: companion relationship level and approval are threaded from GameModals through PartyOverlay and PartyPane to PartyMemberCard | Verified via layout tests (GameModals.test.tsx) and unit tests in PartyPane.test.tsx |
 | G9 | resolved | support_needed_now | Gemini | Party UI test coverage | Iteration 5 gap sweep (2026-06-08) | `PartyMemberCard` (the active card component rendered by `PartyPane`) has no test file; `PartyCharacterButton` (legacy, not used by `PartyPane`) has tests. Card stat rendering, HP bar, spell slots, missing-choice warning, and expendable abilities are untested in the active component. | `src/components/Party/PartyPane/PartyMemberCard.tsx` (no test); `src/components/Party/PartyPane/__tests__/PartyCharacterButton.test.tsx` (legacy test exists) | Active card component lacks regression protection; legacy test provides false coverage confidence | Resolved 2026-06-22: added `PartyMemberCard.test.tsx` covering stat row, HP bar, spell slots, missing-choice warning, and more-button callback | Verified via `npx vitest run src/components/Party/PartyPane/__tests__/PartyMemberCard.test.tsx` (9/9 tests pass) |
 | G10 | resolved | adjacent_follow_up | Gemini | Party UI rest flow parity | Iteration 5 gap sweep (2026-06-08) | Long Rest button opens `LongRestModal` (`TOGGLE_LONG_REST_MODAL`) allowing racial rest choices before confirming. Short Rest button dispatches `SHORT_REST` directly with no modal, bypassing any choice flow. If D&D 2024 short rest should support Hit Dice spending choices or racial rest options, the UX is inconsistent. | `src/components/layout/GameModals.tsx` (line 372: `onShortRest` dispatches directly; line 385: Long Rest opens `LongRestModal`); `src/components/Party/PartyOverlay.tsx` (footer buttons) | Rest UX inconsistency: long rest has a choice modal, short rest fires immediately | Resolved 2026-06-22: wired `RestModal` under `isShortRestModalVisible` toggle in `GameModals.tsx` to spend Hit Dice per character on Short Rest. | Verified with layout tests (GameModals.test.tsx) and RestModal unit tests (RestModal.test.tsx). |
-| G11 | not_started | adjacent_follow_up | Gemini | Party UI rest rules | Iteration 9 gap sweep (2026-06-22) | Rest buttons on Party Overlay do not check for active combat (gameState.currentEnemies), allowing players to take short or long rests mid-combat. | `src/components/Party/PartyOverlay.tsx` (L170-199), `src/hooks/actions/handleResourceActions.ts` (L59-213) | Violates D&D rest rules and allows bypassing combat challenge/resource exhaustion. | Disable rest buttons on PartyOverlay and show an warning tooltip/label if combat is active. | Rest buttons are disabled and display a combat warning in the tooltip when combat is active. |
-| G12 | not_started | adjacent_follow_up | Gemini | Party UI warning cards | Iteration 9 gap sweep (2026-06-22) | PartyMemberCard only renders a warning and triggers the fix-flow callback for the first missing choice (missingChoices[0]). If a character has multiple missing choices, they cannot see or resolve secondary ones from the card. | `src/components/Party/PartyPane/PartyMemberCard.tsx` (L284-285, L325-339) | Limits usability and clarity when characters have multiple outstanding leveling or trait choices. | Support listing/rendering multiple warnings, or update the tooltip and fix-flow trigger to let players select which missing choice to resolve. | PartyMemberCard displays indicators for all missing choices and allows triggering the fix flow for any selected choice. |
+| G11 | resolved | adjacent_follow_up | Codex | Party UI rest rules | Iteration 9 gap sweep (2026-06-22) | Rest buttons on Party Overlay did not check for active combat (gameState.currentEnemies), allowing players to take short or long rests mid-combat. | `src/components/Party/PartyOverlay.tsx`; `src/components/layout/GameModals.tsx`; `src/components/Party/__tests__/PartyOverlay.test.tsx`; `src/components/layout/__tests__/GameModals.test.tsx` | Violated D&D rest rules and allowed bypassing combat challenge/resource exhaustion. | Resolved 2026-06-24: `GameModals` passes active combat state into `PartyOverlay`; the overlay disables both rest buttons and shows the combat warning label/tooltip while combat is active. | Verified via `npm exec vitest run src/components/Party/__tests__/PartyOverlay.test.tsx` and `npm exec vitest run src/components/layout/__tests__/GameModals.test.tsx`. |
+| G12 | resolved | adjacent_follow_up | Codex | Party UI warning cards | Iteration 9 gap sweep (2026-06-22) | PartyMemberCard only rendered a warning and triggered the fix-flow callback for the first missing choice (missingChoices[0]). If a character had multiple missing choices, they could not see or resolve secondary ones from the card. | `src/components/Party/PartyPane/PartyMemberCard.tsx`; `src/components/Party/PartyPane/__tests__/PartyMemberCard.test.tsx` | Limited usability and clarity when characters had multiple outstanding leveling or trait choices. | Resolved 2026-06-24: detailed party cards render one compact fix button per missing choice while preserving the portrait summary warning. | Verified via `npm exec vitest run src/components/Party/PartyPane/__tests__/PartyMemberCard.test.tsx`. |
 
 ## Classification
 

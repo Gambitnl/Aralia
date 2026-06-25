@@ -1,7 +1,7 @@
 {
   "notes": {
     "updated": "2026-02-10",
-    "source": "User-provided manual review list. Categories A-E match docs/portraits/race_portrait_regen_backlog.md.",
+    "source": "User-provided manual review list. Categories A-E were originally mirrored in the retired docs/portraits/race_portrait_regen_backlog.md readable checklist.",
     "how_to_use": "A regen script can resolve race IDs by matching on Race.name when raceId is omitted."
   },
   "items": [

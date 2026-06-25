@@ -13,7 +13,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "+1 Rod of the Pact Keeper",
     "description": "While holding this rod, you gain a +1 bonus to spell attack rolls and to the saving throw DCs of your Warlock spells. In addition, you can regain one ...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/1_rod_of_the_pact_keeper.svg",
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.Uncommon,
@@ -30,7 +30,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "+1 Wand of the War Mage",
     "description": "While holding this wand, you gain a +1 bonus to spell attack rolls. In addition, you ignore cover Cover when making a spell attack roll....",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/1_wand_of_the_war_mage.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Uncommon,
@@ -47,7 +47,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "+1 Wraps of Unarmed Power",
     "description": "While wearing these wraps, you have a +1 bonus to attack rolls and damage rolls made with your Unarmed Strikes. Those strikes deal your choice of Forc...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/1_wraps_of_unarmed_power.svg",
     "rarity": ItemRarity.Uncommon
   },
   "2_rod_of_the_pact_keeper": {
@@ -55,7 +55,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "+2 Rod of the Pact Keeper",
     "description": "While holding this rod, you gain a +2 bonus to spell attack rolls and to the saving throw DCs of your Warlock spells. In addition, you can regain one ...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/2_rod_of_the_pact_keeper.svg",
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
@@ -72,7 +72,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "+2 Wand of the War Mage",
     "description": "While holding this wand, you gain a +2 bonus to spell attack rolls. In addition, you ignore cover Cover when making a spell attack roll....",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/2_wand_of_the_war_mage.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
@@ -89,7 +89,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "+2 Wraps of Unarmed Power",
     "description": "While wearing these wraps, you have a +2 bonus to attack rolls and damage rolls made with your Unarmed Strikes. Those strikes deal your choice of Forc...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/2_wraps_of_unarmed_power.svg",
     "rarity": ItemRarity.Rare
   },
   "3_rod_of_the_pact_keeper": {
@@ -97,7 +97,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "+3 Rod of the Pact Keeper",
     "description": "While holding this rod, you gain a +3 bonus to spell attack rolls and to the saving throw DCs of your Warlock spells. In addition, you can regain one ...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/3_rod_of_the_pact_keeper.svg",
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.VeryRare,
@@ -114,7 +114,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "+3 Wand of the War Mage",
     "description": "While holding this wand, you gain a +3 bonus to spell attack rolls. In addition, you ignore cover Cover when making a spell attack roll....",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/3_wand_of_the_war_mage.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.VeryRare,
@@ -131,7 +131,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "+3 Wraps of Unarmed Power",
     "description": "While wearing these wraps, you have a +3 bonus to attack rolls and damage rolls made with your Unarmed Strikes. Those strikes deal your choice of Forc...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/3_wraps_of_unarmed_power.svg",
     "rarity": ItemRarity.VeryRare
   },
   "acid": {
@@ -139,7 +139,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Acid",
     "description": "When you take the attack action, you can replace one of your attacks with throwing a vial of Acid. Target one creature or object you can see within 20...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/acid.svg",
     "weight": 1,
     "cost": "25 GP",
     "costInGp": 25,
@@ -150,7 +150,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Airship",
     "description": "AIR...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/airship.svg",
     "cost": "40000 GP",
     "costInGp": 40000
   },
@@ -159,7 +159,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Alchemist's Fire",
     "description": "When you take the attack action, you can replace one of your attacks with throwing a flask of Alchemist's Fire. Target one creature or object you can ...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/alchemist_s_fire.svg",
     "weight": 1,
     "cost": "50 GP",
     "costInGp": 50,
@@ -170,7 +170,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Alchemist's Supplies",
     "description": "- Ability:: Intelligence - Utilize:: Identify a substance (DC 15), or start a fire (DC 15) - Craft:: acid, alchemist_s_fire's Fire, component_pouch Po...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/alchemist_s_supplies.svg",
     "weight": 8,
     "cost": "50 GP",
     "costInGp": 50
@@ -180,7 +180,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Alchemy Jug",
     "description": "This ceramic jug appears to be able to hold a gallon of liquid and weighs 12 pounds whether full or empty. The jug sloshes when it is shaken, even if ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/alchemy_jug.svg",
     "weight": 12,
     "rarity": ItemRarity.Uncommon
   },
@@ -189,7 +189,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Alexandrite",
     "description": "A dark green gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/alexandrite.svg",
     "cost": "500 GP",
     "costInGp": 500
   },
@@ -198,7 +198,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ale (mug)",
     "description": "FD...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/ale_mug.svg",
     "cost": "0.04 GP",
     "costInGp": 0.04
   },
@@ -207,7 +207,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Amber",
     "description": "A watery gold to rich gold gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/amber.svg",
     "cost": "100 GP",
     "costInGp": 100
   },
@@ -216,7 +216,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Amethyst",
     "description": "A deep purple gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/amethyst.svg",
     "cost": "100 GP",
     "costInGp": 100
   },
@@ -225,7 +225,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Amulet",
     "description": "For an Amulet to be an effective Holy Symbol, it must be worn or held....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/amulet.svg",
     "weight": 1,
     "cost": "5 GP",
     "costInGp": 5
@@ -235,7 +235,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Amulet of Health",
     "description": "Your Constitution score is 19 while you wear this amulet. It has no effect on you if your Constitution is already 19 or higher without it....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/amulet_of_health.svg",
     "weight": 1,
     "rarity": ItemRarity.Rare,
     "magicProperties": {
@@ -251,7 +251,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Amulet of Proof against Detection and Location",
     "description": "While wearing this amulet, you can't be targeted by Divination spells or perceived through magical scrying sensors unless you allow it....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/amulet_of_proof_against_detection_and_location.svg",
     "weight": 1,
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
@@ -267,7 +267,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Amulet of the Planes",
     "description": "While wearing this amulet, you can take a magic action to name a location that you are familiar with on another plane of existence. Then make a DC 15 ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/amulet_of_the_planes.svg",
     "weight": 1,
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
@@ -283,7 +283,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Animated Shield",
     "description": "While holding this Shield, you can take a bonus_action Action to cause it to animate. The Shield leaps into the air and hovers in your space to protec...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/animated_shield.svg",
     "weight": 6,
     "slot": "OffHand",
     "armorCategory": "Shield",
@@ -302,7 +302,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Antimatter Rifle",
     "description": "R...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/antimatter_rifle.svg",
     "weight": 10,
     "slot": "MainHand",
     "damageDice": "6d8",
@@ -318,7 +318,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Antitoxin",
     "description": "As a bonus_action Action, you can drink a vial of Antitoxin to gain advantage on saving throws to avoid or end the poisoned condition for 1 hour....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/antitoxin.svg",
     "cost": "50 GP",
     "costInGp": 50,
     "slot": "Ring"
@@ -328,7 +328,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Apparatus of Kwalish",
     "description": "This item first appears to be a sealed iron barrel weighing 500 pounds. The barrel has a hidden catch, which can be found with a successful DC 20 Inte...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/apparatus_of_kwalish.svg",
     "weight": 500,
     "rarity": ItemRarity.Legendary
   },
@@ -337,7 +337,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Aquamarine",
     "description": "A pale blue green gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/aquamarine.svg",
     "cost": "500 GP",
     "costInGp": 500
   },
@@ -346,7 +346,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Armor of Invulnerability",
     "description": "You have resistance to Bludgeoning, Piercing, and Slashing damage while you wear this armor.  Metal Shell You can take a magic action to give yourself...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/armor_of_invulnerability.svg",
     "weight": 65,
     "slot": "Torso",
     "armorCategory": "Heavy",
@@ -365,7 +365,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Arrow",
     "description": "Arrows are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one piece of ...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/arrow.svg",
     "weight": 0.05,
     "cost": "0.05 GP",
     "costInGp": 0.05
@@ -375,7 +375,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Arrows (20)",
     "description": "Arrows are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one piece of ...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/arrows_20.svg",
     "weight": 1,
     "cost": "1 GP",
     "costInGp": 1
@@ -385,7 +385,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Arrow-Catching Shield",
     "description": "You gain a +2 bonus to armor_class Class against ranged attack rolls while you wield this Shield. This bonus is in addition to the Shield's normal bon...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/arrow_catching_shield.svg",
     "weight": 6,
     "slot": "OffHand",
     "armorCategory": "Shield",
@@ -404,7 +404,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Assassin's Blood",
     "description": "A creature subjected to Assassin's Blood makes a DC 10 Constitution saving throw. On a failed save, the creature takes 6 (1d12) Poison damage and has ...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/assassin_s_blood.svg",
     "cost": "150 GP",
     "costInGp": 150,
     "slot": "Ring"
@@ -414,7 +414,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Automatic Rifle",
     "description": "R...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/automatic_rifle.svg",
     "weight": 8,
     "slot": "MainHand",
     "damageDice": "2d8",
@@ -431,7 +431,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Axe of the Dwarvish Lords",
     "description": "A young dwarf prince set out to forge a weapon that would be regarded as a symbol of unity among his people. Venturing deep under the mountains, deepe...",
     "type": "weapon",
-    "icon": "axe_battle",
+    "icon": "/assets/icons/items/axe_of_the_dwarvish_lords.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d8",
@@ -454,7 +454,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Azurite",
     "description": "A mottled deep blue gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/azurite.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -463,7 +463,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Baba Yaga's Dancing Broom",
     "description": "The archfey Baba Yaga crafted many of these magic brooms. No two appear exactly alike. While holding the broom, you can take a magic action to transfo...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/baba_yaga_s_dancing_broom.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -478,7 +478,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Backpack",
     "description": "A Backpack holds up to 30 pounds within 1 cubic foot. It can also serve as a saddlebag....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/backpack.svg",
     "weight": 5,
     "cost": "2 GP",
     "costInGp": 2,
@@ -489,7 +489,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bagpipes",
     "description": "- Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/bagpipes.svg",
     "weight": 6,
     "cost": "30 GP",
     "costInGp": 30
@@ -499,7 +499,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bag of Beans",
     "description": "This heavy cloth bag contains 3d4 dry beans when found. The bag weighs half a pound regardless of how many beans it contains and becomes a nonmagical ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/bag_of_beans.svg",
     "rarity": ItemRarity.Rare
   },
   "bag_of_devouring": {
@@ -507,7 +507,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bag of Devouring",
     "description": "This bag resembles a bag_of_holding of Holding but is a feeding orifice for a gigantic extradimensional creature. Turning the bag inside out closes th...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/bag_of_devouring.svg",
     "rarity": ItemRarity.VeryRare
   },
   "bag_of_holding": {
@@ -515,7 +515,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bag of Holding",
     "description": "This bag has an interior space considerably larger than its outside dimensions—roughly 2 feet square and 4 feet deep on the inside. The bag can hold u...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/bag_of_holding.svg",
     "weight": 5,
     "rarity": ItemRarity.Uncommon
   },
@@ -524,7 +524,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bag of Tricks, Gray",
     "description": "This bag made from gray cloth appears empty. Reaching inside the bag, however, reveals the presence of a small, fuzzy object. You can take a magic act...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/bag_of_tricks_gray.svg",
     "rarity": ItemRarity.Uncommon
   },
   "bag_of_tricks_rust": {
@@ -532,7 +532,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bag of Tricks, Rust",
     "description": "This bag made from rust cloth appears empty. Reaching inside the bag, however, reveals the presence of a small, fuzzy object. You can take a magic act...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/bag_of_tricks_rust.svg",
     "rarity": ItemRarity.Uncommon
   },
   "bag_of_tricks_tan": {
@@ -540,7 +540,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bag of Tricks, Tan",
     "description": "This bag made from tan cloth appears empty. Reaching inside the bag, however, reveals the presence of a small, fuzzy object. You can take a magic acti...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/bag_of_tricks_tan.svg",
     "rarity": ItemRarity.Uncommon
   },
   "ball_bearings": {
@@ -548,7 +548,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ball Bearings",
     "description": "As a utilize action, you can spill Ball Bearings from their pouch. They spread to cover a level, 10-foot-square area within 10 feet of yourself. A cre...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ball_bearings.svg",
     "weight": 2,
     "cost": "1 GP",
     "costInGp": 1,
@@ -559,7 +559,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Banded Agate",
     "description": "A striped brown, blue, white, or red gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/banded_agate.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -568,7 +568,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Barrel",
     "description": "A Barrel holds up to 40 gallons of liquid or up to 4 cubic feet of dry goods....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/barrel.svg",
     "weight": 70,
     "cost": "2 GP",
     "costInGp": 2,
@@ -579,7 +579,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Basic Poison",
     "description": "As a bonus_action Action, you can use a vial of Basic Poison to coat one weapon or up to three pieces of ammunition. A creature that takes Piercing or...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/basic_poison.svg",
     "cost": "100 GP",
     "costInGp": 100,
     "slot": "Ring"
@@ -589,7 +589,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Basket",
     "description": "A Basket holds up to 40 pounds within 2 cubic feet....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/basket.svg",
     "weight": 2,
     "cost": "0.4 GP",
     "costInGp": 0.4,
@@ -600,7 +600,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Battleaxe",
     "description": "M...",
     "type": "weapon",
-    "icon": "axe_battle",
+    "icon": "/assets/icons/items/battleaxe.svg",
     "weight": 4,
     "cost": "10 GP",
     "costInGp": 10,
@@ -616,7 +616,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bead of Force",
     "description": "This small black sphere measures 3/4 of an inch in diameter and weighs an ounce. Typically, 1d4 + 4 Beads of Force are found together. You can take a ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/bead_of_force.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -625,7 +625,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bead of Nourishment",
     "description": "This flavorless, gelatinous bead dissolves on your tongue and provides as much nourishment as 1 day of Rations....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/bead_of_nourishment.svg",
     "rarity": ItemRarity.Common
   },
   "bead_of_refreshment": {
@@ -633,7 +633,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bead of Refreshment",
     "description": "This flavorless, gelatinous bead dissolves in liquid, transforming up to a pint of the liquid into fresh, cold drinking water. The bead has no effect ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/bead_of_refreshment.svg",
     "rarity": ItemRarity.Common
   },
   "bedroll": {
@@ -641,7 +641,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bedroll",
     "description": "A Bedroll sleeps one Small or Medium creature. While in a Bedroll, you automatically succeed on saving throws against extreme cold (see the Dungeon Ma...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/bedroll.svg",
     "weight": 7,
     "cost": "1 GP",
     "costInGp": 1,
@@ -652,7 +652,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bejeweled gold bracelet",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/bejeweled_gold_bracelet.svg",
     "cost": "250 GP",
     "costInGp": 250
   },
@@ -661,7 +661,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bejeweled ivory drinking horn with gold filigree",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/bejeweled_ivory_drinking_horn_with_gold_filigree.svg",
     "cost": "7500 GP",
     "costInGp": 7500
   },
@@ -670,7 +670,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bell",
     "description": "When rung as a utilize action, a Bell produces a sound that can be heard up to 60 feet away....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/bell.svg",
     "cost": "1 GP",
     "costInGp": 1,
     "slot": "Ring"
@@ -680,7 +680,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Belt of Cloud Giant Strength",
     "description": "While wearing this belt, your Strength score changes to 27. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/belt_of_cloud_giant_strength.svg",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
       "isIdentified": true,
@@ -695,7 +695,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Belt of Dwarvenkind",
     "description": "While wearing this belt, you gain the following benefits: - Dwarvish: You know Dwarvish. - Friend of Dwarvenkind: You have advantage on Charisma (pers...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/belt_of_dwarvenkind.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -710,7 +710,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Belt of Fire Giant Strength",
     "description": "While wearing this belt, your Strength score changes to 25. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/belt_of_fire_giant_strength.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -725,7 +725,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Belt of Frost Giant Strength",
     "description": "While wearing this belt, your Strength score changes to 23. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/belt_of_frost_giant_strength.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -740,7 +740,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Belt of Hill Giant Strength",
     "description": "While wearing this belt, your Strength score changes to 21. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/belt_of_hill_giant_strength.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -755,7 +755,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Belt of Stone Giant Strength",
     "description": "While wearing this belt, your Strength score changes to 23. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/belt_of_stone_giant_strength.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -770,7 +770,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Belt of Storm Giant Strength",
     "description": "While wearing this belt, your Strength score changes to 29. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/belt_of_storm_giant_strength.svg",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
       "isIdentified": true,
@@ -785,7 +785,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Blackrazor",
     "description": "Hidden in the dungeon of White Plume Mountain, Blackrazor shines like a piece of night sky filled with stars. Its black scabbard is decorated with pie...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/blackrazor.svg",
     "weight": 6,
     "slot": "MainHand",
     "damageDice": "2d6",
@@ -813,7 +813,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Black Dragon Scale Mail",
     "description": "{itemEntry Dragon Scale Mail}...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/black_dragon_scale_mail.svg",
     "weight": 45,
     "slot": "Torso",
     "armorCategory": "Medium",
@@ -832,7 +832,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Black Opal",
     "description": "A dark green with black mottling and golden flecks gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/black_opal.svg",
     "cost": "1000 GP",
     "costInGp": 1000
   },
@@ -841,7 +841,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Black Pearl",
     "description": "A pure black gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/black_pearl.svg",
     "cost": "500 GP",
     "costInGp": 500
   },
@@ -850,7 +850,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Black Sapphire",
     "description": "A lustrous black with glowing highlights gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/black_sapphire.svg",
     "cost": "5000 GP",
     "costInGp": 5000
   },
@@ -859,7 +859,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Black velvet mask stitched with silver thread",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/black_velvet_mask_stitched_with_silver_thread.svg",
     "cost": "25 GP",
     "costInGp": 25
   },
@@ -868,7 +868,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Blanket",
     "description": "While wrapped in a blanket, you have advantage on saving throws against extreme cold (see the Dungeon Master's Guide)....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/blanket.svg",
     "weight": 3,
     "cost": "0.5 GP",
     "costInGp": 0.5,
@@ -879,7 +879,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Block and Tackle",
     "description": "A block_and_tackle and Tackle allows you to hoist up to four times the weight you can normally lift....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/block_and_tackle.svg",
     "weight": 5,
     "cost": "1 GP",
     "costInGp": 1,
@@ -890,7 +890,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bloodstone",
     "description": "A dark gray with red flecks gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/bloodstone.svg",
     "cost": "50 GP",
     "costInGp": 50
   },
@@ -899,7 +899,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Blowgun",
     "description": "R...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/blowgun.svg",
     "weight": 1,
     "cost": "10 GP",
     "costInGp": 10,
@@ -916,7 +916,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Blue Dragon Scale Mail",
     "description": "{itemEntry Dragon Scale Mail}...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/blue_dragon_scale_mail.svg",
     "weight": 45,
     "slot": "Torso",
     "armorCategory": "Medium",
@@ -935,7 +935,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Blue Quartz",
     "description": "A pale blue gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/blue_quartz.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -944,7 +944,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Blue Sapphire",
     "description": "A medium blue gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/blue_sapphire.svg",
     "cost": "1000 GP",
     "costInGp": 1000
   },
@@ -953,7 +953,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Blue Spinel",
     "description": "A deep blue gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/blue_spinel.svg",
     "cost": "500 GP",
     "costInGp": 500
   },
@@ -962,7 +962,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bolt",
     "description": "Crossbow bolts are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one p...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/bolt.svg",
     "weight": 0.075,
     "cost": "0.05 GP",
     "costInGp": 0.05
@@ -972,7 +972,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bolts (20)",
     "description": "Crossbow bolts are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one p...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/bolts_20.svg",
     "weight": 1.5,
     "cost": "1 GP",
     "costInGp": 1
@@ -982,7 +982,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bomb",
     "description": "As an action, you can light a Bomb and throw it at a point up to 60 feet away, where it explodes. Each creature in a 5-foot-radius sphere_area_of_effe...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/bomb.svg",
     "weight": 1,
     "cost": "100 GP",
     "costInGp": 100
@@ -992,7 +992,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Book",
     "description": "A Book contains fiction or nonfiction. If you consult an accurate nonfiction Book about its topic, you gain a +5 bonus to Intelligence (arcana, histor...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/book.svg",
     "weight": 5,
     "cost": "25 GP",
     "costInGp": 25,
@@ -1003,7 +1003,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Book of Exalted Deeds",
     "description": "The definitive treatise on all that is good in the multiverse, the Book of Exalted Deeds figures prominently in many religions. Rather than being a sc...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/book_of_exalted_deeds.svg",
     "weight": 5,
     "rarity": ItemRarity.Artifact,
     "magicProperties": {
@@ -1019,7 +1019,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Book of Vile Darkness",
     "description": "The contents of this foul manuscript are the meat and drink of the wicked. It contains knowledge so horrid that to even glimpse the scrawled pages inv...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/book_of_vile_darkness.svg",
     "weight": 5,
     "rarity": ItemRarity.Artifact,
     "magicProperties": {
@@ -1035,7 +1035,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Boots of Elvenkind",
     "description": "While you wear these boots, your steps make no sound, regardless of the surface you are moving across. You also have advantage on Dexterity (stealth) ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/boots_of_elvenkind.svg",
     "rarity": ItemRarity.Uncommon
   },
   "boots_of_false_tracks": {
@@ -1043,7 +1043,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Boots of False Tracks",
     "description": "While wearing these boots, you can have them leave tracks like those of any kind of Humanoid of your size....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/boots_of_false_tracks.svg",
     "rarity": ItemRarity.Common
   },
   "boots_of_levitation": {
@@ -1051,7 +1051,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Boots of Levitation",
     "description": "While you wear these boots, you can cast levitate on yourself....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/boots_of_levitation.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -1066,7 +1066,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Boots of Speed",
     "description": "While you wear these boots, you can take a bonus_action Action to click the boots' heels together. If you do, the boots double your speed, and any cre...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/boots_of_speed.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -1081,7 +1081,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Boots of Striding and Springing",
     "description": "While you wear these boots, your speed becomes 30 feet unless your speed is higher, and your speed isn't reduced by you carrying weight in excess of y...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/boots_of_striding_and_springing.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -1096,7 +1096,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Boots of the Winterlands",
     "description": "These furred boots are snug and feel warm. While wearing them, you gain the following benefits.  Cold Resistance You have resistance to Cold damage an...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/boots_of_the_winterlands.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -1111,7 +1111,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bottle stopper cork embossed with gold leaf and set with amethysts",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/bottle_stopper_cork_embossed_with_gold_leaf_and_set_with_amethysts.svg",
     "cost": "750 GP",
     "costInGp": 750
   },
@@ -1120,7 +1120,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bowl of Commanding Water Elementals",
     "description": "While this bowl is filled with water and you are within 5 feet of it, you can take a magic action to summon a Water Elemental. The elemental appears i...",
     "type": "accessory",
-    "icon": "bow_arrow",
+    "icon": "/assets/icons/items/bowl_of_commanding_water_elementals.svg",
     "rarity": ItemRarity.Rare
   },
   "box_of_turquoise_animal_figurines": {
@@ -1128,7 +1128,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Box of turquoise animal figurines",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/box_of_turquoise_animal_figurines.svg",
     "cost": "250 GP",
     "costInGp": 250
   },
@@ -1137,7 +1137,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bracers of Archery",
     "description": "While wearing these bracers, you have proficiency with the longbow and shortbow, and you gain a +2 bonus to damage rolls made with such weapons....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/bracers_of_archery.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -1152,7 +1152,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bracers of Defense",
     "description": "While wearing these bracers, you gain a +2 bonus to armor_class Class if you are wearing no armor and using no shield....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/bracers_of_defense.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -1167,7 +1167,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Brass Dragon Scale Mail",
     "description": "{itemEntry Dragon Scale Mail}...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/brass_dragon_scale_mail.svg",
     "weight": 45,
     "slot": "Torso",
     "armorCategory": "Medium",
@@ -1186,7 +1186,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Brass mug with jade inlay",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/brass_mug_with_jade_inlay.svg",
     "cost": "250 GP",
     "costInGp": 250
   },
@@ -1195,7 +1195,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Brazier of Commanding Fire Elementals",
     "description": "While you are within 5 feet of this brazier, you can take a magic action to summon a Fire Elemental. The elemental appears in an unoccupied space as c...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/brazier_of_commanding_fire_elementals.svg",
     "rarity": ItemRarity.Rare
   },
   "bread_loaf": {
@@ -1203,7 +1203,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bread (loaf)",
     "description": "FD...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/bread_loaf.svg",
     "cost": "0.02 GP",
     "costInGp": 0.02
   },
@@ -1212,7 +1212,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Breastplate",
     "description": "MA...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/breastplate.svg",
     "weight": 20,
     "cost": "400 GP",
     "costInGp": 400,
@@ -1225,7 +1225,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Brewer's Supplies",
     "description": "- Ability:: Intelligence - Utilize:: Detect poisoned drink (DC 15), or identify alcohol (DC 10) - Craft:: antitoxin...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/brewer_s_supplies.svg",
     "weight": 9,
     "cost": "20 GP",
     "costInGp": 20
@@ -1235,7 +1235,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bronze crown",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/bronze_crown.svg",
     "cost": "250 GP",
     "costInGp": 250
   },
@@ -1244,7 +1244,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bronze Dragon Scale Mail",
     "description": "{itemEntry Dragon Scale Mail}...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/bronze_dragon_scale_mail.svg",
     "weight": 45,
     "slot": "Torso",
     "armorCategory": "Medium",
@@ -1263,7 +1263,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Brooch of Shielding",
     "description": "While wearing this brooch, you have resistance to Force damage, and you have immunity to damage from the magic_missile Missile spell....",
     "type": "accessory",
-    "icon": "shield",
+    "icon": "/assets/icons/items/brooch_of_shielding.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -1278,7 +1278,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Broom of Flying",
     "description": "This wooden broom functions like a mundane broom until you stand astride it and take a magic action to make it hover beneath you, at which time it can...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/broom_of_flying.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -1293,7 +1293,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bucket",
     "description": "A Bucket holds up to half a cubic foot of contents....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/bucket.svg",
     "weight": 2,
     "cost": "0.05 GP",
     "costInGp": 0.05,
@@ -1304,7 +1304,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bullseye Lantern",
     "description": "A Bullseye Lantern burns Oil as fuel to cast bright_light Light in a 60-foot Cone and dim_light Light for an additional 60 feet....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/bullseye_lantern.svg",
     "weight": 2,
     "cost": "10 GP",
     "costInGp": 10,
@@ -1315,7 +1315,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Bundle of sheet music representing the lost dirges of a famous composer",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/bundle_of_sheet_music_representing_the_lost_dirges_of_a_famous_composer.svg",
     "cost": "750 GP",
     "costInGp": 750
   },
@@ -1324,7 +1324,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Burglar's Pack",
     "description": "A Burglar's Pack contains the following items: backpack, ball_bearings Bearings, bell, 10 candle, crowbar, hooded_lantern Lantern, 7 flasks of oil, 5 ...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/burglar_s_pack.svg",
     "weight": 47.5,
     "cost": "16 GP",
     "costInGp": 16,
@@ -1335,7 +1335,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Burnt Othur Fumes",
     "description": "A creature subjected to Burnt Othur Fumes must succeed on a DC 13 Constitution saving throw or take 10 (3d6) Poison damage, and it must repeat the sav...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/burnt_othur_fumes.svg",
     "cost": "500 GP",
     "costInGp": 500,
     "slot": "Ring"
@@ -1345,7 +1345,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Calligrapher's Supplies",
     "description": "- Ability:: Dexterity - Utilize:: Write text with impressive flourishes that guard against forgery (DC 15) - Craft:: ink, spell_scroll Scroll...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/calligrapher_s_supplies.svg",
     "weight": 5,
     "cost": "10 GP",
     "costInGp": 10
@@ -1355,7 +1355,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Caltrops",
     "description": "As a utilize action, you can spread Caltrops from their bag to cover a 5-foot-square area within 5 feet of yourself. A creature that enters this area ...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/caltrops.svg",
     "weight": 2,
     "cost": "1 GP",
     "costInGp": 1,
@@ -1366,7 +1366,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Camel",
     "description": "MNT...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/camel.svg",
     "cost": "50 GP",
     "costInGp": 50
   },
@@ -1375,7 +1375,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Candle",
     "description": "For 1 hour, a lit Candle sheds bright_light Light in a 5-foot radius and dim_light Light for an additional 5 feet....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/candle.svg",
     "cost": "0.01 GP",
     "costInGp": 0.01,
     "slot": "Ring"
@@ -1385,7 +1385,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Candle of Invocation",
     "description": "This candle's magic is activated when the candle is lit, which requires a magic action. After burning for 4 hours, the candle is destroyed. You can sn...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/candle_of_invocation.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -1400,7 +1400,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Candle of the Deep",
     "description": "The flame of this candle isn't extinguished when immersed in water. It gives off light and heat like a normal candle....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/candle_of_the_deep.svg",
     "rarity": ItemRarity.Common
   },
   "canvas_1_sq_yd": {
@@ -1408,7 +1408,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Canvas (1 sq. yd.)",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/canvas_1_sq_yd.svg",
     "cost": "0.1 GP",
     "costInGp": 0.1
   },
@@ -1417,7 +1417,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cape of the Mountebank",
     "description": "This cape smells faintly of brimstone. While wearing it, you can use it to cast dimension_door Door as a magic action. This property can't be used aga...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cape_of_the_mountebank.svg",
     "rarity": ItemRarity.Rare
   },
   "cap_of_water_breathing": {
@@ -1425,7 +1425,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cap of Water Breathing",
     "description": "While wearing this cap underwater, you can take a magic action to create a bubble of air around your head. This bubble allows you to breathe normally ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cap_of_water_breathing.svg",
     "rarity": ItemRarity.Uncommon
   },
   "carnelian": {
@@ -1433,7 +1433,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Carnelian",
     "description": "A orange to red brown gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/carnelian.svg",
     "cost": "50 GP",
     "costInGp": 50
   },
@@ -1442,7 +1442,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Carpenter's Tools",
     "description": "- Ability:: Strength - Utilize:: Seal or pry open a door or container (DC 20) - Craft:: club, greatclub, quarterstaff, barrel, chest, ladder, pole, po...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/carpenter_s_tools.svg",
     "weight": 6,
     "cost": "8 GP",
     "costInGp": 8
@@ -1452,7 +1452,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Carpet of Flying, 3 ft. × 5 ft.",
     "description": "You can make this carpet hover and fly by taking a magic action and using the carpet's command word. It moves according to your directions if you are ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/carpet_of_flying_3_ft_5_ft.svg",
     "rarity": ItemRarity.VeryRare
   },
   "carpet_of_flying_4_ft_6_ft": {
@@ -1460,7 +1460,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Carpet of Flying, 4 ft. × 6 ft.",
     "description": "You can make this carpet hover and fly by taking a magic action and using the carpet's command word. It moves according to your directions if you are ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/carpet_of_flying_4_ft_6_ft.svg",
     "rarity": ItemRarity.VeryRare
   },
   "carpet_of_flying_5_ft_7_ft": {
@@ -1468,7 +1468,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Carpet of Flying, 5 ft. × 7 ft.",
     "description": "You can make this carpet hover and fly by taking a magic action and using the carpet's command word. It moves according to your directions if you are ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/carpet_of_flying_5_ft_7_ft.svg",
     "rarity": ItemRarity.VeryRare
   },
   "carpet_of_flying_6_ft_9_ft": {
@@ -1476,7 +1476,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Carpet of Flying, 6 ft. × 9 ft.",
     "description": "You can make this carpet hover and fly by taking a magic action and using the carpet's command word. It moves according to your directions if you are ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/carpet_of_flying_6_ft_9_ft.svg",
     "rarity": ItemRarity.VeryRare
   },
   "carriage": {
@@ -1484,7 +1484,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Carriage",
     "description": "VEH...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/carriage.svg",
     "weight": 600,
     "cost": "100 GP",
     "costInGp": 100
@@ -1494,7 +1494,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Carrion Crawler Mucus",
     "description": "A creature subjected to Carrion Crawler Mucus must succeed on a DC 13 Constitution saving throw or have the poisoned condition for 1 minute. The creat...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/carrion_crawler_mucus.svg",
     "cost": "200 GP",
     "costInGp": 200,
     "slot": "Ring"
@@ -1504,7 +1504,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cart",
     "description": "VEH...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/cart.svg",
     "weight": 200,
     "cost": "15 GP",
     "costInGp": 15
@@ -1514,7 +1514,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cartographer's Tools",
     "description": "- Ability:: Wisdom - Utilize:: Draft a map of a small area (DC 15) - Craft:: map...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/cartographer_s_tools.svg",
     "weight": 6,
     "cost": "15 GP",
     "costInGp": 15
@@ -1524,7 +1524,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Carved bone statuette",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/carved_bone_statuette.svg",
     "cost": "25 GP",
     "costInGp": 25
   },
@@ -1533,7 +1533,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Carved ivory statuette",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/carved_ivory_statuette.svg",
     "cost": "250 GP",
     "costInGp": 250
   },
@@ -1542,7 +1542,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Carved wooden harp with ivory inlay and zircon gems",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/carved_wooden_harp_with_ivory_inlay_and_zircon_gems.svg",
     "cost": "750 GP",
     "costInGp": 750
   },
@@ -1551,7 +1551,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cauldron of Rebirth",
     "description": "This Tiny pot bears relief scenes of heroes on its cast-iron sides. You can use the cauldron as a spellcasting_focus Focus for your spells, and it fun...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cauldron_of_rebirth.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -1566,7 +1566,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Censer of Controlling Air Elementals",
     "description": "While gently swinging this censer, you can take a magic action to summon an Air Elemental. The elemental appears in an unoccupied space as close to th...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/censer_of_controlling_air_elementals.svg",
     "rarity": ItemRarity.Rare
   },
   "ceremonial_gold_armor_with_black_pearls": {
@@ -1574,7 +1574,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ceremonial gold armor with black pearls",
     "description": "$A...",
     "type": "treasure",
-    "icon": "shield",
+    "icon": "/assets/icons/items/ceremonial_gold_armor_with_black_pearls.svg",
     "cost": "7500 GP",
     "costInGp": 7500
   },
@@ -1583,7 +1583,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Chain",
     "description": "As a utilize action, you can wrap a Chain around an unwilling creature within 5 feet of yourself that has the grappled, incapacitated, or restrained c...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/chain.svg",
     "weight": 10,
     "cost": "5 GP",
     "costInGp": 5,
@@ -1594,7 +1594,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Chain Mail",
     "description": "HA...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/chain_mail.svg",
     "weight": 55,
     "cost": "75 GP",
     "costInGp": 75,
@@ -1607,7 +1607,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Chain Shirt",
     "description": "MA...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/chain_shirt.svg",
     "weight": 20,
     "cost": "50 GP",
     "costInGp": 50,
@@ -1620,7 +1620,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Chalcedony",
     "description": "A white gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/chalcedony.svg",
     "cost": "50 GP",
     "costInGp": 50
   },
@@ -1629,7 +1629,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Chariot",
     "description": "VEH...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/chariot.svg",
     "weight": 100,
     "cost": "250 GP",
     "costInGp": 250
@@ -1639,7 +1639,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Charlatan's Die",
     "description": "Whenever you roll this six-sided die, you can control which number it rolls....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/charlatan_s_die.svg",
     "rarity": ItemRarity.Common,
     "magicProperties": {
       "isIdentified": true,
@@ -1654,7 +1654,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cheese (wedge)",
     "description": "FD...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/cheese_wedge.svg",
     "cost": "0.1 GP",
     "costInGp": 0.1
   },
@@ -1663,7 +1663,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Chest",
     "description": "A Chest holds up to 12 cubic feet of contents....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/chest.svg",
     "weight": 25,
     "cost": "5 GP",
     "costInGp": 5,
@@ -1674,7 +1674,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Chicken",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/chicken.svg",
     "cost": "0.02 GP",
     "costInGp": 0.02
   },
@@ -1683,7 +1683,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Chime of Opening",
     "description": "This hollow metal tube measures about 1 foot long and weighs 1 pound. As a magic action, you can strike the chime to cast knock. The spell's customary...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/chime_of_opening.svg",
     "weight": 1,
     "rarity": ItemRarity.Rare
   },
@@ -1692,7 +1692,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Chrysoberyl",
     "description": "A yellow green to pale green gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/chrysoberyl.svg",
     "cost": "100 GP",
     "costInGp": 100
   },
@@ -1701,7 +1701,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Chrysoprase",
     "description": "A green gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/chrysoprase.svg",
     "cost": "50 GP",
     "costInGp": 50
   },
@@ -1710,7 +1710,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cinnamon",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/cinnamon.svg",
     "weight": 1,
     "cost": "2 GP",
     "costInGp": 2
@@ -1720,7 +1720,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Circlet of Blasting",
     "description": "While wearing this circlet, you can cast scorching_ray Ray with it (+5 to hit). The circlet can't cast this spell again until the next dawn....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/circlet_of_blasting.svg",
     "rarity": ItemRarity.Uncommon
   },
   "citrine": {
@@ -1728,7 +1728,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Citrine",
     "description": "A pale yellow brown gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/citrine.svg",
     "cost": "50 GP",
     "costInGp": 50
   },
@@ -1737,7 +1737,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Climber's Kit",
     "description": "A Climber's Kit includes boot tips, gloves, pitons, and a harness. As a utilize action, you can use the Climber's Kit to anchor yourself; when you do,...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/climber_s_kit.svg",
     "weight": 12,
     "cost": "25 GP",
     "costInGp": 25,
@@ -1748,7 +1748,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cloak of Arachnida",
     "description": "This fine garment is made of black silk interwoven with faint, silvery threads. While wearing it, you gain the following benefits.  Poison Resistance ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cloak_of_arachnida.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -1763,7 +1763,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cloak of Billowing",
     "description": "While wearing this cloak, you can take a bonus_action Action to make it billow dramatically for 1 minute....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cloak_of_billowing.svg",
     "rarity": ItemRarity.Common
   },
   "cloak_of_displacement": {
@@ -1771,7 +1771,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cloak of Displacement",
     "description": "While you wear this cloak, it magically projects an illusion that makes you appear to be standing in a place near your actual location, causing any cr...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cloak_of_displacement.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -1786,7 +1786,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cloak of Elvenkind",
     "description": "While you wear this cloak, Wisdom (perception) checks made to perceive you have disadvantage, and you have advantage on Dexterity (stealth) checks....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cloak_of_elvenkind.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -1801,7 +1801,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cloak of Invisibility",
     "description": "This cloak has 3 charges and regains 1d3 expended charges daily at dawn. While wearing the cloak, you can take a magic action to pull its hood over yo...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cloak_of_invisibility.svg",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
       "isIdentified": true,
@@ -1816,7 +1816,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cloak of Many Fashions",
     "description": "While wearing this cloak, you can take a bonus_action Action to change the style, color, and apparent quality of the garment. The cloak's weight doesn...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cloak_of_many_fashions.svg",
     "rarity": ItemRarity.Common
   },
   "cloak_of_protection": {
@@ -1824,7 +1824,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cloak of Protection",
     "description": "You gain a +1 bonus to armor_class Class and saving throws while you wear this cloak....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cloak_of_protection.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -1839,7 +1839,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cloak of the Bat",
     "description": "While wearing this cloak, you have advantage on Dexterity (stealth) checks. In an area of dim_light Light or darkness, you can grip the edges of the c...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cloak_of_the_bat.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -1854,7 +1854,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cloak of the Manta Ray",
     "description": "While wearing this cloak, you can breathe underwater, and you have a swim_speed Speed of 60 feet....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cloak_of_the_manta_ray.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -1869,7 +1869,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Clockwork Amulet",
     "description": "This copper amulet contains tiny interlocking gears and is powered by magic from Mechanus, a plane of clockwork predictability. Faint ticking and whir...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/clockwork_amulet.svg",
     "rarity": ItemRarity.Common
   },
   "clothes_of_mending": {
@@ -1877,7 +1877,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Clothes of Mending",
     "description": "This elegant outfit magically mends itself to counteract daily wear and tear. Pieces of the outfit that are destroyed can't be repaired in this way....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/clothes_of_mending.svg",
     "rarity": ItemRarity.Common
   },
   "cloth_of_gold_vestments": {
@@ -1885,7 +1885,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cloth-of-gold vestments",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/cloth_of_gold_vestments.svg",
     "cost": "25 GP",
     "costInGp": 25
   },
@@ -1894,7 +1894,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cloves",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/cloves.svg",
     "weight": 1,
     "cost": "3 GP",
     "costInGp": 3
@@ -1904,7 +1904,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Club",
     "description": "M...",
     "type": "weapon",
-    "icon": "hammer",
+    "icon": "/assets/icons/items/club.svg",
     "weight": 2,
     "cost": "0.1 GP",
     "costInGp": 0.1,
@@ -1920,7 +1920,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cobbler's Tools",
     "description": "- Ability:: Dexterity - Utilize:: Modify footwear to give advantage on the wearer's next Dexterity (acrobatics) check (DC 10) - Craft:: climber_s_kit'...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/cobbler_s_tools.svg",
     "weight": 5,
     "cost": "5 GP",
     "costInGp": 5
@@ -1930,7 +1930,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Common Wine (bottle)",
     "description": "FD...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/common_wine_bottle.svg",
     "cost": "0.2 GP",
     "costInGp": 0.2
   },
@@ -1939,7 +1939,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Component Pouch",
     "description": "A Component Pouch is watertight and filled with compartments that hold all the free Material components of your spells....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/component_pouch.svg",
     "weight": 2,
     "cost": "25 GP",
     "costInGp": 25,
@@ -1950,7 +1950,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cook's Utensils",
     "description": "- Ability:: Wisdom - Utilize:: Improve food's flavor (DC 10), or detect spoiled or poisoned food (DC 15) - Craft:: rations...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/cook_s_utensils.svg",
     "weight": 8,
     "cost": "1 GP",
     "costInGp": 1
@@ -1960,7 +1960,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Copper",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/copper.svg",
     "weight": 1,
     "cost": "0.5 GP",
     "costInGp": 0.5
@@ -1970,7 +1970,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Copper chalice with silver filigree",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/copper_chalice_with_silver_filigree.svg",
     "cost": "25 GP",
     "costInGp": 25
   },
@@ -1979,7 +1979,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Copper Dragon Scale Mail",
     "description": "{itemEntry Dragon Scale Mail}...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/copper_dragon_scale_mail.svg",
     "weight": 45,
     "slot": "Torso",
     "armorCategory": "Medium",
@@ -1998,7 +1998,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Coral",
     "description": "A crimson gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/coral.svg",
     "cost": "100 GP",
     "costInGp": 100
   },
@@ -2007,7 +2007,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Costume",
     "description": "While wearing a Costume, you have advantage on any ability check you make to impersonate the person or type of person it represents....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/costume.svg",
     "weight": 4,
     "cost": "5 GP",
     "costInGp": 5,
@@ -2018,7 +2018,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cotton Cloth (1 sq. yd.)",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/cotton_cloth_1_sq_yd.svg",
     "cost": "0.5 GP",
     "costInGp": 0.5
   },
@@ -2027,7 +2027,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cow",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/cow.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -2036,7 +2036,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Crossbow Bolt Case",
     "description": "A crossbow_bolt_case Bolt Case holds up to 20 Bolts....",
     "type": "accessory",
-    "icon": "bow_arrow",
+    "icon": "/assets/icons/items/crossbow_bolt_case.svg",
     "weight": 1,
     "cost": "1 GP",
     "costInGp": 1,
@@ -2047,7 +2047,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Crowbar",
     "description": "Using a Crowbar gives you advantage on Strength checks where the Crowbar's leverage can be applied....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/crowbar.svg",
     "weight": 5,
     "cost": "2 GP",
     "costInGp": 2,
@@ -2058,7 +2058,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Crystal",
     "description": "SCF...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/crystal.svg",
     "weight": 1,
     "cost": "10 GP",
     "costInGp": 10
@@ -2068,7 +2068,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Crystal Ball",
     "description": "The typical crystal ball, a very rare item, is about 6 inches in diameter. While touching it, you can cast the scrying spell (save DC 17) with it....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/crystal_ball.svg",
     "weight": 3,
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
@@ -2084,7 +2084,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Crystal Ball of Mind Reading",
     "description": "While touching this crystal orb, you can cast scrying (save DC 17) with it. In addition, you can cast detect_thoughts Thoughts (save DC 17) targeting ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/crystal_ball_of_mind_reading.svg",
     "weight": 3,
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -2100,7 +2100,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Crystal Ball of Telepathy",
     "description": "While touching this crystal orb, you can cast scrying (save DC 17) with it. In addition, you can communicate telepathically with creatures you can see...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/crystal_ball_of_telepathy.svg",
     "weight": 3,
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -2116,7 +2116,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Crystal Ball of True Seeing",
     "description": "While touching this crystal orb, you can cast scrying (save DC 17) with it. In addition, you have truesight with a range of 120 feet centered on the s...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/crystal_ball_of_true_seeing.svg",
     "weight": 3,
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -2132,7 +2132,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cube of Force",
     "description": "This cube is about an inch across. Each face has a distinct marking on it. You can press one of those faces, expend the number of charges required for...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cube_of_force.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -2147,7 +2147,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cube of Summoning",
     "description": "This Tiny cube looks like a jack-in-the-box. When you wind its crank as a magic action, a merry tune emits from the box, the lid pops open, a creature...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cube_of_summoning.svg",
     "rarity": ItemRarity.Rare
   },
   "cubic_gate": {
@@ -2155,7 +2155,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Cubic Gate",
     "description": "This cube is 3 inches across and radiates palpable magical energy. The six sides of the cube are each keyed to a different plane of existence, one of ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/cubic_gate.svg",
     "rarity": ItemRarity.Legendary
   },
   "daern_s_instant_fortress": {
@@ -2163,7 +2163,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Daern's Instant Fortress",
     "description": "As a magic action, you can place this 1-inch adamantine statuette on the ground and, using a command word, cause it to grow rapidly into a square adam...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/daern_s_instant_fortress.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -2178,7 +2178,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dagger",
     "description": "M...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/dagger.svg",
     "weight": 1,
     "cost": "2 GP",
     "costInGp": 2,
@@ -2196,7 +2196,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dagger of Venom",
     "description": "You gain a +1 bonus to attack rolls and damage rolls made with this magic weapon. You can take a bonus_action Action to magically coat the blade with ...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/dagger_of_venom.svg",
     "weight": 1,
     "slot": "MainHand",
     "damageDice": "1d4",
@@ -2213,7 +2213,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dark Shard Amulet",
     "description": "This amulet is fashioned from a shard of resilient material originating from an otherworldly realm. While you are wearing it, you gain the following b...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/dark_shard_amulet.svg",
     "weight": 1,
     "rarity": ItemRarity.Common,
     "magicProperties": {
@@ -2229,7 +2229,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dart",
     "description": "R...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/dart.svg",
     "weight": 0.25,
     "cost": "0.05 GP",
     "costInGp": 0.05,
@@ -2246,7 +2246,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Decanter of Endless Water",
     "description": "This stoppered flask sloshes when shaken, as if it contains water. The decanter weighs 2 pounds. You can take a magic action to remove the stopper and...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/decanter_of_endless_water.svg",
     "weight": 2,
     "rarity": ItemRarity.Uncommon
   },
@@ -2255,7 +2255,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Deck of Illusions",
     "description": "This box contains a set of cards. A full deck has 34 cards: 32 depicting specific creatures and two with a mirrored surface. A deck found as treasure ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/deck_of_illusions.svg",
     "rarity": ItemRarity.Uncommon
   },
   "deck_of_many_things": {
@@ -2263,7 +2263,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Deck of Many Things",
     "description": "Usually found in a box or pouch, this deck contains a number of cards made of ivory or vellum. Most (75 percent) of these decks have thirteen cards, b...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/deck_of_many_things.svg",
     "rarity": ItemRarity.Legendary
   },
   "demonomicon_of_iggwilv": {
@@ -2271,7 +2271,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Demonomicon of Iggwilv",
     "description": "This treatise, composed by Iggwilv the archmage, documents the Abyss's layers and inhabitants and is widely regarded as the most thorough and blasphem...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/demonomicon_of_iggwilv.svg",
     "rarity": ItemRarity.Artifact,
     "magicProperties": {
       "isIdentified": true,
@@ -2286,7 +2286,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Detailed, life-sized dragonborn skull cast in electrum",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/detailed_life_sized_dragonborn_skull_cast_in_electrum.svg",
     "cost": "750 GP",
     "costInGp": 750
   },
@@ -2295,7 +2295,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Diamond",
     "description": "A blue white, canary, pink, brown, or blue gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/diamond.svg",
     "cost": "5000 GP",
     "costInGp": 5000
   },
@@ -2304,7 +2304,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dice Set",
     "description": "- Ability:: Wisdom - Utilize:: Discern whether someone is cheating (DC 10), or win the game (DC 20)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/dice_set.svg",
     "cost": "0.1 GP",
     "costInGp": 0.1
   },
@@ -2313,7 +2313,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dimensional Shackles",
     "description": "You can take a utilize action to place these shackles on a creature that has the incapacitated condition. The shackles adjust to fit a creature of Sma...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/dimensional_shackles.svg",
     "rarity": ItemRarity.Rare
   },
   "diplomat_s_pack": {
@@ -2321,7 +2321,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Diplomat's Pack",
     "description": "A Diplomat's Pack contains the following items: chest, fine_clothes Clothes, ink, 5 ink_pen Pens, lamp, 2 map_or_scroll_case or Scroll Cases, 4 flasks...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/diplomat_s_pack.svg",
     "weight": 39,
     "cost": "39 GP",
     "costInGp": 39,
@@ -2332,7 +2332,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Disguise Kit",
     "description": "- Ability:: Charisma - Utilize:: Apply makeup (DC 10) - Craft:: costume...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/disguise_kit.svg",
     "weight": 3,
     "cost": "25 GP",
     "costInGp": 25
@@ -2342,7 +2342,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Draft Horse",
     "description": "MNT...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/draft_horse.svg",
     "cost": "50 GP",
     "costInGp": 50
   },
@@ -2351,7 +2351,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dragonchess Set",
     "description": "- Ability:: Wisdom - Utilize:: Discern whether someone is cheating (DC 10), or win the game (DC 20)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/dragonchess_set.svg",
     "cost": "1 GP",
     "costInGp": 1
   },
@@ -2360,7 +2360,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dread Helm",
     "description": "While you're wearing this fearsome steel helm, your eyes glow red and the rest of your face is hidden in shadow....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/dread_helm.svg",
     "rarity": ItemRarity.Common
   },
   "driftglobe": {
@@ -2368,7 +2368,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Driftglobe",
     "description": "This small sphere of thick glass weighs 1 pound. If you are within 60 feet of it, you can command it to emanate light equivalent to that of the light ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/driftglobe.svg",
     "weight": 1,
     "rarity": ItemRarity.Uncommon
   },
@@ -2377,7 +2377,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Drum",
     "description": "- Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/drum.svg",
     "weight": 3,
     "cost": "6 GP",
     "costInGp": 6
@@ -2387,7 +2387,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dulcimer",
     "description": "- Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/dulcimer.svg",
     "weight": 10,
     "cost": "25 GP",
     "costInGp": 25
@@ -2397,7 +2397,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dungeoneer's Pack",
     "description": "A Dungeoneer's Pack contains the following items: backpack, caltrops, crowbar, 2 flasks of oil, 10 days of rations, rope, tinderbox, 10 torch, and wat...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/dungeoneer_s_pack.svg",
     "weight": 55,
     "cost": "12 GP",
     "costInGp": 12,
@@ -2408,7 +2408,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dust of Disappearance",
     "description": "This powder resembles fine sand. There is enough of it for one use. When you take a utilize action to throw the dust into the air, you and each creatu...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/dust_of_disappearance.svg",
     "rarity": ItemRarity.Uncommon
   },
   "dust_of_dryness": {
@@ -2416,7 +2416,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dust of Dryness",
     "description": "This small packet contains 1d6 + 4 pinches of dust. As a utilize action, you can sprinkle a pinch of the dust over water, turning up to a 15-foot cube...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/dust_of_dryness.svg",
     "rarity": ItemRarity.Uncommon
   },
   "dust_of_sneezing_and_choking": {
@@ -2424,7 +2424,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dust of Sneezing and Choking",
     "description": "Found in a small container, this powder resembles dust_of_disappearance of Disappearance, and identify reveals it to be such. There is enough of it fo...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/dust_of_sneezing_and_choking.svg",
     "rarity": ItemRarity.Uncommon
   },
   "dwarven_thrower": {
@@ -2432,7 +2432,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dwarven Thrower",
     "description": "You gain a +3 bonus to attack rolls and damage rolls made with this magic weapon. It has T with a normal range of 20 feet and a long range of 60 feet....",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/dwarven_thrower.svg",
     "weight": 5,
     "slot": "MainHand",
     "damageDice": "1d8",
@@ -2455,7 +2455,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Dynamite Stick",
     "description": "An an action, you can light a Dynamite Stick and throw it at a point up to 60 feet away, where it explodes. Each creature in a 5-foot-radius sphere_ar...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/dynamite_stick.svg",
     "weight": 1
   },
   "ear_horn_of_hearing": {
@@ -2463,7 +2463,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ear Horn of Hearing",
     "description": "While held up to your ear, this horn suppresses the effects of the deafened condition on you....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ear_horn_of_hearing.svg",
     "rarity": ItemRarity.Common
   },
   "efreeti_bottle": {
@@ -2471,7 +2471,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Efreeti Bottle",
     "description": "When you take a magic action to remove the stopper of this painted brass bottle, a cloud of thick smoke flows out of it. At the end of your turn, the ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/efreeti_bottle.svg",
     "rarity": ItemRarity.VeryRare
   },
   "elemental_gem_blue_sapphire": {
@@ -2479,7 +2479,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Elemental Gem, Blue Sapphire",
     "description": "This gem contains a mote of elemental energy. When you take a utilize action to break the gem, an Air Elemental is summoned, and the gem ceases to be ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/elemental_gem_blue_sapphire.svg",
     "rarity": ItemRarity.Uncommon
   },
   "elemental_gem_emerald": {
@@ -2487,7 +2487,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Elemental Gem, Emerald",
     "description": "This gem contains a mote of elemental energy. When you take a utilize action to break the gem, a Water Elemental is summoned, and the gem ceases to be...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/elemental_gem_emerald.svg",
     "rarity": ItemRarity.Uncommon
   },
   "elemental_gem_red_corundum": {
@@ -2495,7 +2495,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Elemental Gem, Red Corundum",
     "description": "This gem contains a mote of elemental energy. When you take a utilize action to break the gem, a Fire Elemental is summoned, and the gem ceases to be ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/elemental_gem_red_corundum.svg",
     "rarity": ItemRarity.Uncommon
   },
   "elemental_gem_yellow_diamond": {
@@ -2503,7 +2503,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Elemental Gem, Yellow Diamond",
     "description": "This gem contains a mote of elemental energy. When you take a utilize action to break the gem, an Earth Elemental is summoned, and the gem ceases to b...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/elemental_gem_yellow_diamond.svg",
     "rarity": ItemRarity.Uncommon
   },
   "elephant": {
@@ -2511,7 +2511,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Elephant",
     "description": "MNT...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/elephant.svg",
     "cost": "200 GP",
     "costInGp": 200
   },
@@ -2520,7 +2520,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Elixir of Health",
     "description": "When you drink this potion, you are cured of all magical contagions. In addition, the following conditions end on you: blinded, deafened, paralyzed, a...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/elixir_of_health.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -2529,7 +2529,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Emblem",
     "description": "For an Emblem to be an effective Holy Symbol, it must be borne on fabric (such as a tabard or banner) or a shield....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/emblem.svg",
     "cost": "5 GP",
     "costInGp": 5
   },
@@ -2538,7 +2538,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Embroidered glove set with jewel chips",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/embroidered_glove_set_with_jewel_chips.svg",
     "cost": "2500 GP",
     "costInGp": 2500
   },
@@ -2547,7 +2547,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Embroidered silk and velvet mantle set with numerous moonstones",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/embroidered_silk_and_velvet_mantle_set_with_numerous_moonstones.svg",
     "cost": "2500 GP",
     "costInGp": 2500
   },
@@ -2556,7 +2556,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Embroidered silk handkerchief",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/embroidered_silk_handkerchief.svg",
     "cost": "25 GP",
     "costInGp": 25
   },
@@ -2565,7 +2565,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Emerald",
     "description": "A deep bright green gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/emerald.svg",
     "cost": "1000 GP",
     "costInGp": 1000
   },
@@ -2574,7 +2574,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Enduring Spellbook",
     "description": "This spellbook, along with anything written on its pages, can't be damaged by fire or water. In addition, the spellbook doesn't deteriorate with age....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/enduring_spellbook.svg",
     "rarity": ItemRarity.Common
   },
   "energy_cell": {
@@ -2582,7 +2582,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Energy Cell",
     "description": "AF...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/energy_cell.svg",
     "weight": 0.5
   },
   "enspelled_staff_cantrip": {
@@ -2590,7 +2590,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Enspelled Staff (Cantrip)",
     "description": "Bound into this staff is a cantrip. The cantrip is determined when the staff is created and can be of any school of magic. The staff has 6 charges and...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/enspelled_staff_cantrip.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -2612,7 +2612,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Enspelled Staff (Level 1)",
     "description": "Bound into this staff is a level 1 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/enspelled_staff_level_1.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -2634,7 +2634,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Enspelled Staff (Level 2)",
     "description": "Bound into this staff is a level 2 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/enspelled_staff_level_2.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -2656,7 +2656,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Enspelled Staff (Level 3)",
     "description": "Bound into this staff is a level 3 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/enspelled_staff_level_3.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -2678,7 +2678,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Enspelled Staff (Level 4)",
     "description": "Bound into this staff is a level 4 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/enspelled_staff_level_4.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -2700,7 +2700,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Enspelled Staff (Level 5)",
     "description": "Bound into this staff is a level 5 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/enspelled_staff_level_5.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -2722,7 +2722,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Enspelled Staff (Level 6)",
     "description": "Bound into this staff is a level 6 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/enspelled_staff_level_6.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -2744,7 +2744,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Enspelled Staff (Level 7)",
     "description": "Bound into this staff is a level 7 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/enspelled_staff_level_7.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -2766,7 +2766,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Enspelled Staff (Level 8)",
     "description": "Bound into this staff is a level 8 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/enspelled_staff_level_8.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -2788,7 +2788,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Entertainer's Pack",
     "description": "An Entertainer's Pack contains the following items: backpack, bedroll, bell, bullseye_lantern Lantern, 3 costume, mirror, 8 flasks of oil, 9 days of r...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/entertainer_s_pack.svg",
     "weight": 58.5,
     "cost": "40 GP",
     "costInGp": 40,
@@ -2799,7 +2799,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ersatz Eye",
     "description": "This magical eye replaces a real one that was lost or removed. While the Ersatz Eye is embedded in your eye socket, you can see through the tiny orb a...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ersatz_eye.svg",
     "rarity": ItemRarity.Common
   },
   "essence_of_ether": {
@@ -2807,7 +2807,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Essence of Ether",
     "description": "A creature subjected to Essence of Ether must succeed on a DC 15 Constitution saving throw or have the poisoned condition for 8 hours. The creature al...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/essence_of_ether.svg",
     "cost": "300 GP",
     "costInGp": 300,
     "slot": "Ring"
@@ -2817,7 +2817,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Eversmoking Bottle",
     "description": "As a magic action, you can open or close this bottle. Opening the bottle causes thick smoke to billow out, forming a cloud that fills a 60-foot emanat...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/eversmoking_bottle.svg",
     "rarity": ItemRarity.Uncommon
   },
   "exotic_saddle": {
@@ -2825,7 +2825,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Exotic Saddle",
     "description": "A saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle. An Exotic Saddle is required for riding an aquatic or a ...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/exotic_saddle.svg",
     "weight": 40,
     "cost": "60 GP",
     "costInGp": 60
@@ -2835,7 +2835,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Explorer's Pack",
     "description": "An Explorer's Pack contains the following items: backpack, bedroll, 2 flasks of oil, 10 days of rations, rope, tinderbox, 10 torch, and waterskin....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/explorer_s_pack.svg",
     "weight": 55,
     "cost": "10 GP",
     "costInGp": 10,
@@ -2846,7 +2846,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Eyes of Charming",
     "description": "These crystal lenses fit over the eyes. They have 3 charges. While wearing them, you can expend 1 or more charges to cast charm_person Person (save DC...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/eyes_of_charming.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -2861,7 +2861,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Eyes of Minute Seeing",
     "description": "These crystal lenses fit over the eyes. While wearing them, your vision improves significantly out to a range of 1 foot, granting you darkvision withi...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/eyes_of_minute_seeing.svg",
     "rarity": ItemRarity.Uncommon
   },
   "eyes_of_the_eagle": {
@@ -2869,7 +2869,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Eyes of the Eagle",
     "description": "These crystal lenses fit over the eyes. While wearing them, you have advantage on Wisdom (perception) checks that rely on sight. In conditions of clea...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/eyes_of_the_eagle.svg",
     "rarity": ItemRarity.Uncommon
   },
   "eye_agate": {
@@ -2877,7 +2877,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Eye Agate",
     "description": "A circles of gray, white, brown, blue, or green gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/eye_agate.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -2886,7 +2886,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Eye of Vecna",
     "description": "Vecna was a mighty wizard who, through magic and conquest, forged a terrible empire. For all his power, however, Vecna feared death and took steps to ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/eye_of_vecna.svg",
     "rarity": ItemRarity.Artifact,
     "magicProperties": {
       "isIdentified": true,
@@ -2901,7 +2901,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Eye patch decorated with tiny blue sapphires and moonstones",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/eye_patch_decorated_with_tiny_blue_sapphires_and_moonstones.svg",
     "cost": "2500 GP",
     "costInGp": 2500
   },
@@ -2910,7 +2910,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Feed (per day)",
     "description": "TAH...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/feed_per_day.svg",
     "weight": 10,
     "cost": "0.05 GP",
     "costInGp": 0.05
@@ -2920,7 +2920,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Figurine of Wondrous Power, Bronze Griffon",
     "description": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/figurine_of_wondrous_power_bronze_griffon.svg",
     "rarity": ItemRarity.Rare
   },
   "figurine_of_wondrous_power_ebony_fly": {
@@ -2928,7 +2928,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Figurine of Wondrous Power, Ebony Fly",
     "description": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/figurine_of_wondrous_power_ebony_fly.svg",
     "rarity": ItemRarity.Rare
   },
   "figurine_of_wondrous_power_golden_lions": {
@@ -2936,7 +2936,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Figurine of Wondrous Power, Golden Lions",
     "description": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/figurine_of_wondrous_power_golden_lions.svg",
     "rarity": ItemRarity.Rare
   },
   "figurine_of_wondrous_power_ivory_goats": {
@@ -2944,7 +2944,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Figurine of Wondrous Power, Ivory Goats",
     "description": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/figurine_of_wondrous_power_ivory_goats.svg",
     "rarity": ItemRarity.Rare
   },
   "figurine_of_wondrous_power_marble_elephant": {
@@ -2952,7 +2952,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Figurine of Wondrous Power, Marble Elephant",
     "description": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/figurine_of_wondrous_power_marble_elephant.svg",
     "rarity": ItemRarity.Rare
   },
   "figurine_of_wondrous_power_obsidian_steed": {
@@ -2960,7 +2960,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Figurine of Wondrous Power, Obsidian Steed",
     "description": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/figurine_of_wondrous_power_obsidian_steed.svg",
     "rarity": ItemRarity.VeryRare
   },
   "figurine_of_wondrous_power_onyx_dog": {
@@ -2968,7 +2968,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Figurine of Wondrous Power, Onyx Dog",
     "description": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/figurine_of_wondrous_power_onyx_dog.svg",
     "rarity": ItemRarity.Rare
   },
   "figurine_of_wondrous_power_serpentine_owl": {
@@ -2976,7 +2976,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Figurine of Wondrous Power, Serpentine Owl",
     "description": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/figurine_of_wondrous_power_serpentine_owl.svg",
     "rarity": ItemRarity.Rare
   },
   "figurine_of_wondrous_power_silver_raven": {
@@ -2984,7 +2984,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Figurine of Wondrous Power, Silver Raven",
     "description": "A figurine_of_wondrous_power of Wondrous Power is a statuette small enough to fit in a pocket. If you take a magic action to throw the figurine to a p...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/figurine_of_wondrous_power_silver_raven.svg",
     "rarity": ItemRarity.Uncommon
   },
   "fine_clothes": {
@@ -2992,7 +2992,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Fine Clothes",
     "description": "Fine Clothes are made of expensive fabrics and adorned with expertly crafted details. Some events and locations admit only people wearing these clothe...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/fine_clothes.svg",
     "weight": 6,
     "cost": "15 GP",
     "costInGp": 15,
@@ -3003,7 +3003,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Fine gold chain set with a fire opal",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/fine_gold_chain_set_with_a_fire_opal.svg",
     "cost": "2500 GP",
     "costInGp": 2500
   },
@@ -3012,7 +3012,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Fine Wine (bottle)",
     "description": "FD...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/fine_wine_bottle.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -3021,7 +3021,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Firearm Bullet",
     "description": "Firearm Bullets are destroyed upon use in a modern firearm....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/firearm_bullet.svg",
     "weight": 0.2,
     "cost": "0.3 GP",
     "costInGp": 0.3
@@ -3031,7 +3031,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Firearm Bullets (10)",
     "description": "Firearm Bullets are destroyed upon use in a modern firearm....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/firearm_bullets_10.svg",
     "weight": 2,
     "cost": "3 GP",
     "costInGp": 3
@@ -3041,7 +3041,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Fire Opal",
     "description": "A fiery red gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/fire_opal.svg",
     "cost": "1000 GP",
     "costInGp": 1000
   },
@@ -3050,7 +3050,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Flail",
     "description": "M...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/flail.svg",
     "weight": 2,
     "cost": "10 GP",
     "costInGp": 10,
@@ -3063,7 +3063,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Flask",
     "description": "A Flask holds up to 1 pint....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/flask.svg",
     "weight": 1,
     "cost": "0.02 GP",
     "costInGp": 0.02,
@@ -3074,7 +3074,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Flour",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/flour.svg",
     "weight": 2,
     "cost": "0.02 GP",
     "costInGp": 0.02
@@ -3084,7 +3084,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Flute",
     "description": "- Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/flute.svg",
     "weight": 1,
     "cost": "2 GP",
     "costInGp": 2
@@ -3094,7 +3094,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Folding Boat",
     "description": "This object appears as a wooden box that measures 12 inches long, 6 inches wide, and 6 inches deep. It weighs 4 pounds and floats. It can be opened to...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/folding_boat.svg",
     "weight": 4,
     "rarity": ItemRarity.Rare
   },
@@ -3103,7 +3103,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Forgery Kit",
     "description": "- Ability:: Dexterity - Utilize:: Mimic 10 or fewer words of someone else's handwriting (DC 15), or duplicate a wax seal (DC 20)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/forgery_kit.svg",
     "weight": 5,
     "cost": "15 GP",
     "costInGp": 15
@@ -3113,7 +3113,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Fragmentation Grenade",
     "description": "{itemEntry Grenade} Each creature in the sphere_area_of_effect makes a DC 15 Dexterity saving throw, taking 17 (5d6) Piercing damage on a failed save ...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/fragmentation_grenade.svg",
     "weight": 1
   },
   "galley": {
@@ -3121,7 +3121,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Galley",
     "description": "SHP...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/galley.svg",
     "cost": "30000 GP",
     "costInGp": 30000
   },
@@ -3130,7 +3130,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Garnet",
     "description": "A red, brown green, or violet gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/garnet.svg",
     "cost": "100 GP",
     "costInGp": 100
   },
@@ -3139,7 +3139,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gauntlets of Ogre Power",
     "description": "Your Strength score is 19 while you wear these gauntlets. They have no effect on you if your Strength is 19 or higher without them....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/gauntlets_of_ogre_power.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -3154,7 +3154,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gem of Brightness",
     "description": "This prism has 50 charges. While you are holding it, you can take a magic action and use one of three command words to cause one of the following effe...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/gem_of_brightness.svg",
     "rarity": ItemRarity.Uncommon
   },
   "gem_of_seeing": {
@@ -3162,7 +3162,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gem of Seeing",
     "description": "This gem has 3 charges. As a magic action, you can expend 1 charge. For the next 10 minutes, you have truesight out to 120 feet when you peer through ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/gem_of_seeing.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -3177,7 +3177,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gilded royal coach or funeral barge",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gilded_royal_coach_or_funeral_barge.svg",
     "cost": "7500 GP",
     "costInGp": 7500
   },
@@ -3186,7 +3186,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ginger",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/ginger.svg",
     "weight": 1,
     "cost": "1 GP",
     "costInGp": 1
@@ -3196,7 +3196,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Glaive",
     "description": "M...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/glaive.svg",
     "weight": 6,
     "cost": "20 GP",
     "costInGp": 20,
@@ -3214,7 +3214,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Glamoured Studded Leather",
     "description": "While wearing this armor, you gain a +1 bonus to armor_class Class. You can also take a bonus_action Action to cause the armor to assume the appearanc...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/glamoured_studded_leather.svg",
     "weight": 13,
     "slot": "Torso",
     "armorCategory": "Light",
@@ -3226,7 +3226,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Glassblower's Tools",
     "description": "- Ability:: Intelligence - Utilize:: Discern what a glass object held in the past 24 hours (DC 15) - Craft:: glass_bottle Bottle, magnifying_glass Gla...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/glassblower_s_tools.svg",
     "weight": 5,
     "cost": "30 GP",
     "costInGp": 30
@@ -3236,7 +3236,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Glass Bottle",
     "description": "A Glass Bottle holds up to 1½ pints....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/glass_bottle.svg",
     "weight": 2,
     "cost": "2 GP",
     "costInGp": 2,
@@ -3247,7 +3247,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gloves of Missile Snaring",
     "description": "If you're hit by an attack roll made with a Ranged or Thrown weapon while wearing these gloves, you can take a reaction to reduce the damage by 1d10 p...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/gloves_of_missile_snaring.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -3262,7 +3262,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gloves of Swimming and Climbing",
     "description": "While wearing these gloves, climbing and swimming don't cost you extra movement, and you gain a +5 bonus to Strength (athletics) checks made to climb ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/gloves_of_swimming_and_climbing.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -3277,7 +3277,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gloves of Thievery",
     "description": "These gloves are imperceptible while worn. While wearing them, you gain a +5 bonus to Dexterity (sleight_of_hand of Hand) checks....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/gloves_of_thievery.svg",
     "rarity": ItemRarity.Uncommon
   },
   "goat": {
@@ -3285,7 +3285,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Goat",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/goat.svg",
     "cost": "1 GP",
     "costInGp": 1
   },
@@ -3294,7 +3294,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Goggles of Night",
     "description": "While wearing these dark lenses, you have darkvision out to 60 feet. If you already have darkvision, wearing the goggles increases its range by 60 fee...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/goggles_of_night.svg",
     "rarity": ItemRarity.Uncommon
   },
   "gold": {
@@ -3302,7 +3302,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gold.svg",
     "weight": 1,
     "cost": "50 GP",
     "costInGp": 50
@@ -3312,7 +3312,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold Bar (5-pound)",
     "description": "TB...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gold_bar_5_pound.svg",
     "weight": 5,
     "cost": "250 GP",
     "costInGp": 250
@@ -3322,7 +3322,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold birdcage with electrum filigree",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gold_birdcage_with_electrum_filigree.svg",
     "cost": "250 GP",
     "costInGp": 250
   },
@@ -3331,7 +3331,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold bracelet",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gold_bracelet.svg",
     "cost": "25 GP",
     "costInGp": 25
   },
@@ -3340,7 +3340,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold circlet set with four aquamarines",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gold_circlet_set_with_four_aquamarines.svg",
     "cost": "2500 GP",
     "costInGp": 2500
   },
@@ -3349,7 +3349,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold comb shaped like a dragon with red garnets as eyes",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gold_comb_shaped_like_a_dragon_with_red_garnets_as_eyes.svg",
     "cost": "750 GP",
     "costInGp": 750
   },
@@ -3358,7 +3358,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold cup set with emeralds",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gold_cup_set_with_emeralds.svg",
     "cost": "7500 GP",
     "costInGp": 7500
   },
@@ -3367,7 +3367,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold Dragon Scale Mail",
     "description": "{itemEntry Dragon Scale Mail}...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/gold_dragon_scale_mail.svg",
     "weight": 45,
     "slot": "Torso",
     "armorCategory": "Medium",
@@ -3386,7 +3386,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold idol",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gold_idol.svg",
     "cost": "750 GP",
     "costInGp": 750
   },
@@ -3395,7 +3395,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold jewelry box with platinum filigree",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gold_jewelry_box_with_platinum_filigree.svg",
     "cost": "7500 GP",
     "costInGp": 7500
   },
@@ -3404,7 +3404,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold locket with a painted portrait inside",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gold_locket_with_a_painted_portrait_inside.svg",
     "cost": "25 GP",
     "costInGp": 25
   },
@@ -3413,7 +3413,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold music box",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gold_music_box.svg",
     "cost": "2500 GP",
     "costInGp": 2500
   },
@@ -3422,7 +3422,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold ring set with bloodstones",
     "description": "$A...",
     "type": "treasure",
-    "icon": "ring",
+    "icon": "/assets/icons/items/gold_ring_set_with_bloodstones.svg",
     "cost": "250 GP",
     "costInGp": 250
   },
@@ -3431,7 +3431,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gold statuette set with rubies",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gold_statuette_set_with_rubies.svg",
     "cost": "7500 GP",
     "costInGp": 7500
   },
@@ -3440,7 +3440,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Grappling Hook",
     "description": "As a utilize action, you can throw the Grappling Hook at a railing, a ledge, or another catch within 50 feet of yourself, and the hook catches on if y...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/grappling_hook.svg",
     "weight": 4,
     "cost": "2 GP",
     "costInGp": 2,
@@ -3451,7 +3451,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Greataxe",
     "description": "M...",
     "type": "weapon",
-    "icon": "axe_battle",
+    "icon": "/assets/icons/items/greataxe.svg",
     "weight": 7,
     "cost": "30 GP",
     "costInGp": 30,
@@ -3468,7 +3468,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Greatclub",
     "description": "M...",
     "type": "weapon",
-    "icon": "hammer",
+    "icon": "/assets/icons/items/greatclub.svg",
     "weight": 10,
     "cost": "0.2 GP",
     "costInGp": 0.2,
@@ -3484,7 +3484,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Greatsword",
     "description": "M...",
     "type": "weapon",
-    "icon": "sword",
+    "icon": "/assets/icons/items/greatsword.svg",
     "weight": 6,
     "cost": "50 GP",
     "costInGp": 50,
@@ -3501,7 +3501,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Green Dragon Scale Mail",
     "description": "{itemEntry Dragon Scale Mail}...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/green_dragon_scale_mail.svg",
     "weight": 45,
     "slot": "Torso",
     "armorCategory": "Medium",
@@ -3520,7 +3520,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Grenade Launcher",
     "description": "{itemEntry Grenade}...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/grenade_launcher.svg",
     "weight": 7,
     "slot": "Ring"
   },
@@ -3529,7 +3529,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gunpowder (keg)",
     "description": "Setting fire to a keg full of Gunpowder causes it to explode. When a keg explodes, each creature in a 10-foot-radius sphere_area_of_effect centered on...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gunpowder_keg.svg",
     "weight": 20,
     "cost": "250 GP",
     "costInGp": 250
@@ -3539,7 +3539,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Gunpowder (powder horn)",
     "description": "Setting fire to a powder horn full of Gunpowder causes it to explode. When a powder horn explodes, each creature in a 10-foot-radius sphere_area_of_ef...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/gunpowder_powder_horn.svg",
     "weight": 2,
     "cost": "35 GP",
     "costInGp": 35
@@ -3549,7 +3549,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Hag Eye",
     "description": "A Hag Eye has 3 charges. While wearing or holding this item, you can expend 1 charge to cast darkvision (targeting yourself only) or see_invisibility ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/hag_eye.svg",
     "rarity": ItemRarity.Uncommon
   },
   "halberd": {
@@ -3557,7 +3557,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Halberd",
     "description": "M...",
     "type": "weapon",
-    "icon": "axe_battle",
+    "icon": "/assets/icons/items/halberd.svg",
     "weight": 6,
     "cost": "20 GP",
     "costInGp": 20,
@@ -3575,7 +3575,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Half Plate Armor",
     "description": "MA...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/half_plate_armor.svg",
     "weight": 40,
     "cost": "750 GP",
     "costInGp": 750,
@@ -3588,7 +3588,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Handaxe",
     "description": "M...",
     "type": "weapon",
-    "icon": "axe_battle",
+    "icon": "/assets/icons/items/handaxe.svg",
     "weight": 2,
     "cost": "5 GP",
     "costInGp": 5,
@@ -3605,7 +3605,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Handheld mirror set in a painted wooden frame",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/handheld_mirror_set_in_a_painted_wooden_frame.svg",
     "cost": "25 GP",
     "costInGp": 25
   },
@@ -3614,7 +3614,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Hand Crossbow",
     "description": "R...",
     "type": "weapon",
-    "icon": "bow_arrow",
+    "icon": "/assets/icons/items/hand_crossbow.svg",
     "weight": 3,
     "cost": "75 GP",
     "costInGp": 75,
@@ -3632,7 +3632,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Hand of Vecna",
     "description": "Vecna was a mighty wizard who, through magic and conquest, forged a terrible empire. For all his power, however, Vecna feared death and took steps to ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/hand_of_vecna.svg",
     "rarity": ItemRarity.Artifact,
     "magicProperties": {
       "isIdentified": true,
@@ -3647,7 +3647,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Hat of Disguise",
     "description": "While wearing this hat, you can cast the disguise_self Self spell. The spell ends if the hat is removed....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/hat_of_disguise.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -3662,7 +3662,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Hat of Many Spells",
     "description": "This pointed hat has the following properties.  Spellcasting Focus While holding the hat, you can use it as a spellcasting_focus Focus for your Wizard...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/hat_of_many_spells.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -3677,7 +3677,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Hat of Vermin",
     "description": "This hat has 3 charges. While holding the hat, you can take a magic action to expend 1 charge and summon your choice of a Bat, a Frog, or a Rat. The s...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/hat_of_vermin.svg",
     "rarity": ItemRarity.Common
   },
   "hat_of_wizardry": {
@@ -3685,7 +3685,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Hat of Wizardry",
     "description": "This cone-shaped hat is adorned with moons and stars. While you are wearing it, you gain the following benefits.  Spellcasting Focus You can use the h...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/hat_of_wizardry.svg",
     "rarity": ItemRarity.Common,
     "magicProperties": {
       "isIdentified": true,
@@ -3700,7 +3700,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Headband of Intellect",
     "description": "Your Intelligence score is 19 while you wear this headband. It has no effect on you if your Intelligence is 19 or higher without it....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/headband_of_intellect.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -3715,7 +3715,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Healer's Kit",
     "description": "A Healer's Kit has ten uses. As a utilize action, you can expend one of its uses to stabilize an unconscious creature that has 0 hit_points Points wit...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/healer_s_kit.svg",
     "weight": 3,
     "cost": "5 GP",
     "costInGp": 5,
@@ -3726,7 +3726,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Heavy Crossbow",
     "description": "R...",
     "type": "weapon",
-    "icon": "bow_arrow",
+    "icon": "/assets/icons/items/heavy_crossbow.svg",
     "weight": 18,
     "cost": "50 GP",
     "costInGp": 50,
@@ -3745,7 +3745,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Helm of Brilliance",
     "description": "This helm is set with 1d10 diamonds, 2d10 rubies, 3d10 fire opals, and 4d10 opals. Any gem pried from the helm crumbles to dust. When all the gems are...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/helm_of_brilliance.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -3760,7 +3760,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Helm of Comprehending Languages",
     "description": "While wearing this helm, you can cast comprehend_languages Languages from it....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/helm_of_comprehending_languages.svg",
     "rarity": ItemRarity.Uncommon
   },
   "helm_of_telepathy": {
@@ -3768,7 +3768,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Helm of Telepathy",
     "description": "While wearing this helm, you have telepathy with a range of 30 feet, and you can cast detect_thoughts Thoughts or suggestion (save DC 13) from the hel...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/helm_of_telepathy.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -3783,7 +3783,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Helm of Teleportation",
     "description": "This helm has 3 charges. While wearing it, you can expend 1 charge to cast teleport from it. The helm regains 1d3 expended charges daily at dawn....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/helm_of_teleportation.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -3798,7 +3798,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Hematite",
     "description": "A gray black gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/hematite.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -3807,7 +3807,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Herbalism Kit",
     "description": "- Ability:: Intelligence - Utilize:: Identify a plant (DC 10) - Craft:: antitoxin, candle, healer_s_kit's Kit, potion_of_healing of Healing...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/herbalism_kit.svg",
     "weight": 3,
     "cost": "5 GP",
     "costInGp": 5
@@ -3817,7 +3817,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Heward's Handy Haversack",
     "description": "This backpack has a central pouch and two side pouches, each of which is an extradimensional space. Each side pouch can hold up to 200 pounds of mater...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/heward_s_handy_haversack.svg",
     "weight": 5,
     "rarity": ItemRarity.Rare
   },
@@ -3826,7 +3826,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Heward's Handy Spice Pouch",
     "description": "This belt pouch appears empty and has 10 charges. While holding the pouch, you can take a magic action to expend 1 charge, name any nonmagical food se...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/heward_s_handy_spice_pouch.svg",
     "rarity": ItemRarity.Common
   },
   "hide_armor": {
@@ -3834,7 +3834,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Hide Armor",
     "description": "MA...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/hide_armor.svg",
     "weight": 12,
     "cost": "10 GP",
     "costInGp": 10,
@@ -3847,7 +3847,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Holy Water",
     "description": "When you take the attack action, you can replace one of your attacks with throwing a flask of Holy Water. Target one creature you can see within 20 fe...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/holy_water.svg",
     "weight": 1,
     "cost": "25 GP",
     "costInGp": 25,
@@ -3858,7 +3858,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Hooded Lantern",
     "description": "A Hooded Lantern burns Oil as fuel to cast bright_light Light in a 30-foot radius and dim_light Light for an additional 30 feet. As a bonus_action Act...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/hooded_lantern.svg",
     "weight": 2,
     "cost": "5 GP",
     "costInGp": 5,
@@ -3869,7 +3869,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Horn",
     "description": "- Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/horn.svg",
     "weight": 2,
     "cost": "3 GP",
     "costInGp": 3
@@ -3879,7 +3879,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Horn of Blasting",
     "description": "You can take a magic action to blow the horn, which emits a thunderous blast in a 30-foot cone_area_of_effect that is audible out to 600 feet. Each cr...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/horn_of_blasting.svg",
     "rarity": ItemRarity.Rare
   },
   "horn_of_silent_alarm": {
@@ -3887,7 +3887,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Horn of Silent Alarm",
     "description": "This horn has 4 charges and regains 1d4 expended charges daily at dawn. As a magic action, you can blow the horn while expending 1 charge. One creatur...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/horn_of_silent_alarm.svg",
     "rarity": ItemRarity.Common
   },
   "horn_of_valhalla_brass": {
@@ -3895,7 +3895,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Horn of Valhalla, Brass",
     "description": "You can take a magic action to blow this horn. In response, warrior spirits from the plane of Ysgard appear in unoccupied spaces within 60 feet of you...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/horn_of_valhalla_brass.svg",
     "rarity": ItemRarity.Rare
   },
   "horn_of_valhalla_bronze": {
@@ -3903,7 +3903,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Horn of Valhalla, Bronze",
     "description": "You can take a magic action to blow this horn. In response, warrior spirits from the plane of Ysgard appear in unoccupied spaces within 60 feet of you...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/horn_of_valhalla_bronze.svg",
     "rarity": ItemRarity.VeryRare
   },
   "horn_of_valhalla_iron": {
@@ -3911,7 +3911,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Horn of Valhalla, Iron",
     "description": "You can take a magic action to blow this horn. In response, warrior spirits from the plane of Ysgard appear in unoccupied spaces within 60 feet of you...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/horn_of_valhalla_iron.svg",
     "rarity": ItemRarity.Legendary
   },
   "horn_of_valhalla_silver": {
@@ -3919,7 +3919,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Horn of Valhalla, Silver",
     "description": "You can take a magic action to blow this horn. In response, warrior spirits from the plane of Ysgard appear in unoccupied spaces within 60 feet of you...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/horn_of_valhalla_silver.svg",
     "rarity": ItemRarity.Rare
   },
   "horseshoes_of_a_zephyr": {
@@ -3927,7 +3927,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Horseshoes of a Zephyr",
     "description": "These horseshoes come in a set of four. As a magic action, you can touch one of the horseshoes to the hoof of a horse or similar creature, whereupon t...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/horseshoes_of_a_zephyr.svg",
     "rarity": ItemRarity.VeryRare
   },
   "horseshoes_of_speed": {
@@ -3935,7 +3935,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Horseshoes of Speed",
     "description": "These horseshoes come in a set of four. As a magic action, you can touch one of the horseshoes to the hoof of a horse or similar creature, whereupon t...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/horseshoes_of_speed.svg",
     "rarity": ItemRarity.Rare
   },
   "hunting_rifle": {
@@ -3943,7 +3943,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Hunting Rifle",
     "description": "R...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/hunting_rifle.svg",
     "weight": 8,
     "slot": "MainHand",
     "damageDice": "2d10",
@@ -3959,7 +3959,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Hunting Trap",
     "description": "As a utilize action, you can set a Hunting Trap, which is a sawtooth steel ring that snaps shut when a creature steps on a pressure plate in the cente...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/hunting_trap.svg",
     "weight": 25,
     "cost": "5 GP",
     "costInGp": 5,
@@ -3970,7 +3970,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Immovable Rod",
     "description": "This iron rod has a button on one end. You can take a utilize action to press the button, which causes the rod to become magically fixed in place. Unt...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/immovable_rod.svg",
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.Uncommon
@@ -3980,7 +3980,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ink",
     "description": "Ink comes in a 1-ounce bottle, which provides enough ink to write about 500 pages....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ink.svg",
     "cost": "10 GP",
     "costInGp": 10,
     "slot": "Ring"
@@ -3990,7 +3990,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ink Pen",
     "description": "Using ink, an Ink Pen is used to write or draw....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ink_pen.svg",
     "cost": "0.02 GP",
     "costInGp": 0.02,
     "slot": "Ring"
@@ -4000,7 +4000,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Instrument of Illusions",
     "description": "While you are playing this musical_instrument instrument, you can take a magic action to create harmless, illusory visual effects within a 5-foot eman...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/instrument_of_illusions.svg",
     "rarity": ItemRarity.Common
   },
   "instrument_of_scribing": {
@@ -4008,7 +4008,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Instrument of Scribing",
     "description": "This musical_instrument instrument has 3 charges and regains all expended charges daily at dawn. While you are playing it, you can take a magic action...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/instrument_of_scribing.svg",
     "rarity": ItemRarity.Common
   },
   "instrument_of_the_bards_anstruth_harp": {
@@ -4016,7 +4016,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Instrument of the Bards, Anstruth Harp",
     "description": "An Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/instrument_of_the_bards_anstruth_harp.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -4031,7 +4031,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Instrument of the Bards, Canaith Mandolin",
     "description": "An Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/instrument_of_the_bards_canaith_mandolin.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -4046,7 +4046,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Instrument of the Bards, Cli Lyre",
     "description": "An Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/instrument_of_the_bards_cli_lyre.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -4061,7 +4061,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Instrument of the Bards, Doss Lute",
     "description": "An Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/instrument_of_the_bards_doss_lute.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -4076,7 +4076,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Instrument of the Bards, Fochlucan Bandore",
     "description": "An Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/instrument_of_the_bards_fochlucan_bandore.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -4091,7 +4091,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Instrument of the Bards, Mac-Fuirmidh Cittern",
     "description": "An Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/instrument_of_the_bards_mac_fuirmidh_cittern.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -4106,7 +4106,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Instrument of the Bards, Ollamh Harp",
     "description": "An Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/instrument_of_the_bards_ollamh_harp.svg",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
       "isIdentified": true,
@@ -4121,7 +4121,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Absorption",
     "description": "{itemEntry Ioun Stone} While this pale lavender ellipsoid orbits your head, you can take a reaction to cancel a spell of level 4 or lower cast by a cr...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_absorption.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -4136,7 +4136,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Agility",
     "description": "{itemEntry Ioun Stone} Your Dexterity increases by 2, to a maximum of 20, while this deep-red sphere orbits your head....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_agility.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -4151,7 +4151,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Awareness",
     "description": "{itemEntry Ioun Stone} While this dark-blue rhomboid orbits your head, you have advantage on initiative rolls and Wisdom (perception) checks....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_awareness.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -4166,7 +4166,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Fortitude",
     "description": "{itemEntry Ioun Stone} Your Constitution increases by 2, to a maximum of 20, while this pink rhomboid orbits your head....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_fortitude.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -4181,7 +4181,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Greater Absorption",
     "description": "{itemEntry Ioun Stone} While this marbled lavender and green ellipsoid orbits your head, you can take a reaction to cancel a spell of level 8 or lower...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_greater_absorption.svg",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
       "isIdentified": true,
@@ -4196,7 +4196,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Insight",
     "description": "{itemEntry Ioun Stone} Your Wisdom increases by 2, to a maximum of 20, while this incandescent blue sphere orbits your head....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_insight.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -4211,7 +4211,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Intellect",
     "description": "{itemEntry Ioun Stone} Your Intelligence increases by 2, to a maximum of 20, while this marbled scarlet and blue sphere orbits your head....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_intellect.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -4226,7 +4226,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Leadership",
     "description": "{itemEntry Ioun Stone} Your Charisma increases by 2, to a maximum of 20, while this marbled pink and green sphere orbits your head....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_leadership.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -4241,7 +4241,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Mastery",
     "description": "{itemEntry Ioun Stone} Your proficiency Bonus increases by 1 while this pale green prism orbits your head....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_mastery.svg",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
       "isIdentified": true,
@@ -4256,7 +4256,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Protection",
     "description": "{itemEntry Ioun Stone} You gain a +1 bonus to armor_class Class while this dusty-rose prism orbits your head....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_protection.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -4271,7 +4271,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Regeneration",
     "description": "{itemEntry Ioun Stone} You regain 15 hit_points Points at the end of each hour this pearly white spindle orbits your head if you have at least 1 hit_p...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_regeneration.svg",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
       "isIdentified": true,
@@ -4286,7 +4286,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Reserve",
     "description": "{itemEntry Ioun Stone} This vibrant purple prism stores spells cast into it, holding them until you use them. The stone can store up to 4 levels of sp...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_reserve.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -4301,7 +4301,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Strength",
     "description": "{itemEntry Ioun Stone} Your Strength increases by 2, to a maximum of 20, while this pale blue rhomboid orbits your head....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_strength.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -4316,7 +4316,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ioun Stone, Sustenance",
     "description": "{itemEntry Ioun Stone} You don't need to eat or drink while this clear spindle orbits your head....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/ioun_stone_sustenance.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -4331,7 +4331,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Iron",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/iron.svg",
     "weight": 1,
     "cost": "0.1 GP",
     "costInGp": 0.1
@@ -4341,7 +4341,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Iron Bands of Bilarro",
     "description": "This rusty iron sphere measures 3 inches in diameter and weighs 1 pound. You can take a magic action to throw the sphere at a Huge or smaller creature...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/iron_bands_of_bilarro.svg",
     "weight": 1,
     "rarity": ItemRarity.Rare
   },
@@ -4350,7 +4350,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Iron Flask",
     "description": "While holding this brass-stoppered iron flask, you can take a magic action to target a creature that you can see within 60 feet of yourself. If the fl...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/iron_flask.svg",
     "rarity": ItemRarity.Legendary
   },
   "iron_pot": {
@@ -4358,7 +4358,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Iron Pot",
     "description": "An Iron Pot holds up to 1 gallon....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/iron_pot.svg",
     "weight": 10,
     "cost": "2 GP",
     "costInGp": 2,
@@ -4369,7 +4369,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Iron Spike",
     "description": "Iron Spikes come in bundles of ten. As a utilize action, you can use a blunt object, such as a light_hammer Hammer, to hammer a spike into wood, earth...",
     "type": "accessory",
-    "icon": "spear",
+    "icon": "/assets/icons/items/iron_spike.svg",
     "weight": 0.5,
     "cost": "0.1 GP",
     "costInGp": 0.1,
@@ -4380,7 +4380,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Iron Spikes",
     "description": "Iron Spikes come in bundles of ten. As a utilize action, you can use a blunt object, such as a light_hammer Hammer, to hammer a spike into wood, earth...",
     "type": "accessory",
-    "icon": "spear",
+    "icon": "/assets/icons/items/iron_spikes.svg",
     "weight": 5,
     "cost": "1 GP",
     "costInGp": 1,
@@ -4391,7 +4391,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Jacinth",
     "description": "A fiery orange gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/jacinth.svg",
     "cost": "5000 GP",
     "costInGp": 5000
   },
@@ -4400,7 +4400,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Jade",
     "description": "A light green, deep green, or white gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/jade.svg",
     "cost": "100 GP",
     "costInGp": 100
   },
@@ -4409,7 +4409,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Jade game board with gold playing pieces",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/jade_game_board_with_gold_playing_pieces.svg",
     "cost": "7500 GP",
     "costInGp": 7500
   },
@@ -4418,7 +4418,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Jasper",
     "description": "A blue, black, or brown gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/jasper.svg",
     "cost": "50 GP",
     "costInGp": 50
   },
@@ -4427,7 +4427,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Javelin",
     "description": "M...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/javelin.svg",
     "weight": 2,
     "cost": "0.5 GP",
     "costInGp": 0.5,
@@ -4443,7 +4443,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Javelin of Lightning",
     "description": "Each time you make an attack roll with this magic weapon and hit, you can have it deal Lightning damage instead of Piercing damage.  Lightning Bolt Wh...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/javelin_of_lightning.svg",
     "weight": 2,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -4458,7 +4458,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Jet",
     "description": "A deep black gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/jet.svg",
     "cost": "100 GP",
     "costInGp": 100
   },
@@ -4467,7 +4467,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Jeweled anklet",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/jeweled_anklet.svg",
     "cost": "2500 GP",
     "costInGp": 2500
   },
@@ -4476,7 +4476,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Jeweled gold crown",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/jeweled_gold_crown.svg",
     "cost": "7500 GP",
     "costInGp": 7500
   },
@@ -4485,7 +4485,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Jeweled platinum ring",
     "description": "$A...",
     "type": "treasure",
-    "icon": "ring",
+    "icon": "/assets/icons/items/jeweled_platinum_ring.svg",
     "cost": "7500 GP",
     "costInGp": 7500
   },
@@ -4494,7 +4494,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Jeweler's Tools",
     "description": "- Ability:: Intelligence - Utilize:: Discern a gem's value (DC 15) - Craft:: arcane_focus Focus, holy_symbol Symbol...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/jeweler_s_tools.svg",
     "weight": 2,
     "cost": "25 GP",
     "costInGp": 25
@@ -4504,7 +4504,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Jug",
     "description": "A Jug holds up to 1 gallon....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/jug.svg",
     "weight": 4,
     "cost": "0.02 GP",
     "costInGp": 0.02,
@@ -4515,7 +4515,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Keelboat",
     "description": "SHP...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/keelboat.svg",
     "cost": "3000 GP",
     "costInGp": 3000
   },
@@ -4524,7 +4524,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Keoghtom's Ointment",
     "description": "This glass jar, 3 inches in diameter, contains 1d4 + 1 doses of a thick mixture that smells faintly of aloe. The jar and its contents weigh 1/2 pound....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/keoghtom_s_ointment.svg",
     "rarity": ItemRarity.Uncommon,
     "effect": {
       "type": "heal",
@@ -4537,7 +4537,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ladder",
     "description": "A Ladder is 10 feet tall. You must climb to move up or down it....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ladder.svg",
     "weight": 25,
     "cost": "0.1 GP",
     "costInGp": 0.1,
@@ -4548,7 +4548,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Lamp",
     "description": "A Lamp burns oil as fuel to cast bright_light Light in a 15-foot radius and dim_light Light for an additional 30 feet....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/lamp.svg",
     "weight": 1,
     "cost": "0.5 GP",
     "costInGp": 0.5,
@@ -4559,7 +4559,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Lance",
     "description": "A Lance requires two hands to wield when you aren't mounted....",
     "type": "weapon",
-    "icon": "spear",
+    "icon": "/assets/icons/items/lance.svg",
     "weight": 6,
     "cost": "10 GP",
     "costInGp": 10,
@@ -4577,7 +4577,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Lantern of Revealing",
     "description": "While lit, this hooded lantern burns for 6 hours on 1 pint of oil, shedding bright_light Light in a 30-foot radius and dim_light Light for an addition...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/lantern_of_revealing.svg",
     "rarity": ItemRarity.Uncommon
   },
   "lapis_lazuli": {
@@ -4585,7 +4585,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Lapis Lazuli",
     "description": "A light and dark blue with yellow flecks gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/lapis_lazuli.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -4594,7 +4594,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Laser Pistol",
     "description": "R...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/laser_pistol.svg",
     "weight": 2,
     "slot": "MainHand",
     "damageDice": "3d6",
@@ -4609,7 +4609,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Laser Rifle",
     "description": "R...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/laser_rifle.svg",
     "weight": 7,
     "slot": "MainHand",
     "damageDice": "3d8",
@@ -4625,7 +4625,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Leatherworker's Tools",
     "description": "- Ability:: Dexterity - Utilize:: Add a design to a leather item (DC 10) - Craft:: sling, whip, hide_armor Armor, leather_armor Armor, studded_leather...",
     "type": "treasure",
-    "icon": "shield",
+    "icon": "/assets/icons/items/leatherworker_s_tools.svg",
     "weight": 5,
     "cost": "5 GP",
     "costInGp": 5
@@ -4635,7 +4635,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Leather Armor",
     "description": "LA...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/leather_armor.svg",
     "weight": 10,
     "cost": "10 GP",
     "costInGp": 10,
@@ -4648,7 +4648,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Light Crossbow",
     "description": "R...",
     "type": "weapon",
-    "icon": "bow_arrow",
+    "icon": "/assets/icons/items/light_crossbow.svg",
     "weight": 5,
     "cost": "25 GP",
     "costInGp": 25,
@@ -4666,7 +4666,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Light Hammer",
     "description": "M...",
     "type": "weapon",
-    "icon": "hammer",
+    "icon": "/assets/icons/items/light_hammer.svg",
     "weight": 2,
     "cost": "2 GP",
     "costInGp": 2,
@@ -4683,7 +4683,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Linen (1 sq. yd.)",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/linen_1_sq_yd.svg",
     "cost": "5 GP",
     "costInGp": 5
   },
@@ -4692,7 +4692,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Lock",
     "description": "A Lock comes with a key. Without the key, a creature can use thieves_tools' Tools to pick this Lock with a successful DC 15 Dexterity (sleight_of_hand...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/lock.svg",
     "weight": 1,
     "cost": "10 GP",
     "costInGp": 10,
@@ -4703,7 +4703,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Lock of Trickery",
     "description": "This lock appears to be an ordinary lock (of the type described in chapter 6 of the Player's Handbook) and comes with a single key. The tumblers in th...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/lock_of_trickery.svg",
     "rarity": ItemRarity.Common
   },
   "lolth_s_sting": {
@@ -4711,7 +4711,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Lolth's Sting",
     "description": "A creature subjected to Lolth's Sting must succeed on a DC 13 Constitution saving throw or have the poisoned condition for 1 hour. If the creature fai...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/lolth_s_sting.svg",
     "cost": "200 GP",
     "costInGp": 200,
     "slot": "Ring"
@@ -4721,7 +4721,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Longbow",
     "description": "R...",
     "type": "weapon",
-    "icon": "bow_arrow",
+    "icon": "/assets/icons/items/longbow.svg",
     "weight": 2,
     "cost": "50 GP",
     "costInGp": 50,
@@ -4739,7 +4739,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Longship",
     "description": "SHP...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/longship.svg",
     "cost": "10000 GP",
     "costInGp": 10000
   },
@@ -4748,7 +4748,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Longsword",
     "description": "M...",
     "type": "weapon",
-    "icon": "sword",
+    "icon": "/assets/icons/items/longsword.svg",
     "weight": 3,
     "cost": "15 GP",
     "costInGp": 15,
@@ -4764,7 +4764,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Lute",
     "description": "- Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/lute.svg",
     "weight": 2,
     "cost": "35 GP",
     "costInGp": 35
@@ -4774,7 +4774,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Lute of Thunderous Thumping",
     "description": "This reinforced lute can be wielded as a magic Club that deals an extra 2d8 Thunder damage on a hit.  Sing and Swing If you're a Bard, you can use you...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/lute_of_thunderous_thumping.svg",
     "weight": 2,
     "slot": "MainHand",
     "damageDice": "1d4",
@@ -4789,7 +4789,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Lyre",
     "description": "- Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/lyre.svg",
     "weight": 2,
     "cost": "30 GP",
     "costInGp": 30
@@ -4799,7 +4799,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Mace",
     "description": "M...",
     "type": "weapon",
-    "icon": "hammer",
+    "icon": "/assets/icons/items/mace.svg",
     "weight": 4,
     "cost": "5 GP",
     "costInGp": 5,
@@ -4812,7 +4812,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Mace of Disruption",
     "description": "When you hit a Fiend or an Undead with this magic weapon, that creature takes an extra 2d6 Radiant damage. If the target has 25 hit_points Points or f...",
     "type": "weapon",
-    "icon": "hammer",
+    "icon": "/assets/icons/items/mace_of_disruption.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -4831,7 +4831,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Mace of Smiting",
     "description": "You gain a +1 bonus to attack rolls and damage rolls made with this magic weapon. The bonus increases to +3 when you use the weapon to attack a Constr...",
     "type": "weapon",
-    "icon": "hammer",
+    "icon": "/assets/icons/items/mace_of_smiting.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -4843,7 +4843,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Mace of Terror",
     "description": "This magic weapon has 3 charges and regains 1d3 expended charges daily at dawn. While holding the weapon, you can take a magic action and expend 1 cha...",
     "type": "weapon",
-    "icon": "hammer",
+    "icon": "/assets/icons/items/mace_of_terror.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -4862,7 +4862,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Magnifying Glass",
     "description": "A Magnifying Glass grants advantage on any ability check made to appraise or inspect a highly detailed item. Lighting a fire with a Magnifying Glass r...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/magnifying_glass.svg",
     "cost": "100 GP",
     "costInGp": 100,
     "slot": "Ring"
@@ -4872,7 +4872,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Malachite",
     "description": "A striated light and dark green gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/malachite.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -4881,7 +4881,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Malice",
     "description": "A creature subjected to Malice must succeed on a DC 15 Constitution saving throw or have the poisoned condition for 1 hour. The creature also has the ...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/malice.svg",
     "cost": "250 GP",
     "costInGp": 250,
     "slot": "Ring"
@@ -4891,7 +4891,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Manacles",
     "description": "As a utilize action, you can use Manacles to bind an unwilling Small or Medium creature within 5 feet of yourself that has the grappled, incapacitated...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/manacles.svg",
     "weight": 6,
     "cost": "2 GP",
     "costInGp": 2,
@@ -4902,7 +4902,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Mantle of Spell Resistance",
     "description": "You have advantage on saving throws against spells while you wear this cloak....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/mantle_of_spell_resistance.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -4917,7 +4917,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Manual of Bodily Health",
     "description": "This book contains health and diet tips, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer studying the boo...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/manual_of_bodily_health.svg",
     "weight": 5,
     "rarity": ItemRarity.VeryRare
   },
@@ -4926,7 +4926,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Manual of Clay Golems",
     "description": "This tome contains information and incantations necessary to make a clay golem. To decipher and use the manual, you must be a spellcaster with at leas...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/manual_of_clay_golems.svg",
     "weight": 5,
     "rarity": ItemRarity.VeryRare
   },
@@ -4935,7 +4935,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Manual of Flesh Golems",
     "description": "This tome contains information and incantations necessary to make a flesh golem. To decipher and use the manual, you must be a spellcaster with at lea...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/manual_of_flesh_golems.svg",
     "weight": 5,
     "rarity": ItemRarity.VeryRare
   },
@@ -4944,7 +4944,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Manual of Gainful Exercise",
     "description": "This book describes fitness exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer studying the book'...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/manual_of_gainful_exercise.svg",
     "weight": 5,
     "rarity": ItemRarity.VeryRare
   },
@@ -4953,7 +4953,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Manual of Iron Golems",
     "description": "This tome contains information and incantations necessary to make a iron golem. To decipher and use the manual, you must be a spellcaster with at leas...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/manual_of_iron_golems.svg",
     "weight": 5,
     "rarity": ItemRarity.VeryRare
   },
@@ -4962,7 +4962,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Manual of Quickness of Action",
     "description": "This book contains coordination and balance exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer st...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/manual_of_quickness_of_action.svg",
     "weight": 5,
     "rarity": ItemRarity.VeryRare
   },
@@ -4971,7 +4971,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Manual of Stone Golems",
     "description": "This tome contains information and incantations necessary to make a stone golem. To decipher and use the manual, you must be a spellcaster with at lea...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/manual_of_stone_golems.svg",
     "weight": 5,
     "rarity": ItemRarity.VeryRare
   },
@@ -4980,7 +4980,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Map",
     "description": "If you consult an accurate Map, you gain a +5 bonus to Wisdom (survival) checks you make to find your way in the place represented on it....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/map.svg",
     "cost": "1 GP",
     "costInGp": 1,
     "slot": "Ring"
@@ -4990,7 +4990,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Map or Scroll Case",
     "description": "A map_or_scroll_case or Scroll Case holds up to 10 sheets of paper or 5 sheets of parchment....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/map_or_scroll_case.svg",
     "weight": 1,
     "cost": "1 GP",
     "costInGp": 1,
@@ -5001,7 +5001,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Mason's Tools",
     "description": "- Ability:: Strength - Utilize:: Chisel a symbol or hole in stone (DC 10) - Craft:: block_and_tackle and Tackle...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/mason_s_tools.svg",
     "weight": 8,
     "cost": "10 GP",
     "costInGp": 10
@@ -5011,7 +5011,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Mastiff",
     "description": "MNT...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/mastiff.svg",
     "cost": "25 GP",
     "costInGp": 25
   },
@@ -5020,7 +5020,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Maul",
     "description": "M...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/maul.svg",
     "weight": 10,
     "cost": "10 GP",
     "costInGp": 10,
@@ -5037,7 +5037,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Medallion of Thoughts",
     "description": "The medallion has 5 charges. While wearing it, you can expend 1 charge to cast detect_thoughts Thoughts (save DC 13) from it. The medallion regains 1d...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/medallion_of_thoughts.svg",
     "weight": 1,
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
@@ -5053,7 +5053,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Midnight Tears",
     "description": "A creature that ingests Midnight Tears suffers no effect until the stroke of midnight. Any effect that ends the poisoned condition neutralizes this po...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/midnight_tears.svg",
     "cost": "1500 GP",
     "costInGp": 1500,
     "slot": "Ring"
@@ -5063,7 +5063,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Military Saddle",
     "description": "A saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle. A Military Saddle gives advantage on any ability check y...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/military_saddle.svg",
     "weight": 30,
     "cost": "20 GP",
     "costInGp": 20
@@ -5073,7 +5073,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Mirror",
     "description": "A handheld steel Mirror is useful for personal cosmetics but also for peeking around corners and reflecting light as a signal....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/mirror.svg",
     "weight": 0.5,
     "cost": "5 GP",
     "costInGp": 5,
@@ -5084,7 +5084,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Mirror of Life Trapping",
     "description": "When this 4-foot-tall, 2-foot-wide mirror is viewed indirectly, its surface shows faint images of creatures. The mirror weighs 50 pounds, and it has A...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/mirror_of_life_trapping.svg",
     "weight": 50,
     "rarity": ItemRarity.VeryRare
   },
@@ -5093,7 +5093,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Moonstone",
     "description": "A white with pale-blue glow gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/moonstone.svg",
     "cost": "50 GP",
     "costInGp": 50
   },
@@ -5102,7 +5102,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Morningstar",
     "description": "M...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/morningstar.svg",
     "weight": 4,
     "cost": "15 GP",
     "costInGp": 15,
@@ -5115,7 +5115,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Moss Agate",
     "description": "A pink or yellow white with mossy gray or green markings gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/moss_agate.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -5124,7 +5124,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Mule",
     "description": "MNT...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/mule.svg",
     "cost": "8 GP",
     "costInGp": 8
   },
@@ -5133,7 +5133,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Musket",
     "description": "R...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/musket.svg",
     "weight": 10,
     "cost": "500 GP",
     "costInGp": 500,
@@ -5151,7 +5151,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Mystery Key",
     "description": "A question mark is worked into the head of this key. The key has a 5% chance of unlocking any lock into which it's inserted. Once it unlocks something...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/mystery_key.svg",
     "rarity": ItemRarity.Common
   },
   "nature_s_mantle": {
@@ -5159,7 +5159,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Nature's Mantle",
     "description": "This cloak shifts color and texture to blend with the terrain surrounding you. While wearing the cloak, you can use it as a spellcasting_focus Focus f...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/nature_s_mantle.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -5174,7 +5174,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Navigator's Tools",
     "description": "- Ability:: Wisdom - Utilize:: Plot a course (DC 10), or determine position by stargazing (DC 15)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/navigator_s_tools.svg",
     "weight": 2,
     "cost": "25 GP",
     "costInGp": 25
@@ -5184,7 +5184,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Necklace of Adaptation",
     "description": "While wearing this necklace, you can breathe normally in any environment, and you have advantage on saving throws made to avoid or end the poisoned co...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/necklace_of_adaptation.svg",
     "weight": 1,
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
@@ -5200,7 +5200,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Necklace of Fireballs",
     "description": "This necklace has 1d6 + 3 beads hanging from it. You can take a magic action to detach a bead and throw it up to 60 feet away. When it reaches the end...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/necklace_of_fireballs.svg",
     "weight": 1,
     "rarity": ItemRarity.Rare
   },
@@ -5209,7 +5209,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Necklace of Prayer Beads",
     "description": "This necklace has 1d4 + 2 magic beads made from aquamarine, black pearl, or topaz. It also has many nonmagical beads made from stones such as amber, b...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/necklace_of_prayer_beads.svg",
     "weight": 1,
     "rarity": ItemRarity.Rare,
     "magicProperties": {
@@ -5225,7 +5225,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Necklace string of small pink pearls",
     "description": "$A...",
     "type": "treasure",
-    "icon": "ring",
+    "icon": "/assets/icons/items/necklace_string_of_small_pink_pearls.svg",
     "cost": "2500 GP",
     "costInGp": 2500
   },
@@ -5234,7 +5234,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Needle",
     "description": "Blowgun needles are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one ...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/needle.svg",
     "weight": 0.02,
     "cost": "0.02 GP",
     "costInGp": 0.02
@@ -5244,7 +5244,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Needles (50)",
     "description": "Blowgun needles are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one ...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/needles_50.svg",
     "weight": 1,
     "cost": "1 GP",
     "costInGp": 1
@@ -5254,7 +5254,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Net",
     "description": "When you take the attack action, you can replace one of your attacks with throwing a Net. Target a creature you can see within 15 feet of yourself. Th...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/net.svg",
     "weight": 3,
     "cost": "1 GP",
     "costInGp": 1,
@@ -5265,7 +5265,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Nolzur's Marvelous Pigments",
     "description": "This fine wooden box contains 1d4 pots of pigment and a brush (weighing 1 pound in total). Using the brush and expending 1 pot of pigment, you can pai...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/nolzur_s_marvelous_pigments.svg",
     "rarity": ItemRarity.VeryRare
   },
   "obsidian": {
@@ -5273,7 +5273,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Obsidian",
     "description": "A black gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/obsidian.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -5282,7 +5282,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Obsidian statuette with gold fittings and inlay",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/obsidian_statuette_with_gold_fittings_and_inlay.svg",
     "cost": "750 GP",
     "costInGp": 750
   },
@@ -5291,7 +5291,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Oil",
     "description": "You can douse a creature, object, or space with Oil or use it as fuel, as detailed below.  Dousing a Creature or an Object When you take the attack ac...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/oil.svg",
     "weight": 1,
     "cost": "0.1 GP",
     "costInGp": 0.1,
@@ -5302,7 +5302,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Oil of Etherealness",
     "description": "One vial of this oil can cover one Medium or smaller creature, along with the equipment it's wearing and carrying (one additional vial is required for...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/oil_of_etherealness.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -5311,7 +5311,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Oil of Sharpness",
     "description": "One vial of this oil can coat one Melee weapon or twenty pieces of ammunition, but only ammunition and Melee weapons that are nonmagical and deal Slas...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/oil_of_sharpness.svg",
     "weight": 0.5,
     "rarity": ItemRarity.VeryRare
   },
@@ -5320,7 +5320,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Oil of Slipperiness",
     "description": "One vial of this oil can cover one Medium or smaller creature, along with the equipment it's wearing and carrying (one additional vial is required for...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/oil_of_slipperiness.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -5329,7 +5329,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Oil of Taggit",
     "description": "A creature subjected to Oil of Taggit must succeed on a DC 13 Constitution saving throw or have the poisoned condition for 24 hours. The creature also...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/oil_of_taggit.svg",
     "cost": "400 GP",
     "costInGp": 400,
     "slot": "Ring"
@@ -5339,7 +5339,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Old masterpiece painting",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/old_masterpiece_painting.svg",
     "cost": "2500 GP",
     "costInGp": 2500
   },
@@ -5348,7 +5348,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Onyx",
     "description": "A bands of black and white, or pure black or white gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/onyx.svg",
     "cost": "50 GP",
     "costInGp": 50
   },
@@ -5357,7 +5357,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Opal",
     "description": "A pale blue with green and golden mottling gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/opal.svg",
     "cost": "1000 GP",
     "costInGp": 1000
   },
@@ -5366,7 +5366,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Orb",
     "description": "SCF...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/orb.svg",
     "weight": 3,
     "cost": "20 GP",
     "costInGp": 20
@@ -5376,7 +5376,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Orb of Direction",
     "description": "This orb can be used as an Arcane Focus. While holding this orb, you can take a magic action to determine which way is magnetic north. Nothing happens...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/orb_of_direction.svg",
     "weight": 3,
     "rarity": ItemRarity.Common
   },
@@ -5385,7 +5385,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Orb of Dragonkind",
     "description": "Long ago, in the Dragonlance setting, elves and humans waged a terrible war against chromatic dragons. When the world seemed doomed, the wizards of th...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/orb_of_dragonkind.svg",
     "weight": 3,
     "rarity": ItemRarity.Artifact,
     "magicProperties": {
@@ -5401,7 +5401,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Orb of Time",
     "description": "This orb can be used as an Arcane Focus. While holding the orb, you can take a magic action to determine whether it is morning, afternoon, evening, or...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/orb_of_time.svg",
     "weight": 3,
     "rarity": ItemRarity.Common
   },
@@ -5410,7 +5410,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ox",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/ox.svg",
     "cost": "15 GP",
     "costInGp": 15
   },
@@ -5419,7 +5419,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Padded Armor",
     "description": "LA...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/padded_armor.svg",
     "weight": 8,
     "cost": "5 GP",
     "costInGp": 5,
@@ -5432,7 +5432,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Painted gold war mask",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/painted_gold_war_mask.svg",
     "cost": "750 GP",
     "costInGp": 750
   },
@@ -5441,7 +5441,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Painter's Supplies",
     "description": "- Ability:: Wisdom - Utilize:: Paint a recognizable image of something you've seen (DC 10) - Craft:: druidic_focus Focus, holy_symbol Symbol...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/painter_s_supplies.svg",
     "weight": 5,
     "cost": "10 GP",
     "costInGp": 10
@@ -5451,7 +5451,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pair of engraved bone dice",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/pair_of_engraved_bone_dice.svg",
     "cost": "25 GP",
     "costInGp": 25
   },
@@ -5460,7 +5460,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pale Tincture",
     "description": "A creature subjected to Pale Tincture must succeed on a DC 16 Constitution saving throw or take 3 (1d6) Poison damage and have the poisoned condition....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/pale_tincture.svg",
     "cost": "250 GP",
     "costInGp": 250,
     "slot": "Ring"
@@ -5470,7 +5470,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pan Flute",
     "description": "- Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/pan_flute.svg",
     "weight": 2,
     "cost": "12 GP",
     "costInGp": 12
@@ -5480,7 +5480,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Paper",
     "description": "One sheet of Paper can hold about 250 handwritten words....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/paper.svg",
     "cost": "0.2 GP",
     "costInGp": 0.2,
     "slot": "Ring"
@@ -5490,7 +5490,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Parchment",
     "description": "One sheet of Parchment can hold about 250 handwritten words....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/parchment.svg",
     "cost": "0.1 GP",
     "costInGp": 0.1,
     "slot": "Ring"
@@ -5500,7 +5500,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pearl",
     "description": "A lustrous white, yellow, or pink gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/pearl.svg",
     "cost": "100 GP",
     "costInGp": 100
   },
@@ -5509,7 +5509,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pearl of Power",
     "description": "While this pearl is on your person, you can take a magic action to regain one expended spell slot of level 3 or lower. Once you use the pearl, it can'...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/pearl_of_power.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -5524,7 +5524,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pepper",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/pepper.svg",
     "weight": 1,
     "cost": "2 GP",
     "costInGp": 2
@@ -5534,7 +5534,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Perfume",
     "description": "Perfume comes in a 4-ounce vial. For 1 hour after applying Perfume to yourself, you have advantage on Charisma (persuasion) checks made to influence a...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/perfume.svg",
     "cost": "5 GP",
     "costInGp": 5,
     "slot": "Ring"
@@ -5544,7 +5544,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Perfume of Bewitching",
     "description": "This tiny vial contains magic perfume, enough for one use. You can take a magic action to apply the perfume to yourself, and its effect lasts 1 hour. ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/perfume_of_bewitching.svg",
     "rarity": ItemRarity.Common
   },
   "periapt_of_health": {
@@ -5552,7 +5552,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Periapt of Health",
     "description": "While wearing this pendant, you can take a magic action to regain 2d4 + 2 hit_points Points. Once used, this property can't be used again until the ne...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/periapt_of_health.svg",
     "weight": 1,
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
@@ -5568,7 +5568,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Periapt of Proof against Poison",
     "description": "This delicate silver chain has a brilliant-cut black gem pendant. While you wear it, you have immunity to the poisoned condition and Poison damage....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/periapt_of_proof_against_poison.svg",
     "weight": 1,
     "rarity": ItemRarity.Rare,
     "magicProperties": {
@@ -5584,7 +5584,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Periapt of Wound Closure",
     "description": "While wearing this pendant, you gain the following benefits.  Life Preservation Whenever you make a death_saving_throw Saving Throw, you can change a ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/periapt_of_wound_closure.svg",
     "weight": 1,
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
@@ -5600,7 +5600,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Peridot",
     "description": "A rich olive green gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/peridot.svg",
     "cost": "500 GP",
     "costInGp": 500
   },
@@ -5609,7 +5609,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Philter of Love",
     "description": "The next time you see a creature within 10 minutes after drinking this philter, you are charmed by that creature and have the charmed condition for 1 ...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/philter_of_love.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -5618,7 +5618,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pig",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/pig.svg",
     "cost": "3 GP",
     "costInGp": 3
   },
@@ -5627,7 +5627,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pike",
     "description": "M...",
     "type": "weapon",
-    "icon": "spear",
+    "icon": "/assets/icons/items/pike.svg",
     "weight": 18,
     "cost": "5 GP",
     "costInGp": 5,
@@ -5645,7 +5645,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pipes of Haunting",
     "description": "These pipes have 3 charges and regain 1d3 expended charges daily at dawn. You can take a magic action to play them and expend 1 charge to create an ee...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/pipes_of_haunting.svg",
     "rarity": ItemRarity.Uncommon
   },
   "pipes_of_the_sewers": {
@@ -5653,7 +5653,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pipes of the Sewers",
     "description": "While these pipes are on your person, ordinary rat and giant rat are indifferent_attitude toward you and won't attack you unless you threaten or harm ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/pipes_of_the_sewers.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -5668,7 +5668,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pipe of Smoke Monsters",
     "description": "While smoking this pipe, you can take a magic action to exhale a puff of smoke that takes the form of a creature, such as a dragon, a flumph, or a sla...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/pipe_of_smoke_monsters.svg",
     "rarity": ItemRarity.Common
   },
   "pistol": {
@@ -5676,7 +5676,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pistol",
     "description": "R...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/pistol.svg",
     "weight": 3,
     "cost": "250 GP",
     "costInGp": 250,
@@ -5693,7 +5693,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Plate Armor",
     "description": "HA...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/plate_armor.svg",
     "weight": 65,
     "cost": "1500 GP",
     "costInGp": 1500,
@@ -5706,7 +5706,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Platinum",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/platinum.svg",
     "weight": 1,
     "cost": "500 GP",
     "costInGp": 500
@@ -5716,7 +5716,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Platinum bracelet set with an emerald",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/platinum_bracelet_set_with_an_emerald.svg",
     "cost": "2500 GP",
     "costInGp": 2500
   },
@@ -5725,7 +5725,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Playing Cards",
     "description": "- Ability:: Wisdom - Utilize:: Discern whether someone is cheating (DC 10), or win the game (DC 20)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/playing_cards.svg",
     "cost": "0.5 GP",
     "costInGp": 0.5
   },
@@ -5734,7 +5734,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Poisoner's Kit",
     "description": "- Ability:: Intelligence - Utilize:: Detect a poisoned object (DC 10) - Craft:: basic_poison Poison...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/poisoner_s_kit.svg",
     "weight": 2,
     "cost": "50 GP",
     "costInGp": 50
@@ -5744,7 +5744,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pole",
     "description": "A Pole is 10 feet long. You can use it to touch something up to 10 feet away. If you must make a Strength (athletics) check as part of a High or long_...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/pole.svg",
     "weight": 7,
     "cost": "0.05 GP",
     "costInGp": 0.05,
@@ -5755,7 +5755,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pole of Angling",
     "description": "This item functions as a Pole. While holding it, you can take a magic action to cause it to transform into a fishing pole with a hook, a line, and a r...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/pole_of_angling.svg",
     "rarity": ItemRarity.Common
   },
   "pole_of_collapsing": {
@@ -5763,7 +5763,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pole of Collapsing",
     "description": "This item functions as a Pole. While holding it, you can take a magic action to collapse it into a 1-foot-long rod for ease of storage (the pole's wei...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/pole_of_collapsing.svg",
     "rarity": ItemRarity.Common
   },
   "pony": {
@@ -5771,7 +5771,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pony",
     "description": "MNT...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/pony.svg",
     "cost": "30 GP",
     "costInGp": 30
   },
@@ -5780,7 +5780,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Portable Hole",
     "description": "This fine black cloth, soft as silk, is folded up to the dimensions of a handkerchief. It unfolds into a circular sheet 6 feet in diameter. You can ta...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/portable_hole.svg",
     "rarity": ItemRarity.Rare
   },
   "portable_ram": {
@@ -5788,7 +5788,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Portable Ram",
     "description": "You can use a Portable Ram to break down doors. When doing so, you gain a +4 bonus to the Strength check. One other character can help you use the ram...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/portable_ram.svg",
     "weight": 35,
     "cost": "4 GP",
     "costInGp": 4,
@@ -5799,7 +5799,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Acid Resistance",
     "description": "{itemEntry Potion of Resistance}...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_acid_resistance.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -5808,7 +5808,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Animal Friendship",
     "description": "When you drink this potion, you can cast the level 3 version of the animal_friendship Friendship spell (save DC 13). Agitating this potion's muddy liq...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_animal_friendship.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -5817,7 +5817,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Clairvoyance",
     "description": "When you drink this potion, you gain the effect of the clairvoyance spell (no Concentration required). An eyeball bobs in this potion's yellowish liqu...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_clairvoyance.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -5826,7 +5826,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Climbing",
     "description": "When you drink this potion, you gain a climb_speed Speed equal to your speed for 1 hour. During this time, you have advantage on Strength (athletics) ...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_climbing.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Common
   },
@@ -5835,7 +5835,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Cloud Giant Strength",
     "description": "When you drink this potion, your Strength score changes to 27 for 1 hour. The potion has no effect on you if your Strength is equal to or greater than...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_cloud_giant_strength.svg",
     "weight": 0.5,
     "rarity": ItemRarity.VeryRare
   },
@@ -5844,7 +5844,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Cold Resistance",
     "description": "{itemEntry Potion of Resistance}...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_cold_resistance.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -5853,7 +5853,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Comprehension",
     "description": "When you drink this potion, you gain the effect of the comprehend_languages Languages spell for 1 hour. This potion's liquid is a clear concoction wit...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_comprehension.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Common
   },
@@ -5862,7 +5862,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Diminution",
     "description": "When you drink this potion, you gain the \"reduce\" effect of the enlarge_reduce/Reduce spell for 1d4 hours (no Concentration required). The red in the ...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_diminution.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -5871,7 +5871,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Fire Breath",
     "description": "After drinking this potion, you can take a bonus_action Action to exhale fire at a target within 30 feet of yourself. The target makes a DC 13 Dexteri...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_fire_breath.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -5880,7 +5880,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Fire Giant Strength",
     "description": "When you drink this potion, your Strength score changes to 25 for 1 hour. The potion has no effect on you if your Strength is equal to or greater than...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_fire_giant_strength.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -5889,7 +5889,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Fire Resistance",
     "description": "{itemEntry Potion of Resistance}...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_fire_resistance.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -5898,7 +5898,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Flying",
     "description": "When you drink this potion, you gain a fly_speed Speed equal to your speed for 1 hour and can hover. If you're in the air when the potion wears off, y...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_flying.svg",
     "weight": 0.5,
     "rarity": ItemRarity.VeryRare
   },
@@ -5907,7 +5907,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Force Resistance",
     "description": "{itemEntry Potion of Resistance}...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_force_resistance.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -5916,7 +5916,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Frost Giant Strength",
     "description": "When you drink this potion, your Strength score changes to 23 for 1 hour. The potion has no effect on you if your Strength is equal to or greater than...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_frost_giant_strength.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -5925,7 +5925,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Gaseous Form",
     "description": "When you drink this potion, you gain the effect of the gaseous_form Form spell for 1 hour (no Concentration required) or until you end the effect as a...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_gaseous_form.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -5934,7 +5934,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Greater Healing",
     "description": "You regain 4d4 + 4 hit_points Points when you drink this potion. The potion's red liquid glimmers when agitated....",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_greater_healing.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -5943,7 +5943,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Greater Invisibility",
     "description": "This potion's container looks empty but feels as though it holds liquid. When you drink the potion, you have the invisible condition for 1 hour....",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_greater_invisibility.svg",
     "weight": 0.5,
     "rarity": ItemRarity.VeryRare
   },
@@ -5952,7 +5952,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Growth",
     "description": "When you drink this potion, you gain the \"enlarge\" effect of the enlarge_reduce/Reduce spell for 10 minutes (no Concentration required). The red in th...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_growth.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -5977,7 +5977,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Heroism",
     "description": "When you drink this potion, you gain 10 temporary_hit_points Hit Points that last for 1 hour. For the same duration, you are under the effect of the b...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_heroism.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -5986,7 +5986,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Hill Giant Strength",
     "description": "When you drink this potion, your Strength score changes to 21 for 1 hour. The potion has no effect on you if your Strength is equal to or greater than...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_hill_giant_strength.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -5995,7 +5995,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Invisibility",
     "description": "This potion's container looks empty but feels as though it holds liquid. When you drink the potion, you have the invisible condition for 1 hour. The e...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_invisibility.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -6004,7 +6004,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Invulnerability",
     "description": "For 1 minute after you drink this potion, you have resistance to all damage. This potion's syrupy liquid looks like liquefied iron....",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_invulnerability.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -6013,7 +6013,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Lightning Resistance",
     "description": "{itemEntry Potion of Resistance}...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_lightning_resistance.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -6022,7 +6022,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Longevity",
     "description": "When you drink this potion, your physical age is reduced by 1d6 + 6 years, to a minimum of 13 years. Each time you subsequently drink a Potion of Long...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_longevity.svg",
     "weight": 0.5,
     "rarity": ItemRarity.VeryRare
   },
@@ -6031,7 +6031,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Mind Reading",
     "description": "When you drink this potion, you gain the effect of the detect_thoughts Thoughts spell (save DC 13) for 10 minutes (no Concentration required). This po...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_mind_reading.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -6040,7 +6040,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Necrotic Resistance",
     "description": "{itemEntry Potion of Resistance}...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_necrotic_resistance.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -6049,7 +6049,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Poison",
     "description": "This concoction looks, smells, and tastes like a potion_of_healing of Healing or another beneficial potion. However, it is actually poison masked by i...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_poison.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -6058,7 +6058,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Poison Resistance",
     "description": "{itemEntry Potion of Resistance}...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_poison_resistance.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -6067,7 +6067,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Psychic Resistance",
     "description": "{itemEntry Potion of Resistance}...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_psychic_resistance.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -6076,7 +6076,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Pugilism",
     "description": "After you drink this potion, each unarmed_strike Strike you make deals an extra 1d6 Force damage on a hit. This effect lasts 10 minutes. This potion i...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_pugilism.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -6085,7 +6085,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Radiant Resistance",
     "description": "{itemEntry Potion of Resistance}...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_radiant_resistance.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -6094,7 +6094,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Speed",
     "description": "When you drink this potion, you gain the effect of the haste spell for 1 minute (no Concentration required) without suffering the wave of lethargy tha...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_speed.svg",
     "weight": 0.5,
     "rarity": ItemRarity.VeryRare
   },
@@ -6103,7 +6103,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Stone Giant Strength",
     "description": "When you drink this potion, your Strength score changes to 23 for 1 hour. The potion has no effect on you if your Strength is equal to or greater than...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_stone_giant_strength.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -6112,7 +6112,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Storm Giant Strength",
     "description": "When you drink this potion, your Strength score changes to 29 for 1 hour. The potion has no effect on you if your Strength is equal to or greater than...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_storm_giant_strength.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Legendary
   },
@@ -6121,7 +6121,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Superior Healing",
     "description": "You regain 8d4 + 8 hit_points Points when you drink this potion. The potion's red liquid glimmers when agitated....",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_superior_healing.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Rare
   },
@@ -6130,7 +6130,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Supreme Healing",
     "description": "You regain 10d4 + 20 hit_points Points when you drink this potion. The potion's red liquid glimmers when agitated....",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_supreme_healing.svg",
     "weight": 0.5,
     "rarity": ItemRarity.VeryRare
   },
@@ -6139,7 +6139,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Thunder Resistance",
     "description": "{itemEntry Potion of Resistance}...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_thunder_resistance.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -6148,7 +6148,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Vitality",
     "description": "When you drink this potion, it removes any exhaustion levels you have and ends the poisoned condition on you. For the next 24 hours, you regain the ma...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_vitality.svg",
     "weight": 0.5,
     "rarity": ItemRarity.VeryRare
   },
@@ -6157,7 +6157,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potion of Water Breathing",
     "description": "You can breathe underwater for 24 hours after drinking this potion. This potion's cloudy green fluid smells of the sea and has a jellyfish-like bubble...",
     "type": "consumable",
-    "icon": "flask_mdi",
+    "icon": "/assets/icons/items/potion_of_water_breathing.svg",
     "weight": 0.5,
     "rarity": ItemRarity.Uncommon
   },
@@ -6166,7 +6166,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Potter's Tools",
     "description": "- Ability:: Intelligence - Utilize:: Discern what a ceramic object held in the past 24 hours (DC 15) - Craft:: jug, lamp...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/potter_s_tools.svg",
     "weight": 3,
     "cost": "10 GP",
     "costInGp": 10
@@ -6176,7 +6176,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pot of Awakening",
     "description": "If you plant an ordinary shrub in this 10-pound clay pot and let it grow for 30 days, the shrub magically transforms into an Awakened Shrub at the end...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/pot_of_awakening.svg",
     "rarity": ItemRarity.Common
   },
   "pouch": {
@@ -6184,7 +6184,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Pouch",
     "description": "A Pouch holds up to 6 pounds within one-fifth of a cubic foot....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/pouch.svg",
     "weight": 1,
     "cost": "0.5 GP",
     "costInGp": 0.5,
@@ -6195,7 +6195,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Priest's Pack",
     "description": "A Priest's Pack contains the following items: backpack, blanket, holy_water Water, lamp, 7 days of rations, robe, and tinderbox....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/priest_s_pack.svg",
     "weight": 29,
     "cost": "33 GP",
     "costInGp": 33,
@@ -6206,7 +6206,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Prosthetic Limb",
     "description": "This magic item replaces a lost limb—a hand, an arm, a foot, a leg, or a similar body part. While the prosthetic is attached, it functions identically...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/prosthetic_limb.svg",
     "rarity": ItemRarity.Common
   },
   "psychic_blade": {
@@ -6214,7 +6214,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Psychic Blade",
     "description": "M...",
     "type": "weapon",
-    "icon": "sword",
+    "icon": "/assets/icons/items/psychic_blade.svg",
     "slot": "MainHand",
     "damageDice": "1d6",
     "damageType": "Y",
@@ -6228,7 +6228,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Purple Worm Poison",
     "description": "A creature subjected to Purple Worm Poison makes a DC 21 Constitution saving throw, taking 35 (10d6) Poison damage on a failed save or half as much da...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/purple_worm_poison.svg",
     "cost": "2000 GP",
     "costInGp": 2000,
     "slot": "Ring"
@@ -6238,7 +6238,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Quaal's Feather Token, Anchor",
     "description": "This object looks like a feather. You can take a magic action to touch the token to a boat or ship. For the next 24 hours, the vessel can't be moved b...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/quaal_s_feather_token_anchor.svg",
     "rarity": ItemRarity.Uncommon
   },
   "quaal_s_feather_token_bird": {
@@ -6246,7 +6246,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Quaal's Feather Token, Bird",
     "description": "This object looks like a feather. You can take a magic action to toss the token 5 feet into the air. The token disappears and an enormous, multicolore...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/quaal_s_feather_token_bird.svg",
     "rarity": ItemRarity.Rare
   },
   "quaal_s_feather_token_fan": {
@@ -6254,7 +6254,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Quaal's Feather Token, Fan",
     "description": "This object looks like a feather. If you are on a boat or ship, you can take a magic action to toss the token up to 10 feet in the air. The token disa...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/quaal_s_feather_token_fan.svg",
     "rarity": ItemRarity.Uncommon
   },
   "quaal_s_feather_token_swan_boat": {
@@ -6262,7 +6262,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Quaal's Feather Token, Swan Boat",
     "description": "This object looks like a feather. You can take a magic action to touch the token to a body of water at least 60 feet in diameter. The token disappears...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/quaal_s_feather_token_swan_boat.svg",
     "rarity": ItemRarity.Rare
   },
   "quaal_s_feather_token_tree": {
@@ -6270,7 +6270,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Quaal's Feather Token, Tree",
     "description": "This object looks like a feather. You must be outdoors to use this token. You can take a magic action to touch it to an unoccupied space on the ground...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/quaal_s_feather_token_tree.svg",
     "rarity": ItemRarity.Uncommon
   },
   "quaal_s_feather_token_whip": {
@@ -6278,7 +6278,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Quaal's Feather Token, Whip",
     "description": "This object looks like a feather. You can take a magic action to throw the token to a point within 10 feet of yourself. The token disappears, and a fl...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/quaal_s_feather_token_whip.svg",
     "rarity": ItemRarity.Rare
   },
   "quarterstaff": {
@@ -6286,7 +6286,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Quarterstaff",
     "description": "M...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/quarterstaff.svg",
     "weight": 4,
     "cost": "0.2 GP",
     "costInGp": 0.2,
@@ -6302,7 +6302,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Quarterstaff of the Acrobat",
     "description": "You have a +2 bonus to attack rolls and damage rolls made with this magic weapon. While holding this weapon, you can cause it to emit green dim_light ...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/quarterstaff_of_the_acrobat.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -6325,7 +6325,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Quartz",
     "description": "A white, smoky gray, or yellow gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/quartz.svg",
     "cost": "50 GP",
     "costInGp": 50
   },
@@ -6334,7 +6334,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Quiver",
     "description": "A Quiver holds up to 20 Arrows....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/quiver.svg",
     "weight": 1,
     "cost": "1 GP",
     "costInGp": 1,
@@ -6345,7 +6345,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Quiver of Ehlonna",
     "description": "Each of the quiver's three compartments connects to an extradimensional space that allows the quiver to hold numerous items while never weighing more ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/quiver_of_ehlonna.svg",
     "weight": 2,
     "rarity": ItemRarity.Uncommon
   },
@@ -6354,7 +6354,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rapier",
     "description": "M...",
     "type": "weapon",
-    "icon": "sword",
+    "icon": "/assets/icons/items/rapier.svg",
     "weight": 2,
     "cost": "25 GP",
     "costInGp": 25,
@@ -6370,7 +6370,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rations",
     "description": "Rations consist of travel-ready food, including jerky, dried fruit, hardtack, and nuts. See \"Malnutrition\" for the risks of not eating....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/rations.svg",
     "weight": 2,
     "cost": "0.5 GP",
     "costInGp": 0.5,
@@ -6381,7 +6381,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Red Dragon Scale Mail",
     "description": "{itemEntry Dragon Scale Mail}...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/red_dragon_scale_mail.svg",
     "weight": 45,
     "slot": "Torso",
     "armorCategory": "Medium",
@@ -6400,7 +6400,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Reliquary",
     "description": "For a Reliquary to be an effective Holy Symbol, it must be held....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/reliquary.svg",
     "weight": 2,
     "cost": "5 GP",
     "costInGp": 5
@@ -6410,7 +6410,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Revolver",
     "description": "R...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/revolver.svg",
     "weight": 3,
     "slot": "MainHand",
     "damageDice": "2d8",
@@ -6425,7 +6425,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rhodochrosite",
     "description": "A light pink gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/rhodochrosite.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -6434,7 +6434,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Riding Horse",
     "description": "MNT...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/riding_horse.svg",
     "cost": "75 GP",
     "costInGp": 75
   },
@@ -6443,7 +6443,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Riding Saddle",
     "description": "A saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/riding_saddle.svg",
     "weight": 25,
     "cost": "10 GP",
     "costInGp": 10
@@ -6453,7 +6453,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring Mail",
     "description": "HA...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/ring_mail.svg",
     "weight": 40,
     "cost": "30 GP",
     "costInGp": 30,
@@ -6466,7 +6466,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Acid Resistance",
     "description": "{itemEntry Ring of Resistance}...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_acid_resistance.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare
   },
@@ -6475,7 +6475,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Animal Influence",
     "description": "This ring has 3 charges, and it regains 1d3 expended charges daily at dawn. While wearing the ring, you can expend 1 charge to cast one of the followi...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_animal_influence.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare
   },
@@ -6484,7 +6484,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Cold Resistance",
     "description": "{itemEntry Ring of Resistance}...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_cold_resistance.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare
   },
@@ -6493,7 +6493,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Djinni Summoning",
     "description": "While wearing this ring, you can take a magic action to summon a particular Djinni from the Elemental Plane of Air. The djinni appears in an unoccupie...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_djinni_summoning.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -6509,7 +6509,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Elemental Command (Air)",
     "description": "The Ring of Elemental Command (air) is linked to the Elemental Plane of Air. Every Ring of Elemental Command has the following two properties: - Eleme...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_elemental_command_air.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -6525,7 +6525,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Elemental Command (Earth)",
     "description": "The Ring of Elemental Command (earth) is linked to the Elemental Plane of Earth. Every Ring of Elemental Command has the following two properties: - E...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_elemental_command_earth.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -6541,7 +6541,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Elemental Command (Fire)",
     "description": "The Ring of Elemental Command (fire) is linked to the Elemental Plane of Fire. Every Ring of Elemental Command has the following two properties: - Ele...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_elemental_command_fire.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -6557,7 +6557,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Elemental Command (Water)",
     "description": "The Ring of Elemental Command (water) is linked to the Elemental Plane of Water. Every Ring of Elemental Command has the following two properties: - E...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_elemental_command_water.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -6573,7 +6573,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Evasion",
     "description": "This ring has 3 charges, and it regains 1d3 expended charges daily at dawn. When you fail a Dexterity saving throw while wearing the ring, you can tak...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_evasion.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
@@ -6589,7 +6589,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Feather Falling",
     "description": "When you fall while wearing this ring, you descend 60 feet per round and take no damage from falling....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_feather_falling.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
@@ -6605,7 +6605,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Fire Resistance",
     "description": "{itemEntry Ring of Resistance}...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_fire_resistance.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare
   },
@@ -6614,7 +6614,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Force Resistance",
     "description": "{itemEntry Ring of Resistance}...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_force_resistance.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare
   },
@@ -6623,7 +6623,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Free Action",
     "description": "While you wear this ring, difficult_terrain Terrain doesn't cost you extra movement. In addition, magic can neither reduce any of your Speeds nor caus...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_free_action.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
@@ -6639,7 +6639,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Invisibility",
     "description": "While wearing this ring, you can take a magic action to give yourself the invisible condition. You remain invisible until the ring is removed or until...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_invisibility.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -6655,7 +6655,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Jumping",
     "description": "While wearing this ring, you can cast jump from it, but can target only yourself when you do so....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_jumping.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
@@ -6671,7 +6671,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Lightning Resistance",
     "description": "{itemEntry Ring of Resistance}...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_lightning_resistance.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare
   },
@@ -6680,7 +6680,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Mind Shielding",
     "description": "While wearing this ring, you are immune to magic that allows other creatures to read your thoughts, determine whether you are lying, know your alignme...",
     "type": "accessory",
-    "icon": "shield",
+    "icon": "/assets/icons/items/ring_of_mind_shielding.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
@@ -6696,7 +6696,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Necrotic Resistance",
     "description": "{itemEntry Ring of Resistance}...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_necrotic_resistance.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare
   },
@@ -6705,7 +6705,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Poison Resistance",
     "description": "{itemEntry Ring of Resistance}...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_poison_resistance.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare
   },
@@ -6714,7 +6714,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Protection",
     "description": "You gain a +1 bonus to armor_class Class and saving throws while wearing this ring....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_protection.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
@@ -6730,7 +6730,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Psychic Resistance",
     "description": "{itemEntry Ring of Resistance}...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_psychic_resistance.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare
   },
@@ -6739,7 +6739,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Radiant Resistance",
     "description": "{itemEntry Ring of Resistance}...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_radiant_resistance.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare
   },
@@ -6748,7 +6748,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Regeneration",
     "description": "While wearing this ring, you regain 1d6 hit_points Points every 10 minutes if you have at least 1 hit_points Point. If you lose a body part, the ring ...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_regeneration.svg",
     "slot": "Ring",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
@@ -6764,7 +6764,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Shooting Stars",
     "description": "You can cast dancing_lights Lights or light from the ring. The ring has 6 charges and regains 1d6 expended charges daily at dawn. You can expend its c...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_shooting_stars.svg",
     "slot": "Ring",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
@@ -6780,7 +6780,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Spell Storing",
     "description": "This ring stores spells cast into it, holding them until the attuned wearer uses them. The ring can store up to 5 levels worth of spells at a time. Wh...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_spell_storing.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
@@ -6796,7 +6796,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Spell Turning",
     "description": "While wearing this ring, you have advantage on saving throws against spells. If you succeed on the save for a spell of level 7 or lower, the spell has...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_spell_turning.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -6812,7 +6812,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Swimming",
     "description": "You have a swim_speed Speed of 40 feet while wearing this ring....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_swimming.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Uncommon
   },
@@ -6821,7 +6821,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Telekinesis",
     "description": "While wearing this ring, you can cast telekinesis from it....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_telekinesis.svg",
     "slot": "Ring",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
@@ -6837,7 +6837,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of the Ram",
     "description": "This ring has 3 charges and regains 1d3 expended charges daily at dawn. While wearing the ring, you can take a magic action to expend 1 to 3 charges t...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_the_ram.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
@@ -6853,7 +6853,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Three Wishes",
     "description": "While wearing this ring, you can expend 1 of its 3 charges to cast wish from it. The ring becomes nonmagical when you use the last charge....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_three_wishes.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Legendary
   },
@@ -6862,7 +6862,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Thunder Resistance",
     "description": "{itemEntry Ring of Resistance}...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_thunder_resistance.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare
   },
@@ -6871,7 +6871,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Warmth",
     "description": "If you take Cold damage while wearing this ring, the ring reduces the damage you take by 2d8. In addition, while wearing this ring, you and everything...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_warmth.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
@@ -6887,7 +6887,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of Water Walking",
     "description": "While wearing this ring, you cast water_walk Walk from it, targeting only yourself....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_water_walking.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Uncommon
   },
@@ -6896,7 +6896,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ring of X-ray Vision",
     "description": "While wearing this ring, you can take a magic action to gain X-ray vision with a range of 30 feet for 1 minute. To you, solid objects within that radi...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/ring_of_x_ray_vision.svg",
     "slot": "Ring",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
@@ -6912,7 +6912,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rival Coin",
     "description": "This gold coin has a creature embossed on each side. The two depicted creatures must be famous rivals or enemies of each other. For example, a Rival C...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/rival_coin.svg",
     "rarity": ItemRarity.Common
   },
   "robe": {
@@ -6920,7 +6920,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Robe",
     "description": "A Robe has vocational or ceremonial significance. Some events and locations admit only people wearing a Robe bearing certain colors or symbols....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/robe.svg",
     "weight": 4,
     "cost": "1 GP",
     "costInGp": 1,
@@ -6931,7 +6931,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Robe of Eyes",
     "description": "This robe is adorned with eyelike patterns. While you wear the robe, you gain the following benefits: - All-Around Vision: The robe gives you advantag...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/robe_of_eyes.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -6946,7 +6946,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Robe of Scintillating Colors",
     "description": "This robe has 3 charges, and it regains 1d3 expended charges daily at dawn. While you wear it, you can take a magic action and expend 1 charge to caus...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/robe_of_scintillating_colors.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -6961,7 +6961,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Robe of Stars",
     "description": "This black or dark-blue robe is embroidered with small white or silver stars. You gain a +1 bonus to saving throws while you wear it. Six stars, locat...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/robe_of_stars.svg",
     "rarity": ItemRarity.VeryRare,
     "magicProperties": {
       "isIdentified": true,
@@ -6976,7 +6976,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Robe of the Archmagi",
     "description": "This elegant garment is made from exquisite cloth and adorned with runes. You gain these benefits while wearing the robe.  Armor If you aren't wearing...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/robe_of_the_archmagi.svg",
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
       "isIdentified": true,
@@ -6991,7 +6991,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Robe of Useful Items",
     "description": "This robe has cloth patches of various shapes and colors covering it. While wearing the robe, you can take a magic action to detach one of the patches...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/robe_of_useful_items.svg",
     "rarity": ItemRarity.Uncommon
   },
   "rod": {
@@ -6999,7 +6999,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rod",
     "description": "SCF...",
     "type": "treasure",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/rod.svg",
     "weight": 2,
     "cost": "10 GP",
     "costInGp": 10
@@ -7009,7 +7009,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rod of Absorption",
     "description": "While holding this rod, you can take a reaction to absorb a spell that is targeting only you and doesn't create an area of effect. The absorbed spell'...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/rod_of_absorption.svg",
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.VeryRare,
@@ -7026,7 +7026,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rod of Alertness",
     "description": "This rod has the following properties.  Alertness While holding the rod, you have advantage on Wisdom (perception) checks and on initiative rolls. Spe...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/rod_of_alertness.svg",
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.VeryRare,
@@ -7043,7 +7043,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rod of Lordly Might",
     "description": "This rod has a flanged head, and it functions as a magic Mace that grants a +3 bonus to attack rolls and damage rolls made with it. The rod has proper...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/rod_of_lordly_might.svg",
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.Legendary,
@@ -7060,7 +7060,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rod of Resurrection",
     "description": "The rod has 5 charges. While you hold it, you can cast one of the following spells from it: heal (expends 1 charge) or resurrection (expends 5 charges...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/rod_of_resurrection.svg",
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.Legendary,
@@ -7077,7 +7077,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rod of Rulership",
     "description": "You can take a magic action to present the rod and command obedience from each creature of your choice that you can see within 120 feet of yourself. E...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/rod_of_rulership.svg",
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
@@ -7094,7 +7094,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rod of Security",
     "description": "While holding this rod, you can take a magic action to activate it. The rod then instantly transports you and up to 199 other willing creatures you ca...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/rod_of_security.svg",
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.VeryRare
@@ -7104,7 +7104,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rope",
     "description": "As a utilize action, you can tie a knot with Rope if you succeed on a DC 10 Dexterity (sleight_of_hand of Hand) check. The Rope can be burst with a su...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/rope.svg",
     "weight": 5,
     "cost": "1 GP",
     "costInGp": 1,
@@ -7115,7 +7115,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rope of Climbing",
     "description": "This 60-foot length of rope can hold up to 3,000 pounds. While holding one end of the rope, you can take a magic action to command the other end of th...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/rope_of_climbing.svg",
     "rarity": ItemRarity.Uncommon,
     "effect": {
       "type": "heal",
@@ -7127,7 +7127,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rope of Entanglement",
     "description": "This rope is 30 feet long. While holding one end of the rope, you can take a magic action to command the other end to dart forward and entangle one cr...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/rope_of_entanglement.svg",
     "rarity": ItemRarity.Rare,
     "effect": {
       "type": "heal",
@@ -7139,7 +7139,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rope of Mending",
     "description": "This 50-foot coil of rope can repair itself when cut into any number of smaller pieces. As a magic action, you can cause all pieces of the rope that a...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/rope_of_mending.svg",
     "rarity": ItemRarity.Common
   },
   "rowboat": {
@@ -7147,7 +7147,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Rowboat",
     "description": "SHP...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/rowboat.svg",
     "weight": 100,
     "cost": "50 GP",
     "costInGp": 50
@@ -7157,7 +7157,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ruby",
     "description": "A clear red to deep crimson gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/ruby.svg",
     "cost": "5000 GP",
     "costInGp": 5000
   },
@@ -7166,7 +7166,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Ruby of the War Mage",
     "description": "Etched with eldritch runes, this 1-inch-diameter ruby allows you to use a Simple or Martial weapon as a spellcasting_focus Focus for your spells. For ...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/ruby_of_the_war_mage.svg",
     "rarity": ItemRarity.Common,
     "magicProperties": {
       "isIdentified": true,
@@ -7181,7 +7181,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sack",
     "description": "A Sack holds up to 30 pounds within 1 cubic foot....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/sack.svg",
     "weight": 0.5,
     "cost": "0.01 GP",
     "costInGp": 0.01,
@@ -7192,7 +7192,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Saddle of the Cavalier",
     "description": "While in this saddle on a mount, you can't be dismounted against your will if you're conscious, and attack rolls against the mount have disadvantage....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/saddle_of_the_cavalier.svg",
     "rarity": ItemRarity.Uncommon
   },
   "saffron": {
@@ -7200,7 +7200,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Saffron",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/saffron.svg",
     "weight": 1,
     "cost": "15 GP",
     "costInGp": 15
@@ -7210,7 +7210,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sailing Ship",
     "description": "SHP...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/sailing_ship.svg",
     "cost": "10000 GP",
     "costInGp": 10000
   },
@@ -7219,7 +7219,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Salt",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/salt.svg",
     "weight": 1,
     "cost": "0.05 GP",
     "costInGp": 0.05
@@ -7229,7 +7229,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sardonyx",
     "description": "A bands of red and white gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/sardonyx.svg",
     "cost": "50 GP",
     "costInGp": 50
   },
@@ -7238,7 +7238,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scale Mail",
     "description": "MA...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/scale_mail.svg",
     "weight": 45,
     "cost": "50 GP",
     "costInGp": 50,
@@ -7251,7 +7251,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scarab of Protection",
     "description": "This beetle-shaped medallion provides three benefits while it is on your person.  Defense You gain a +1 bonus to armor_class Class.  Preservation The ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/scarab_of_protection.svg",
     "weight": 1,
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -7267,7 +7267,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scholar's Pack",
     "description": "A Scholar's Pack contains the following items: backpack, book, ink, ink_pen Pen, lamp, 10 flasks of oil, 10 sheets of parchment, and tinderbox....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/scholar_s_pack.svg",
     "weight": 22,
     "cost": "40 GP",
     "costInGp": 40,
@@ -7278,7 +7278,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scimitar",
     "description": "M...",
     "type": "weapon",
-    "icon": "sword",
+    "icon": "/assets/icons/items/scimitar.svg",
     "weight": 3,
     "cost": "25 GP",
     "costInGp": 25,
@@ -7295,7 +7295,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scimitar of Speed",
     "description": "You gain a +2 bonus to attack rolls and damage rolls made with this magic weapon. In addition, you can make one attack with it as a bonus_action Actio...",
     "type": "weapon",
-    "icon": "sword",
+    "icon": "/assets/icons/items/scimitar_of_speed.svg",
     "weight": 3,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -7318,7 +7318,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Aberrations)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_aberrations.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_protection_beasts": {
@@ -7326,7 +7326,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Beasts)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_beasts.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_protection_celestials": {
@@ -7334,7 +7334,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Celestials)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_celestials.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_protection_constructs": {
@@ -7342,7 +7342,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Constructs)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_constructs.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_protection_dragons": {
@@ -7350,7 +7350,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Dragons)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_dragons.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_protection_elementals": {
@@ -7358,7 +7358,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Elementals)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_elementals.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_protection_fey": {
@@ -7366,7 +7366,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Fey)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_fey.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_protection_fiends": {
@@ -7374,7 +7374,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Fiends)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_fiends.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_protection_giants": {
@@ -7382,7 +7382,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Giants)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_giants.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_protection_humanoids": {
@@ -7390,7 +7390,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Humanoids)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_humanoids.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_protection_monstrosities": {
@@ -7398,7 +7398,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Monstrosities)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_monstrosities.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_protection_oozes": {
@@ -7406,7 +7406,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Oozes)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_oozes.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_protection_plants": {
@@ -7414,7 +7414,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Plants)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_plants.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_protection_undead": {
@@ -7422,7 +7422,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Protection (Undead)",
     "description": "{itemEntry Scroll of Protection}...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_protection_undead.svg",
     "rarity": ItemRarity.Rare
   },
   "scroll_of_titan_summoning_animal_lord": {
@@ -7430,7 +7430,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Titan Summoning (Animal Lord)",
     "description": "When you take a magic action to read this scroll, an Animal Lord appears in an unoccupied space on the ground or in water that you can see within 1 mi...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_titan_summoning_animal_lord.svg",
     "rarity": ItemRarity.Legendary
   },
   "scroll_of_titan_summoning_blob_of_annihilation": {
@@ -7438,7 +7438,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Titan Summoning (Blob of Annihilation)",
     "description": "When you take a magic action to read this scroll, a Blob of Annihilation appears in an unoccupied space on the ground or in water that you can see wit...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_titan_summoning_blob_of_annihilation.svg",
     "rarity": ItemRarity.Legendary
   },
   "scroll_of_titan_summoning_colossus": {
@@ -7446,7 +7446,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Titan Summoning (Colossus)",
     "description": "When you take a magic action to read this scroll, a Colossus appears in an unoccupied space on the ground or in water that you can see within 1 mile o...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_titan_summoning_colossus.svg",
     "rarity": ItemRarity.Legendary
   },
   "scroll_of_titan_summoning_elemental_cataclysm": {
@@ -7454,7 +7454,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Titan Summoning (Elemental Cataclysm)",
     "description": "When you take a magic action to read this scroll, an Elemental Cataclysm appears in an unoccupied space on the ground or in water that you can see wit...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_titan_summoning_elemental_cataclysm.svg",
     "rarity": ItemRarity.Legendary
   },
   "scroll_of_titan_summoning_empyrean": {
@@ -7462,7 +7462,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Titan Summoning (Empyrean)",
     "description": "When you take a magic action to read this scroll, an Empyrean appears in an unoccupied space on the ground or in water that you can see within 1 mile ...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_titan_summoning_empyrean.svg",
     "rarity": ItemRarity.Legendary
   },
   "scroll_of_titan_summoning_kraken": {
@@ -7470,7 +7470,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Titan Summoning (Kraken)",
     "description": "When you take a magic action to read this scroll, a Kraken appears in an unoccupied space in water that you can see within 1 mile of yourself. A krake...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_titan_summoning_kraken.svg",
     "rarity": ItemRarity.Legendary
   },
   "scroll_of_titan_summoning_tarrasque": {
@@ -7478,7 +7478,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Scroll of Titan Summoning (Tarrasque)",
     "description": "When you take a magic action to read this scroll, a Tarrasque appears in an unoccupied space on the ground or in water that you can see within 1 mile ...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/scroll_of_titan_summoning_tarrasque.svg",
     "rarity": ItemRarity.Legendary
   },
   "semiautomatic_pistol": {
@@ -7486,7 +7486,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Semiautomatic Pistol",
     "description": "R...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/semiautomatic_pistol.svg",
     "weight": 3,
     "slot": "MainHand",
     "damageDice": "2d6",
@@ -7501,7 +7501,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sending Stones",
     "description": "Sending Stones come in pairs, with each stone carved to match the other so the pairing is easily recognized. While you touch one stone, you can cast s...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/sending_stones.svg",
     "rarity": ItemRarity.Uncommon
   },
   "sentinel_shield": {
@@ -7509,7 +7509,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sentinel Shield",
     "description": "While holding this Shield, you have advantage on initiative rolls and Wisdom (perception) checks. The Shield is emblazoned with a symbol of an eye....",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/sentinel_shield.svg",
     "weight": 6,
     "slot": "OffHand",
     "armorCategory": "Shield",
@@ -7521,7 +7521,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Serpent Venom",
     "description": "A creature subjected to Serpent Venom must succeed on a DC 11 Constitution saving throw, taking 10 (3d6) Poison damage on a failed save or half as muc...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/serpent_venom.svg",
     "cost": "200 GP",
     "costInGp": 200,
     "slot": "Ring"
@@ -7531,7 +7531,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Set of gold nesting dolls",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/set_of_gold_nesting_dolls.svg",
     "cost": "7500 GP",
     "costInGp": 7500
   },
@@ -7540,7 +7540,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Shawm",
     "description": "- Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/shawm.svg",
     "weight": 1,
     "cost": "2 GP",
     "costInGp": 2
@@ -7550,7 +7550,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sheep",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/sheep.svg",
     "cost": "2 GP",
     "costInGp": 2
   },
@@ -7559,7 +7559,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Shield",
     "description": "S...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/shield.svg",
     "weight": 6,
     "cost": "10 GP",
     "costInGp": 10,
@@ -7572,7 +7572,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Shield of Expression",
     "description": "The front of this Shield is shaped in the likeness of a face. While bearing the Shield, you can take a bonus_action Action to alter the face's express...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/shield_of_expression.svg",
     "weight": 6,
     "slot": "OffHand",
     "armorCategory": "Shield",
@@ -7584,7 +7584,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Shield of Missile Attraction",
     "description": "While holding this Shield, you have resistance to damage from attacks made with Ranged weapons.  Curse This Shield is cursed. Attuning to it curses yo...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/shield_of_missile_attraction.svg",
     "weight": 6,
     "slot": "OffHand",
     "armorCategory": "Shield",
@@ -7603,7 +7603,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Shield of the Cavalier",
     "description": "While holding this Shield, you have a +2 bonus to armor_class Class. This bonus is in addition to the Shield's normal bonus to AC. The Shield has the ...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/shield_of_the_cavalier.svg",
     "weight": 6,
     "slot": "OffHand",
     "armorCategory": "Shield",
@@ -7622,7 +7622,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Shortbow",
     "description": "R...",
     "type": "weapon",
-    "icon": "bow_arrow",
+    "icon": "/assets/icons/items/shortbow.svg",
     "weight": 2,
     "cost": "25 GP",
     "costInGp": 25,
@@ -7639,7 +7639,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Shortsword",
     "description": "M...",
     "type": "weapon",
-    "icon": "sword",
+    "icon": "/assets/icons/items/shortsword.svg",
     "weight": 2,
     "cost": "10 GP",
     "costInGp": 10,
@@ -7656,7 +7656,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Shotgun",
     "description": "R...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/shotgun.svg",
     "weight": 7,
     "slot": "MainHand",
     "damageDice": "2d8",
@@ -7672,7 +7672,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Shovel",
     "description": "Working for 1 hour, you can use a Shovel to dig a hole that is 5 feet on each side in soil or similar material....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/shovel.svg",
     "weight": 5,
     "cost": "2 GP",
     "costInGp": 2,
@@ -7683,7 +7683,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sickle",
     "description": "M...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/sickle.svg",
     "weight": 2,
     "cost": "1 GP",
     "costInGp": 1,
@@ -7699,7 +7699,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Signal Whistle",
     "description": "When blown as a utilize action, a Signal Whistle produces a sound that can be heard up to 600 feet away....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/signal_whistle.svg",
     "cost": "0.05 GP",
     "costInGp": 0.05,
     "slot": "Ring"
@@ -7709,7 +7709,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Silk",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/silk.svg",
     "weight": 1,
     "cost": "10 GP",
     "costInGp": 10
@@ -7719,7 +7719,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Silk vestments with gold embroidery",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/silk_vestments_with_gold_embroidery.svg",
     "cost": "250 GP",
     "costInGp": 250
   },
@@ -7728,7 +7728,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Silver",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/silver.svg",
     "weight": 1,
     "cost": "5 GP",
     "costInGp": 5
@@ -7738,7 +7738,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Silver and gold brooch",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/silver_and_gold_brooch.svg",
     "cost": "750 GP",
     "costInGp": 750
   },
@@ -7747,7 +7747,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Silver Bar (2-pound)",
     "description": "TB...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/silver_bar_2_pound.svg",
     "weight": 2,
     "cost": "10 GP",
     "costInGp": 10
@@ -7757,7 +7757,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Silver Bar (5-pound)",
     "description": "TB...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/silver_bar_5_pound.svg",
     "weight": 5,
     "cost": "25 GP",
     "costInGp": 25
@@ -7767,7 +7767,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Silver chalice set with moonstones",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/silver_chalice_set_with_moonstones.svg",
     "cost": "750 GP",
     "costInGp": 750
   },
@@ -7776,7 +7776,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Silver Dragon Scale Mail",
     "description": "{itemEntry Dragon Scale Mail}...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/silver_dragon_scale_mail.svg",
     "weight": 45,
     "slot": "Torso",
     "armorCategory": "Medium",
@@ -7795,7 +7795,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Silver ewer",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/silver_ewer.svg",
     "cost": "25 GP",
     "costInGp": 25
   },
@@ -7804,7 +7804,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Silver necklace with a gemstone pendant",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/silver_necklace_with_a_gemstone_pendant.svg",
     "cost": "250 GP",
     "costInGp": 250
   },
@@ -7813,7 +7813,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sled",
     "description": "VEH...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/sled.svg",
     "weight": 300,
     "cost": "20 GP",
     "costInGp": 20
@@ -7823,7 +7823,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sling",
     "description": "R...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/sling.svg",
     "cost": "0.1 GP",
     "costInGp": 0.1,
     "slot": "MainHand",
@@ -7838,7 +7838,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sling Bullet",
     "description": "Sling bullets are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one pi...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/sling_bullet.svg",
     "weight": 0.075,
     "cost": "0.002 GP",
     "costInGp": 0.002
@@ -7848,7 +7848,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sling Bullets (20)",
     "description": "Sling bullets are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one pi...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/sling_bullets_20.svg",
     "weight": 1.5,
     "cost": "0.04 GP",
     "costInGp": 0.04
@@ -7858,7 +7858,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Slippers of Spider Climbing",
     "description": "While you wear these light shoes, you can move up, down, and across vertical surfaces and along ceilings, while leaving your hands free. You have a cl...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/slippers_of_spider_climbing.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -7873,7 +7873,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Smith's Tools",
     "description": "- Ability:: Strength - Utilize:: Pry open a door or container (DC 20) - Craft:: Any Melee weapon (except club, greatclub, quarterstaff, and whip), Med...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/smith_s_tools.svg",
     "weight": 8,
     "cost": "20 GP",
     "costInGp": 20
@@ -7883,7 +7883,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Smoke Grenade",
     "description": "{itemEntry Grenade} The area of the sphere_area_of_effect is heavily_obscured Obscured by smoke for 1 minute. A strong wind (such as the gust_of_wind ...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/smoke_grenade.svg",
     "weight": 2,
     "cost": "50 GP",
     "costInGp": 50
@@ -7893,7 +7893,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sovereign Glue",
     "description": "This viscous, milky-white substance can form a permanent adhesive bond between any two objects. It must be stored in a jar or flask that has been coat...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/sovereign_glue.svg",
     "rarity": ItemRarity.Legendary
   },
   "spear": {
@@ -7901,7 +7901,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spear",
     "description": "M...",
     "type": "weapon",
-    "icon": "spear",
+    "icon": "/assets/icons/items/spear.svg",
     "weight": 3,
     "cost": "1 GP",
     "costInGp": 1,
@@ -7918,7 +7918,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spellguard Shield",
     "description": "While holding this Shield, you have advantage on saving throws against spells and other magical effects, and spell attack rolls have disadvantage agai...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/spellguard_shield.svg",
     "weight": 6,
     "slot": "OffHand",
     "armorCategory": "Shield",
@@ -7937,7 +7937,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spell Scroll (Cantrip)",
     "description": "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast i...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/spell_scroll_cantrip.svg",
     "cost": "30 GP",
     "costInGp": 30,
     "rarity": ItemRarity.Common
@@ -7947,7 +7947,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spell Scroll (Level 1)",
     "description": "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast i...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/spell_scroll_level_1.svg",
     "cost": "50 GP",
     "costInGp": 50,
     "rarity": ItemRarity.Common
@@ -7957,7 +7957,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spell Scroll (Level 2)",
     "description": "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast i...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/spell_scroll_level_2.svg",
     "rarity": ItemRarity.Uncommon
   },
   "spell_scroll_level_3": {
@@ -7965,7 +7965,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spell Scroll (Level 3)",
     "description": "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast i...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/spell_scroll_level_3.svg",
     "rarity": ItemRarity.Uncommon
   },
   "spell_scroll_level_4": {
@@ -7973,7 +7973,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spell Scroll (Level 4)",
     "description": "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast i...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/spell_scroll_level_4.svg",
     "rarity": ItemRarity.Rare
   },
   "spell_scroll_level_5": {
@@ -7981,7 +7981,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spell Scroll (Level 5)",
     "description": "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast i...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/spell_scroll_level_5.svg",
     "rarity": ItemRarity.Rare
   },
   "spell_scroll_level_6": {
@@ -7989,7 +7989,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spell Scroll (Level 6)",
     "description": "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast i...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/spell_scroll_level_6.svg",
     "rarity": ItemRarity.VeryRare
   },
   "spell_scroll_level_7": {
@@ -7997,7 +7997,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spell Scroll (Level 7)",
     "description": "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast i...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/spell_scroll_level_7.svg",
     "rarity": ItemRarity.VeryRare
   },
   "spell_scroll_level_8": {
@@ -8005,7 +8005,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spell Scroll (Level 8)",
     "description": "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast i...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/spell_scroll_level_8.svg",
     "rarity": ItemRarity.VeryRare
   },
   "spell_scroll_level_9": {
@@ -8013,7 +8013,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spell Scroll (Level 9)",
     "description": "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast i...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/spell_scroll_level_9.svg",
     "rarity": ItemRarity.Legendary
   },
   "sphere_of_annihilation": {
@@ -8021,7 +8021,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sphere of Annihilation",
     "description": "This 2-foot-diameter black sphere is a hole in the multiverse, hovering in space and stabilized by a magical field surrounding it. The sphere oblitera...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/sphere_of_annihilation.svg",
     "rarity": ItemRarity.Legendary
   },
   "spinel": {
@@ -8029,7 +8029,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spinel",
     "description": "A red, red brown, or deep green gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/spinel.svg",
     "cost": "100 GP",
     "costInGp": 100
   },
@@ -8038,7 +8038,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spirit Board",
     "description": "This ornate wooden board has the letters of the Common alphabet printed on one side, alongside the words \"Yes\" and \"No\" and symbols representing \"Weal...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/spirit_board.svg",
     "rarity": ItemRarity.VeryRare
   },
   "splint_armor": {
@@ -8046,7 +8046,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Splint Armor",
     "description": "HA...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/splint_armor.svg",
     "weight": 60,
     "cost": "200 GP",
     "costInGp": 200,
@@ -8059,7 +8059,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sprig of Mistletoe",
     "description": "SCF...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/sprig_of_mistletoe.svg",
     "cost": "1 GP",
     "costInGp": 1
   },
@@ -8068,7 +8068,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Spyglass",
     "description": "Objects viewed through a Spyglass are magnified to twice their size....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/spyglass.svg",
     "weight": 1,
     "cost": "1000 GP",
     "costInGp": 1000,
@@ -8079,7 +8079,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Stabling (per day)",
     "description": "TAH...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/stabling_per_day.svg",
     "cost": "0.05 GP",
     "costInGp": 0.05
   },
@@ -8088,7 +8088,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff",
     "description": "SCF...",
     "type": "treasure",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff.svg",
     "weight": 4,
     "cost": "5 GP",
     "costInGp": 5,
@@ -8103,7 +8103,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of Adornment",
     "description": "If you place a Tiny object weighing no more than 1 pound (such as a shard of crystal, an egg, or a stone) above the tip of this staff while holding it...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_adornment.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8118,7 +8118,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of Birdcalls",
     "description": "This wooden staff is decorated with bird carvings. It has 10 charges. While holding it, you can take a magic action to expend 1 charge from the staff ...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_birdcalls.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8133,7 +8133,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of Charming",
     "description": "This staff has 10 charges. While holding the staff, you can use any of its properties: - Cast Spell: You can expend 1 of the staff's charges to cast c...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_charming.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8155,7 +8155,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of Fire",
     "description": "You have resistance to Fire damage while you hold this staff.  Spells The staff has 10 charges. While holding the staff, you can cast one of the spell...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_fire.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8177,7 +8177,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of Flowers",
     "description": "This wooden staff has 10 charges. While holding it, you can take a magic action to expend 1 charge from the staff and cause a flower to sprout from a ...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_flowers.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8192,7 +8192,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of Frost",
     "description": "You have resistance to Cold damage while you hold this staff.  Spells The staff has 10 charges. While holding the staff, you can cast one of the spell...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_frost.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8214,7 +8214,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of Healing",
     "description": "This staff has 10 charges. While holding the staff, you can cast one of the spells on the following table from it, using your spellcasting ability mod...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_healing.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8236,7 +8236,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of Power",
     "description": "This staff has 20 charges and can be wielded as a magic Quarterstaff that grants a +2 bonus to attack rolls and damage rolls made with it. While holdi...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_power.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8258,7 +8258,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of Striking",
     "description": "This staff can be wielded as a magic Quarterstaff that grants a +3 bonus to attack rolls and damage rolls made with it. The staff has 10 charges. When...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_striking.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8280,7 +8280,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of Swarming Insects",
     "description": "This staff has 10 charges.  Insect Cloud While holding the staff , you can take a magic action and expend 1 charge to cause a swarm of harmless flying...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_swarming_insects.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8302,7 +8302,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of the Adder",
     "description": "As a bonus_action Action, you can turn the head of this staff into that of an animate, venomous snake for 1 minute or revert the staff to its inanimat...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_the_adder.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8324,7 +8324,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of the Magi",
     "description": "This staff has 50 charges and can be wielded as a magic Quarterstaff that grants a +2 bonus to attack rolls and damage rolls made with it. While you h...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_the_magi.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8346,7 +8346,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of the Python",
     "description": "As a magic action, you can throw this staff so that it lands in an unoccupied space within 10 feet of you, causing the staff to become a Giant Constri...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_the_python.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8368,7 +8368,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of the Woodlands",
     "description": "This staff has 6 charges and can be wielded as a magic Quarterstaff that grants a +2 bonus to attack rolls and damage rolls made with it. While holdin...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_the_woodlands.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8390,7 +8390,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of Thunder and Lightning",
     "description": "This staff can be wielded as a magic Quarterstaff that grants a +2 bonus to attack rolls and damage rolls made with it. It also has the following addi...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/staff_of_thunder_and_lightning.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8412,7 +8412,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Staff of Withering",
     "description": "This staff has 3 charges and regains 1d3 expended charges daily at dawn. The staff can be wielded as a magic Quarterstaff. On a hit, it deals damage a...",
     "type": "weapon",
-    "icon": "ring",
+    "icon": "/assets/icons/items/staff_of_withering.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -8434,7 +8434,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Star rose quartz",
     "description": "A rosy stone with white star-shaped center gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/star_rose_quartz.svg",
     "cost": "50 GP",
     "costInGp": 50
   },
@@ -8443,7 +8443,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Star Ruby",
     "description": "A ruby with white star-shaped center gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/star_ruby.svg",
     "cost": "1000 GP",
     "costInGp": 1000
   },
@@ -8452,7 +8452,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Star Sapphire",
     "description": "A blue sapphire with white star-shaped center gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/star_sapphire.svg",
     "cost": "1000 GP",
     "costInGp": 1000
   },
@@ -8461,7 +8461,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Stone of Controlling Earth Elementals",
     "description": "While touching this 5-pound stone to the ground, you can take a magic action to summon an Earth Elemental. The elemental appears in an unoccupied spac...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/stone_of_controlling_earth_elementals.svg",
     "rarity": ItemRarity.Rare
   },
   "stone_of_good_luck": {
@@ -8469,7 +8469,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Stone of Good Luck",
     "description": "While this polished agate is on your person, you gain a +1 bonus to ability checks and saving throws....",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/stone_of_good_luck.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -8484,7 +8484,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "String",
     "description": "String is 10 feet long. You can tie a knot in it as a utilize action....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/string.svg",
     "cost": "0.1 GP",
     "costInGp": 0.1,
     "slot": "Ring"
@@ -8494,7 +8494,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Studded Leather Armor",
     "description": "LA...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/studded_leather_armor.svg",
     "weight": 13,
     "cost": "45 GP",
     "costInGp": 45,
@@ -8507,7 +8507,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sun Blade",
     "description": "This item appears to be a sword hilt.  Blade of Radiance While grasping the hilt, you can take a bonus_action Action to cause a blade of pure radiance...",
     "type": "weapon",
-    "icon": "sword",
+    "icon": "/assets/icons/items/sun_blade.svg",
     "weight": 3,
     "slot": "MainHand",
     "damageDice": "1d8",
@@ -8530,7 +8530,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sword of Answering",
     "description": "You gain a +3 bonus to attack rolls and damage rolls made with this sword. In addition, while you hold the sword, you can take a reaction to make one ...",
     "type": "weapon",
-    "icon": "sword",
+    "icon": "/assets/icons/items/sword_of_answering.svg",
     "weight": 3,
     "slot": "MainHand",
     "damageDice": "1d8",
@@ -8552,7 +8552,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Sword of Kas",
     "description": "Kas was a powerful warrior who served Vecna and whose loyalty was rewarded with this sword. As Kas's power grew, so did his hubris. The sword urged Ka...",
     "type": "weapon",
-    "icon": "sword",
+    "icon": "/assets/icons/items/sword_of_kas.svg",
     "weight": 3,
     "slot": "MainHand",
     "damageDice": "1d8",
@@ -8574,7 +8574,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Talisman of Pure Good",
     "description": "This talisman is a mighty symbol of goodness. A Fiend or an Undead that touches the talisman takes 8d6 Radiant damage and takes the damage again each ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/talisman_of_pure_good.svg",
     "weight": 1,
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -8590,7 +8590,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Talisman of the Sphere",
     "description": "While holding or wearing this talisman, you have advantage on any Intelligence (arcana) check you make to control a sphere_of_annihilation of Annihila...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/talisman_of_the_sphere.svg",
     "weight": 1,
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -8606,7 +8606,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Talisman of Ultimate Evil",
     "description": "This item symbolizes unrepentant evil. A creature that isn't a Fiend or an Undead that touches the talisman takes 8d6 Necrotic damage and takes the da...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/talisman_of_ultimate_evil.svg",
     "weight": 1,
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -8622,7 +8622,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Talking Doll",
     "description": "While this doll is within 5 feet of you, you can spend a short_rest Rest telling it to say up to six phrases, none of which can be more than six words...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/talking_doll.svg",
     "rarity": ItemRarity.Common,
     "magicProperties": {
       "isIdentified": true,
@@ -8637,7 +8637,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Tankard of Sobriety",
     "description": "This tankard has a stern face sculpted into one side. You can drink ale, wine, or any other nonmagical alcoholic beverage poured into it without becom...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/tankard_of_sobriety.svg",
     "rarity": ItemRarity.Common
   },
   "tent": {
@@ -8645,7 +8645,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Tent",
     "description": "A Tent sleeps up to two Small or Medium creatures....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/tent.svg",
     "weight": 20,
     "cost": "2 GP",
     "costInGp": 2,
@@ -8656,7 +8656,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Tentacle Rod",
     "description": "This rod ends in three rubbery tentacles. While holding the rod, you can take a magic action to direct the tentacles to stretch outward, each one atta...",
     "type": "weapon",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/tentacle_rod.svg",
     "weight": 2,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
@@ -8673,7 +8673,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Thieves' Tools",
     "description": "- Ability:: Dexterity - Utilize:: Pick a lock (DC 15), or disarm a trap (DC 15)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/thieves_tools.svg",
     "weight": 1,
     "cost": "25 GP",
     "costInGp": 25
@@ -8683,7 +8683,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Three-Dragon Ante Set",
     "description": "- Ability:: Wisdom - Utilize:: Discern whether someone is cheating (DC 10), or win the game (DC 20)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/three_dragon_ante_set.svg",
     "cost": "1 GP",
     "costInGp": 1
   },
@@ -8692,7 +8692,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Thunderous Greatclub",
     "description": "While you are attuned to this magic weapon, your Strength is 20 unless your Strength is already equal to or greater than that score. The weapon deals ...",
     "type": "weapon",
-    "icon": "hammer",
+    "icon": "/assets/icons/items/thunderous_greatclub.svg",
     "weight": 10,
     "slot": "MainHand",
     "damageDice": "1d8",
@@ -8714,7 +8714,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Tiger Eye",
     "description": "A brown with golden center gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/tiger_eye.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -8723,7 +8723,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Tinderbox",
     "description": "A Tinderbox is a small container holding flint, fire steel, and tinder (usually dry cloth soaked in light oil) used to kindle a fire. Using it to ligh...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/tinderbox.svg",
     "weight": 1,
     "cost": "0.5 GP",
     "costInGp": 0.5,
@@ -8734,7 +8734,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Tinker's Tools",
     "description": "- Ability:: Dexterity - Utilize:: Assemble a Tiny item composed of scrap, which falls apart in 1 minute (DC 20) - Craft:: musket, pistol, bell, bullse...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/tinker_s_tools.svg",
     "weight": 10,
     "cost": "50 GP",
     "costInGp": 50
@@ -8744,7 +8744,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Tome of Clear Thought",
     "description": "This book contains memory and logic exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer studying t...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/tome_of_clear_thought.svg",
     "weight": 5,
     "rarity": ItemRarity.VeryRare
   },
@@ -8753,7 +8753,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Tome of Leadership and Influence",
     "description": "This book contains guidelines for influencing and charming others, and its words are charged with magic. If you spend 48 hours over a period of 6 days...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/tome_of_leadership_and_influence.svg",
     "weight": 5,
     "rarity": ItemRarity.VeryRare
   },
@@ -8762,7 +8762,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Tome of the Stilled Tongue",
     "description": "This book has a desiccated tongue pinned to its front cover. Five of these tomes exist, and it's unknown which one is the original. The tongue on the ...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/tome_of_the_stilled_tongue.svg",
     "weight": 5,
     "rarity": ItemRarity.Legendary,
     "magicProperties": {
@@ -8778,7 +8778,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Tome of Understanding",
     "description": "This book contains intuition and insight exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer study...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/tome_of_understanding.svg",
     "weight": 5,
     "rarity": ItemRarity.VeryRare
   },
@@ -8787,7 +8787,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Topaz",
     "description": "A golden yellow gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/topaz.svg",
     "cost": "500 GP",
     "costInGp": 500
   },
@@ -8796,7 +8796,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Torch",
     "description": "A Torch burns for 1 hour, casting bright_light Light in a 20-foot radius and dim_light Light for an additional 20 feet. When you take the attack actio...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/torch.svg",
     "weight": 1,
     "cost": "0.01 GP",
     "costInGp": 0.01,
@@ -8807,7 +8807,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Torpor",
     "description": "A creature subjected to Torpor poison must succeed on a DC 15 Constitution saving throw or have the poisoned condition for 4d6 hours. The creature's s...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/torpor.svg",
     "cost": "600 GP",
     "costInGp": 600,
     "slot": "Ring"
@@ -8817,7 +8817,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Tourmaline",
     "description": "A pale green, blue, brown, or red gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/tourmaline.svg",
     "cost": "100 GP",
     "costInGp": 100
   },
@@ -8826,7 +8826,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Traveler's Clothes",
     "description": "Traveler's Clothes are resilient garments designed for travel in various environments....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/traveler_s_clothes.svg",
     "weight": 4,
     "cost": "2 GP",
     "costInGp": 2,
@@ -8837,7 +8837,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Trident",
     "description": "M...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/trident.svg",
     "weight": 4,
     "cost": "5 GP",
     "costInGp": 5,
@@ -8854,7 +8854,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Trident of Fish Command",
     "description": "This magic weapon has 3 charges, and it regains 1d3 expended charges daily at dawn. While you carry it, you can expend 1 charge to cast dominate_beast...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/trident_of_fish_command.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d8",
@@ -8877,7 +8877,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Trinket",
     "description": "When you make your character, you can roll once on the Trinkets table to gain a Tiny trinket, a simple item lightly touched by mystery. The DM might a...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/trinket.svg",
     "slot": "Ring"
   },
   "truth_serum": {
@@ -8885,7 +8885,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Truth Serum",
     "description": "A creature subjected to Truth Serum must succeed on a DC 11 Constitution saving throw or have the poisoned condition for 1 hour. The poisoned creature...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/truth_serum.svg",
     "cost": "150 GP",
     "costInGp": 150,
     "slot": "Ring"
@@ -8895,7 +8895,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Turquoise",
     "description": "A light blue green gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/turquoise.svg",
     "cost": "10 GP",
     "costInGp": 10
   },
@@ -8904,7 +8904,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Universal Solvent",
     "description": "This tube holds milky liquid with a strong alcohol smell. When found, a tube contains 1d6 + 1 ounces. You can take a utilize action to pour 1 or more ...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/universal_solvent.svg",
     "rarity": ItemRarity.Legendary
   },
   "veteran_s_cane": {
@@ -8912,7 +8912,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Veteran's Cane",
     "description": "As a bonus_action Action, you can transform this walking cane into an ordinary Longsword or change the Longsword back into a walking cane. In either c...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/veteran_s_cane.svg",
     "rarity": ItemRarity.Common
   },
   "vial": {
@@ -8920,7 +8920,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Vial",
     "description": "A Vial holds up to 4 ounces....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/vial.svg",
     "cost": "1 GP",
     "costInGp": 1,
     "slot": "Ring"
@@ -8930,7 +8930,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Viol",
     "description": "- Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/viol.svg",
     "weight": 1,
     "cost": "30 GP",
     "costInGp": 30
@@ -8940,7 +8940,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wagon",
     "description": "VEH...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/wagon.svg",
     "weight": 400,
     "cost": "35 GP",
     "costInGp": 35
@@ -8950,7 +8950,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand",
     "description": "SCF...",
     "type": "treasure",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand.svg",
     "weight": 1,
     "cost": "10 GP",
     "costInGp": 10
@@ -8960,7 +8960,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Binding",
     "description": "This wand has 7 charges.  Spells While holding the wand, you can cast one of the spells (save DC 17) on the following table from it. The table indicat...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_binding.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
@@ -8977,7 +8977,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Conducting",
     "description": "This wand has 3 charges. While holding it, you can take a magic action to expend 1 charge and create orchestral music by waving it around. The music c...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_conducting.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Common
@@ -8987,7 +8987,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Enemy Detection",
     "description": "This wand has 7 charges. While holding it, you can take a magic action to expend 1 charge. For 1 minute, you know the direction of the nearest creatur...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_enemy_detection.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
@@ -9004,7 +9004,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Fear",
     "description": "This wand has 7 charges.  Spells While holding the wand, you can cast one of the spells (save DC 15) on the following table from it. The table indicat...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_fear.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
@@ -9021,7 +9021,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Fireballs",
     "description": "This wand has 7 charges. While holding it, you can expend no more than 3 charges to cast fireball (save DC 15) from it. For 1 charge, you cast the lev...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_fireballs.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
@@ -9038,7 +9038,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Lightning Bolts",
     "description": "This wand has 7 charges. While holding it, you can expend no more than 3 charges to cast lightning_bolt Bolt (save DC 15) from it. For 1 charge, you c...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_lightning_bolts.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
@@ -9055,7 +9055,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Magic Detection",
     "description": "This wand has 3 charges. While holding it, you can expend 1 charge to cast detect_magic Magic from it. The wand regains 1d3 expended charges daily at ...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_magic_detection.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Uncommon
@@ -9065,7 +9065,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Magic Missiles",
     "description": "This wand has 7 charges. While holding it, you can expend no more than 3 charges to cast magic_missile Missile from it. For 1 charge, you cast the lev...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_magic_missiles.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Uncommon
@@ -9075,7 +9075,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Orcus",
     "description": "Crafted and wielded by Orcus, this ghastly wand slips from the demon lord's grasp from time to time. When it does, it magically appears wherever the d...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_orcus.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d6",
@@ -9094,7 +9094,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Paralysis",
     "description": "This wand has 7 charges. While holding it, you can take a magic action to expend 1 charge to cause a thin blue ray to streak from the tip toward a cre...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_paralysis.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
@@ -9111,7 +9111,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Polymorph",
     "description": "This wand has 7 charges. While holding it, you can expend 1 charge to cast polymorph (save DC 15) from it.  Regaining Charges The wand regains 1d6 + 1...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_polymorph.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.VeryRare,
@@ -9128,7 +9128,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Pyrotechnics",
     "description": "This wand has 7 charges. While holding it, you can take a magic action to expend 1 charge and create a harmless burst of multicolored light at a point...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_pyrotechnics.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Common
@@ -9138,7 +9138,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Secrets",
     "description": "This wand has 3 charges and regains 1d3 expended charges daily at dawn. While holding it, you can take a magic action to expend 1 charge, and if a sec...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_secrets.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Uncommon
@@ -9148,7 +9148,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Web",
     "description": "This wand has 7 charges. While holding it, you can expend 1 charge to cast web (save DC 13) from it.  Regaining Charges The wand regains 1d6 + 1 expen...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_web.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Uncommon,
@@ -9165,7 +9165,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wand of Wonder",
     "description": "This wand has 7 charges. While holding it, you can take a magic action to expend 1 charge while choosing a point within 120 feet of yourself. That loc...",
     "type": "weapon",
-    "icon": "magic",
+    "icon": "/assets/icons/items/wand_of_wonder.svg",
     "weight": 1,
     "slot": "MainHand",
     "rarity": ItemRarity.Rare,
@@ -9182,7 +9182,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Warhammer",
     "description": "M...",
     "type": "weapon",
-    "icon": "hammer",
+    "icon": "/assets/icons/items/warhammer.svg",
     "weight": 5,
     "cost": "15 GP",
     "costInGp": 15,
@@ -9198,7 +9198,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Warhorse",
     "description": "MNT...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/warhorse.svg",
     "cost": "400 GP",
     "costInGp": 400
   },
@@ -9207,7 +9207,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Warship",
     "description": "SHP...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/warship.svg",
     "cost": "25000 GP",
     "costInGp": 25000
   },
@@ -9216,7 +9216,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "War Pick",
     "description": "M...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/war_pick.svg",
     "weight": 2,
     "cost": "5 GP",
     "costInGp": 5,
@@ -9232,7 +9232,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Waterskin",
     "description": "A Waterskin holds up to 4 pints. If you don't drink sufficient water, you risk dehydration....",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/waterskin.svg",
     "weight": 5,
     "cost": "0.2 GP",
     "costInGp": 0.2,
@@ -9243,7 +9243,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wave",
     "description": "Held in the dungeon of White Plume Mountain, Wave is engraved with images of waves, shells, and sea creatures. You gain a +3 bonus to attack rolls and...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/wave.svg",
     "weight": 4,
     "slot": "MainHand",
     "damageDice": "1d8",
@@ -9266,7 +9266,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Weaver's Tools",
     "description": "- Ability:: Dexterity - Utilize:: Mend a tear in clothing (DC 10), or sew a Tiny design (DC 10) - Craft:: padded_armor Armor, basket, bedroll, blanket...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/weaver_s_tools.svg",
     "weight": 5,
     "cost": "1 GP",
     "costInGp": 1
@@ -9276,7 +9276,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Well-made tapestry that is 10 feet by 10 feet",
     "description": "$A...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/well_made_tapestry_that_is_10_feet_by_10_feet.svg",
     "cost": "250 GP",
     "costInGp": 250
   },
@@ -9285,7 +9285,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Well of Many Worlds",
     "description": "This fine black cloth, soft as silk, is folded up to the dimensions of a handkerchief. It unfolds into a circular sheet 6 feet in diameter. You can ta...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/well_of_many_worlds.svg",
     "rarity": ItemRarity.Legendary
   },
   "wheat": {
@@ -9293,7 +9293,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wheat",
     "description": "TG...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/wheat.svg",
     "weight": 1,
     "cost": "0.01 GP",
     "costInGp": 0.01
@@ -9303,7 +9303,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Whelm",
     "description": "Whelm is a powerful weapon forged by dwarves and lost in the dungeon of White Plume Mountain. You gain a +3 bonus to attack rolls and damage rolls mad...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/whelm.svg",
     "weight": 5,
     "slot": "MainHand",
     "damageDice": "1d8",
@@ -9326,7 +9326,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Whip",
     "description": "M...",
     "type": "weapon",
-    "icon": "package",
+    "icon": "/assets/icons/items/whip.svg",
     "weight": 3,
     "cost": "2 GP",
     "costInGp": 2,
@@ -9343,7 +9343,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "White Dragon Scale Mail",
     "description": "{itemEntry Dragon Scale Mail}...",
     "type": "armor",
-    "icon": "shield",
+    "icon": "/assets/icons/items/white_dragon_scale_mail.svg",
     "weight": 45,
     "slot": "Torso",
     "armorCategory": "Medium",
@@ -9362,7 +9362,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wind Fan",
     "description": "While holding this fan, you can cast gust_of_wind of Wind (save DC 13) from it. Each subsequent time the fan is used before the next dawn, it has a cu...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/wind_fan.svg",
     "rarity": ItemRarity.Uncommon
   },
   "winged_boots": {
@@ -9370,7 +9370,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Winged Boots",
     "description": "These boots have 4 charges and regain 1d4 expended charges daily at dawn. While wearing the boots, you can take a magic action to expend 1 charge, gai...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/winged_boots.svg",
     "rarity": ItemRarity.Uncommon,
     "magicProperties": {
       "isIdentified": true,
@@ -9385,7 +9385,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wings of Flying",
     "description": "While wearing this cloak, you can take a magic action to turn the cloak into a pair of wings on your back. The wings lasts for 1 hour or until you end...",
     "type": "accessory",
-    "icon": "sparkle",
+    "icon": "/assets/icons/items/wings_of_flying.svg",
     "rarity": ItemRarity.Rare,
     "magicProperties": {
       "isIdentified": true,
@@ -9400,7 +9400,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Woodcarver's Tools",
     "description": "- Ability:: Dexterity - Utilize:: Carve a pattern in wood (DC 10) - Craft:: club, greatclub, quarterstaff, Ranged weapons (except pistol, musket, and ...",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/woodcarver_s_tools.svg",
     "weight": 5,
     "cost": "1 GP",
     "costInGp": 1
@@ -9410,7 +9410,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wooden Staff",
     "description": "SCF...",
     "type": "treasure",
-    "icon": "magic_staff",
+    "icon": "/assets/icons/items/wooden_staff.svg",
     "weight": 4,
     "cost": "5 GP",
     "costInGp": 5,
@@ -9425,7 +9425,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Wyvern Poison",
     "description": "A creature subjected to Wyvern Poison makes a DC 14 Constitution saving throw, taking 24 (7d6) Poison damage on a failed save or half as much damage o...",
     "type": "accessory",
-    "icon": "ring",
+    "icon": "/assets/icons/items/wyvern_poison.svg",
     "cost": "1200 GP",
     "costInGp": 1200,
     "slot": "Ring"
@@ -9435,7 +9435,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Yellow Sapphire",
     "description": "A fiery yellow or yellow green gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/yellow_sapphire.svg",
     "cost": "1000 GP",
     "costInGp": 1000
   },
@@ -9444,7 +9444,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Yew Wand",
     "description": "SCF...",
     "type": "treasure",
-    "icon": "magic",
+    "icon": "/assets/icons/items/yew_wand.svg",
     "weight": 1,
     "cost": "10 GP",
     "costInGp": 10
@@ -9454,7 +9454,7 @@ export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {
     "name": "Zircon",
     "description": "A pale blue green gemstone....",
     "type": "treasure",
-    "icon": "package",
+    "icon": "/assets/icons/items/zircon.svg",
     "cost": "50 GP",
     "costInGp": 50
   }

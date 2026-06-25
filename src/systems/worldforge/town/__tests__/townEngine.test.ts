@@ -11,6 +11,8 @@ import {
   wardWaterEdge,
   findBridges,
   packWardInterior,
+  buildTownCore,
+  buildOutskirts,
 } from '../townEngine';
 import { pointInPolygon, polygonBounds, type Pt } from '../../submap/submapEngine';
 import { rootSeedPath } from '../../seedPath';
@@ -235,6 +237,91 @@ describe('terrain/water pass (criterion #4)', () => {
   });
 });
 
+// Regression guards for failure modes found by the town audit (2026-06-24):
+// overlapping buildings, civic-on-building / civic-on-civic overlap, buildings
+// outside the walls, and inverted density (denser towns had FEWER buildings).
+describe('no-overlap + density invariants (audit regression)', () => {
+  // A larger, more realistic footprint matching the design-preview burg.
+  const cx = 360, cy = 360, R = 300;
+  const bigFootprint: Pt[] = [
+    [cx - R * 0.95, cy - R * 0.35], [cx - R * 0.2, cy - R * 0.95],
+    [cx + R * 0.7, cy - R * 0.7], [cx + R * 0.95, cy + R * 0.15],
+    [cx + R * 0.45, cy + R * 0.9], [cx - R * 0.5, cy + R * 0.85],
+    [cx - R * 0.95, cy + R * 0.25],
+  ];
+  const river: Pt[][] = [[[cx - R, cy - 40], [cx - 120, cy + 10], [cx + 10, cy - 30], [cx + 130, cy + 60], [cx + R, cy + 120]]];
+
+  const cellCentroid = (poly: Pt[]): Pt => {
+    let x = 0, y = 0; for (const [px, py] of poly) { x += px; y += py; } return [x / poly.length, y / poly.length];
+  };
+  const polysOverlap = (a: Pt[], b: Pt[]): boolean => {
+    for (const p of a) if (pointInPolygon(p, b)) return true;
+    for (const p of b) if (pointInPolygon(p, a)) return true;
+    return false;
+  };
+
+  const cases = [
+    { label: 'hamlet', pop: 60 }, { label: 'village', pop: 450 },
+    { label: 'walled town', pop: 3200 }, { label: 'city', pop: 14000 }, { label: 'capital', pop: 120000 },
+  ];
+
+  for (const c of cases) {
+    for (const withRiver of [false, true]) {
+      it(`${c.label} (river=${withRiver}) has no building/civic overlaps and keeps buildings inside the walls`, () => {
+        const plan = generateTownPlan(bigFootprint, rootSeedPath(137), {
+          population: c.pop, water: withRiver ? river : [], roads: withRiver ? river : [],
+        });
+        const buildings = plan.wards.flatMap((w) => w.plots.map((p) => p.polygon));
+        expect(buildings.length).toBeGreaterThan(0);
+
+        // No two buildings overlap (centroid-in-other test, both directions).
+        for (let i = 0; i < buildings.length; i++) {
+          const ci = cellCentroid(buildings[i]);
+          for (let j = i + 1; j < buildings.length; j++) {
+            if (pointInPolygon(ci, buildings[j]) || pointInPolygon(cellCentroid(buildings[j]), buildings[i])) {
+              throw new Error(`${c.label}: buildings ${i} and ${j} overlap`);
+            }
+          }
+        }
+
+        // No solid civic structure sits on a building, and no two solid civics overlap.
+        const solid = plan.civic.filter((s) => s.kind !== 'plaza' && s.kind !== 'bridge');
+        for (const s of solid) for (const b of buildings) expect(polysOverlap(s.polygon, b)).toBe(false);
+        for (let i = 0; i < solid.length; i++)
+          for (let j = i + 1; j < solid.length; j++)
+            expect(polysOverlap(solid[i].polygon, solid[j].polygon)).toBe(false);
+
+        // Walled towns keep every building inside the wall ring.
+        if (plan.walls.ring.length >= 3) {
+          for (const b of buildings) expect(pointInPolygon(cellCentroid(b), plan.walls.ring)).toBe(true);
+        }
+      });
+    }
+  }
+
+  it('every ward has a buildable block strictly inset from its Voronoi cell (street margin)', () => {
+    const areaOf = (poly: Pt[]): number => {
+      let a = 0; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) a += poly[j][0] * poly[i][1] - poly[i][0] * poly[j][1];
+      return Math.abs(a) / 2;
+    };
+    const plan = generateTownPlan(bigFootprint, rootSeedPath(137), { population: 14000 });
+    for (const w of plan.wards) {
+      expect(w.block.length).toBeGreaterThanOrEqual(3);
+      // The block is inset, so it must be smaller than the full ward → a street gap.
+      expect(areaOf(w.block)).toBeLessThan(areaOf(w.polygon));
+    }
+  });
+
+  it('building count scales UP with typology (hamlet < village < walled < city < capital)', () => {
+    const count = (pop: number) => countPlots(generateTownPlan(bigFootprint, rootSeedPath(137), { population: pop }));
+    const hamlet = count(60), village = count(450), walled = count(3200), city = count(14000), capital = count(120000);
+    expect(hamlet).toBeLessThan(village);
+    expect(village).toBeLessThan(walled);
+    expect(walled).toBeLessThan(city);
+    expect(city).toBeLessThan(capital);
+  });
+});
+
 describe('generateTownPlan civic anatomy (criterion #3)', () => {
   it('produces walls, a plaza, a temple and a keep; the plaza ward has no plots', () => {
     const plan = generateTownPlan(footprint, rootSeedPath(42), { wardCount: 14 });
@@ -246,5 +333,54 @@ describe('generateTownPlan civic anatomy (criterion #3)', () => {
     const plazaWard = plan.wards.find((w) => w.civic === 'plaza');
     expect(plazaWard).toBeTruthy();
     expect(plazaWard!.plots).toHaveLength(0); // open market square, not built over
+  });
+});
+
+describe('organic town core + outskirts (lives inside the cell, not its exact shape)', () => {
+  // An area helper (shoelace).
+  const area = (pts: Pt[]) => {
+    let a = 0;
+    for (let i = 0; i < pts.length; i++) {
+      const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % pts.length];
+      a += x1 * y2 - x2 * y1;
+    }
+    return Math.abs(a) / 2;
+  };
+
+  it('buildTownCore stays inside the cell and is smaller than it', () => {
+    const center = polygonCentroid(footprint);
+    const core = buildTownCore(footprint, center, 0.6, rootSeedPath(5));
+    expect(core.length).toBeGreaterThan(8);
+    for (const p of core) expect(pointInPolygon(p, footprint)).toBe(true); // never spills the cell
+    expect(area(core)).toBeLessThan(area(footprint) * 0.85);              // leaves an outskirts ring
+  });
+
+  it('a bigger settlement core fills more of the cell than a small one', () => {
+    const center = polygonCentroid(footprint);
+    const hamlet = area(buildTownCore(footprint, center, 0.42, rootSeedPath(5)));
+    const capital = area(buildTownCore(footprint, center, 0.86, rootSeedPath(5)));
+    expect(capital).toBeGreaterThan(hamlet);
+  });
+
+  it('buildOutskirts classifies the ring (farm near the core → scrub at the rim)', () => {
+    const center = polygonCentroid(footprint);
+    const core = buildTownCore(footprint, center, 0.5, rootSeedPath(5));
+    const outs = buildOutskirts(footprint, core, center, rootSeedPath(5), 40);
+    expect(outs.length).toBeGreaterThan(0);
+    const kinds = new Set(outs.map((o) => o.kind));
+    expect([...kinds].every((k) => ['farm', 'pasture', 'scrub'].includes(k))).toBe(true);
+    // No outskirt parcel centroid sits inside the town core.
+    for (const o of outs) expect(pointInPolygon(polygonCentroid(o.polygon), core)).toBe(false);
+  });
+
+  it('generateTownPlan emits an organic core (inside the cell) + outskirts; wards sit in the core', () => {
+    const plan = generateTownPlan(footprint, rootSeedPath(42), { population: 4000 });
+    expect(plan.core.length).toBeGreaterThan(8);
+    for (const p of plan.core) expect(pointInPolygon(p, plan.footprint)).toBe(true);
+    expect(area(plan.core)).toBeLessThan(area(plan.footprint) * 0.9); // core ≠ whole cell
+    expect(plan.outskirts.length).toBeGreaterThan(0);
+    // Ward centroids fall within the core, not the outskirts ring.
+    const inCore = plan.wards.filter((w) => pointInPolygon(polygonCentroid(w.polygon), plan.core)).length;
+    expect(inCore).toBeGreaterThan(plan.wards.length * 0.6);
   });
 });

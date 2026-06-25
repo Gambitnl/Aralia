@@ -166,6 +166,7 @@ const CompassPane: React.FC<CompassPaneProps> = ({
             })}
           </div>
           <div className="mt-3 flex justify-center items-center gap-3">
+            {/* These view toggles are the player's quick exits from the compass into larger navigation surfaces. */}
             <Tooltip content="Open World Map">
               <motion.button
                 onClick={() => onAction({ type: 'toggle_map', label: 'Toggle World Map' })}
@@ -178,6 +179,20 @@ const CompassPane: React.FC<CompassPaneProps> = ({
                 🌍
               </motion.button>
             </Tooltip>
+            {!isSubmapContext && (
+              <Tooltip content="Open Submap">
+                <motion.button
+                  onClick={() => onAction({ type: 'toggle_submap_visibility', label: 'Toggle Submap' })}
+                  disabled={disabled}
+                  whileTap={!disabled ? { scale: 0.9 } : undefined}
+                  whileHover={!disabled ? { scale: 1.1 } : undefined}
+                  className="p-2 rounded-full bg-emerald-700 hover:bg-emerald-600 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors text-xl"
+                  aria-label="Toggle Submap"
+                >
+                  SM
+                </motion.button>
+              </Tooltip>
+            )}
             {!isSubmapContext && (
               <Tooltip content="Enter 3D World">
                 <motion.button

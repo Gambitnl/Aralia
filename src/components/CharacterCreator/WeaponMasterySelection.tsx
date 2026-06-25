@@ -21,7 +21,7 @@ const WeaponMasteryInfoPanel: React.FC<{
   activeInfo: { type: 'weapon' | 'mastery'; id: string } | null;
 }> = ({ activeInfo }) => {
   if (!activeInfo) {
-    return <div className="p-4 text-gray-500 italic text-center">Hover over an item for details.</div>;
+    return <div className="p-4 text-gray-500 italic text-center">Hover, focus, or tap an item for details.</div>;
   }
   if (activeInfo.type === 'weapon') {
     const weapon = WEAPONS_DATA[activeInfo.id];
@@ -72,11 +72,24 @@ const WeaponMasterySelection: React.FC<WeaponMasterySelectionProps> = ({
   const proficientWeapons = useMemo(() => {
     const isSimpleProficient = charClass.weaponProficiencies.includes('Simple weapons');
     const isMartialProficient = charClass.weaponProficiencies.includes('Martial weapons');
-    return Object.values(WEAPONS_DATA).filter(w => 
-      (isSimpleProficient && !w.isMartial) ||
-      (isMartialProficient && w.isMartial) ||
-      charClass.weaponProficiencies.some(p => w.name.toLowerCase().includes(p.toLowerCase().replace(/s$/, '')))
-    );
+    return Object.values(WEAPONS_DATA).filter(w => {
+      // Rusty Sword is a legacy inventory item that mirrors Scimitar; mastery
+      // selection should offer canonical weapon types, not duplicate gear.
+      if (w.id === 'rusty_sword') return false;
+
+      const category = w.category ?? '';
+      const isSimpleWeapon = category.startsWith('Simple ');
+      const isMartialWeapon = category.startsWith('Martial ');
+      const isExplicitlyProficient = charClass.weaponProficiencies.some(p =>
+        w.name.toLowerCase().includes(p.toLowerCase().replace(/s$/, ''))
+      );
+
+      return (
+        (isSimpleProficient && isSimpleWeapon) ||
+        (isMartialProficient && isMartialWeapon) ||
+        isExplicitlyProficient
+      );
+    });
   }, [charClass.weaponProficiencies]);
   
   const weaponsByMastery = useMemo(() => {
@@ -150,10 +163,12 @@ const WeaponMasterySelection: React.FC<WeaponMasterySelectionProps> = ({
     weapons.map(weapon => {
       const isSelected = selectedWeaponIds.has(weapon.id);
       const isDisabled = !isSelected && selectedWeaponIds.size >= selectionLimit;
+      const previewWeapon = () => setActiveInfo({ type: 'weapon', id: weapon.id });
       return (
         <li key={weapon.id}>
           <label
-            onMouseEnter={() => setActiveInfo({ type: 'weapon', id: weapon.id })}
+            onMouseEnter={previewWeapon}
+            onClick={previewWeapon}
             className={`flex items-center p-2 rounded-lg transition-all border border-transparent ${
               isSelected 
                 ? 'bg-sky-900/40 border-sky-500/50 text-sky-200 cursor-pointer font-semibold shadow-sm' 
@@ -165,6 +180,7 @@ const WeaponMasterySelection: React.FC<WeaponMasterySelectionProps> = ({
               checked={isSelected}
               disabled={isDisabled}
               onChange={() => handleWeaponSelect(weapon.id)}
+              onFocus={previewWeapon}
               className="mr-3 h-4 w-4 rounded text-sky-500 bg-gray-950 border-gray-700 focus:ring-sky-500 focus:ring-offset-gray-900"
             />
             <span className="flex-1">{weapon.name}</span>
@@ -234,6 +250,16 @@ const WeaponMasterySelection: React.FC<WeaponMasterySelectionProps> = ({
                   <div key={masteryKey} className="space-y-1">
                     <h4 
                       onMouseEnter={() => setActiveInfo({ type: 'mastery', id: masteryKey })}
+                      onClick={() => setActiveInfo({ type: 'mastery', id: masteryKey })}
+                      onFocus={() => setActiveInfo({ type: 'mastery', id: masteryKey })}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          setActiveInfo({ type: 'mastery', id: masteryKey });
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
                       className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1.5 px-2 flex items-center gap-2"
                     >
                        <span className="w-1.5 h-1.5 rounded-full bg-sky-500/50" />

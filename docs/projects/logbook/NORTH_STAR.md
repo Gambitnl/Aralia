@@ -1,4 +1,4 @@
----
+﻿---
 schema_version: 1
 project: Logbook
 slug: logbook
@@ -6,13 +6,13 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-10
-iteration: 3
+last_updated: 2026-06-25
+iteration: 7
 confidence: medium
 evidence: docs/projects/logbook
-gap_signal: 6 open gaps (G1-G6)
+gap_signal: 0 open gaps; G1, G2, G3, G4, G5, and G6 resolved
 protocol: living project doc set
-next_step: Implement G1 retention policy in logReducer and fix G5 unread count drift, then revisit G2 as the follow-up UI task.
+next_step: Run a fresh source-backed Logbook gap scan before starting more work.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -28,7 +28,11 @@ required_verification:
   - scoped_tests
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-10
+  - scoped_tests: logReducer retention/unread/content cap tests (2026-06-25)
+  - scoped_tests: Logbook discovery/dossier pagination tests and rendered proof (2026-06-25)
+  - scoped_tests: logReducer discovery dedupe policy tests (2026-06-25)
+  - docs_consistency: dossier retention ownership policy recorded (2026-06-25)
+last_proof: 2026-06-25
 workflow_gaps_reviewed: 2026-06-10
 compaction_status: not_needed
 lifecycle_status: active
@@ -40,7 +44,7 @@ human_decision_required: "no"
 # Logbook Project
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-25
 
 ## Why This Project Exists
 
@@ -61,12 +65,12 @@ Category: Feature/UI Projects
 Status: active
 Confidence: medium
 Evidence: docs/projects/logbook
-Gap signal: 6 open gaps (G1-G6)
+Gap signal: 0 open gaps; G1, G2, G3, G4, G5, and G6 resolved
 Protocol: living project doc set
-Next step: Implement G1 retention policy in logReducer and fix G5 unread count drift, then revisit G2 as the follow-up UI task.
+Next step: Run a fresh source-backed Logbook gap scan before starting more work.
 Required verification: docs_consistency, scoped_tests
-Completed verification: docs_consistency
-Last proof: 2026-06-10
+Completed verification: docs_consistency, scoped_tests: logReducer retention/unread/content cap tests (2026-06-25), scoped_tests: Logbook discovery/dossier pagination tests and rendered proof (2026-06-25), scoped_tests: logReducer discovery dedupe policy tests (2026-06-25), docs_consistency: dossier retention ownership policy recorded (2026-06-25)
+Last proof: 2026-06-25
 Workflow gaps reviewed: 2026-06-10
 
 ## Purpose and Scope
@@ -92,10 +96,11 @@ Workflow gaps reviewed: 2026-06-10
   - Supports sort (newest, oldest, title).
   - Supports read actions (`MARK_DISCOVERY_READ`, `MARK_ALL_DISCOVERIES_READ`).
   - Includes consequence panel and detail rendering.
-  - No pagination controls.
+  - Pages long result sets in 25-item chunks.
 - `src/components/Logbook/DossierPane.tsx` exists as the NPC dossier modal.
   - NPC list and detail view with status/traits/chronicle.
-  - No pagination controls.
+  - Pages long met-NPC lists in 25-item chunks.
+  - Remains a view over `metNpcIds` and `npcMemory`; NPC memory owns fact aging and retention.
 - Visibility wiring:
   - `GameModals.tsx` renders both panes from game-state booleans.
   - `SystemMenu.tsx`, action handlers, and reducers toggle them.
@@ -122,26 +127,23 @@ Workflow gaps reviewed: 2026-06-10
 
 | Field | Value |
 |---|---|
-| Task | Implement discovery log retention policy (G1) and fix unread count drift (G5) |
-| Acceptance criteria | `logReducer.ts` has a MAX_DISCOVERY_LOG_ENTRIES cap with correct unread count adjustment on prune; UPDATE_QUEST_IN_DISCOVERY_LOG correctly tracks unread transitions; saveLoadService prunes oversized logs on load |
-| Allowed boundaries | `src/state/reducers/logReducer.ts`, `src/services/saveLoadService.ts`, unit tests |
-| Stop condition | Retention cap and unread fix pass unit tests; no UI changes required in this slice |
-| Verification | Unit tests for cap behavior, unread count accuracy after quest updates, and save/load round-trip |
-| Owner | Current thread |
-| Next action | Add MAX_DISCOVERY_LOG_ENTRIES, implement slice + unread adjustment in ADD_DISCOVERY_ENTRY, fix UPDATE_QUEST_IN_DISCOVERY_LOG unread logic |
+| Task | Fresh Logbook gap scan |
+| Acceptance criteria | Any new Logbook work starts from current source and registers only evidence-backed gaps |
+| Allowed boundaries | `src/components/Logbook`, `src/state/reducers`, `src/hooks/actions`, `docs/projects/logbook` |
+| Stop condition | New work has a scoped implementation target or confirms no in-scope Logbook gaps remain |
+| Verification | Depends on the selected future gap; use focused tests or rendered proof for UI changes |
+| Owner | Future thread |
+| Next action | Re-scan current Logbook source before starting another slice |
 
 ## Scope Boundaries
 
 In scope:
 - Project state and continuation docs for Logbook.
 - Gap framing and evidence-backed notes.
-- Implementation of retention policy (G1) and unread count fix (G5) in `logReducer.ts` and `saveLoadService.ts`.
+- Follow-up implementation or planning for G4 dossier retention lifecycle.
 
 Adjacent but not in this slice:
-- Pagination UI (G2).
-- Dedupe policy expansion (G3).
-- Dossier retention lifecycle (G4).
-- Quest content accumulation cap (G6).
+- Fresh source-backed gap discovery for any future Logbook work.
 
 Out of scope:
 - New gameplay mechanics not directly tied to Logbook continuity.
@@ -151,17 +153,17 @@ Out of scope:
 - The discovery/dossier dual pane model and existing modal hooks.
 - Unread-count workflow and visibility toggles.
 - Persistence of `discoveryLog` and `unreadDiscoveryCount`.
-- The existing unresolved signal that pagination and retention are not yet defined.
+- The distinction between discovery-log retention and NPC-memory-driven dossier lifecycle.
 - The pattern that other log systems in the same reducer already cap their arrays (`.slice(0, N)`).
 
 ## Gaps And Uncertainties
 
-- G1 (active): Retention policy for `discoveryLog` â€” implementation slice defined.
-- G2: No pagination for discovery or dossier lists.
-- G3: Dedupe only covers `LOCATION_DISCOVERY`; other entry types can duplicate.
-- G4: Dossier data has no defined retention lifecycle.
-- G5 (new, bug): `unreadDiscoveryCount` drifts on quest updates â€” marks all matching entries unread but only increments count by 0 or 1.
-- G6 (new): Quest update content appends without bound, growing entry strings indefinitely.
+- G1 (done): Retention policy for `discoveryLog` is capped and load-pruned.
+- G2 (done): Discovery and dossier lists page long result sets.
+- G3 (done): Stable non-location discovery entries now have reducer-level dedupe rules.
+- G4 (done): Dossier retention follows the NPC memory lifecycle; the dossier pane does not prune or archive independently.
+- G5 (done): Quest updates recount unread discovery entries.
+- G6 (done): Quest update content keeps the base entry plus the newest 10 appended notes.
 
 ## Evidence And Proof
 
@@ -175,7 +177,7 @@ Out of scope:
 2. Read `docs/projects/logbook/NORTH_STAR.md` (this file).
 3. Read `docs/projects/logbook/TRACKER.md`.
 4. Read `docs/projects/logbook/GAPS.md`.
-5. Continue from T3 in `TRACKER.md`: implement G1 retention policy and G5 unread count fix in `logReducer.ts` and `saveLoadService.ts`.
+5. Start with a fresh source-backed Logbook gap scan before selecting more work.
 
 
 ## Cold-Start Gap Routing

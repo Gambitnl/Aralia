@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 20/06/2026, 01:44:57
+ * Last Sync: 25/06/2026, 00:51:22
  * Dependents: services/saveLoadService.ts, state/appState.ts
  * Imports: 2 files
  *
@@ -35,6 +35,8 @@ import { AppAction } from '../actionTypes';
 // ============================================================================
 
 export const MAX_DISCOVERY_LOG_ENTRIES = 200;
+const MAX_QUEST_UPDATE_NOTES_PER_ENTRY = 10;
+const QUEST_UPDATE_PREFIX = 'Update: ';
 
 export function retainDiscoveryLogEntries(discoveryLog: DiscoveryEntry[]): DiscoveryEntry[] {
   // Keep the newest entries because the reducer stores discovery memories with
@@ -48,6 +50,80 @@ export function countUnreadDiscoveryEntries(discoveryLog: DiscoveryEntry[]): num
   // badge tied to visible Logbook state instead of historical entries that were
   // pruned away or loaded from older saves.
   return discoveryLog.filter(entry => !entry.isRead).length;
+}
+
+function appendBoundedQuestUpdate(content: string, newContent?: string): string {
+  if (!newContent) return content;
+
+  const sections = content.split('\n\n');
+  const baseSections = sections.filter(section => !section.startsWith(QUEST_UPDATE_PREFIX));
+  const updateSections = sections
+    .filter(section => section.startsWith(QUEST_UPDATE_PREFIX))
+    .concat(`${QUEST_UPDATE_PREFIX}${newContent}`)
+    .slice(-MAX_QUEST_UPDATE_NOTES_PER_ENTRY);
+
+  return [...baseSections, ...updateSections].join('\n\n');
+}
+
+function getDiscoveryFlagValue(entry: DiscoveryEntry, key: string): string | number | boolean | undefined {
+  // Discovery flags are the stable IDs attached by gameplay callers. Use them
+  // for dedupe instead of titles, because titles are human text and can drift.
+  return entry.flags.find(flag => flag.key === key)?.value;
+}
+
+function getDiscoverySourceKey(entry: DiscoveryEntry): string {
+  // Most discovery sources are structured objects. A few legacy callers still
+  // pass loose values, so fall back to an empty key rather than crashing.
+  if (!entry.source || typeof entry.source !== 'object') return '';
+  return `${entry.source.type}:${entry.source.id ?? entry.source.name ?? ''}`;
+}
+
+function hasDuplicateDiscoveryEntry(discoveryLog: DiscoveryEntry[], newEntry: DiscoveryEntry): boolean {
+  switch (newEntry.type) {
+    case DiscoveryType.LOCATION_DISCOVERY: {
+      // A location should only be discovered once. The locationId flag is the
+      // durable identity used by movement and older Logbook code.
+      const locationId = getDiscoveryFlagValue(newEntry, 'locationId');
+      if (locationId === undefined) return false;
+      return discoveryLog.some(entry =>
+        entry.type === newEntry.type &&
+        getDiscoveryFlagValue(entry, 'locationId') === locationId
+      );
+    }
+
+    case DiscoveryType.ITEM_ACQUISITION: {
+      // Persistent item pickups dedupe by item plus where it was found. Finding
+      // the same item in a new place remains a new discovery.
+      const itemId = getDiscoveryFlagValue(newEntry, 'itemId');
+      if (itemId === undefined) return false;
+      const sourceKey = getDiscoverySourceKey(newEntry);
+      return discoveryLog.some(entry =>
+        entry.type === newEntry.type &&
+        getDiscoveryFlagValue(entry, 'itemId') === itemId &&
+        getDiscoverySourceKey(entry) === sourceKey
+      );
+    }
+
+    case DiscoveryType.ACTION_DISCOVERED: {
+      // Past-action residue is stable when the same NPC discovers the same
+      // evidence at the same location. Content is included so new evidence at
+      // the same place can still create a distinct memory.
+      const npcId = getDiscoveryFlagValue(newEntry, 'npcId');
+      const locationId = getDiscoveryFlagValue(newEntry, 'locationId');
+      if (npcId === undefined || locationId === undefined) return false;
+      return discoveryLog.some(entry =>
+        entry.type === newEntry.type &&
+        entry.content === newEntry.content &&
+        getDiscoveryFlagValue(entry, 'npcId') === npcId &&
+        getDiscoveryFlagValue(entry, 'locationId') === locationId
+      );
+    }
+
+    default:
+      // Harvest, quest, lore, and miscellaneous entries remain append-only for
+      // now because repeated events can be meaningful even with matching text.
+      return false;
+  }
 }
 
 // ============================================================================
@@ -109,15 +185,8 @@ export function logReducer(state: GameState, action: AppAction): Partial<GameSta
         flags: payload.flags || [],
         isRead: false,
       };
-      if (newEntryData.type === DiscoveryType.LOCATION_DISCOVERY) {
-        // Preserve the existing location dedupe rule so revisiting the same
-        // discovered place does not create duplicate Logbook rows or badge noise.
-        const existingEntry = state.discoveryLog.find(entry =>
-          entry.type === newEntryData.type &&
-          entry.flags.some(f => f.key === 'locationId' && f.value === newEntryData.flags.find(nf => nf.key === 'locationId')?.value)
-        );
-        if (existingEntry) return {};
-      }
+      if (hasDuplicateDiscoveryEntry(state.discoveryLog, newEntryData)) return {};
+
       const retainedDiscoveryLog = retainDiscoveryLogEntries([newEntryData, ...state.discoveryLog]);
       return {
         discoveryLog: retainedDiscoveryLog,
@@ -154,7 +223,7 @@ export function logReducer(state: GameState, action: AppAction): Partial<GameSta
         if (entry.isQuestRelated && entry.questId === action.payload.questId) {
           return {
             ...entry,
-            content: action.payload.newContent ? `${entry.content}\n\nUpdate: ${action.payload.newContent}` : entry.content,
+            content: appendBoundedQuestUpdate(entry.content, action.payload.newContent),
             questStatus: action.payload.newStatus,
             isRead: false,
           };

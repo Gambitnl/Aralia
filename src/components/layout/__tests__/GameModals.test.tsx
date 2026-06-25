@@ -64,7 +64,11 @@ vi.mock('../../CharacterSheet/CharacterSheetModal', () => ({
     ),
 }));
 vi.mock('../../debug/DevMenu', () => ({ default: () => <div data-testid="dev-menu" /> }));
-vi.mock('../../Party/PartyOverlay', () => ({ default: () => <div data-testid="party-overlay" /> }));
+vi.mock('../../Party/PartyOverlay', () => ({
+    default: ({ isCombatActive }: { isCombatActive?: boolean }) => (
+        <div data-testid="party-overlay" data-combat-active={String(Boolean(isCombatActive))} />
+    ),
+}));
 vi.mock('../../debug/GeminiLogViewer', () => ({ default: () => <div data-testid="gemini-log-viewer" /> }));
 vi.mock('../../debug/UnifiedDebugLogViewer', () => ({ UnifiedDebugLogViewer: () => <div data-testid="unified-debug-log-viewer" /> }));
 vi.mock('../../debug/NpcInteractionTestModal', () => ({ default: () => <div data-testid="npc-interaction-test-modal" /> }));
@@ -209,6 +213,17 @@ describe('GameModals focus-trap coverage', () => {
         if (!modalContent) return;
 
         expect(modalContent.closest('[tabindex="-1"]')).toBe(focusContainer);
+    });
+
+    it('passes active combat state into the Party Overlay rest gate', async () => {
+        const modalState = withOpenModal({
+            isPartyOverlayVisible: true,
+            currentEnemies: [createMockPlayerCharacter({ id: 'enemy-1', name: 'Training Dummy' })],
+        });
+
+        createProps(modalState);
+
+        expect(await screen.findByTestId('party-overlay')).toHaveAttribute('data-combat-active', 'true');
     });
 
     it('keeps focus trapped within Quest Log by cycling Tab between edge buttons', async () => {

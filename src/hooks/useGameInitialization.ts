@@ -63,10 +63,8 @@ import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from '../config/mapConfig';
 // Procedural map generator that produces the world grid from locations, biomes, and a seed.
 import { generateMap } from '../services/mapService';
 // WF-derived spawn: place the player where the generated FMG world says, not a hardcoded tile.
-import { generateFmgWorld } from '../systems/worldforge/fmg/generateWorld';
-import { resolveWorldSpawn, relocateStartTile } from '../systems/worldforge/local/resolveSpawn';
+import { applyWfSpawnToMap } from '../systems/worldforge/local/resolveSpawn';
 import { wfBiomeIndexToLegacyId } from '../systems/worldforge/local/wfBiomeToLegacy';
-import { unifyMapBiomesWithWorld } from '../systems/worldforge/local/unifyMapBiomes';
 import { WorldHistoryService } from '../services/WorldHistoryService';
 // Save/load service for persisting and restoring game state from local storage.
 import * as SaveLoadService from '../services/saveLoadService';
@@ -274,18 +272,21 @@ export function useGameInitialization({
       // position come from the generated world. Guarded so a hiccup never bricks
       // new-game boot.
       try {
-        const wfWorld = generateFmgWorld(String(worldSeed));
-        const wfGridSize = { cols: MAP_GRID_SIZE.cols, rows: MAP_GRID_SIZE.rows };
-        // Keystone unification: rewrite the whole grid's biomes from the WF world
-        // (land = WF biome, water = ocean), preserving location anchors. The map
-        // is now a downsampled view of the generated world, not a separate sim.
-        unifyMapBiomesWithWorld(mapDataToUse, wfWorld, wfGridSize);
-        const spawn = resolveWorldSpawn(wfWorld, wfGridSize);
-        relocateStartTile(mapDataToUse, spawn.gridCell, {
-          biomeId: wfBiomeIndexToLegacyId(spawn.biomeIndex), // start tile reflects the WF biome
-          fallbackBiomeId: initialLocation.biomeId,
-          isWalkable: (biomeId) => BIOMES[biomeId]?.passable ?? false,
-        });
+        // Keystone unification + WF-derived spawn (shared with reroll). Rewrites
+        // the whole grid's biomes from the WF world (land = WF biome, water =
+        // ocean, location anchors preserved) and relocates the start onto a
+        // land/burg cell, so the map is a downsampled view of the generated world
+        // and the player never starts on ocean.
+        applyWfSpawnToMap(
+          mapDataToUse,
+          worldSeed,
+          { cols: MAP_GRID_SIZE.cols, rows: MAP_GRID_SIZE.rows },
+          {
+            biomeIndexToLegacyId: (idx) => wfBiomeIndexToLegacyId(idx),
+            fallbackBiomeId: initialLocation.biomeId,
+            isWalkable: (biomeId) => BIOMES[biomeId]?.passable ?? false,
+          },
+        );
       } catch (err) {
         console.error('[startGame] WF spawn resolution failed; using legacy start tile.', err);
       }

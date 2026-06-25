@@ -36,6 +36,34 @@ describe('characterReducer', () => {
         expect(newState2.gold).toBe(0); // Should clamp to 0
     });
 
+    it('should handle SELL_FENCED_ITEM by paying gold and removing the fenced item', () => {
+        const fencedItem = {
+            id: 'silver_chalice',
+            name: 'Silver Chalice',
+            type: 'misc',
+            description: 'A cup that should not be sold in daylight.',
+            weight: 1,
+            costInGp: 200,
+            quantity: 1,
+        } as unknown as Item;
+        const state = { ...initialState, inventory: [fencedItem], gold: 10 } as GameState;
+
+        const newState = characterReducer(state, {
+            type: 'SELL_FENCED_ITEM',
+            payload: {
+                itemId: fencedItem.id,
+                value: 140,
+                locationId: 'black_market',
+                heatGenerated: 2,
+            },
+        });
+
+        // Fence sales share the same inventory and wallet outcome as ordinary
+        // sales, while the crime reducer handles the illegal heat.
+        expect(newState.inventory).toEqual([]);
+        expect(newState.gold).toBe(150);
+    });
+
     it('should handle GRANT_EXPERIENCE', () => {
         const action: AppAction = { type: 'GRANT_EXPERIENCE', payload: { amount: 300 } };
         const newState = characterReducer(initialState, action);

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 21/06/2026, 15:26:40
+ * Last Sync: 24/06/2026, 22:09:43
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
- * Imports: 7 files
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -19,6 +19,7 @@ import { Ability, Animation, BattleMapData, CombatCharacter, DamageNumber, Light
 import DamageNumberOverlay from './DamageNumberOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { getStatusEffectIcon } from '../../utils/combatUtils';
+import { hasLineOfSight } from '../../utils/spatial/lineOfSight';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
 import {
@@ -105,6 +106,12 @@ interface BattleMapOverlayProps {
   movementDebuffs?: MovementTriggerDebuff[];
   /** Live light-source records created by structured utility spells. */
   activeLightSources?: LightSource[];
+  /** Whether the map should draw bright/dim sight radius markers for active light sources. */
+  showLightSourceMarkers?: boolean;
+  /** Whether the map should draw a live line-of-sight cone for the active actor. */
+  showLineOfSightCone?: boolean;
+  /** Character id used as the origin for the line-of-sight cone. */
+  lineOfSightOriginCharacterId?: string | null;
   /** Resolved forced-movement and teleport cues created by structured spell payloads. */
   spellMovementVisuals?: SpellMovementVisual[];
   /** Familiar-origin touch spell delivery cues. */
@@ -144,6 +151,9 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
   scheduledSpellEffects = [],
   movementDebuffs = [],
   activeLightSources = [],
+  showLightSourceMarkers = true,
+  showLineOfSightCone = false,
+  lineOfSightOriginCharacterId = null,
   spellMovementVisuals = [],
   spellDeliveryVisuals = [],
   aoePreview,
@@ -227,6 +237,55 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
     return [{ source, position }];
   });
 
+  // The LoS cone is a teaching overlay only: it asks the real line-of-sight
+  // helper which tiles are actually visible from the active actor, then clips
+  // that result into a forward-facing wedge so blockers and firing lanes read
+  // as a "cone" without changing gameplay targeting rules.
+  const lineOfSightConeTiles = (() => {
+    if (!showLineOfSightCone || !lineOfSightOriginCharacterId) return [];
+
+    const originCharacter = characters.find(character => character.id === lineOfSightOriginCharacterId);
+    if (!originCharacter) return [];
+
+    const originTile = mapData.tiles.get(`${originCharacter.position.x}-${originCharacter.position.y}`);
+    if (!originTile) return [];
+
+    const hostileTargets = characters.filter(character => (
+      character.id !== originCharacter.id
+      && character.team
+      && originCharacter.team
+      && character.team !== originCharacter.team
+    ));
+    const focusTarget = hostileTargets[0] ?? characters.find(character => character.id !== originCharacter.id);
+    const focusVector = focusTarget
+      ? {
+          x: focusTarget.position.x - originCharacter.position.x,
+          y: focusTarget.position.y - originCharacter.position.y
+        }
+      : { x: 1, y: 0 };
+    const focusLength = Math.hypot(focusVector.x, focusVector.y) || 1;
+    const normalizedFocus = {
+      x: focusVector.x / focusLength,
+      y: focusVector.y / focusLength
+    };
+    const coneRangeTiles = 12;
+    const coneHalfAngleCosine = Math.cos(Math.PI / 4);
+
+    return Array.from(mapData.tiles.values()).filter(tile => {
+      const vector = {
+        x: tile.coordinates.x - originCharacter.position.x,
+        y: tile.coordinates.y - originCharacter.position.y
+      };
+      const distance = Math.hypot(vector.x, vector.y);
+      if (distance <= 0 || distance > coneRangeTiles) return false;
+
+      const dot = ((vector.x / distance) * normalizedFocus.x) + ((vector.y / distance) * normalizedFocus.y);
+      if (dot < coneHalfAngleCosine) return false;
+
+      return hasLineOfSight(originTile, tile, mapData);
+    });
+  })();
+
   useEffect(() => {
     const newIds: string[] = [];
     spellAnimations.forEach(anim => {
@@ -261,7 +320,7 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
       <DamageNumberOverlay damageNumbers={damageNumbers} />
 
       {/* Live light-source radius markers */}
-      {lightSourceMarkers.map(({ source, position }) => {
+      {showLightSourceMarkers && lightSourceMarkers.map(({ source, position }) => {
         const brightTiles = Math.max(0.25, source.brightRadius / 5);
         const totalTiles = Math.max(brightTiles, (source.brightRadius + source.dimRadius) / 5);
         const centerX = position.x * TILE_SIZE_PX + TILE_SIZE_PX / 2;
@@ -309,6 +368,23 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
           </React.Fragment>
         );
       })}
+
+      {/* Live line-of-sight cone. This stays separate from light radii so the
+          scenario can inspect sight lanes without hiding the torch's circles. */}
+      {lineOfSightConeTiles.map(tile => (
+        <div
+          key={`los-cone-${tile.id}`}
+          className="absolute border border-cyan-200/45 bg-cyan-300/16 shadow-[inset_0_0_12px_rgba(34,211,238,0.24)]"
+          title="line-of-sight cone"
+          style={{
+            left: tile.coordinates.x * TILE_SIZE_PX,
+            top: tile.coordinates.y * TILE_SIZE_PX,
+            width: TILE_SIZE_PX,
+            height: TILE_SIZE_PX,
+            zIndex: Z_INDEX.CONTENT_OVERLAY_LOW + 2,
+          }}
+        />
+      ))}
 
       {/* Persistent structured spell zones */}
       {activeZoneTiles.map(({ zone, position, visualFamily }) => {

@@ -23,11 +23,11 @@ The JSON file is the **canonical source** for spell data in this workflow.
 
 ## ASSIGNMENT
 Migrate these spells (Level {N}):
-- [ ] {spell-1}
-- [ ] {spell-2}
-- [ ] {spell-3}
-- [ ] {spell-4}
-- [ ] {spell-5}
+- Template item: {spell-1}
+- Template item: {spell-2}
+- Template item: {spell-3}
+- Template item: {spell-4}
+- Template item: {spell-5}
 <!-- TODO: Add an explicit step to update class spell lists in src/data/classes/index.ts when new spells are introduced, mirroring acceptance criteria. -->
 
 ---
@@ -142,7 +142,7 @@ If `public/data/spells/{id}.json` exists:
 
 ```markdown
 ## System Gaps & Follow-up
-- [ ] **{Spell Name}**: {Missing feature}
+- Template item: **{Spell Name}**: {Missing feature}
 ```
 Log gaps in `docs/tasks/spell-system-overhaul/gaps/LEVEL-{N}-GAPS.md`.
 
@@ -164,10 +164,10 @@ Log progress in `docs/tasks/spell-system-overhaul/LEVEL-{N}-BATCHES.md` (do NOT 
 
 ## CHECKLIST
 
-- [ ] `source` field added (PHB 2024 / Tasha's / etc)?
-- [ ] Data verified against 2024 PHB?
-- [ ] Every effect has `trigger` + `condition`?
-- [ ] Casing correct (ALL CAPS effects, Title Case schools)?
-- [ ] `ritual` and `castingTime.combatCost.type` present?
-- [ ] Files in level subfolder? Manifest paths nested?
-- [ ] Companion-doc assumptions verified before creating, updating, or deleting any non-JSON artifact?
+- Template item: `source` field added (PHB 2024 / Tasha's / etc)?
+- Template item: Data verified against 2024 PHB?
+- Template item: Every effect has `trigger` + `condition`?
+- Template item: Casing correct (ALL CAPS effects, Title Case schools)?
+- Template item: `ritual` and `castingTime.combatCost.type` present?
+- Template item: Files in level subfolder? Manifest paths nested?
+- Template item: Companion-doc assumptions verified before creating, updating, or deleting any non-JSON artifact?

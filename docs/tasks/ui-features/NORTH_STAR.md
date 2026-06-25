@@ -1,7 +1,7 @@
 # UI Features North Star
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-26
 
 ## Why This Project Exists
 
@@ -29,7 +29,7 @@ Out of scope:
 | glossary-ui | `docs/projects/glossary-ui/NORTH_STAR.md`, `TRACKER.md`, `GAPS.md` | Implemented glossary surfaces and build path evidence |
 | party-ui | `docs/projects/party-ui/NORTH_STAR.md`, `TRACKER.md`, `GAPS.md` | Implemented overlay and edit flows; companion membership rules incomplete |
 | ui-primitives | `docs/projects/ui-primitives/NORTH_STAR.md`, `TRACKER.md`, `GAPS.md` | Shared primitive set exists; ownership contracts are still light |
-| salvage-ui note | `docs/tasks/ui-features/TASK_SALVAGE_UI.md` | UI request is live and pending integration |
+| salvage-ui | `docs/projects/crafting-ui/GAPS.md` G8 | UI request is live, routed to Crafting UI, and pending integration |
 
 ## Project Tracker Alignment
 
@@ -39,8 +39,8 @@ Out of scope:
 
 ## Feature Owners / Ownership Signals
 
-- `TASK_SALVAGE_UI.md` lists `System Owner: Alchemist`.
-- `docs/tasks/CRAFTING_UI_TODO.md` assigns `Forge` or `Merchant`.
+- The retired `TASK_SALVAGE_UI.md` listed `System Owner: Alchemist`; current salvage UI ownership is routed through Crafting UI G8.
+- The retired `docs/tasks/CRAFTING_UI_TODO.md` assigned `Forge` or `Merchant`; current crafting follow-ups live in `docs/projects/crafting-ui/GAPS.md`.
 - UI project trackers in `docs/projects/*-ui` mostly use role placeholders
   such as `Economy UI docs owner` or `Worker` values, not hard stewardship IDs.
 - This folder records ownership drift as a continuity gap when a concrete owner is required.

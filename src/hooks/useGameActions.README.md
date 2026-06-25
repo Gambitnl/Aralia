@@ -9,6 +9,25 @@ This hook takes the current game state, a `dispatch` function, and various callb
 **Player Action Logging & Contexting**:
 A key feature of this hook is the generation of more **diegetic (narrative) player action messages** for the game log. Instead of mechanical entries like `> action:move target:forest_path`, the log will display more immersive text. This is achieved by the `getDiegeticPlayerActionMessage` utility, paired with a `generalActionContext` string that is built from the player's identity, active biome, submap tile info, visible items, and nearby NPCs.
 
+## Lifecycle
+
+```mermaid
+flowchart TD
+  PlayerAction["UI submits Action"] --> LoadingGate["Set loading unless action is UI-only"]
+  LoadingGate --> Context["Build player, location, NPC, discovery, and prompt context"]
+  Context --> Registry["Lazy-load action handler registry"]
+  Registry --> Handler{"Handler exists?"}
+  Handler -->|yes| RunHandler["Run specialized handler"]
+  Handler -->|no| Unknown["Log unrecognized action and reset action context"]
+  RunHandler --> Result{"Handler succeeds?"}
+  Result -->|yes| Cleanup["Clear loading when this hook owns it"]
+  Result -->|no| Error["Log error, set error state, reset action context"]
+  Error --> Cleanup
+```
+
+`useGameActions` is an orchestrator. Handler modules own domain behavior; this
+hook owns action routing, shared context, error boundaries, and loading cleanup.
+
 ## Interface
 
 ```typescript

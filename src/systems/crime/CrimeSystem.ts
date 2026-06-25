@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:29:43
- * Dependents: crimeReducer.ts
+ * Last Sync: 25/06/2026, 01:21:23
+ * Dependents: state/reducers/crimeReducer.ts
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -30,6 +30,16 @@ import {
 import { GameState as _GameState, NotorietyState } from '../../types';
 import { generateId } from '../../utils/core/idGenerator';
 
+const BOUNTY_DURATION_MS = 1000 * 60 * 60 * 24 * 7;
+
+/**
+ * CrimeSystem owns the shared calculations behind crimes, heat, and bounties.
+ *
+ * Reducers call this class when they need consistent crime tuning. Keeping the
+ * bounty timing rules here means bounty creation and bounty cleanup use the
+ * same game-clock contract instead of duplicating the numbers in UI or state
+ * reducers.
+ */
 export class CrimeSystem {
 
     /**
@@ -66,6 +76,27 @@ export class CrimeSystem {
     }
 
     /**
+     * Converts incoming crime severity into the canonical 0-100 scale.
+     */
+    static normalizeSeverity(severity: number): number {
+        // Older callers use a 1-10 tabletop-style value, while newer crime
+        // state stores a 1-100 value. Keep both accepted, then clamp the result
+        // so downstream heat and bounty math share one bounded unit.
+        const scaledSeverity = severity <= 10 ? severity * 10 : severity;
+        return Math.max(0, Math.min(100, scaledSeverity));
+    }
+
+    /**
+     * Calculates how much heat a crime adds from its normalized severity.
+     */
+    static calculateCrimeHeat(normalizedSeverity: number, witnessed: boolean): number {
+        // Witnessed crimes should still cap at about +20 local heat for a max
+        // severity event. Unwitnessed crimes leave a quieter rumor footprint.
+        const multiplier = witnessed ? 0.2 : 0.1;
+        return normalizedSeverity * multiplier;
+    }
+
+    /**
      * Generates a bounty for a committed crime.
      */
     static generateBounty(crime: Crime, victimId?: string): Bounty | null {
@@ -86,7 +117,33 @@ export class CrimeSystem {
             amount: Math.floor(amount),
             conditions: crime.severity > 80 ? 'DeadOrAlive' : 'Alive',
             isActive: true,
-            expiration: Date.now() + (1000 * 60 * 60 * 24 * 7) // 7 days
+            // Bounties expire on the in-game clock. Using the crime timestamp
+            // keeps saves, reloads, and tests deterministic instead of tying
+            // campaign law enforcement to the real machine clock.
+            expiration: crime.timestamp + BOUNTY_DURATION_MS
+        };
+    }
+
+    /**
+     * Removes bounties whose in-game expiration time has passed.
+     */
+    static pruneExpiredBounties(state: NotorietyState, currentTimeMs: number): NotorietyState {
+        const activeBounties = state.bounties.filter(bounty => {
+            // Bounties without an expiration are durable story consequences.
+            if (!bounty.expiration) return true;
+
+            // Once the in-game clock reaches the expiration, the warrant is no
+            // longer active enough to drive bounty hunters or UI risk.
+            return bounty.expiration > currentTimeMs;
+        });
+
+        if (activeBounties.length === state.bounties.length) {
+            return state;
+        }
+
+        return {
+            ...state,
+            bounties: activeBounties
         };
     }
 

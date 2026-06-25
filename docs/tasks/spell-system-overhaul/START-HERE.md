@@ -247,24 +247,27 @@ See [00-AGENT-COORDINATION.md](00-AGENT-COORDINATION.md#daily-standup-format) fo
 
 ## Success Criteria
 
+This is a historical onboarding packet for the original parallel-agent spell overhaul.
+Use the criteria below as review guidance, not as a live backlog:
+
 ### For Each Agent
 
-- [ ] All files in your module created
-- [ ] Exports match API contract exactly
-- [ ] Unit tests pass (>80% coverage)
-- [ ] TypeScript compiles with zero errors
-- [ ] JSDoc comments on all public APIs
-- [ ] No files modified outside your module
-- [ ] Integration tests pass (Week 2)
+- Create the module files named by the active task packet.
+- Match the API contract exactly.
+- Keep focused unit tests green.
+- Keep TypeScript clean for the touched scope.
+- Document public APIs where the surrounding module expects JSDoc.
+- Avoid touching files outside the assigned module unless coordination evidence says otherwise.
+- Run the integration checks required by the active Spells child lane.
 
 ### For Overall Project
 
-- [ ] 5 parallel agents worked without file conflicts
-- [ ] SpellExecutor orchestrates all modules
-- [ ] 5 test spells execute correctly
-- [ ] Performance < 100ms per mechanical spell
-- [ ] Data validation catches invalid spells at build time
-- [ ] Documentation complete
+- Preserve coordination across parallel spell lanes.
+- Prove the current orchestration path through the structured-spell-execution gaps.
+- Prove representative spell execution before broad readiness claims.
+- Measure mechanical-spell performance as part of runtime verification.
+- Keep spell data validation in the validator-data-integrity lane.
+- Update the owning Spells project gap or tracker, not this historical start packet.
 
 ---
 

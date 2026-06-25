@@ -1,54 +1,40 @@
-# TRACKER — GAME-ENTRY-SITUATION
+# TRACKER - GAME-ENTRY-SITUATION
 
 Living work-path log for the Ollama-generated opening situation. What / why / proof.
 
-## What was built (2026-06-16)
+## What Was Built (2026-06-16)
 
 | Slice | Files | Why |
-|-------|-------|-----|
-| Situation schema | `src/systems/gameEntry/types.ts` | Structured `OpeningSituation` (setting, predicament, 1–3 `SituationNPC`, opening line, optional replies) + `GameEntryState` machine state. No fallback shape. |
-| Generator | `src/systems/gameEntry/generateOpeningSituation.ts` | Builds a character-grounded prompt (race/class/background/name + place), calls Ollama via the task-aware client, parses with `parseJsonRobustly`. **Throws** on unavailable/unparseable — never invents a scene. Injectable client + id factory for tests; non-deterministic in prod. |
-| Task profile | `src/types/ollama.ts`, `src/services/ollama/taskProfiles.ts` | New `opening_situation` TaskType: PROSE models, temp 0.95 / topP 0.95, json, 420 num_predict for genuine per-run variety. |
-| Entry state machine | `src/systems/gameEntry/entryStateMachine.ts` | Pure `idle → generating → in-situation` (+ `model-unavailable`, RETRY, RESET). Side-effect free → deterministic tests. `shouldGenerateOpening` = new-game only. |
-| State slice | `src/state/reducers/gameEntryReducer.ts`, registered in `appState.ts` pipeline; `gameEntry` field on `state.ts`/`state.d.ts`/`initialState.ts` | Drives the machine via 4 entry actions in `actionTypes.ts`. Additive/optional so existing saves + factories load unchanged. |
-| Conversation extension | `src/types/conversation.ts`, `conversationReducer.ts`, `useConversation.ts`, `ConversationPanel.tsx` | `ActiveConversation` gains optional `kind` + `npcParticipants` (non-companion strangers). `START_CONVERSATION` accepts `initialMessages[]`. Companion path untouched when the new fields are absent. |
-| Orchestration | `src/hooks/useOpeningSituation.ts`, `src/components/gameEntry/OpeningSituationGate.tsx` | On `generating`, runs the generator (once, ref-guarded), seeds narration + NPC utterance into an `activeConversation`, moves to `in-situation`. On throw → `model-unavailable` → `OllamaDependencyModal` block + Retry. Mounted additively in `App.tsx` PLAYING branch. |
-| Trigger | `src/hooks/useGameInitialization.ts` `startGame` | Dispatches `BEGIN_OPENING_SITUATION` right after `START_GAME_SUCCESS`. Load/dummy flows do NOT → no generation on resume. |
+|---|---|---|
+| Situation schema | `src/systems/gameEntry/types.ts` | Structured `OpeningSituation` with setting, predicament, 1-3 `SituationNPC`s, opening line, optional replies, and `GameEntryState`. |
+| Generator | `src/systems/gameEntry/generateOpeningSituation.ts` | Builds a character-grounded prompt, calls Ollama through the task-aware client, parses with `parseJsonRobustly`, and throws on unavailable/unparseable output. |
+| Task profile | `src/types/ollama.ts`, `src/services/ollama/taskProfiles.ts` | Adds the `opening_situation` task type with prose-leaning, high-temperature JSON output. |
+| Entry state machine | `src/systems/gameEntry/entryStateMachine.ts` | Pure `idle -> generating -> in-situation` state machine, plus `model-unavailable`, retry, and reset. |
+| State slice | `src/state/reducers/gameEntryReducer.ts`, `src/state/appState.ts`, `src/types/state.ts`, `src/state/initialState.ts` | Drives the opening state with additive actions and optional state for existing saves. |
+| Conversation extension | `src/types/conversation.ts`, `src/state/reducers/conversationReducer.ts`, `src/hooks/useConversation.ts`, `src/components/ConversationPanel/ConversationPanel.tsx` | Allows situation conversations with non-companion NPC participants while preserving companion conversations. |
+| Orchestration | `src/hooks/useOpeningSituation.ts`, `src/components/gameEntry/OpeningSituationGate.tsx`, `src/App.tsx` | Runs the generator once on fresh-game entry, seeds the conversation, and shows the Ollama dependency block on failure. |
+| Trigger | `src/hooks/useGameInitialization.ts` | Dispatches `BEGIN_OPENING_SITUATION` after `START_GAME_SUCCESS`; load/dummy flows skip generation. |
 
 ## Proof
 
-- **Unit tests (Ollama stubbed):** `npx vitest run src/systems/gameEntry/ src/state/reducers/__tests__/gameEntryReducer.test.ts` → 21 passed.
-  - generator: prompt grounded in character; good response → valid situation; model-unavailable throws; unparseable throws; missing structure throws.
-  - state machine: all transitions + invalid no-ops + double-fire guard.
-  - reducer: BEGIN→RESOLVE→in-situation; FAIL→model-unavailable; retry; unrelated actions don't trigger.
-  - conversation: situation seed (multi-message + npcParticipants) AND legacy companion conversation both green.
-- **No regressions:** `npx vitest run src/hooks/ src/state/` → 314 passed / 8 skipped.
-- **Typecheck (scope clean):** `npx tsc --noEmit | grep -iE "gameEntry|useGameInitialization|conversation"` → empty. (One pre-existing unrelated error `isLongRestModalVisible` in appState.ts:784 — confirmed present without this change via `git stash`.)
-- **Live render-and-eyeball (real Ollama, model gemma4:12b):**
-  - `.agent/game-entry-situation/openings-capture.txt` — same character/place run TWICE → two distinct, character-grounded predicaments (Run B explicitly leverages warlock powers + charlatan background). `Predicaments differ: true`. Proves truly non-deterministic.
-  - Script: `.agent/game-entry-situation/capture-openings.mjs`.
-- **Honest-failure proof:** `.agent/game-entry-situation/honest-failure.txt` — client pointed at a dead port → `OpeningSituationUnavailableError` thrown, NO situation returned. Script: `capture-failure.mjs`. Gate turns this into the dependency block + Retry.
-- **App health:** dev server (port 5174) loads main menu with zero console errors; entry wiring did not break the menu.
+- Unit tests: `npx vitest run src/systems/gameEntry/ src/state/reducers/__tests__/gameEntryReducer.test.ts` passed with 21 tests.
+- No regressions: `npx vitest run src/hooks/ src/state/` passed with 314 passed / 8 skipped.
+- Scope typecheck: `npx tsc --noEmit | grep -iE "gameEntry|useGameInitialization|conversation"` was empty; one unrelated pre-existing `isLongRestModalVisible` error was noted.
+- Live Ollama proof: `.agent/game-entry-situation/openings-capture.txt` captured two different same-character openings; `Predicaments differ: true`.
+- Honest-failure proof: `.agent/game-entry-situation/honest-failure.txt` shows `OpeningSituationUnavailableError` and no generated scene.
+- App health: dev server on port 5174 loaded the main menu with zero console errors.
 
-## Addendum (2026-06-16) — NPCs placed in the scene
-
-Owner follow-up: "there's no visuals for the event?" → chose **place NPCs in the scene**.
+## Addendum (2026-06-16): NPCs Placed In Scene
 
 | Slice | Files | Why |
-|-------|-------|-----|
-| Situation→RichNPC converter | `src/systems/gameEntry/situationNpcToRichNpc.ts` | Maps each generated `SituationNPC` to a full `RichNPC` via `npcGenerator.generateNPC` (valid stats/biography/equipment), overlaying role (free-text→enum), disposition+goal personality, and the opening line as the speaker's dialogue seed. |
-| Placement action | `PLACE_SITUATION_NPCS` in `actionTypes.ts` + `gameEntryReducer.ts` | Registers the RichNPCs into `generatedNpcs` AND appends their ids to `currentLocationActiveDynamicNpcIds` so the scene shows them. They drop off naturally on move (list recomputed). |
-| Hook wiring | `useOpeningSituation.ts` | Dispatches `PLACE_SITUATION_NPCS` before opening the conversation. |
-| Scene resolution | `App.tsx` `getCurrentNPCs` | Now resolves dynamic ids from `NPCS[id] \|\| generatedNpcs[id]` so runtime NPCs render in-scene (ActionPane "Talk to", dialogue, 3D). |
+|---|---|---|
+| Situation-to-RichNPC converter | `src/systems/gameEntry/situationNpcToRichNpc.ts` | Maps each generated `SituationNPC` into a full `RichNPC` while preserving role, disposition, goal, and opening line. |
+| Placement action | `PLACE_SITUATION_NPCS` in `src/state/actionTypes.ts` and `src/state/reducers/gameEntryReducer.ts` | Registers generated NPCs and appends their ids to `currentLocationActiveDynamicNpcIds`. |
+| Hook wiring | `src/hooks/useOpeningSituation.ts` | Places generated NPCs before opening the conversation. |
+| Scene resolution | `src/App.tsx` | Resolves dynamic ids from static `NPCS` or `generatedNpcs` so generated NPCs can render in-scene. |
 
-**Proof (live, real new-game flow):** `.agent/game-entry-situation/npcs-in-scene-capture.txt` —
-half-orc sorcerer/sailor "Brannoch Vex" spawned into Forest Clearing; generated
-strangers **Lira, Gerran, Thorne** appeared as in-world "Talk to X" actions
-(resolved from `generatedNpcs`, not static `NPCS`) and as conversation participants.
-Zero console errors. Tests: `situationNpcToRichNpc.test.ts` (6) + placement reducer
-cases green; `src/state/ src/hooks/` → 316 passed.
+Proof: `.agent/game-entry-situation/npcs-in-scene-capture.txt` captured generated strangers appearing as in-world "Talk to" actions and conversation participants. Tests: `situationNpcToRichNpc.test.ts` plus placement reducer cases passed; `src/state/ src/hooks/` passed with 316 tests.
 
-## Gaps / follow-ups
+## Gaps / Follow-Ups
 
-- **Full in-browser click-through** (New Game → character wizard → land inside the generated conversation → type a reply → live response) not screenshotted end-to-end here; the generation slice is proven headlessly against the live model and the conversation drop-in is covered by reducer/hook unit tests. Recommended as the owner's final eyeball — artifacts above stand as the generation proof.
-- The `opening_situation` profile's `PROSE_MODELS` list does not yet include `gemma4`; the router correctly falls back to the installed model. Consider adding preferred narrative models to the list when standardised.
+See `GAPS.md` for the two remaining follow-ups: full in-browser click-through proof and optional narrative-model preference cleanup.

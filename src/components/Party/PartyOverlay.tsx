@@ -7,6 +7,7 @@
  * - Party member cards with combat stats, HP, spell slots
  * - Footer with Long Rest and Short Rest buttons
  * - Short rest indicator showing remaining rests for the day
+ * - Combat-aware rest gating so the overlay cannot open rest flows mid-fight
  */
 
 import React from 'react';
@@ -47,6 +48,8 @@ interface PartyOverlayProps {
     onShortRest?: () => void;
     /** Current short rest tracking state */
     shortRestTracker?: ShortRestTracker;
+    /** Whether active enemies are present in the current combat state */
+    isCombatActive?: boolean;
 }
 
 // -----------------------------------------------------------------------------
@@ -133,7 +136,8 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
     onFixMissingChoice,
     onLongRest,
     onShortRest,
-    shortRestTracker
+    shortRestTracker,
+    isCombatActive = false
 }) => {
     // Don't render anything if not open
     if (!isOpen) return null;
@@ -141,7 +145,17 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
     // Calculate remaining short rests
     const shortRestsTaken = shortRestTracker?.restsTakenToday ?? 0;
     const shortRestsRemaining = MAX_SHORT_RESTS_PER_DAY - shortRestsTaken;
-    const canShortRest = shortRestsRemaining > 0;
+    const isRestBlockedByCombat = isCombatActive;
+    const combatRestWarning = "Resting is unavailable during active combat.";
+    const canShortRest = shortRestsRemaining > 0 && !isRestBlockedByCombat;
+    const longRestTooltip = isRestBlockedByCombat
+        ? combatRestWarning
+        : "Take a long rest to fully recover HP, spell slots, and abilities (8 hours)";
+    const shortRestTooltip = isRestBlockedByCombat
+        ? combatRestWarning
+        : canShortRest
+            ? `Take a short rest to spend Hit Dice and recover some abilities (1 hour). ${shortRestsRemaining} remaining today.`
+            : "No short rests remaining today. Take a long rest to reset.";
 
     return (
         <WindowFrame
@@ -164,7 +178,14 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
 
                 {/* Footer with rest actions */}
                 <div className="shrink-0 border-t border-gray-700 bg-gray-800/50 p-3">
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                        {/* Combat warning keeps the disabled rest state understandable without requiring hover. */}
+                        {isRestBlockedByCombat && (
+                            <p className="text-xs text-amber-200" role="status">
+                                {combatRestWarning}
+                            </p>
+                        )}
+
                         {/* Rest action buttons container */}
                         <div className="bg-gray-800 border border-amber-500/20 p-2 rounded-xl flex items-center gap-2 shadow-lg">
                             {/* Long Rest button */}
@@ -173,7 +194,8 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
                                     iconName="moon"
                                     label="Long Rest"
                                     onClick={onLongRest}
-                                    tooltip="Take a long rest to fully recover HP, spell slots, and abilities (8 hours)"
+                                    disabled={isRestBlockedByCombat}
+                                    tooltip={longRestTooltip}
                                 />
                             )}
 
@@ -190,11 +212,7 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
                                     onClick={onShortRest}
                                     disabled={!canShortRest}
                                     badge={`${shortRestsRemaining}/${MAX_SHORT_RESTS_PER_DAY}`}
-                                    tooltip={
-                                        canShortRest
-                                            ? `Take a short rest to spend Hit Dice and recover some abilities (1 hour). ${shortRestsRemaining} remaining today.`
-                                            : "No short rests remaining today. Take a long rest to reset."
-                                    }
+                                    tooltip={shortRestTooltip}
                                 />
                             )}
                         </div>

@@ -94,6 +94,107 @@ describe('logReducer', () => {
     expect(nextState).toEqual({});
   });
 
+  it('dedupes the same acquired item from the same source but keeps a new source entry', () => {
+    // Picking up the same persistent item from the same location should not
+    // create duplicate discovery memories. The same item found somewhere else
+    // is still a separate player-facing discovery.
+    const state = createMockGameState({
+      discoveryLog: [
+        createDiscoveryEntry('old-map-first', {
+          type: DiscoveryType.ITEM_ACQUISITION,
+          title: 'Item Acquired: Old Map',
+          source: { type: 'LOCATION', id: 'green-harbor', name: 'Green Harbor' },
+          flags: [{ key: 'itemId', value: 'old_map', label: 'Old Map' }],
+          isRead: false,
+        }),
+      ],
+      unreadDiscoveryCount: 1,
+    });
+
+    const duplicateResult = logReducer(state, {
+      type: 'ADD_DISCOVERY_ENTRY',
+      payload: {
+        type: DiscoveryType.ITEM_ACQUISITION,
+        title: 'Item Acquired: Old Map',
+        source: { type: 'LOCATION', id: 'green-harbor', name: 'Green Harbor' },
+        flags: [{ key: 'itemId', value: 'old_map', label: 'Old Map' }],
+      },
+    });
+
+    expect(duplicateResult).toEqual({});
+
+    const newSourceResult = logReducer(state, {
+      type: 'ADD_DISCOVERY_ENTRY',
+      payload: {
+        type: DiscoveryType.ITEM_ACQUISITION,
+        title: 'Item Acquired: Old Map',
+        source: { type: 'LOCATION', id: 'bright-market', name: 'Bright Market' },
+        flags: [{ key: 'itemId', value: 'old_map', label: 'Old Map' }],
+      },
+    });
+
+    expect(newSourceResult.discoveryLog).toHaveLength(2);
+    expect(newSourceResult.unreadDiscoveryCount).toBe(2);
+  });
+
+  it('dedupes repeated past-action discoveries but keeps harvest events append-only', () => {
+    // Evidence found by the same NPC at the same location is a stable memory.
+    // Harvest entries are intentionally repeatable because each harvest can be
+    // a separate resource event even when the same item appears again.
+    const state = createMockGameState({
+      discoveryLog: [
+        createDiscoveryEntry('old-evidence', {
+          type: DiscoveryType.ACTION_DISCOVERED,
+          title: 'Past Action Discovered',
+          content: 'A guard found bootprints near the shrine.',
+          source: { type: 'NPC', id: 'guard-1', name: 'Guard' },
+          flags: [
+            { key: 'npcId', value: 'guard-1', label: 'Guard' },
+            { key: 'locationId', value: 'shrine', label: 'Shrine' },
+          ],
+          isRead: false,
+        }),
+        createDiscoveryEntry('old-harvest', {
+          type: DiscoveryType.HARVEST,
+          title: 'Harvested: Silverleaf',
+          source: { type: 'PLAYER_ACTION', name: 'Harvest' },
+          flags: [{ key: 'itemId', value: 'silverleaf', label: 'Silverleaf' }],
+          isRead: false,
+        }),
+      ],
+      unreadDiscoveryCount: 2,
+    });
+
+    const duplicateEvidenceResult = logReducer(state, {
+      type: 'ADD_DISCOVERY_ENTRY',
+      payload: {
+        type: DiscoveryType.ACTION_DISCOVERED,
+        title: 'Past Action Discovered',
+        content: 'A guard found bootprints near the shrine.',
+        source: { type: 'NPC', id: 'guard-1', name: 'Guard' },
+        flags: [
+          { key: 'npcId', value: 'guard-1', label: 'Guard' },
+          { key: 'locationId', value: 'shrine', label: 'Shrine' },
+        ],
+      },
+    });
+
+    expect(duplicateEvidenceResult).toEqual({});
+
+    const repeatHarvestResult = logReducer(state, {
+      type: 'ADD_DISCOVERY_ENTRY',
+      payload: {
+        type: DiscoveryType.HARVEST,
+        title: 'Harvested: Silverleaf',
+        source: { type: 'PLAYER_ACTION', name: 'Harvest' },
+        flags: [{ key: 'itemId', value: 'silverleaf', label: 'Silverleaf' }],
+      },
+    });
+
+    expect(repeatHarvestResult.discoveryLog).toHaveLength(3);
+    expect(repeatHarvestResult.unreadDiscoveryCount).toBe(3);
+  });
+
   it('counts every quest entry that becomes unread during a quest update', () => {
     // A quest update rewrites every matching quest-linked discovery. If several
     // matching entries were already read, each one becomes newly unread and must
@@ -119,5 +220,47 @@ describe('logReducer', () => {
 
     expect(nextState.discoveryLog?.filter(entry => entry.questId === 'quest-1' && !entry.isRead)).toHaveLength(3);
     expect(nextState.unreadDiscoveryCount).toBe(3);
+  });
+
+  it('keeps only the newest appended quest update notes on matching discovery entries', () => {
+    // Quest entries keep their original discovery text, but repeated quest
+    // updates should not grow one content string forever in state and saves.
+    let state = createMockGameState({
+      discoveryLog: [
+        createDiscoveryEntry('quest-entry', {
+          isQuestRelated: true,
+          questId: 'quest-long',
+          isRead: true,
+          content: 'The quest began at the harbor.',
+        }),
+      ],
+      unreadDiscoveryCount: 0,
+    });
+
+    for (let index = 1; index <= 50; index += 1) {
+      const nextState = logReducer(state, {
+        type: 'UPDATE_QUEST_IN_DISCOVERY_LOG',
+        payload: {
+          questId: 'quest-long',
+          newStatus: 'active',
+          newContent: `Update ${index}`,
+        },
+      } as AppAction);
+
+      state = createMockGameState({
+        ...state,
+        ...nextState,
+      });
+    }
+
+    const questContent = state.discoveryLog[0]?.content ?? '';
+    const retainedUpdates = questContent.match(/Update: Update \d+/g) ?? [];
+
+    expect(questContent).toContain('The quest began at the harbor.');
+    expect(retainedUpdates).toHaveLength(10);
+    expect(questContent).not.toContain('Update: Update 40');
+    expect(questContent).toContain('Update: Update 41');
+    expect(questContent).toContain('Update: Update 50');
+    expect(state.unreadDiscoveryCount).toBe(1);
   });
 });

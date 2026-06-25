@@ -129,11 +129,11 @@
 | 30 | `- **Conditions Applied**: Grappled` |
 | 32 | `- **Description**: You conjure a vine that sprouts from a surface in an unoccupied space that you can see within range. The vine lasts for the duratio...` |
 
-### `docs/tasks/feat-system-gaps.md`
+### `docs/projects/character-creator/GAPS.md`
 
 | Line | Snippet |
 |---|---|
-| 137 | `\| Grappler \| Advantage vs grappled, restrain option \| Needs grapple system \|` |
+| G22 | Retired feat backlog work, including Grappler-style feat mechanics, now routes through Character Creator G22 before any implementation slice. |
 
 ### `docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md`
 

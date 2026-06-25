@@ -57,6 +57,7 @@ const ThreeDModal = lazy(() => import('../ThreeDModal/ThreeDModal'));
 const QuestLog = lazy(() => import('../QuestLog'));
 const CharacterSheetModal = lazy(() => import('../CharacterSheet/CharacterSheetModal'));
 const DevMenu = lazy(() => import('../debug/DevMenu'));
+const AgentSimDevOverlay = lazy(() => import('../debug/AgentSimDevOverlay'));
 const PartyOverlay = lazy(() => import('../Party/PartyOverlay'));
 const PartyEditorModal = lazy(() => import('../Party/PartyEditorModal'));
 const GeminiLogViewer = lazy(() => import('../debug/GeminiLogViewer'));
@@ -93,7 +94,7 @@ interface GameModalsProps {
     gameState: GameState;
     dispatch: React.Dispatch<AppAction>;
     onAction: (action: Action) => void;
-    onTileClick: (x: number, y: number, tile: MapTile) => void;
+    onTileClick: (x: number, y: number, tile: MapTile, travelMeta?: { seconds: number; encounterMessage?: string | null }) => void;
     onEnter3DAtCell?: (x: number, y: number, tile: MapTile) => void;
     playerWorldPos?: GameState['playerWorldPos'];
     allow3DEntry?: boolean;
@@ -200,6 +201,7 @@ const GameModals: React.FC<GameModalsProps> = ({
     const isUnifiedDebugLogViewerOpen = gameState.isUnifiedLogViewerVisible;
     const isNpcTestModalOpen = gameState.isNpcTestModalVisible;
     const isInvestmentBoardModalOpen = gameState.isInvestmentBoardVisible;
+    const isCombatActive = Boolean(gameState.currentEnemies?.length);
 
     const mapPaneFocusRef = useFocusTrap<HTMLDivElement>(isMapModalOpen);
     const questLogFocusRef = useFocusTrap<HTMLDivElement>(isQuestLogModalOpen);
@@ -225,7 +227,7 @@ const GameModals: React.FC<GameModalsProps> = ({
         <AnimatePresence>
             {/* World Map Overlay */}
             {isMapModalOpen && (
-                <div ref={mapPaneFocusRef} tabIndex={-1}>
+                <div key="map" ref={mapPaneFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error displaying the World Map.">
                             <MapPane
@@ -250,7 +252,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Quest Log Overlay */}
             {isQuestLogModalOpen && (
-                <div ref={questLogFocusRef} tabIndex={-1}>
+                <div key="questlog" ref={questLogFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error in Quest Log.">
                             <QuestLog
@@ -269,7 +271,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                 gameState.party[0] &&
                 gameState.subMapCoordinates &&
                 currentLocation.mapCoordinates && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="threed" fallback={<LoadingSpinner />}>
                     <ThreeDModal
                         isOpen={gameState.isThreeDVisible}
                         onClose={() => dispatch({ type: 'TOGGLE_THREE_D_VISIBILITY' })}
@@ -289,7 +291,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Character Sheet Modal */}
             {isCharacterSheetModalOpen && gameState.characterSheetModal.character && (
-                <div ref={characterSheetFocusRef} tabIndex={-1}>
+                <div key="charsheet" ref={characterSheetFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error displaying Character Sheet.">
                             <CharacterSheetModal
@@ -309,7 +311,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Developer Tools Menu */}
             {isDevMenuModalOpen && (
-                <div ref={devMenuFocusRef} tabIndex={-1}>
+                <div key="devmenu" ref={devMenuFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error in Developer Menu.">
                             <DevMenu
@@ -328,9 +330,18 @@ const GameModals: React.FC<GameModalsProps> = ({
                 </div>
             )}
 
+            {/* Agent-sim live dev overlay (dev mode, in-game only) — demo burg on the game clock. */}
+            {gameState.isDevModeEnabled && gameState.phase === GamePhase.PLAYING && (
+                <Suspense key="agentsim" fallback={null}>
+                    <ErrorBoundary fallbackMessage="Error in Agent Sim overlay.">
+                        <AgentSimDevOverlay />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
             {/* Party Overview Overlay */}
             {isPartyOverlayModalOpen && (
-                <div ref={partyOverlayFocusRef} tabIndex={-1}>
+                <div key="party" ref={partyOverlayFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error displaying Party Overlay.">
                             <PartyOverlay
@@ -343,6 +354,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 onLongRest={() => onAction({ type: 'TOGGLE_LONG_REST_MODAL', label: 'Long Rest' })}
                                 onShortRest={() => dispatch({ type: 'TOGGLE_SHORT_REST_MODAL' })}
                                 shortRestTracker={gameState.shortRestTracker}
+                                isCombatActive={isCombatActive}
                             />
                         </ErrorBoundary>
                     </Suspense>
@@ -351,7 +363,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Long Rest Modal */}
             {gameState.isLongRestModalVisible && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="longrest" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Long Rest Modal.">
                         <LongRestModal
                             isOpen={gameState.isLongRestModalVisible}
@@ -368,7 +380,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Short Rest Modal */}
             {gameState.isShortRestModalVisible && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="shortrest" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Short Rest Modal.">
                         <RestModal
                             isOpen={gameState.isShortRestModalVisible}
@@ -385,7 +397,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Party Editor (Dev Tool) */}
             {gameState.isPartyEditorVisible && canUseDevTools() && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="partyeditor" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Party Editor.">
                         <PartyEditorModal
                             isOpen={gameState.isPartyEditorVisible}
@@ -405,7 +417,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* AI Log Viewer (Dev Tool) */}
             {isGeminiLogViewerOpen && (
-                <div ref={geminiLogFocusRef} tabIndex={-1}>
+                <div key="geminilog" ref={geminiLogFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error in Gemini Log Viewer.">
                             <GeminiLogViewer
@@ -420,7 +432,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Unified Debug Log Viewer (Dev Tool) */}
             {isUnifiedDebugLogViewerOpen && (
-                <div ref={unifiedDebugLogFocusRef} tabIndex={-1}>
+                <div key="unifiedlog" ref={unifiedDebugLogFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error in Unified Log Viewer.">
                             <UnifiedDebugLogViewer
@@ -440,7 +452,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* NPC AI Test Modal (Dev Tool) */}
             {isNpcTestModalOpen && canUseDevTools() && (
-                <div ref={npcInteractionTestFocusRef} tabIndex={-1}>
+                <div key="npctest" ref={npcInteractionTestFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error in NPC Test Plan Modal.">
                             <NpcInteractionTestModal
@@ -455,7 +467,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Character Logbook (Journal) */}
             {isDossierModalOpen && (
-                <div ref={dossierPaneFocusRef} tabIndex={-1}>
+                <div key="dossier" ref={dossierPaneFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error in Character Logbook.">
                             <DossierPane
@@ -472,7 +484,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Discovery Log (Exploration Journal) */}
             {isDiscoveryLogModalOpen && (
-                <div ref={discoveryLogFocusRef} tabIndex={-1}>
+                <div key="discoverylog" ref={discoveryLogFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error in Discovery Journal.">
                             <DiscoveryLogPane
@@ -492,7 +504,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Glossary (Compendium) */}
             {isGlossaryModalOpen && (
-                <div ref={glossaryFocusRef} tabIndex={-1}>
+                <div key="glossary" ref={glossaryFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error in Glossary.">
                             <Glossary
@@ -508,7 +520,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Combat Encounter Generation Modal */}
             {isEncounterModalOpen && (
-                <div ref={encounterModalFocusRef} tabIndex={-1}>
+                <div key="encounter" ref={encounterModalFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error in Encounter Modal.">
                             <EncounterModal
@@ -529,7 +541,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Merchant / Trading Interface */}
             {gameState.merchantModal.isOpen && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="merchant" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Merchant Interface.">
                         <MerchantModal
                             isOpen={gameState.merchantModal.isOpen}
@@ -547,7 +559,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Temple / Religion Interface */}
             {gameState.templeModal?.isOpen && gameState.templeModal.temple && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="temple" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Temple Interface.">
                         <TempleModal
                             isOpen={gameState.templeModal.isOpen}
@@ -562,7 +574,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Game Guide (AI Assistant) Modal */}
             {gameState.isGameGuideVisible && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="gameguide" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Game Guide.">
                         <GameGuideModal
                             isOpen={gameState.isGameGuideVisible}
@@ -577,7 +589,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Missing Choice Modal (Level Up / Character Options) */}
             {missingChoiceModal.isOpen && missingChoiceModal.character && missingChoiceModal.missingChoice && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="missingchoice" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Selection Modal.">
                         <MissingChoiceModal
                             isOpen={missingChoiceModal.isOpen}
@@ -592,7 +604,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Dialogue Interface (Conversation) */}
             {gameState.isDialogueInterfaceOpen && gameState.activeDialogueSession && gameState.party[0] && (NPCS[gameState.activeDialogueSession.npcId] || gameState.generatedNpcs?.[gameState.activeDialogueSession.npcId]) && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="dialogue" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Conversation.">
                         <DialogueInterface
                             isOpen={gameState.isDialogueInterfaceOpen}
@@ -611,7 +623,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Thieves Guild Interface */}
             {gameState.isThievesGuildVisible && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="thievesguild" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Thieves Guild Interface.">
                         <ThievesGuildInterface
                             onClose={() => dispatch({ type: 'TOGGLE_THIEVES_GUILD' })}
@@ -622,7 +634,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Thieves Guild Safehouse */}
             {gameState.isThievesGuildSafehouseVisible && gameState.thievesGuild && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="safehouse" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Safehouse.">
                         <ThievesGuildSafehouse
                             membership={gameState.thievesGuild}
@@ -635,7 +647,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Heist Planning Modal */}
             {gameState.activeHeist && gameState.activeHeist.phase === 'Planning' && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="heist" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Heist Planning.">
                         <HeistPlanningModal
                             plan={gameState.activeHeist}
@@ -652,7 +664,7 @@ const GameModals: React.FC<GameModalsProps> = ({
             {/* Naval Dashboard */}
             {gameState.isNavalDashboardVisible && (
                 gameState.ship ? (
-                    <Suspense fallback={<LoadingSpinner />}>
+                    <Suspense key="naval" fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error in Captain's Dashboard.">
                             <ShipPane
                                 ship={gameState.ship}
@@ -663,7 +675,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                 ) : (
                     // TODO: Extract this inline "No Data" error UI into a reusable <ModalErrorState message="" /> component.
                     // Similar error states (missing data, loading failures) will likely be needed for other dashboards (Treasure, Trade, etc.) as we expand.
-                    <div className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/80">
+                    <div key="naval" className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/80">
                         <div className="bg-gray-800 p-6 rounded border border-red-500 text-center shadow-xl max-w-md">
                             <h2 className="text-xl font-bold text-red-500 mb-2">No Active Ship</h2>
                             <p className="text-gray-300 mb-4">You do not have an active ship to display.</p>
@@ -680,7 +692,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Lockpicking Modal (Dev Tool / Puzzle System) */}
             {gameState.isLockpickingModalVisible && gameState.activeLock && gameState.party[0] && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="lockpicking" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Lockpicking Interface.">
                         <LockpickingModal
                             isOpen={gameState.isLockpickingModalVisible}
@@ -695,7 +707,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* 3D Dice Roller Modal */}
             {isDiceRollerModalOpen && (
-                <div ref={diceRollerFocusRef} tabIndex={-1}>
+                <div key="diceroller" ref={diceRollerFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error in Dice Roller.">
                             <DiceRollerModal
@@ -709,7 +721,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Ollama Dependency Modal */}
             {gameState.isOllamaDependencyModalVisible && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="ollama" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Ollama Dependency Modal.">
                         <OllamaDependencyModal
                             isOpen={gameState.isOllamaDependencyModalVisible}
@@ -722,7 +734,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Investment Board */}
             {gameState.isInvestmentBoardVisible && (
-                <div ref={investmentBoardFocusRef} tabIndex={-1}>
+                <div key="investment" ref={investmentBoardFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error in Investment Board.">
                             <InvestmentBoard
@@ -751,7 +763,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Trade Route Dashboard */}
             {gameState.isTradeRouteDashboardVisible && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="traderoute" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Trade Route Dashboard.">
                         <TradeRouteDashboard
                             tradeRoutes={gameState.economy.tradeRoutes}
@@ -764,7 +776,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Ledger Book */}
             {gameState.isEconomyLedgerVisible && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="ledger" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Ledger Book.">
                         <LedgerBook
                             isOpen={gameState.isEconomyLedgerVisible}
@@ -776,7 +788,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Courier Pouch */}
             {gameState.isCourierPouchVisible && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="courier" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Courier Pouch.">
                         <CourierPouch
                             isOpen={gameState.isCourierPouchVisible}
@@ -788,7 +800,7 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Noble House List (Dev Tool) */}
             {gameState.isNobleHouseListVisible && (
-                <Suspense fallback={<LoadingSpinner />}>
+                <Suspense key="noblehouse" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error displaying Noble Houses.">
                         <NobleHouseList
                             worldSeed={gameState.worldSeed}

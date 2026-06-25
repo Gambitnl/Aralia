@@ -17,6 +17,7 @@ Displays the "Discovery Journal", which tracks:
 - **Exploration History**: A log of locations and secrets discovered.
 - **Consequences**: Shows which NPCs are aware of specific discoveries.
 - **Filtering & Search**: Allows the player to browse their history by type, date, or specific keywords.
+- **Pagination**: Long discovery and dossier lists are shown in 25-item pages so retained history stays usable.
 
 ## Usage
 

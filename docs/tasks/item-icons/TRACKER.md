@@ -1,7 +1,7 @@
 # Item Icons Living Tracker
 
-Status: active  
-Last updated: 2026-05-31
+Status: complete
+Last updated: 2026-06-25
 
 ## Status Vocabulary
 
@@ -17,15 +17,15 @@ Last updated: 2026-05-31
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Create/update this project's living-project scaffold files from registry evidence. | Worker D | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md`; `docs/tasks/item-icons/*.md` | Advance to implementation slice work after this docs handoff. | `NORTH_STAR.md` + batch checklist state |
-| T2 | active | Execute item icon batches with output-only SVG generation under `public/assets/icons/items/{item_id}.svg` | Worker D | 2026-05-31 | `JULES_ACCEPTANCE_CRITERIA.md`; `BATCH-01-ITEMS.md` ... `BATCH-41-ITEMS.md` | Begin with `BATCH-01` and continue sequentially; keep per-item checkboxes and file checks current. | Confirm file presence and valid SVG format for each batch |
-| T3 | active | Resolve canonical icon taxonomy and item-to-file mapping for batch scope planning | Worker D | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md`; generated item evidence; `src/data/items/generatedGlossaryItems.ts` | Add stable taxonomy source or map and capture adoption path in tracker/GAPS. | Validate one-to-one ID/path mapping across an initial sample |
+| T1 | done | Create/update this project's living-project scaffold files from registry evidence. | Worker D | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md`; `docs/tasks/item-icons/*.md` | Completed before the icon execution pass. | `NORTH_STAR.md` + project tracker state |
+| T2 | done | Execute item icon batches with output-only SVG generation under `public/assets/icons/items/{item_id}.svg`. | Codex | 2026-06-25 | 810 SVG files in `public/assets/icons/items`; `scripts/generateItemIconSvgs.mjs`; retired `BATCH-01-ITEMS.md` ... `BATCH-41-ITEMS.md` | Batch backlog executed and retired. | File-count and SVG-shape checks passed: 810 files, required `viewBox`, no `currentColor`. |
+| T3 | done | Resolve item-to-file mapping for batch scope planning. | Codex | 2026-06-25 | `scripts/generateItemRegistry.ts`; `src/utils/visuals/visualUtils.ts`; generated SVG files; `npm run build:data` | Keep broader taxonomy decisions in `docs/projects/item_categorization/GAPS.md`; item icon files now use the existing generated-registry path contract. | `npm run build:data` passed and `src/data/items/generatedGlossaryItems.ts` now contains 810 `/assets/icons/items/` references. |
 
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | active | in_scope_now | Worker D | Item Icons project continuity + item data mapping | Documentation scan in `docs/tasks/item-icons` | Canonical icon taxonomy and consumption contract are not documented; generated item IDs and runtime icon IDs are not fully aligned. | Batch docs, `JULES_ACCEPTANCE_CRITERIA.md`, `src/data/items/generatedGlossaryItems.ts` | Blocks confident execution because acceptance output is file-based but runtime usage is token-based in many places. | Add canonical mapping artifact or confirm direct path loading in code. | Run a smoke verification against one batch and verify item icon rendering path. |
+| G1 | done | support_needed_now | Codex | Item Icons project continuity + item data mapping | Documentation scan in `docs/tasks/item-icons` | The item icon backlog needed confirmation that generated SVG files would be consumed by item registry output. | `scripts/generateItemRegistry.ts`; `src/utils/visuals/visualUtils.ts`; `public/assets/icons/items/*.svg`; `src/data/items/generatedGlossaryItems.ts` | Without that path contract, completing SVG files could still leave the UI on symbolic fallback icons. | Confirmed direct path loading through generated registry logic; broader taxonomy remains routed to Item Categorization. | 810 item SVGs generated; `npm run build:data` passed and generated registry references all 810 item SVG paths. |
 
 ## Update Rules
 

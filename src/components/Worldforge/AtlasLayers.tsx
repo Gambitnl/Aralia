@@ -24,6 +24,16 @@ function AtlasLayersImpl({ model, visible }: AtlasLayersProps): React.ReactEleme
       {(ocean?.regions ?? []).map((r, i) => (
         <path key={`o${i}`} d={r.d} fill={r.fill} fillRule="evenodd" />
       ))}
+      {/* Neutral land base. Drawn whenever Biomes is NOT the active coloring, so
+          partial overlays (cultures/religions/provinces/population) and the
+          "None" mode never leave land invisible against the ocean. */}
+      {!visible.biomes ? (
+        <g>
+          {(land.regions ?? []).map((r, i) => (
+            <path key={`lb${i}`} d={r.d} fill="#d9d2bd" fillRule="evenodd" />
+          ))}
+        </g>
+      ) : null}
       {visible.biomes ? (
         <>
           <g filter="url(#atlas-soften)">
@@ -136,14 +146,9 @@ function AtlasLayersImpl({ model, visible }: AtlasLayersProps): React.ReactEleme
           <path d={model.coastline} fill="none" stroke="#1a3d66" strokeWidth={1.2} vectorEffect="non-scaling-stroke" />
         </>
       ) : null}
-      {visible.burgs ? (model.burgs ?? []).map((b, i) => (b.capital ? (
-        <g key={`bg${i}`}>
-          <circle cx={b.x} cy={b.y} r={3.5} fill="#ffffff" stroke="#7a1228" strokeWidth={0.8} vectorEffect="non-scaling-stroke" />
-          <circle cx={b.x} cy={b.y} r={1.6} fill="#e11d48" />
-        </g>
-      ) : (
-        <circle key={`bg${i}`} cx={b.x} cy={b.y} r={2} fill="#ffffff" stroke="#374151" strokeWidth={0.8} vectorEffect="non-scaling-stroke" />
-      ))) : null}
+      {/* Burgs render as screen-space settlement glyphs in AtlasSvgView (constant
+          size, tier-distinct), so they read as map icons instead of facet-sized
+          circles on the Voronoi. */}
       {visible.markers ? (model.poiMarkers ?? []).map((m, i) => (
         <g key={`mk${i}`}>
           <circle cx={m.x} cy={m.y} r={2.6} fill="#fde68a" stroke="#92400e" strokeWidth={0.8} vectorEffect="non-scaling-stroke" />

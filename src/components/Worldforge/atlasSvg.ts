@@ -37,7 +37,9 @@ export interface AtlasSvgRegion { d: string; fill: string }
 export interface AtlasSvgMarker { x: number; y: number; type?: string }
 export interface AtlasSvgLayer { id: string; polygons: AtlasSvgPolygon[]; regions?: AtlasSvgRegion[] }
 export interface AtlasSvgRoute { d: string; group: string }
-export interface AtlasSvgBurg { x: number; y: number; capital: boolean }
+/** Settlement hierarchy tier — drives which glyph the atlas draws for a burg. */
+export type BurgTier = 'capital' | 'city' | 'town' | 'village';
+export interface AtlasSvgBurg { x: number; y: number; capital: boolean; tier: BurgTier }
 export interface AtlasSvgModel {
   width: number;
   height: number;
@@ -257,8 +259,15 @@ export function buildRivers(atlas: FmgAtlasResult, widthScale = 1): AtlasSvgRegi
     const points = cellIds.map((c) => atlas.pack.cells.p[c]).filter(Boolean) as Array<[number, number]>;
     if (points.length < 2) continue;
     const n = points.length;
-    const mouthHalf = Math.max(0.35, Math.sqrt(r.discharge ?? 0) * 0.18 * widthScale);
-    const sourceHalf = Math.max(0.3, mouthHalf * 0.28);
+    // Match Azgaar's river weight: the flux term is min(flux^0.7 / FLUX_FACTOR,
+    // MAX_FLUX_WIDTH) — i.e. CAPPED, not an unbounded sqrt(discharge), so big
+    // rivers stay delicate threads instead of fat slashes. Half-widths here, so
+    // the rendered ribbon diameter is ~2× these values.
+    const FLUX_FACTOR = 500;
+    const MAX_FLUX_HALF = 0.9; // cap on the flux contribution to half-width (graph units)
+    const flux = r.discharge ?? 0;
+    const mouthHalf = (0.18 + Math.min(Math.pow(flux, 0.7) / FLUX_FACTOR, MAX_FLUX_HALF)) * widthScale;
+    const sourceHalf = Math.max(0.1, mouthHalf * 0.25);
     const halfWidths = points.map((_, k) => {
       const t = n > 1 ? k / (n - 1) : 1;
       return sourceHalf + (mouthHalf - sourceHalf) * t;
@@ -324,14 +333,34 @@ export function buildStateBorders(atlas: FmgAtlasResult): string {
   return parts.join('');
 }
 
-/** Burg markers (SP0 T5): live burgs with map coords + capital flag. */
+/**
+ * Burg markers (SP0 T5): live burgs with map coords + a settlement tier. Tier =
+ * capital flag, else a population percentile (top 15% city, next 35% town, rest
+ * village) so glyph variety tracks the hierarchy regardless of FMG's population
+ * units. Zero-population burgs fall through to `village`.
+ */
 export function buildBurgs(atlas: FmgAtlasResult): AtlasSvgBurg[] {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const burgs: any[] = (atlas.pack as any).burgs ?? [];
+  const live = burgs.filter((b) => b && b.i && !b.removed);
+  const nonCapPops = live
+    .filter((b) => !b.capital)
+    .map((b) => b.population ?? 0)
+    .sort((a, b) => a - b);
+  const pctl = (f: number): number =>
+    nonCapPops.length ? nonCapPops[Math.min(nonCapPops.length - 1, Math.floor(f * nonCapPops.length))] : 0;
+  const cityCut = pctl(0.85);
+  const townCut = pctl(0.5);
   const out: AtlasSvgBurg[] = [];
-  for (const b of burgs) {
-    if (!b || !b.i || b.removed) continue;
-    out.push({ x: b.x, y: b.y, capital: !!b.capital });
+  for (const b of live) {
+    const capital = !!b.capital;
+    const pop = b.population ?? 0;
+    const tier: BurgTier = capital
+      ? 'capital'
+      : pop > 0 && pop >= cityCut ? 'city'
+      : pop > 0 && pop >= townCut ? 'town'
+      : 'village';
+    out.push({ x: b.x, y: b.y, capital, tier });
   }
   return out;
 }

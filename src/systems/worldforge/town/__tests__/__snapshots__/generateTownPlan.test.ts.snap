@@ -48,27 +48,27 @@ exports[`generateTownPlan > matches FROZEN golden values for a city (large envel
     {
       "footprint": [
         [
-          103445,
-          201950,
+          103056,
+          201943,
         ],
         [
-          103386,
-          201944,
+          102999,
+          201926,
         ],
         [
-          103393,
-          201878,
+          103020,
+          201854,
         ],
         [
-          103452,
-          201885,
+          103078,
+          201871,
         ],
       ],
       "role": "house",
     },
   ],
-  "plotCount": 234,
-  "streetCount": 23,
+  "plotCount": 267,
+  "streetCount": 42,
 }
 `;
 
@@ -93,7 +93,7 @@ exports[`generateTownPlan > matches FROZEN golden values for a hamlet (small env
     ],
   ],
   "firstPlotRole": "house",
-  "plotCount": 8,
-  "streetCount": 5,
+  "plotCount": 16,
+  "streetCount": 6,
 }
 `;

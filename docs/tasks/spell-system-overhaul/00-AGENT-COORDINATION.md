@@ -8,7 +8,8 @@
 
 - [`README.md`](./README.md) for the current subtree map
 - [`1A-PROJECT-MASTER-SPRINGBOARD.md`](./1A-PROJECT-MASTER-SPRINGBOARD.md) for the current springboard
-- [`TODO.md`](./TODO.md) for the live technical backlog
+- [`../../projects/spells/SUBPROJECTS.md`](../../projects/spells/SUBPROJECTS.md) for current Spells child-lane routing
+- [`../../projects/spells/subprojects/structured-spell-execution/GAPS.md`](../../projects/spells/subprojects/structured-spell-execution/GAPS.md) and sibling child `GAPS.md` files for the migrated technical backlog
 - [`@DISPATCH-SPELLS-TO-JULES.md`](./@DISPATCH-SPELLS-TO-JULES.md) when you are actually dispatching work to Jules
 
 ## Archived Historical Version

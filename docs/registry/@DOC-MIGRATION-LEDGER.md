@@ -324,7 +324,7 @@ Key decisions:
 - `IMPLEMENT-REMAINING-EFFECT-COMMANDS.md` stayed live as preserved task context after verifying that the once-missing command families now exist under `src/commands/effects`, while some runtime depth still remains open
 - `IMPLEMENT-AOE-ALGORITHMS.md` stayed live as preserved task context after verifying that the AoE suite already exists under `src/systems/spells/targeting` and that the old utility-first plan is now historical
 - `IMPLEMENT-CONCENTRATION-TRACKING.md` stayed live as preserved task context after verifying that concentration now exists across combat types, commands, damage checks, helper utilities, and UI-adjacent surfaces
-- `TODO_OBJECT_TARGETING.md` remained live as an active rebased gap note because the object-targeting limitation is still materially present in the verified spell resolver path
+- `TODO_OBJECT_TARGETING.md` remained live as an active rebased gap note at the time, then was retired on 2026-06-26 after its current object-targeting decisions were folded into `docs/projects/spells/subprojects/targeting-object-area/GAPS.md` G5.
 
 ### Spell-system light / rider / terrain gap slice refreshed
 
@@ -909,7 +909,7 @@ On 2026-03-12, the next mixed non-root slice was processed across docs/audits an
 Key decisions:
 - docs/audits/level-1-targeting-audit.md stayed live, but was rebased into a current partial-gap note after confirming that the targeting-filter runtime and TargetingPresets.ts already exist while some Level 1 spell JSON filters still lag behind.
 - docs/audits/source-references-inventory.md stayed in place as a preserved generated snapshot, with explicit warnings that its 2026-02-13 counts and matches are not current-state truth.
-- docs/portraits/race_portrait_regen_backlog.md stayed live as a readable seed backlog, but it now clearly defers current-state truth to the JSON backlog seed, race-image status log, and slice-of-life QA ledger.
+- docs/portraits/race_portrait_regen_backlog.md stayed live as a readable seed backlog at the time, but was later retired on 2026-06-25 after its live work was routed into Character Creator gap `G23`; current-state truth now lives in the JSON backlog seed, race-image status log, and slice-of-life QA ledger.
 - docs/portraits/race_portrait_regen_handoff.md stayed live as the portrait tooling runbook, but it now warns that the older fixed snapshot counts are stale and that the checked race-profile markdown files are still incomplete generated stubs.
 - the checked race profile markdown files under docs/portraits/race_profiles were rewritten in place as honest incomplete stubs rather than left masquerading as finished lore references.
 

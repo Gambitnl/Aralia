@@ -16,7 +16,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
-import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, type CellTraits } from './atlasSvg';
+import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, type CellTraits, type BurgTier } from './atlasSvg';
 import AtlasLayers from './AtlasLayers';
 import type { RoutePlan } from '../../systems/travel/routePlanning';
 import { formatRouteSummary, dangerRating } from '../../systems/travel/travelReadout';
@@ -124,6 +124,76 @@ const DEFAULT_FEATURES: Record<FeatureLayerId, boolean> = {
 };
 const DEFAULT_AREA_MODE: AreaModeId = 'biomes';
 const LAYER_PREFS_KEY = 'aralia.atlas.layerPrefs.v1';
+
+// Settlement glyphs (screen-space, constant size). Parchment-map ink-on-cream so
+// they read as little towns rather than facet-sized dots on the Voronoi. Capitals
+// carry the only color accent (a red pennant). Drawn centered on the origin and
+// translated to the burg's screen position by the view transform.
+const BURG_INK = '#2b2622';
+const BURG_FILL = '#f7f0df';
+const BURG_FLAG = '#b3322a';
+const BURG_STROKE = 0.9;
+// Below these zoom scales a tier is hidden, so the overview stays uncluttered:
+// capitals + cities always show; towns and villages reveal as you zoom in.
+const BURG_MIN_K: Record<BurgTier, number> = { capital: 0, city: 0, town: 1.4, village: 2.4 };
+
+/** The inner glyph paths for a settlement tier (origin-centered, ~10–18px). */
+function burgGlyph(tier: BurgTier): React.ReactNode {
+  const ink = { fill: BURG_FILL, stroke: BURG_INK, strokeWidth: BURG_STROKE, strokeLinejoin: 'round' as const };
+  switch (tier) {
+    case 'capital':
+      return (
+        <>
+          {/* flanking towers + curtain wall */}
+          <rect x={-7} y={-4} width={3.2} height={10} {...ink} />
+          <rect x={3.8} y={-4} width={3.2} height={10} {...ink} />
+          <rect x={-4.6} y={-1} width={9.2} height={7} {...ink} />
+          {/* merlons (crenellations) */}
+          <rect x={-7} y={-5.4} width={3.2} height={1.4} fill={BURG_INK} />
+          <rect x={3.8} y={-5.4} width={3.2} height={1.4} fill={BURG_INK} />
+          <rect x={-4.6} y={-2.4} width={1.7} height={1.4} fill={BURG_INK} />
+          <rect x={-0.85} y={-2.4} width={1.7} height={1.4} fill={BURG_INK} />
+          <rect x={2.9} y={-2.4} width={1.7} height={1.4} fill={BURG_INK} />
+          {/* gate */}
+          <path d="M-1.5,6 L-1.5,2.6 A1.5,1.5 0 0 1 1.5,2.6 L1.5,6 Z" fill={BURG_INK} />
+          {/* pennant */}
+          <line x1={0} y1={-2.4} x2={0} y2={-9} stroke={BURG_INK} strokeWidth={BURG_STROKE} />
+          <path d="M0,-9 L4.2,-7.9 L0,-6.5 Z" fill={BURG_FLAG} stroke={BURG_INK} strokeWidth={0.5} strokeLinejoin="round" />
+        </>
+      );
+    case 'city':
+      return (
+        <>
+          {/* left, center (tall), right buildings — a little skyline */}
+          <rect x={-7} y={2} width={4} height={4} {...ink} />
+          <path d="M-7.4,2 L-5,-0.9 L-2.6,2 Z" {...ink} />
+          <rect x={3} y={0.5} width={4} height={5.5} {...ink} />
+          <path d="M2.6,0.5 L5,-2.4 L7.4,0.5 Z" {...ink} />
+          <rect x={-2} y={-2} width={4} height={8} {...ink} />
+          <path d="M-3,-2 L0,-6.6 L3,-2 Z" {...ink} />
+        </>
+      );
+    case 'town':
+      return (
+        <>
+          {/* house with chimney + door */}
+          <rect x={2} y={-4.6} width={1.4} height={2.4} {...ink} />
+          <rect x={-3.4} y={-0.5} width={6.8} height={6} {...ink} />
+          <path d="M-4.4,-0.5 L0,-5.6 L4.4,-0.5 Z" {...ink} />
+          <rect x={-0.9} y={2.4} width={1.8} height={3.1} fill={BURG_INK} />
+        </>
+      );
+    case 'village':
+    default:
+      return (
+        <>
+          {/* single small cottage */}
+          <rect x={-2.6} y={-0.3} width={5.2} height={4.6} {...ink} />
+          <path d="M-3.4,-0.3 L0,-4 L3.4,-0.3 Z" {...ink} />
+        </>
+      );
+  }
+}
 
 const SECTION_HEADER: React.CSSProperties = {
   color: '#94a3b8', fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
@@ -361,6 +431,19 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           </>
         ) : null}
       </g>
+      {/* Burg settlement glyphs — screen space (constant size), tier-distinct,
+          zoom-thresholded so the overview shows only capitals + cities. */}
+      {visible.burgs ? (model.burgs ?? []).filter((b) => view.k >= BURG_MIN_K[b.tier]).map((b, i) => (
+        <g
+          key={`burg${i}`}
+          transform={`translate(${b.x * view.k + view.x},${b.y * view.k + view.y})`}
+          style={{ pointerEvents: 'none' }}
+          data-testid="atlas-burg"
+          data-tier={b.tier}
+        >
+          {burgGlyph(b.tier)}
+        </g>
+      )) : null}
       {/* Labels overlay — screen space (constant size), zoom-thresholded + decluttered (T5c). */}
       {visible.labels ? declutterLabels(model.labels ?? [], view).map((l, i) => (
         <text

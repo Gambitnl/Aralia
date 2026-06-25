@@ -6,11 +6,11 @@ category: active project
 main_category: "Content & Rules"
 subcategory: "Items & Content Pipelines"
 status: active
-last_updated: 2026-06-12
+last_updated: 2026-06-25
 iteration: 2
 confidence: unknown
 evidence: "docs/projects/town-description-system/TRACKER.md; docs/projects/town-description-system/GAPS.md"
-gap_signal: 4 open gaps; generator, schema, and adjacent content follow-ups remain open
+gap_signal: 7 open gaps; metadata, persistence, consume path, description generation, presentation, and deferred expansion follow-ups remain open
 protocol: living-project
 next_step: Resume from TRACKER.md and keep the gap log aligned.
 agent_comments: ""
@@ -26,7 +26,6 @@ optional_docs:
   - IMPLEMENTATION_PLAN.md
   - QUICK_START.md
   - README.md
-  - TASKS.md
   - TECHNICAL_SPEC.md
 required_verification:
   - docs consistency
@@ -44,7 +43,7 @@ human_decision_required: "no"
 # Town Description System North Star
 
 Status: active
-Last updated: 2026-06-12
+Last updated: 2026-06-25
 
 ## Dashboard Card Schema
 
@@ -56,7 +55,7 @@ Last updated: 2026-06-12
 | Status | active |
 | Confidence | unknown |
 | Evidence | docs/projects/town-description-system/TRACKER.md; docs/projects/town-description-system/GAPS.md |
-| Gap signal | present |
+| Gap signal | 7 open gaps; retired TASKS.md backlog imported into GAPS.md |
 | Protocol | living-project |
 | Next step | Resume from TRACKER.md and keep the gap log aligned. |
 | Required verification | docs consistency |
@@ -98,7 +97,7 @@ Primary references:
 - `src/state/reducers/townReducer.ts` (town state transitions)
 - `src/types/state.ts` and `src/state/initialState.ts` (runtime state fields)
 - `src/services/saveLoadService.ts` (current save path)
-- project files in this folder: `README.md`, `TECHNICAL_SPEC.md`, `IMPLEMENTATION_PLAN.md`, `TASKS.md`, `QUICK_START.md`
+- project files in this folder: `README.md`, `TECHNICAL_SPEC.md`, `IMPLEMENTATION_PLAN.md`, `QUICK_START.md`
 
 ## Implemented State (Verified)
 
@@ -121,6 +120,7 @@ Primary references:
 - one shared description generation path from settlement profile + layout signals
 - one first presentation attachment for town-description output
 - optional performance layer only after correctness/persistence is in place
+- retired `TASKS.md` backlog items are now routed through `GAPS.md` G6 and G7
 
 ## Integrations
 
@@ -147,6 +147,7 @@ Primary references:
 - confirm one owner for metadata ownership and persistence placement in `TRACKER.md`
 - confirm one canonical coupling boundary for town entry contracts and context payload path
 - confirm whether `VillageScene` context model or `TownCanvas` prop model is the first surface to consume town description metadata
+- continue from `GAPS.md` instead of restoring the retired `TASKS.md` checklist
 
 ## Resume Path
 

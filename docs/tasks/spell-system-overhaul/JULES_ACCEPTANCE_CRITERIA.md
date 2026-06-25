@@ -21,20 +21,20 @@
 You are NOT done with a spell until **ALL** of the following are true.
 
 ### A. Required Reference Material (Source of Truth)
-- [ ] **Examples Used**: You have read and followed `docs/spells/SPELL_JSON_EXAMPLES.md`.
-- [ ] **Level-Aware Examples Reviewed**: Inspect at least one complete leveled spell JSON example such as:
+- Protocol item: **Examples Used**: You have read and followed `docs/spells/SPELL_JSON_EXAMPLES.md`.
+- Protocol item: **Level-Aware Examples Reviewed**: Inspect at least one complete leveled spell JSON example such as:
   - `public/data/spells/level-2/web.json`
   - `public/data/spells/level-2/moonbeam.json`
   - `public/data/spells/level-1/thunderwave.json`
   - **Gold Standard Level 0**: `public/data/spells/level-0/guidance.json`
-- [ ] **Companion Docs Verified Only If They Exist**: Do not assume there is a matching spell glossary markdown file. Verify the current repo structure before adding or updating any companion documentation.
+- Protocol item: **Companion Docs Verified Only If They Exist**: Do not assume there is a matching spell glossary markdown file. Verify the current repo structure before adding or updating any companion documentation.
 
 ### B. Deliverables
 <!-- TODO: Make `source` and `legacy` fields part of Deliverables to enforce 2024 PHB alignment and legacy tagging. -->
-- [ ] **JSON File Created**: `public/data/spells/level-{N}/{id}.json` exists (always nested by level; no flattened `public/data/spells/{id}.json` files).
-- [ ] **Companion Documentation Checked**: If the current repo has companion documentation for that spell or the active workflow explicitly requires it, update it in the correct location. Do not invent a `public/data/glossary/entries/spells/level-{N}/{id}.md` path.
-- [ ] **Class Spell Lists Updated**: If the spell is new, add its ID to the appropriate class spell list(s) in `src/data/classes/index.ts` (e.g., `DRUID_SPELL_LIST`, `WIZARD_SPELL_LIST`). The `classes` array in the JSON must match the lists the spell is added to.
-- [ ] **Field Comparison Check (CRITICAL)**: If an old file exists at `public/data/spells/{id}.json`:
+- Protocol item: **JSON File Created**: `public/data/spells/level-{N}/{id}.json` exists (always nested by level; no flattened `public/data/spells/{id}.json` files).
+- Protocol item: **Companion Documentation Checked**: If the current repo has companion documentation for that spell or the active workflow explicitly requires it, update it in the correct location. Do not invent a `public/data/glossary/entries/spells/level-{N}/{id}.md` path.
+- Protocol item: **Class Spell Lists Updated**: If the spell is new, add its ID to the appropriate class spell list(s) in `src/data/classes/index.ts` (e.g., `DRUID_SPELL_LIST`, `WIZARD_SPELL_LIST`). The `classes` array in the JSON must match the lists the spell is added to.
+- Protocol item: **Field Comparison Check (CRITICAL)**: If an old file exists at `public/data/spells/{id}.json`:
     1. **Read the old file FIRST** - It may contain fields not in the new template
     2. **Check these commonly-missed fields** exist in your new file:
        - `ritual` (boolean, required for all spells)
@@ -45,37 +45,37 @@ You are NOT done with a spell until **ALL** of the following are true.
        - `validTargets` uses plural: `"creatures"`, NOT `"creature"`
        - `damageType` array uses Title Case: `"Bludgeoning"`, NOT `"bludgeoning"`
     4. **Copy any valuable fields** from old file that aren't in new file
-- [ ] **Old JSON Removed**: Delete `public/data/spells/{id}.json` **ONLY after** completing Field Comparison Check above.
+- Protocol item: **Old JSON Removed**: Delete `public/data/spells/{id}.json` **ONLY after** completing Field Comparison Check above.
 
 ### C. JSON Content Compliance
-- [ ] **BaseEffect Fields**: Every single effect object **MUST** contain:
+- Protocol item: **BaseEffect Fields**: Every single effect object **MUST** contain:
     - `trigger`: (e.g., `{ "type": "immediate" }`)
     - `condition`: (e.g., `{ "type": "hit" }` or `{ "type": "save" }`)
-- [ ] **Strict Enums (Case-Sensitive)**:
+- Protocol item: **Strict Enums (Case-Sensitive)**:
     - **Effect Types**: UPPERCASE -> `DAMAGE`, `HEALING`, `DEFENSIVE`, `STATUS_CONDITION`, `UTILITY`, `MOVEMENT`, `SUMMONING`, `TERRAIN`
     - **Schools**: Title Case -> `Abjuration`, `Conjuration`, `Divination`, `Enchantment`, `Evocation`, `Illusion`, `Necromancy`, `Transmutation`
     - **Damage Types**: Title Case -> `Acid`, `Bludgeoning`, `Cold`, `Fire`, `Force`, `Lightning`, `Necrotic`, `Piercing`, `Poison`, `Psychic`, `Radiant`, `Slashing`, `Thunder`
     - **Classes**: Title Case -> `Artificer`, `Bard`, `Cleric`, `Druid`, `Paladin`, `Ranger`, `Sorcerer`, `Warlock`, `Wizard` (and subclasses in the same format, e.g., `Warlock - Fiend Patron`)
     - **validTargets**: Exact values only -> `"creatures"`, `"objects"`, `"allies"`, `"enemies"`, `"self"`, `"point"`, `"ground"` (NOT singular like `"creature"`)
     - **STATUS_CONDITION names**: Must be valid D&D 5e conditions -> `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitated`, `Invisible`, `Paralyzed`, `Petrified`, `Poisoned`, `Prone`, `Restrained`, `Stunned`, `Unconscious`
-- [ ] **Required Top-Level Fields (All Spells)**:
+- Protocol item: **Required Top-Level Fields (All Spells)**:
     - `id`, `name`, `level`, `school`, `classes`, `description` (always required)
     - `ritual`: **MUST be present** (use `false` for cantrips, `true`/`false` for other spells)
     - `castingTime.combatCost`: **MUST include** `{ "type": "action" | "bonus_action" | "reaction" }`
-- [ ] **Level 0 (Cantrip) Rules**:
+- Protocol item: **Level 0 (Cantrip) Rules**:
     - `level`: `0`
     - `ritual`: `false`
     - if the spell includes scaling, use `scaling.type: "character_level"` for cantrip progression
 
 ### D. Validation
-- [ ] **Manifest Updated**: You have run `npx tsx scripts/regenerate-manifest.ts`.
-- [ ] **Manifest Paths Correct**: Generated manifest paths are nested (`/data/spells/level-{N}/{id}.json`); fix any flattened paths before commit.
-- [ ] **Validation Passed**: You have run `npm run validate` and it reports **0 errors** for your files.
-- [ ] **Integrity Passed**: You have run `npx tsx scripts/check-spell-integrity.ts` and resolved any errors.
+- Protocol item: **Manifest Updated**: You have run `npx tsx scripts/regenerate-manifest.ts`.
+- Protocol item: **Manifest Paths Correct**: Generated manifest paths are nested (`/data/spells/level-{N}/{id}.json`); fix any flattened paths before commit.
+- Protocol item: **Validation Passed**: You have run `npm run validate` and it reports **0 errors** for your files.
+- Protocol item: **Integrity Passed**: You have run `npx tsx scripts/check-spell-integrity.ts` and resolved any errors.
 
 ### E. Logging
-- [ ] **Batch File Updated**: Mark completion in the level roll-up batch doc (e.g., `docs/tasks/spell-system-overhaul/LEVEL-1-BATCHES.md` or `LEVEL-2-BATCHES.md`) and add new issues to the matching gaps doc (e.g., `gaps/LEVEL-1-GAPS.md`).
-- [ ] **No Side Effects**: You have **NOT** edited shared status files (like `STATUS_LEVEL_0.md`/`STATUS_LEVEL_1.md`).
+- Protocol item: **Batch File Updated**: Mark completion in the level roll-up batch doc (e.g., `docs/tasks/spell-system-overhaul/LEVEL-1-BATCHES.md` or `LEVEL-2-BATCHES.md`) and add new issues to the matching gaps doc (e.g., `gaps/LEVEL-1-GAPS.md`).
+- Protocol item: **No Side Effects**: You have **NOT** edited shared status files (like `STATUS_LEVEL_0.md`/`STATUS_LEVEL_1.md`).
 
 ---
 
@@ -104,7 +104,7 @@ Append a section titled `## System Gaps & Follow-up` to the bottom of your Batch
 **Format for Batch File Log:**
 ```markdown
 ## System Gaps & Follow-up
-- [ ] **{Spell Name}**: {Brief description of missing feature}
+- Protocol item: **{Spell Name}**: {Brief description of missing feature}
     - *Context*: {What logic is missing? e.g., "No support for 'teleport' effect type"}
     - *Recommendation*: {What needs to be added? e.g., "Add TELEPORT effect type to BaseEffect"}
 ```

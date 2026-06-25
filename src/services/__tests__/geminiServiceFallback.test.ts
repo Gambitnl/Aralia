@@ -1,10 +1,9 @@
-
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import * as GeminiService from '../geminiService';
 import { ai } from '../aiClient';
 import { TempPartyMember } from '../../types';
 import { getFallbackEncounter, getFallbackEncounterWithSeed } from '../geminiServiceFallback';
-import { MONSTERS_DATA } from '../../data/monsters';
+import { MONSTERS_DATA, loadMonstersData } from '../../data/monsters';
 import { MAX_ENCOUNTER_MONSTER_COUNT } from '../../utils/world/encounterUtils';
 
 // Mock the AI client
@@ -40,13 +39,16 @@ describe('GeminiService - generateEncounter Fallback', () => {
   const xpBudget = 100;
   const themeTags = ['goblinoid'];
 
+  beforeAll(async () => {
+    await loadMonstersData();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('should use fallback encounter when AI generation fails', async () => {    
     // Mock AI failure
-    // TODO(2026-01-03 pass 2 Codex-CLI): Replace broad mocks with typed StandardizedResult once helpers exist.
     mockGenerateContent.mockRejectedValue(new Error('AI Service Down'));        
     const result = await GeminiService.generateEncounter(xpBudget, themeTags, mockParty);
 
@@ -72,7 +74,6 @@ describe('GeminiService - generateEncounter Fallback', () => {
 
     // Check metadata indicates fallback
     const meta = result.metadata as { rawResponse?: string } | undefined;
-    // TODO(2026-01-03 pass 2 Codex-CLI): StandardizedResult metadata is typed loosely; cast until a shared test helper shapes it.
     expect(meta?.rawResponse).toContain('Fallback used');
   });
 
@@ -94,7 +95,6 @@ describe('GeminiService - generateEncounter Fallback', () => {
 
   it('should use fallback encounter when AI returns malformed JSON', async () => {
     // Mock AI returning bad JSON
-    // TODO(2026-01-03 pass 2 Codex-CLI): Replace any with the minimal test shape so the behavior stays explicit.
     mockGenerateContent.mockResolvedValue({
       text: 'This is not JSON',
     });

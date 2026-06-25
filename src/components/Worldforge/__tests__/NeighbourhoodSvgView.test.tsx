@@ -45,4 +45,26 @@ describe('NeighbourhoodSvgView', () => {
     expect(container.querySelectorAll('[data-testid="nbh-grey-cell"]')).toHaveLength(2); // both neighbours grey
     expect(container.querySelectorAll('[data-testid="nbh-focus"]')).toHaveLength(1);
   });
+
+  // The user's request: drilling into the region tier should show the player's
+  // PRECISE sub-cell (gold polygon), not just the coarse cell-level ring. The
+  // gold-polygon `nbh-player-subcell` is the precise-only marker.
+  it('shows the precise gold sub-cell highlight when playerCellIndex is supplied', () => {
+    const nbh = buildAtlasNeighbourhood(atlas, 0, (id) => id === 1, rootSeedPath(7), { submapCount: 30 });
+    const { container } = render(
+      <NeighbourhoodSvgView neighbourhood={nbh} width={400} height={400} playerCellId={0} playerCellIndex={0} />,
+    );
+    // Precise gold sub-cell polygon present (the fine-grained party indicator).
+    expect(container.querySelectorAll('[data-testid="nbh-player-subcell"]')).toHaveLength(1);
+  });
+
+  it('omits the precise sub-cell highlight when only playerCellId is known', () => {
+    const nbh = buildAtlasNeighbourhood(atlas, 0, (id) => id === 1, rootSeedPath(7), { submapCount: 30 });
+    const { container } = render(
+      <NeighbourhoodSvgView neighbourhood={nbh} width={400} height={400} playerCellId={0} />,
+    );
+    // No precise index → no gold sub-cell; the coarse cell-level "you are here" shows instead.
+    expect(container.querySelectorAll('[data-testid="nbh-player-subcell"]')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-testid="nbh-you-are-here"]')).toHaveLength(1);
+  });
 });

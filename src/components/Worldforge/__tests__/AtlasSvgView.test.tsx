@@ -1,6 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import AtlasSvgView from '../AtlasSvgView';
+
+// Layer prefs persist to localStorage (real behavior); clear between tests so
+// one test's coloring choice doesn't leak into the next.
+beforeEach(() => { try { localStorage.clear(); } catch { /* ignore */ } });
 
 const stub = {
   graphWidth: 100, graphHeight: 100,
@@ -51,33 +55,54 @@ describe('AtlasSvgView', () => {
     expect(container.querySelectorAll('[data-testid="atlas-discovery-pin"]')).toHaveLength(2);
   });
 
-  it('menu exposes Layers + an Info Panel detail selector', () => {
+  it('menu exposes a Map coloring section + an Info panel detail selector', () => {
     const { getByTestId, getByText, queryByTestId } = render(
       <AtlasSvgView atlas={stub} width={300} height={300} />,
     );
     expect(queryByTestId('atlas-info-verbosity')).toBeNull(); // panel closed initially
     fireEvent.click(getByTestId('atlas-layers-toggle'));
-    expect(getByText('Layers')).toBeTruthy();
-    expect(getByText('Info Panel')).toBeTruthy();
+    expect(getByText('Map coloring')).toBeTruthy();
+    expect(getByText('Info panel')).toBeTruthy();
     const select = getByTestId('atlas-info-verbosity') as HTMLSelectElement;
     expect(select.value).toBe('standard');
     fireEvent.change(select, { target: { value: 'full' } });
     expect(select.value).toBe('full');
   });
 
-  it('Layers panel toggles a layer off (Biomes hides the merged region path)', () => {
+  it('map coloring is an exclusive radio: picking "None" replaces biomes with the neutral land base', () => {
     const { container, getByTestId, getByLabelText } = render(
       <AtlasSvgView atlas={stub} width={300} height={300} />,
     );
-    const biomeBefore = Array.from(container.querySelectorAll('path'))
-      .some((p) => p.getAttribute('fill') === '#11aa33');
-    expect(biomeBefore).toBe(true);
+    const hasFill = (f: string) =>
+      Array.from(container.querySelectorAll('path')).some((p) => p.getAttribute('fill') === f);
+    expect(hasFill('#11aa33')).toBe(true);  // biome region shown by default
+    expect(hasFill('#d9d2bd')).toBe(false); // no neutral base while biomes is the coloring
 
-    fireEvent.click(getByTestId('atlas-layers-toggle')); // open the panel
-    fireEvent.click(getByLabelText('Biomes'));            // toggle Biomes off
+    fireEvent.click(getByTestId('atlas-layers-toggle'));    // open the panel
+    fireEvent.click(getByLabelText('None (plain land)'));   // exclusive: deselects Biomes
 
-    const biomeAfter = Array.from(container.querySelectorAll('path'))
-      .some((p) => p.getAttribute('fill') === '#11aa33');
-    expect(biomeAfter).toBe(false); // biome region no longer rendered
+    expect(hasFill('#11aa33')).toBe(false); // biome region gone
+    expect(hasFill('#d9d2bd')).toBe(true);  // land still drawn (neutral base) — never blank
+  });
+
+  it('the legend reports the active coloring and hides for the plain-land mode', () => {
+    const { getByTestId, getByLabelText, queryByTestId } = render(
+      <AtlasSvgView atlas={stub} width={300} height={300} />,
+    );
+    expect(getByTestId('atlas-legend').textContent).toContain('Biomes');
+
+    fireEvent.click(getByTestId('atlas-layers-toggle'));
+    fireEvent.click(getByLabelText('None (plain land)'));
+    expect(queryByTestId('atlas-legend')).toBeNull(); // nothing to explain in plain-land mode
+  });
+
+  it('disables a coloring mode that has no data on this map (empty ⇒ not a silent no-op)', () => {
+    // The stub has no culture/religion/province/climate arrays, so those modes are empty.
+    const { getByTestId, getByLabelText } = render(
+      <AtlasSvgView atlas={stub} width={300} height={300} />,
+    );
+    fireEvent.click(getByTestId('atlas-layers-toggle'));
+    const cultures = getByLabelText(/Cultures/) as HTMLInputElement;
+    expect(cultures.disabled).toBe(true); // empty layer is disabled, not a dead toggle
   });
 });

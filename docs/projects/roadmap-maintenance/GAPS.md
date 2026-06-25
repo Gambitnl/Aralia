@@ -6,9 +6,9 @@ slug: roadmap-maintenance
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-08"
-gap_count: 3
-open_gap_count: 3
+last_updated: "2026-06-26"
+gap_count: 4
+open_gap_count: 4
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Roadmap Maintenance Gap Registry
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-26
 
 Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 
@@ -113,6 +113,7 @@ Use this file for durable unresolved findings that are too important or too larg
 | G2 | not_started | medium | support_needed_now | future agent | confirmed | project |  | none | none | not_recorded | `docs/projects/roadmap-maintenance` + `roadmap-local` bridge | Local open-task pass | The remaining roadmap-local open items still need durable routing: task-number collision validation, full documentation categorization, queue-driven document processing, vision freshness workflow, and hybrid insights pipeline. | `.agent/roadmap-local/features/roadmap-visualizer/open_tasks.md`; `devtools/roadmap/ROADMAP_AUDIT_RUNBOOK.local.md` | These items are real, remain open in local evidence, and need one glance of project ownership before a fresh roadmap-local run changes anything. | Keep each item here unless a new audit proves it belongs in `docs/projects/GLOBAL_GAPS.md` or in local-only runtime state. | Re-run the open-task snapshot or audit output and confirm the same routing decision. |  |
 | G3 | not_started | low | adjacent_follow_up | future agent | confirmed | project |  | none | none | not_recorded | `docs/projects/roadmap-maintenance` | Evidence capture | The cross-check output files may be historical rather than fresh proof, and this docs pass should not imply otherwise. | `devtools/roadmap/ROADMAP_FEATURE_CROSSCHECK.md`; `devtools/roadmap/ROADMAP_BRANCH_COMPLETENESS_AUDIT.md`; `devtools/roadmap/ROADMAP_AUDIT_RUNBOOK.local.md` | Stale cross-check artifacts can cause false confidence in roadmap alignment and downstream decisions. | Treat them as historical until a new roadmap-local run refreshes the timestamps or proof summary. | Refresh the proof date or add an explicit historical note before using them as current evidence. |  |
 | G5 | blocked | high | blocked_human_decision | human/product owner + roadmap maintainer | confirmed | code-modularization-audit | docs/projects/code-modularization-audit/GAPS.md | decision_required | none | not_recorded | `docs/projects/code-modularization-audit/GAPS.md` CMA-G1 | Code modularization audit routing | Roadmap visualizer/generator files are large modularization candidates, but roadmap-local evidence and review gates must be settled before code movement. | `devtools/roadmap/src/components/debug/roadmap/RoadmapVisualizer.tsx`; `devtools/roadmap/scripts/roadmap-engine/generate.ts`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G1 | Roadmap is the project discoverability surface; an unsafe split can corrupt status/routing visibility. | Keep this routing-only until roadmap-local ownership and review gate are clear. | Owner-approved split plan names proof commands and preserves node health/routing behavior. |  |
+| G6 | not_started | medium | workflow | Codex | confirmed | spells |  | none | none | not_recorded | roadmap capability IDs | Spell migration roadmap backlog routing | Roadmap capability rows need deterministic node-ID conventions so related spell docs do not collide when visualized or indexed. | Routed from `docs/tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md` on 2026-06-26; roadmap visualizer/generator node ID logic; Spells roadmap capability rows | Colliding IDs make unrelated capability rows merge visually, which hides real spell work and confuses agent routing. | Define a node-ID convention that includes project/lane/source identity, then test it against related spell roadmap docs. | Roadmap generation proof showing stable unique IDs for the spell roadmap capability rows and no duplicate-node warnings. |  |
 
 ## Classification Reference
 

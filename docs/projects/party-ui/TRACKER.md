@@ -1,7 +1,7 @@
 # Party UI Living Tracker
 
 Status: active
-Last updated: 2026-06-22
+Last updated: 2026-06-24
 
 ## Status Vocabulary
 
@@ -22,12 +22,14 @@ Last updated: 2026-06-22
 | G10 | done | Evaluate short rest modal parity with long rest choice flow. | Gemini | 2026-06-22 | `src/components/layout/GameModals.tsx` rest modal mounting | Closed for implementation; wired RestModal under isShortRestModalVisible in GameModals.tsx. | Verified via GameModals.test.tsx and RestModal.test.tsx (4/4 tests pass). |
 | G4 | done | Clarify missing-choice warning placement display rule. | Gemini | 2026-06-22 | `docs/projects/party-ui/NORTH_STAR.md` display rule text | Closed for documentation; added display rule text to NORTH_STAR.md and recorded D3 in DECISIONS.md. | Verified via docs consistency check. |
 | G6 | done | Audit the impact of central state/save/load modularization on party rest defaults and character reducer assumptions. | Gemini | 2026-06-22 | `docs/projects/party-ui/DECISIONS.md` D4 | Closed for documentation; recorded pipeline pattern, backfill, normalization, and day-tick sync audit findings. | Verified via vitest runs remaining green. |
+| G11 | done | Disable Party Overlay rest actions during active combat. | Codex | 2026-06-24 | `src/components/Party/PartyOverlay.tsx`; `src/components/layout/GameModals.tsx`; `src/components/Party/__tests__/PartyOverlay.test.tsx`; `src/components/layout/__tests__/GameModals.test.tsx` | Closed for implementation; active combat now disables Short Rest and Long Rest and shows the combat warning label/tooltip. | Verified via focused PartyOverlay and GameModals vitest runs. |
+| G12 | done | Show and route every missing-choice warning on detailed party cards. | Codex | 2026-06-24 | `src/components/Party/PartyPane/PartyMemberCard.tsx`; `src/components/Party/PartyPane/__tests__/PartyMemberCard.test.tsx` | Closed for implementation; detailed cards now render one compact fix action for each missing choice while preserving the portrait summary warning. | Verified via focused PartyMemberCard vitest run. |
 
 ## Notes
 
 - Scope anchor: keep edits inside `docs/projects/party-ui/` only.
 - Registry status remains in `docs/projects/PROJECT_TRACKER.md` (`Party UI`, partial, `src/components/Party`, gap signal present).
-- Current resume target: G10 (short rest modal parity with long rest) is the next independent UX/rules follow-up; G4 (warning rule) remains an independent adjacent follow-up. G3, G5, G7, G8, and G9 are resolved.
+- Current resume target: none registered. G3, G4, G5, G6, G7, G8, G9, G10, G11, and G12 are resolved; run a fresh Party UI expansion sweep before selecting more work in this lane.
 - Update 2026-06-19: G5 contract written from D15/D2. Non-companion roster entries are accepted `PlayerCharacter` party members; companion context is optional by id match; save/load preserves party and companion state separately.
 - North Star now includes the dashboard card schema, so the next agent should keep that section current instead of recreating it in prose.
 

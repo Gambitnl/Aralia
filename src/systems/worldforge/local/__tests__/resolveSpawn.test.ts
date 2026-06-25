@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { resolveWorldSpawn, relocateStartTile } from '../resolveSpawn';
+import { resolveWorldSpawn, relocateStartTile, applyWfSpawnToMap } from '../resolveSpawn';
 import { legacyGridToAtlasCell } from '../gridAtlasBridge';
 import { generateFmgWorld } from '../../fmg/generateWorld';
+import { wfBiomeIndexToLegacyId } from '../wfBiomeToLegacy';
+import type { MapData } from '../../../../types';
 
 const gridSize = { cols: 2, rows: 2 };
 // 2x2 atlas: sites at the 4 grid-cell centers of a 100x100 graph.
@@ -74,6 +76,47 @@ describe('resolveWorldSpawn — real FMG world (integration)', () => {
     // Deterministic for the same seed.
     expect(resolveWorldSpawn(generateFmgWorld('4321'), gs).gridCell).toEqual(s.gridCell);
   }, 60000);
+});
+
+describe('applyWfSpawnToMap — reroll→find-me invariant (integration)', () => {
+  const COLS = 30;
+  const ROWS = 20;
+
+  // A blank grid; applyWfSpawnToMap unifies its biomes from the WF world, so the
+  // starting biomes are irrelevant — what matters is where the player ends up.
+  function blankMap(): MapData {
+    const tiles = Array.from({ length: ROWS }, (_, y) =>
+      Array.from({ length: COLS }, (_, x) => ({
+        x, y, biomeId: 'ocean', discovered: false, isPlayerCurrent: x === 0 && y === 0,
+      })),
+    );
+    return { gridSize: { rows: ROWS, cols: COLS }, tiles } as unknown as MapData;
+  }
+
+  const isWalkable = (b: string) => b !== 'ocean';
+
+  // Replicates the user's manual loop: reroll the world, "find me", check the tile.
+  it('lands the player on a non-ocean walkable tile for every reroll seed', () => {
+    const seeds = [1, 7, 42, 1234, 4321, 99999, 271828, 555000, 8675309, 31337];
+    for (const seed of seeds) {
+      const map = blankMap();
+      const spawn = applyWfSpawnToMap(map, seed, { cols: COLS, rows: ROWS }, {
+        biomeIndexToLegacyId: (idx) => wfBiomeIndexToLegacyId(idx),
+        fallbackBiomeId: 'plains_meadow',
+        isWalkable,
+      });
+
+      // Exactly one player tile, and it is the resolved spawn cell.
+      const playerTiles = map.tiles.flat().filter((t) => t.isPlayerCurrent);
+      expect(playerTiles, `seed ${seed}: one player tile`).toHaveLength(1);
+      const start = playerTiles[0];
+      expect({ x: start.x, y: start.y }, `seed ${seed}: at spawn cell`).toEqual(spawn.gridCell);
+
+      // The invariant: the start tile is land, walkable — never the open ocean.
+      expect(start.biomeId, `seed ${seed}: start biome not ocean`).not.toBe('ocean');
+      expect(isWalkable(start.biomeId), `seed ${seed}: start walkable`).toBe(true);
+    }
+  }, 120000);
 });
 
 describe('relocateStartTile', () => {

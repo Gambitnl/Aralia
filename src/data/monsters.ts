@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 07/05/2026, 00:03:13
- * Dependents: constants.ts, systems/crime/BountyHunterSystem.ts, utils/combat/combatUtils.ts
- * Imports: 3 files
+ * Last Sync: 24/06/2026, 14:49:00
+ * Dependents: App.tsx, commands/effects/SummoningCommand.ts, data/adapters/runtimeMonsterRegistry.ts, hooks/data/useBestiary.ts, services/geminiServiceFallback.ts, utils/world/bestiaryEncounterGenerator.ts, utils/world/encounterUtils.ts
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -13,6 +13,8 @@
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
+
+import { MonsterData } from '../types/ui';
 
 // ============================================================================
 // Monster Data Registry
@@ -36,11 +38,27 @@
 // Depends on: monsters.generated.ts (auto-generated from 5etools)
 // ============================================================================
 
-import { MonsterData } from '../types';
-import { INGESTED_MONSTERS } from './monsters.generated';
+// The main monster registry. Initially empty to break the static dependency chain
+// to monsters.generated.ts during the initial page paint and Main Menu phase.
+// It is populated in-place via Object.assign once loadMonstersData resolves.
+export const MONSTERS_DATA: Record<string, MonsterData> = {};
 
-// The main monster registry. Spread the auto-generated monsters from 5etools.
-// Additional manual monsters can be added below the spread if needed.
-export const MONSTERS_DATA: Record<string, MonsterData> = {
-    ...INGESTED_MONSTERS
-};
+let loadPromise: Promise<Record<string, MonsterData>> | null = null;
+
+/**
+ * Dynamically loads the generated monster dataset.
+ * Populates MONSTERS_DATA in-place to ensure references remain correct once loaded.
+ * 
+ * DESIGN DECISION: Mutating MONSTERS_DATA in-place allows synchronous lookups
+ * in gameplay code to proceed unchanged once background loading completes.
+ */
+export function loadMonstersData(): Promise<Record<string, MonsterData>> {
+  if (loadPromise) return loadPromise;
+
+  loadPromise = import('./monsters.generated').then(({ INGESTED_MONSTERS }) => {
+    Object.assign(MONSTERS_DATA, INGESTED_MONSTERS);
+    return MONSTERS_DATA;
+  });
+
+  return loadPromise;
+}

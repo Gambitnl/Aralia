@@ -50,5 +50,5 @@ Provide the minimum recurring workflow for maintaining this living project surfa
 2. `TRACKER.md`
 3. `GAPS.md`
 4. `TASK_SLICE.md`
-5. `docs/tasks/spell-system-overhaul/TODO.md`
-
+5. `docs/projects/spells/SUBPROJECTS.md`
+6. The relevant `docs/projects/spells/subprojects/*/GAPS.md` file for the selected child lane

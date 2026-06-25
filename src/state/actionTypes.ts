@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 21/06/2026, 13:17:11
+ * Last Sync: 25/06/2026, 01:10:56
  * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/ConversationPanel/ConversationPanel.tsx, components/gameEntry/OpeningSituationGate.tsx, components/layout/GameModals.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleMovement.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDialogueSystem.ts, hooks/useGameActions.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useOllamaCheck.ts, hooks/useOllamaLogBridge.ts, hooks/useOpeningSituation.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/gameEntryReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, types/index.ts, utils/context/entityIntegrationUtils.ts
  * Imports: None
  *
@@ -106,6 +106,9 @@ export type AppAction =
   | { type: 'CLOSE_MERCHANT' }
   | { type: 'BUY_ITEM'; payload: { item: Item; cost: number } }
   | { type: 'SELL_ITEM'; payload: { itemId: string; value: number } }
+  // Fence sales are not ordinary merchant sales. They still remove an item and
+  // pay gold, but they also create a small crime-system heat footprint.
+  | { type: 'SELL_FENCED_ITEM'; payload: { itemId: string; value: number; locationId: string; heatGenerated: number } }
   | { type: 'ATTUNE_ITEM'; payload: { characterId: string; itemId: string } }
   | { type: 'UNATTUNE_ITEM'; payload: { characterId: string; itemId: string } }
   | { type: 'TOGGLE_ITEM_JUNK'; payload: { itemId: string } }

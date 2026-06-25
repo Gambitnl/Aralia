@@ -518,8 +518,9 @@ Question:
 Current state:
 
 - Backlog captured in:
-  - `docs/portraits/race_portrait_regen_backlog.md`
   - `docs/portraits/race_portrait_regen_backlog.json`
+  - `scripts/audits/slice-of-life-settings.json`
+  - Character Creator gap `G23`
 - Slice-of-life report tooling:
   - `scripts/audits/list-slice-of-life-settings.ts` outputs `scripts/audits/slice-of-life-settings.md`
 - Batch regeneration tooling:

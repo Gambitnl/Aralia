@@ -16,7 +16,7 @@ Start here when you need to re-enter active development or documentation work qu
 - **Spell System Overhaul**: `docs/tasks/spell-system-overhaul/` (Start at `README.md` or `00-TASK-INDEX.md`)
 - **Spell Completeness Audit**: `docs/tasks/spell-completeness-audit/`
 - **3D Exploration**: `docs/tasks/3d-exploration/`
-- **Feature & QOL Backlog**: [`BACKLOG.md`](./BACKLOG.md)
+- **Project Gap Registries**: [`projects/PROJECT_TRACKER.md`](./projects/PROJECT_TRACKER.md) and [`projects/GLOBAL_GAPS.md`](./projects/GLOBAL_GAPS.md)
 - **Live Spell Integration**: [`SPELL_INTEGRATION_STATUS.md`](./SPELL_INTEGRATION_STATUS.md)
 
 *Note: There are other mixed active work areas under `docs/tasks/`, `docs/projects/`, and `docs/improvements/` that are pending normalization.*

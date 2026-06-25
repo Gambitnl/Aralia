@@ -152,6 +152,12 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
 }) => {
   // Get visible steps
   const visibleSteps = SIDEBAR_STEPS.filter(step => step.isVisible(state));
+  // Progress should reflect the route the player has actually reached. Several
+  // later steps have defaults, so counting every completed visible step makes
+  // one confirmed choice look like multiple choices were finished.
+  const completedReachedSteps = visibleSteps.filter(stepConfig =>
+    stepConfig.step <= currentStep && isStepCompleted(stepConfig.step, state)
+  ).length;
 
   // Two-click confirm for the destructive Start Over action. The armed state
   // disarms automatically so a stray first click can't linger as a landmine.
@@ -198,7 +204,7 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
       {/* Footer with completion status */}
       <div className="p-4 border-t border-gray-700 space-y-2">
         <div className="text-xs text-gray-500">
-          {visibleSteps.filter(s => isStepCompleted(s.step, state)).length} / {visibleSteps.length} steps complete
+          {completedReachedSteps} / {visibleSteps.length} steps complete
         </div>
         {onStartOver && (
           <button

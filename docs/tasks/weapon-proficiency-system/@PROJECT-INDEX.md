@@ -43,8 +43,11 @@ This file is the current truth surface for the weapon-proficiency subtree. It re
 - src/utils/combat/combatUtils.ts
 - src/utils/character/__tests__/weaponUtils.test.ts
 
-## Remaining concrete follow-through
+## Routed Follow-through
 
-- Re-verify or implement Attack Roll Proficiency Penalty in the final combat modifier pipeline.
-- Verify whether combat selection UI needs a dedicated Combat Weapon Proficiency Warning surface.
-- Re-run rendered verification for mannequin and inventory warning UX before claiming the warning layer is fully settled.
+The remaining follow-through is no longer tracked as loose backlog here.
+Use `GAPS.md` and `TRACKER.md` instead:
+
+- Attack roll proficiency penalty bypass checks route to `GAPS.md` G3.
+- Combat weapon proficiency warning UI routes to `GAPS.md` G1 and `TRACKER.md` T2.
+- Fresh rendered verification for warning and penalty alignment routes to `GAPS.md` G2 and `TRACKER.md` T2.

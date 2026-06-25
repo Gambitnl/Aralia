@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 21/06/2026, 15:26:40
+ * Last Sync: 24/06/2026, 22:09:43
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
  * Imports: 12 files
  *
@@ -50,6 +50,8 @@ interface BattleMapProps {
   mapData: BattleMapData | null;
   characters: CombatCharacter[];
   showCoverLabels?: boolean;
+  showLightSourceMarkers?: boolean;
+  showLineOfSightCone?: boolean;
   objectInteraction?: {
     activeObjectId: string | null;
     movableObjectIds: string[];
@@ -65,7 +67,7 @@ interface BattleMapProps {
   };
 }
 
-const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLabels = false, objectInteraction, combatState }) => {
+const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLabels = false, showLightSourceMarkers = true, showLineOfSightCone = false, objectInteraction, combatState }) => {
   const { turnManager, turnState, abilitySystem, isCharacterTurn } = combatState;
 
   const battleMapState = useBattleMap(mapData, characters, turnManager, abilitySystem);
@@ -353,6 +355,9 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, showCoverLab
             scheduledSpellEffects={turnManager.scheduledSpellEffects || []}
             movementDebuffs={turnManager.movementDebuffs || []}
             activeLightSources={(turnManager.activeLightSources || []) as LightSource[]}
+            showLightSourceMarkers={showLightSourceMarkers}
+            showLineOfSightCone={showLineOfSightCone}
+            lineOfSightOriginCharacterId={currentCharacter?.id ?? null}
             spellMovementVisuals={turnManager.spellMovementVisuals || []}
             spellDeliveryVisuals={turnManager.spellDeliveryVisuals || []}
             aoePreview={abilitySystem.aoePreview}

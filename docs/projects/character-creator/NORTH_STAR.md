@@ -6,13 +6,13 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-14
-iteration: 6
+last_updated: 2026-06-25
+iteration: 12
 confidence: high
 evidence: docs/projects/character-creator
-gap_signal: "12 open gaps; G1, G3-G8, G14-G17, and G20 remain open after G18-G19 resolution"
+gap_signal: "6 open gaps; G1, G3, G5, G6, G8, and G16 remain open after G4, G7, G14, G15, G17, and G18-G20 resolution"
 protocol: living project doc set
-next_step: G18 and G19 resolved. Proceed to address open wizard/sidebar/feat selection gaps (G7, G14, G20).
+next_step: G4, G7, G14, G15, G17, and G18-G20 resolved. Proceed to address the next audited Character Creator gap, likely G16.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -27,7 +27,13 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-14
+  - CreationSidebar racial feat visibility test (2026-06-24)
+  - skillSelectionUtils raceId-constrained Skillful test (2026-06-24)
+  - CreationSidebar progress counter default-step test (2026-06-25)
+  - SkillSelection background-granted class skill badge test (2026-06-25)
+  - CharacterCreator flow test lint-intent cleanup (2026-06-25)
+  - WeaponMasterySelection canonical weapon and click/focus details test (2026-06-25)
+last_proof: 2026-06-25
 workflow_gaps_reviewed: 2026-06-14
 compaction_status: not_needed
 lifecycle_status: reviewed (G2 resolved)
@@ -39,7 +45,7 @@ human_decision_required: "no"
 # Character Creator North Star
 
 Status: active (G2 resolved 2026-06-08; no pending review hold)
-Last updated: 2026-06-14
+Last updated: 2026-06-25
 
 ## Dashboard Card Schema
 
@@ -49,12 +55,12 @@ Category: Feature/UI Projects
 Status: active (G2 resolved 2026-06-08; no pending review hold)
 Confidence: high
 Evidence: docs/projects/character-creator
-Gap signal: 12 open gaps; G1, G3-G8, G14-G17, and G20 remain open after G18-G19 resolution
+Gap signal: 6 open gaps; G1, G3, G5, G6, G8, and G16 remain open after G4, G7, G14, G15, G17, and G18-G20 resolution
 Protocol: living project doc set
-Next step: G18 and G19 resolved. Proceed to address open wizard/sidebar/feat selection gaps (G7, G14, G20).
+Next step: G4, G7, G14, G15, G17, and G18-G20 resolved. Proceed to address the next audited Character Creator gap, likely G16.
 Required verification: docs_consistency
-Completed verification: docs_consistency
-Last proof: 2026-06-14
+Completed verification: docs_consistency, CreationSidebar racial feat visibility test (2026-06-24), skillSelectionUtils raceId-constrained Skillful test (2026-06-24), CreationSidebar progress counter default-step test (2026-06-25), SkillSelection background-granted class skill badge test (2026-06-25), CharacterCreator flow test lint-intent cleanup (2026-06-25), WeaponMasterySelection canonical weapon and click/focus details test (2026-06-25)
+Last proof: 2026-06-25
 Workflow gaps reviewed: 2026-06-14
 
 Dashboard lifecycle: reviewed (G2 resolved)

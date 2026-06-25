@@ -1,7 +1,7 @@
 # Party UI Audit / Proof
 
 Status: active
-Last updated: 2026-06-19
+Last updated: 2026-06-24
 
 Use this file for durable proof summaries, scoped verification notes, and acceptance evidence. Do not paste raw logs unless a short excerpt is required for later agents to understand the result.
 
@@ -9,6 +9,8 @@ Use this file for durable proof summaries, scoped verification notes, and accept
 
 | Date | Check | Result | Evidence |
 |---|---|---|---|
+| 2026-06-24 | G12 multiple missing-choice warnings | pass | `PartyMemberCard` renders one compact fix button per missing choice and routes the selected choice into `onMissingChoiceClick`. Verified with `npm exec vitest run src/components/Party/PartyPane/__tests__/PartyMemberCard.test.tsx`. |
+| 2026-06-24 | G11 combat rest gate | pass | `GameModals` passes active combat state into `PartyOverlay`; `PartyOverlay` disables Short Rest and Long Rest and shows the combat warning label/tooltip. Verified with `npm exec vitest run src/components/Party/__tests__/PartyOverlay.test.tsx` and `npm exec vitest run src/components/layout/__tests__/GameModals.test.tsx`. |
 | 2026-06-22 | G6 state/save/load modularization audit | pass | Conducted audit of pipeline pattern, save/load backfill, class-level/hit-dice normalization, and day-tick sync. Recorded findings in DECISIONS.md D4. |
 | 2026-06-22 | G10 short rest modal parity | pass | RestModal is lazy loaded and wired in GameModals.tsx. Verified by GameModals.test.tsx rendering test and new RestModal.test.tsx unit tests (4/4 pass). |
 | 2026-06-22 | G4 warning placement rule | pass | Added display rule text to NORTH_STAR.md and recorded D3 in DECISIONS.md. |

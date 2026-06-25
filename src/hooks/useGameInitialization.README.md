@@ -1,7 +1,5 @@
 # useGameInitialization Hook (`src/hooks/useGameInitialization.ts`)
 
-<!-- TODO(QOL): Add lifecycle diagrams covering useGameInitialization/useGameActions/useBattleMap/useAudio and link them here or in docs/diagrams/ (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path). -->
-
 ## Purpose
 
 The `useGameInitialization` custom React hook consolidates the logic related to initializing the game state for different scenarios in Aralia RPG. This includes:
@@ -13,6 +11,27 @@ The `useGameInitialization` custom React hook consolidates the logic related to 
 5.  Initializing the dummy player state if auto-starting in development mode.
 
 This hook aims to make `App.tsx` cleaner by abstracting these setup flows.
+
+## Lifecycle
+
+```mermaid
+flowchart TD
+  MainMenu["Main menu action"] --> NewGame["handleNewGame"]
+  MainMenu --> SkipCreator["handleSkipCharacterCreator"]
+  MainMenu --> LoadGame["handleLoadGameFlow"]
+  NewGame --> CreationPhase["Dispatch START_NEW_GAME_SETUP"]
+  CreationPhase --> CreatorComplete["CharacterCreator calls startGame"]
+  SkipCreator --> DummyParty["Generate dummy party and world state"]
+  LoadGame --> SaveLoad["SaveLoadService.loadGame"]
+  CreatorComplete --> StartGame["Build starting inventory, map, NPC, and location state"]
+  DummyParty --> ActiveGame["Dispatch START_GAME_FOR_DUMMY"]
+  SaveLoad --> LoadedGame["Dispatch LOAD_GAME_SUCCESS"]
+  StartGame --> ActiveGame["Dispatch START_GAME_SUCCESS"]
+  LoadedGame --> ActiveGame
+```
+
+The hook owns startup branching only. Once it dispatches an active-game state,
+ongoing player actions move through `useGameActions` rather than this hook.
 
 ## Interface
 

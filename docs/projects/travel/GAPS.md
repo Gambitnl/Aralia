@@ -6,9 +6,9 @@ slug: travel
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-15"
-gap_count: 10
-open_gap_count: 10
+last_updated: "2026-06-25"
+gap_count: 11
+open_gap_count: 11
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Travel Gap Registry
 
 Status: active
-Last updated: 2026-06-15
+Last updated: 2026-06-25
 
 Use this file for durable unresolved findings that belong to Travel System and are too important to keep only in temporary notes.
 
@@ -120,6 +120,7 @@ Use this file for durable unresolved findings that belong to Travel System and a
 | G8 | not_started | support_needed_now | Worker A | `docs/projects/travel/TRACKER.md` | Code audit | Map seed generation (`deriveAzgaarSeed`) hashes coordinates of rectangular tiles. | `src/components/MapPane.tsx` (`deriveAzgaarSeed`) | Couples the iframe map loading and generation seed to the legacy grid structure. | Decouple seed generation from grid tiles; use direct seed mapping from `worldSeed`. | Test that seed derivation returns stable seed without traversing grid array. |
 | G9 | not_started | in_scope_now | Worker A | `docs/projects/travel/TRACKER.md` | Travel cell-native audit | Player marker (`AtlasPlayerMarker`) positioning is coupled to grid coordinates. | `src/components/MapPane.tsx` / `AtlasPlayerMarker` | Marker position snaps to grid tile centers instead of cell centroids. | Calculate player marker position based on current cell centroid coordinates (`cell.c`). | Test marker positions align correctly with actual cell centroids. |
 | G10 | not_started | in_scope_now | Worker A | `docs/projects/travel/TRACKER.md` | Code audit | Compass and travel reducers only accept and track `x, y` grid updates. | `src/state/reducers/worldReducer.ts` | State updates ignore cell-level precision for travel actions. | Add cell ID tracking to movement action payloads and state models. | Unit tests verifying dispatching cell-native travel updates cell ID state. |
+| G11 | not_started | support_needed_now | Codex | Map marker and discovery integration | `docs/BACKLOG.md` migration 2026-06-25 | Quest objectives and discovered-location markers need one marker model instead of separate root-backlog intent. | `docs/BACKLOG.md`; `src/utils/locationUtils.ts`; related cell-native marker rows G7-G10. | Travel owns player position, discovery precision, and marker placement; quest objective markers should not drift from discovered-location markers during the grid-to-cell transition. | Define the map-marker merge contract after or alongside G7-G10 so quest objectives can reference cell-native destinations. | Test that a quest objective marker and discovered-location marker resolve through the same map marker projection path. |
 
 ## Classification Reference
 

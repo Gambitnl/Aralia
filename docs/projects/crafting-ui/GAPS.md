@@ -6,9 +6,9 @@ slug: crafting-ui
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-17"
-gap_count: 7
-open_gap_count: 5
+last_updated: "2026-06-26"
+gap_count: 8
+open_gap_count: 6
 resolved_gap_count: 2
 routed_gap_count: 0
 imported_gap_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Crafting UI Gap Registry
 
 Status: active
-Last updated: 2026-06-17
+Last updated: 2026-06-26
 
 Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
@@ -117,6 +117,7 @@ Current resume priority: G2+G5 as a single typing-and-proof slice. G4, G6, and G
 | G5 | active | adjacent_follow_up | Qoder CLI | src/state/reducers/craftingReducer.ts | T2 boundary scan | Add reducer-contract proof for `UPDATE_CRAFTING_STATS` | No dedicated `craftingReducer.test.ts` file exists. Focused Crafting UI tests cover crafter adapter and panel selection paths, but the reducer's quality/category branching logic has no direct unit test. | Reducer behavior for `UPDATE_CRAFTING_STATS` (quality checks, category counts, nat20 tracking) is unverified. Combined with G2 typing, this forms a single implementation slice. | Add `src/state/reducers/__tests__/craftingReducer.test.ts` covering `UPDATE_CRAFTING_STATS` branches: ruined, standard, masterwork, legendary, nat20, and category count increment. | Test file exists with all branches covered; `npm run test` passes. |
 | G6 | active | adjacent_follow_up | Codex | `docs/projects/code-modularization-audit` CMA-G13 | Code modularization audit routing | Alchemy bench is a large UI surface paired with a large recipe corpus. | `src/components/Crafting/AlchemyBenchPanel.tsx`; `src/systems/crafting/alchemyRecipes.ts`; `docs/projects/crafting/GAPS.md` G9 | UI extraction needs panel-flow proof and should not be mixed with recipe-corpus sharding. | Define UI-owned split boundaries and keep systems recipe ownership separate. | Alchemy bench UI proof and reducer/panel tests named before code movement |
 | G7 | active | adjacent_follow_up | Qoder CLI | src/components/Crafting/AlchemyBenchPanel.tsx | T2 evidence scan | `UPDATE_CRAFTING_STATS` is only dispatched from `AlchemyBenchPanel.tsx` | Grep across `src/` found `UPDATE_CRAFTING_STATS` dispatch only in `AlchemyBenchPanel.tsx:150,188`. No other crafting panel (ExperimentPanel, GatheringPanel, CreatureHarvestPanel) dispatches stats updates. | If gathering, experiments, or creature harvest should contribute to crafting stats, the dispatch gap is invisible until a panel-flow audit catches it. | Decide whether non-alchemy crafting flows should also dispatch `UPDATE_CRAFTING_STATS` and record the decision. | Each crafting panel either dispatches stats or has an explicit "no stats" note in its header. |
+| G8 | active | in_scope_now | Alchemist / Crafting UI owner | `src/components/CharacterSheet/Overview/InventoryList.tsx` | Retired `docs/tasks/ui-features/TASK_SALVAGE_UI.md` 2026-06-26 | Salvage recipes have backend support but no confirmed player-facing inventory entry point. | `src/systems/crafting/salvageSystem.ts`; `src/systems/crafting/data/recipes.ts` includes `recipeType: 'salvage'`; current inventory surface is `src/components/CharacterSheet/Overview/InventoryList.tsx`, replacing the stale flat `src/components/Inventory/InventoryList.tsx` path. | Salvage remains invisible to players if the UI does not expose eligible salvage recipes, confirmation, risk messaging, and result feedback. | Define the inventory action/menu target and add a bounded salvage confirmation flow that calls `attemptSalvage` for eligible items. | Component tests and rendered proof showing a salvage-eligible item exposes a Salvage action, displays inputs/outputs and loss risk, calls the salvage path, and reports success/failure. |
 
 ## Classification Guide
 

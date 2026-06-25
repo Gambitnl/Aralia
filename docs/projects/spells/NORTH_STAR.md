@@ -79,6 +79,28 @@ The parent should answer four questions for a cold-start agent:
 
 Keep the spell project family coherent while the spell runtime, data corpus, validation rules, UI behavior, and supporting audits expand in parallel. Preserve broad spell-system intent without turning the parent into a catch-all execution packet.
 
+## Current State
+
+- The Spells project is already a `parent_with_subprojects` routing surface.
+- The parent registry is `docs/projects/spells/SUBPROJECTS.md`.
+- The current registry tracks seven owned Spells lanes and one linked support project.
+- The highest-priority parent route is the created-object / persistent-structure mechanics stream, which belongs to the Mechanics Discovery Packages child lane until a narrower runtime/data owner is selected.
+- Parent gaps are import/routing signals only. Child packets own executable work, proof, pass telemetry, and lane-local gap detail.
+
+## Parent Scope
+
+In scope:
+- Maintain the umbrella purpose, child-lane registry, parent gap imports, and ownership decisions for spell-domain work.
+- Route implementation, audit, UI, validation, data taxonomy, documentation, and mechanics-discovery slices into the correct child packet.
+- Keep linked support and adjacent dependencies visible without absorbing their ownership.
+- Preserve the parent/subproject dashboard fields from `docs/projects/PROJECT_CARD_SCHEMA.md`.
+
+Out of scope:
+- Treating the parent as one executable spell-work iteration.
+- Copying every child TODO, Jules receipt, Symphony state, or raw audit finding into the parent.
+- Promoting linked support projects into owned Spells child lanes without an explicit ownership decision.
+- Running runtime or UI implementation directly from this parent packet after a child lane has been identified.
+
 ## Child Lane Registry
 
 The authoritative registry is `docs/projects/spells/SUBPROJECTS.md`.
@@ -127,6 +149,40 @@ A normal resume should be:
 | `DECISIONS.md` | Durable parent routing, ownership, and import decisions. |
 | `AUDIT_OR_PROOF.md` | Concise parent proof summaries plus imported child-proof references. |
 | `RUNBOOK.md` | Repeatable parent onboarding and maintenance checks. |
+
+## What Must Not Be Lost
+
+- Spells is an expansion-first game system area; parent routing should preserve future spell mechanics rather than narrowing to the easiest current check.
+- The parent is a routing dashboard. It should remain legible to agents and humans who need to choose a lane before changing behavior.
+- Child packets are the executable units. Their trackers, gaps, proof notes, and cold-start prompts must stay authoritative for lane-local work.
+- Linked support and adjacent dependencies matter, but they should not be silently re-owned by Spells just because they affect spell behavior.
+
+## Evidence And Proof
+
+| Evidence | What it proves |
+|---|---|
+| `docs/projects/PROJECT_CARD_SCHEMA.md` | Parent-with-subprojects dashboard schema and required `SUBPROJECTS.md` table contract. |
+| `docs/agent-workflows/living-project-task-protocol/PARENT_PROJECT_WITH_SUBPROJECTS.md` | Parent ownership model, child packet setup, read order, and verification expectations. |
+| `docs/projects/spells/SUBPROJECTS.md` | Current Spells child-lane registry, linked support row, adjacent dependency routing, and highest-priority lane. |
+| `docs/projects/spells/subprojects/*/NORTH_STAR.md` | Child packets that own executable pass scope and proof. |
+| `docs/tasks/spells/` | Historical Spell Phase package and mechanics-discovery evidence that feeds the Mechanics Discovery Packages child lane. |
+| `docs/projects/scripts-spell-runtime-template-audit/NORTH_STAR.md` | Linked support ownership for runtime-template audit work that should not be absorbed by the Spells parent. |
+| Browser annotation on `misc/project_tracker.html` | User feedback that the Spells parent page should follow the parent-project layout and structure. |
+
+## Active Parent Tasks
+
+| ID | Status | Task | Owner | Last updated | Acceptance criteria | Next action | Next proof |
+|---|---|---|---|---|---|---|---|
+| SP-PARENT-T1 | active | Keep the Spells parent aligned with the parent-with-subprojects layout. | Codex | 2026-06-24 | Parent `NORTH_STAR.md` has template-aligned sections; `SUBPROJECTS.md` uses canonical count keys; child lanes remain the executable units. | Refresh the rendered tracker page and confirm the parent page reads as a routing surface with a scoped child registry. | Project tracker detail page shows parent routing plus `SUBPROJECTS.md` child-lane structure without implying one parent implementation pass. |
+| SP-PARENT-T2 | active | Route the next executable pass through the highest-impact child lane. | Future agent | 2026-06-24 | The chosen child packet owns pass telemetry, tracker updates, gap detail, and proof. Parent updates only routing/imported gap summary if needed. | Start from the `mechanics-discovery-packages` row unless a newer `SUBPROJECTS.md` priority supersedes it. | Child tracker/proof update plus parent gap/import summary only if the child discovers parent-visible changes. |
+
+## Resume Path
+
+1. Read this North Star, then `SUBPROJECTS.md`.
+2. Choose the lane named by the user or the `highest_priority` row in `SUBPROJECTS.md`.
+3. Read that child's `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md`.
+4. Do executable work inside the child packet, not the parent.
+5. After the child pass, update this parent only if routing, counts, ownership, imported gaps, or dashboard-visible status changed.
 
 ## Boundary
 

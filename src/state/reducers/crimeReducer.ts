@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:29:18
- * Dependents: appState.ts
+ * Last Sync: 25/06/2026, 01:21:23
+ * Dependents: state/appState.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -201,8 +201,9 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
         case 'COMMIT_CRIME': {
             const { type, locationId, severity, witnessed } = action.payload;
 
-            // Normalize severity to 1-100 scale if it seems to be using 1-10
-            const normalizedSeverity = severity <= 10 ? severity * 10 : severity;
+            // CrimeSystem owns severity unit conversion so reducers, bounty
+            // logic, and future callers all agree on one bounded scale.
+            const normalizedSeverity = CrimeSystem.normalizeSeverity(severity);
 
             const newCrime: Crime = {
                 id: generateId(),
@@ -219,7 +220,7 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             // Let's adopt 1-100 as the standard.
             // Old: 10 * 2 = 20 heat. New: 100 * 0.2 = 20 heat.
             // TODO: This currently applies 0.5/0.1 multipliers on 1–100, so a witnessed severity 5 yields +25 heat instead of the expected ~10; align the units or drop normalization.
-            const heatIncrease = witnessed ? normalizedSeverity * 0.5 : normalizedSeverity * 0.1;
+            const heatIncrease = CrimeSystem.calculateCrimeHeat(normalizedSeverity, witnessed);
 
             const currentLocalHeat = state.notoriety.localHeat[locationId] || 0;
             const newLocalHeat = Math.min(100, currentLocalHeat + heatIncrease);
@@ -258,6 +259,25 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
                         timestamp: state.gameTime
                     }] : [])
                 ]
+            };
+        }
+
+        case 'ADVANCE_TIME': {
+            // The app reducer runs world time before crime maintenance, so
+            // state.gameTime is already the new in-game timestamp here. That
+            // makes this the shared cleanup point for rest, travel, waiting,
+            // and any other action that advances the world clock.
+            const prunedNotoriety = CrimeSystem.pruneExpiredBounties(
+                state.notoriety,
+                state.gameTime.getTime()
+            );
+
+            if (prunedNotoriety === state.notoriety) {
+                return {};
+            }
+
+            return {
+                notoriety: prunedNotoriety
             };
         }
 
@@ -308,6 +328,27 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
                         ...state.notoriety.localHeat,
                         [locationId]: newLocalHeat,
                     },
+                },
+            };
+        }
+
+        case 'SELL_FENCED_ITEM': {
+            const { locationId, heatGenerated } = action.payload;
+            const heatIncrease = Math.max(0, heatGenerated);
+            if (heatIncrease === 0) return {};
+
+            const currentLocalHeat = state.notoriety.localHeat[locationId] || 0;
+
+            return {
+                notoriety: {
+                    ...state.notoriety,
+                    // Fence sales create suspicion in the local market without
+                    // logging a formal witnessed crime.
+                    localHeat: {
+                        ...state.notoriety.localHeat,
+                        [locationId]: Math.min(100, currentLocalHeat + heatIncrease),
+                    },
+                    globalHeat: Math.min(100, state.notoriety.globalHeat + (heatIncrease * 0.1)),
                 },
             };
         }

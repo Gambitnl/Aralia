@@ -54,7 +54,7 @@ Stop after movement-within coverage is added and the docs record verification as
 |---|---|---|
 | Current surface | `docs/tasks/spell-system-overhaul/NORTH_STAR.md` | Starting point and evidence anchors |
 | Project registry | `docs/projects/PROJECT_TRACKER.md` | Existing registry row should be updated rather than duplicated |
-| Live backlog | `docs/tasks/spell-system-overhaul/TODO.md` | High-priority and medium-priority implementation gaps |
+| Live backlog | `docs/projects/spells/SUBPROJECTS.md` plus the relevant Spells child `GAPS.md` file | High-priority and medium-priority implementation gaps migrated from the retired mixed TODO |
 | Current tracker | `docs/tasks/spell-system-overhaul/TRACKER.md` and `GAPS.md` | Active rows and gap classifications |
 | Runtime area path | `src/systems/spells/effects/AreaEffectTracker.ts` | Existing movement-through-zone implementation |
 | Area tests | `AreaEffectTracker.test.ts` | Existing test file and explicit missing cases |

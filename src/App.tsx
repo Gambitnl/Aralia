@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 09/06/2026, 02:06:29
+ * Last Sync: 24/06/2026, 14:57:44
  * Dependents: None (Orphan)
- * Imports: 54 files
+ * Imports: 61 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -46,12 +46,8 @@
 // useEffect for side effects
 import React, { useReducer, useCallback, useEffect, useRef, lazy, Suspense, useState } from 'react';
 import { resolveWorldDataFor3D } from './utils/mapDataToWorldData';
-// Framer Motion - provides animation components like AnimatePresence for smooth UI transitions
-import { AnimatePresence } from 'framer-motion';
-
-// Core TypeScript types/interfaces used throughout the application
-// These define the structure of locations, messages, NPCs, items, characters, game phases, etc.
 import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase, Notification } from './types';
+import { loadMonstersData } from './data/monsters';
 // State management - appReducer handles all state updates via actions, initialGameState provides defaults
 import { appReducer } from './state/appState';
 import { initialGameState } from './state/initialState';
@@ -81,6 +77,8 @@ import {
 } from './data/world/locations';
 import { NPCS } from './data/world/npcs';
 import { BIOMES } from './data/biomes';
+import { applyWfSpawnToMap } from '@/systems/worldforge/local/resolveSpawn';
+import { wfBiomeIndexToLegacyId } from '@/systems/worldforge/local/wfBiomeToLegacy';
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from './config/mapConfig';
 import { gridCellCenterToWorldMeters, getTerrainHeight } from './utils/worldCoords';
 import { canUseDevTools } from './utils/permissions';
@@ -88,11 +86,8 @@ import { validateEnv } from './config/env';
 import { DiceOverlay } from './components/dice/DiceOverlay';
 import { Z_INDEX, applyZIndexCssVariables } from './styles/zIndex';
 
-import { NotificationSystem } from './components/ui/NotificationSystem';
 import { GameProvider } from './state/GameContext';
 import { WORLD3D_CONFIG } from './systems/world3d/config';
-import { CompanionReaction } from './components/ui/CompanionReaction';
-import GameModals from './components/layout/GameModals';
 import MainMenu from './components/layout/MainMenu';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import * as SaveLoadService from './services/saveLoadService';
@@ -116,6 +111,9 @@ const GameLayout = lazy(() => import('./components/layout/GameLayout'));
 const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(module => ({ default: module.LoadGameTransition })));
 const NotFound = lazy(() => import('./components/ui/NotFound'));
 const World3DDemo = lazy(() => import('./components/World3D/World3DDemo'));
+const NotificationSystem = lazy(() => import('./components/ui/NotificationSystem').then(module => ({ default: module.NotificationSystem })));
+const CompanionReaction = lazy(() => import('./components/ui/CompanionReaction').then(module => ({ default: module.CompanionReaction })));
+const GameModals = lazy(() => import('./components/layout/GameModals'));
 // Worldforge atlas cartographer demo (?phase=worldforge) — lazy: pulls the
 // whole ported-FMG generation stack, which the main bundle must not pay for.
 const WorldforgeAtlasDemo = lazy(() => import('./components/Worldforge/AtlasDemo'));
@@ -189,6 +187,15 @@ const App: React.FC = () => {
       cancelled = true;
     };
   }, [gameState.phase, itemsById]);
+
+  // Load monster data in the background once the player leaves the Main Menu.
+  // This keeps the massive generated bestiary chunk completely out of the Main Menu bundle.
+  useEffect(() => {
+    if (gameState.phase === GamePhase.MAIN_MENU) return;
+    loadMonstersData().catch(err => {
+      console.error('Failed to pre-load dynamic monster data in background:', err);
+    });
+  }, [gameState.phase]);
 
   // Load persisted preference once (default is ON if absent).
   useEffect(() => {
@@ -585,8 +592,14 @@ const App: React.FC = () => {
     dispatch({ type: 'ABANDON_RUN' });
   }, [dispatch]);
 
-  const handleTileClick = useCallback((x: number, y: number, tile: MapTile) => {
+  const handleTileClick = useCallback((x: number, y: number, tile: MapTile, travelMeta?: { seconds: number; encounterMessage?: string | null }) => {
     const targetBiome = BIOMES[tile.biomeId];
+    // Travel-mode picks carry the planned route's real duration + a pre-rolled
+    // "danger on the road" message; fall back to the legacy flat hour otherwise.
+    const travelSeconds = travelMeta?.seconds != null ? Math.max(60, Math.round(travelMeta.seconds)) : 3600;
+    const announceEncounter = () => {
+      if (travelMeta?.encounterMessage) addMessage(travelMeta.encounterMessage, 'system');
+    };
 
     if (!targetBiome) {
       addMessage("The nature of this terrain is unknown.", 'system');
@@ -633,8 +646,9 @@ const App: React.FC = () => {
         newMapDataForDispatch = { ...newMapDataForDispatch, tiles: newTiles };
       }
       dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: tile.locationId, newSubMapCoordinates, mapData: newMapDataForDispatch || undefined, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(tile.locationId, LOCATIONS) } });
-      dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 3600 } });
+      dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
       dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
+      announceEncounter();
     } else if (tile.discovered && !tile.locationId) {
       const targetCoordId = `coord_${x}_${y}`;
       if (targetCoordId !== gameState.currentLocationId) {
@@ -649,13 +663,18 @@ const App: React.FC = () => {
           newMapDataForDispatch = { ...newMapDataForDispatch, tiles: newTiles };
         }
         dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: targetCoordId, newSubMapCoordinates, mapData: newMapDataForDispatch || undefined, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetCoordId, LOCATIONS) } });
-        dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 3600 } });
+        dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
         dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
+        announceEncounter();
       } else {
         addMessage(`This is your current world map area: ${targetBiome.name} at (${x},${y}).`, 'system');
       }
     } else if (tile.discovered) {
       addMessage(`This is the ${targetBiome.name} at world coordinates (${x},${y}). ${targetBiome.description}`, 'system');
+    } else {
+      // Travel failure mode: a pick landed on an unexplored cell. Never silently
+      // no-op — tell the player why the trip didn't happen.
+      addMessage('That place lies beyond the known map — scout closer before you can travel there.', 'system');
     }
 
   }, [gameState.currentLocationId, gameState.mapData, addMessage, dispatch]);
@@ -730,6 +749,24 @@ const App: React.FC = () => {
   const createWorldFromSeed = useCallback((seed: number) => {
     const normalizedSeed = Number.isFinite(seed) && seed > 0 ? Math.floor(seed) : generateWorldSeed();
     const nextMapData = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, normalizedSeed);
+    // WF-derived spawn: unify the grid's biomes to the regenerated FMG world and
+    // relocate the player onto a land/burg cell, so a reroll never strands the
+    // marker on an ocean tile. Mirrors startGame; guarded so a hiccup never bricks
+    // the reroll. (Bug fix: createWorldFromSeed previously left the old start tile.)
+    try {
+      applyWfSpawnToMap(
+        nextMapData,
+        normalizedSeed,
+        { cols: MAP_GRID_SIZE.cols, rows: MAP_GRID_SIZE.rows },
+        {
+          biomeIndexToLegacyId: (idx) => wfBiomeIndexToLegacyId(idx),
+          fallbackBiomeId: LOCATIONS[STARTING_LOCATION_ID].biomeId,
+          isWalkable: (biomeId) => BIOMES[biomeId]?.passable ?? false,
+        },
+      );
+    } catch (err) {
+      console.error('[createWorldFromSeed] WF spawn resolution failed; using legacy start tile.', err);
+    }
     dispatch({ type: 'SET_WORLD_SEED', payload: normalizedSeed });
     dispatch({ type: 'SET_MAP_DATA', payload: nextMapData });
     return { seed: normalizedSeed, mapData: nextMapData };
@@ -1257,12 +1294,12 @@ const App: React.FC = () => {
     <AppProviders loadGlossaryData={shouldLoadGlossaryData} loadSpellData={shouldLoadSpellData}>
       <GameProvider state={gameState} dispatch={dispatch}>
         <div className="App min-h-screen bg-gray-900">
-          <NotificationSystem notifications={notifications} dispatch={dispatch} />
+          <Suspense fallback={null}>
+            <NotificationSystem notifications={notifications} dispatch={dispatch} />
+          </Suspense>
 
           {/* Global Loading Spinner */}
-          <AnimatePresence>
-            {(gameState.isLoading || gameState.isImageLoading) && <LoadingSpinner message={gameState.loadingMessage || (gameState.isImageLoading ? t('app.ui.loading.image') : t('app.ui.loading.default'))} />}
-          </AnimatePresence>
+          {(gameState.isLoading || gameState.isImageLoading) && <LoadingSpinner message={gameState.loadingMessage || (gameState.isImageLoading ? t('app.ui.loading.image') : t('app.ui.loading.default'))} />}
 
           {/* Global Error Message Banner */}
           {gameState.error && (
@@ -1295,45 +1332,49 @@ const App: React.FC = () => {
           )}
 
           {/* Modal Manager: Handles all overlays (Inventory, Map, Logs, etc.) */}
-          <GameModals
-            gameState={gameState}
-            dispatch={dispatch}
-            onAction={processAction}
-            onTileClick={handleTileClick}
-            onEnter3DAtCell={handleEnter3DAtCell}
-            playerWorldPos={gameState.playerWorldPos}
-            allow3DEntry={gameState.phase === GamePhase.PLAYING}
-            currentLocation={currentLocationData}
-            npcsInLocation={npcs}
-            itemsInLocation={itemsInCurrentLocation}
-            isUIInteractive={isUIInteractive}
-            missingChoiceModal={missingChoiceModal}
-            onCloseMissingChoice={() => setMissingChoiceModal({ isOpen: false, character: null, missingChoice: null })}
-            onConfirmMissingChoice={handleConfirmMissingChoice}
-            onFixMissingChoice={handleFixMissingChoice}
-            handleCloseCharacterSheet={handleCloseCharacterSheet}
-            handleClosePartyOverlay={handleClosePartyOverlay}
-            handleDevMenuAction={handleDevMenuAction}
-            handleModelChange={handleModelChange}
-            handleNavigateToGlossaryFromTooltip={handleNavigateToGlossaryFromTooltip}
-            handleOpenGlossary={handleOpenGlossary}
-            handleOpenCharacterSheet={handleOpenCharacterSheet}
+          <Suspense fallback={null}>
+            <GameModals
+              gameState={gameState}
+              dispatch={dispatch}
+              onAction={processAction}
+              onTileClick={handleTileClick}
+              onEnter3DAtCell={handleEnter3DAtCell}
+              playerWorldPos={gameState.playerWorldPos}
+              allow3DEntry={gameState.phase === GamePhase.PLAYING}
+              currentLocation={currentLocationData}
+              npcsInLocation={npcs}
+              itemsInLocation={itemsInCurrentLocation}
+              isUIInteractive={isUIInteractive}
+              missingChoiceModal={missingChoiceModal}
+              onCloseMissingChoice={() => setMissingChoiceModal({ isOpen: false, character: null, missingChoice: null })}
+              onConfirmMissingChoice={handleConfirmMissingChoice}
+              onFixMissingChoice={handleFixMissingChoice}
+              handleCloseCharacterSheet={handleCloseCharacterSheet}
+              handleClosePartyOverlay={handleClosePartyOverlay}
+              handleDevMenuAction={handleDevMenuAction}
+              handleModelChange={handleModelChange}
+              handleNavigateToGlossaryFromTooltip={handleNavigateToGlossaryFromTooltip}
+              handleOpenGlossary={handleOpenGlossary}
+              handleOpenCharacterSheet={handleOpenCharacterSheet}
 
-            onForceBanterTrigger={forceBanter}
-            onClearBanterLogs={() => dispatch({ type: 'CLEAR_BANTER_DEBUG_LOG' })}
-            isBanterPaused={isBanterPaused}
-            toggleBanterPause={() => setIsBanterPaused(prev => !prev)}
-            canRegenerateWorldMap={canRegenerateWorldMap}
-            worldGenerationLockedReason={worldGenerationLockedReason}
-            onRegenerateWorldMap={handleRegenerateWorldMap}
-          />
+              onForceBanterTrigger={forceBanter}
+              onClearBanterLogs={() => dispatch({ type: 'CLEAR_BANTER_DEBUG_LOG' })}
+              isBanterPaused={isBanterPaused}
+              toggleBanterPause={() => setIsBanterPaused(prev => !prev)}
+              canRegenerateWorldMap={canRegenerateWorldMap}
+              worldGenerationLockedReason={worldGenerationLockedReason}
+              onRegenerateWorldMap={handleRegenerateWorldMap}
+            />
+          </Suspense>
 
           {/* Global Companion Reactions (hidden in the main exploration interface where log is visible) */}
           {(gameState.phase !== GamePhase.PLAYING || !isUIInteractive) && (
-            <CompanionReaction
-              companions={gameState.companions}
-              latestMessage={gameState.messages[gameState.messages.length - 1]}
-            />
+            <Suspense fallback={null}>
+              <CompanionReaction
+                companions={gameState.companions}
+                latestMessage={gameState.messages[gameState.messages.length - 1]}
+              />
+            </Suspense>
           )}
 
           {/* Banter Panel */}

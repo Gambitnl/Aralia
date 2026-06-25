@@ -4,9 +4,9 @@ handoff_type: agent_to_agent
 project: Compass Pane
 slug: compass-pane
 status: active
-last_updated: 2026-06-20
-iteration: 5
-source_agent: Qoder CLI
+last_updated: 2026-06-24
+iteration: 6
+source_agent: Codex application agent
 target_agent: next cold-start agent
 runtime_surface: CLI agent
 certainty: certain
@@ -39,7 +39,7 @@ docs/projects/compass-pane/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Compass Pane
 Project folder: docs/projects/compass-pane
-iteration: 6
+iteration: 7
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -54,35 +54,36 @@ Gaps: docs/projects/compass-pane/GAPS.md
 | 3 | Amazon Q MCP subagent | MCP-subagent | certain | 2026-06-19 | Amazon Q in IDE via MCP protocol |
 | 4 | Kilo / kilo/kilo-auto/free | CLI agent | certain | 2026-06-18 | Direct CLI/tool session in F:\Repos\Aralia |
 | 5 | Qoder CLI | CLI agent | certain | 2026-06-20 | Direct CLI session in F:\Repos\Aralia |
+| 6 | Codex application agent | application agent | certain | 2026-06-24 | Direct Codex app session in F:\Repos\Aralia |
 
 ## Previous Iteration Summary
 
-T5 is complete. G4 documentation continuity was resolved by verifying the README against current source: the README was already synced (correct file name, all 9 props, pass-time modal, submap context, toggle rules, and imports all match). G6 stale JSDoc header was also resolved by updating the `@file` annotation and adding PassTimeModal/isSubmapContext mentions. One new gap was registered: G5 (missing `isSubmapContext` toggle visibility test coverage). All project docs refreshed.
+T6 is complete. G5 context-aware toggle coverage was resolved by restoring the missing main-context submap toggle and adding regression tests for both Compass Pane contexts. The main exploration context now proves world-map, submap, and 3D toggles are visible; the submap context proves world-map remains visible while submap/3D toggles are hidden. The restored submap toggle dispatches the existing `toggle_submap_visibility` action. Scoped Compass Pane tests passed with 8 tests.
 
 ## Current Mission
 
 Active task:
-G5 - Add `isSubmapContext` toggle visibility test coverage
+No active Compass Pane implementation gap is currently open.
 
 Acceptance criteria:
-Add a scoped test that renders CompassPane with `isSubmapContext={true}` and asserts that the submap toggle and 3D toggle buttons are absent while the world-map toggle remains visible.
+Run a fresh source-backed gap scan before assigning more Compass Pane work. Do not reopen G5 unless context-toggle behavior changes or the regression proof is invalidated.
 
-Key files to touch:
+Key files to inspect first:
 - `docs/projects/compass-pane/NORTH_STAR.md`
 - `docs/projects/compass-pane/TRACKER.md`
 - `docs/projects/compass-pane/GAPS.md`
 - `docs/projects/compass-pane/AUDIT_OR_PROOF.md`
-- `docs/projects/compass-pane/COLD_START_AGENT_PROMPT.md`
+- `src/components/CompassPane/index.tsx`
 - `src/components/CompassPane/__tests__/CompassPane.test.tsx`
 
 Scoped verification:
 `npm exec vitest run src/components/CompassPane/__tests__/CompassPane.test.tsx`
 
 Blocking dependencies / do-not-touch:
-No blocker currently. Stay inside Compass Pane scope and do not widen into unrelated UI refactors.
+No blocker currently. Stay inside Compass Pane scope and do not widen into unrelated UI refactors. Use the existing local checkout unless the operator explicitly allows worktrees or branches.
 
 Recent progress:
-T3 navigation affordances validated and G1 resolved. G3 UI pre-check semantics resolved with tests. G4 documentation continuity resolved (README verified synced to source). G6 stale JSDoc resolved. G5 remains as the last open gap (isSubmapContext test coverage).
+T3 navigation affordances validated and G1 resolved. G3 UI pre-check semantics resolved with tests. G4 documentation continuity resolved (README verified synced to source). G6 stale JSDoc resolved. G5 context-toggle regression coverage resolved. Compass Pane currently has zero open project-owned gaps.
 
 Workflow gap review:
 `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` was not re-read this iteration; no workflow-level update needed.

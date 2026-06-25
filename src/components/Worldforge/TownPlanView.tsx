@@ -16,6 +16,12 @@ const CIVIC_LABEL: Record<CivicKind, string> = {
   plaza: 'Market Plaza', temple: 'Temple', keep: 'Keep', citadel: 'Citadel', dock: 'Docks', bridge: 'Bridge',
 };
 
+// Outskirts land-use fills: farmland (tilled, furrow-hatched) hugs the town,
+// pasture (grassland) beyond, scrub/barren at the rim.
+const OUTSKIRT_FILL: Record<'farm' | 'pasture' | 'scrub', string> = {
+  farm: 'url(#town-farm)', pasture: '#7c9a57', scrub: '#9b9576',
+};
+
 const poly = (pts: Pt[]): string => 'M' + pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L') + 'Z';
 const open = (pts: Pt[]): string => 'M' + pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L');
 
@@ -218,13 +224,32 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
       onMouseLeave={onLeave}
       data-testid="town-plan-view"
     >
+      <defs>
+        {/* Tilled-field furrows for farmland parcels. */}
+        <pattern id="town-farm" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(38)">
+          <rect width="7" height="7" fill="#c7a567" />
+          <line x1="0" y1="0" x2="0" y2="7" stroke="#a6843f" strokeWidth="1.5" />
+        </pattern>
+      </defs>
       <g transform={`translate(${view.x},${view.y}) scale(${view.k})`}>
-        <path d={poly(plan.footprint)} fill="#d9cdb0" />
-        {plan.wards.map((w, i) => (
-          <path key={`w${i}`} d={poly(w.polygon)} fill={w.civic === 'plaza' ? '#e7dcc0' : '#efe6d2'} stroke="#b7a77f" strokeWidth={0.6} vectorEffect="non-scaling-stroke" />
+        {/* Cell base = open countryside (the whole parent cell is land). */}
+        <path d={poly(plan.footprint)} fill="#88a05f" />
+        {/* Outskirts: farmland near the town, pasture beyond, scrub at the rim —
+            so the town isn't hardset to the cell's edge. */}
+        {(plan.outskirts ?? []).map((o, i) => (
+          <path key={`out${i}`} d={poly(o.polygon)} fill={OUTSKIRT_FILL[o.kind]} stroke="#6f7a52" strokeWidth={0.3} vectorEffect="non-scaling-stroke" data-testid={`town-outskirt-${o.kind}`} />
         ))}
+        {/* Organic built-up CORE filled in the STREET/ground tone: the gaps between
+            block fills (the ward insets) then read as the street network. */}
+        <path d={poly(plan.core ?? plan.footprint)} fill="#cdbf9c" stroke="#8a7a55" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+        {/* Buildable blocks (ward insets) in parchment — the area between them is
+            street. Fall back to the full ward if no block (older plans). */}
+        {plan.wards.map((w, i) => (
+          <path key={`w${i}`} d={poly(w.block ?? w.polygon)} fill={w.civic === 'plaza' ? '#e7dcc0' : '#efe6d2'} stroke="#b7a77f" strokeWidth={0.4} vectorEffect="non-scaling-stroke" />
+        ))}
+        {/* Inherited main roads on top of the street grid (wider, distinct). */}
         {plan.streets.map((s, i) => (
-          <path key={`st${i}`} d={open(s)} fill="none" stroke="#cdbf9c" strokeWidth={6} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+          <path key={`st${i}`} d={open(s)} fill="none" stroke="#b8a577" strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
         ))}
         {plan.wards.flatMap((w, wi) => w.plots.map((pl, pi) => (
           <path key={`p${wi}-${pi}`} d={poly(pl.polygon)} fill={pl.kind === 'interior' ? '#b89a72' : '#9c7b54'} stroke="#5f4527" strokeWidth={0.5} vectorEffect="non-scaling-stroke" />

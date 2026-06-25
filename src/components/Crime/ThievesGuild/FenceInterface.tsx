@@ -5,6 +5,13 @@ import { GuildService } from '../../../types/crime';
 import { Item, ItemRarity, ItemRarityDefinitions } from '../../../types/items';
 import { Z_INDEX } from '../../../styles/zIndex';
 
+/**
+ * FenceInterface is the Thieves' Guild selling screen for suspicious goods.
+ *
+ * It lets the player sell inventory to a fence at a markdown, then dispatches a
+ * dedicated fence-sale action so the inventory/gold update and the crime heat
+ * consequence stay tied to the same player choice.
+ */
 interface FenceInterfaceProps {
     service: GuildService;
     onClose: () => void;
@@ -34,16 +41,27 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
         return Math.floor(baseValue * payoutRatio);
     };
 
+    const getFenceHeat = (item: Item, price: number): number => {
+        const marketValue = item.costInGp || price;
+
+        // Fencing is quieter than an open witnessed crime, but every deal
+        // leaves at least a small local rumor footprint.
+        return Math.max(1, Math.floor(marketValue / 100));
+    };
+
     const handleSell = () => {
         if (!selectedItem) return;
 
         const price = getFencePrice(selectedItem);
+        const heatGenerated = getFenceHeat(selectedItem, price);
 
         dispatch({
-            type: 'SELL_ITEM',
+            type: 'SELL_FENCED_ITEM',
             payload: {
                 itemId: selectedItem.id,
-                value: price
+                value: price,
+                locationId: state.currentLocationId,
+                heatGenerated
             }
         });
 

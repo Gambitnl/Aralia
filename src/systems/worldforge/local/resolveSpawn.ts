@@ -11,9 +11,10 @@
  *
  * Pure: no React/DOM. Deterministic from the world.
  */
-import type { FmgWorldResult } from '../fmg/generateWorld';
+import { generateFmgWorld, type FmgWorldResult } from '../fmg/generateWorld';
 import type { MapData } from '../../../types';
 import { atlasCellToLegacyGrid, legacyGridToAtlasCell, type GridCoord, type GridSize } from './gridAtlasBridge';
+import { unifyMapBiomesWithWorld } from './unifyMapBiomes';
 
 const LAND_THRESHOLD = 20;
 
@@ -123,4 +124,37 @@ export function relocateStartTile(mapData: MapData, cell: GridCoord, opts: Reloc
   const desired = opts.biomeId ?? target.biomeId;
   const walkable = opts.isWalkable ? opts.isWalkable(desired) : true;
   target.biomeId = walkable ? desired : (opts.fallbackBiomeId ?? target.biomeId);
+}
+
+export interface ApplyWfSpawnOptions {
+  /** Map the spawn cell's WF biome index to a legacy biome id for the start tile. */
+  biomeIndexToLegacyId?: (biomeIndex: number | undefined) => string | undefined;
+  /** Walkable biome to fall back to when the WF biome isn't walkable. */
+  fallbackBiomeId?: string;
+  /** Predicate; a biome that returns false is replaced by the fallback. */
+  isWalkable?: (biomeId: string) => boolean;
+}
+
+/**
+ * Re-place the player on a WF-derived LAND spawn for a freshly (re)generated map:
+ * unify the grid's biomes to the WF world, resolve a land/burg spawn cell, and
+ * move the start tile there (kept walkable via the biome guard). Call this at
+ * new-game start AND on every world reroll so the player is never stranded on an
+ * ocean tile. Mutates `mapData`; returns the resolved spawn.
+ */
+export function applyWfSpawnToMap(
+  mapData: MapData,
+  worldSeed: number,
+  gridSize: GridSize,
+  opts: ApplyWfSpawnOptions = {},
+): WorldSpawn {
+  const world = generateFmgWorld(String(worldSeed));
+  unifyMapBiomesWithWorld(mapData, world, gridSize);
+  const spawn = resolveWorldSpawn(world, gridSize);
+  relocateStartTile(mapData, spawn.gridCell, {
+    biomeId: opts.biomeIndexToLegacyId?.(spawn.biomeIndex),
+    fallbackBiomeId: opts.fallbackBiomeId,
+    isWalkable: opts.isWalkable,
+  });
+  return spawn;
 }

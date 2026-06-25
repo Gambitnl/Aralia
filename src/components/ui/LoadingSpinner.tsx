@@ -4,22 +4,17 @@
  * when the application is waiting for an asynchronous operation to complete,
  * such as an API call to Gemini. It now accepts an optional message prop.
  * @component-owner UI Team / Core UI
+ * 
+ * DESIGN DECISION: Removed framer-motion dependency and replaced with vanilla
+ * CSS transitions to eliminate massive frameworks from the initial Main Menu bundle.
  */
 import React from 'react';
-import { motion, MotionProps } from 'framer-motion';
 import { t } from '../../utils/i18n';
 import { UI_ID } from '../../styles/uiIds';
 
 export interface LoadingSpinnerProps {
   message?: string | null; // Optional message to display
 }
-
-const overlayMotion: MotionProps = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-  transition: { duration: 0.3 },
-};
 
 /**
  * LoadingSpinner component.
@@ -30,11 +25,10 @@ const overlayMotion: MotionProps = {
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
   const displayMessage = message || t('app.ui.loading.default');
   return (
-    <motion.div
+    <div
       id={UI_ID.LOADING_SPINNER}
       data-testid={UI_ID.LOADING_SPINNER}
-      {...overlayMotion}
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[var(--z-index-modal-background)]"
+      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[var(--z-index-modal-background)] transition-opacity duration-300 ease-in-out animate-fade-in"
       aria-label="Loading content"
       role="status"
     >
@@ -45,6 +39,6 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
         ></div>
         <p className="text-white text-xl mt-4 text-center px-4">{displayMessage}</p>
       </div>
-    </motion.div>
+    </div>
   );
 };

@@ -4,9 +4,9 @@ handoff_type: agent_to_agent
 project: Party UI
 slug: party-ui
 status: partial
-last_updated: 2026-06-22
-iteration: 9
-source_agent: Gemini 3.5 Flash (Medium)
+last_updated: 2026-06-24
+iteration: 11
+source_agent: Codex application agent
 target_agent: next cold-start agent
 runtime_surface: MCP/subagent
 certainty: certain
@@ -20,7 +20,7 @@ gaps: docs/projects/party-ui/GAPS.md
 # Party UI Cold Start Agent Handoff
 
 Status: partial
-Last updated: 2026-06-22
+Last updated: 2026-06-24
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -39,7 +39,7 @@ docs/projects/party-ui/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Party UI
 Project folder: docs/projects/party-ui
-iteration: 9
+iteration: 11
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -58,38 +58,36 @@ Gaps: docs/projects/party-ui/GAPS.md
 | 7 | Gemini 3.5 Flash | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G9 resolved by adding comprehensive unit test suite in PartyMemberCard.test.tsx. |
 | 8 | Gemini 3.5 Flash | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G10 resolved by wiring RestModal to PartyOverlay short rest button; G4 resolved by adding warning placement rules. |
 | 9 | Gemini 3.5 Flash (Medium) | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G6 resolved by conducting state/save/load modularization audit. |
+| 10 | Codex | application agent | certain | 2026-06-24 | Current Codex app session; G11 resolved by wiring active combat state into PartyOverlay rest controls and adding focused tests. |
+| 11 | Codex | application agent | certain | 2026-06-24 | Current Codex app session; G12 resolved by rendering and routing all missing-choice warnings in PartyMemberCard. |
 
 ## Previous Agent Handoff
 
-Iteration 9 resolved G6 (state/save/load modularization audit). Documented pipeline pattern sequencing, load/save backfill rules, class/hit-dice data normalizations, and day-tick tracker sync rules in `DECISIONS.md` D4. Recorded audit proof in `AUDIT_OR_PROOF.md`. Rerun vitest suites which remain fully green.
+Iteration 11 resolved G12 (multiple choice warnings display on card). `PartyMemberCard` now renders one compact fix action per pending missing choice and passes the selected `MissingChoice` to `onMissingChoiceClick`. The portrait warning remains as a compact summary/first-choice shortcut.
 
 ## Current Mission
 
 Active task:
-The project now has 2 open gaps identified during the Iteration 9 sweep. The next safe work is:
-- G11 (combat check for rest flow): Disable short/long rest buttons in PartyOverlay and display a warning if the party is in combat (gameState.currentEnemies is active).
-- G12 (multiple choice warnings display on card): Display and support selecting/fixing secondary missing choices in PartyMemberCard instead of only showing the first one.
+The project has no currently registered open Party UI gaps. The next safe work is to run a fresh Party UI expansion sweep, register any real gaps in `GAPS.md`, and only then select the next implementation slice.
 
 Acceptance criteria:
-- Rest buttons are disabled and tooltip explains why when combat is active.
-- PartyMemberCard warning badge handles multiple issues gracefully.
+- New findings are evidence-backed and registered before implementation.
+- If no valid Party UI gaps are found, route cross-project findings to `docs/projects/GLOBAL_GAPS.md`.
 
 Key files to touch:
 - docs/projects/party-ui/NORTH_STAR.md
 - docs/projects/party-ui/TRACKER.md
 - docs/projects/party-ui/GAPS.md
 - docs/projects/party-ui/COLD_START_AGENT_PROMPT.md
-- src/components/Party/PartyOverlay.tsx
-- src/components/Party/PartyPane/PartyMemberCard.tsx
 
 Scoped verification:
-Run the targeted Party UI and layout tests (`npx vitest run src/components/Party/` and `npx vitest run src/components/layout/__tests__/` and `npx vitest run src/components/ui/__tests__/RestModal.test.tsx`) plus `git diff --check`.
+For discovery-only passes, run docs consistency/audit checks if available. For implementation passes, run the targeted tests for the touched Party UI files plus `git diff --check`.
 
 Blocking dependencies / do-not-touch:
 None. Stay inside the Party UI scope.
 
 Recent progress:
-Iteration 9 conducted state/save/load modularization audit and recorded findings/rules in `DECISIONS.md` D4.
+Iteration 11 resolved the multiple missing-choice warning flow and recorded proof in `AUDIT_OR_PROOF.md`.
 
 ## Required End State For This Iteration
 
@@ -114,7 +112,7 @@ Optional docs to check when present or named by tracker:
 
 ## Project Prompt Conformance Notes
 
-Last updated: 2026-06-12
+Last updated: 2026-06-24
 
 This section aligns older cold-start prompts with the shared living-project workflow without replacing the project-specific handoff above. The original handoff remains authoritative for project context; this section records the universal prompt shape that every next agent must honor.
 
@@ -136,6 +134,8 @@ Before selecting work, identify yourself and the surface you are running through
 | 7 | Gemini 3.5 Flash | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G9 resolved by adding comprehensive unit test suite in PartyMemberCard.test.tsx. |
 | 8 | Gemini 3.5 Flash | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G10 resolved by wiring RestModal to PartyOverlay short rest button; G4 resolved by adding warning placement rules. |
 | 9 | Gemini 3.5 Flash (Medium) | CLI agent | certain | 2026-06-22 | Invoked as iteration worker; G6 resolved by conducting state/save/load modularization audit. |
+| 10 | Codex | application agent | certain | 2026-06-24 | Current Codex app session; G11 resolved by wiring active combat state into PartyOverlay rest controls and adding focused tests. |
+| 11 | Codex | application agent | certain | 2026-06-24 | Current Codex app session; G12 resolved by rendering and routing all missing-choice warnings in PartyMemberCard. |
 
 ### Required project docs to account for
 

@@ -182,6 +182,27 @@ Those docs should focus on:
 
 Those docs should not try to become parallel project-overview docs.
 
+## Styling Source Of Truth
+
+Styling guidance is split across a few surfaces because Aralia has both global
+application styles and feature-local presentation rules. Use this order when
+checking or updating style-related documentation:
+
+1. [`DEVELOPMENT_GUIDE.md`](./DEVELOPMENT_GUIDE.md) explains the boot-time style
+   chain: `index.html`, `public/styles.css`, `src/index.css`, and the broader
+   `src/styles/` and `public/css/` surfaces.
+2. Source-adjacent READMEs document component-local contracts when a component
+   owns unusual layout, canvas, modal, overlay, or responsive behavior.
+3. Shared helpers and primitives, such as `src/styles/buttonStyles.ts` and
+   project-owned UI primitive docs, should be treated as reusable style surfaces
+   before adding one-off button or control treatments.
+4. Feature project docs should record visual verification requirements when a
+   style decision affects player-facing behavior, but they should not duplicate
+   low-level CSS implementation details.
+
+When a style change affects a reusable pattern, update the closest shared helper
+or source-adjacent README rather than only adding a note to a feature task file.
+
 ## Archive Policy
 
 Move a doc to archive when one of these is true:

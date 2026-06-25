@@ -159,8 +159,10 @@ The latest local deep dive found:
   residue set rather than the older hundreds-count backlog.
 - `SPELL_RUNTIME_TEMPLATE_AUDIT_REPORT.md` currently reports warnings rather
   than errors.
-- `SPELL_MECHANICS_DISCOVERY_REPORT.md` remains the real execution backlog:
-  `1,235` actionable-open mechanics findings across `24` bucket families.
+- `SPELL_MECHANICS_DISCOVERY_REPORT.md` remains the broad source evidence for
+  mechanics discovery, but executable work now routes through
+  `docs/projects/spells/subprojects/mechanics-discovery-packages/GAPS.md`
+  instead of this plan.
 
 The practical interpretation is:
 

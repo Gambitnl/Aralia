@@ -165,6 +165,21 @@ describe('resolveItemVisual', () => {
     expect(result.primaryColor).toBe('#9ca3af'); // Gray default
   });
 
+  it('resolves generated item SVG paths from the item registry', () => {
+    const item: Item = {
+      ...mockItemBase,
+      id: 'potion_of_healing',
+      name: 'Potion of Healing',
+      type: 'consumable',
+      icon: '/assets/icons/items/potion_of_healing.svg',
+    };
+
+    const result = resolveItemVisual(item);
+
+    expect(result.src).toBe('/assets/icons/items/potion_of_healing.svg');
+    expect(result.label).toBe('Potion of Healing');
+  });
+
   it('resolves legacy emoji in icon field as fallback content', () => {
     const item: Item = {
       ...mockItemBase,

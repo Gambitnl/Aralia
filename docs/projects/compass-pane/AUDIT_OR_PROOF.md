@@ -1,6 +1,6 @@
 # Compass Pane Audit And Proof
 
-Last updated: 2026-06-20
+Last updated: 2026-06-24
 
 This note keeps the durable proof for the movement/action regression slice so
 future agents do not have to reconstruct it from chat output.
@@ -16,6 +16,9 @@ future agents do not have to reconstruct it from chat output.
 - Verified movement into an adjacent impassable world tile is disabled before
   dispatch.
 - Verified pass-time confirmation emits a `wait` action with seconds payload.
+- Verified main exploration context shows world-map, submap, and 3D toggles.
+- Verified submap context keeps world-map access visible and hides submap/3D toggles.
+- Verified the restored submap toggle emits `toggle_submap_visibility`.
 
 ## Verification Run
 
@@ -60,3 +63,29 @@ G6 resolved: `src/components/CompassPane/index.tsx` JSDoc header updated from
 mentions added.
 
 No source code behavior was changed. All project docs refreshed.
+
+## T6 Context Toggle Proof
+
+Date: 2026-06-24
+
+G5 resolved: `src/components/CompassPane/__tests__/CompassPane.test.tsx` now
+proves both documented context rules:
+
+- Main exploration renders the world-map, submap, and 3D toggles.
+- Submap context renders only the world-map toggle and hides redundant submap/3D
+  controls.
+- The restored submap toggle dispatches the existing `toggle_submap_visibility`
+  action instead of introducing a new action contract.
+
+The implementation change is limited to `src/components/CompassPane/index.tsx`:
+the missing main-context submap button was restored beside the existing world
+map and 3D buttons, and it is hidden by the same `isSubmapContext` condition as
+the 3D entry.
+
+Verification:
+
+```text
+npm exec vitest run src/components/CompassPane/__tests__/CompassPane.test.tsx
+```
+
+Result: pass, 8 tests.

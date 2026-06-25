@@ -8,6 +8,28 @@ The `useAudio` custom React hook encapsulates the logic related to audio playbac
 2.  The `playPcmAudio` function, which decodes and plays base64 encoded PCM audio data (typically received from a Text-to-Speech service).
 3.  Cleanup of the `AudioContext` when the component using the hook unmounts.
 
+## Lifecycle
+
+```mermaid
+flowchart TD
+  Mount["Hook mounts"] --> Settings["Load validated audio settings from local storage"]
+  Settings --> Idle["No AudioContext until playback is requested"]
+  Idle --> Play["playPcmAudio called"]
+  Play --> Context{"AudioContext exists?"}
+  Context -->|no| Create["Create AudioContext and GainNode"]
+  Context -->|yes| Decode["Decode PCM payload"]
+  Create --> Decode
+  Decode --> Output["Play buffer through gain node"]
+  Settings --> Visibility["Listen for tab visibility changes"]
+  Visibility --> Suspend["Suspend context when tab is hidden"]
+  Visibility --> Resume["Resume context when visible"]
+  Mount --> Cleanup["cleanupAudioContext on unmount"]
+  Cleanup --> Closed["Close context and clear refs"]
+```
+
+Audio resources are created lazily so opening the app does not start browser
+audio machinery until speech playback is actually needed.
+
 ## Interface
 
 ```typescript

@@ -1,5 +1,21 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 24/06/2026, 14:53:09
+ * Dependents: components/Combat/MonsterPicker.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useEffect, useState } from 'react';
-import { MONSTERS_DATA } from '../../data/monsters';
+import { MONSTERS_DATA, loadMonstersData } from '../../data/monsters';
 import type { MonsterData } from '../../types/ui';
 
 export interface BestiaryEntry {
@@ -31,14 +47,28 @@ function buildEntriesFromGeneratedRegistry(): BestiaryEntry[] {
 }
 
 export function useBestiary() {
-  const [entries, setEntries] = useState<BestiaryEntry[]>(cachedEntries ?? buildEntriesFromGeneratedRegistry());
-  const [isLoading] = useState(false);
-  const [error] = useState<string | null>(null);
+  const [entries, setEntries] = useState<BestiaryEntry[]>(cachedEntries ?? []);
+  const [isLoading, setIsLoading] = useState(cachedEntries === null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (cachedEntries !== null) return;
-    cachedEntries = buildEntriesFromGeneratedRegistry();
-    setEntries(cachedEntries);
+    // If bestiary data has already been loaded and cached, we don't need to do
+    // anything. The state is already initialized to the cached values.
+    if (cachedEntries !== null) {
+      return;
+    }
+
+    loadMonstersData()
+      .then(() => {
+        cachedEntries = buildEntriesFromGeneratedRegistry();
+        setEntries(cachedEntries);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        console.error('Failed to load bestiary entries:', err);
+        setError(err instanceof Error ? err.message : String(err));
+        setIsLoading(false);
+      });
   }, []);
 
   return { entries, isLoading, error };

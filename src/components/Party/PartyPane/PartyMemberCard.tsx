@@ -260,6 +260,8 @@ const LEVEL_COLORS: Record<RelationshipLevel, string> = {
     romance: 'text-pink-400'
 };
 
+const getMissingChoiceLabel = (missing: MissingChoice): string => missing.label || missing.type || 'Missing choice';
+
 // -----------------------------------------------------------------------------
 // Main Component
 // -----------------------------------------------------------------------------
@@ -283,6 +285,7 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
     // Check for missing character choices (warnings)
     const missingChoices = useMemo(() => validateCharacterChoices(character), [character]);
     const hasMissingChoices = missingChoices.length > 0;
+    const missingChoiceSummary = missingChoices.map(getMissingChoiceLabel).join(', ');
 
     // Calculate derived stats
     const profBonus = character.proficiencyBonus ?? 2;
@@ -323,7 +326,7 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
 
                 {/* Missing choice warning - top right of portrait */}
                 {hasMissingChoices && (
-                    <Tooltip content={`Missing Selection: ${missingChoices[0].label}. Click to fix.`}>
+                    <Tooltip content={`Missing Selection${missingChoices.length > 1 ? 's' : ''}: ${missingChoiceSummary}. Click to fix the first one.`}>
                         <button
                              onClick={(e) => {
                                  e.preventDefault();
@@ -333,7 +336,7 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-900/90 rounded-full flex items-center justify-center border border-red-500/50 text-red-200 shadow-md animate-pulse hover:scale-110 transition-transform"
                              aria-label="Fix missing character selection"
                         >
-                            <span className="text-[10px]">!</span>
+                            <span className="text-[10px]">{missingChoices.length > 1 ? missingChoices.length : '!'}</span>
                         </button>
                     </Tooltip>
                 )}
@@ -371,6 +374,37 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                                 <span className="text-gray-400 font-mono">
                                     ({(companion.relationships['player']?.approval ?? 0) >= 0 ? `+${companion.relationships['player']?.approval ?? 0}` : companion.relationships['player']?.approval})
                                 </span>
+                            </div>
+                        )}
+                        {hasMissingChoices && (
+                            <div
+                                className="mt-2 flex flex-wrap gap-1.5"
+                                aria-label="Missing character choices"
+                            >
+                                {missingChoices.map((missing) => {
+                                    const label = getMissingChoiceLabel(missing);
+
+                                    return (
+                                        <Tooltip
+                                            key={`${missing.type}-${label}`}
+                                            content={`Missing Selection: ${label}. Click to fix.`}
+                                        >
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    onMissingChoiceClick(character, missing);
+                                                }}
+                                                className="inline-flex max-w-full items-center gap-1 rounded border border-red-500/40 bg-red-950/70 px-2 py-0.5 text-[10px] font-semibold text-red-100 hover:border-red-300 hover:bg-red-900/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
+                                                aria-label={`Fix ${label}`}
+                                            >
+                                                <span aria-hidden="true">!</span>
+                                                <span className="truncate">{label}</span>
+                                            </button>
+                                        </Tooltip>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

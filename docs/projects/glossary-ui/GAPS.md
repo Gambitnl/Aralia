@@ -6,9 +6,9 @@ slug: glossary-ui
 status: active
 status_note: Preserved as routed_reference to avoid flattening existing gap provenance.
 registry_mode: routed_reference
-last_updated: "2026-06-10"
-gap_count: 4
-open_gap_count: 4
+last_updated: "2026-06-26"
+gap_count: 5
+open_gap_count: 5
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
@@ -101,9 +101,9 @@ supported_optional_sections:
 ---
 project: Glossary UI
 slug: glossary-ui
-last_updated: \"2026-06-10\"
-gap_count: 4
-open_gap_count: 4
+last_updated: \"2026-06-26\"
+gap_count: 5
+open_gap_count: 5
 north_star: docs/projects/glossary-ui/NORTH_STAR.md
 tracker: docs/projects/glossary-ui/TRACKER.md
 global_gaps: docs/projects/GLOBAL_GAPS.md
@@ -113,7 +113,7 @@ registry_mode: canonical
 # Glossary UI Gap Registry
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-26
 
 Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
@@ -124,6 +124,7 @@ Use this file for durable unresolved findings that are too important or too larg
 | G4 | not_started | adjacent_follow_up | Codex | `docs/projects/code-modularization-audit` CMA-G2 | Code modularization audit routing | `spellGateBucketDetails.ts` is a large domain-dense glossary/spell-gate surface and needs owner-routed split planning before any code movement. | `src/components/Glossary/spellGateChecker/spellGateBucketDetails.ts`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G2 | Splitting this file without preserving mismatch contracts could lose audit intent and structured-vs-canonical evidence. | Define a glossary-owned split boundary for spell gate bucket details and route structured spell validation ownership before refactoring. | Focused tests still cover `SpellGateChecksPanel` and `useSpellGateChecks`; any split has a before/after proof note. |
 | G5 | not_started | adjacent_follow_up | Codex | `docs/projects/code-modularization-audit` CMA-G11 | Code modularization audit routing | Glossary rendering and registry files are a second large-file cluster beyond the spell-gate details row. | `src/components/Glossary/spellGateChecker/SpellGateBucketSections.tsx`; `src/components/Glossary/IconRegistry.tsx`; `src/components/Glossary/SpellCardTemplate.tsx` | Registry/rendering splits need icon coverage and spell-card rendering proof, not just file-size cleanup. | Define glossary-owned visual/test proof boundaries before modularization. | Spell gate panel tests, icon registry coverage, and glossary UI smoke proof stay named in any split plan |
 | G7 | not_started | adjacent_follow_up | Worker | `scripts/ingestPhbGlossary.ts` | Runtime docs scan | `itemMetadata` is still built from an `any` object in ingest, so the new source-backed contract is documented but not enforced. | `scripts/ingestPhbGlossary.ts`, `src/types/ui.ts`, `docs/projects/glossary-ui/NORTH_STAR.md` | Future metadata additions can still drift silently even when the render contract is documented. | Decide later whether to add a narrow typed builder or schema guard without widening the current task. | Confirm the contract note and a narrow sample item proof once a guard exists. |
+| G8 | not_started | integration | Codex | `docs/projects/spells/subprojects/structured-spell-execution` | Spell migration roadmap backlog routing | Spell detail prose still needs live glossary term linking in the current spell-detail rendering path. | Routed from `docs/tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md` on 2026-06-26; `SpellDetailPane.tsx`; glossary tooltip/deep-link infrastructure | Spell data and glossary index work do not help players if spell descriptions render as plain text without term links. | Locate the active spell detail component path, then wire term detection/link rendering through the existing glossary UI primitives without creating a parallel glossary lane. | Rendered spell detail proof showing linked glossary terms, tooltip/deep-link behavior, and no regression in plain spell description readability. |
 
 ## Schema Fit Notes
 

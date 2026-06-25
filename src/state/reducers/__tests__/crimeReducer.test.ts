@@ -36,11 +36,11 @@ describe('crimeReducer', () => {
     expect(updatedNotoriety.knownCrimes[0].type).toBe(CrimeType.Theft);
     expect(updatedNotoriety.knownCrimes[0].witnessed).toBe(true);
 
-    // Severity 5 is normalized to 50 (since <= 10)
-    // Witnessed crime: normalizedSeverity * 0.5 = 50 * 0.5 = 25
-    expect(updatedNotoriety.localHeat['loc1']).toBe(25);
-    // Global heat: heatIncrease * 0.1 = 25 * 0.1 = 2.5
-    expect(updatedNotoriety.globalHeat).toBe(2.5);
+    // Severity 5 is normalized to 50, then witnessed crimes use the accepted
+    // crime heat scale: 50 * 0.2 = 10 local heat.
+    expect(updatedNotoriety.localHeat['loc1']).toBe(10);
+    // Global heat receives a tenth of the local heat footprint.
+    expect(updatedNotoriety.globalHeat).toBe(1);
   });
 
   it('should increase heat less when crime is not witnessed', () => {
@@ -62,6 +62,28 @@ describe('crimeReducer', () => {
     expect(updatedNotoriety.localHeat['loc1']).toBe(5);
     // Global heat: heatIncrease * 0.1 = 5 * 0.1 = 0.5
     expect(updatedNotoriety.globalHeat).toBe(0.5);
+  });
+
+  it('should cap canonical severity at 100 before adding heat or bounties', () => {
+    initialState.notoriety.localHeat = { loc1: 95 };
+
+    const newState = crimeReducer(initialState, {
+      type: 'COMMIT_CRIME',
+      payload: {
+        type: CrimeType.Murder,
+        locationId: 'loc1',
+        severity: 150,
+        witnessed: true,
+      },
+    });
+    const updatedNotoriety = newState.notoriety!;
+
+    // Severity above the canonical max still behaves like severity 100:
+    // witnessed heat adds 20, then local heat clamps at 100.
+    expect(updatedNotoriety.knownCrimes[0].severity).toBe(100);
+    expect(updatedNotoriety.localHeat.loc1).toBe(100);
+    expect(updatedNotoriety.globalHeat).toBe(2);
+    expect(updatedNotoriety.bounties[0].amount).toBe(1500);
   });
 
 
@@ -103,5 +125,60 @@ describe('crimeReducer', () => {
     // Local heats reduce by amount * 0.5
     expect(updatedNotoriety.localHeat['loc1']).toBe(15);
     expect(updatedNotoriety.localHeat['loc2']).toBe(25);
+  });
+
+  it('should remove expired bounties when world time advances', () => {
+    const now = Date.UTC(2026, 0, 8);
+    initialState.gameTime = new Date(now);
+    initialState.notoriety.bounties = [
+      {
+        id: 'expired-bounty',
+        targetId: 'player',
+        issuerId: 'local_guard',
+        amount: 300,
+        conditions: 'Alive',
+        isActive: true,
+        expiration: now - 1,
+      },
+      {
+        id: 'future-bounty',
+        targetId: 'player',
+        issuerId: 'local_guard',
+        amount: 600,
+        conditions: 'DeadOrAlive',
+        isActive: true,
+        expiration: now + 1,
+      },
+    ];
+
+    const newState = crimeReducer(initialState, {
+      type: 'ADVANCE_TIME',
+      payload: { seconds: 1 },
+    });
+
+    // Crime maintenance runs after world time advances, so stale warrants are
+    // pruned without needing a separate UI or player-facing action.
+    expect(newState.notoriety!.bounties.map(bounty => bounty.id)).toEqual(['future-bounty']);
+  });
+
+  it('should add heat for fenced item sales without recording a formal crime', () => {
+    initialState.notoriety.globalHeat = 1;
+    initialState.notoriety.localHeat = { black_market: 2 };
+
+    const newState = crimeReducer(initialState, {
+      type: 'SELL_FENCED_ITEM',
+      payload: {
+        itemId: 'silver_chalice',
+        value: 140,
+        locationId: 'black_market',
+        heatGenerated: 3,
+      },
+    });
+
+    // Fencing raises suspicion, but it is not automatically a witnessed crime
+    // entry because the fence transaction itself is meant to be covert.
+    expect(newState.notoriety!.localHeat.black_market).toBe(5);
+    expect(newState.notoriety!.globalHeat).toBe(1.3);
+    expect(newState.notoriety!.knownCrimes).toHaveLength(0);
   });
 });

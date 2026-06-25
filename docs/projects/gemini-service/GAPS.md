@@ -6,9 +6,9 @@ slug: gemini-service
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-05"
-gap_count: 6
-open_gap_count: 0
+last_updated: "2026-06-25"
+gap_count: 7
+open_gap_count: 1
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
@@ -101,9 +101,9 @@ supported_optional_sections:
 ---
 project: Gemini Service
 slug: gemini-service
-last_updated: \"2026-06-05\"
-gap_count: 5
-open_gap_count: 5
+last_updated: \"2026-06-25\"
+gap_count: 6
+open_gap_count: 6
 north_star: docs/projects/gemini-service/NORTH_STAR.md
 tracker: docs/projects/gemini-service/TRACKER.md
 global_gaps: docs/projects/GLOBAL_GAPS.md
@@ -113,7 +113,7 @@ registry_mode: compact
 # Gemini Service Gap Registry
 
 Status: active  
-Last updated: 2026-06-05
+Last updated: 2026-06-25
 
 Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
@@ -127,6 +127,7 @@ Iteration note (2026-06-05): no new Gemini-specific blocker surfaced in this doc
 | G3 | adjacent_follow_up | `src/services/geminiService.ts` contains unresolved TODO debt on model selection and duplicated imports/facade naming clarity. | `src/services/geminiService.ts` | Service owner | Clean naming or document why dual imports remain before next reliability refactor | Code review pass and lint/type check of changed exports/imports |
 | G4 | adjacent_follow_up | Full prompt strategy is distributed across handlers with no central policy document, making behavior drift harder to audit. | `src/services/gemini/core.ts`, `src/services/gemini/encounters.ts`, `src/services/gemini/items.ts`, `src/services/geminiService.README.md` | Service owner | Keep function-level prompt intents but add one central prompt ownership matrix | Add/refresh a prompt matrix doc when strategy changes |
 | G5 | support_needed_now | `geminiService.README.md` describes adaptive/complex model behavior more than current implementation indicates. | `src/services/geminiService.README.md` | Docs owner | Update stale narrative and keep claims aligned to code | Reconcile README claims with observed call paths |
+| G6 | adjacent_follow_up | Gemini storyteller consistency needs shared prompt scaffolds instead of root-backlog intent. | `docs/BACKLOG.md` migration 2026-06-25; `src/services/geminiService.ts`; prompt ownership gap G4 | Service owner | Extend the prompt ownership matrix into a concrete storyteller scaffold contract. | Focused prompt-path test or documented fixture proving story calls consume the shared scaffold. |
 
 ## Global Routing
 

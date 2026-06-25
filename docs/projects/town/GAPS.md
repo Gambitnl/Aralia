@@ -6,9 +6,9 @@ slug: town
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-05"
-gap_count: 4
-open_gap_count: 4
+last_updated: "2026-06-25"
+gap_count: 6
+open_gap_count: 6
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Town Gap Registry
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-25
 
 Use this file for durable unresolved findings that belong to this project.
 
@@ -114,6 +114,8 @@ Use this file for durable unresolved findings that belong to this project.
 | G2 | not_started | medium | in_scope_now | future owner | provisional | project |  | none | none | not_recorded | docs/projects/town/TRACKER.md | `src/hooks/actions/actionHandlers.ts`, `src/hooks/actions/handleMovement.ts`, `src/types/actions.ts`, `src/state/reducers/townReducer.ts` | The action contract has `ENTER_TOWN`, but the active overworld entry path uses `ENTER_VILLAGE` and direct phase switching in movement. | runtime paths in handleMovement and reducer/action contracts differ | Unclear canonical path increases risk of regression when expanding town transitions. | Decide one canonical entry path and align all callers. | Capture decision and proof from movement handler and reducer usage. |  |
 | G3 | not_started | medium | in_scope_now | future owner | provisional | project |  | none | none | not_recorded | docs/projects/town/TRACKER.md | `src/App.tsx`, `src/components/Town/TownCanvas.tsx` | `determineSettlementInfo(...)` is computed but not consumed by active TownCanvas flow. | `src/App.tsx` (line around 966) | Settlement personality/city-state data is not currently used to adjust render rules. | Decide whether profile signal is intentionally deferred or should be threaded into TownCanvas now. | Add explicit integration point or mark deferred in docs. |  |
 | G4 | not_started | low | adjacent_follow_up | future owner | provisional | project |  | none | none | not_recorded | docs/projects/town/TRACKER.md | `src/components/Town/TownCanvas.tsx`, `src/components/Town/VillageScene.tsx` | The project has two render surfaces; App currently routes through TownCanvas only. | runtime imports and tests for both components | Split ownership can cause drift and dead paths over time. | Decide whether VillageScene remains documented secondary surface or is decommissioned/activated. | Add explicit status decision and update tests/integration notes. |  |
+| G5 | not_started | low | adjacent_follow_up | future owner | confirmed | `docs/BACKLOG.md` |  | none | rendered proof required | not_recorded | `src/components/VillageScene.tsx` | backlog migration 2026-06-25 | On-canvas affordances should surface `integrationTagline` before click. | `docs/BACKLOG.md`; `src/components/VillageScene.tsx`; Town G4 render-surface split | Players should understand what an interactable village/town element represents before committing to a click. | Decide whether this belongs to active TownCanvas or secondary VillageScene before implementation. | Rendered proof showing tagline affordance on the active town surface. |  |
+| G6 | not_started | low | adjacent_follow_up | future owner | confirmed | `docs/BACKLOG.md` |  | none | none | not_recorded | `src/data/villagePersonalityProfiles.ts` | backlog migration 2026-06-25 | Biome-specific village profiles need more distinct hooks and flavor. | `docs/BACKLOG.md`; `src/data/villagePersonalityProfiles.ts`; town-description-system metadata gaps | Distinct biome identity supports town descriptions, visuals, and procedural variety. | Expand one biome profile family after the metadata owner decides the durable town identity shape. | Data/test proof that the selected biome profile produces distinct hooks without breaking existing town generation. |  |
 
 ## Classification Reference
 

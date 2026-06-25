@@ -10,6 +10,12 @@ vi.mock('@/utils/character', () => ({
     if (char.name === 'Incomplete Character') {
       return [{ label: 'Missing Feat', type: 'feat' }];
     }
+    if (char.name === 'Very Incomplete Character') {
+      return [
+        { label: 'Missing Feat', type: 'feat' },
+        { label: 'Missing Skill', type: 'skill' },
+      ];
+    }
     return [];
   }
 }));
@@ -218,6 +224,23 @@ describe('PartyMemberCard', () => {
     expect(mockProps.onMissingChoiceClick).toHaveBeenCalledWith(
       mockCharacter,
       expect.objectContaining({ label: 'Missing Feat' })
+    );
+  });
+
+  it('shows and fixes each missing choice when multiple selections are pending', () => {
+    mockCharacter.name = 'Very Incomplete Character';
+    render(<PartyMemberCard {...mockProps} character={mockCharacter} />);
+
+    const featButton = screen.getByRole('button', { name: 'Fix Missing Feat' });
+    const skillButton = screen.getByRole('button', { name: 'Fix Missing Skill' });
+
+    expect(featButton).toBeInTheDocument();
+    expect(skillButton).toBeInTheDocument();
+
+    fireEvent.click(skillButton);
+    expect(mockProps.onMissingChoiceClick).toHaveBeenCalledWith(
+      mockCharacter,
+      expect.objectContaining({ label: 'Missing Skill' })
     );
   });
 

@@ -15,7 +15,7 @@ Use this file when you need a quick pointer, not when you need current implement
 
 - 1B-SPELL-MIGRATION-ROADMAP.md for the current feature-first spell roadmap
 - README.md for the current subtree map
-- TODO.md for the live mixed backlog
+- docs/projects/spells/SUBPROJECTS.md and the relevant Spells child `GAPS.md` file for the migrated technical backlog
 - LEVELS-1-9-MIGRATION-GUIDE.md for the current leveled migration playbook
 
 ## Archived Historical Version

@@ -1,7 +1,7 @@
 # Testing Overhaul Living Tracker
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-25
 
 ## Status Vocabulary
 
@@ -17,17 +17,25 @@ Last updated: 2026-05-31
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Confirmed project registration and docs surface for testing-overhaul exists. | Worker D | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md`; `docs/projects/GLOBAL_GAPS.md` | Keep `NORTH_STAR.md`, `GAPS.md`, and `TRACKER.md` aligned before next execution slice. | `F:\Repos\Aralia\docs\tasks\testing-overhaul` file map integrity |
-| T2 | active | Define explicit owner map and test matrix across core UI, complex interactions, map/gameplay, and utilities/docs targets. | Worker D | 2026-05-31 | `00-MASTER-PLAN.md`; `01-CORE-UI.md`; `02-COMPLEX-INTERACTIVE.md`; `02-CHARACTER-CREATOR.md`; `03-GAMEPLAY-SYSTEMS.md`; `03-CANVAS-MAP.md`; `04-MAP-SYSTEMS.md`; `05-UTILITIES.md` | Add owner assignments and slice boundaries in `TRACKER.md`. | Presence of a matrix-backed active slice and stable next check row |
-| T3 | active | Merge duplicate phase naming/overlap into a single test execution path note. | Worker D | 2026-05-31 | `00-MASTER-PLAN.md` | Add one execution map row in `TRACKER.md` that references one canonical path and preserves historical file map. | `NORTH_STAR.md` contains a clear file map and stop condition |
+| T1 | done | Confirmed project registration and docs surface for testing-overhaul exists. | Worker D | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md`; `docs/projects/GLOBAL_GAPS.md` | Keep `NORTH_STAR.md`, `GAPS.md`, and `TRACKER.md` aligned before next execution slice. | `docs/tasks/testing-overhaul` file map integrity |
+| T2 | done | Define explicit owner map and test matrix across core UI, complex interactions, map/gameplay, and utilities/docs targets. | Codex | 2026-06-25 | Retired phase files; `GAPS.md` G1-G8; stream matrix below | Use stream rows G4-G8 for future execution instead of restoring phase checklists. | Matrix present with target systems and proof boundaries. |
+| T3 | done | Merge duplicate phase naming/overlap into a single test execution path note. | Codex | 2026-06-25 | Retired duplicate `02` and `03` phase files; `GAPS.md` G3 | Route all future work through gap rows and the stream matrix. | No phase backlog files remain. |
+| T4 | done | Execute the first focused testing slice from the stream matrix. | Codex | 2026-06-25 | `src/utils/visuals/__tests__/visualUtils.test.ts`; item icon SVG generation pass | Added a generated-item-SVG path regression for `resolveItemVisual`. | `npx vitest run src/utils/visuals/__tests__/visualUtils.test.ts` passed: 10 tests. |
+| T5 | active | Execute the next focused testing slice from the remaining stream gaps. | testing-overhaul maintainer | 2026-06-25 | `GAPS.md` G4-G8; current source/test tree | Choose one remaining high-risk stream, inspect current tests, add one focused regression proof, then update the matching gap row. | Focused Vitest/RTL proof for the selected slice; rendered proof if the claim is visual. |
+
+## Testing Stream Matrix
+
+| Stream | Owning gap | Current target surface | Test shape | First proof boundary |
+|---|---|---|---|---|
+| Core UI | G4 | action buttons, character sheet entry, modal behavior | RTL interaction tests plus focused utility tests when needed | One current core UI test proves render state and user interaction. |
+| Character Creator | G5 | race/class choices, ability score flow, finalization state | RTL flow tests with state persistence assertions | One current creator slice proves step transition and retained selections. |
+| Gameplay | G6 | combat view, inventory, spellbook/action context | RTL/unit mix around command-facing behavior | One current gameplay flow proves visible state and dispatched action contract. |
+| Map | G7 | Submap, Battle Map, Worldforge map surfaces | logic tests first; rendered proof when UI/visual behavior is claimed | One map slice proves current interaction or generated data behavior. |
+| Hooks/Utils | G8 | shared hooks and exported helpers | focused unit tests with deterministic fixtures | First proof added: generated item SVG paths resolve through `resolveItemVisual`; continue with the next missing high-value helper/hook regression. |
 
 ## Gap Log
 
-| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
-|---|---|---|---|---|---|---|---|---|---|---|
-| G1 | in_progress | in_scope_now | Worker D | this project | this docs alignment pass | Owner assignments are missing for core streams (core UI, complex interactions, gameplay/map, hooks/utils). | `docs/projects/PROJECT_TRACKER.md`; `00-MASTER-PLAN.md` | Unclear ownership slows assignments and review ownership. | Assign owners in next active slice and keep rows owner-specific. | `TRACKER.md` active row contains explicit owner per stream |
-| G2 | in_progress | adjacent_follow_up | Worker D | this project | this docs alignment pass | Phase files show duplicate numbering and stale status markers (`02` and `03` overlap). | `01-CORE-UI.md`; `02-CHARACTER-CREATOR.md`; `02-COMPLEX-INTERACTIVE.md`; `03-GAMEPLAY-SYSTEMS.md`; `03-CANVAS-MAP.md`; `04-MAP-SYSTEMS.md` | Duplicate planning files create duplicate work risk. | Preserve all files as history but add one canonical execution row in `TRACKER.md`. | `NORTH_STAR.md` file map + `TRACKER.md` path are unambiguous |
-| G3 | in_progress | support_needed_now | Worker D | this project | this docs alignment pass | No explicit test matrix exists on this project surface for what to verify per area and owner. | `00-MASTER-PLAN.md` and phase docs | Without matrix, testing coverage cannot be sequenced safely. | Create matrix in first active slice (unit/integration/surface interaction). | slice definition includes matrix checkpoints |
+See `GAPS.md` for the durable gap registry. This tracker keeps the execution queue and stream matrix only.
 
 ## Update Rules
 

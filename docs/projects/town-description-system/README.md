@@ -36,7 +36,7 @@ The unfinished work is the metadata, persistence, description, and UI-integratio
 
 - `QUICK_START.md`: a rebased restart guide for resuming this feature area from the current codebase.
 - `IMPLEMENTATION_PLAN.md`: phased plan grounded in what already exists.
-- `TASKS.md`: live task backlog for the unfinished parts of the feature.
+- `GAPS.md`: live gap registry for unfinished work; the old `TASKS.md` backlog was retired into this file.
 - `TECHNICAL_SPEC.md`: preserved design target with an explicit boundary between current baseline and proposed additions.
 
 ## Architecture Goal That Still Holds

@@ -166,7 +166,7 @@ Tasks can be worked in parallel if dependencies allow:
 - [x] Task 02: AoE Calculations
 
 ### In Progress
-- [ ] Task 03: Command Pattern (60% complete)
+- Task 03: Command Pattern (60% complete)
 
 ### Blockers
 - Task 04 blocked waiting for Task 03 completion
@@ -276,42 +276,19 @@ describe('Spell Execution Flow', () => {
 
 ## Success Metrics
 
-### Phase Completion Criteria
+### Current Routing
 
-**Phase 1 (Foundation):**
-- [ ] All TypeScript interfaces defined
-- [ ] AoE calculations working for all 5 shapes
-- [ ] Command pattern executing simple spells
-- [ ] 5 test spells (Fireball, Cure Wounds, Magic Missile, Shield, Bless) working
+The phase metrics below are historical acceptance targets from the original spell-overhaul plan.
+They are preserved as context, but they are no longer standalone backlog checkboxes.
+Route current work through the active Spells child lanes:
 
-**Phase 2 (Core Mechanics):**
-- [ ] Status conditions applying correctly
-- [ ] Concentration tracked and enforced
-- [ ] Saving throws with success/failure working
-- [ ] Resistances/vulnerabilities applied
-- [ ] 20 core spells converted and tested
+- Foundation, command execution, concentration, saves, resistances, defensive timing, and runtime performance: `docs/projects/spells/subprojects/structured-spell-execution/GAPS.md`.
+- AoE calculations, targeting, map objects, cover, line of sight, terrain, and 2D/3D proof: `docs/projects/spells/subprojects/targeting-object-area/GAPS.md`.
+- Corpus migration counts, level rollups, canonical recapture, and dataset/runtime completion thresholds: `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md`.
+- Effect/schema validation and integration check automation: `docs/projects/spells/subprojects/validator-data-integrity/GAPS.md`.
+- AI arbitration and complex mechanics discovery packages: `docs/projects/spells/subprojects/mechanics-discovery-packages/GAPS.md`.
 
-**Phase 3 (Advanced Features):**
-- [ ] All 8 effect types implemented
-- [ ] Hybrid spells (Ice Knife) working
-- [ ] Multi-target selection UI functional
-- [ ] Spell upscaling applied correctly
-- [ ] 60 total spells converted
-
-**Phase 4 (AI Integration):**
-- [ ] Material tagging on tiles
-- [ ] AI arbitrator validating Tier 2 spells
-- [ ] AI DM adjudicating Tier 3 spells
-- [ ] Fallback behavior graceful
-- [ ] 5 AI spells working (Meld into Stone, Suggestion, etc.)
-
-**Phase 5 (Migration & Polish):**
-- [ ] All spells migrated to new format
-- [ ] Legacy parser removed
-- [ ] Performance < 100ms for mechanical spells
-- [ ] Performance < 2s for AI spells
-- [ ] Test coverage > 80%
-- [ ] No regressions in combat
+Do not mark the historical phase list done directly. Close the owning gap row only after linked evidence proves the relevant behavior.
 
 ---
 

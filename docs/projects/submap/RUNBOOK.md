@@ -34,7 +34,7 @@ capture.
 ## Current Extraction Targets
 
 - Wire `SubmapPane` through `src/utils/spatial/submapActionContracts.ts` (G7).
-- Extract `generateLocalTerrainData` per `GENERATION_MODULARIZATION.md` (G8).
+- Extract `generateLocalTerrainData` per `GAPS.md` G4/G8 (the retired generation-modularization plan is imported there).
 - Action menu and compass local movement affordances.
 - `getSubmapTileInfo` / material and terrain lookup behavior.
 - `submapVisuals`, `useSubmapGrid`, and painter-path reusable visual semantics.

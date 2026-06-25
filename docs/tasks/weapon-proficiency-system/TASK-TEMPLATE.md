@@ -37,13 +37,13 @@
 - [Another required skill]
 
 ### Dependencies
-- [ ] Task [X] must be completed first
-- [ ] [Other dependency]
+- Template item: Task [X] must be completed first
+- Template item: [Other dependency]
 
 ### Before You Start
-- [ ] Read [relevant documentation]
-- [ ] Review [related component/file]
-- [ ] Understand [key concept]
+- Template item: Read [relevant documentation]
+- Template item: Review [related component/file]
+- Template item: Understand [key concept]
 
 ---
 
@@ -107,36 +107,36 @@
 ## Acceptance Criteria
 
 ### Must Have (Required for task completion)
-- [ ] [Specific, testable criterion]
-- [ ] [Another criterion]
-- [ ] [Another criterion]
+- Template item: [Specific, testable criterion]
+- Template item: [Another criterion]
+- Template item: [Another criterion]
 
 ### Should Have (Important but not blocking)
-- [ ] [Nice-to-have feature]
-- [ ] [Another nice-to-have]
+- Template item: [Nice-to-have feature]
+- Template item: [Another nice-to-have]
 
 ### Could Have (If time permits)
-- [ ] [Optional enhancement]
+- Template item: [Optional enhancement]
 
 ---
 
 ## Testing Requirements
 
 ### Unit Tests
-- [ ] Test case: [Description]
+- Template item: Test case: [Description]
   - Input: [Test input]
   - Expected: [Expected output]
-- [ ] Test case: [Another test]
+- Template item: Test case: [Another test]
 
 ### Manual Testing
-- [ ] Test scenario: [Description]
+- Template item: Test scenario: [Description]
   - Steps: [Step-by-step test procedure]
   - Expected result: [What should happen]
-- [ ] Test scenario: [Another scenario]
+- Template item: Test scenario: [Another scenario]
 
 ### Edge Cases to Test
-- [ ] [Edge case 1]
-- [ ] [Edge case 2]
+- Template item: [Edge case 1]
+- Template item: [Edge case 2]
 
 ---
 
@@ -216,13 +216,13 @@ After implementation, verify:
 ## Definition of Done
 
 This task is complete when:
-- [ ] All acceptance criteria are met
-- [ ] All tests pass
-- [ ] Code is committed with clear commit message
-- [ ] No regression in existing functionality
-- [ ] Documentation updated (if needed)
-- [ ] Task status updated in @PROJECT-INDEX.md
-- [ ] Next task's dependencies are unblocked
+- Template item: All acceptance criteria are met
+- Template item: All tests pass
+- Template item: Code is committed with clear commit message
+- Template item: No regression in existing functionality
+- Template item: Documentation updated (if needed)
+- Template item: Task status updated in @PROJECT-INDEX.md
+- Template item: Next task's dependencies are unblocked
 
 ---
 

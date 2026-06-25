@@ -29,13 +29,13 @@
 ## Requirements
 
 ### 1. [Requirement Category]
-- [ ] Specific requirement 1
-- [ ] Specific requirement 2
-- [ ] Specific requirement 3
+- Template item: Specific requirement 1
+- Template item: Specific requirement 2
+- Template item: Specific requirement 3
 
 ### 2. [Requirement Category]
-- [ ] Specific requirement 1
-- [ ] Specific requirement 2
+- Template item: Specific requirement 1
+- Template item: Specific requirement 2
 
 ---
 
@@ -87,11 +87,11 @@ describe('[Component] Integration', () => {
 
 ## Acceptance Criteria
 
-- [ ] Criterion 1
-- [ ] Criterion 2
-- [ ] All relevant tests pass
-- [ ] TypeScript types are correct
-- [ ] Documentation is updated where needed
+- Template item: Criterion 1
+- Template item: Criterion 2
+- Template item: All relevant tests pass
+- Template item: TypeScript types are correct
+- Template item: Documentation is updated where needed
 
 ---
 
