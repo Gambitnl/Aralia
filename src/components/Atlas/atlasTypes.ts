@@ -66,6 +66,48 @@ export interface AtlasRawExport {
   plans: AtlasRawPlan[];
 }
 
+export interface AtlasBacklogCandidate {
+  path: string;
+  score: number;
+  reasons: string[];
+}
+
+export interface AtlasBacklogRecentActivity {
+  path: string;
+  walkState: string;
+  exists: boolean;
+  kind: string;
+  modifiedUtc: string | null;
+  sha256: string | null;
+}
+
+export interface AtlasBacklogRetirementExport {
+  available: boolean;
+  generatedAt?: string;
+  message?: string;
+  snapshot?: {
+    generatedAtUtc: string;
+    ledgerPath: string;
+    summary: {
+      total: number;
+      file?: number;
+      missing?: number;
+      glob?: number;
+      not_file?: number;
+    };
+  };
+  markerSummary?: {
+    totalMarkdown: number;
+    markedMarkdown: number;
+    missingMarkdown: number;
+  };
+  recentActivity?: AtlasBacklogRecentActivity[];
+  candidates?: {
+    candidateCount: number;
+    files: AtlasBacklogCandidate[];
+  };
+}
+
 // ============================================================================
 // View Model Types
 // ============================================================================

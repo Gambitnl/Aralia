@@ -169,3 +169,5 @@ This means:
   more frequently than parity buckets. Gap 13 (resolved this round)
   means policy edge cases now read with neutral diagnostics instead
   of rose flags - take advantage of that when modeling carve-outs.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/atlas-prompts/attack-roll-riders-v3.md","sha256WithoutMarker":"f66ac4d2d40e575245a4de0ed19baab3c25bc4685163c62c823a1f19fe8e24fb","markedAtUtc":"2026-06-25T22:29:38.479Z"} -->

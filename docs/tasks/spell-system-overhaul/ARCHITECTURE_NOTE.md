@@ -18,7 +18,8 @@ Last updated: 2026-05-31
 - `docs/spells/SPELL_INTEGRATION_CHECKLIST.md`
 - `docs/architecture/SPELL_SYSTEM_ARCHITECTURE.md`
 - `docs/spells/STATUS_LEVEL_0.md` etc.
-- `docs/tasks/spell-system-overhaul/1A-PROJECT-MASTER-SPRINGBOARD.md`
+- `docs/projects/spells/NORTH_STAR.md`
+- `docs/projects/spells/SUBPROJECTS.md`
 - `docs/projects/spells/subprojects/targeting-object-area/GAPS.md`
 - `docs/tasks/spell-system-overhaul/gaps/GAP-CHOICE-SPELLS.md`
 - `docs/tasks/spell-system-overhaul/gaps/GAP-UNSPLIT-SPELL-EFFECTS.md`
@@ -28,3 +29,5 @@ Last updated: 2026-05-31
 - The data model and command runtime are currently hybrid; treat this as intended unless a slice has explicit migration acceptance criteria.
 - Gaps in object targeting, area logic, and choice/utility typing are currently implementation-critical and should remain open unless this slice explicitly absorbs them.
 - Do not remove split execution paths until a coordinator strategy has proof-based acceptance criteria.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/ARCHITECTURE_NOTE.md","sha256WithoutMarker":"9402316d6e1e1962674ca4c2e1559a626ea466b8d365d561136acf9e66b81a3f","markedAtUtc":"2026-06-25T22:29:38.583Z"} -->

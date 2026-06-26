@@ -252,3 +252,5 @@ This report is grouped so arbitration can start with repeated mismatch families 
 - Sample spells: spike-growth
 - Sample findings:
   - Spike Growth is missing the structured markdown field Terrain Type even though the JSON provides damaging.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_MARKDOWN_PARITY_REPORT.md","sha256WithoutMarker":"a86de1493701e8186f4682d8b3054351d1056e43334fcd20d2e11c5cc3d2273c","markedAtUtc":"2026-06-25T22:29:38.551Z"} -->

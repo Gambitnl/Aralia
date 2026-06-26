@@ -44,3 +44,5 @@ This note still captures a durable UI-performance principle:
 - large grid renderers should isolate tile-level rendering where possible
 - stable callbacks and memoized derived data matter as much as component extraction
 - performance-sensitive map UIs should prefer shared tile primitives over repeating complex inline render logic
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/improvements/completed/06_optimize_submap_rendering.md","sha256WithoutMarker":"0cc459dc3d5ccd88f73f2d90e2aa78062999859c157c2536b82d67adbf120909","markedAtUtc":"2026-06-25T22:49:17.528Z"} -->

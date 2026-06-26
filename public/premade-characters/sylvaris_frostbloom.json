@@ -180,7 +180,23 @@
       ]
     }
   },
-  "equippedItems": {},
+  "equippedItems": {
+    "MainHand": {
+      "id": "rapier",
+      "name": "Rapier",
+      "description": "A slender thrusting sword. Finesse - can use Strength or Dexterity.",
+      "type": "weapon",
+      "category": "Martial Melee Weapon",
+      "damageDice": "1d8",
+      "damageType": "piercing",
+      "properties": [
+        "finesse"
+      ],
+      "isMartial": true,
+      "mastery": "Vex",
+      "rarity": "Common"
+    }
+  },
   "statusEffects": [],
   "limitedUses": {
     "feat_magic_initiate_feather-fall": {

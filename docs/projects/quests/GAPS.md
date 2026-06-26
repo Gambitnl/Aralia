@@ -6,7 +6,7 @@ slug: quests
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-10"
+last_updated: "2026-06-25"
 gap_count: 7
 open_gap_count: 7
 resolved_gap_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Quests System Gap Registry
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-25
 
 Use this file for durable unresolved findings that are too important or too large to live only in the tracker. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
@@ -114,12 +114,13 @@ Use this file for durable unresolved findings that are too important or too larg
 | GQ-4 | open | support_needed_now | Worker A | `docs/projects/quests/TRACKER.md` | 2026-05-31 scan | Advanced failure and consequence fields are underused in runtime | `src/types/quests.ts`, `src/systems/quests/QuestManager.ts`, `src/state/reducers/questReducer.ts` | Rich failure conditions and branching are not represented in play behavior | Define a minimum viable consequence/failure contract, then phase fields in | Add tests for each consequence and branch behavior |
 | GQ-5 | open | support_needed_now | Worker A | `docs/projects/quests/TRACKER.md` | 2026-05-31 scan | UI truth is split across the modal and journal quest surfaces | `src/components/QuestLog/*`, `src/components/CharacterSheet/Journal/QuestLogSidebar.tsx`, `src/state/appState.ts` | Inconsistent states can desync what the player sees and what is persisted | Document and lock the single source and rendering contract | Add a regression that opens both paths after load and compares status |
 | GQ-6 | open | globalize | Worker A | `docs/projects/GLOBAL_GAPS.md` | 2026-05-31 scan | Contract/test drift suggests staged quest shapes that runtime does not yet consume | `src/test/contracts/quests.contract.test.ts`, `src/types/quests.ts` | Contract drift may hide runtime mismatch in CI and editor workflows | If this repeats across domains, raise as `GLOBAL_GAPS` `G-QUESTS-001` | Cross-check with adjacent schema owners (dialogue/world) |
-| GQ-7 | open | support_needed_now | Iteration 2 agent | `docs/projects/quests/TRACKER.md` QTS-5 | 2026-06-10 migration analysis | `createMockQuest` factory in `src/utils/core/factories.ts` returns `QuestDefinition` while the reducer, QuestManager, and data layer all expect `Quest` â€” test factories produce a shape incompatible with the runtime pipeline | `src/utils/core/factories.ts` line 946, `src/state/reducers/questReducer.ts` line 30, `src/systems/quests/QuestManager.ts` line 27 | Tests using the mock factory cannot feed directly into the reducer or QuestManager; the type divide already exists in test infrastructure | The Phase 1 adapter (QTS-5) must also provide a `createMockLegacyQuest` helper or the factory must be updated to produce `Quest` via the adapter | A test that calls `createMockQuest()` and passes the result through `questReducer` without a type cast |
+| GQ-7 | open | support_needed_now | Iteration 2 agent | `docs/projects/quests/TRACKER.md` QG-7 | 2026-06-10 migration analysis; adapter bridge added 2026-06-25 | `createMockQuest` factory in `src/utils/core/factories.ts` returns `QuestDefinition` while the reducer, QuestManager, and data layer all expect `Quest` - test factories produce a shape incompatible with the runtime pipeline | `src/utils/core/factories.ts` line 946, `src/state/reducers/questReducer.ts` line 30, `src/systems/quests/QuestManager.ts` line 27, `src/systems/quests/questAdapter.ts`, `src/systems/quests/__tests__/questAdapter.test.ts` | Tests using the mock factory cannot feed directly into the reducer or QuestManager; the type divide already exists in test infrastructure. The adapter bridge now exists, so the remaining gap is factory/helper adoption. | Add `createMockLegacyQuest` or update the relevant factory path to adapt `QuestDefinition` into legacy `Quest` for reducer-facing tests. | A test that calls the factory/helper and passes the result through `questReducer` without a type cast; adapter proof already passes with QuestManager deadline tests. |
 | GQ-8 | open | adjacent_follow_up | Iteration 2 agent | `docs/projects/quests/TRACKER.md` | 2026-06-10 migration analysis | Quest state serialization in `src/state/appState.ts` (line 642) is shape-blind â€” `loadedState.questLog` is loaded with no schema validation, so any shape change during migration could silently break old saves | `src/state/appState.ts` line 642, `src/services/__tests__/saveLoadService.test.ts` line 64 | When Phase 2+ changes the runtime quest shape, old save files will load with stale fields and no error signal | Add a quest-shape validation or migration step in the save/load path before Phase 2 begins | A save/load round-trip test that asserts loaded quest state matches the current schema |
 
 ## Notes
 - GQ-7 and GQ-8 were added during the QTS-3 migration analysis pass.
-- The current emphasis is now Phase 1 adapter implementation (QTS-5), trigger source-of-truth (QTS-4), and UI/source-of-state harmonization (GQ-5).
+- The older broad `docs/tasks/QUEST_MIGRATION_PLAN.md` was retired on 2026-06-25 because `DECISIONS.md` D2, `TRACKER.md` QTS-5, GQ-7, and GQ-8 now hold the current phased migration path.
+- QTS-5 adapter implementation is done as of 2026-06-25. The current emphasis is now mock-factory adoption (GQ-7), trigger source-of-truth (QTS-4), and UI/source-of-state harmonization (GQ-5).
 
 ## Classification Reference
 

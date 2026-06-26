@@ -306,3 +306,5 @@ Remaining work:
    - structured-vs-json semantic equality
    - true runtime gameplay drift
    in the shared report as well as the selected-spell gate checker?
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/duration/SPELL_DURATION_BUCKET_TRACKER.md","sha256WithoutMarker":"a4ebc001f6ab230c8561752d2db0630ad16c6cfbaa52a1e32c8b47a24d577ede","markedAtUtc":"2026-06-25T22:29:38.518Z"} -->

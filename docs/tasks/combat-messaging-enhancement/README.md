@@ -42,3 +42,5 @@ They are about follow-through such as:
 ## Scope Note
 
 This file should now be read as a verified system overview, not as a proposal for creating the messaging layer from scratch.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/combat-messaging-enhancement/README.md","sha256WithoutMarker":"2c9b48c1a7119bbfc9fcc6803c49deae615a0b55bead5727d3537486080c8612","markedAtUtc":"2026-06-25T22:29:38.623Z"} -->

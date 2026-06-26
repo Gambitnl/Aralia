@@ -41,3 +41,5 @@ info (biome/name). Any neighbour is clickable to recenter the view on it.
 - `NeighbourhoodSvgView.test.tsx`: grey vs meshed by `explored`; clicking a neighbour fires
   `onPickNeighbour`.
 - Headless proof: an explored + unexplored neighbourhood rendered to PNG (visual-inspection rule).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-24-submap-neighbourhood-view-design.md","sha256WithoutMarker":"3116588ff78ff0c0d4b8766076a36c7aee4451ee2f7ec7e63a38c17b710e6d31","markedAtUtc":"2026-06-25T22:43:27.470Z"} -->

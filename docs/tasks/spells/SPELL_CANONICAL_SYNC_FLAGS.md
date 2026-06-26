@@ -1024,3 +1024,5 @@ Current model-gap / follow-up rule:
   text.
 - This runtime lane should be worked after the canonical-side transfer pass has
   cleaned up the structured `.md` layer for the same spells.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_CANONICAL_SYNC_FLAGS.md","sha256WithoutMarker":"17f70d134a640461ed08356b15acca8de2a6e20d640b6331bea532dc9a21409a","markedAtUtc":"2026-06-25T22:29:38.540Z"} -->

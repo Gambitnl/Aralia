@@ -1,7 +1,7 @@
 # Scripts: Quality Audit / Proof
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-25
 
 Use this file for durable proof summaries, scoped verification notes, and acceptance evidence. Do not paste raw logs unless a short excerpt is required for later agents to understand the result.
 
@@ -10,6 +10,7 @@ Use this file for durable proof summaries, scoped verification notes, and accept
 | Date | Check | Result | Evidence |
 |---|---|---|---|
 | 2026-06-10 | Required-doc surface initialized | pass | `docs/projects/scripts-quality/NORTH_STAR.md` declares this file in `required_docs`; schema migration created the file for audit-clean doc coverage. |
+| 2026-06-25 | Legacy lint setup task retirement | pass | `package.json` has `lint`; `eslint.config.mjs` exists; `docs/projects/scripts-quality/NORTH_STAR.md` records the non-blocking quality-debt checkpoint policy. |
 
 ## Standing Verification Notes
 

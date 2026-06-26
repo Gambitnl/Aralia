@@ -55,3 +55,5 @@ Work through the newly tracked hit list prioritizing spells in the following ord
 **Phase 3: Validation Lock**
 1. **Enforce the Rule:** Once the hit list of monolithic spells drops to zero, update the `SpellIntegrityValidator.test.ts` assertion to strictly require `expect(monolithicFailures).toHaveLength(0)`. This permanently prevents future monolithic spells from polluting the database.
 2. **Verify Targeting:** Execute `npx vitest` to ensure the newly populated array of distinct `SpellEffect` objects passes the `systems/spells/validation/SpellIntegrityValidator.test.ts` suite with zero console errors or test failures.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/gaps/GAP-UNSPLIT-SPELL-EFFECTS.md","sha256WithoutMarker":"56636c6fd7a2a28ab1e5ef45609fdf57f3e4f760093b69b282b830916874fa0c","markedAtUtc":"2026-06-25T22:29:38.599Z"} -->

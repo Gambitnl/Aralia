@@ -128,3 +128,5 @@ transition is:
 3. create or promote the Package 2 Symphony/Jules task
 4. record the returned Symphony draft/handoff evidence before claiming Package 2
    dispatch is complete
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_PHASE_1_JULES_ENVIRONMENT_SNAPSHOT_RECEIPT.md","sha256WithoutMarker":"5a3db999edae25bfe9fdc2b14cb413c03d563c6f76bf10fc8a413c349a117d35","markedAtUtc":"2026-06-25T22:29:38.352Z"} -->

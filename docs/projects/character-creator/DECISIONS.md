@@ -1,7 +1,7 @@
 # Character Creator Decisions
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-25
 
 Use this file for durable choices that affect project scope, required documentation, or protocol interpretation. Keep operational notes in `AUDIT_OR_PROOF.md` and re-openable workflow deltas in `TRACKER.md` or `GAPS.md`.
 
@@ -45,4 +45,4 @@ Rationale and evidence:
 - Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` ("Items converted to work" — Character Creator G2 row: "Already resolved 2026-06-08 (permissive navigation). No action; tracker row should drop the review hold").
 
 Follow-up:
-None for G2. Open lanes remain T4 (doc drift reconciliation) and gaps G1, G3-G8.
+None for G2. G8 was resolved on 2026-06-25; open lanes remain T4 (doc drift reconciliation) and unresolved gaps recorded in `GAPS.md`.

@@ -252,3 +252,5 @@ loop and joins the passive work-tracking dashboard.
 5. Write the report to
    `docs/tasks/spells/atlas-reports/school/v4.md` using the
    5-section template. Don't post contents in chat.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/atlas-prompts/school-v4.md","sha256WithoutMarker":"1b8a132591443ebed89b78147f5b51d586fb8c74a6630f30745f7ce4fb8d56a2","markedAtUtc":"2026-06-25T22:29:38.483Z"} -->

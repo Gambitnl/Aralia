@@ -1,7 +1,7 @@
 # Spells Parent Routing Tracker
 
 Status: active
-Last updated: 2026-06-22
+Last updated: 2026-06-25
 
 This tracker belongs to the Spells parent scoped-dashboard. It tracks routing, lane ownership, parent-visible imported gaps, and dashboard readiness. Executable spell work belongs in the child setup packet selected from `SUBPROJECTS.md`.
 
@@ -19,15 +19,15 @@ This tracker belongs to the Spells parent scoped-dashboard. It tracks routing, l
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T4 | active | Maintain the Spells child-lane registry and keep the dashboard folded under the parent project. | Codex | 2026-06-22 | `SUBPROJECTS.md`; project detail dashboard | Keep top-level spell-related projects linked or folded under the parent view instead of drifting as unrelated rows. | `npm run projects:audit`; rendered Spells parent detail page. |
-| T5 | active | Route the next high-impact spell work to the correct child packet before implementation starts. | Codex | 2026-06-22 | `GAPS.md`; `SUBPROJECTS.md` | Start from Mechanics Discovery Packages / created-object structures unless the user overrides priority. | Child packet tracker updated before runtime/data/UI edits. |
+| T4 | active | Maintain the Spells child-lane registry and keep the dashboard folded under the parent project. | Codex | 2026-06-25 | `SUBPROJECTS.md`; rendered Spells project detail overlay now shows the parent scoped child-lane dashboard with owned lanes, linked support, lane details, setup-packet links, and handoff previews visible. | Keep top-level spell-related projects linked or folded under the parent view instead of drifting as unrelated rows. | `npm run projects:audit` when requested; rendered Spells parent detail page after template or registry changes. |
+| T5 | active | Route the next high-impact spell work to the correct child packet before implementation starts. | Codex | 2026-06-25 | `GAPS.md`; `SUBPROJECTS.md`; rendered parent dashboard `Recommended next lane` callout from `highest_priority`. | Continue from Mechanics Discovery Packages / created-object structures unless the user overrides priority; use the dashboard handoff preview/copy action before starting an agent. | Child packet tracker updated before runtime/data/UI edits; parent proof updated only for routing/dashboard-visible state. |
 | T6 | active | Import only parent-visible gaps from child lanes and linked support projects. | Codex | 2026-06-22 | `GAPS.md`; `DECISIONS.md` | Keep child-local TODOs in child packets; import only cross-lane, ownership, priority, or product-behavior gaps. | Parent gap counts still match audit output. |
 
 ## Parent Maintenance Queue
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T7 | active | Keep the parent docs aligned with the parent-with-subprojects template. | Codex | 2026-06-22 | `PROJECT_CARD_SCHEMA.md`; `PARENT_PROJECT_WITH_SUBPROJECTS.md` | Preserve schema fields while keeping parent language scoped to routing. | Project audit reports Spells as valid. |
+| T7 | done | Keep the parent docs aligned with the parent-with-subprojects template. | Codex | 2026-06-25 | `PROJECT_CARD_SCHEMA.md`; `PARENT_PROJECT_WITH_SUBPROJECTS.md`; `misc/project_tracker.html`; `misc/project_tracker.js`; rendered Spells parent overlay proof; rendered parent UI template proof. | Preserve schema fields while keeping parent language scoped to routing if the template changes again. | Project tracker overlay and UI template show the same parent-scoped dashboard structure: routing contract, rollups, scoped filters, child setup packet rows, recommended-lane callout, registry proof freshness, lane detail drill-down, and copyable handoff preview. |
 
 ## Routed Child Work
 

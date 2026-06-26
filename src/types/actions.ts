@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 23/06/2026, 18:12:45
+ * Last Sync: 25/06/2026, 13:13:23
  * Dependents: hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, types/index.ts
  * Imports: None
  *
@@ -175,7 +175,12 @@ export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   // Actions that manage their own loading state
   save_game: { managesLoading: true },
   GENERATE_ENCOUNTER: { managesLoading: true },
+  OPEN_MERCHANT: { managesLoading: true },
   OPEN_DYNAMIC_MERCHANT: { managesLoading: true },
+  EQUIP_ITEM: { managesLoading: true },
+  UNEQUIP_ITEM: { managesLoading: true },
+  DROP_ITEM: { managesLoading: true },
+  USE_ITEM: { managesLoading: true },
   HARVEST_RESOURCE: { managesLoading: true },
   BARTER_ITEMS: { managesLoading: true },
   HAGGLE_ITEM: { managesLoading: true },
@@ -302,6 +307,10 @@ export interface StartGameSuccessPayload {
   // stored in game state is guaranteed to match the one used to build mapData
   // and worldHistory, rather than relying on a separately-set state field.
   worldSeed?: number;
+  // The town the player chose at Start Point Selection (name + region), so the
+  // opening scene + home town reflect the choice. Omitted by dev/skip flows.
+  startTownName?: string;
+  startTownRegion?: string;
 }
 
 export type Action =

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/06/2026, 16:10:24
+ * Last Sync: 25/06/2026, 19:32:16
  * Dependents: components/layout/GameModals.tsx
- * Imports: 11 files
+ * Imports: 27 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -45,10 +45,13 @@ import { buildAtlasNeighbourhood, type AtlasNeighbourhood } from '@/systems/worl
 import { generateSubmap, submapCellToChildContext, polygonBounds, pointInPolygon, type SubmapModel, type SubmapParentContext, type Pt } from '@/systems/worldforge/submap/submapEngine';
 import { generateTownPlan, type TownPlan } from '@/systems/worldforge/town/townEngine';
 import { rootSeedPath, streamPath } from '@/systems/worldforge/seedPath';
-import { legacyGridToAtlasCell } from '@/systems/worldforge/local/gridAtlasBridge';
+import { legacyGridToAtlasCell, gridCellToAtlasSite, spreadColocatedPoints } from '@/systems/worldforge/local/gridAtlasBridge';
+import { getTownTilesForGrid } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { buildAtlasTravelGraph, atlasMilesPerUnit, nearestLandCell, transportMobility } from '@/systems/worldforge/travel/atlasTravelGraph';
+import { buildMultiModalAtlasGraph } from '@/systems/worldforge/travel/multiModalAtlasGraph';
 import { buildSubmapTravelGraph } from '@/systems/worldforge/travel/submapTravelGraph';
 import { planRoutesFrom, transportSpeedMph } from '@/systems/travel/routePlanning';
+import { segmentRoute } from '@/systems/travel/multiModalRoute';
 import { availableTransports } from '@/systems/travel/availableTransports';
 import { rollTravelEncounter } from '@/systems/travel/travelEncounter';
 import { formatTravelTime } from '@/systems/travel/travelReadout';
@@ -72,9 +75,16 @@ interface MapPaneProps {
   canRegenerateWorld?: boolean;
   generationLockedReason?: string | null;
   onRegenerateWorld?: (seed?: number) => void;
+  /**
+   * Optional maritime proof/generation flag. Default-off preserves the frozen
+   * FMG world topology; proof harnesses can enable it to test generated island
+   * harbor reachability without changing normal gameplay saves yet.
+   */
+  enableIslandHarbors?: boolean;
 }
 
 type WorldMapInteractionMode = 'pan' | 'travel' | 'enter3d';
+type SeaPreference = 'none' | 'ferry';
 
 /**
  * Each drill tier renders fit-to-view, but the SP1 engine + clipping degrade at
@@ -198,6 +208,7 @@ const MapPane: React.FC<MapPaneProps> = ({
   canRegenerateWorld = false,
   generationLockedReason = null,
   onRegenerateWorld,
+  enableIslandHarbors = false,
 }) => {
   const { gridSize } = mapData;
   const geographySnapshot = useMemo(() => fromMapData(mapData), [mapData]);
@@ -216,9 +227,10 @@ const MapPane: React.FC<MapPaneProps> = ({
   // Native Worldforge SVG render-port (SP0). Generated from the world seed.
   // A throw here surfaces honestly via the surrounding ErrorBoundary (no silent fallback).
   // Full world (civilization layer: burgs/routes/states/labels), not atlas-only.
+  // Island harbors are explicit opt-in until saved-world topology changes are approved.
   const worldforgeAtlas = useMemo(
-    () => generateFmgWorld(String(worldforgeSeed)),
-    [worldforgeSeed],
+    () => generateFmgWorld(String(worldforgeSeed), { ensureIslandHarbors: enableIslandHarbors }),
+    [enableIslandHarbors, worldforgeSeed],
   );
 
   useEffect(() => {
@@ -298,16 +310,14 @@ const MapPane: React.FC<MapPaneProps> = ({
   // grid-cell-center projection — so the indicator sits inside the cell the
   // player occupies, not adrift near a coastline.
   const worldforgeMarker = useMemo(() => {
-    if (!worldforgeAtlas || playerAtlasCell == null) return null;
-    const site = worldforgeAtlas.pack.cells.p?.[playerAtlasCell];
-    if (site) return { x: site[0], y: site[1] };
-    // Fallback: proportional grid-cell center if the site is unavailable.
-    if (!playerCell) return null;
-    return {
-      x: ((playerCell.x + 0.5) / gridSize.cols) * worldforgeAtlas.graphWidth,
-      y: ((playerCell.y + 0.5) / gridSize.rows) * worldforgeAtlas.graphHeight,
-    };
-  }, [worldforgeAtlas, playerAtlasCell, playerCell, gridSize.cols, gridSize.rows]);
+    if (!worldforgeAtlas || !playerCell) return null;
+    const [x, y] = gridCellToAtlasSite(
+      worldforgeAtlas,
+      { x: playerCell.x, y: playerCell.y },
+      { cols: gridSize.cols, rows: gridSize.rows },
+    );
+    return { x, y };
+  }, [worldforgeAtlas, playerCell, gridSize.cols, gridSize.rows]);
 
   // Travel mode: a single-source fastest-route field from the player's atlas cell
   // (computed ONCE per origin, on foot for now), so hovering any cell reconstructs
@@ -317,6 +327,7 @@ const MapPane: React.FC<MapPaneProps> = ({
   // the party is threaded in). Walking + riding horse are the modeled choices.
   const transportChoices = useMemo(() => availableTransports([{ transportMode: 'mounted' }]), []);
   const [transportId, setTransportId] = useState('walking');
+  const [seaPref, setSeaPref] = useState<SeaPreference>('none');
   const selectedTransport = transportChoices.find((t) => t.id === transportId) ?? transportChoices[0];
 
   const travelField = useMemo(() => {
@@ -332,15 +343,63 @@ const MapPane: React.FC<MapPaneProps> = ({
   }, [interactionMode, worldforgeAtlas, playerAtlasCell, selectedTransport]);
   const planAtlasRoute = useCallback((toCell: number) => travelField?.to(toCell) ?? null, [travelField]);
 
-  // SP4 atlas pins: project each discovered hidden place's tile into FMG graph
-  // coords (same proportional placement as the player marker) for the atlas.
+  // Maritime travel mode: when the player hires a ferry, build one mixed graph
+  // that can walk to a port, cross a generated sea lane, and walk away from the
+  // destination harbor. This stays separate from `travelField` so "No sea
+  // travel" preserves the original land-only route behavior.
+  const travelMmField = useMemo(() => {
+    if (interactionMode !== 'travel' || seaPref === 'none' || !worldforgeAtlas || playerAtlasCell == null) return null;
+    const graph = buildMultiModalAtlasGraph(worldforgeAtlas, {
+      landSpeedMph: transportSpeedMph(selectedTransport.option),
+      sea: { kind: 'ferry', speedMph: 8 },
+    });
+    const origin = nearestLandCell(worldforgeAtlas, playerAtlasCell);
+    return planRoutesFrom(graph, origin, {
+      milesPerUnit: atlasMilesPerUnit(worldforgeAtlas),
+      speedMph: transportSpeedMph(selectedTransport.option),
+    });
+  }, [interactionMode, seaPref, worldforgeAtlas, playerAtlasCell, selectedTransport]);
+
+  const isAtlasLandCell = useCallback((cell: number): boolean => {
+    const height = (worldforgeAtlas?.pack as unknown as { cells?: { h?: ArrayLike<number> } } | undefined)
+      ?.cells?.h?.[cell] ?? 0;
+    return height >= 20;
+  }, [worldforgeAtlas]);
+
+  const planAtlasMultiModal = useCallback((toCell: number) => {
+    if (!worldforgeAtlas) return null;
+    const plan = travelMmField?.to(toCell);
+    if (!plan) return null;
+    return segmentRoute(
+      plan,
+      (cell) => (isAtlasLandCell(cell) ? 'land' : 'sea'),
+      atlasMilesPerUnit(worldforgeAtlas),
+    );
+  }, [travelMmField, isAtlasLandCell, worldforgeAtlas]);
+
+  const planSelectedAtlasRoute = useCallback((toCell: number) => {
+    return travelMmField?.to(toCell) ?? planAtlasRoute(toCell);
+  }, [travelMmField, planAtlasRoute]);
+
+  // SP4 atlas pins: place each discovered hidden place at the Voronoi SITE of the
+  // atlas cell its grid tile maps to (the same grid↔atlas bridge the player marker
+  // uses), so a pin sits inside its actual cell instead of drifting near a coast.
+  // Falls back to the proportional grid-cell center if the cell/site is missing.
   const worldforgeDiscoveryPins = useMemo(() => {
     if (!worldforgeAtlas) return [];
-    return discoveredHiddenSites.map((s) => ({
-      x: ((s.tileX + 0.5) / gridSize.cols) * worldforgeAtlas.graphWidth,
-      y: ((s.tileY + 0.5) / gridSize.rows) * worldforgeAtlas.graphHeight,
-      label: s.name,
-    }));
+    const pins = discoveredHiddenSites.map((s) => {
+      const offset = s.offsetX != null && s.offsetY != null ? { x: s.offsetX, y: s.offsetY } : undefined;
+      const [x, y] = gridCellToAtlasSite(
+        worldforgeAtlas,
+        { x: s.tileX, y: s.tileY },
+        { cols: gridSize.cols, rows: gridSize.rows },
+        offset,
+      );
+      return { x, y, label: s.name };
+    });
+    // Several sites in one tile snap to the same Voronoi site — fan them out so
+    // each discovered place stays individually visible/clickable on the atlas.
+    return spreadColocatedPoints(pins);
   }, [worldforgeAtlas, discoveredHiddenSites, gridSize.cols, gridSize.rows]);
 
   // Native-atlas cell pick → map the cell centroid to the legacy grid tile and
@@ -403,16 +462,39 @@ const MapPane: React.FC<MapPaneProps> = ({
     if (!worldforgeAtlas) return;
     const p = worldforgeAtlas.pack.cells.p?.[info.i];
     if (!p) return;
-    const tx = clampIndex(Math.floor((p[0] / worldforgeAtlas.graphWidth) * gridSize.cols), gridSize.cols);
-    const ty = clampIndex(Math.floor((p[1] / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows);
+    let tx = clampIndex(Math.floor((p[0] / worldforgeAtlas.graphWidth) * gridSize.cols), gridSize.cols);
+    let ty = clampIndex(Math.floor((p[1] / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows);
+    if (interactionMode === 'enter3d' && allow3DEntry && onEnter3DAtCell) {
+      // The 3D ground generator places towns on tiles chosen by getTownTilesForGrid,
+      // which uses a different burg→tile mapping than this proportional projection.
+      // Landing on the proportional tile drops the player in wilderness next to the
+      // town. If the picked cell carries a burg, snap to the exact tile that burg
+      // generates on so "click a town, enter that town" actually holds.
+      const burgId = worldforgeAtlas.pack.cells.burg?.[info.i];
+      if (burgId && worldforgeSeed != null) {
+        const townTiles = getTownTilesForGrid(worldforgeSeed, gridSize.cols, gridSize.rows);
+        const exact = townTiles.filter((t) => t.burgId === burgId);
+        const pool = exact.length ? exact : townTiles;
+        if (pool.length) {
+          const snapped = pool.reduce((best, t) =>
+            Math.hypot(t.x - tx, t.y - ty) < Math.hypot(best.x - tx, best.y - ty) ? t : best,
+          );
+          tx = snapped.x;
+          ty = snapped.y;
+        }
+      }
+      const tile = projectedTiles[ty]?.[tx];
+      if (!tile) return;
+      onEnter3DAtCell(tx, ty, tile);
+      return;
+    }
     const tile = projectedTiles[ty]?.[tx];
     if (!tile) return;
-    if (interactionMode === 'enter3d' && allow3DEntry && onEnter3DAtCell) { onEnter3DAtCell(tx, ty, tile); return; }
     if (interactionMode === 'travel' && allowTravel) {
       // Resolve the planned route to the picked cell → real trip duration + a
       // pre-rolled "danger on the road" encounter, handed to the world-move
       // contract so the game clock advances by travel time, not a flat hour.
-      const route = planAtlasRoute(info.i);
+      const route = planSelectedAtlasRoute(info.i);
       let travelMeta: { seconds: number; encounterMessage?: string | null } | undefined;
       if (route) {
         const roll = rollTravelEncounter(route, rootSeedPath(worldforgeSeed));
@@ -425,7 +507,7 @@ const MapPane: React.FC<MapPaneProps> = ({
       }
       onTileClick(tx, ty, tile, travelMeta);
     }
-  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, gridSize.cols, gridSize.rows, projectedTiles, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planAtlasRoute, worldforgeSeed]);
+  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, gridSize.cols, gridSize.rows, projectedTiles, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planSelectedAtlasRoute, worldforgeSeed]);
 
   // Enter 3D from inside the drill: the leaf rung of World ▸ Region ▸ Local ▸ Town
   // ▸ 3D. Resolves the region's focus atlas cell (drill base) → world tile and
@@ -556,6 +638,19 @@ const MapPane: React.FC<MapPaneProps> = ({
                 ))}
               </select>
             )}
+            {allowTravel && interactionMode === 'travel' && (
+              <select
+                data-testid="travel-sea-pref"
+                value={seaPref}
+                onChange={(e) => setSeaPref(e.target.value as SeaPreference)}
+                className="px-2 py-1 rounded bg-gray-700 text-gray-100 border border-gray-500"
+                title="Sea travel: hire a ferry to cross water"
+                aria-label="Sea travel"
+              >
+                <option value="none">No sea travel</option>
+                <option value="ferry">Ferry (hired)</option>
+              </select>
+            )}
             {allow3DEntry && (
               <button
                 onClick={() => setInteractionMode('enter3d')}
@@ -618,6 +713,7 @@ const MapPane: React.FC<MapPaneProps> = ({
           ref={worldforgeViewportRef}
           className="relative min-h-0 overflow-hidden flex-grow rounded bg-slate-950 border border-slate-700"
           data-testid="worldforge-map-viewport"
+          data-island-harbors-enabled={enableIslandHarbors ? 'true' : 'false'}
         >
             {!worldforgeAtlas ? (
               <div className="text-slate-100 text-sm">Forging world…</div>
@@ -628,6 +724,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                     plan={submapStack[submapStack.length - 1].town!}
                     width={worldforgeViewportSize.width}
                     height={worldforgeViewportSize.height}
+                    prefsScope={worldforgeSeed}
                   />
                 ) : submapStack[submapStack.length - 1].neighbourhood ? (
                   <NeighbourhoodSvgView
@@ -636,6 +733,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                     height={worldforgeViewportSize.height}
                     playerCellId={playerAtlasCell}
                     playerCellIndex={submapStack[submapStack.length - 1].playerCellIndex ?? null}
+                    prefsScope={worldforgeSeed}
                     onPickCell={handleSubmapDrill}
                     onPickNeighbour={handleRecenter}
                   />
@@ -646,6 +744,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                     height={worldforgeViewportSize.height}
                     onPickCell={handleSubmapDrill}
                     playerCellIndex={submapStack[submapStack.length - 1].playerCellIndex ?? null}
+                    prefsScope={worldforgeSeed}
                     travelActive={interactionMode === 'travel'}
                     planRoute={planSubmapRoute}
                     transportLabel={selectedTransport.readoutLabel}
@@ -728,7 +827,9 @@ const MapPane: React.FC<MapPaneProps> = ({
                 onPickCell={handleWorldforgePick}
                 travelActive={interactionMode === 'travel'}
                 planRoute={planAtlasRoute}
+                planMultiModalRoute={planAtlasMultiModal}
                 transportLabel={selectedTransport.readoutLabel}
+                prefsScope={worldforgeSeed}
               />
             )}
           </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, FileText, GitBranch, RefreshCcw, Search, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, FileText, GitBranch, ListChecks, RefreshCcw, Search, ShieldCheck } from 'lucide-react';
 
-import type { AtlasRawExport } from './atlasTypes';
+import type { AtlasBacklogRetirementExport, AtlasRawExport } from './atlasTypes';
 import { buildAtlasViewModel } from './atlasViewModel';
 import './atlasExplorer.css';
 
@@ -28,6 +28,11 @@ type LoadState =
   | { status: 'ready'; data: AtlasRawExport }
   | { status: 'error'; message: string };
 
+type BacklogState =
+  | { status: 'loading' }
+  | { status: 'ready'; data: AtlasBacklogRetirementExport }
+  | { status: 'error'; message: string };
+
 async function loadKnowledgeTree(): Promise<AtlasRawExport> {
   const response = await fetch('/api/atlas/knowledge-tree');
   const payload = await response.json();
@@ -35,6 +40,15 @@ async function loadKnowledgeTree(): Promise<AtlasRawExport> {
     throw new Error(payload?.message || payload?.error || 'Atlas export could not be loaded.');
   }
   return payload as AtlasRawExport;
+}
+
+async function loadBacklogRetirement(): Promise<AtlasBacklogRetirementExport> {
+  const response = await fetch('/api/atlas/backlog-retirement');
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload?.message || payload?.error || 'Backlog retirement state could not be loaded.');
+  }
+  return payload as AtlasBacklogRetirementExport;
 }
 
 // ============================================================================
@@ -46,6 +60,7 @@ async function loadKnowledgeTree(): Promise<AtlasRawExport> {
 
 export function AtlasExplorer(): React.ReactElement {
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' });
+  const [backlogState, setBacklogState] = useState<BacklogState>({ status: 'loading' });
   const [selectedBranchId, setSelectedBranchId] = useState<number | undefined>(undefined);
   const [query, setQuery] = useState('');
 
@@ -59,6 +74,23 @@ export function AtlasExplorer(): React.ReactElement {
       .catch((error: unknown) => {
         const message = error instanceof Error ? error.message : String(error);
         if (!cancelled) setLoadState({ status: 'error', message });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    loadBacklogRetirement()
+      .then((data) => {
+        if (!cancelled) setBacklogState({ status: 'ready', data });
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        if (!cancelled) setBacklogState({ status: 'error', message });
       });
 
     return () => {
@@ -111,6 +143,8 @@ export function AtlasExplorer(): React.ReactElement {
 
   return (
     <main className="atlas-shell">
+      <RecentAtlasWorkBanner state={backlogState} />
+
       <header className="atlas-header">
         <div>
           <p className="atlas-kicker">Aralia Atlas</p>
@@ -118,6 +152,8 @@ export function AtlasExplorer(): React.ReactElement {
         </div>
         <div className="atlas-generated">Last reconciliation: {new Date(model.generatedAt).toLocaleString()}</div>
       </header>
+
+      <BacklogRetirementPanel state={backlogState} />
 
       <section className="atlas-summary" aria-label="Atlas summary">
         <div><strong>{model.summary.branchCount}</strong><span>Branches</span></div>
@@ -190,5 +226,131 @@ export function AtlasExplorer(): React.ReactElement {
         </section>
       </section>
     </main>
+  );
+}
+
+function formatActivityTimestamp(timestamp: string | null): string {
+  if (!timestamp) return 'retired or missing';
+  return new Date(timestamp).toLocaleString();
+}
+
+function RecentAtlasWorkBanner({ state }: { state: BacklogState }): React.ReactElement | null {
+  const [pulseRecentActivity, setPulseRecentActivity] = useState(true);
+
+  useEffect(() => {
+    if (state.status !== 'ready') return undefined;
+
+    // The pulse is intentionally page-local: it points the operator at the
+    // newest ledger rows for one minute after the dashboard opens or refreshes.
+    const timeoutId = window.setTimeout(() => setPulseRecentActivity(false), 60_000);
+    return () => window.clearTimeout(timeoutId);
+  }, [state]);
+
+  if (state.status !== 'ready' || !state.data.available) return null;
+
+  const recentActivity = state.data.recentActivity ?? [];
+  if (recentActivity.length === 0) return null;
+
+  return (
+    <section className="atlas-last-work-banner" aria-label="Last Atlas work">
+      <div className="atlas-recent-work-header">
+        <div>
+          <p className="atlas-kicker">Last Atlas work</p>
+          <h2>Files Codex walked most recently</h2>
+        </div>
+        <span>Highlight fades after 60 seconds</span>
+      </div>
+      <div className="atlas-recent-work-list">
+        {recentActivity.map((activity) => (
+          <article
+            key={activity.path}
+            className={pulseRecentActivity ? 'atlas-recent-work-row atlas-recent-work-row-pulse' : 'atlas-recent-work-row'}
+          >
+            <div>
+              <h3>{activity.path}</h3>
+              <p>{activity.walkState}</p>
+            </div>
+            <div className="atlas-recent-work-meta">
+              <span>{activity.exists ? 'kept file' : activity.kind}</span>
+              <span>{formatActivityTimestamp(activity.modifiedUtc)}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function BacklogRetirementPanel({ state }: { state: BacklogState }): React.ReactElement {
+
+  if (state.status === 'loading') {
+    return (
+      <section className="atlas-backlog-panel atlas-backlog-muted" aria-label="Backlog retirement progress">
+        <RefreshCcw className="atlas-spin" size={16} aria-hidden="true" />
+        <span>Loading backlog marker progress</span>
+      </section>
+    );
+  }
+
+  if (state.status === 'error' || !state.data.available) {
+    const message = state.status === 'error' ? state.message : state.data.message;
+    return (
+      <section className="atlas-backlog-panel atlas-backlog-warning" aria-label="Backlog retirement progress">
+        <AlertTriangle size={16} aria-hidden="true" />
+        <span>{message}</span>
+      </section>
+    );
+  }
+
+  const markerSummary = state.data.markerSummary;
+  const snapshotSummary = state.data.snapshot?.summary;
+  const candidateCount = state.data.candidates?.candidateCount ?? 0;
+  const candidates = state.data.candidates?.files ?? [];
+  const walkedPercent = markerSummary && markerSummary.totalMarkdown > 0
+    ? Math.round((markerSummary.markedMarkdown / markerSummary.totalMarkdown) * 100)
+    : 0;
+
+  return (
+    <section className="atlas-backlog-panel" aria-label="Backlog retirement progress">
+      <div className="atlas-backlog-overview">
+        <div>
+          <p className="atlas-kicker">Backlog retirement</p>
+          <h2>Walked marker coverage</h2>
+        </div>
+        <div className="atlas-backlog-stat">
+          <CheckCircle2 size={16} aria-hidden="true" />
+          <strong>{walkedPercent}%</strong>
+          <span>of docs marked walked</span>
+        </div>
+        <div className="atlas-backlog-stat">
+          <ListChecks size={16} aria-hidden="true" />
+          <strong>{candidateCount}</strong>
+          <span>likely backlog candidates</span>
+        </div>
+      </div>
+
+      <div className="atlas-backlog-meter" aria-label={`${walkedPercent}% walked marker coverage`}>
+        <span style={{ width: `${walkedPercent}%` }} />
+      </div>
+
+      <div className="atlas-backlog-counts">
+        <span>{markerSummary?.markedMarkdown ?? 0} marked</span>
+        <span>{markerSummary?.missingMarkdown ?? 0} unmarked</span>
+        <span>{snapshotSummary?.total ?? 0} ledger rows</span>
+        <span>{snapshotSummary?.file ?? 0} kept files</span>
+        <span>{snapshotSummary?.missing ?? 0} retired/deleted</span>
+      </div>
+
+      {candidates.length > 0 ? (
+        <div className="atlas-backlog-candidates" aria-label="Top likely backlog candidates">
+          {candidates.slice(0, 6).map((candidate) => (
+            <article key={candidate.path} className="atlas-backlog-candidate">
+              <span>{candidate.path}</span>
+              <strong>{candidate.score}</strong>
+            </article>
+          ))}
+        </div>
+      ) : null}
+    </section>
   );
 }

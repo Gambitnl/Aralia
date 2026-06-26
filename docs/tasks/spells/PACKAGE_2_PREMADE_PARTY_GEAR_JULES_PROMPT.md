@@ -1,6 +1,6 @@
 # Package 2 Jules Prompt: Premade Party And Gear
 
-Status: prompt-ready, not dispatched.
+Status: historical prompt; Package 2 dispatched and PR #935 merged.
 
 Historical closeout note: Package 2 has since been dispatched to Jules and
 merged through PR #935. This prompt is retained as evidence of what Jules was
@@ -121,3 +121,5 @@ After Jules returns:
 3. Refresh spell gates if data changed.
 4. Record PR/review/deployment/local-sync evidence in the Symphony trail.
 5. Record task-scoped ROI facts before claiming any Jules savings.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md","sha256WithoutMarker":"975eeae967dccc13c80a487d2c5455aeebfd0799d04d15666e0d036623b706dc","markedAtUtc":"2026-06-25T22:29:38.346Z"} -->

@@ -122,3 +122,5 @@ describe('[Component] Integration', () => {
 - **Buffer:** [X]h for debugging
 
 **Total:** [XX] hours over [X] days
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/TASK-TEMPLATE.md","sha256WithoutMarker":"25a4627356d2749b5c9ee9fd8146e141b483d36d75ce690bb1351fd84a02731e","markedAtUtc":"2026-06-25T22:29:38.595Z"} -->

@@ -180,3 +180,5 @@ Representative spell files:
   stores the sum of written price numbers (`250 + 50 = 300`) rather than quantity-expanding
   "four ivory strips worth 50 GP each" to `450`.
 - This is now documented behavior, not an active mismatch.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/material-component/SPELL_MATERIAL_COMPONENT_BUCKET_TRACKER.md","sha256WithoutMarker":"3ba3736691cee9b90a0e899ef9ce6a5540f3428543504f3f26920a953e59db49","markedAtUtc":"2026-06-25T22:29:38.521Z"} -->

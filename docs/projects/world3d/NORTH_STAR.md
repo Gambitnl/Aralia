@@ -270,8 +270,8 @@ Checked `docs/projects/GLOBAL_GAPS.md` (last reviewed 2026-06-02, T13).
 | `docs/projects/GLOBAL_GAPS.md` | Cross-project gap surfacing | active |
 | `docs/projects/worldsim-service/NORTH_STAR.md` | Upstream: produces the `WorldData` this consumes | active |
 | `docs/projects/world-3d-ui/NORTH_STAR.md` | Downstream: drives/overlays this engine (transition + HUD) | active |
-| `docs/superpowers/plans/2026-05-31-world3d-chunk-rendering.md` | Plan 3 (real meshes) | done |
-| `docs/superpowers/plans/2026-05-31-world3d-rendering-hardening.md` | Rendering hardening | done |
+| `docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md` | Retired Plan 3 and rendering-hardening packet disposition | active |
+| `docs/projects/world3d/TRACKER.md` | Current proof trail for real meshes, hardening, LOD, and follow-ups | active |
 
 ## Artifact Boundary
 
@@ -290,7 +290,7 @@ screenshots, preview IDs, the temporary `[world3d-debug]` logs from diagnosis (r
 
 1. Read this file.
 2. Read `docs/projects/world3d/TRACKER.md` then `docs/projects/world3d/GAPS.md`.
-3. Skim `docs/superpowers/plans/2026-05-31-world3d-rendering-hardening.md` for the latest fixes.
+3. Use this North Star plus `docs/projects/world3d/TRACKER.md` for the latest fixes; check `docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md` only for old packet provenance.
 4. Verify: `npx vitest run src/systems/world3d src/components/World3D` (expect green ~76), then dev-start + `?phase=world3d`. To screenshot the scene, hide the Ollama modal overlay via DOM rather than clicking "Continue" (clicking it can trigger the `world-3d-ui` entry bounce).
 5. Continue from the Active Task section above. Entry/transition issues belong to `world-3d-ui`; generation + the `METERS_PER_CELL` worldÃ¢â€ â€grid scale to `worldsim-service`/shared contract.
 

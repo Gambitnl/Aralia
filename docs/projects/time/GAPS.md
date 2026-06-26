@@ -6,9 +6,9 @@ slug: time
 status: active
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-05"
-gap_count: 4
-open_gap_count: 4
+last_updated: "2026-06-25"
+gap_count: 5
+open_gap_count: 5
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
@@ -101,7 +101,7 @@ supported_optional_sections:
 ---
 # Time Gap Registry
 
-Last updated: 2026-06-05  
+Last updated: 2026-06-25
 Status: active
 
 Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
@@ -113,6 +113,7 @@ Use this file for durable unresolved findings that are too important or too larg
 | G2 | active | medium | support_needed_now | Time project | confirmed | project |  | none | none | not_recorded | `src/state/reducers/worldReducer.ts`, `src/state/reducers/ritualReducer.ts` | implementation scan | Mixed pre/post-advance timestamp usage can make edge-case ordering harder to reason about. | `src/state/reducers/worldReducer.ts`, `src/state/reducers/ritualReducer.ts` | Mixed pre/post-advance timestamp usage can make edge-case ordering harder to reason about. | Add explicit invariants and a regression test for boundary transition plus ritual handling. | Extend `src/state/reducers/__tests__/worldReducer.test.ts` and `src/state/reducers/__tests__/ritualReducer.test.ts` (or equivalent) with boundary assertions. |  |
 | G3 | active | low | adjacent_follow_up | Time project | confirmed | project |  | none | none | not_recorded | `src/systems/time/SeasonalSystem.ts`, `src/hooks/actions/handleMovement.ts` | implementation scan | Seasonal modifiers are implemented but not yet a universal simulation contract across all systems. | `src/systems/time/SeasonalSystem.ts`, `src/hooks/actions/handleMovement.ts` | Seasonal modifiers are implemented but not yet a universal simulation contract across all systems. | Decide whether seasonal effects are a hard global contract or a movement-only subsystem. | Add owner-level acceptance criteria before seasonal balance work in other systems. |  |
 | G4 | waiting | medium | support_needed_now | Time project | confirmed | project |  | none | none | not_recorded | `src/hooks/actions/handleResourceActions.ts`, `src/state/reducers/worldReducer.ts`, `src/types/state.ts` | implementation scan | Rest state is implemented, but transition details across ticks/rest boundaries are still fragile. | `src/hooks/actions/handleResourceActions.ts`, `src/state/reducers/worldReducer.ts`, `src/types/state.ts` | Rest state is implemented, but transition details across ticks/rest boundaries are still fragile. | Add targeted tests around short/long rest and day-boundary interaction. | Re-run resource action tests after every time-related code change. |  |
+| G5 | not_started | low | adjacent_follow_up | Time project | confirmed | retired backlog |  | none | none | source_checked | `src/utils/core/timeUtils.ts`, dialogue and banter context builders | `docs/plans/refactors/PROPOSED_TIME_REFACTOR.md` retirement 2026-06-25 | The shared `timeUtils` lane exists and is used by some services, but social-context builders still derive day-part labels from raw `Date` hours while the shared helper uses UTC and a different Dawn/Day/Dusk/Night vocabulary. | `src/utils/core/timeUtils.ts`; `src/hooks/actions/handleNpcInteraction.ts`; `src/hooks/useConversation.ts`; `src/hooks/useCompanionBanter.ts`; `src/systems/time/CalendarSystem.ts` | Changing these call sites without a contract can alter prompts and local-vs-UTC semantics, so the old refactor note should become an owner-reviewed Time gap rather than a casual cleanup. | Decide whether dialogue context should use the shared TimeOfDay vocabulary, keep Morning/Afternoon/Evening as social prose, or add a Time-owned formatter that preserves current labels while centralizing UTC policy. | Focused tests proving one dialogue/banter context path emits the intended label at boundary hours without changing unrelated prompt fields. | Retired `docs/plans/refactors/PROPOSED_TIME_REFACTOR.md`; no runtime behavior changed in the retirement pass. |
 
 ## Classification Reference
 

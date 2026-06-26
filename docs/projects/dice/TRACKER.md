@@ -1,7 +1,7 @@
 ﻿# Dice Living Tracker
 
 Status: review-required
-Last updated: 2026-06-12
+Last updated: 2026-06-25
 
 ## Status Vocabulary
 
@@ -39,6 +39,8 @@ Keep the Dice project handoff focused on observed runtime state, integration poi
 |---|---|---|---|---|---|---|---|---|---|---|
 | D-G2 | not_started | in_scope_now | Agent | `docs/projects/dice/GAPS.md` | docs refresh + code scan | No dice roll history persistence UI/service artifact | `src/components/dice` | Regression tracing and session replay are hard | Add scope and required retention policy | Add test/UX acceptance criterion |
 | D-G3 | blocked_human_decision | support_needed_now | Agent | `docs/projects/dice/GAPS.md` | docs refresh + code scan | Silent and visual roll paths lack a shared deterministic + audit contract | `src/contexts/DiceContext.tsx`, `src/services/DiceService.ts`, `src/utils/combat/combatUtils.ts` | Behavior can diverge silently between silent and visual output | Approve deterministic policy + history contract before integration | Required Review Brief + cross-path acceptance test |
+| D-G4 | not_started | adjacent_follow_up | Codex | `docs/projects/dice/GAPS.md` | investigation packet routing 2026-06-25 | DiceBox initialization logic is split between `useDiceBox.ts` and `DiceService.ts`. | `src/hooks/useDiceBox.ts`; `src/services/DiceService.ts` | Manual and overlay visual roll robustness can drift. | Decide shared factory vs intentional split after visual/remount proof. | Mount/remount proof for both visual dice entry points or an explicit ownership decision. |
+| D-G5 | not_started | adjacent_follow_up | Codex | `docs/projects/dice/GAPS.md` | investigation packet routing 2026-06-25 | Dice roller modal canvas styling should not be moved without current rendered proof. | `src/components/dice/DiceRollerModal.tsx` | Style cleanup could break canvas layering or pointer behavior. | Recheck rendered modal before style extraction. | Screenshot/rendered proof before and after any style change. |
 
 ## Update rules
 

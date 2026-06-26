@@ -217,3 +217,5 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   explicit `any` for casting-time/range formatting. A third marked Jules
   feedback comment was posted at
   `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519567250`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_3_SYMPHONY_HANDOFF_RECEIPT.md","sha256WithoutMarker":"f8d59753fb6bd6adf7b4dfb8bc2a15f53d8019c196d959f2e98cb9ce4a6ffea4","markedAtUtc":"2026-06-25T22:29:38.355Z"} -->

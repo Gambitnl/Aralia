@@ -248,3 +248,5 @@ After Jules returns a PR or patch, Codex should:
    `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
 9. record task-scoped ROI facts before claiming Symphony/Jules savings
 10. decide whether Package 3 can begin or whether Package 2 needs repair
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md","sha256WithoutMarker":"d49c083e68e883bdcadf56d3d52486b8dc0449b5bfd89f23ce73aeaae22459b2","markedAtUtc":"2026-06-25T22:29:38.346Z"} -->

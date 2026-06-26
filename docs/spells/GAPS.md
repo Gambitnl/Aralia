@@ -24,3 +24,5 @@ No durable project-specific gaps were added during the scaffold conversion pass.
 ## Import Rules
 
 - Route cross-project or unrelated findings to `docs/projects/GLOBAL_GAPS.md`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/spells/GAPS.md","sha256WithoutMarker":"01eb6f660036695cbfdcb11b429fc88e0c8b4195713d57ce585ce1f22d63456c","markedAtUtc":"2026-06-25T22:54:19.195Z"} -->

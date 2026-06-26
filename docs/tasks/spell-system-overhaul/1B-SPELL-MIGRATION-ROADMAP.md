@@ -78,3 +78,5 @@ This file is now reference context, not an executable backlog.
 
 This roadmap no longer uses early migration-batch wording such as  33 cantrips remaining as its main organizing model.
 The current repo has already moved beyond that stage, so the roadmap now tracks concrete capabilities and remaining integration gaps instead.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md","sha256WithoutMarker":"e831c9a2b3120734b504e03e9c3b6632652a872dc31b8fe4e2c5caa6e81716b1","markedAtUtc":"2026-06-25T22:29:38.574Z"} -->

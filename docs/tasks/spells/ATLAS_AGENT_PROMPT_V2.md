@@ -297,3 +297,5 @@ point of the Atlas.
    5-section template in "How to report back". §1 fields implemented,
    §2 verification, §3 gaps reported, §4 doc / UI friction, §5 ready /
    not-ready confidence call. Don't post the report contents in chat.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/ATLAS_AGENT_PROMPT_V2.md","sha256WithoutMarker":"50bb50a9cbf7ce9eef4e2a3d8fd1e00b29912e83c6d8bec7659aa2177ba5918c","markedAtUtc":"2026-06-25T22:29:38.505Z"} -->

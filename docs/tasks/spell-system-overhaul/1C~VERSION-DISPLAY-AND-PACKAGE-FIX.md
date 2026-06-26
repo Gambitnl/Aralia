@@ -42,3 +42,5 @@ Checked against:
 - `package.json`
 - `tsconfig.json`
 - absence of `src/components/VersionDisplay.tsx` in the current source tree
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md","sha256WithoutMarker":"cc58b1da4d5ecb9045ece08f4658c82125944da6c568be0ce58fdec0109902b5","markedAtUtc":"2026-06-25T22:29:38.574Z"} -->

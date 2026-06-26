@@ -124,6 +124,11 @@ When `project_mode` is `parent_with_subprojects`:
 - Set `subproject_count` to the number of active rows in the registry.
 - Use `subproject_signal` for the dashboard-sized summary, such as
   `8 lanes tracked; 3 existing project/task rows route under this parent`.
+- Set `highest_priority` in `SUBPROJECTS.md` frontmatter when one registry lane
+  should be surfaced as the recommended next executable child packet.
+- Set `proof_freshness` in `SUBPROJECTS.md` frontmatter when the parent
+  dashboard should show whether the registry's proof/routing evidence is
+  current, stale, mixed, or unknown.
 - Keep actionable implementation gaps in `GAPS.md`; use `SUBPROJECTS.md` for
   routing, ownership, and proof boundaries.
 - Do not treat the parent project as one implementation pass. The parent page
@@ -377,6 +382,8 @@ Field meanings:
 | Subproject tracker | Path to `SUBPROJECTS.md` when project mode is `parent_with_subprojects`; empty otherwise. |
 | Subproject count | Number of active rows in `SUBPROJECTS.md`; `0` for ordinary projects. |
 | Subproject signal | Dashboard-sized summary of lane count, owned child work, linked support, or adjacent dependencies. |
+| Highest priority subproject | API field derived from `highest_priority` in `SUBPROJECTS.md` frontmatter. The parent dashboard uses it to choose one recommended next lane and one recommended handoff packet. |
+| Subproject proof freshness | API field derived from `proof_freshness` in `SUBPROJECTS.md` frontmatter. Use it for parent-registry proof freshness, not child runtime proof. |
 | Required verification | Comma-separated verification types from `PROJECT_VERIFICATION_SCHEMA.md`. |
 | Completed verification | Comma-separated verification types completed for the current active slice. |
 | Last proof | Date of the most recent durable proof update. |
@@ -486,3 +493,5 @@ actual project files.
 A generated cache can be added later if the dashboard becomes slow, but the
 cache should still be generated from the project folders rather than becoming a
 second manual source of truth.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/projects/PROJECT_CARD_SCHEMA.md","sha256WithoutMarker":"c1c52158caa79fc09b8efa57dddfb84723c0d219eb656e108a9f20a6fe04c461","markedAtUtc":"2026-06-25T23:08:44.605Z"} -->

@@ -1,11 +1,11 @@
 # Package 7 - Stale PR Fallback Decision
 
-Status: Option C selected; PR #1009 was filed and closed as stale/unaccepted
-after repair feedback and an explicit `@jules` nudge did not produce a repair.
+Status: historical Package 7 fallback decision; PR #1009 was closed
+stale/unaccepted and the bounded local fallback completed G48.
 
 ## Why This Exists
 
-Package 7 is still the active Spell Phase 1 implementation boundary. It repairs
+Package 7 was the active Spell Phase 1 implementation boundary for repairing
 the Spell Pipeline Atlas source/discoverability gap tracked as `G48`.
 
 Jules opened PR #1009 from replacement session `15919037371248424671`, but the
@@ -135,3 +135,5 @@ git diff --check -- .gitignore src\spell-pipeline-atlas.tsx src\components\Desig
 ```
 
 Then re-review the changed files for the specific `G72` blockers before merge.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_7_STALE_PR_FALLBACK_DECISION.md","sha256WithoutMarker":"0dfdb576e0146ffc5e275890e184ae8a878fde0777ba4d8f25d8f80ad9aec264","markedAtUtc":"2026-06-25T22:29:38.366Z"} -->

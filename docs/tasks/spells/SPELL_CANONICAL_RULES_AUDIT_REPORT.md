@@ -3600,3 +3600,4 @@ Truncated Against Structured Description: 0
 - Canonical Rules Length: 0
 - Structured Preview: Wish is the mightiest spell a mortal can cast. By simply speaking aloud, you can alter reality itself. The basic use of this spell is to ...
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_CANONICAL_RULES_AUDIT_REPORT.md","sha256WithoutMarker":"e2eecbdec4ef154ca5580433a0b9832c6497b2bd752c6e5a2e00236d2812325d","markedAtUtc":"2026-06-25T22:29:38.538Z"} -->

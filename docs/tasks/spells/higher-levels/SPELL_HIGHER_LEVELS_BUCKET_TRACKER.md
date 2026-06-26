@@ -331,3 +331,5 @@ Current status is:
 - runtime side: closed
 - remaining work is policy/model review around `higherLevelScaling`, plus any
   later decision to improve canonical `Rules Text` extraction
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/higher-levels/SPELL_HIGHER_LEVELS_BUCKET_TRACKER.md","sha256WithoutMarker":"421b0f2fb8c1f0c37a0a606f38f02b26fb6fd5323bae430e316b79a2d82930f6","markedAtUtc":"2026-06-25T22:29:38.520Z"} -->

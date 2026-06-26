@@ -41,3 +41,4 @@ Expected output:
    Atlas limitation. The current Atlas source gap is tracked as `G48`; do not
    claim Atlas proof unless that separate gap is repaired.
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_PROMPT.md","sha256WithoutMarker":"3b6724713f6dddde1dd639bd3fd20a56745b3b43f598ffe1b45ac984e2574b61","markedAtUtc":"2026-06-25T22:29:38.363Z"} -->

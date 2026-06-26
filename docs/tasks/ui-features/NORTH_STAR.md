@@ -45,6 +45,16 @@ Out of scope:
   such as `Economy UI docs owner` or `Worker` values, not hard stewardship IDs.
 - This folder records ownership drift as a continuity gap when a concrete owner is required.
 
+## Owner Map
+
+| Initiative | Owner-bearing row | Current owner signal | Next proof/check |
+|---|---|---|---|
+| salvage-ui | `docs/projects/crafting-ui/GAPS.md` G8 | Alchemist / Crafting UI owner | Salvage action, confirmation, execution, and result feedback proof in Crafting UI. |
+| economy-ui | `docs/projects/economy-ui/GAPS.md` G4/G6/G8 | Economy UI docs owner | Non-debug player entry point, Escape close parity, or transaction-routing proof in Economy UI. |
+| glossary-ui | `docs/projects/glossary-ui/GAPS.md` G7/G8 | Worker / Codex by row | Schema-guard or spell-detail glossary-linking proof in Glossary UI. |
+| party-ui | `docs/projects/party-ui/TRACKER.md` and `GAPS.md` | Party UI owner rows | Resume only from active party-owned tracker/gap rows. |
+| ui-primitives | `docs/projects/ui-primitives/TRACKER.md` and `GAPS.md` | UI primitives owner rows | Shared style/input/layering convention proof before broad modal expansion. |
+
 ## Integrations to Preserve
 
 - Shared modal/render host: `src/components/layout/GameModals.tsx`, `src/App.tsx`.
@@ -60,3 +70,5 @@ Out of scope:
 1. Read this file, then `TRACKER.md`, then `GAPS.md`.
 2. Confirm active follow-up decisions exist for each initiative in their owning tracker.
 3. If ownership is ambiguous, add the gap here with a concrete next proof check and evidence path.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/ui-features/NORTH_STAR.md","sha256WithoutMarker":"6eb7bae16acec5fd4182c692118c41e79af1f7b2f4163cd707eef4c22dc87857","markedAtUtc":"2026-06-25T22:29:38.627Z"} -->

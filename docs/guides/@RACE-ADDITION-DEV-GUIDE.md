@@ -75,3 +75,5 @@ Do not assume:
 - that every new race requires a new race-group entry
 - that a package command named glossary:index exists
 - that older file-URL links in earlier versions of this guide are still the right reference form
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/guides/@RACE-ADDITION-DEV-GUIDE.md","sha256WithoutMarker":"86571d38b0a6af6741abb466af3a74de50d61f773827e9066a5814e96eff1194","markedAtUtc":"2026-06-25T22:29:38.317Z"} -->

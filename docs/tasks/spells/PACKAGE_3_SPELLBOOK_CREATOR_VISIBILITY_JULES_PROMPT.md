@@ -66,3 +66,5 @@ Completion report should include:
 - verification commands and results
 - screenshots or test proof for the creator and spellbook flows
 - any adjacent gaps found for Package 4, Package 5, or later mechanics buckets
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_PROMPT.md","sha256WithoutMarker":"f1c7929f22327b3e0d009c65563421f7856c91e1d7d5b1590393953106a94712","markedAtUtc":"2026-06-25T22:29:38.526Z"} -->

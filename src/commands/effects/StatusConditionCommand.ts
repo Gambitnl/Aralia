@@ -117,7 +117,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
         ...this.getStatusMetadata()
       };
 
-      // TODO: Wire ActiveCondition durations into the turn cleanup pipeline so these expire and log when they end (see docs/tasks/spell-system-overhaul/COMPLETE-STUB-COMMANDS.md; if this block is moved/refactored/modularized, update the COMPLETE-STUB-COMMANDS entry path).
+      // TODO: Wire ActiveCondition durations into the turn cleanup pipeline so these expire and log when they end (see structured-spell-execution-G7 in docs/projects/spells/subprojects/structured-spell-execution/GAPS.md).
       const updatedConditions = this.applyCondition(target.conditions, appliedCondition);
       const { statusEffects, appliedStatus } = this.applyStatusEffect(
         target.statusEffects,

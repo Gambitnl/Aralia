@@ -177,3 +177,5 @@ This means:
   number of closure tasks rather than P1/P2 subbuckets. The shape is
   intentional - don't manufacture P1/P2 entries to "look more like
   the parity buckets."
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/atlas-prompts/structured-markdown-v3.md","sha256WithoutMarker":"9698b358c649abc4f0fff405deede903fe79ad38430eab0643357b2d7abe5afa","markedAtUtc":"2026-06-25T22:29:38.484Z"} -->

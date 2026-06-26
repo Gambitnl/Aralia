@@ -39,3 +39,5 @@ Merchant pricing is implemented as a shared capability, not as a merchant-only h
 
 - This doc no longer frames merchant pricing as an unimplemented integration target, because the shared pricing path already exists.
 - Broader economy roadmap items such as businesses, investments, or courier intelligence still live elsewhere and should not be conflated with the already-implemented merchant pricing layer.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/feature-capabilities/merchant-pricing-economy.md","sha256WithoutMarker":"cd8379bf6f4a2b467ec8db19df6f958a0a9147a21a173d9c5dc1a74a13c75959","markedAtUtc":"2026-06-25T22:29:38.609Z"} -->

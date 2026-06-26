@@ -1,6 +1,6 @@
 # Aralia Documentation Index & Active Inventory
 
-**Last Updated**: 2026-05-17  
+**Last Updated**: 2026-06-25
 **Purpose**: Provide a stable map of the maintained documentation system and highlight the active work surfaces that are currently relevant to contributors.
 
 ## 1. Start Here (Canonical Root)
@@ -15,7 +15,7 @@ Start here when you need to re-enter active development or documentation work qu
 
 - **Spell System Overhaul**: `docs/tasks/spell-system-overhaul/` (Start at `README.md` or `00-TASK-INDEX.md`)
 - **Spell Completeness Audit**: `docs/tasks/spell-completeness-audit/`
-- **3D Exploration**: `docs/tasks/3d-exploration/`
+- **3D Exploration / World3D**: [`projects/world3d/NORTH_STAR.md`](./projects/world3d/NORTH_STAR.md), [`projects/world3d/GAPS.md`](./projects/world3d/GAPS.md), and `docs/tasks/3d-exploration/world-map-rewire-mapping.md`
 - **Project Gap Registries**: [`projects/PROJECT_TRACKER.md`](./projects/PROJECT_TRACKER.md) and [`projects/GLOBAL_GAPS.md`](./projects/GLOBAL_GAPS.md)
 - **Live Spell Integration**: [`SPELL_INTEGRATION_STATUS.md`](./SPELL_INTEGRATION_STATUS.md)
 

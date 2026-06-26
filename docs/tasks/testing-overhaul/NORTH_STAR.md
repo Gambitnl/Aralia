@@ -85,3 +85,5 @@ Planned:
 4. Choose exactly one active stream gap.
 5. Inspect current source/tests for that stream.
 6. Add one focused proof and update the matching gap row.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/testing-overhaul/NORTH_STAR.md","sha256WithoutMarker":"30ffbbabde780350c7ffcbf7d626df54eabc32c2216562cfe639d4099100b1a8","markedAtUtc":"2026-06-25T22:29:38.630Z"} -->

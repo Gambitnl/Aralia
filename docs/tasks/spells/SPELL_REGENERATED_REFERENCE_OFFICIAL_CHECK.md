@@ -455,3 +455,5 @@ So the verification issue is now much narrower than before:
 
 - the top-level comparison batch is no longer blocked by missing pages
 - but the source-quality label for some spells is still weaker than the fully official D&D Beyond spell-page comparisons used for the other entries
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_REGENERATED_REFERENCE_OFFICIAL_CHECK.md","sha256WithoutMarker":"acb8355c56f38411ef85416d6849cbfbec99541d7001fe66e2f93f0aa9d51ee5","markedAtUtc":"2026-06-25T22:29:38.555Z"} -->

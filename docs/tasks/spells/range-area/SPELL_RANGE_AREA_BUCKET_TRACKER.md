@@ -1294,3 +1294,5 @@ structured payload once the explicit facts are present.
 - explicit-unit sub-lane: complete
   - the live runtime spell corpus now genuinely finds `0` positive numeric geometry
     fields without explicit unit fields after the `2026-04-08` corpus backfill
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/range-area/SPELL_RANGE_AREA_BUCKET_TRACKER.md","sha256WithoutMarker":"88b368d1e103d83ee04ce2455a50fbd0f68439c04e332c2467bacd43ae90b53f","markedAtUtc":"2026-06-25T22:29:38.533Z"} -->

@@ -461,3 +461,5 @@ Notes:
   - Deep Research selected
 
 - 2026-02-21T16:39:04.798Z [start] planned=1 args=--dry-run --limit 1
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/portraits/race_portrait_regen_handoff.md","sha256WithoutMarker":"7d73fcf3fcbdb6b64771d2160c8196d915186f995534af5dac105f8c1c51e0c7","markedAtUtc":"2026-06-25T23:14:14.366Z"} -->

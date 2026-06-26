@@ -81,3 +81,5 @@ This file should be read as preserved task context, not as a fresher source of t
 - that the "LegacySpell" preservation note is a verified live guarantee
 
 Use this file as preserved implementation context plus a pointer to the live type layer.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/01-typescript-interfaces.md","sha256WithoutMarker":"0a48c24bf0e24961a8aac8b604d04d122ea50c2998fd6fb36c1749935231f2cf","markedAtUtc":"2026-06-25T22:29:38.573Z"} -->

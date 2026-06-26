@@ -1,7 +1,6 @@
 # Package 18 Jules Task: Reaction Opportunity Continuation (Cantrip/Level 1-3)
 
-Status: bounded continuation packet for the next `reaction_or_opportunity_restriction`
-slice after Package 17.
+Status: historical Package 18 continuation packet; PR #1143 merged on 2026-06-01.
 
 This packet moves the mechanism forward by taking the remaining cantrip/level 1-3
 `reaction_or_opportunity_restriction` findings in a coherent, bounded batch.
@@ -153,3 +152,5 @@ this package verification rather than broad tooling repair.
 - No helper files, workflow edits, local orchestration artifacts, or broad unrelated runtime
   edits are included in the PR.
 - Atlas and gate-relevant bucket statuses are consistent with completed closures.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md","sha256WithoutMarker":"d8428aa11de85b3cdd682cc859489d8856264c20b887639b6eb535838390d932","markedAtUtc":"2026-06-25T22:29:38.381Z"} -->

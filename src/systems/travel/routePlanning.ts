@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 25/06/2026, 17:00:05
+ * Dependents: components/MapPane.tsx, components/Worldforge/AtlasSvgView.tsx, components/Worldforge/SubmapSvgView.tsx, systems/travel/travelEncounter.ts, systems/travel/travelReadout.ts, systems/worldforge/travel/atlasTravelGraph.ts, systems/worldforge/travel/submapTravelGraph.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file routePlanning.ts — fastest-route pathfinding + travel-cost model.
  *
@@ -29,6 +45,11 @@ export interface TravelGraph {
   passable(cell: number): boolean;
   /** Per-cell danger in [0,1] (0 = safe). Optional; defaults to 0. */
   danger?(cell: number): number;
+  /**
+   * Optional authoritative travel time for moving from one cell into a neighbor.
+   * Multi-modal graphs use this to mix land and sea speeds inside one route.
+   */
+  edgeMinutes?(from: number, to: number): number;
 }
 
 export interface RoutePlan {
@@ -124,6 +145,7 @@ export interface RouteField {
 export function planRoutesFrom(graph: TravelGraph, start: number, opts: RoutePlanOptions): RouteField {
   const speed = Math.max(0.1, opts.speedMph);
   const minutesOf = (from: number, to: number): number => {
+    if (graph.edgeMinutes) return graph.edgeMinutes(from, to);
     const miles = dist(graph.position(from), graph.position(to)) * opts.milesPerUnit;
     const terrainMod = TERRAIN_TRAVEL_MODIFIERS[graph.terrain(to)] || 1;
     return (miles / (speed * terrainMod)) * 60;

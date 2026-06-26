@@ -127,3 +127,5 @@ The next glossary-rules coverage standard should be:
    glossary entries with actual rule text.
 4. Do not use the full `Rules Glossary` category size as proof of canonical rules
    coverage.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/glossary/GLOSSARY_RELEVANT_RULES_TARGET_SET.md","sha256WithoutMarker":"5ac0b8e98c290f4b24bfc97919f0af90ea18cfbabe469485952ae2559c1a12d7","markedAtUtc":"2026-06-25T22:29:38.307Z"} -->

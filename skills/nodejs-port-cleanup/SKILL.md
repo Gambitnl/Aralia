@@ -1,10 +1,6 @@
 ---
 name: nodejs-port-cleanup
-description: |
-  Automatically kill existing processes on a port before starting a Node.js server.
-  Use when: (1) EADDRINUSE error occurs on server startup, (2) previous server
-  instance is still running, (3) port conflict prevents development server from
-  starting. Cross-platform solution for Windows (netstat/taskkill) and Unix (lsof/kill).
+description: Automatically terminate conflicting port processes on Windows/Unix before starting Node.js servers to avoid EADDRINUSE errors.
 author: Claude Code
 version: 1.0.0
 date: 2025-01-20
@@ -170,3 +166,13 @@ lsof -ti:3847 | xargs kill -9
 - Node.js `child_process.execSync`: https://nodejs.org/api/child_process.html#child_processexecsynccommand-options
 - Windows netstat documentation: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/netstat
 - Unix lsof manual: https://man7.org/linux/man-pages/man8/lsof.8.html
+
+## Completion Criteria
+
+Before concluding any port cleanup task, you must satisfy the following checklist:
+
+1. **Verify Termination:** Check that the process using the target port is terminated successfully using `netstat -ano | findstr :PORT` (Windows) or `lsof -ti:PORT` (Unix/Mac).
+2. **Server Spawning:** Confirm that the dev server can start up on the target port cleanly without raising `EADDRINUSE`.
+3. **Cross-Platform Compatibility:** Ensure the implementation handles both Windows and Unix OS environments appropriately.
+4. **Log Verification:** Confirm that if a process was terminated, a success message was logged outputting the port and process ID (PID).
+5. **No Collateral Damage:** Ensure only connections matching the exact port in the `LISTENING` state are targeted.

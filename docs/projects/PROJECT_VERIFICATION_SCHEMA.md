@@ -43,3 +43,5 @@ this vocabulary for required and completed verification fields.
    the active task claims completion.
 5. Visual/browser proof must remain empirical: screenshot, rendered inspection,
    deterministic replay, or captured observable output.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/projects/PROJECT_VERIFICATION_SCHEMA.md","sha256WithoutMarker":"4730a14ecd0ff730ef61dfc15f19a7b8c927686fca6b18490e6e10f76e831da3","markedAtUtc":"2026-06-25T23:59:02.673Z"} -->

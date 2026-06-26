@@ -155,3 +155,5 @@ record the exact command in the completion note.
   generated report changed.
 - Any level 2-3 fixture, combat simulator, or AI arbitration issue discovered
   here is recorded as a follow-up gap instead of folded into this UI slice.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_TASK.md","sha256WithoutMarker":"08b642c1860d32eb8014821c73f0d324feb2a272900bab9cd4644553cb0d105a","markedAtUtc":"2026-06-25T22:29:38.527Z"} -->

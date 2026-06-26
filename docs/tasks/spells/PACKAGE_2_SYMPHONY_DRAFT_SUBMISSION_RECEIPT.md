@@ -55,3 +55,5 @@ After Jules dispatch for Package 2, record:
 Follow-up local Git receipt:
 
 - `docs/tasks/spells/PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md`
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT.md","sha256WithoutMarker":"a0aee3d336985d21f156a2cd33179f41bdf9bd0ed0f27841e524e9c41b236e5a","markedAtUtc":"2026-06-25T22:29:38.526Z"} -->

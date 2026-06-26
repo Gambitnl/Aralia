@@ -10,3 +10,5 @@ Why it was archived:
 - it depends on a `src/systems/spells/commands/` module layout that does not match the current repo
 
 Use the archived copy for historical coordination context only.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/AGENT-GAMMA-COMMANDS.md","sha256WithoutMarker":"96a7e7f002bd17db6c3108df32ec47d996999bc3f6c6ccc83786f5e1068af6e1","markedAtUtc":"2026-06-25T22:29:38.582Z"} -->

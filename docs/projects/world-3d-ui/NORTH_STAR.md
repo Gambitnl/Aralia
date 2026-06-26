@@ -204,7 +204,7 @@ None imported this cycle: no global gap is owned by the 2DÃ¢â€ â€3D t
 |---|---|---|
 | `?phase=world3d` renders the sandbox (when it sticks) | the entry seam works | live this session |
 | Design spec Ã‚Â§7Ã¢â‚¬â€œÃ‚Â§9 | the intended transition/marker model | `docs/superpowers/specs/2026-05-28-azgaar-3d-streamed-world-design.md` |
-| Plan 4 doc | complete design for transition + marker sync + HUD | `docs/superpowers/plans/2026-06-01-world-3d-ui-transition-and-marker-sync.md` |
+| Plan 4 implementation history | transition + marker sync + HUD design was executed and retired into living docs | `docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md` |
 | RTL + Playwright + PERF | T11 verification | `src/components/World3D/__tests__/`, `tests/world-3d-ui-transition.spec.ts`, `PERF.md` |
 
 ## Supporting Files
@@ -218,7 +218,7 @@ None imported this cycle: no global gap is owned by the 2DÃ¢â€ â€3D t
 | `docs/projects/world3d/NORTH_STAR.md` | Sibling: the rendering engine this layer drives | active |
 | `docs/projects/worldsim-service/NORTH_STAR.md` | Sibling: world generation/simulation | active |
 | `docs/superpowers/specs/2026-05-28-azgaar-3d-streamed-world-design.md` | Governing spec (transition Ã‚Â§8, marker Ã‚Â§9) | active |
-| `docs/superpowers/plans/2026-06-01-world-3d-ui-transition-and-marker-sync.md` | Plan 4: transition + marker sync design | active |
+| `docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md` | Retired Plan 4 packet disposition and proof trail | active |
 
 ## Artifact Boundary
 
@@ -235,7 +235,7 @@ Durable: transition/HUD design intent, the entry seam, decisions, gap classifica
 
 1. Read this file.
 2. Read `docs/projects/world-3d-ui/TRACKER.md` then `GAPS.md`.
-3. Read Plan 4: `docs/superpowers/plans/2026-06-01-world-3d-ui-transition-and-marker-sync.md`.
+3. Check the Plan 4 retirement row in `docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md` only if provenance is needed.
 4. Plan 4 slices T7Ã¢â‚¬â€œT11 are **done**; pick follow-up from Active Task or `GAPS.md`.
 5. Run `npx vitest run src/components/World3D/__tests__` and optionally `npx playwright test tests/world-3d-ui-transition.spec.ts`.
 6. W3DUI-1/18/22/23/24/25/26/27 done. Plan 4 HUD UX is complete; monitor naming plate density and perf as follow-up signals.

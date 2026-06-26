@@ -1,6 +1,6 @@
 # Package 18 Jules Task: Reaction Opportunity Safe Replacement
 
-Status: replacement handoff for Package 18 after the first Jules run became unsafe.
+Status: historical Package 18 safe-replacement packet; PR #1143 merged on 2026-06-01.
 
 This packet supersedes the original Package 18 Jules launch packet for any new
 Jules launch or foreman replacement implementation. The original session
@@ -211,3 +211,5 @@ ambient debt.
 - Verification results are reported with exact commands and outcomes.
 - Residual reaction-engine work is left visible for a later package rather than
   hidden by a partial implementation.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_18_REACTION_OPPORTUNITY_SAFE_REPLACEMENT_JULES_TASK.md","sha256WithoutMarker":"b122b175140b9d39c4d634793d71904524f4f5c808990ede64edf431ae9364da","markedAtUtc":"2026-06-25T22:29:38.383Z"} -->

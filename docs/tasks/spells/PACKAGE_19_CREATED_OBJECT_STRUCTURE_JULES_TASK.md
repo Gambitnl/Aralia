@@ -169,3 +169,5 @@ continue with this package verification rather than broad tooling repair.
 - Broad object-engine, destructible-wall, summon-control, AI-arbitration, workflow,
   and Symphony runtime edits are excluded.
 - Atlas and gate-relevant bucket statuses are consistent with completed closures.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_19_CREATED_OBJECT_STRUCTURE_JULES_TASK.md","sha256WithoutMarker":"cc68da482699e5753c87132e92297039770705336cbf4cefda25b83d7ecf6b4c","markedAtUtc":"2026-06-25T22:29:38.384Z"} -->

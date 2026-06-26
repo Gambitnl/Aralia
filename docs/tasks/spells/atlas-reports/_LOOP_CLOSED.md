@@ -165,3 +165,5 @@ Phase 2/3 steps back to `queued` until Phase 1 closes.
 Only **Gap 09** (no automated drift check between tracker docs and
 Atlas maps) remains open. It is structural rather than blocking;
 authors are responsible for manual sync until a CI parser exists.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/atlas-reports/_LOOP_CLOSED.md","sha256WithoutMarker":"b9b676257f12f6d57f28dd30be2d6dc2399887bb13dbdc4f5050511c7d1d9a79","markedAtUtc":"2026-06-25T22:29:38.503Z"} -->

@@ -232,3 +232,4 @@ npx --no-install tsx scripts/check-non-ascii.ts
   - `src/utils/combatUtils.ts` - combat utilities
   - These are critical infrastructure files that many domains depend on
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/architecture/agent_prompts/01_architecture_compendium.md","sha256WithoutMarker":"adbd978d689d2054c5bd285035bcf3d0f169ff713e839e9e5adb0d7a64f3468e","markedAtUtc":"2026-06-25T22:29:38.634Z"} -->

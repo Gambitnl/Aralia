@@ -70,8 +70,14 @@ export function buildSituationLocation(state: GameState): OpeningSituationLocati
     // static location's biome, so the opening matches where the player really is
     // on the map instead of the hardcoded starting node's flavor.
     const playerTile = state.mapData?.tiles?.flat().find((t) => t.isPlayerCurrent);
+    // Prefer the town the player chose at Start Point Selection (+ its region) so
+    // the opening scene is set in their actual settlement, not the static
+    // 'clearing' node. Falls back to the static location for dev/skip/load flows.
+    const placeName = state.startTownName
+        ? (state.startTownRegion ? `${state.startTownName}, ${state.startTownRegion}` : state.startTownName)
+        : (loc?.name ?? locId);
     return {
-        name: loc?.name ?? locId,
+        name: placeName,
         biome: playerTile?.biomeId ?? loc?.biomeId,
         timeOfDay: validTime ? getTimeOfDay(validTime) : undefined,
         weather: validTime ? getTimeModifiers(validTime).description : undefined,

@@ -11,6 +11,7 @@ import { CLASSES_DATA } from '../../../constants';
 import { getMaxPreparedSpells, getPreparedSpellsAffectingLimit, isRacialSpellLockedForPreparation } from '../../../utils/character/characterUtils';
 import SpellSlotDisplay from './SpellSlotDisplay';
 import SpellDetailPane from './SpellDetailPane';
+import { SpellSummaryCard } from '../../ui/SpellSummaryCard';
 
 interface SpellbookTabProps {
     character: PlayerCharacter;
@@ -142,66 +143,65 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
                                 const isSelected = selectedSpellId === spell.id;
                                 const isLocked = isAlwaysPrepared || racialAlwaysPrepared;
 
-                                return (
-                                    <div
-                                        key={spell.id}
-                                        onClick={() => setSelectedSpellId(spell.id)}
-                                        className={`group flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-all ${isSelected
-                                            ? 'bg-purple-500/20 border-l-4 border-purple-500'
-                                            : isKnown
-                                                ? 'hover:bg-slate-700/50 border-l-4 border-transparent hover:border-slate-600'
-                                                : 'opacity-50 hover:opacity-80 hover:bg-slate-700/30 border-l-4 border-transparent grayscale hover:grayscale-0'
+                                const statusBadges = (
+                                    <>
+                                        {isFutureRacial && (
+                                            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700 font-bold tracking-wider flex-shrink-0">
+                                                Level {racialGrant.minLevel}
+                                            </span>
+                                        )}
+                                        {isPrepared && !isFutureRacial && (
+                                            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold tracking-wider flex-shrink-0">
+                                                {isAlwaysPrepared || racialAlwaysPrepared ? 'Always' : 'Prep'}
+                                            </span>
+                                        )}
+                                        {!isPrepared && isKnown && spell.level > 0 && (
+                                            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-700 text-slate-500 border border-slate-600/50 font-bold tracking-wider flex-shrink-0">
+                                                Unprepared
+                                            </span>
+                                        )}
+                                    </>
+                                );
+
+                                const prepareButton = spell.level > 0 && isKnown && maxPrepared !== null && !isKnownCaster ? (
+                                    <button
+                                        className={`opacity-0 group-hover:opacity-100 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all ${isPrepared && !isLocked
+                                            ? 'bg-slate-600 text-slate-200 hover:bg-slate-500'
+                                            : isAtPrepLimit && !isPrepared
+                                                ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                                                : 'bg-purple-600/80 text-white hover:bg-purple-500'
                                             }`}
+                                        disabled={isLocked || (!isPrepared && isAtPrepLimit)}
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            onAction({
+                                                type: 'TOGGLE_PREPARED_SPELL',
+                                                label: 'Toggle Spell Prep',
+                                                payload: { characterId: character.id!, spellId: spell.id }
+                                            });
+                                        }}
                                     >
-                                        <div className="flex items-center gap-2 min-w-0">
-                                            <span className={`material-symbols-outlined text-base ${isSelected ? 'text-purple-400' : 'text-slate-500 group-hover:text-purple-400'
-                                                }`}>
+                                        {isPrepared ? (isLocked ? '-' : 'Unprep') : 'Prep'}
+                                    </button>
+                                ) : null;
+
+                                return (
+                                    <SpellSummaryCard
+                                        key={spell.id}
+                                        spell={spell}
+                                        selected={isSelected}
+                                        disabled={false}
+                                        density="row"
+                                        onSelect={() => setSelectedSpellId(spell.id)}
+                                        leadingIcon={
+                                            <span className={`material-symbols-outlined text-base ${isSelected ? 'text-purple-400' : 'text-slate-500 group-hover:text-purple-400'}`}>
                                                 {isFutureRacial ? 'lock' : 'auto_fix_high'}
                                             </span>
-                                            <span className={`text-sm truncate ${isSelected ? 'text-white font-medium' : 'text-slate-200'
-                                                }`}>
-                                                {spell.name}
-                                            </span>
-                                            {isFutureRacial && (
-                                                <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700 font-bold tracking-wider flex-shrink-0">
-                                                    Level {racialGrant.minLevel}
-                                                </span>
-                                            )}
-                                            {isPrepared && !isFutureRacial && (
-                                                <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold tracking-wider flex-shrink-0">
-                                                    {isAlwaysPrepared || racialAlwaysPrepared ? 'Always' : 'Prep'}
-                                                </span>
-                                            )}
-                                            {!isPrepared && isKnown && spell.level > 0 && (
-                                                <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-700 text-slate-500 border border-slate-600/50 font-bold tracking-wider flex-shrink-0">
-                                                    Unprepared
-                                                </span>
-                                            )}
-                                        </div>
-                                        {/* Prepare/Unprepare button - only for leveled spells */}
-                                        {spell.level > 0 && isKnown && maxPrepared !== null && !isKnownCaster && (
-                                            <button
-                                                className={`opacity-0 group-hover:opacity-100 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all ${isPrepared && !isLocked
-                                                    ? 'bg-slate-600 text-slate-200 hover:bg-slate-500'
-                                                    : isAtPrepLimit && !isPrepared
-                                                        ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
-                                                        : 'bg-purple-600/80 text-white hover:bg-purple-500'
-                                                    }`}
-                                                disabled={isLocked || (!isPrepared && isAtPrepLimit)}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onAction({
-                                                        type: 'TOGGLE_PREPARED_SPELL',
-                                                        label: 'Toggle Spell Prep',
-                                                        payload: { characterId: character.id!, spellId: spell.id }
-                                                    });
-                                                }}
-                                            >
-                                                {isPrepared ? (isLocked ? '—' : 'Unprep') : 'Prep'}
-                                                </button>
-                                            )
                                         }
-                                    </div>
+                                        statusBadges={statusBadges}
+                                        trailing={prepareButton}
+                                        className={`group ${!isKnown ? 'opacity-50 hover:opacity-80 grayscale hover:grayscale-0' : ''}`}
+                                    />
                                 );
                             })}
                         </div>

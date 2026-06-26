@@ -30,3 +30,5 @@ No durable in-project gaps were added during this migration pass.
 
 - Update this tracker before starting a new slice.
 - Keep active/blocked rows with owner, evidence, and next proof/action.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/spells/TRACKER.md","sha256WithoutMarker":"246f1e9f06edde08e3d33acc9e381368ddfefc3910ebbfce50f6fa661340d5cf","markedAtUtc":"2026-06-25T22:54:19.197Z"} -->

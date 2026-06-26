@@ -35,3 +35,5 @@ Last updated: 2026-05-31
 - Keep one `active` or one `waiting` queue row for the current task slice.
 - Active `waiting` rows must name owner, next proof, and external state dependency.
 - Keep durable proof checks in `Next check/proof`, not raw command output only.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/TRACKER.md","sha256WithoutMarker":"c67d8bb2aeb5725eae0c7127985db449bc02d3e47db02da6bd8b93bed42771c0","markedAtUtc":"2026-06-25T22:29:38.566Z"} -->

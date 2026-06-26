@@ -4,6 +4,15 @@ import type { TravelTerrain } from '../../../types/travel';
 import { STANDARD_VEHICLES } from '../../../types/travel';
 
 /**
+ * These tests protect the generic travel route planner.
+ *
+ * The planner powers world-map travel previews by finding the fastest path
+ * across whatever graph a map tier provides. The tests keep ordinary land
+ * routing stable while allowing specialized graphs, such as maritime travel,
+ * to supply their own per-edge travel time.
+ */
+
+/**
  * 3x1 line of cells: 0 — 1 — 2, centroids 10 units apart. Cell 1's terrain is
  * configurable so we can prove difficult terrain / impassability reroute & cost.
  */
@@ -92,6 +101,23 @@ describe('planFastestRoute', () => {
 });
 
 describe('planRoutesFrom (single-source field)', () => {
+  it('uses graph-supplied per-edge minutes when available', () => {
+    const graph: TravelGraph = {
+      neighbors: (c) => (c === 0 ? [1] : c === 1 ? [0, 2] : [1]),
+      position: (c) => [c, 0],
+      terrain: () => 'open',
+      passable: () => true,
+      edgeMinutes: (_from, to) => (to === 1 ? 1 : to === 2 ? 100 : 1),
+    };
+
+    const field = planRoutesFrom(graph, 0, { milesPerUnit: 1, speedMph: 999 });
+    const route = field.to(2);
+
+    expect(route).not.toBeNull();
+    expect(route!.minutes).toBe(101);
+    expect(route!.cells).toEqual([0, 1, 2]);
+  });
+
   it('computes one field that resolves routes to any cell (instant hover reconstruct)', () => {
     const g = lineGraph({});
     const field = planRoutesFrom(g, 0, { milesPerUnit: 0.1, speedMph: 3 });

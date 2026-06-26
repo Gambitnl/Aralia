@@ -84,3 +84,5 @@ Do not assume:
 - that every new class requires a brand-new custom feature-selection UI
 - that glossary class entries are still markdown files
 - that class addition is complete without checking character assembly
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/guides/CLASS_ADDITION_GUIDE.md","sha256WithoutMarker":"5c94167d2481b6c457d63fb07b2adf6d6184da12319391d358d77735bbb92614","markedAtUtc":"2026-06-25T22:29:38.318Z"} -->

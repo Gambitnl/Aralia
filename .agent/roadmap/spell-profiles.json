@@ -37,7 +37,7 @@
       "Wizard"
     ],
     "castingTimeUnit": "action",
-    "concentration": false,
+    "concentration": true,
     "ritual": false,
     "components": {
       "verbal": true,
@@ -45,7 +45,7 @@
       "material": false
     },
     "effectTypes": [
-      "DEFENSIVE"
+      "ATTACK_ROLL_MODIFIER"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -67,7 +67,7 @@
     "concentration": false,
     "ritual": false,
     "components": {
-      "verbal": true,
+      "verbal": false,
       "somatic": true,
       "material": true
     },
@@ -142,7 +142,7 @@
     "id": "dancing-lights",
     "name": "Dancing Lights",
     "level": 0,
-    "school": "Evocation",
+    "school": "Illusion",
     "classes": [
       "Artificer",
       "Bard",
@@ -219,6 +219,7 @@
     "level": 0,
     "school": "Transmutation",
     "classes": [
+      "Artificer",
       "Druid",
       "Sorcerer",
       "Wizard"
@@ -313,8 +314,7 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE",
-      "STATUS_CONDITION"
+      "ATTACK_ROLL_MODIFIER"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -327,6 +327,7 @@
     "level": 0,
     "school": "Evocation",
     "classes": [
+      "Artificer",
       "Sorcerer",
       "Warlock",
       "Wizard"
@@ -335,7 +336,7 @@
     "concentration": false,
     "ritual": false,
     "components": {
-      "verbal": true,
+      "verbal": false,
       "somatic": true,
       "material": true
     },
@@ -384,8 +385,7 @@
       "Bard",
       "Cleric",
       "Sorcerer",
-      "Wizard",
-      "Warlock - Celestial Patron"
+      "Wizard"
     ],
     "castingTimeUnit": "action",
     "concentration": false,
@@ -419,7 +419,7 @@
     "ritual": false,
     "components": {
       "verbal": true,
-      "somatic": true,
+      "somatic": false,
       "material": false
     },
     "effectTypes": [
@@ -492,7 +492,6 @@
     "level": 0,
     "school": "Transmutation",
     "classes": [
-      "Artificer",
       "Bard",
       "Cleric",
       "Druid",
@@ -531,7 +530,7 @@
     "concentration": false,
     "ritual": false,
     "components": {
-      "verbal": true,
+      "verbal": false,
       "somatic": true,
       "material": true
     },
@@ -714,7 +713,7 @@
     "classes": [
       "Druid"
     ],
-    "castingTimeUnit": "action",
+    "castingTimeUnit": "bonus_action",
     "concentration": false,
     "ritual": false,
     "components": {
@@ -774,10 +773,11 @@
     "components": {
       "verbal": true,
       "somatic": true,
-      "material": true
+      "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -802,31 +802,6 @@
     },
     "effectTypes": [
       "DAMAGE"
-    ],
-    "targetingType": "single",
-    "attackType": "none",
-    "arbitrationRequired": false,
-    "legacy": false
-  },
-  {
-    "id": "sapping-sting",
-    "name": "Sapping Sting",
-    "level": 0,
-    "school": "Necromancy",
-    "classes": [
-      "Wizard"
-    ],
-    "castingTimeUnit": "action",
-    "concentration": false,
-    "ritual": false,
-    "components": {
-      "verbal": true,
-      "somatic": true,
-      "material": false
-    },
-    "effectTypes": [
-      "DAMAGE",
-      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -929,7 +904,8 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -1100,6 +1076,7 @@
     "level": 0,
     "school": "Divination",
     "classes": [
+      "Artificer",
       "Bard",
       "Sorcerer",
       "Warlock",
@@ -1218,6 +1195,7 @@
       "material": true
     },
     "effectTypes": [
+      "UTILITY",
       "UTILITY"
     ],
     "targetingType": "area",
@@ -1320,7 +1298,7 @@
       "material": true
     },
     "effectTypes": [
-      "STATUS_CONDITION"
+      "ATTACK_ROLL_MODIFIER"
     ],
     "targetingType": "multi",
     "attackType": "none",
@@ -1345,7 +1323,7 @@
       "material": true
     },
     "effectTypes": [
-      "STATUS_CONDITION"
+      "ATTACK_ROLL_MODIFIER"
     ],
     "targetingType": "multi",
     "attackType": "none",
@@ -1477,7 +1455,6 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY",
       "STATUS_CONDITION"
     ],
     "targetingType": "area",
@@ -1625,9 +1602,7 @@
     "school": "Divination",
     "classes": [
       "Cleric",
-      "Paladin",
-      "Warlock",
-      "Wizard"
+      "Paladin"
     ],
     "castingTimeUnit": "action",
     "concentration": true,
@@ -1640,7 +1615,7 @@
     "effectTypes": [
       "UTILITY"
     ],
-    "targetingType": "self",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -1672,7 +1647,7 @@
     "effectTypes": [
       "UTILITY"
     ],
-    "targetingType": "self",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -1699,7 +1674,7 @@
     "effectTypes": [
       "UTILITY"
     ],
-    "targetingType": "self",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -1710,17 +1685,8 @@
     "level": 1,
     "school": "Illusion",
     "classes": [
-      "Fighter",
-      "Barbarian",
       "Bard",
-      "Cleric",
-      "Druid",
-      "Ranger",
-      "Rogue",
-      "Paladin",
-      "Monk",
       "Sorcerer",
-      "Warlock",
       "Wizard",
       "Artificer"
     ],
@@ -2196,9 +2162,10 @@
       "material": false
     },
     "effectTypes": [
+      "DEFENSIVE",
       "UTILITY"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -2379,7 +2346,7 @@
     "effectTypes": [
       "UTILITY"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -2407,7 +2374,7 @@
     "effectTypes": [
       "UTILITY"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -2483,6 +2450,7 @@
       "material": true
     },
     "effectTypes": [
+      "DEFENSIVE",
       "DEFENSIVE"
     ],
     "targetingType": "single",
@@ -2579,7 +2547,7 @@
       "Paladin"
     ],
     "castingTimeUnit": "bonus_action",
-    "concentration": true,
+    "concentration": false,
     "ritual": false,
     "components": {
       "verbal": true,
@@ -2683,7 +2651,7 @@
       "Wizard"
     ],
     "castingTimeUnit": "action",
-    "concentration": false,
+    "concentration": true,
     "ritual": false,
     "components": {
       "verbal": true,
@@ -2691,6 +2659,7 @@
       "material": true
     },
     "effectTypes": [
+      "STATUS_CONDITION",
       "STATUS_CONDITION"
     ],
     "targetingType": "area",
@@ -2705,6 +2674,7 @@
     "school": "Abjuration",
     "classes": [
       "Artificer",
+      "Druid",
       "Ranger",
       "Wizard"
     ],
@@ -2771,6 +2741,7 @@
       "material": true
     },
     "effectTypes": [
+      "STATUS_CONDITION",
       "DAMAGE"
     ],
     "targetingType": "area",
@@ -2797,6 +2768,7 @@
       "material": true
     },
     "effectTypes": [
+      "STATUS_CONDITION",
       "STATUS_CONDITION"
     ],
     "targetingType": "single",
@@ -2837,7 +2809,7 @@
       "Paladin"
     ],
     "castingTimeUnit": "bonus_action",
-    "concentration": true,
+    "concentration": false,
     "ritual": false,
     "components": {
       "verbal": true,
@@ -2915,7 +2887,8 @@
     "school": "Evocation",
     "classes": [
       "Sorcerer",
-      "Warlock"
+      "Warlock",
+      "Wizard"
     ],
     "castingTimeUnit": "action",
     "concentration": true,
@@ -2943,7 +2916,7 @@
       "Paladin"
     ],
     "castingTimeUnit": "bonus_action",
-    "concentration": true,
+    "concentration": false,
     "ritual": false,
     "components": {
       "verbal": true,
@@ -2965,6 +2938,7 @@
     "level": 2,
     "school": "Abjuration",
     "classes": [
+      "Artificer",
       "Bard",
       "Cleric",
       "Druid",
@@ -2993,6 +2967,7 @@
     "level": 2,
     "school": "Transmutation",
     "classes": [
+      "Artificer",
       "Sorcerer",
       "Wizard"
     ],
@@ -3005,6 +2980,8 @@
       "material": false
     },
     "effectTypes": [
+      "UTILITY",
+      "UTILITY",
       "UTILITY"
     ],
     "targetingType": "self",
@@ -3044,6 +3021,7 @@
     "level": 2,
     "school": "Abjuration",
     "classes": [
+      "Artificer",
       "Wizard"
     ],
     "castingTimeUnit": "action",
@@ -3068,6 +3046,7 @@
     "level": 2,
     "school": "Abjuration",
     "classes": [
+      "Artificer",
       "Sorcerer",
       "Wizard"
     ],
@@ -3080,7 +3059,7 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "HEALING"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -3183,11 +3162,12 @@
       "material": false
     },
     "effectTypes": [
+      "STATUS_CONDITION",
       "STATUS_CONDITION"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
-    "arbitrationRequired": true,
+    "arbitrationRequired": false,
     "legacy": false
   },
   {
@@ -3196,6 +3176,7 @@
     "level": 2,
     "school": "Illusion",
     "classes": [
+      "Artificer",
       "Sorcerer",
       "Wizard"
     ],
@@ -3208,7 +3189,7 @@
       "material": false
     },
     "effectTypes": [
-      "DEFENSIVE"
+      "ATTACK_ROLL_MODIFIER"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -3233,6 +3214,7 @@
       "material": false
     },
     "effectTypes": [
+      "DEFENSIVE",
       "UTILITY"
     ],
     "targetingType": "area",
@@ -3261,6 +3243,7 @@
     },
     "effectTypes": [
       "DAMAGE",
+      "DAMAGE",
       "DAMAGE"
     ],
     "targetingType": "area",
@@ -3274,6 +3257,7 @@
     "level": 2,
     "school": "Evocation",
     "classes": [
+      "Artificer",
       "Cleric",
       "Druid",
       "Wizard"
@@ -3338,7 +3322,8 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -3377,6 +3362,7 @@
     "level": 2,
     "school": "Transmutation",
     "classes": [
+      "Artificer",
       "Druid",
       "Ranger",
       "Sorcerer",
@@ -3420,7 +3406,7 @@
       "UTILITY",
       "UTILITY"
     ],
-    "targetingType": "self",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -3431,6 +3417,7 @@
     "level": 2,
     "school": "Transmutation",
     "classes": [
+      "Artificer",
       "Sorcerer",
       "Wizard"
     ],
@@ -3460,8 +3447,10 @@
       "Bard",
       "Cleric",
       "Druid",
+      "Ranger",
       "Sorcerer",
-      "Wizard"
+      "Wizard",
+      "Artificer"
     ],
     "castingTimeUnit": "action",
     "concentration": true,
@@ -3474,7 +3463,7 @@
     "effectTypes": [
       "UTILITY"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -3485,6 +3474,7 @@
     "level": 2,
     "school": "Transmutation",
     "classes": [
+      "Artificer",
       "Bard",
       "Druid",
       "Sorcerer",
@@ -3499,6 +3489,7 @@
       "material": true
     },
     "effectTypes": [
+      "UTILITY",
       "UTILITY"
     ],
     "targetingType": "single",
@@ -3539,7 +3530,7 @@
     "classes": [
       "Paladin"
     ],
-    "castingTimeUnit": "special",
+    "castingTimeUnit": "action",
     "concentration": false,
     "ritual": false,
     "components": {
@@ -3587,7 +3578,8 @@
     "level": 2,
     "school": "Evocation",
     "classes": [
-      "Druid"
+      "Druid",
+      "Sorcerer"
     ],
     "castingTimeUnit": "bonus_action",
     "concentration": true,
@@ -3598,7 +3590,8 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -3612,6 +3605,7 @@
     "school": "Conjuration",
     "classes": [
       "Druid",
+      "Sorcerer",
       "Wizard"
     ],
     "castingTimeUnit": "action",
@@ -3624,7 +3618,8 @@
     },
     "effectTypes": [
       "DAMAGE",
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -3638,6 +3633,7 @@
     "school": "Necromancy",
     "classes": [
       "Cleric",
+      "Paladin",
       "Wizard"
     ],
     "castingTimeUnit": "action",
@@ -3690,6 +3686,7 @@
     "level": 2,
     "school": "Transmutation",
     "classes": [
+      "Artificer",
       "Bard",
       "Druid"
     ],
@@ -3746,6 +3743,7 @@
     "level": 2,
     "school": "Illusion",
     "classes": [
+      "Artificer",
       "Bard",
       "Sorcerer",
       "Warlock",
@@ -3760,9 +3758,10 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -3799,6 +3798,7 @@
     "level": 2,
     "school": "Abjuration",
     "classes": [
+      "Artificer",
       "Bard",
       "Cleric",
       "Druid",
@@ -3827,6 +3827,7 @@
     "level": 2,
     "school": "Transmutation",
     "classes": [
+      "Artificer",
       "Sorcerer",
       "Wizard"
     ],
@@ -3908,7 +3909,8 @@
     "school": "Illusion",
     "classes": [
       "Bard",
-      "Wizard"
+      "Wizard",
+      "Artificer"
     ],
     "castingTimeUnit": "special",
     "concentration": false,
@@ -3935,7 +3937,8 @@
       "Paladin",
       "Ranger",
       "Sorcerer",
-      "Wizard"
+      "Wizard",
+      "Artificer"
     ],
     "castingTimeUnit": "bonus_action",
     "concentration": false,
@@ -4076,7 +4079,8 @@
     },
     "effectTypes": [
       "DAMAGE",
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -4100,6 +4104,7 @@
       "material": true
     },
     "effectTypes": [
+      "UTILITY",
       "UTILITY"
     ],
     "targetingType": "single",
@@ -4190,6 +4195,7 @@
     "level": 2,
     "school": "Abjuration",
     "classes": [
+      "Artificer",
       "Cleric",
       "Druid",
       "Paladin",
@@ -4204,7 +4210,8 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -4232,7 +4239,8 @@
     },
     "effectTypes": [
       "UTILITY",
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -4257,7 +4265,7 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -4270,7 +4278,8 @@
     "level": 2,
     "school": "Transmutation",
     "classes": [
-      "Wizard"
+      "Wizard",
+      "Artificer"
     ],
     "castingTimeUnit": "action",
     "concentration": false,
@@ -4321,7 +4330,8 @@
     "classes": [
       "Bard",
       "Sorcerer",
-      "Wizard"
+      "Wizard",
+      "Artificer"
     ],
     "castingTimeUnit": "action",
     "concentration": false,
@@ -4347,7 +4357,6 @@
     "classes": [
       "Bard",
       "Sorcerer",
-      "Warlock",
       "Wizard"
     ],
     "castingTimeUnit": "action",
@@ -4383,7 +4392,8 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -4409,7 +4419,9 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION",
+      "DEFENSIVE"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -4451,7 +4463,8 @@
     "classes": [
       "Sorcerer",
       "Warlock",
-      "Wizard"
+      "Wizard",
+      "Artificer"
     ],
     "castingTimeUnit": "action",
     "concentration": true,
@@ -4464,7 +4477,7 @@
     "effectTypes": [
       "UTILITY"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -4487,6 +4500,7 @@
       "material": true
     },
     "effectTypes": [
+      "TERRAIN",
       "TERRAIN"
     ],
     "targetingType": "area",
@@ -4503,7 +4517,7 @@
       "Cleric"
     ],
     "castingTimeUnit": "bonus_action",
-    "concentration": false,
+    "concentration": true,
     "ritual": false,
     "components": {
       "verbal": true,
@@ -4512,7 +4526,8 @@
     },
     "effectTypes": [
       "DAMAGE",
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -4539,7 +4554,8 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -4564,7 +4580,7 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "SUMMONING"
     ],
     "targetingType": "point",
     "attackType": "none",
@@ -4605,7 +4621,8 @@
     "school": "Conjuration",
     "classes": [
       "Sorcerer",
-      "Wizard"
+      "Wizard",
+      "Artificer"
     ],
     "castingTimeUnit": "action",
     "concentration": true,
@@ -4618,7 +4635,8 @@
     "effectTypes": [
       "TERRAIN",
       "STATUS_CONDITION",
-      "DAMAGE"
+      "DAMAGE",
+      "TERRAIN"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -4680,7 +4698,7 @@
     "id": "aura-of-vitality",
     "name": "Aura of Vitality",
     "level": 3,
-    "school": "Evocation",
+    "school": "Abjuration",
     "classes": [
       "Cleric",
       "Druid",
@@ -4695,7 +4713,8 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "HEALING",
+      "HEALING"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -4708,8 +4727,7 @@
     "level": 3,
     "school": "Abjuration",
     "classes": [
-      "Cleric",
-      "Paladin"
+      "Cleric"
     ],
     "castingTimeUnit": "action",
     "concentration": true,
@@ -4720,6 +4738,8 @@
       "material": false
     },
     "effectTypes": [
+      "UTILITY",
+      "UTILITY",
       "UTILITY"
     ],
     "targetingType": "multi",
@@ -4762,7 +4782,7 @@
       "Paladin"
     ],
     "castingTimeUnit": "bonus_action",
-    "concentration": true,
+    "concentration": false,
     "ritual": false,
     "components": {
       "verbal": true,
@@ -4785,7 +4805,8 @@
     "school": "Transmutation",
     "classes": [
       "Sorcerer",
-      "Wizard"
+      "Wizard",
+      "Artificer"
     ],
     "castingTimeUnit": "action",
     "concentration": false,
@@ -4820,7 +4841,8 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -4832,7 +4854,12 @@
     "name": "Catnap",
     "level": 3,
     "school": "Enchantment",
-    "classes": [],
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Wizard",
+      "Artificer"
+    ],
     "castingTimeUnit": "action",
     "concentration": false,
     "ritual": false,
@@ -4842,12 +4869,12 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "STATUS_CONDITION"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
-    "legacy": true
+    "legacy": false
   },
   {
     "id": "clairvoyance",
@@ -4957,6 +4984,7 @@
     "level": 3,
     "school": "Conjuration",
     "classes": [
+      "Artificer",
       "Cleric",
       "Paladin"
     ],
@@ -5034,10 +5062,12 @@
     "level": 3,
     "school": "Abjuration",
     "classes": [
+      "Artificer",
       "Bard",
       "Cleric",
       "Druid",
       "Paladin",
+      "Ranger",
       "Sorcerer",
       "Warlock",
       "Wizard"
@@ -5105,7 +5135,7 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -5131,7 +5161,8 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "TERRAIN"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -5212,7 +5243,8 @@
     },
     "effectTypes": [
       "STATUS_CONDITION",
-      "STATUS_CONDITION"
+      "STATUS_CONDITION",
+      "DEFENSIVE"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -5294,7 +5326,7 @@
     "effectTypes": [
       "UTILITY"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -5342,9 +5374,11 @@
       "material": true
     },
     "effectTypes": [
+      "DEFENSIVE",
+      "DEFENSIVE",
       "UTILITY"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -5357,7 +5391,8 @@
     "classes": [
       "Bard",
       "Cleric",
-      "Wizard"
+      "Wizard",
+      "Artificer"
     ],
     "castingTimeUnit": "special",
     "concentration": false,
@@ -5394,7 +5429,7 @@
       "material": true
     },
     "effectTypes": [
-      "STATUS_CONDITION"
+      "DEFENSIVE"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -5418,6 +5453,9 @@
       "material": true
     },
     "effectTypes": [
+      "TERRAIN",
+      "STATUS_CONDITION",
+      "DAMAGE",
       "DAMAGE"
     ],
     "targetingType": "area",
@@ -5460,6 +5498,8 @@
     "school": "Enchantment",
     "classes": [
       "Cleric",
+      "Sorcerer",
+      "Warlock",
       "Wizard"
     ],
     "castingTimeUnit": "action",
@@ -5483,7 +5523,13 @@
     "name": "Intellect Fortress",
     "level": 3,
     "school": "Abjuration",
-    "classes": [],
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
     "castingTimeUnit": "action",
     "concentration": true,
     "ritual": false,
@@ -5493,9 +5539,10 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": true
@@ -5559,7 +5606,7 @@
       "Ranger"
     ],
     "castingTimeUnit": "bonus_action",
-    "concentration": true,
+    "concentration": false,
     "ritual": false,
     "components": {
       "verbal": true,
@@ -5567,6 +5614,7 @@
       "material": false
     },
     "effectTypes": [
+      "DAMAGE",
       "DAMAGE"
     ],
     "targetingType": "single",
@@ -5657,7 +5705,7 @@
     "id": "mass-healing-word",
     "name": "Mass Healing Word",
     "level": 3,
-    "school": "Evocation",
+    "school": "Abjuration",
     "classes": [
       "Bard",
       "Cleric"
@@ -5671,7 +5719,7 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "HEALING"
     ],
     "targetingType": "multi",
     "attackType": "none",
@@ -5685,7 +5733,8 @@
     "school": "Transmutation",
     "classes": [
       "Cleric",
-      "Druid"
+      "Druid",
+      "Ranger"
     ],
     "castingTimeUnit": "action",
     "concentration": false,
@@ -5721,7 +5770,8 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -5746,7 +5796,9 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "DEFENSIVE",
+      "DEFENSIVE",
+      "ATTACK_ROLL_MODIFIER"
     ],
     "targetingType": "multi",
     "attackType": "none",
@@ -5796,7 +5848,7 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "SUMMONING"
     ],
     "targetingType": "point",
     "attackType": "none",
@@ -5813,15 +5865,16 @@
       "Druid",
       "Ranger"
     ],
-    "castingTimeUnit": "action",
+    "castingTimeUnit": "special",
     "concentration": false,
-    "ritual": true,
+    "ritual": false,
     "components": {
       "verbal": true,
       "somatic": true,
       "material": false
     },
     "effectTypes": [
+      "TERRAIN",
       "UTILITY"
     ],
     "targetingType": "area",
@@ -5835,6 +5888,7 @@
     "level": 3,
     "school": "Abjuration",
     "classes": [
+      "Artificer",
       "Cleric",
       "Druid",
       "Ranger",
@@ -5850,33 +5904,10 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE"
     ],
     "targetingType": "single",
-    "attackType": "none",
-    "arbitrationRequired": false,
-    "legacy": false
-  },
-  {
-    "id": "pulse-wave",
-    "name": "Pulse Wave",
-    "level": 3,
-    "school": "Evocation",
-    "classes": [
-      "Wizard"
-    ],
-    "castingTimeUnit": "action",
-    "concentration": false,
-    "ritual": false,
-    "components": {
-      "verbal": true,
-      "somatic": true,
-      "material": false
-    },
-    "effectTypes": [
-      "DAMAGE"
-    ],
-    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -5940,7 +5971,7 @@
     "id": "sending",
     "name": "Sending",
     "level": 3,
-    "school": "Evocation",
+    "school": "Divination",
     "classes": [
       "Bard",
       "Cleric",
@@ -5981,7 +6012,8 @@
       "material": true
     },
     "effectTypes": [
-      "STATUS_CONDITION"
+      "STATUS_CONDITION",
+      "TERRAIN"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -6007,7 +6039,7 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "STATUS_CONDITION"
     ],
     "targetingType": "multi",
     "attackType": "none",
@@ -6021,7 +6053,8 @@
     "school": "Necromancy",
     "classes": [
       "Bard",
-      "Cleric"
+      "Cleric",
+      "Wizard"
     ],
     "castingTimeUnit": "action",
     "concentration": false,
@@ -6213,7 +6246,7 @@
     "effectTypes": [
       "UTILITY"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -6252,6 +6285,7 @@
     "level": 3,
     "school": "Necromancy",
     "classes": [
+      "Sorcerer",
       "Warlock",
       "Wizard"
     ],
@@ -6264,7 +6298,8 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "HEALING"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -6395,7 +6430,8 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -6432,7 +6468,9 @@
     "name": "Aura of Life",
     "level": 4,
     "school": "Abjuration",
-    "classes": [],
+    "classes": [
+      "Paladin"
+    ],
     "castingTimeUnit": "action",
     "concentration": true,
     "ritual": false,
@@ -6442,7 +6480,10 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE",
+      "DEFENSIVE",
+      "HEALING"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -6454,7 +6495,9 @@
     "name": "Aura of Purity",
     "level": 4,
     "school": "Abjuration",
-    "classes": [],
+    "classes": [
+      "Paladin"
+    ],
     "castingTimeUnit": "action",
     "concentration": true,
     "ritual": false,
@@ -6464,7 +6507,9 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE",
+      "DEFENSIVE"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -6520,7 +6565,8 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -6572,7 +6618,8 @@
       "material": false
     },
     "effectTypes": [
-      "STATUS_CONDITION"
+      "STATUS_CONDITION",
+      "MOVEMENT"
     ],
     "targetingType": "multi",
     "attackType": "none",
@@ -6624,7 +6671,8 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "TERRAIN"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -6649,7 +6697,8 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -6791,7 +6840,12 @@
     "name": "Elemental Bane",
     "level": 4,
     "school": "Transmutation",
-    "classes": [],
+    "classes": [
+      "Druid",
+      "Warlock",
+      "Wizard",
+      "Artificer"
+    ],
     "castingTimeUnit": "action",
     "concentration": true,
     "ritual": false,
@@ -6826,7 +6880,8 @@
     },
     "effectTypes": [
       "DAMAGE",
-      "STATUS_CONDITION"
+      "STATUS_CONDITION",
+      "TERRAIN"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -6862,9 +6917,11 @@
     "id": "find-greater-steed",
     "name": "Find Greater Steed",
     "level": 4,
-    "school": "Evocation",
-    "classes": [],
-    "castingTimeUnit": "action",
+    "school": "Conjuration",
+    "classes": [
+      "Paladin"
+    ],
+    "castingTimeUnit": "special",
     "concentration": false,
     "ritual": false,
     "components": {
@@ -6899,7 +6956,9 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "DEFENSIVE",
+      "UTILITY"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -6938,8 +6997,10 @@
     "id": "galders-speedy-courier",
     "name": "Galders Speedy Courier",
     "level": 4,
-    "school": "Evocation",
-    "classes": [],
+    "school": "Conjuration",
+    "classes": [
+      "Wizard"
+    ],
     "castingTimeUnit": "action",
     "concentration": false,
     "ritual": false,
@@ -6999,31 +7060,10 @@
     },
     "effectTypes": [
       "DAMAGE",
-      "STATUS_CONDITION"
+      "STATUS_CONDITION",
+      "MOVEMENT"
     ],
     "targetingType": "point",
-    "attackType": "none",
-    "arbitrationRequired": false,
-    "legacy": false
-  },
-  {
-    "id": "gravity-sinkhole",
-    "name": "Gravity Sinkhole",
-    "level": 4,
-    "school": "Evocation",
-    "classes": [],
-    "castingTimeUnit": "action",
-    "concentration": false,
-    "ritual": false,
-    "components": {
-      "verbal": true,
-      "somatic": true,
-      "material": false
-    },
-    "effectTypes": [
-      "UTILITY"
-    ],
-    "targetingType": "single",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -7071,6 +7111,7 @@
       "material": false
     },
     "effectTypes": [
+      "DAMAGE",
       "DAMAGE"
     ],
     "targetingType": "point",
@@ -7080,16 +7121,19 @@
   },
   {
     "id": "guardian-of-nature",
-    "name": "Guardian Of Nature",
+    "name": "Guardian of Nature",
     "level": 4,
-    "school": "Evocation",
-    "classes": [],
-    "castingTimeUnit": "action",
-    "concentration": false,
+    "school": "Transmutation",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ],
+    "castingTimeUnit": "bonus_action",
+    "concentration": true,
     "ritual": false,
     "components": {
       "verbal": true,
-      "somatic": true,
+      "somatic": false,
       "material": false
     },
     "effectTypes": [
@@ -7147,9 +7191,10 @@
     },
     "effectTypes": [
       "DAMAGE",
-      "DAMAGE"
+      "DAMAGE",
+      "TERRAIN"
     ],
-    "targetingType": "multi",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -7214,6 +7259,7 @@
     "level": 4,
     "school": "Conjuration",
     "classes": [
+      "Artificer",
       "Wizard"
     ],
     "castingTimeUnit": "action",
@@ -7275,7 +7321,8 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -7300,6 +7347,7 @@
       "material": false
     },
     "effectTypes": [
+      "DAMAGE",
       "DAMAGE"
     ],
     "targetingType": "single",
@@ -7336,19 +7384,23 @@
   },
   {
     "id": "shadow-of-moil",
-    "name": "Shadow Of Moil",
+    "name": "Shadow of Moil",
     "level": 4,
-    "school": "Evocation",
-    "classes": [],
+    "school": "Necromancy",
+    "classes": [
+      "Warlock"
+    ],
     "castingTimeUnit": "action",
-    "concentration": false,
+    "concentration": true,
     "ritual": false,
     "components": {
       "verbal": true,
       "somatic": true,
-      "material": false
+      "material": true
     },
     "effectTypes": [
+      "DAMAGE",
+      "DEFENSIVE",
       "UTILITY"
     ],
     "targetingType": "single",
@@ -7361,9 +7413,13 @@
     "name": "Sickening Radiance",
     "level": 4,
     "school": "Evocation",
-    "classes": [],
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
     "castingTimeUnit": "action",
-    "concentration": false,
+    "concentration": true,
     "ritual": false,
     "components": {
       "verbal": true,
@@ -7371,9 +7427,11 @@
       "material": false
     },
     "effectTypes": [
+      "DAMAGE",
+      "DAMAGE",
       "UTILITY"
     ],
-    "targetingType": "single",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -7383,7 +7441,9 @@
     "name": "Staggering Smite",
     "level": 4,
     "school": "Evocation",
-    "classes": [],
+    "classes": [
+      "Paladin"
+    ],
     "castingTimeUnit": "bonus_action",
     "concentration": true,
     "ritual": false,
@@ -7393,6 +7453,8 @@
       "material": false
     },
     "effectTypes": [
+      "DAMAGE",
+      "ATTACK_ROLL_MODIFIER",
       "UTILITY"
     ],
     "targetingType": "self",
@@ -7448,7 +7510,7 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "DEFENSIVE"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -7460,9 +7522,12 @@
     "name": "Storm Sphere",
     "level": 4,
     "school": "Evocation",
-    "classes": [],
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ],
     "castingTimeUnit": "action",
-    "concentration": false,
+    "concentration": true,
     "ritual": false,
     "components": {
       "verbal": true,
@@ -7470,9 +7535,13 @@
       "material": false
     },
     "effectTypes": [
+      "DAMAGE",
+      "DAMAGE",
+      "DAMAGE",
+      "TERRAIN",
       "UTILITY"
     ],
-    "targetingType": "single",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -7481,15 +7550,18 @@
     "id": "summon-greater-demon",
     "name": "Summon Greater Demon",
     "level": 4,
-    "school": "Evocation",
-    "classes": [],
+    "school": "Conjuration",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ],
     "castingTimeUnit": "action",
-    "concentration": false,
+    "concentration": true,
     "ritual": false,
     "components": {
       "verbal": true,
       "somatic": true,
-      "material": false
+      "material": true
     },
     "effectTypes": [
       "UTILITY"
@@ -7504,19 +7576,23 @@
     "name": "Vitriolic Sphere",
     "level": 4,
     "school": "Evocation",
-    "classes": [],
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ],
     "castingTimeUnit": "action",
     "concentration": false,
     "ritual": false,
     "components": {
       "verbal": true,
       "somatic": true,
-      "material": false
+      "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "DAMAGE",
+      "DAMAGE"
     ],
-    "targetingType": "single",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -7540,6 +7616,8 @@
       "material": true
     },
     "effectTypes": [
+      "DAMAGE",
+      "DAMAGE",
       "DAMAGE"
     ],
     "targetingType": "multi",
@@ -7581,7 +7659,8 @@
     "classes": [
       "Bard",
       "Sorcerer",
-      "Wizard"
+      "Wizard",
+      "Artificer"
     ],
     "castingTimeUnit": "action",
     "concentration": true,
@@ -7641,6 +7720,7 @@
       "material": true
     },
     "effectTypes": [
+      "STATUS_CONDITION",
       "UTILITY"
     ],
     "targetingType": "single",
@@ -7652,20 +7732,25 @@
     "id": "banishing-smite",
     "name": "Banishing Smite",
     "level": 5,
-    "school": "Evocation",
-    "classes": [],
-    "castingTimeUnit": "action",
-    "concentration": false,
+    "school": "Conjuration",
+    "classes": [
+      "Paladin"
+    ],
+    "castingTimeUnit": "bonus_action",
+    "concentration": true,
     "ritual": false,
     "components": {
       "verbal": true,
-      "somatic": true,
+      "somatic": false,
       "material": false
     },
     "effectTypes": [
+      "DAMAGE",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
       "UTILITY"
     ],
-    "targetingType": "single",
+    "targetingType": "self",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -7675,7 +7760,10 @@
     "name": "Bigby's Hand",
     "level": 5,
     "school": "Evocation",
-    "classes": [],
+    "classes": [
+      "Wizard",
+      "Artificer"
+    ],
     "castingTimeUnit": "action",
     "concentration": true,
     "ritual": false,
@@ -7697,7 +7785,9 @@
     "name": "Circle of Power",
     "level": 5,
     "school": "Abjuration",
-    "classes": [],
+    "classes": [
+      "Paladin"
+    ],
     "castingTimeUnit": "action",
     "concentration": true,
     "ritual": false,
@@ -7707,6 +7797,7 @@
       "material": false
     },
     "effectTypes": [
+      "DEFENSIVE",
       "UTILITY"
     ],
     "targetingType": "self",
@@ -7732,7 +7823,10 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "DAMAGE",
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -7759,7 +7853,7 @@
     "effectTypes": [
       "UTILITY"
     ],
-    "targetingType": "area",
+    "targetingType": "self",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -7844,7 +7938,9 @@
     "name": "Conjure Volley",
     "level": 5,
     "school": "Conjuration",
-    "classes": [],
+    "classes": [
+      "Ranger"
+    ],
     "castingTimeUnit": "action",
     "concentration": false,
     "ritual": false,
@@ -7854,9 +7950,10 @@
       "material": true
     },
     "effectTypes": [
+      "DAMAGE",
       "UTILITY"
     ],
-    "targetingType": "single",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": true
@@ -7879,6 +7976,8 @@
       "material": false
     },
     "effectTypes": [
+      "DAMAGE",
+      "STATUS_CONDITION",
       "UTILITY"
     ],
     "targetingType": "self",
@@ -7904,7 +8003,9 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "STATUS_CONDITION",
+      "UTILITY"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -7915,10 +8016,14 @@
     "id": "control-winds",
     "name": "Control Winds",
     "level": 5,
-    "school": "Evocation",
-    "classes": [],
+    "school": "Transmutation",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ],
     "castingTimeUnit": "action",
-    "concentration": false,
+    "concentration": true,
     "ritual": false,
     "components": {
       "verbal": true,
@@ -7940,7 +8045,8 @@
     "school": "Illusion",
     "classes": [
       "Sorcerer",
-      "Wizard"
+      "Wizard",
+      "Artificer"
     ],
     "castingTimeUnit": "special",
     "concentration": false,
@@ -8001,7 +8107,9 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -8025,7 +8133,9 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "DAMAGE",
+      "STATUS_CONDITION"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -8050,6 +8160,7 @@
       "material": true
     },
     "effectTypes": [
+      "ATTACK_ROLL_MODIFIER",
       "UTILITY"
     ],
     "targetingType": "self",
@@ -8154,6 +8265,7 @@
       "material": false
     },
     "effectTypes": [
+      "MOVEMENT",
       "UTILITY"
     ],
     "targetingType": "self",
@@ -8178,6 +8290,7 @@
       "material": true
     },
     "effectTypes": [
+      "DAMAGE",
       "DAMAGE"
     ],
     "targetingType": "area",
@@ -8206,7 +8319,8 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -8223,7 +8337,8 @@
       "Cleric",
       "Druid",
       "Paladin",
-      "Ranger"
+      "Ranger",
+      "Artificer"
     ],
     "castingTimeUnit": "action",
     "concentration": false,
@@ -8285,7 +8400,8 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -8310,7 +8426,9 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DAMAGE",
+      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -8335,7 +8453,10 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "STATUS_CONDITION",
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -8386,7 +8507,12 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "DAMAGE",
+      "DAMAGE",
+      "TERRAIN",
+      "TERRAIN",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -8436,7 +8562,10 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "MOVEMENT",
+      "TERRAIN",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -8462,7 +8591,7 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "HEALING"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -8476,7 +8605,6 @@
     "school": "Illusion",
     "classes": [
       "Bard",
-      "Warlock",
       "Wizard"
     ],
     "castingTimeUnit": "action",
@@ -8513,7 +8641,9 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -8538,7 +8668,8 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "HEALING"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -8578,7 +8709,6 @@
       "Bard",
       "Cleric",
       "Druid",
-      "Warlock",
       "Wizard"
     ],
     "castingTimeUnit": "special",
@@ -8590,7 +8720,8 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -8629,7 +8760,6 @@
     "level": 5,
     "school": "Divination",
     "classes": [
-      "Bard",
       "Wizard"
     ],
     "castingTimeUnit": "action",
@@ -8643,7 +8773,7 @@
     "effectTypes": [
       "UTILITY"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": true
@@ -8652,7 +8782,7 @@
     "id": "reincarnate",
     "name": "Reincarnate",
     "level": 5,
-    "school": "Necromancy",
+    "school": "Transmutation",
     "classes": [
       "Druid"
     ],
@@ -8771,7 +8901,8 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "MOVEMENT"
     ],
     "targetingType": "multi",
     "attackType": "none",
@@ -8783,7 +8914,9 @@
     "name": "Swift Quiver",
     "level": 5,
     "school": "Transmutation",
-    "classes": [],
+    "classes": [
+      "Ranger"
+    ],
     "castingTimeUnit": "bonus_action",
     "concentration": true,
     "ritual": false,
@@ -8881,28 +9014,6 @@
     "legacy": false
   },
   {
-    "id": "temporal-shunt",
-    "name": "Temporal Shunt",
-    "level": 5,
-    "school": "Evocation",
-    "classes": [],
-    "castingTimeUnit": "action",
-    "concentration": false,
-    "ritual": false,
-    "components": {
-      "verbal": true,
-      "somatic": true,
-      "material": false
-    },
-    "effectTypes": [
-      "UTILITY"
-    ],
-    "targetingType": "single",
-    "attackType": "none",
-    "arbitrationRequired": false,
-    "legacy": false
-  },
-  {
     "id": "transmute-rock",
     "name": "Transmute Rock",
     "level": 5,
@@ -8946,7 +9057,8 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "MOVEMENT"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -9101,7 +9213,11 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "DAMAGE",
+      "DAMAGE",
+      "TERRAIN",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -9189,8 +9305,7 @@
     "level": 6,
     "school": "Conjuration",
     "classes": [
-      "Druid",
-      "Warlock"
+      "Druid"
     ],
     "castingTimeUnit": "action",
     "concentration": true,
@@ -9201,6 +9316,10 @@
       "material": false
     },
     "effectTypes": [
+      "SUMMONING",
+      "DAMAGE",
+      "STATUS_CONDITION",
+      "MOVEMENT",
       "UTILITY"
     ],
     "targetingType": "point",
@@ -9212,7 +9331,7 @@
     "id": "contingency",
     "name": "Contingency",
     "level": 6,
-    "school": "Evocation",
+    "school": "Abjuration",
     "classes": [
       "Wizard"
     ],
@@ -9249,7 +9368,8 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DAMAGE"
     ],
     "targetingType": "melee",
     "attackType": "none",
@@ -9375,6 +9495,9 @@
       "material": false
     },
     "effectTypes": [
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
       "UTILITY"
     ],
     "targetingType": "self",
@@ -9414,7 +9537,8 @@
     "level": 6,
     "school": "Transmutation",
     "classes": [
-      "Warlock",
+      "Druid",
+      "Sorcerer",
       "Wizard"
     ],
     "castingTimeUnit": "action",
@@ -9426,6 +9550,8 @@
       "material": true
     },
     "effectTypes": [
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
       "UTILITY"
     ],
     "targetingType": "single",
@@ -9475,31 +9601,10 @@
       "material": true
     },
     "effectTypes": [
+      "DEFENSIVE",
       "UTILITY"
     ],
     "targetingType": "self",
-    "attackType": "none",
-    "arbitrationRequired": false,
-    "legacy": false
-  },
-  {
-    "id": "gravity-fissure",
-    "name": "Gravity Fissure",
-    "level": 6,
-    "school": "Evocation",
-    "classes": [],
-    "castingTimeUnit": "action",
-    "concentration": false,
-    "ritual": false,
-    "components": {
-      "verbal": true,
-      "somatic": true,
-      "material": false
-    },
-    "effectTypes": [
-      "UTILITY"
-    ],
-    "targetingType": "single",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -9546,7 +9651,8 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -9557,7 +9663,7 @@
     "id": "heal",
     "name": "Heal",
     "level": 6,
-    "school": "Evocation",
+    "school": "Abjuration",
     "classes": [
       "Cleric",
       "Druid"
@@ -9571,7 +9677,8 @@
       "material": false
     },
     "effectTypes": [
-      "HEALING"
+      "HEALING",
+      "UTILITY"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -9590,13 +9697,16 @@
     ],
     "castingTimeUnit": "special",
     "concentration": false,
-    "ritual": false,
+    "ritual": true,
     "components": {
       "verbal": true,
       "somatic": true,
       "material": true
     },
     "effectTypes": [
+      "HEALING",
+      "DEFENSIVE",
+      "DEFENSIVE",
       "UTILITY"
     ],
     "targetingType": "point",
@@ -9624,7 +9734,12 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "DAMAGE",
+      "DAMAGE",
+      "DEFENSIVE",
+      "DEFENSIVE",
+      "UTILITY"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -9651,7 +9766,12 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "DEFENSIVE",
+      "DEFENSIVE",
+      "TERRAIN",
+      "MOVEMENT",
+      "UTILITY"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -9678,6 +9798,10 @@
       "material": false
     },
     "effectTypes": [
+      "DEFENSIVE",
+      "STATUS_CONDITION",
+      "MOVEMENT",
+      "STATUS_CONDITION",
       "UTILITY"
     ],
     "targetingType": "self",
@@ -9705,7 +9829,11 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "DEFENSIVE",
+      "MOVEMENT",
+      "MOVEMENT",
+      "UTILITY"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -9729,6 +9857,8 @@
       "material": true
     },
     "effectTypes": [
+      "STATUS_CONDITION",
+      "MOVEMENT",
       "UTILITY"
     ],
     "targetingType": "self",
@@ -9744,7 +9874,6 @@
     "classes": [
       "Bard",
       "Sorcerer",
-      "Warlock",
       "Wizard"
     ],
     "castingTimeUnit": "action",
@@ -9752,10 +9881,11 @@
     "ritual": false,
     "components": {
       "verbal": true,
-      "somatic": true,
+      "somatic": false,
       "material": true
     },
     "effectTypes": [
+      "STATUS_CONDITION",
       "UTILITY"
     ],
     "targetingType": "multi",
@@ -9782,7 +9912,10 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "STATUS_CONDITION",
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -9808,6 +9941,7 @@
       "material": true
     },
     "effectTypes": [
+      "TERRAIN",
       "UTILITY"
     ],
     "targetingType": "area",
@@ -9821,6 +9955,7 @@
     "level": 6,
     "school": "Evocation",
     "classes": [
+      "Sorcerer",
       "Wizard"
     ],
     "castingTimeUnit": "action",
@@ -9832,7 +9967,10 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "TERRAIN",
+      "STATUS_CONDITION",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -9857,6 +9995,9 @@
       "material": false
     },
     "effectTypes": [
+      "STATUS_CONDITION",
+      "MOVEMENT",
+      "DEFENSIVE",
       "UTILITY"
     ],
     "targetingType": "single",
@@ -9881,6 +10022,7 @@
       "material": false
     },
     "effectTypes": [
+      "SUMMONING",
       "UTILITY"
     ],
     "targetingType": "point",
@@ -9905,6 +10047,8 @@
       "material": false
     },
     "effectTypes": [
+      "DEFENSIVE",
+      "DEFENSIVE",
       "UTILITY"
     ],
     "targetingType": "self",
@@ -9956,6 +10100,7 @@
       "material": false
     },
     "effectTypes": [
+      "MOVEMENT",
       "UTILITY"
     ],
     "targetingType": "multi",
@@ -9981,6 +10126,7 @@
       "material": true
     },
     "effectTypes": [
+      "HEALING",
       "UTILITY"
     ],
     "targetingType": "single",
@@ -9994,6 +10140,7 @@
     "level": 6,
     "school": "Evocation",
     "classes": [
+      "Cleric",
       "Druid",
       "Sorcerer",
       "Wizard"
@@ -10007,7 +10154,9 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "STATUS_CONDITION",
+      "UTILITY"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -10031,6 +10180,9 @@
       "material": true
     },
     "effectTypes": [
+      "HEALING",
+      "DAMAGE",
+      "STATUS_CONDITION",
       "UTILITY"
     ],
     "targetingType": "self",
@@ -10055,6 +10207,7 @@
       "material": false
     },
     "effectTypes": [
+      "MOVEMENT",
       "UTILITY"
     ],
     "targetingType": "point",
@@ -10107,7 +10260,11 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "MOVEMENT",
+      "TERRAIN",
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -10131,7 +10288,12 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "DAMAGE",
+      "DAMAGE",
+      "TERRAIN",
+      "MOVEMENT",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -10155,6 +10317,10 @@
       "material": true
     },
     "effectTypes": [
+      "MOVEMENT",
+      "STATUS_CONDITION",
+      "DEFENSIVE",
+      "DEFENSIVE",
       "UTILITY"
     ],
     "targetingType": "multi",
@@ -10179,9 +10345,10 @@
       "material": false
     },
     "effectTypes": [
+      "MOVEMENT",
       "UTILITY"
     ],
-    "targetingType": "self",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -10204,6 +10371,9 @@
       "material": true
     },
     "effectTypes": [
+      "DAMAGE",
+      "DAMAGE",
+      "MOVEMENT",
       "UTILITY"
     ],
     "targetingType": "single",
@@ -10229,9 +10399,11 @@
     },
     "effectTypes": [
       "DAMAGE",
-      "HEALING"
+      "HEALING",
+      "MOVEMENT",
+      "UTILITY"
     ],
-    "targetingType": "multi",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -10255,7 +10427,8 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -10280,7 +10453,8 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -10304,6 +10478,13 @@
       "material": false
     },
     "effectTypes": [
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "MOVEMENT",
       "UTILITY"
     ],
     "targetingType": "multi",
@@ -10330,7 +10511,9 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "MOVEMENT",
+      "UTILITY"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -10357,6 +10540,8 @@
       "material": true
     },
     "effectTypes": [
+      "STATUS_CONDITION",
+      "MOVEMENT",
       "UTILITY"
     ],
     "targetingType": "multi",
@@ -10385,6 +10570,8 @@
       "material": false
     },
     "effectTypes": [
+      "MOVEMENT",
+      "DAMAGE",
       "UTILITY"
     ],
     "targetingType": "self",
@@ -10411,7 +10598,9 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "SUMMONING",
+      "UTILITY"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -10437,7 +10626,9 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "TERRAIN",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -10463,6 +10654,7 @@
       "material": true
     },
     "effectTypes": [
+      "MOVEMENT",
       "UTILITY"
     ],
     "targetingType": "area",
@@ -10489,9 +10681,10 @@
       "material": false
     },
     "effectTypes": [
+      "TERRAIN",
       "UTILITY"
     ],
-    "targetingType": "multi",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -10514,9 +10707,11 @@
       "material": true
     },
     "effectTypes": [
+      "MOVEMENT",
+      "SUMMONING",
       "UTILITY"
     ],
-    "targetingType": "multi",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -10542,6 +10737,7 @@
       "material": true
     },
     "effectTypes": [
+      "MOVEMENT",
       "UTILITY"
     ],
     "targetingType": "multi",
@@ -10568,6 +10764,9 @@
       "material": false
     },
     "effectTypes": [
+      "STATUS_CONDITION",
+      "MOVEMENT",
+      "ATTACK_ROLL_MODIFIER",
       "UTILITY"
     ],
     "targetingType": "single",
@@ -10594,7 +10793,12 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "MOVEMENT",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -10619,9 +10823,10 @@
       "material": true
     },
     "effectTypes": [
+      "MOVEMENT",
       "UTILITY"
     ],
-    "targetingType": "self",
+    "targetingType": "point",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -10645,7 +10850,9 @@
       "material": true
     },
     "effectTypes": [
-      "HEALING"
+      "HEALING",
+      "HEALING",
+      "UTILITY"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -10670,6 +10877,8 @@
       "material": true
     },
     "effectTypes": [
+      "HEALING",
+      "STATUS_CONDITION",
       "UTILITY"
     ],
     "targetingType": "single",
@@ -10696,9 +10905,12 @@
       "material": true
     },
     "effectTypes": [
+      "MOVEMENT",
+      "DAMAGE",
+      "MOVEMENT",
       "UTILITY"
     ],
-    "targetingType": "multi",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -10720,6 +10932,8 @@
       "material": true
     },
     "effectTypes": [
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
       "UTILITY"
     ],
     "targetingType": "single",
@@ -10744,6 +10958,8 @@
       "material": true
     },
     "effectTypes": [
+      "SUMMONING",
+      "HEALING",
       "UTILITY"
     ],
     "targetingType": "single",
@@ -10771,7 +10987,13 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "ATTACK_ROLL_MODIFIER",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -10797,6 +11019,8 @@
       "material": false
     },
     "effectTypes": [
+      "MOVEMENT",
+      "DAMAGE",
       "UTILITY"
     ],
     "targetingType": "multi",
@@ -10821,31 +11045,12 @@
       "material": true
     },
     "effectTypes": [
+      "STATUS_CONDITION",
+      "ATTACK_ROLL_MODIFIER",
+      "HEALING",
       "UTILITY"
     ],
     "targetingType": "area",
-    "attackType": "none",
-    "arbitrationRequired": false,
-    "legacy": false
-  },
-  {
-    "id": "tether-essence",
-    "name": "Tether Essence",
-    "level": 7,
-    "school": "Evocation",
-    "classes": [],
-    "castingTimeUnit": "action",
-    "concentration": false,
-    "ritual": false,
-    "components": {
-      "verbal": true,
-      "somatic": true,
-      "material": false
-    },
-    "effectTypes": [
-      "UTILITY"
-    ],
-    "targetingType": "single",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -10857,6 +11062,7 @@
     "school": "Evocation",
     "classes": [
       "Druid",
+      "Sorcerer",
       "Wizard"
     ],
     "castingTimeUnit": "action",
@@ -10868,9 +11074,15 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "STATUS_CONDITION",
+      "MOVEMENT",
+      "MOVEMENT",
+      "MOVEMENT",
+      "MOVEMENT",
+      "UTILITY"
     ],
-    "targetingType": "multi",
+    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -10917,9 +11129,10 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "HEALING"
     ],
-    "targetingType": "single",
+    "targetingType": "multi",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -10968,9 +11181,12 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "MOVEMENT"
     ],
-    "targetingType": "multi",
+    "targetingType": "single",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -11026,30 +11242,6 @@
     "legacy": false
   },
   {
-    "id": "dark-star",
-    "name": "Dark Star",
-    "level": 8,
-    "school": "Evocation",
-    "classes": [
-      "Wizard"
-    ],
-    "castingTimeUnit": "action",
-    "concentration": true,
-    "ritual": false,
-    "components": {
-      "verbal": true,
-      "somatic": true,
-      "material": true
-    },
-    "effectTypes": [
-      "DAMAGE"
-    ],
-    "targetingType": "area",
-    "attackType": "none",
-    "arbitrationRequired": false,
-    "legacy": false
-  },
-  {
     "id": "demiplane",
     "name": "Demiplane",
     "level": 8,
@@ -11068,7 +11260,8 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -11095,7 +11288,8 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -11106,7 +11300,7 @@
     "id": "earthquake",
     "name": "Earthquake",
     "level": 8,
-    "school": "Evocation",
+    "school": "Transmutation",
     "classes": [
       "Cleric",
       "Druid",
@@ -11121,7 +11315,11 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "DAMAGE",
+      "DAMAGE"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -11148,7 +11346,9 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY",
+      "STATUS_CONDITION"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -11159,7 +11359,7 @@
     "id": "glibness",
     "name": "Glibness",
     "level": 8,
-    "school": "Transmutation",
+    "school": "Enchantment",
     "classes": [
       "Bard",
       "Warlock"
@@ -11197,7 +11397,10 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE",
+      "ATTACK_ROLL_MODIFIER",
+      "STATUS_CONDITION"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -11221,9 +11424,12 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "UTILITY",
+      "STATUS_CONDITION",
+      "DAMAGE",
+      "MOVEMENT"
     ],
-    "targetingType": "single",
+    "targetingType": "point",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -11247,7 +11453,11 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "UTILITY",
+      "DAMAGE",
+      "DAMAGE",
+      "DAMAGE",
+      "MOVEMENT"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -11272,6 +11482,7 @@
       "material": true
     },
     "effectTypes": [
+      "UTILITY",
       "DAMAGE"
     ],
     "targetingType": "area",
@@ -11320,7 +11531,8 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "SUMMONING"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -11345,7 +11557,8 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -11372,31 +11585,9 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
-    ],
-    "targetingType": "single",
-    "attackType": "none",
-    "arbitrationRequired": false,
-    "legacy": false
-  },
-  {
-    "id": "reality-break",
-    "name": "Reality Break",
-    "level": 8,
-    "school": "Conjuration",
-    "classes": [
-      "Wizard"
-    ],
-    "castingTimeUnit": "action",
-    "concentration": true,
-    "ritual": false,
-    "components": {
-      "verbal": true,
-      "somatic": true,
-      "material": true
-    },
-    "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION",
+      "MOVEMENT"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -11423,7 +11614,9 @@
       "material": true
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "STATUS_CONDITION",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -11434,7 +11627,7 @@
     "id": "telepathy",
     "name": "Telepathy",
     "level": 8,
-    "school": "Evocation",
+    "school": "Divination",
     "classes": [
       "Wizard"
     ],
@@ -11471,7 +11664,10 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DAMAGE",
+      "DAMAGE",
+      "MOVEMENT"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -11497,7 +11693,8 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION"
     ],
     "targetingType": "multi",
     "attackType": "none",
@@ -11523,10 +11720,13 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "DAMAGE",
+      "UTILITY",
+      "MOVEMENT"
     ],
-    "targetingType": "single",
-    "attackType": "none",
+    "targetingType": "point",
+    "attackType": "melee spell attack",
     "arbitrationRequired": false,
     "legacy": false
   },
@@ -11550,7 +11750,10 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE",
+      "ATTACK_ROLL_MODIFIER",
+      "ATTACK_ROLL_MODIFIER"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -11577,7 +11780,8 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "MOVEMENT"
     ],
     "targetingType": "point",
     "attackType": "none",
@@ -11602,7 +11806,11 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "STATUS_CONDITION",
+      "MOVEMENT"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -11626,7 +11834,8 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -11650,6 +11859,7 @@
       "material": false
     },
     "effectTypes": [
+      "HEALING",
       "UTILITY"
     ],
     "targetingType": "multi",
@@ -11676,7 +11886,8 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE"
     ],
     "targetingType": "multi",
     "attackType": "none",
@@ -11702,7 +11913,8 @@
     },
     "effectTypes": [
       "DAMAGE",
-      "DAMAGE"
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -11727,7 +11939,9 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "HEALING",
+      "UTILITY",
+      "MOVEMENT"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -11754,6 +11968,7 @@
       "material": false
     },
     "effectTypes": [
+      "DAMAGE",
       "UTILITY"
     ],
     "targetingType": "single",
@@ -11779,7 +11994,9 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "STATUS_CONDITION",
+      "TERRAIN"
     ],
     "targetingType": "point",
     "attackType": "none",
@@ -11806,33 +12023,11 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "STATUS_CONDITION",
+      "UTILITY"
     ],
     "targetingType": "multi",
-    "attackType": "none",
-    "arbitrationRequired": false,
-    "legacy": false
-  },
-  {
-    "id": "ravenous-void",
-    "name": "Ravenous Void",
-    "level": 9,
-    "school": "Evocation",
-    "classes": [
-      "Wizard"
-    ],
-    "castingTimeUnit": "action",
-    "concentration": true,
-    "ritual": false,
-    "components": {
-      "verbal": true,
-      "somatic": true,
-      "material": true
-    },
-    "effectTypes": [
-      "DAMAGE"
-    ],
-    "targetingType": "area",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -11855,7 +12050,8 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE"
     ],
     "targetingType": "self",
     "attackType": "none",
@@ -11879,33 +12075,17 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "STATUS_CONDITION",
+      "DAMAGE",
+      "DAMAGE",
+      "DAMAGE",
+      "DAMAGE",
+      "TERRAIN",
+      "TERRAIN",
+      "UTILITY"
     ],
     "targetingType": "point",
-    "attackType": "none",
-    "arbitrationRequired": false,
-    "legacy": false
-  },
-  {
-    "id": "time-ravage",
-    "name": "Time Ravage",
-    "level": 9,
-    "school": "Necromancy",
-    "classes": [
-      "Wizard"
-    ],
-    "castingTimeUnit": "action",
-    "concentration": false,
-    "ritual": false,
-    "components": {
-      "verbal": true,
-      "somatic": true,
-      "material": true
-    },
-    "effectTypes": [
-      "DAMAGE"
-    ],
-    "targetingType": "single",
     "attackType": "none",
     "arbitrationRequired": false,
     "legacy": false
@@ -11954,7 +12134,8 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "DEFENSIVE"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -11979,7 +12160,9 @@
       "material": true
     },
     "effectTypes": [
-      "UTILITY"
+      "HEALING",
+      "UTILITY",
+      "MOVEMENT"
     ],
     "targetingType": "single",
     "attackType": "none",
@@ -12004,7 +12187,10 @@
       "material": false
     },
     "effectTypes": [
-      "DAMAGE"
+      "DAMAGE",
+      "STATUS_CONDITION",
+      "DAMAGE",
+      "UTILITY"
     ],
     "targetingType": "area",
     "attackType": "none",
@@ -12029,7 +12215,11 @@
       "material": false
     },
     "effectTypes": [
-      "UTILITY"
+      "UTILITY",
+      "HEALING",
+      "DEFENSIVE",
+      "DEFENSIVE",
+      "DAMAGE"
     ],
     "targetingType": "self",
     "attackType": "none",

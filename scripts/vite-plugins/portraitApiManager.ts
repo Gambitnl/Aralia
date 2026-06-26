@@ -106,20 +106,39 @@ export const portraitApiManager = () => ({
           'No text. No UI. No watermark.'
         ].filter(Boolean).join(' ');
 
-        try {
-          const { generatePortraitWithStitch } = await import('../../scripts/workflows/gemini/core/generate-portrait');
-          const url = await generatePortraitWithStitch(prompt);
-          json({ url, provider: 'stitch' });
-          return;
-        } catch (stitchErr) {
-          const stitchMessage = stitchErr instanceof Error ? stitchErr.message : String(stitchErr);
-          console.warn(`[portraits] Stitch failed, falling back to image-gen. ${stitchMessage}`);
+        // Generate via the shared image-gen driver — the SAME engine the working
+        // scene endpoint (sceneApiManager) uses. The driver tries Stitch then
+        // image-gen internally, so one call covers both providers. This replaces
+        // the dynamic import of `core/generate-portrait`, a module that was never
+        // created — which left this endpoint dead at runtime ("missing
+        // generate-portrait module"). Path held in a variable + @vite-ignore so
+        // the heavy CDP/playwright deps stay out of tsc's graph (driver pattern).
+        const driverPath = '../workflows/gemini/image-gen/image-gen-driver';
+        const driver = await import(/* @vite-ignore */ driverPath) as {
+          generateImage: (prompt: string) => Promise<{ success: boolean; message?: string; provider?: string }>;
+          downloadImage: (outputPath: string) => Promise<{ success: boolean; path?: string; message?: string }>;
+        };
 
-          const { generatePortraitWithImageGen } = await import('../../scripts/workflows/gemini/core/generate-portrait');
-          const url = await generatePortraitWithImageGen(prompt);
-          json({ url, provider: 'image-gen' });
+        const genResult = await driver.generateImage(prompt);
+        if (!genResult?.success) {
+          json({ error: genResult?.message || 'Portrait generation failed.' }, 502);
           return;
         }
+
+        if (!fs.existsSync(PORTRAIT_OUTPUT_DIR)) {
+          fs.mkdirSync(PORTRAIT_OUTPUT_DIR, { recursive: true });
+        }
+
+        const fileName = `portrait_${Date.now()}.png`;
+        const outputPath = path.join(PORTRAIT_OUTPUT_DIR, fileName);
+        const dl = await driver.downloadImage(outputPath);
+        if (!dl?.success) {
+          json({ error: dl?.message || 'Generated portrait could not be saved.' }, 502);
+          return;
+        }
+
+        json({ url: `assets/images/portraits/generated/${fileName}`, provider: genResult.provider });
+        return;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         if (/\[Gcloud\] Token fetch failed/i.test(message) || /Failed to retrieve initial access token/i.test(message)) {

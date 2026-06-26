@@ -24,6 +24,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import CharacterCreator from '../CharacterCreator';
 import SpellContext from '../../../context/SpellContext';
+import { CLASSES_DATA, RACES_DATA } from '../../../constants';
+import { LOCKED_STEP_MESSAGES } from '../config/sidebarSteps';
+import {
+  CreationStep,
+  initialCharacterCreatorState,
+} from '../state/characterCreatorState';
+import type { CharacterCreationState } from '../state/characterCreatorState';
 
 const motionComponent = (tag: keyof JSX.IntrinsicElements) => {
   return ({
@@ -55,6 +62,7 @@ vi.mock('framer-motion', () => ({
 const mockOnCharacterCreate = vi.fn();
 const mockOnExitToMainMenu = vi.fn();
 const mockDispatch = vi.fn();
+const STORAGE_KEY = 'aralia_character_creation_state';
 const mockSpells = {
   get: vi.fn(),
   all: [],
@@ -71,6 +79,25 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     {children}
   </SpellContext.Provider>
 );
+
+// Render the full creator with a saved draft so locked-step checks run through
+// the same rehydration path players use when returning to unfinished work.
+const renderCreatorWithDraft = (draft: Partial<CharacterCreationState> = {}) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    ...initialCharacterCreatorState,
+    ...draft,
+  }));
+
+  return render(
+    <TestWrapper>
+      <CharacterCreator
+        onCharacterCreate={mockOnCharacterCreate}
+        onExitToMainMenu={mockOnExitToMainMenu}
+        dispatch={mockDispatch}
+      />
+    </TestWrapper>
+  );
+};
 
 describe('CharacterCreator Flow', () => {
   beforeEach(() => {
@@ -133,4 +160,56 @@ describe('CharacterCreator Flow', () => {
     // 6. Assert we are at the Class Selection step (wait for motion transition).
     expect(await screen.findByRole('heading', { name: /Choose Your Class/i }, { timeout: 8000 })).toBeInTheDocument();
   }, 25000); // Allow for async step transitions + animations during full-suite runs.
+
+  it('renders centralized lock text when race selection is missing', () => {
+    renderCreatorWithDraft({ step: CreationStep.AgeSelection });
+
+    expect(screen.getByText(LOCKED_STEP_MESSAGES.selectRaceFirst)).toBeInTheDocument();
+  });
+
+  it('renders centralized lock text when class selection is missing', () => {
+    renderCreatorWithDraft({
+      step: CreationStep.AbilityScores,
+      selectedRace: RACES_DATA.human,
+    });
+
+    expect(screen.getByText(LOCKED_STEP_MESSAGES.selectClassFirst)).toBeInTheDocument();
+  });
+
+  it('renders centralized lock text when ability scores are missing', () => {
+    renderCreatorWithDraft({
+      step: CreationStep.Skills,
+      selectedRace: RACES_DATA.human,
+      selectedClass: CLASSES_DATA.fighter,
+    });
+
+    expect(screen.getByText(LOCKED_STEP_MESSAGES.assignAbilityScoresFirst)).toBeInTheDocument();
+  });
+
+  it('renders centralized fallback text for classes without extra feature configuration', () => {
+    renderCreatorWithDraft({
+      step: CreationStep.ClassFeatures,
+      selectedRace: RACES_DATA.human,
+      selectedClass: CLASSES_DATA.rogue,
+      finalAbilityScores: {
+        Strength: 8,
+        Dexterity: 15,
+        Constitution: 14,
+        Intelligence: 12,
+        Wisdom: 10,
+        Charisma: 13,
+      },
+    });
+
+    expect(screen.getByText(LOCKED_STEP_MESSAGES.noAdditionalClassFeatures)).toBeInTheDocument();
+  });
+
+  it('renders centralized review fallback text when the preview cannot be assembled', () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    renderCreatorWithDraft({ step: CreationStep.NameAndReview });
+
+    expect(screen.getByText(LOCKED_STEP_MESSAGES.missingReviewData)).toBeInTheDocument();
+    consoleErrorSpy.mockRestore();
+  });
 });

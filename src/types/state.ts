@@ -172,6 +172,15 @@ export interface DiscoveredHiddenSite {
   tileY: number;
   name?: string;
   kind?: string;
+  /**
+   * Sub-tile position within the tile, each in [-0.5, 0.5] from the tile center
+   * (derived from the site's ground-meter position at discovery). Lets the atlas
+   * pin sit where the place actually is inside its tile, not just at the cell
+   * center. Optional + backward-compatible: pre-existing saves omit it and fall
+   * back to the cell-center pin.
+   */
+  offsetX?: number;
+  offsetY?: number;
 }
 
 // -----------------------------------------------------------------------------
@@ -189,6 +198,13 @@ export interface GameState {
   gold: number;
   currentLocationId: string;
   subMapCoordinates: { x: number; y: number } | null;
+  /**
+   * The settlement the player chose at the Start Point Selection step (its name +
+   * region). Names the opening scene and the player's "home" town. Optional:
+   * dev/skip/load flows and pre-existing saves omit it.
+   */
+  startTownName?: string;
+  startTownRegion?: string;
   messages: GameMessage[];
   isLoading: boolean;
   loadingMessage: string | null;

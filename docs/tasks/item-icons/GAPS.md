@@ -33,3 +33,5 @@ The item icon checklist backlog from `BATCH-01-ITEMS.md` through `BATCH-41-ITEMS
 ## Import Rules
 
 - Route cross-project or unrelated findings to `docs/projects/GLOBAL_GAPS.md`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/item-icons/GAPS.md","sha256WithoutMarker":"c07c32bf344f781fe3d1662efc021c85124d73dbe99a7797c76a7c1138770433","markedAtUtc":"2026-06-25T22:29:38.310Z"} -->

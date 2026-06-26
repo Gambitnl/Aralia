@@ -36,3 +36,5 @@ This note still captures a durable frontend principle:
 - custom CSS should live in dedicated files
 - layout and styling concerns should not be trapped inside `index.html`
 - stylesheet organization can continue improving from the already-externalized baseline instead of revisiting the original extraction step
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/improvements/completed/04_externalize_css.md","sha256WithoutMarker":"93ab7af3a3611ed0a8d43eac8559b941b9f8408ad6bcf1faf000e9b5c8264510","markedAtUtc":"2026-06-25T22:49:17.526Z"} -->

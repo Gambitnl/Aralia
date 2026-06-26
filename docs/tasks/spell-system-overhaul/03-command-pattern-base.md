@@ -88,3 +88,5 @@ This file should be read as preserved task context, not as a fresher source of t
 - test/file lists in the original version should not be treated as exact live layout without checking the repo first
 
 Use this file as preserved implementation context plus a pointer to the current command layer.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/03-command-pattern-base.md","sha256WithoutMarker":"873c8e306c951d9be53e1d3d753e5f4549fe57776d78c130091d021ecc3985e4","markedAtUtc":"2026-06-25T22:29:38.573Z"} -->

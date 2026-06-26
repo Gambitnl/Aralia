@@ -45,3 +45,5 @@ Use this file only when you are actually dispatching work to Jules from an IDE-s
 - [`SPELL_MIGRATION_PROMPT.md`](./SPELL_MIGRATION_PROMPT.md)
 - [`JULES_ACCEPTANCE_CRITERIA.md`](./JULES_ACCEPTANCE_CRITERIA.md)
 - [`SPELL-WORKFLOW-QUICK-REF.md`](./SPELL-WORKFLOW-QUICK-REF.md)
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/@DISPATCH-SPELLS-TO-JULES.md","sha256WithoutMarker":"781bbc24ada1253f97bcdea93276f7cd1675bc2f81cc063838ff83a64691acba","markedAtUtc":"2026-06-25T22:29:38.578Z"} -->

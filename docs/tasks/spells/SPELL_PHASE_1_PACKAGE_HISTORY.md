@@ -31,3 +31,5 @@ The live tracker now stays focused on the current package, live blockers, and up
 
 - Package 19 now carries the live queue state in `SPELL_PHASE_1_TASK_TRACKER.md`; Package 18 remains here as remote merge proof.
 - Use the PR/handoff appendix for durable lineage and the live tracker for current state.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_PHASE_1_PACKAGE_HISTORY.md","sha256WithoutMarker":"bfbe54f58576f9e2e7a93cb6ba7efea69109b5b6808f3e7e056e48ef4ab7a0de","markedAtUtc":"2026-06-25T22:29:38.359Z"} -->

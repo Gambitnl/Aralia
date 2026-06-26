@@ -140,3 +140,5 @@ When you add or modify code as part of these tasks:
 - For scripts, include a short header comment describing purpose, inputs, outputs, and how to run it.
 - For schema/type changes, add a comment explaining why the new field exists and how it is expected to be used.
 - Avoid redundant comments that restate the code; prefer "why" and "how this ties to mechanics/data".
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md","sha256WithoutMarker":"3fa5e1f8977efbce07831d73c4fd71a995bc0f3a3a1a2c3460d261a43cdd56aa","markedAtUtc":"2026-06-25T22:29:38.473Z"} -->

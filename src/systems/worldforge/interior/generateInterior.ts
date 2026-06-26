@@ -190,6 +190,18 @@ export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): I
     furnishings.push(...furnishRoom(room, furnishRng));
   }
 
+  // Keep doorways passable: the per-role furnishing tables place props against
+  // fixed walls, blind to where the doors landed, so ~1 in 6 doors ended up with
+  // a hearth/shelf/bed on its threshold. Drop any prop sitting on a doorway it
+  // shares a room with (door cell + the approach cell), so an agent can walk
+  // through and the 3D renderer never buries a door behind furniture.
+  const clearFurnishings = furnishings.filter((f) =>
+    !doorways.some((dr) =>
+      (dr.a === f.roomId || dr.b === f.roomId) &&
+      Math.abs(f.x - dr.x) < CELL_FT && Math.abs(f.y - dr.y) < CELL_FT,
+    ),
+  );
+
   return {
     plotId: plot.id,
     widthFt,
@@ -197,7 +209,7 @@ export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): I
     storeys: plot.storeys,
     rooms,
     doorways,
-    furnishings,
+    furnishings: clearFurnishings,
   };
 }
 

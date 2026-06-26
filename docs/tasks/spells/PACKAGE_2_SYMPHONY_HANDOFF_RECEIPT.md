@@ -755,3 +755,5 @@ Next review requirement:
   diff or require a clear explanation before merge.
 - Keep this as tracker gap G9 until the final Package 2 PR/file list proves the
   files were transient or intentionally retained.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md","sha256WithoutMarker":"19910977b677c5afeead5861cd5f0a0b510b146618c2fde2bf46df4deaa05e0d","markedAtUtc":"2026-06-25T22:29:38.344Z"} -->

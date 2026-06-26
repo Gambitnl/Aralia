@@ -615,3 +615,5 @@ These spells store a slash-glued or comma-glued string in structured `Damage Typ
 | `zone-of-truth` | 2 | `canonical_no_damage` | `(blank)` | — |
 
 </details>
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/damage-type/SPELL_DAMAGE_TYPE_CANONICAL_PARITY_REPORT.md","sha256WithoutMarker":"d610eff5170bf044a99b272fdd4908892a7a324bfebe3e517fbf4b0b660a44a9","markedAtUtc":"2026-06-25T22:29:38.513Z"} -->

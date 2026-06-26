@@ -127,3 +127,5 @@ Until one of those paths is implemented and proved, keep `SSO-SUMMONING-RUNTIME-
 - A read-only helper-path check confirmed that `useAbilitySystem` was importing helper modules from `src/hooks/combat/abilitySystem`, but the equivalent helper files live at `src/hooks/*`.
 - `useAbilitySystem` now imports the existing helper files directly, and those helper files now use corrected relative imports for their current location.
 - This repair is recorded as `SSO-ABILITY-SYSTEM-HELPER-PATH-001` until a focused TypeScript/build proof is allowed.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/SUMMONING_RUNTIME_BOUNDARY.md","sha256WithoutMarker":"eb26d53de2550ca95681b929c922f6c7efc96b7351b36d67a235f49b280cd0d2","markedAtUtc":"2026-06-25T22:29:38.593Z"} -->

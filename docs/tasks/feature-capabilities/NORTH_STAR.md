@@ -99,3 +99,5 @@ Acceptance signal for this folder pass:
 1. Verify owner markers in project-level trackers remain current.
 2. Keep evidence links and classification updates in `TRACKER.md` and `GAPS.md`.
 3. Route unresolved scope questions to the owning project tracker before implementation decisions expand this folder.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/feature-capabilities/NORTH_STAR.md","sha256WithoutMarker":"207924632a39ce580dc85165426c6dd24270083594065d865184b9c44b55ef5b","markedAtUtc":"2026-06-25T22:29:38.606Z"} -->

@@ -45,3 +45,5 @@ When converting older spell data:
 
 - [`@WORKFLOW-SPELL-CONVERSION.md`](./@WORKFLOW-SPELL-CONVERSION.md)
 - [`../../spells/SPELL_INTEGRATION_CHECKLIST.md`](../../spells/SPELL_INTEGRATION_CHECKLIST.md)
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/SPELL-WORKFLOW-QUICK-REF.md","sha256WithoutMarker":"de30454cb6e64af6e5b0b91a15e25c19043dd3083da83392ffb0872920f7dd5e","markedAtUtc":"2026-06-25T22:29:38.589Z"} -->

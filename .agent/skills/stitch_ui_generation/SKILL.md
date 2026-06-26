@@ -149,6 +149,16 @@ SINGLE IMAGE ONLY.
 5. Run `npx tsx scripts/audit_and_wire_images.ts` to wire automatically
 
 
+## Completion Criteria
+
+Before concluding any Stitch generation task, you must satisfy the following checklist:
+
+1. **Compilation:** Verify that the generated component/screen integrates into the React codebase without causing any TypeScript type errors or bundler failures.
+2. **Design Tokens:** Confirm that all generated components utilize Aralia's CSS variables, utility classes, and standard layout constructs rather than introducing hardcoded non-theme values.
+3. **Asset Integrity:** Verify that any downloaded image assets are named strictly under the `Parent_Subrace_Gender.png` title-cased convention and saved in `public/assets/images/races/`.
+4. **Wiring Checks:** Confirm that the new assets are wired correctly into both the glossary JSON data structures and the Character Creator TypeScript models. Run `npx tsx scripts/audit_and_wire_images.ts` to verify.
+5. **No-Op Check:** Verify the UI displays correctly in local execution without error warnings or broken image links.
+
 ## Troubleshooting
 
 | Issue | Solution |

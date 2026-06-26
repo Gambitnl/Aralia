@@ -35,4 +35,4 @@ Character creator foundations are implemented and actively used. The flow is not
 - Permissive sidebar navigation with locked placeholders is the intentional design, resolved on 2026-06-08 (G2).
 - Rendered UX was not re-verified in this doc pass; this is a code-backed capability note rather than a visual QA report.
 
-
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/feature-capabilities/character-creator.md","sha256WithoutMarker":"53fed66dde4f34e1c4e7bb0b69433feb300e6f159d54a6e77c1efa6853582056","markedAtUtc":"2026-06-25T22:29:38.608Z"} -->

@@ -23,12 +23,9 @@ import { FeatSpellRequirement, SpellSchool } from '../../types';
 import SpellContext from '../../context/SpellContext';
 import {
   filterSpellsForRequirement,
-  getSchoolIcon,
-  getSchoolColorClass,
-  getSchoolBgClass,
   getSpellLevelLabel,
-  formatCastingTime,
 } from '../../utils/spellFilterUtils';
+import { SpellSummaryCard } from '../ui/SpellSummaryCard';
 
 interface FeatSpellPickerProps {
   /** The spell requirement configuration */
@@ -210,96 +207,25 @@ const FeatSpellPicker: React.FC<FeatSpellPickerProps> = ({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.15 }}
-                className={`
-                  relative rounded-lg border cursor-pointer transition-all duration-200
-                  ${
-                    isSelected
-                      ? 'bg-amber-900/30 border-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
-                      : 'bg-gray-800 border-gray-700 hover:border-gray-500 hover:bg-gray-750'
-                  }
-                  ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-                `}
+                className={`relative ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {/* Main clickable area */}
-                <div
-                  onClick={() => handleSpellToggle(spell.id)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      handleSpellToggle(spell.id);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={disabled ? -1 : 0}
-                  aria-pressed={isSelected}
-                  aria-disabled={disabled}
-                  className="p-3"
-                >
-                  <div className="flex items-start gap-3">
-                    {/* School Icon */}
-                    <div
-                      className={`
-                        w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0
-                        ${getSchoolBgClass(spell.school || '')} border
-                      `}
-                    >
-                      {getSchoolIcon(spell.school || '')}
-                    </div>
-
-                    {/* Spell Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h5
-                          className={`
-                            font-semibold truncate
-                            ${isSelected ? 'text-amber-300' : 'text-gray-200'}
-                          `}
-                        >
-                          {spell.name}
-                        </h5>
-                        {isSelected && (
-                          <motion.svg
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="w-5 h-5 text-amber-500 flex-shrink-0"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
-                          </motion.svg>
-                        )}
-                      </div>
-
-                      {/* School Badge + Casting Time */}
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <span className={`text-xs ${getSchoolColorClass(spell.school || '')}`}>
-                          {spell.school}
-                        </span>
-                        {spell.castingTime && (
-                          <span className="text-xs text-gray-500">
-                            {formatCastingTime(spell.castingTime)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Expand button */}
+                <SpellSummaryCard
+                  spell={spell}
+                  selected={isSelected}
+                  disabled={disabled}
+                  density="row"
+                  onSelect={() => handleSpellToggle(spell.id)}
+                  trailing={
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={(event) => {
+                        event.stopPropagation();
                         setExpandedSpellId(isExpanded ? null : spell.id);
                       }}
                       className="p-1 text-gray-500 hover:text-gray-300 transition-colors flex-shrink-0"
                       aria-label={isExpanded ? 'Collapse spell details' : 'Expand spell details'}
                     >
                       <svg
-                        className={`w-5 h-5 transition-transform duration-200 ${
-                          isExpanded ? 'rotate-180' : ''
-                        }`}
+                        className={`w-5 h-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -312,8 +238,8 @@ const FeatSpellPicker: React.FC<FeatSpellPickerProps> = ({
                         />
                       </svg>
                     </button>
-                  </div>
-                </div>
+                  }
+                />
 
                 {/* Expanded description */}
                 <AnimatePresence>

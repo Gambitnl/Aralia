@@ -179,3 +179,5 @@ Future agents should add rows here when they investigate a new spell family. Do 
 - The shared visibility observer policy now delegates the 2D and 3D map observer to the familiar while the caster has the shared-senses active effect.
 - Both renderers display a "Viewing through <familiar>" label so the map behavior is not invisible state.
 - Proof remains pending: this has not been visually inspected in either renderer, and no focused policy test has been run.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/COMBAT_MAP_PRESENTATION_MATRIX.md","sha256WithoutMarker":"e343d12c8ecdad0bb43bd6db774744564b929f8921c6357053b1009acf54ef3e","markedAtUtc":"2026-06-25T22:29:38.333Z"} -->

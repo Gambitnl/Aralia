@@ -174,7 +174,24 @@
       "selectedAbilityScore": "Constitution"
     }
   },
-  "equippedItems": {},
+  "equippedItems": {
+    "MainHand": {
+      "id": "greataxe",
+      "name": "Greataxe",
+      "description": "A heavy two-handed axe for brutal melee strikes.",
+      "type": "weapon",
+      "category": "Martial Melee Weapon",
+      "damageDice": "1d12",
+      "damageType": "slashing",
+      "properties": [
+        "heavy",
+        "two-handed"
+      ],
+      "isMartial": true,
+      "mastery": "Cleave",
+      "rarity": "Common"
+    }
+  },
   "statusEffects": [],
   "racialSelections": {
     "triton": {

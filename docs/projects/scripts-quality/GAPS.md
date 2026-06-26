@@ -6,7 +6,7 @@ slug: scripts-quality
 status: active
 status_note: Preserved as merged_reference to avoid flattening existing gap provenance.
 registry_mode: merged_reference
-last_updated: "2026-06-10"
+last_updated: "2026-06-25"
 gap_count: 2
 open_gap_count: 2
 resolved_gap_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Scripts: Quality Gap Registry
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-25
 
 Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 
@@ -110,6 +110,7 @@ Use this file for durable unresolved findings that are too important or too larg
 
 - `G3` remains routed to `docs/projects/scripts-git/TRACKER.md`; scripts-quality keeps the checkpoint convention and debt snapshot cadence only.
 - `G4` (2026-06-10): the script-tests project merged into this one (DECISION_BLITZ D21); the inherited ST-GAP-001..004 test-coverage gaps are now owned here and remain listed in `docs/projects/script-tests/GAPS.md` (support surface).
+- 2026-06-25: Retired `docs/tasks/lint-setup.md` as a duplicate setup-era backlog note. ESLint is already wired through `eslint.config.mjs`, `package.json` `lint`, and the existing quality-debt checkpoint policy. The old clean-lint acceptance target is superseded by the documented debt-summary posture rather than reopened as broad cleanup.
 
 ## Gap Log
 

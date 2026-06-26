@@ -246,3 +246,5 @@ converged.
 5. Write the report to
    `docs/tasks/spells/atlas-reports/<bucket-slug>/v3.md` using the
    5-section template. Don't post contents in chat.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/ATLAS_AGENT_PROMPT_V3.md","sha256WithoutMarker":"0336ce7f2b98dd559ae92e762cfb6a6685e577fe5b5e988e066207fb804d898c","markedAtUtc":"2026-06-25T22:29:38.506Z"} -->

@@ -459,3 +459,5 @@ Save format migration: a one-shot loader detects v1 saves (no `WorldData` or wit
 - `docs/architecture/COMBAT_MAP_ENGINE.md`
 - `src/components/BattleMap/BattleMap3D.tsx` and its `terrain/`, `camera/`, `vfx/` subtrees
 - `src/services/azgaarDerivedMapService.ts`
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-05-28-azgaar-3d-streamed-world-design.md","sha256WithoutMarker":"b9e043d566eb303cb1b1e761afc59877b016a61313bcd1393a54ec7d41c3e5fa","markedAtUtc":"2026-06-25T22:43:27.467Z"} -->

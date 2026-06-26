@@ -179,3 +179,5 @@ preserves two explicit follow-ups instead of broadening:
   follow-up gap instead of a scope expansion.
 - Atlas/source discovery is still blocked by G48 and remains a separate repair
   path.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_4_COMBAT_SIMULATOR_DETERMINISTIC_PILOT_JULES_TASK.md","sha256WithoutMarker":"52190de3559fd3b0a825c2bc8f5cd755ab7ccf2423fbb864e8c9cafac0e3386b","markedAtUtc":"2026-06-25T22:29:38.357Z"} -->

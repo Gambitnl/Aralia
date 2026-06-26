@@ -67,3 +67,5 @@ write `N/A - <one-clause reason>` rather than deleting the row.
   so we can see what changed.
 - **Long-term**: nothing gets deleted. The folder is the durable
   history of how each bucket converged on the model.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/atlas-reports/README.md","sha256WithoutMarker":"f4c431b872375ba42be4b2fb72b831724702cc61dfb1f569b1d4051a21e7ce87","markedAtUtc":"2026-06-25T22:29:38.499Z"} -->

@@ -1,6 +1,6 @@
 # Package 16 Jules Task: Sustain, Move, Or Recast Actions
 
-Status: draft package packet for the next Jules-preferred mechanics slice.
+Status: historical Package 16 packet; PR #1135 merged on 2026-05-27.
 
 This packet promotes the next tracker-defined bucket after Package 15:
 `sustain_or_recast_action`. Package 15 closed the summon/control slice through
@@ -240,3 +240,5 @@ completion note or PR summary, not in the assumed-approval decision ledger.
 - Classified `find-familiar`, `unseen-servant`, `animate-dead`, `tiny-servant`, `phantasmal-force`, `flame-blade`, `clairvoyance`, and `hex` as deferred to `sustain_or_recast_action.md` (e.g. illusion, summon lifecycle, persistent-weapon boundaries).
 - Created a focused test `SpellCommandFactoryGrantedAction.test.ts` to prove `grantedActions` survives command instantiation without breaking existing combat structure.
 - Validated all spell JSONs and verified Atlas audits remain green. No arbitrary environment configurations were altered.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_16_SUSTAIN_RECAST_ACTION_JULES_TASK.md","sha256WithoutMarker":"eb1a0cb2e948dc307590b873263935756bef9eeab2d99d6f5884d76839684b03","markedAtUtc":"2026-06-25T22:29:38.379Z"} -->

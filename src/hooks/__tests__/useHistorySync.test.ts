@@ -111,6 +111,33 @@ describe('useHistorySync', () => {
         });
     });
 
+    it('should map the ?phase=spawnpreview deep link to SPAWN_PREVIEW', () => {
+        mockLocation.search = '?phase=spawnpreview';
+        renderHook(() => useHistorySync(gameState, dispatch));
+        expect(replaceStateMock).not.toHaveBeenCalled();
+        expect(dispatch).toHaveBeenCalledWith({
+            type: 'SET_GAME_PHASE',
+            payload: GamePhase.SPAWN_PREVIEW,
+        });
+    });
+
+    it('should serialize SPAWN_PREVIEW to the clean spawnpreview slug', () => {
+        const { rerender } = renderHook(({ state }) => useHistorySync(state, dispatch), {
+            initialProps: { state: gameState },
+        });
+        replaceStateMock.mockClear();
+        mockLocation.search = '?phase=main_menu';
+
+        const newState = { ...gameState, phase: GamePhase.SPAWN_PREVIEW };
+        rerender({ state: newState });
+
+        expect(pushStateMock).toHaveBeenCalledWith(
+            { phase: GamePhase.SPAWN_PREVIEW },
+            '',
+            '/?phase=spawnpreview',
+        );
+    });
+
     it('should push new state to history when game phase changes', () => {
         const { rerender } = renderHook(({ state }) => useHistorySync(state, dispatch), {
             initialProps: { state: gameState }
@@ -199,7 +226,7 @@ describe('useHistorySync', () => {
         );
     });
 
-    it('should persist subMapCoordinates and currentLocationId in URL when playing', () => {
+    it('should NOT expose player position (x/y/loc) in the URL when playing', () => {
         const playingState = {
             ...gameState,
             phase: GamePhase.PLAYING,
@@ -207,67 +234,53 @@ describe('useHistorySync', () => {
             subMapCoordinates: { x: 10, y: 20 }
         };
 
-        const { rerender } = renderHook(({ state }) => useHistorySync(state, dispatch), {
-            initialProps: { state: playingState }
-        });
+        renderHook(() => useHistorySync(playingState, dispatch));
 
-        // Verify initial persistence
+        // Only the phase is written; position stays out of the URL entirely.
         expect(replaceStateMock).toHaveBeenCalledWith(
             { phase: GamePhase.PLAYING },
             '',
-            expect.stringContaining('x=10')
+            '/?phase=playing'
         );
-
-        // Simulate URL update to match what we just set
-        mockLocation.search = '?phase=playing&x=10&y=20&loc=loc_1';
-
-        replaceStateMock.mockClear();
-        pushStateMock.mockClear();
-
-        // Move player
-        const movedState = { ...playingState, subMapCoordinates: { x: 11, y: 21 } };
-        rerender({ state: movedState });
-
-        // Should use replaceState because phase is same
-        expect(replaceStateMock).toHaveBeenCalledWith(
-            { phase: GamePhase.PLAYING },
-            '',
-            expect.stringContaining('x=11')
-        );
-        expect(replaceStateMock).toHaveBeenCalledWith(
-            { phase: GamePhase.PLAYING },
-            '',
-            expect.stringContaining('y=21')
-        );
-        expect(replaceStateMock).toHaveBeenCalledWith(
-            { phase: GamePhase.PLAYING },
-            '',
-            expect.stringContaining('loc=loc_1')
-        );
-        expect(pushStateMock).not.toHaveBeenCalled();
+        const url = replaceStateMock.mock.calls[0][2] as string;
+        expect(url).not.toMatch(/x=|y=|loc=/);
     });
 
-    it('should dispatch MOVE_PLAYER on initial mount if coords present in URL', () => {
+    it('should strip stale x/y/loc params on the next state->URL sync', () => {
+        // Old bookmarked URL still carrying legacy coordinates while on the menu.
+        mockLocation.search = '?phase=main_menu&x=10&y=20&loc=loc_1';
+        const { rerender } = renderHook(({ state }) => useHistorySync(state, dispatch), {
+            initialProps: { state: gameState }
+        });
+
+        // Phase change drives a state->URL sync, which drops the legacy coords.
+        const playingState = { ...gameState, phase: GamePhase.PLAYING };
+        rerender({ state: playingState });
+
+        expect(pushStateMock).toHaveBeenCalledWith(
+            { phase: GamePhase.PLAYING },
+            '',
+            '/?phase=playing'
+        );
+        const url = pushStateMock.mock.calls.at(-1)![2] as string;
+        expect(url).not.toMatch(/x=|y=|loc=/);
+    });
+
+    it('should NOT dispatch MOVE_PLAYER when deep-linking into PLAYING with legacy coords', () => {
         mockLocation.search = '?phase=playing&x=5&y=5&loc=loc_1';
         gameState.party = [{ id: 'p1', name: 'Test', class: { name: 'Fighter' } } as any];
 
         renderHook(() => useHistorySync(gameState, dispatch));
 
-        // Should navigate to phase
+        // Phase still resolves from the URL...
         expect(dispatch).toHaveBeenCalledWith({
             type: 'SET_GAME_PHASE',
             payload: GamePhase.PLAYING
         });
-
-        // Should dispatch move
-        expect(dispatch).toHaveBeenCalledWith({
-            type: 'MOVE_PLAYER',
-            payload: {
-                newLocationId: 'loc_1',
-                newSubMapCoordinates: { x: 5, y: 5 },
-                activeDynamicNpcIds: ['npc_1']
-            }
-        });
+        // ...but position is no longer restored from the URL.
+        expect(dispatch).not.toHaveBeenCalledWith(
+            expect.objectContaining({ type: 'MOVE_PLAYER' })
+        );
     });
 
     it('should navigate to NOT_FOUND when phase param is invalid', () => {

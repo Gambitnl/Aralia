@@ -440,7 +440,7 @@ export function generateRoadmapData(): RoadmapData {
       status: 'active',
       initialX: 1380,
       initialY: 400,
-      description: 'Live spell navigator — drill through axes to explore all 469 spell profiles.',
+      description: 'Live spell navigator — drill through axes to explore the generated spell profile feed.',
       spellTree: true,
       testFileExists: false,
       testFileDeclared: false,

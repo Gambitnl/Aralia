@@ -74,3 +74,5 @@ npx vitest run src/components/CharacterCreator/Class/__tests__/FeatureSelectionC
   committing timestamp churn.
 - Do not use this receipt to claim combat simulator spell behavior; that belongs
   to Package 4.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md","sha256WithoutMarker":"46bba7d187566aea1fb45fcd299f6c9e2417a8df58cfaa858d04dfb7e10ad8fa","markedAtUtc":"2026-06-25T22:29:38.356Z"} -->

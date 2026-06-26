@@ -73,3 +73,5 @@ The flow has useful workflow value signals: Codex has scoped the first Jules
 slice, prepared exact prompt/payload artifacts, and made the dispatch blocker
 visible. Those are not measured savings. The first possible ROI claim belongs
 after Package 2 has a real Jules handoff, review, verification, and receipt.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_PHASE_1_ROI_BASELINE_RECEIPT.md","sha256WithoutMarker":"87d041fa03cc88d652f26d06eb1ee1ff2fc216e0cae0b6f6e1c4bd842d7c8170","markedAtUtc":"2026-06-25T22:29:38.353Z"} -->

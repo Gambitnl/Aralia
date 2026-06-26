@@ -273,3 +273,5 @@ Actions:
   information, or as a missing condition summary?
 - Should the future gate checker compare condition state at the spell level, the
   effect level, or both?
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/conditions/SPELL_CONDITIONS_BUCKET_TRACKER.md","sha256WithoutMarker":"799c9b576c6f64e9d3d16d81d05e8bedfdd3a50db8e0af846625c76e1a32c31d","markedAtUtc":"2026-06-25T22:29:38.510Z"} -->

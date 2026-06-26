@@ -86,7 +86,8 @@ Keep the project actionable by separating **what is currently implemented** from
 - `docs/spells/STATUS_LEVEL_0.md`, `docs/spells/STATUS_LEVEL_1.md`, `docs/spells/STATUS_LEVEL_2.md`, etc.
 - `docs/projects/spells/SUBPROJECTS.md`
 - `docs/projects/spells/subprojects/*/GAPS.md`
-- `docs/tasks/spell-system-overhaul/1A-PROJECT-MASTER-SPRINGBOARD.md`
+- `docs/projects/spells/NORTH_STAR.md`
+- `docs/projects/spells/SUBPROJECTS.md`
 - `docs/tasks/spell-system-overhaul/gaps/GAP-CHOICE-SPELLS.md`
 - `docs/tasks/spell-system-overhaul/gaps/GAP-UNSPLIT-SPELL-EFFECTS.md`
 - `docs/projects/spells/subprojects/targeting-object-area/GAPS.md`
@@ -96,7 +97,7 @@ Keep the project actionable by separating **what is currently implemented** from
 
 1. Read this file, then `TRACKER.md`, then `GAPS.md`.
 2. Read `TASK_SLICE.md` for the currently bounded action.
-3. Read `1A-PROJECT-MASTER-SPRINGBOARD.md`, then use `docs/projects/spells/SUBPROJECTS.md` and the relevant child `GAPS.md` file for the live priority surface.
+3. Use `docs/projects/spells/SUBPROJECTS.md` and the relevant child `GAPS.md` file for the live priority surface.
 3. Confirm current code anchors in:
    - `src/systems/spells/validation/spellValidator.ts`
    - `src/systems/spells/validation/SpellIntegrityValidator.ts`
@@ -123,3 +124,5 @@ Keep the project actionable by separating **what is currently implemented** from
 - Several TODO notes in runtime files likely reflect intended behavior that is only partially wired; each should be validated with targeted tests before closure.
 - Repeat-save behavior has tests and schema surface; use current child gap files and proof logs rather than the retired mixed TODO before treating timing or UI behavior as complete.
 - Validation/data-status claims that once lived in `TODO.md` have been routed into Spells child lanes and still need fresh command proof before implementation priority is locked.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/NORTH_STAR.md","sha256WithoutMarker":"63b2407fbdc9a276321ea3072216ce1a4f452d0dd968bc14cce6fa9add4875e2","markedAtUtc":"2026-06-25T22:29:38.668Z"} -->

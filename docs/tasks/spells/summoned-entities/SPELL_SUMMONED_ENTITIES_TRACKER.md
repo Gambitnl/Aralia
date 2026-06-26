@@ -339,3 +339,5 @@ Actions:
 - implementation work: yes, but the model is not fully shaped yet
 - audit work: yes, the spell corpus still needs a human-pruned entity inventory
 - policy review only: no
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/summoned-entities/SPELL_SUMMONED_ENTITIES_TRACKER.md","sha256WithoutMarker":"96588c9bb0620c284274813d551150e4faf95950d9f57d35bc088caf7348f5a5","markedAtUtc":"2026-06-25T22:29:38.564Z"} -->

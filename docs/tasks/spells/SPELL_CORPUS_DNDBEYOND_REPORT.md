@@ -171,3 +171,5 @@ It does not claim to verify deeper local effect-object modeling.
 - `8` Reality Break (`reality-break`)
 - `9` Ravenous Void (`ravenous-void`)
 - `9` Time Ravage (`time-ravage`)
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_CORPUS_DNDBEYOND_REPORT.md","sha256WithoutMarker":"02a5e53fbeca98601afcb882720083085bf91f47347f7bfeeb4ce1431df9aec0","markedAtUtc":"2026-06-25T22:29:38.543Z"} -->

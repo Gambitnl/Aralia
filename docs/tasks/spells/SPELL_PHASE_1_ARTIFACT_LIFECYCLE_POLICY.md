@@ -153,3 +153,5 @@ before later packages rely on Atlas/gate checkpoints as durable completion
 evidence. Start it from clean `master` through the dashboard-first workflow, and
 keep raw Symphony/Jules runtime state ignored or external while preserving the
 Jules-readable task packet and prompt in GitHub.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md","sha256WithoutMarker":"7c20945412d5e0e5a185c8639a82aa2e174940d8bc5d4cf7b7af639f4fcfba62","markedAtUtc":"2026-06-25T22:29:38.360Z"} -->

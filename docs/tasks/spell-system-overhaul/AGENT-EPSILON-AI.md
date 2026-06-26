@@ -10,3 +10,5 @@ Why it was archived:
 - parts of its proposed AI structure no longer match the current repo
 
 Use the archived copy for historical coordination context only.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/AGENT-EPSILON-AI.md","sha256WithoutMarker":"1a925dd8d714285207f4bf6b397e397e2d9c16641c3b4339960ae85ada5bdeff","markedAtUtc":"2026-06-25T22:29:38.582Z"} -->

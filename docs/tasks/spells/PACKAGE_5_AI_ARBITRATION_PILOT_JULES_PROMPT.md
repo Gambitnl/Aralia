@@ -81,3 +81,5 @@ Acceptance:
 - Deterministic spell behavior is not converted into AI behavior.
 - Any additional open-ended spell candidates are recorded as follow-up work.
 - No Symphony runtime/source/local-state artifacts are committed.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT_JULES_PROMPT.md","sha256WithoutMarker":"b563b72c87094044f1e5217a34d8cb16ea613ee8736f490c2453b9453c78ad99","markedAtUtc":"2026-06-25T22:29:38.362Z"} -->

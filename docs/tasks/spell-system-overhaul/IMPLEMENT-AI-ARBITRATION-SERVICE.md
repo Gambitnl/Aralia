@@ -55,3 +55,5 @@ AI-tagged spell files exist, but they are not all strong proof-of-life examples 
 4. Tighten the material fallback path so context-sensitive spells rely less on biome guesses.
 
 Use this file as the current AI-arbitration follow-through brief, not as a claim that the service still needs to be created from zero.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/IMPLEMENT-AI-ARBITRATION-SERVICE.md","sha256WithoutMarker":"c6a7b736c8b285e46b9d010d383b6140dd7eb1a0f5f5db43c156440cbb76413b","markedAtUtc":"2026-06-25T22:29:38.667Z"} -->

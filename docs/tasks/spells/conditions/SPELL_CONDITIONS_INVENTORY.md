@@ -182,3 +182,5 @@ condition. It is now tracked as an attack-roll rider.
 - `Conditions Applied` is now required by the structured markdown plan. This
   inventory records the current reality so the bucket can normalize the row
   without losing which spells are true condition effects.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/conditions/SPELL_CONDITIONS_INVENTORY.md","sha256WithoutMarker":"e1ee12c2f997148a5073a9f6c337829f720cf84ef5dc6b2a086c67e1f92d622a","markedAtUtc":"2026-06-25T22:29:38.511Z"} -->

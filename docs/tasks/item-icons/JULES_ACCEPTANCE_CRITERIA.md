@@ -14,3 +14,5 @@ Your job is to generate highly detailed, premium, beautiful custom SVG icons for
    - Do not use `currentColor`—instead, use hardcoded hex colors that fit the theme of the item (e.g., green/gold for a nature item, crimson/dark gray for a blood sword).
 3. **Uniqueness**: Every single item must have a completely unique visual composition, even if they share the same category (e.g., two swords should look completely different).
 4. **No Code Edits**: Do not update the icon registry or any item definitions. The system automatically detects the SVG file presence during the next build!
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/item-icons/JULES_ACCEPTANCE_CRITERIA.md","sha256WithoutMarker":"4c96c96218a7ae7ec24264b66c7bda9d1fc58002fa1eeee1ac447b1b3e1d2ed9","markedAtUtc":"2026-06-25T22:29:38.311Z"} -->

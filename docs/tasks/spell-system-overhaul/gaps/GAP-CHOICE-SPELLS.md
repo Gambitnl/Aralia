@@ -44,3 +44,5 @@ The current repo is no longer at zero modal-choice support. The remaining gap is
 2. Add UI/runtime choice collection for `modeChoice` so command filtering is reachable without manual `playerInput` calls.
 3. Implement `perTargetChoice` execution for Enhance Ability-style choices.
 4. Revisit `controlOptions` after the mode/per-target lanes have a proven runtime path.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/gaps/GAP-CHOICE-SPELLS.md","sha256WithoutMarker":"010b313475cd507ac2072c72f36ca9ce17a2079b89d6dda58314646bccdab7b2","markedAtUtc":"2026-06-25T22:29:38.598Z"} -->

@@ -504,3 +504,4 @@ No edits needed. Listed for completeness:
 | `galders-speedy-courier` | 4 | - | - | No public D&D Beyond canonical block exists; this spell uses the approved partial 5etools identity cross-check already recognized by the main canonical parity audit. |
 | `galders-tower` | 3 | - | - | No public D&D Beyond canonical block exists; this spell uses the approved partial 5etools identity cross-check already recognized by the main canonical parity audit. |
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/sub-classes/SPELL_SUB_CLASSES_ROSTER_REPORT.md","sha256WithoutMarker":"07511605ac0a1ef154897590674bb2aa9f55f08fbb9afb222617af9979ee0193","markedAtUtc":"2026-06-25T22:29:38.563Z"} -->

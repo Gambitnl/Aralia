@@ -27,3 +27,5 @@ Last updated: 2026-06-25
 - Cross-project gaps belong to `docs/projects/GLOBAL_GAPS.md`.
 - Keep only durable gaps needed by this task-folder continuity path.
 - If any out-of-scope gap becomes required for this task, move it and reclassify here with updated owner.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/GAPS.md","sha256WithoutMarker":"fbf5567842003c43d292670ddf587093ac13ddc58e70e74f9c2cef26937fd5d8","markedAtUtc":"2026-06-25T22:29:38.519Z"} -->

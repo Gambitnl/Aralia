@@ -46,6 +46,13 @@ function AtlasLayersImpl({ model, visible }: AtlasLayersProps): React.ReactEleme
           ))}
         </>
       ) : null}
+      {visible.states ? (
+        <g filter="url(#atlas-soften)" opacity={0.7}>
+          {(model.stateRegions ?? []).map((r, i) => (
+            <path key={`st${i}`} d={r.d} fill={r.fill} fillRule="evenodd" />
+          ))}
+        </g>
+      ) : null}
       {visible.cultures ? (
         <g filter="url(#atlas-soften)" opacity={0.65}>
           {(model.cultureRegions ?? []).map((r, i) => (

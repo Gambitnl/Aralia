@@ -41,3 +41,5 @@ This note still captures a durable state-management principle:
 - action handlers can own contextual business logic when they have the right runtime knowledge
 - reducers are easier to reason about when they apply prepared state changes instead of re-deriving the whole action meaning
 - rich, descriptive action payloads can make cross-system updates easier to audit than vague action names with implicit logic
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/improvements/completed/07_invert_reducer_action_logic.md","sha256WithoutMarker":"86ae62a80705e7a926e7020b4df13605ca1d2f9318e2dc4c136d5e895dbda7d1","markedAtUtc":"2026-06-25T22:49:17.528Z"} -->

@@ -6,7 +6,7 @@ slug: environment
 status: active
 status_note: Preserved as routed_reference to avoid flattening existing gap provenance.
 registry_mode: routed_reference
-last_updated: "2026-06-09"
+last_updated: "2026-06-25"
 gap_count: 0
 open_gap_count: 0
 resolved_gap_count: 0
@@ -101,7 +101,7 @@ supported_optional_sections:
 ---
 project: Environment System
 slug: environment
-last_updated: \"2026-06-09\"
+last_updated: \"2026-06-25\"
 gap_count: 0
 open_gap_count: 0
 north_star: docs/projects/environment/NORTH_STAR.md
@@ -111,7 +111,7 @@ global_gaps: docs/projects/GLOBAL_GAPS.md
 # Environment System Gap Registry
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-25
 
 Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
@@ -143,6 +143,12 @@ Use this file for durable unresolved findings that are too important or too larg
   - `src/systems/naval/__tests__/VoyageManager.test.ts`
   - `src/state/reducers/__tests__/worldReducer.test.ts`
   - `src/state/reducers/__tests__/navalReducer.test.ts`
+
+### Base URL centralization proof (2026-06-25)
+
+- Retired `docs/tasks/CONFIG_REFACTOR_PROPOSAL.md` after validating that the remaining actionable migration work was implemented.
+- Migrated runtime `import.meta.env.BASE_URL` consumers in preview and experimental terrain surfaces to `assetUrl()` from `src/config/env.ts`.
+- Current source scan leaves raw `BASE_URL` access only at the canonical `src/config/env.ts` boundary plus historical comments in `src/hooks/useDiceBox.ts` and `src/services/CharacterAssetService.ts`.
 
 ## Schema Fit Notes
 

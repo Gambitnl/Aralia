@@ -86,3 +86,4 @@ Output you should include at package completion:
 - Files changed.
 - Residual rows left for later buckets or broader systems.
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md","sha256WithoutMarker":"bd9010d622fb40b70b3255479cf71339214ad160de7032b6573af7815aeb9744","markedAtUtc":"2026-06-25T22:29:38.382Z"} -->

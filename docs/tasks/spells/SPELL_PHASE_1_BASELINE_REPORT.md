@@ -219,3 +219,5 @@ Required pre-dispatch boundary:
   `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
 - then dispatch the prepared Package 2 Jules task in
   `docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_PHASE_1_BASELINE_REPORT.md","sha256WithoutMarker":"93c5ef9b57140fbf941a952f5aeeba357d17acde02ca8dc38e87406a27b30989","markedAtUtc":"2026-06-25T22:29:38.554Z"} -->

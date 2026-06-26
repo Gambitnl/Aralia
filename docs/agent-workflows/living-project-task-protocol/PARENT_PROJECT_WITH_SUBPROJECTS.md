@@ -332,3 +332,5 @@ Avoid these failures:
 8. Treating setup file creation as completion of the product work.
 9. Leaving the parent docs framed like ordinary implementation docs instead of
    overarching routing docs.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/agent-workflows/living-project-task-protocol/PARENT_PROJECT_WITH_SUBPROJECTS.md","sha256WithoutMarker":"5a3ab84783f65fe5779f2674e45f0507c64cb41320bcc9452fe09152f567a3cd","markedAtUtc":"2026-06-25T22:57:26.955Z"} -->

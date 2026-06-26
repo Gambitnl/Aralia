@@ -573,3 +573,5 @@ These files had their ordinary text drift reduced in the structured markdown and
 ## Verified Bands
 
 - `level-7`: the structured-vs-canonical audit currently reports zero remaining mismatches in this band, so no additional level-7 file edits were required in this pass.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_CANONICAL_SYNC_TRACKER.md","sha256WithoutMarker":"4cd3c9fabc32edbc26b77f1c520f3e889e828ad00bea0d22aba50776321c046c","markedAtUtc":"2026-06-25T22:29:38.542Z"} -->

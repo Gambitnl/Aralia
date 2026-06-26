@@ -804,6 +804,7 @@ export const devHubApiManager = () => ({
       const requiredReviewBrief = requiredReviewBriefFromDocs(northStarContent, trackerContent, gapsContent);
       const decisionVisualizations = decisionVisualizationsFromDocs(northStarContent, trackerContent, gapsContent);
       const subprojectsContent = usesSubprojects ? readOptionalProjectText(projectDir, 'SUBPROJECTS.md') : '';
+      const subprojectRegistrySchema = subprojectsContent ? markdownFrontmatterFields(subprojectsContent) : {};
       const subprojects = subprojectsFromMarkdown(subprojectsContent);
 
       return {
@@ -823,6 +824,8 @@ export const devHubApiManager = () => ({
         subprojectTracker: projectCardSchemaField(dashboardSchema, 'subprojecttracker', 'subprojectTracker') || (usesSubprojects ? `docs/projects/${slug}/SUBPROJECTS.md` : ''),
         subprojectCount: Number(projectCardSchemaField(dashboardSchema, 'subprojectcount', 'subprojectCount') || subprojects.length || 0),
         subprojectSignal: projectCardSchemaField(dashboardSchema, 'subprojectsignal', 'subprojectSignal') || (subprojects.length ? `${subprojects.length} subproject lanes tracked` : ''),
+        highestPrioritySubproject: projectCardSchemaField(subprojectRegistrySchema, 'highestpriority', 'highestPriority') || '',
+        subprojectProofFreshness: projectCardSchemaField(subprojectRegistrySchema, 'prooffreshness', 'proofFreshness') || '',
         subprojects,
         iteration,
         iterationLabel: iteration > 0 ? `Iteration ${iteration}` : 'Iteration not recorded',

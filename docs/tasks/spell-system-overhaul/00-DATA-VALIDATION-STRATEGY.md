@@ -13,3 +13,5 @@
 ## Archived Historical Version
 
 - [`../../archive/spell-system/00-DATA-VALIDATION-STRATEGY.md`](../../archive/spell-system/00-DATA-VALIDATION-STRATEGY.md)
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/00-DATA-VALIDATION-STRATEGY.md","sha256WithoutMarker":"c73e69071e56270b05a3422a7a32946114ddbb3189062ad34829309bf0366367","markedAtUtc":"2026-06-25T22:29:38.571Z"} -->

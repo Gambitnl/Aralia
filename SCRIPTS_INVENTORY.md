@@ -319,4 +319,4 @@ Total Executable Scripts: 138
 - [ ] **scripts\update-spell-json-from-references.ts**: *CHANGE LOG: 2026-02-27 09:24:00: [Preservationist] Added '@ts-ignore' to imports to suppress script-specific resolution warnings. Replaced 'unknown...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/tasks/spells/agent_prompts/01_missing_references_and_json.md, docs/tasks/spells/agent_prompts/03_aoe_shapes_schema_and_mechanics.md, docs/tasks/spells/agent_prompts/04_targeting_type_and_attack_save_mechanics.md, docs/tasks/spells/agent_prompts/05_material_components_split_model.md
 
-
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"SCRIPTS_INVENTORY.md","sha256WithoutMarker":"935db5af3fbca4a022b77b931e5b18ff31a8ae2233d55f3c7f494e4f376a242c","markedAtUtc":"2026-06-25T22:29:38.329Z"} -->

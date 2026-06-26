@@ -3,20 +3,95 @@
  * Visual E2E tests for the Character Creator flow.
  * 
  * These tests walk through the complete character creation process,
- * taking screenshots at each step and recording video of the entire flow.
+ * taking screenshots at key steps and recording video of the entire flow.
+ * The Human Fighter path also proves the final handoff reaches live gameplay
+ * instead of only proving that screenshots were captured.
  * 
  * Run with: npx playwright test tests/character-creator-flow.spec.ts
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+
+// ============================================================================
+// Shared Test State Helpers
+// ============================================================================
+// These helpers keep the E2E run independent from local draft/save state and
+// let the final assertion verify the same read-only state probe used by other
+// Aralia browser audits.
+// ============================================================================
+
+type AraliaStateProbe = {
+    phase?: string;
+    partySize?: number;
+    partyNames?: string[];
+    error?: string | null;
+    isLoading?: boolean;
+};
+
+const TEST_CHARACTER_NAME = 'Sir Testalot';
+
+const clearBrowserRunStateBeforeAppBoot = async (page: Page) => {
+    // Clear synchronous browser storage before React mounts so stale creator
+    // drafts cannot silently replace the intended Human Fighter path.
+    await page.addInitScript(() => {
+        window.localStorage.clear();
+        window.sessionStorage.clear();
+    });
+};
+
+const clearBrowserRunStateAfterFirstLoad = async (page: Page) => {
+    // Some local dev sessions can already have app storage attached before the
+    // first script hook takes effect. Clear it again from the page itself, then
+    // reload so the creator mounts from an empty draft.
+    await page.evaluate(() => {
+        window.localStorage.clear();
+        window.sessionStorage.clear();
+    });
+    await page.reload({ waitUntil: 'networkidle' });
+};
+
+const waitForCompletedGameplayState = async (page: Page) => {
+    // Wait for App.tsx's read-only audit probe to report the game phase and
+    // party roster created by the final Character Creator submit.
+    const stateHandle = await page.waitForFunction(
+        (characterName) => {
+            const state = (window as Window & { __araliaState?: AraliaStateProbe }).__araliaState;
+            const hasCreatedCharacter = state?.partyNames?.includes(characterName) ?? false;
+
+            if (state?.phase === 'PLAYING' && state.partySize === 1 && hasCreatedCharacter && !state.isLoading && !state.error) {
+                return state;
+            }
+
+            return null;
+        },
+        TEST_CHARACTER_NAME,
+        { timeout: 15000 },
+    );
+
+    const finalState = await stateHandle.jsonValue() as AraliaStateProbe;
+
+    // Assert the exact completion contract so a stuck creator, empty party, or
+    // wrong character name fails before any screenshot can hide the regression.
+    expect(finalState).toMatchObject({
+        phase: 'PLAYING',
+        partySize: 1,
+        error: null,
+        isLoading: false,
+    });
+    expect(finalState.partyNames).toContain(TEST_CHARACTER_NAME);
+};
 
 test.describe('Character Creator Visual E2E', () => {
-    test.setTimeout(60000); // Increase timeout to 60s
+    test.setTimeout(90000); // Give the full visible E2E flow enough room to finish.
     test.beforeEach(async ({ page }) => {
+        await clearBrowserRunStateBeforeAppBoot(page);
+
         // Navigate to the app
         await page.goto('/');
         // Wait for the main menu to be visible
         await page.waitForLoadState('networkidle');
+        await clearBrowserRunStateAfterFirstLoad(page);
+        await expect(page.getByTestId('main-menu')).toBeVisible({ timeout: 10000 });
 
         // Handle any modal dialogs that might block interactions (like Ollama modal)
         const modalDialog = page.locator('div[role="dialog"]');
@@ -69,22 +144,28 @@ test.describe('Character Creator Visual E2E', () => {
         }
 
         // Wait for character creator to load
-        await page.waitForTimeout(1000);
+        await expect(page.getByRole('heading', { name: /Choose Your Race/i })).toBeVisible({ timeout: 15000 });
         await page.screenshot({ path: 'test-results/screenshots/02-race-selection.png', fullPage: true });
 
         // Step 2: Select Human race
         const humanButton = page.getByRole('button', { name: /Human/i }).first();
-        if (await humanButton.isVisible({ timeout: 5000 })) {
-            await humanButton.click();
-            await page.waitForTimeout(500);
+        await expect(humanButton).toBeVisible({ timeout: 5000 });
+        await humanButton.click();
+        await page.waitForTimeout(500);
 
-            // Confirm Human selection in modal if one appears
-            const selectHumanButton = page.getByRole('button', { name: /Select Human/i });
-            if (await selectHumanButton.isVisible({ timeout: 2000 })) {
-                await page.screenshot({ path: 'test-results/screenshots/03-human-detail-modal.png', fullPage: true });
-                await selectHumanButton.click();
-            }
-        }
+        // Expanding the Human family is not enough: choose the concrete Human
+        // variant so later generic Confirm buttons cannot approve the default
+        // Aasimar detail pane by accident.
+        const humanVariantButton = page.getByRole('button', { name: /^Human$/ });
+        await expect(humanVariantButton).toBeVisible({ timeout: 3000 });
+        await humanVariantButton.click();
+
+        // Confirm Human selection in the header.
+        const selectHumanButton = page.getByRole('button', { name: /Confirm Human|Select Human/i });
+        await expect(selectHumanButton).toBeVisible({ timeout: 3000 });
+        await page.screenshot({ path: 'test-results/screenshots/03-human-detail-modal.png', fullPage: true });
+        await selectHumanButton.click();
+        await expect(page.getByRole('button', { name: /1\. Race: Human/i })).toBeVisible({ timeout: 5000 });
 
         await page.waitForTimeout(500);
         await page.screenshot({ path: 'test-results/screenshots/04-after-race.png', fullPage: true });
@@ -99,17 +180,18 @@ test.describe('Character Creator Visual E2E', () => {
         await page.waitForTimeout(500);
 
         // Step 4: Background Selection
-        const acolyteButton = page.getByRole('button', { name: /Acolyte/i }).first();
-        if (await acolyteButton.isVisible({ timeout: 3000 })) {
+        const soldierButton = page.getByRole('button', { name: /Soldier/i }).first();
+        if (await soldierButton.isVisible({ timeout: 3000 })) {
             await page.screenshot({ path: 'test-results/screenshots/06-background-selection.png', fullPage: true });
-            await acolyteButton.click();
+            await soldierButton.click();
             await page.waitForTimeout(300);
 
-            // Click Next after selecting background
-            const nextAfterBg = page.getByRole('button', { name: /Next/i }).first();
-            if (await nextAfterBg.isVisible({ timeout: 2000 })) {
-                await nextAfterBg.click();
-            }
+            // Confirm the selected background explicitly; this step no longer
+            // advances through a generic Next button.
+            const confirmSoldierButton = page.getByRole('button', { name: /Confirm Soldier/i });
+            await expect(confirmSoldierButton).toBeVisible({ timeout: 2000 });
+            await confirmSoldierButton.click();
+            await expect(page.getByRole('button', { name: /3\. Background: Soldier/i })).toBeVisible({ timeout: 5000 });
         }
 
         await page.waitForTimeout(500);
@@ -144,48 +226,49 @@ test.describe('Character Creator Visual E2E', () => {
         // Step 7: Ability Scores
         await page.screenshot({ path: 'test-results/screenshots/10-ability-scores.png', fullPage: true });
 
-        // Look for confirm/next button for ability scores
-        const confirmScoresButton = page.getByRole('button', { name: /Confirm|Next|Continue/i }).first();
-        if (await confirmScoresButton.isVisible({ timeout: 3000 })) {
-            await confirmScoresButton.click();
-        }
+        // Spend the point-buy pool using the class recommendation before
+        // confirming. The flow intentionally blocks empty 8/8/8/8/8/8 scores.
+        const applyFighterScoresButton = page.getByRole('button', { name: /Apply Fighter Recommended/i });
+        await expect(applyFighterScoresButton).toBeVisible({ timeout: 3000 });
+        await applyFighterScoresButton.click();
+
+        const confirmScoresButton = page.getByRole('button', { name: /Confirm Attributes/i }).first();
+        await expect(confirmScoresButton).toBeVisible({ timeout: 3000 });
+        await confirmScoresButton.click();
 
         await page.waitForTimeout(500);
 
         // Step 8: Human Skill Choice (Human gets an extra skill)
         await page.screenshot({ path: 'test-results/screenshots/11-human-skill-choice.png', fullPage: true });
 
-        // Click on a skill checkbox or button
-        const skillCheckbox = page.getByRole('checkbox').first();
-        if (await skillCheckbox.isVisible({ timeout: 2000 })) {
-            await skillCheckbox.click();
-        }
+        // Human Skillful is rendered as skill buttons, not checkboxes. Pick one
+        // visible skill card so the step's Confirm button becomes active.
+        const humanSkillButton = page.getByRole('button', { name: /Perception/i });
+        await expect(humanSkillButton).toBeVisible({ timeout: 2000 });
+        await humanSkillButton.click();
 
-        const confirmSkillButton = page.getByRole('button', { name: /Confirm|Next|Continue/i }).first();
-        if (await confirmSkillButton.isVisible({ timeout: 2000 })) {
-            await confirmSkillButton.click();
-        }
+        const confirmSkillButton = page.getByRole('button', { name: /Confirm Skill/i }).first();
+        await expect(confirmSkillButton).toBeEnabled({ timeout: 2000 });
+        await confirmSkillButton.click();
 
         await page.waitForTimeout(500);
 
         // Step 9: Skills Selection
         await page.screenshot({ path: 'test-results/screenshots/12-skills-selection.png', fullPage: true });
 
-        // Select required skills (click checkboxes)
-        const checkboxes = page.getByRole('checkbox');
-        const checkboxCount = await checkboxes.count();
-        for (let i = 0; i < Math.min(2, checkboxCount); i++) {
-            const checkbox = checkboxes.nth(i);
-            if (await checkbox.isVisible() && !(await checkbox.isChecked())) {
-                await checkbox.click();
-                await page.waitForTimeout(200);
-            }
+        // Pick two enabled class-skill choices that are not already granted by
+        // the Soldier background or Human Skillful pick, proving the class-skill
+        // requirement is actually met.
+        for (const skillName of ['Arcana', 'Deception']) {
+            const classSkillButton = page.getByRole('button', { name: new RegExp(`^${skillName}$`) });
+            await expect(classSkillButton).toBeVisible({ timeout: 2000 });
+            await classSkillButton.click();
+            await page.waitForTimeout(200);
         }
 
-        const confirmSkillsButton = page.getByRole('button', { name: /Confirm|Next|Continue/i }).first();
-        if (await confirmSkillsButton.isVisible({ timeout: 2000 })) {
-            await confirmSkillsButton.click();
-        }
+        const confirmSkillsButton = page.getByRole('button', { name: /Confirm Skills/i }).first();
+        await expect(confirmSkillsButton).toBeEnabled({ timeout: 2000 });
+        await confirmSkillsButton.click();
 
         await page.waitForTimeout(500);
 
@@ -226,29 +309,45 @@ test.describe('Character Creator Visual E2E', () => {
 
         await page.waitForTimeout(500);
 
-        // Step 12: Feat Selection (Humans get a feat at level 1)
+        // Step 12: Origin Feat from Soldier background
         await page.screenshot({ path: 'test-results/screenshots/15-feat-selection.png', fullPage: true });
 
-        // Skip or confirm feat step
-        const skipFeatButton = page.getByRole('button', { name: /Skip|Continue|Confirm|Next/i }).first();
-        if (await skipFeatButton.isVisible({ timeout: 2000 })) {
-            await skipFeatButton.click();
-        }
+        // Soldier grants Savage Attacker, which has no extra choices; confirm
+        // it explicitly so the Human racial feat step can follow.
+        const confirmOriginFeatButton = page.getByRole('button', { name: /Confirm Feat/i }).first();
+        await expect(confirmOriginFeatButton).toBeEnabled({ timeout: 3000 });
+        await confirmOriginFeatButton.click();
+
+        await page.waitForTimeout(500);
+
+        // Step 12b: Human racial feat
+        await expect(page.getByRole('heading', { name: /Racial Feat/i })).toBeVisible({ timeout: 5000 });
+
+        // Pick a simple eligible feat with no extra choice UI. This keeps G5 on
+        // final-state proof instead of expanding into feat subchoice coverage.
+        const alertFeatButton = page.getByRole('button', { name: /^Alert\b/i });
+        await expect(alertFeatButton).toBeVisible({ timeout: 3000 });
+        await alertFeatButton.click();
+
+        const confirmRacialFeatButton = page.getByRole('button', { name: /Confirm Feat/i }).first();
+        await expect(confirmRacialFeatButton).toBeEnabled({ timeout: 3000 });
+        await confirmRacialFeatButton.click();
 
         await page.waitForTimeout(500);
 
         // Step 13: Name and Review
+        await expect(page.getByRole('heading', { name: /Name|Review/i })).toBeVisible({ timeout: 5000 });
         await page.screenshot({ path: 'test-results/screenshots/16-name-and-review.png', fullPage: true });
 
         // Enter character name
         const nameInput = page.getByRole('textbox', { name: /name/i }).first();
         if (await nameInput.isVisible({ timeout: 2000 })) {
-            await nameInput.fill('Sir Testalot');
+            await nameInput.fill(TEST_CHARACTER_NAME);
         } else {
             // Try finding by placeholder
             const nameInputAlt = page.getByPlaceholder(/name/i).first();
             if (await nameInputAlt.isVisible({ timeout: 1000 })) {
-                await nameInputAlt.fill('Sir Testalot');
+                await nameInputAlt.fill(TEST_CHARACTER_NAME);
             }
         }
 
@@ -256,22 +355,23 @@ test.describe('Character Creator Visual E2E', () => {
         await page.screenshot({ path: 'test-results/screenshots/17-name-entered.png', fullPage: true });
 
         // Complete character creation
-        const createButton = page.getByRole('button', { name: /Create Character|Finish|Complete|Start Adventure/i }).first();
-        if (await createButton.isVisible({ timeout: 3000 })) {
-            await createButton.click();
-        }
+        // Match the actual final-submit control. A broad "Complete" regex can
+        // accidentally hit sidebar step buttons whose names include "(completed)"
+        // and navigate backward instead of starting the game.
+        const createButton = page.getByRole('button', { name: /^Begin Adventure!?$/i });
+        await expect(createButton).toBeVisible({ timeout: 3000 });
+        await createButton.click();
 
-        await page.waitForTimeout(1000);
+        // The final submit must leave the creator and render the live
+        // exploration UI. This visible check catches regressions where the
+        // reducer state changes but the player never sees the adventure screen.
+        await expect(page.getByTestId('game-layout')).toBeVisible({ timeout: 15000 });
+        await expect(page.getByTestId('action-pane')).toBeVisible();
+        await expect(page.getByTestId('world-pane')).toBeVisible();
+        await waitForCompletedGameplayState(page);
 
         // Final screenshot - should be in the game now
         await page.screenshot({ path: 'test-results/screenshots/18-character-complete.png', fullPage: true });
-
-        // Verify we're past the character creator (game has started)
-        // This could be checking for the party pane, world map, etc.
-        const gameUI = page.locator('[class*="party"], [class*="game"], [class*="world"], [class*="hud"]').first();
-
-        // Final assertion - we should have progressed past character creation
-        console.log('Character creation flow completed!');
     });
 
     test('Changeling Wizard creation flow (race with sub-selection)', async ({ page }) => {

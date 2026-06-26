@@ -44,3 +44,5 @@ This note still explains a meaningful architectural direction:
 - tuneable parameters should live in focused config modules
 - UI and hooks should import config rather than hardcoding it locally
 - future config work should build on the existing `src/config` layer instead of bypassing it
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/improvements/completed/02_decouple_configuration.md","sha256WithoutMarker":"dd48c4a03f029e92fb528f3ab37540c6519f0f38bed4fd86f42d0c785c3cb8d3","markedAtUtc":"2026-06-25T22:49:17.524Z"} -->

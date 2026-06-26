@@ -17,6 +17,7 @@
  */
 import { rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import { generateSubmap, polygonBounds, pointInPolygon, clipPolylineToPolygon, type Pt } from '../submap/submapEngine';
+import { assignTownPopulation } from './population';
 
 export interface BuildingPlot {
   /** Plot footprint polygon (graph coords, the town's frame). */
@@ -27,6 +28,14 @@ export interface BuildingPlot {
   kind?: 'frontage' | 'interior';
   /** Footprint shape: simple rectangle or a stepped/L footprint (variety, #6). */
   shape?: 'rect' | 'L';
+  /** Concrete building type (set by the population pass when a population is given). */
+  buildingType?: import('./population').BuildingType;
+  /** Whether this building is a home that carries population (cottage/townhouse/tenement). */
+  residential?: boolean;
+  /** Permanent residents living here (0 for non-residential workplaces/civic). */
+  occupants?: number;
+  /** Stable per-town building id (`b<index>`) — keys the lazy named household. */
+  homeId?: string;
 }
 
 export type CivicKind = 'plaza' | 'temple' | 'keep' | 'citadel' | 'dock' | 'bridge';
@@ -92,6 +101,9 @@ export interface TownPlan {
   core: Pt[];
   /** Voronoi wards subdividing the CORE (not the whole cell). */
   wards: TownWard[];
+  /** Every building plot across all wards, flattened — the canonical building list
+   *  (stable `homeId`s, population-tagged). Same object refs as `wards[].plots`. */
+  plots: BuildingPlot[];
   /** Farmland/grassland/scrub parcels filling the ring between the core and cell edge. */
   outskirts: TownOutskirt[];
   /** Defensive wall ring + gatehouses (criterion #3). */
@@ -100,6 +112,10 @@ export interface TownPlan {
   civic: CivicStructure[];
   /** Main streets continued from inherited regional roads, clipped to town (#6). */
   streets: Pt[][];
+  /** Rural homes seated on farm outskirts (carry the rural population). Empty if no population given. */
+  farmsteads: import('./population').Farmstead[];
+  /** Population accounting (who lives where) — present only when a population was given. */
+  demographics?: import('./population').TownDemographics;
 }
 
 export interface GenerateTownOptions {
@@ -761,7 +777,28 @@ export function generateTownPlan(
   const outskirtCount = Math.max(18, Math.min(80, Math.round(wardCount * 1.1)));
   const outskirts = buildOutskirts(footprint, core, cellCenter, seedPath, outskirtCount);
 
-  return { footprint, core, wards, outskirts, walls, civic, streets };
+  // Population accounting (who lives where): classify every building, distribute the
+  // population across homes (occupancy rising with density) + rural farmsteads, and
+  // emit demographics. Only when a population was supplied. Mutates plot occupancy.
+  const allPlots = wards.flatMap((w) => w.plots);
+  let farmsteads: import('./population').Farmstead[] = [];
+  let demographics: import('./population').TownDemographics | undefined;
+  if (profile) {
+    const farmParcels = outskirts.filter((o) => o.kind === 'farm');
+    const pop = assignTownPopulation({
+      plots: allPlots,
+      farmParcels,
+      population: profile.population,
+      profile,
+      townCenter,
+      townSpan: coreSpan,
+      seedPath,
+    });
+    farmsteads = pop.farmsteads;
+    demographics = pop.demographics;
+  }
+
+  return { footprint, core, wards, plots: allPlots, outskirts, walls, civic, streets, farmsteads, demographics };
 }
 
 /** Convenience: total building plots across all wards. */

@@ -33,3 +33,5 @@ Track the still-open capability of linking spell-description terms to the live g
 - that a spell-term template JSON already exists
 - that spell glossary entries live in a dedicated public/data/glossary/entries/spells/ markdown lane
 - that a template-generation step is the only viable path to spell glossary linking
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/1H-CREATE-GLOSSARY-TEMPLATE-SYSTEM.md","sha256WithoutMarker":"b64220fa64e97fe876a63787f4659d3b9d01c3ac62dc33ff5e7036866700faf6","markedAtUtc":"2026-06-25T22:29:38.577Z"} -->

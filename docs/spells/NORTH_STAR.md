@@ -66,3 +66,5 @@ Out of scope:
 | `docs/projects/GLOBAL_GAPS.md` | Cross-project/out-of-scope gap routing | active |
 | `TRACKER.md` | Active queue and gap routing decisions | active |
 | `GAPS.md` | Durable unresolved findings | active |
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/spells/NORTH_STAR.md","sha256WithoutMarker":"71cdc260c5f92e2c5925ed3e0c55d9b90b15a8a82ab58488a1d611ed38658b43","markedAtUtc":"2026-06-25T22:54:19.197Z"} -->

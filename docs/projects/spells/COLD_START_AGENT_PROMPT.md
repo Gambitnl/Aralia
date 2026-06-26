@@ -4,7 +4,7 @@ handoff_type: agent_to_agent
 project: Spells
 slug: spells
 status: active
-last_updated: 2026-06-22
+last_updated: 2026-06-25
 iteration: 0
 source_agent: Codex
 target_agent: next cold-start agent
@@ -20,9 +20,9 @@ subprojects: docs/projects/spells/SUBPROJECTS.md
 ---
 # Spells Parent Routing Prompt
 
-Last updated: 2026-06-22
+Last updated: 2026-06-25
 
-You are entering the Spells parent scoped-dashboard. Do not treat this folder as a single executable spell-work pass. Your first job is to choose the child lane that owns the work, then run the implementation or audit pass inside that child packet.
+You are entering the Spells parent scoped-dashboard. Do not treat this folder as a single executable spell-work pass. Your first job is to choose the child lane that owns the work, inspect the rendered dashboard handoff when available, then run the implementation or audit pass inside that child packet.
 
 Shared workflow:
 docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
@@ -54,9 +54,10 @@ Route spell work through the correct child lane before coding. Update the parent
 1. `docs/projects/spells/NORTH_STAR.md`
 2. `docs/projects/spells/SUBPROJECTS.md`
 3. `docs/projects/spells/GAPS.md` for parent-visible imported gaps only.
-4. The child packet named by the user, the active tracker row, or the highest-impact gap.
-5. `docs/projects/spells/DECISIONS.md` if lane ownership, parent import, or support-project routing is ambiguous.
-6. `docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md` if you are doing a full project iteration.
+4. The rendered project tracker's recommended-lane callout and handoff preview when the local dashboard is available.
+5. The child packet named by the user, the active tracker row, the recommended-lane handoff, or the highest-impact gap.
+6. `docs/projects/spells/DECISIONS.md` if lane ownership, parent import, or support-project routing is ambiguous.
+7. `docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md` if you are doing a full project iteration.
 
 ## Routing Rules
 
@@ -64,10 +65,12 @@ Route spell work through the correct child lane before coding. Update the parent
 - Use linked support when another project provides evidence or tooling but Spells decides whether to import the product gap.
 - Use adjacent dependency when a project is related but should not be folded into Spells.
 - Keep child proof, child iteration status, and child local gaps in the child setup packet.
+- Use the rendered `Recommended next lane`, `Show lane details`, `Preview handoff packet`, and `Copy handoff` controls before launching a new child-lane agent when the dashboard is available.
+- If the dashboard is unavailable, fall back to `SUBPROJECTS.md` frontmatter `highest_priority`, the lane table, and the child packet files.
 
 ## Current Priority Signal
 
-The current highest-impact parent-visible lane is the created-object / persistent-structure mechanics stream. Start with `SUBPROJECTS.md`, confirm the owning child packet, then handle G15 or its successor from that child context.
+The current highest-impact parent-visible lane is the created-object / persistent-structure mechanics stream. The rendered parent dashboard should recommend Mechanics Discovery Packages from `SUBPROJECTS.md` `highest_priority` and show `Registry proof: current`. Inspect that lane's details and handoff preview, then continue from `docs/projects/spells/subprojects/mechanics-discovery-packages/NORTH_STAR.md` unless the user overrides priority.
 
 ## Required End State For This Iteration
 

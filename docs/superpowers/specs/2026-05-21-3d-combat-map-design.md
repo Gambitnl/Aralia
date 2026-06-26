@@ -595,3 +595,5 @@ EffectComposer:
 - [Three.js Terrain Splat Map Example](https://threejs.org/examples/#webgl_terrain_dynamic)
 - [von-grid: Square/Hex Grid for Three.js](https://github.com/vonWolfehaus/von-grid)
 - [t5c: 3D RPG with Babylon.js](https://github.com/orion3dgames/t5c)
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-05-21-3d-combat-map-design.md","sha256WithoutMarker":"ec2f2ea906be090abe97bd5cfaa51ddf245ca8d84e694f1a82392359ba9584e3","markedAtUtc":"2026-06-25T22:29:38.323Z"} -->

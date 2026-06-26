@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 25/06/2026, 19:11:10
+ * Dependents: components/MapPane.tsx, components/Worldforge/AtlasDemo.tsx, components/Worldforge/SpawnPreview.tsx, systems/worldforge/adapter/atlasArtifact.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/index.ts, systems/worldforge/local/resolveSpawn.ts, systems/worldforge/local/unifyMapBiomes.ts, systems/worldforge/region/generateRegion.ts, systems/worldforge/world/createWorld.ts
+ * Imports: 19 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file generateWorld.ts — headless entry for the ported FMG world, slice 3
  * (Worldforge build-order item 2c): everything generateFmgAtlas produces,
@@ -77,6 +93,10 @@ import {
 } from "./military-generator";
 import { MarkersModule, type Marker } from "./markers-generator";
 import { ZonesModule, type Zone } from "./zones-generator";
+import {
+  ensureIslandHarbors,
+  type EnsureIslandHarborsReport,
+} from "./ensureIslandHarbors";
 
 export interface FmgWorldOptions extends FmgAtlasOptions {
   /**
@@ -157,6 +177,12 @@ export interface FmgWorldOptions extends FmgAtlasOptions {
   urbanization?: number;
   /** Military unit roster (upstream `options.military`); defaults to FMG's. */
   militaryUnits?: MilitaryUnit[];
+  /**
+   * Opt-in maritime reachability pass. Default is false to preserve the frozen
+   * FMG golden worlds until the owner explicitly approves changing generated
+   * save-world topology by default.
+   */
+  ensureIslandHarbors?: boolean;
 }
 
 export interface FmgWorldResult extends FmgAtlasResult {
@@ -170,6 +196,8 @@ export interface FmgWorldResult extends FmgAtlasResult {
   markers: Marker[];
   /** Event/danger areas (upstream `pack.zones`; also reachable via pack). */
   zones: Zone[];
+  /** Report from the optional maritime reachability pass, when enabled. */
+  islandHarborReport?: EnsureIslandHarborsReport;
 }
 
 /**
@@ -200,6 +228,7 @@ export function generateFmgWorld(
     populationRate = 1000,
     urbanization = 1,
     militaryUnits,
+    ensureIslandHarbors: shouldEnsureIslandHarbors = false,
   } = options;
 
   // Slices 1+2 (manage their own Math.random override and restore it).
@@ -359,6 +388,12 @@ export function generateFmgWorld(
     const Zones = new ZonesModule({ pack, Names, Routes, notes });
     Zones.generate();
 
+    // Optional Aralia maritime pass. It runs after the ported FMG pipeline so
+    // the frozen upstream/RNG contract remains intact unless explicitly opted in.
+    const islandHarborReport = shouldEnsureIslandHarbors
+      ? ensureIslandHarbors(pack)
+      : undefined;
+
     return {
       ...atlas,
       pack,
@@ -367,6 +402,7 @@ export function generateFmgWorld(
       militaryOptions: Military.options,
       markers: ((pack as unknown as { markers: Marker[] }).markers),
       zones: ((pack as unknown as { zones: Zone[] }).zones),
+      islandHarborReport,
     };
   } finally {
     Math.random = originalRandom;

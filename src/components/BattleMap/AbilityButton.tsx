@@ -47,6 +47,8 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
       : null;
     const costText = ability.cost.type.charAt(0).toUpperCase() + ability.cost.type.slice(1);
     const rangeText = formatAbilityRange(ability.range);
+    const hasWeaponProficiencyWarning = Boolean(ability.weapon && ability.isProficient === false);
+    const weaponProficiencyWarning = 'No proficiency bonus or weapon mastery on this attack.';
 
     const costColors: Record<string, string> = {
         action: 'bg-red-600',
@@ -92,6 +94,11 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                 </div>
             )}
             <div className="text-gray-200 leading-tight">{ability.description}</div>
+            {hasWeaponProficiencyWarning ? (
+                <div className="rounded border border-amber-500/60 bg-amber-950/60 px-2 py-1 text-[10px] font-semibold leading-tight text-amber-200">
+                    {weaponProficiencyWarning}
+                </div>
+            ) : null}
             <div className="pt-1 mt-1 border-t border-gray-700/50 flex flex-col gap-0.5">
                 <div className="flex justify-between text-[10px]">
                     <span className="text-gray-400">Range:</span>
@@ -125,7 +132,7 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
         </div>
     );
 
-    const accessibleLabel = `${visual.label}, ${costText} cost, range ${rangeText}${isOnCooldown ? `, ${ability.currentCooldown} turn cooldown` : ''}${isExhausted ? ', depleted' : usesLabel ? `, ${usesLabel} uses` : ''}`;
+    const accessibleLabel = `${visual.label}, ${costText} cost, range ${rangeText}${hasWeaponProficiencyWarning ? `, warning: ${weaponProficiencyWarning}` : ''}${isOnCooldown ? `, ${ability.currentCooldown} turn cooldown` : ''}${isExhausted ? ', depleted' : usesLabel ? `, ${usesLabel} uses` : ''}`;
 
     return (
         <Tooltip content={tooltipContent}>
@@ -139,7 +146,7 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                 whileTap={isDisabled ? undefined : { scale: shouldReduceMotion ? 1 : 0.95 }}
                 transition={{ duration: 0.1 }}
                 className={`relative w-16 h-16 rounded-lg flex flex-col items-center justify-center p-1 text-white border-2 outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800
-                    ${isDisabled ? 'bg-gray-600/50 border-gray-500 cursor-not-allowed opacity-60' : 'bg-sky-700 hover:bg-sky-600 border-sky-500 cursor-pointer'}
+                    ${isDisabled ? 'bg-gray-600/50 border-gray-500 cursor-not-allowed opacity-60' : hasWeaponProficiencyWarning ? 'bg-amber-950 hover:bg-amber-900 border-amber-400 cursor-pointer' : 'bg-sky-700 hover:bg-sky-600 border-sky-500 cursor-pointer'}
                 `}
             >
                 <span className="text-2xl flex-grow flex items-center drop-shadow-md">
@@ -154,6 +161,16 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                 <div className={`absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full shadow-md ${costBadgeColor}`}>
                     {costText}
                 </div>
+
+                {/* Non-proficient weapon attacks are usable, but players need a visible combat warning before selecting them. */}
+                {hasWeaponProficiencyWarning ? (
+                    <div
+                        aria-hidden="true"
+                        className="absolute -bottom-1 -left-1 flex h-5 w-5 items-center justify-center rounded-full border border-amber-200 bg-amber-500 text-[12px] font-black text-black shadow-md"
+                    >
+                        !
+                    </div>
+                ) : null}
 
                 {isOnCooldown && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-amber-400 font-bold text-lg rounded-md">

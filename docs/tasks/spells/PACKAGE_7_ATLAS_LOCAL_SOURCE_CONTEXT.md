@@ -111,3 +111,5 @@ repair must do one of these:
 A passing audit is only useful if it proves the Atlas still has meaningful
 bucket registration. Empty maps, dummy archive variables, and vacuous success
 are package failures.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md","sha256WithoutMarker":"bc80643a3f4e120b40d20f2d5e0924c7127de2c64cc6e08684735b30778800dc","markedAtUtc":"2026-06-25T22:29:38.365Z"} -->

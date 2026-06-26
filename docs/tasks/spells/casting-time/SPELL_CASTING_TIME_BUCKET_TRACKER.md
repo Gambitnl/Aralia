@@ -250,3 +250,5 @@ Remaining work:
 
 4. Should alternate special casting costs, such as Plant Growth's action combat
    mode and 8-hour enrichment mode, become first-class structured markdown fields?
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/casting-time/SPELL_CASTING_TIME_BUCKET_TRACKER.md","sha256WithoutMarker":"24faacc0066fda280cd08402c9d573ff92c7c012190f49d4f1e17f110cebe707","markedAtUtc":"2026-06-25T22:29:38.507Z"} -->

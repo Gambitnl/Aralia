@@ -296,3 +296,5 @@ Anything beyond that is a gap. Report it here.
 ## Rejected
 
 (empty - include rationale when moving something here)
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/ATLAS_GAPS_REGISTRY.md","sha256WithoutMarker":"0e099713f74c266d5c8267bc6c50aac2e160c4187b3b06ed5d176612d991df40","markedAtUtc":"2026-06-25T22:29:38.336Z"} -->

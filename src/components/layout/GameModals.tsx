@@ -719,8 +719,14 @@ const GameModals: React.FC<GameModalsProps> = ({
                 </div>
             )}
 
-            {/* Ollama Dependency Modal */}
-            {gameState.isOllamaDependencyModalVisible && (
+            {/* Ollama Dependency Modal.
+                Suppressed while the opening-situation gate is showing its own
+                surface (generating / model-unavailable): during entry the gate
+                owns the Ollama messaging, so showing this general explainer too
+                produced two stacked windows. It resumes for all other Ollama use. */}
+            {gameState.isOllamaDependencyModalVisible
+                && gameState.gameEntry?.status !== 'generating'
+                && gameState.gameEntry?.status !== 'model-unavailable' && (
                 <Suspense key="ollama" fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Ollama Dependency Modal.">
                         <OllamaDependencyModal

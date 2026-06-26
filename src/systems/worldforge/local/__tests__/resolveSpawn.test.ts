@@ -119,6 +119,44 @@ describe('applyWfSpawnToMap — reroll→find-me invariant (integration)', () =>
   }, 120000);
 });
 
+describe('applyWfSpawnToMap — player-chosen town (spawnAtlasCellId)', () => {
+  const COLS = 30;
+  const ROWS = 20;
+  function blankMap(): MapData {
+    const tiles = Array.from({ length: ROWS }, (_, y) =>
+      Array.from({ length: COLS }, (_, x) => ({
+        x, y, biomeId: 'ocean', discovered: false, isPlayerCurrent: x === 0 && y === 0,
+      })),
+    );
+    return { gridSize: { rows: ROWS, cols: COLS }, tiles } as unknown as MapData;
+  }
+
+  it('spawns at the chosen burg cell, not the auto capital', () => {
+    const seed = 4321;
+    const world = generateFmgWorld(String(seed));
+    const burgs = (world.pack.burgs ?? []).filter(
+      (b: any) => b && b.i !== 0 && !b.removed && typeof b.cell === 'number',
+    );
+    // Pick a non-capital town so the chosen spawn differs from the auto pick.
+    const chosen = burgs.find((b: any) => !b.capital) ?? burgs[0];
+
+    const map = blankMap();
+    const spawn = applyWfSpawnToMap(map, seed, { cols: COLS, rows: ROWS }, {
+      biomeIndexToLegacyId: (i) => wfBiomeIndexToLegacyId(i),
+      fallbackBiomeId: 'plains_meadow',
+      isWalkable: (b) => b !== 'ocean',
+      spawnAtlasCellId: chosen.cell,
+      spawnBurgName: chosen.name,
+    });
+
+    expect(spawn.atlasCellId).toBe(chosen.cell);
+    expect(spawn.burgName).toBe(chosen.name);
+    const start = map.tiles.flat().find((t) => t.isPlayerCurrent)!;
+    expect({ x: start.x, y: start.y }).toEqual(spawn.gridCell);
+    expect(start.biomeId).not.toBe('ocean'); // chosen town is always on land
+  }, 60000);
+});
+
 describe('relocateStartTile', () => {
   const makeMap = () => ({
     gridSize: { rows: 2, cols: 2 },

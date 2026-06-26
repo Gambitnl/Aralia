@@ -1,6 +1,6 @@
 # Package 8 Jules Task: Bless/Bane Roll Modifiers
 
-Status: draft package packet for the next Jules-preferred mechanics slice.
+Status: historical Package 8 packet; PR #1020 merged on 2026-05-25.
 
 This packet promotes tracker gap `G49` into a bounded implementation task. It
 exists because Package 7 restored the Spell Pipeline Atlas source and audit
@@ -232,3 +232,5 @@ Implementation complete.
   - Bless provides 1d4 bonus to attacks and saves. Bane provides -1d4 penalty to attacks and saves.
   - Combat math explicitly relies on runtime explicit effect structures (`ATTACK_ROLL_MODIFIER`) instead of generic status strings.
 - **Residual Limitations:** None noted.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_8_BLESS_BANE_ROLL_MODIFIERS_JULES_TASK.md","sha256WithoutMarker":"c86d1b8fa614e050c554402beb103fe4f2635b8a6f706d03397c26f5c54c2ecf","markedAtUtc":"2026-06-25T22:29:38.367Z"} -->

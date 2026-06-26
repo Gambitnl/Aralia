@@ -1,6 +1,6 @@
 # Package 12 Jules Task: Conditional Endings
 
-Status: draft package packet for the next Jules-preferred mechanics slice.
+Status: historical Package 12 packet; PR #1084 merged on 2026-05-25.
 
 This packet promotes tracker gap `G115` into a bounded implementation task. It
 exists because Package 11 closed the representative `status_or_state_change`
@@ -201,3 +201,5 @@ Artifact boundary:
 - External Symphony / local ignored state: dashboard run state, draft IDs,
   handoff receipts, generated manifests, click logs, and raw Jules process
   output.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_12_CONDITIONAL_ENDING_JULES_TASK.md","sha256WithoutMarker":"30599c07b8a2381c859124867b1996c73e8afa44eece12a78f25665d67c0c8d5","markedAtUtc":"2026-06-25T22:29:38.373Z"} -->

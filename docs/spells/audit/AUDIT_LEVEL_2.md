@@ -18,3 +18,5 @@ A 2026-03-14 repo check confirmed:
 ## Practical Use
 
 If a level-2 audit summary is needed again, create it as a fresh evidence-backed audit instead of silently relying on this empty placeholder.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/spells/audit/AUDIT_LEVEL_2.md","sha256WithoutMarker":"8b65418941d1a26ca2936e891ef5e5e952c2b399964c7ab7d95b3058892eeb69","markedAtUtc":"2026-06-25T23:34:52.164Z"} -->

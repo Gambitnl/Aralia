@@ -49,3 +49,5 @@ Use this file as:
 - a summary of the intended NPC social-mechanics stack
 
 For exact current behavior, defer to the current reducer, state, and action-handler code.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/guides/completed/NPC_MECHANICS_IMPLEMENTATION_GUIDE.md","sha256WithoutMarker":"a69a4613340999bcf731cecdffda55f14bf873eeb6ba9deb3bdf44c727318e15","markedAtUtc":"2026-06-25T23:38:33.509Z"} -->

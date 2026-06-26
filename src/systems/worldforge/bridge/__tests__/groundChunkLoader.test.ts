@@ -17,6 +17,7 @@ import type { LocalArtifact, RegionArtifact } from '../../artifacts';
 import { rootSeedPath } from '../../seedPath';
 import type { GroundWorld } from '../groundChunkLoader';
 import { makeGroundWorld, sampleGroundChunk, extractLocalTerrainPatch, groundSurfaceY } from '../groundChunkLoader';
+import { groundTownAgentsAt } from '../groundAgentMotion';
 import { GROUND_METERS_PER_CELL, localArtifactToWorldData } from '../groundWorldAdapter';
 
 // ============================================================================
@@ -100,11 +101,15 @@ function makeRegionArtifact(): RegionArtifact {
     roads: [],
     townSites: [
       {
+        // Sized to reliably yield houses + markets + rostered WORKERS (the
+        // work/home + keeper assertions need a real mixed-use town). A tiny
+        // envelope generates an all-workshop/no-house plan → an empty roster,
+        // so this fills most of the 500×500 artifact window while staying inside it.
         burgId: 7,
-        envelope: { x: 50, y: 50, width: 300, height: 300 },
+        envelope: { x: 25, y: 25, width: 450, height: 450 },
         gates: [
-          [50, 200],
-          [350, 200],
+          [25, 250],
+          [475, 250],
         ],
       },
     ],
@@ -244,6 +249,28 @@ describe('sampleGroundChunk occupant sites', () => {
     expect(chunk.sites.some((site) => site.id === 'wf-occ-7-4')).toBe(false);
   });
 
+  it('appends the schedule activity to the occupant nameplate when present', () => {
+    const inChunkX = WORLD3D_CONFIG.CHUNK_WORLD_SIZE + 10;
+    const inChunkZ = 20;
+    const chunk = sampleGroundChunk(
+      makeGroundWorldFixture({
+        occupants: [
+          { burgId: 7, occupantId: 3, name: 'Mara Fen', xM: inChunkX, zM: inChunkZ, activity: 'sleeping' },
+          { burgId: 7, occupantId: 5, name: 'Tomas', xM: inChunkX, zM: inChunkZ }, // no activity → clean name
+        ],
+      }),
+      1,
+      0,
+      2,
+    );
+    expect(chunk.sites).toContainEqual(
+      expect.objectContaining({ id: 'wf-occ-7-3', name: 'Mara Fen · asleep' }),
+    );
+    expect(chunk.sites).toContainEqual(
+      expect.objectContaining({ id: 'wf-occ-7-5', name: 'Tomas' }),
+    );
+  });
+
   it('uses the generated roster placement map for work hours and home hours', () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
@@ -346,6 +373,28 @@ describe('makeGroundWorld building terrain pads', () => {
     // Pad construction must be pure and deterministic: no random jitter, and
     // no shared artifact mutation leaking between makeGroundWorld calls.
     expect(second.heights).toEqual(first.heights);
+  });
+
+  it('exposes townPlans + boundsFeet that drive ground-meters agent motion', () => {
+    const local = makeLocalArtifact();
+    const region = makeRegionArtifact();
+    const ground = makeGroundWorld(local, 42, region, { hour: 12 });
+
+    // The agent-motion inputs are now surfaced on the ground world.
+    expect(ground.boundsFeet).toEqual({ x: local.bounds.x, y: local.bounds.y });
+    expect(ground.townPlans && ground.townPlans.length).toBeGreaterThan(0);
+    // Plans pair with rosters by burgId.
+    expect(ground.townPlans!.length).toBe(ground.rosters.length);
+
+    // Feed the exposed inputs into the motion primitive → positioned agents.
+    const { burgId, plan } = ground.townPlans![0];
+    const roster = ground.rosters.find((r) => r.burgId === burgId)!;
+    const agents = groundTownAgentsAt(burgId, plan, roster, ground.boundsFeet!, 12.25);
+    expect(agents.length).toBe(roster.occupants.length);
+    for (const a of agents) {
+      expect(Number.isFinite(a.xM)).toBe(true);
+      expect(Number.isFinite(a.zM)).toBe(true);
+    }
   });
 
   it('places SP4 hidden sites in-bounds, deterministically (proximity discovery)', () => {

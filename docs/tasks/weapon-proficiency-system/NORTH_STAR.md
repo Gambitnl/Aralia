@@ -1,7 +1,7 @@
 # Weapon Proficiency System North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-25
 
 ## Why This Project Exists
 
@@ -22,16 +22,21 @@ What is implemented:
 - Character progression math for proficiency bonus is in leveling logic (`src/utils/character/characterUtils.ts`).
 
 What is still open:
-- Combat-facing warning UI for non-proficient weapon actions is still an active gap.
-- Last rendered verification for warning UX and end-to-end penalty warning alignment is stale.
+- Combat-facing warning UI for non-proficient weapon actions exists on
+  `AbilityButton.tsx`, with focused test coverage.
+- Last rendered verification for warning UX and end-to-end penalty warning
+  alignment is still stale.
 
 File map in this project:
 - `README.md`: folder-level summary.
 - `START-HERE.md`: verified current-state read path.
 - `@PROJECT-INDEX.md`: file-status map of what landed vs active gaps.
 - `@WORKFLOW.md`: working order and verification-first rules.
-- `09-attack-roll-penalties.md`, `10-weapon-mastery-integration.md`: verification/historical status notes.
-- `11-combat-ui-warnings.md`: active remaining gap note.
+- `09-attack-roll-penalties.md`: retired 2026-06-25 after focused source and
+  regression proof confirmed command/opportunity attack penalty behavior.
+- `10-weapon-mastery-integration.md`: retired 2026-06-25 into `GAPS.md` G1-G3 after focused tests confirmed the core mastery gate.
+- `11-combat-ui-warnings.md`: retired 2026-06-25 after the combat ability button
+  warning marker and accessible/tooltip copy were implemented.
 - `weapon-audit-report.md`: preserved audit context with caveats.
 
 ## Active Task
@@ -76,8 +81,8 @@ Out of scope:
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| G1: Add/verify a dedicated combat action warning surface for non-proficient weapon attacks. | in_scope_now | Worker D | `11-combat-ui-warnings.md` | Inspect combat action selection UI and attach warning state that explains lost proficiency and mastery. |
-| G2: Re-run rendered verification and end-to-end checks for warning display and penalty messaging alignment. | support_needed_now | Worker D | `START-HERE.md`; task notes 09-11 | Run a focused UI + regression pass; record results in tracker/audit note. |
+| G1: Add/verify a dedicated combat action warning surface for non-proficient weapon attacks. | done | Codex | `AbilityButton.tsx`; retired `11-combat-ui-warnings.md` | Done 2026-06-25 with focused component coverage; rendered sign-off remains under G2. |
+| G2: Re-run rendered verification and end-to-end checks for warning display and penalty messaging alignment. | active | Codex | `START-HERE.md`; `AbilityButton.tsx`; focused test run | Run a focused UI + regression pass; record screenshot/browser proof in tracker/audit note. |
 
 ## Global Gap Imports
 
@@ -87,7 +92,7 @@ No cross-project gap rows were imported into this project in this pass.
 
 | Evidence | What it proves | Location |
 |---|---|---|
-| Weapon helper and equip rule | Core proficiency checks are implemented and warning reasons exist. | `src/utils/character/weaponUtils.ts`; `src/utils/character/characterUtils.ts` |
+| Weapon helper, equip rule, and mastery gate | Core proficiency checks, warning reasons, and combat ability mastery gating are implemented. | `src/utils/character/weaponUtils.ts`; `src/utils/character/characterUtils.ts`; `src/utils/combat/combatUtils.ts` |
 | Combat penalty behavior | Non-proficient attacks can drop proficiency bonus. | `src/commands/factory/AbilityCommandFactory.ts`; `src/hooks/combat/useActionExecutor.ts`; related tests |
 | Living state references | Subtree truth is no longer a greenfield plan. | `START-HERE.md`; `@PROJECT-INDEX.md`; `@WORKFLOW.md` |
 
@@ -117,3 +122,5 @@ Keep durable decisions, gap claims, and concise proof links here. Keep command o
 3. Read `GAPS.md`.
 4. Confirm code/test evidence links.
 5. Continue from tracker row `T2`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/weapon-proficiency-system/NORTH_STAR.md","sha256WithoutMarker":"82eb902fea4c93718ebc29e1fd3d5dd6767616d481b7d7f0fe5ba5ec3f84444f","markedAtUtc":"2026-06-25T22:29:38.613Z"} -->

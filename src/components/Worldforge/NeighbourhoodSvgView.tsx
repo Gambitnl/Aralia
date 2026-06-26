@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { pointInPolygon, polygonBounds, type Pt } from '../../systems/worldforge/submap/submapEngine';
 import type { AtlasNeighbourhood } from '../../systems/worldforge/submap/neighbourhood';
+import { useDrillLayers } from './useDrillLayers';
+import DrillLayerPanel from './DrillLayerPanel';
 
 export interface NeighbourhoodSvgViewProps {
   neighbourhood: AtlasNeighbourhood;
@@ -10,6 +12,8 @@ export interface NeighbourhoodSvgViewProps {
   playerCellId?: number | null;
   /** Player's precise sub-cell index within the FOCUS submap (gold highlight). */
   playerCellIndex?: number | null;
+  /** Per-save scope for the drill-tier layer toggles (pass the world seed). */
+  prefsScope?: string | number;
   /** Drill deeper: a focus-cell sub-cell was clicked (siteIndex into the focus submap). */
   onPickCell?: (siteIndex: number) => void;
   /** Recenter: a neighbour atlas cell was clicked (its cellId). */
@@ -31,8 +35,9 @@ const centroid = (pts: Pt[]): Pt => {
  * deeper; click a neighbour to recenter the neighbourhood on it.
  */
 const NeighbourhoodSvgView: React.FC<NeighbourhoodSvgViewProps> = ({
-  neighbourhood, width = 900, height = 560, playerCellId = null, playerCellIndex = null, onPickCell, onPickNeighbour,
+  neighbourhood, width = 900, height = 560, playerCellId = null, playerCellIndex = null, prefsScope, onPickCell, onPickNeighbour,
 }) => {
+  const { layers, toggle } = useDrillLayers(prefsScope);
   const bounds = useMemo(() => {
     const all: Pt[] = neighbourhood.cells.flatMap((c) => c.polygon);
     return all.length ? polygonBounds(all) : { minX: 0, minY: 0, maxX: 1, maxY: 1 };
@@ -141,6 +146,8 @@ const NeighbourhoodSvgView: React.FC<NeighbourhoodSvgViewProps> = ({
   };
 
   return (
+    <div style={{ position: 'relative', width, height }}>
+    <DrillLayerPanel layers={layers} toggle={toggle} />
     <svg
       ref={svgRef}
       width={width} height={height}
@@ -166,7 +173,9 @@ const NeighbourhoodSvgView: React.FC<NeighbourhoodSvgViewProps> = ({
                   fill={i === m.burgCellIndex ? '#e0a73a' : c.isFocus ? '#d8e3c8' : '#cdd6bf'}
                   stroke="#7a8a6a" strokeWidth={0.5} vectorEffect="non-scaling-stroke" />
               ))}
-              {(m.polylines ?? []).map((pl, i) => (
+              {(m.polylines ?? [])
+                .filter((pl) => (pl.kind === 'river' ? layers.rivers : pl.kind === 'road' ? layers.roads : true))
+                .map((pl, i) => (
                 <path key={`pl${i}`} d={open(pl.points)} fill="none"
                   stroke={pl.kind === 'river' ? '#5d97bb' : '#8b5a2b'} strokeWidth={pl.kind === 'river' ? 2 : 1.2}
                   strokeDasharray={pl.kind === 'road' ? '3 2' : undefined} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
@@ -209,7 +218,7 @@ const NeighbourhoodSvgView: React.FC<NeighbourhoodSvgViewProps> = ({
                 <circle cx={sx} cy={sy} r={15} fill="none" stroke="#22d3ee" strokeWidth={1} opacity={0.5} />
               </>
             )}
-            {a.label && (
+            {a.label && layers.labels && (
               <text x={sx} y={sy + labelDy} textAnchor="middle" fontFamily="Georgia, serif"
                 fontSize={a.isFocus ? 13 : 11} fontWeight={a.isBurg ? 600 : 400}
                 fill={a.explored ? '#2d1b38' : '#33372e'} stroke="#ffffff" strokeWidth={2.5} paintOrder="stroke">
@@ -235,6 +244,7 @@ const NeighbourhoodSvgView: React.FC<NeighbourhoodSvgViewProps> = ({
         </text>
       )}
     </svg>
+    </div>
   );
 };
 

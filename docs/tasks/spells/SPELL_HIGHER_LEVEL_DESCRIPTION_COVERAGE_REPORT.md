@@ -86,3 +86,4 @@ Higher-level description mismatches analyzed: 7
 - Canonical Higher-Level Text: None
 - Scaling Evidence: json.higherLevels: The duration is longer with a spell slot of level 7 (10 days), 8 (30 days), or 9 (366 days). | effects[0].scaling: type=slot_level
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_HIGHER_LEVEL_DESCRIPTION_COVERAGE_REPORT.md","sha256WithoutMarker":"9e4f9ff62662281b4ee25c1ecacce1f55c6f00a809885c7753c50ec98a15d624","markedAtUtc":"2026-06-25T22:29:38.545Z"} -->

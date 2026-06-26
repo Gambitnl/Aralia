@@ -1,7 +1,7 @@
 # Action System Refactor North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-25
 
 ## Why This Project Exists
 
@@ -40,7 +40,7 @@ Implemented:
 
 Planned:
 
-- Define and enforce a consistent action loading/error policy using existing metadata.
+- Keep the metadata-driven loading/error policy current as action families grow.
 - Capture current validation and schema checks for registry completeness as tracker tasks.
 - Keep command-runtime adjacency notes current and re-verified.
 
@@ -59,6 +59,22 @@ Planned:
   - `docs/projects/command-base-runtime/NORTH_STAR.md`
   - `docs/projects/command-factory-runtime/NORTH_STAR.md`
   - `docs/architecture/domains/commands.md`
+
+## Current Runtime Contracts
+
+Action loading behavior is metadata-driven. `useGameActions` should use
+`ACTION_METADATA` for UI-toggle and self-managed-loading decisions instead of
+hardcoded action names, suffix checks, or action-family exceptions.
+
+Handler-local validation is the current implemented pattern. Merchant actions
+already validate transaction payloads locally, while broader validator-layer
+work remains a future design decision in `GAPS.md` G4.
+
+Command runtime adjacency is documentation-owned unless a source change is
+needed. Action handlers may call async world-event or command-adjacent helpers,
+but command creation and command side-effect contracts remain owned by
+`docs/projects/command-base-runtime`, `docs/projects/command-factory-runtime`,
+and `docs/architecture/domains/commands.md`.
 
 ## Scope Boundaries
 
@@ -92,3 +108,5 @@ Out of scope:
 - `docs/projects/command-base-runtime/NORTH_STAR.md`
 - `docs/projects/command-factory-runtime/NORTH_STAR.md`
 - `docs/architecture/domains/commands.md`
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/action-system-refactor/NORTH_STAR.md","sha256WithoutMarker":"763863d64f2d72e73848939f58a4ec6e5e0c9f7b13cde9decb11013d99aae5e2","markedAtUtc":"2026-06-25T22:29:38.299Z"} -->

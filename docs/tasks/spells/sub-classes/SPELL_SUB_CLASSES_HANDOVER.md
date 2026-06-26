@@ -65,3 +65,5 @@ and the spell-by-spell examples.
 
 Use this handover file to orient quickly. Use the tracker when you need the
 fine-grained bucket details.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/sub-classes/SPELL_SUB_CLASSES_HANDOVER.md","sha256WithoutMarker":"ee17ff2fc3ca1755b09df849b489769cf649bbbc49bf1a4d4904c0857d352d26","markedAtUtc":"2026-06-25T22:29:38.562Z"} -->

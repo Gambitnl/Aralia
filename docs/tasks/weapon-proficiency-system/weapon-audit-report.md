@@ -29,3 +29,5 @@ Total weapons analyzed in the original audit: 32
 ## Preserved recommendation
 
 The historical audit recommended eventually removing isMartial from the data once category coverage was trustworthy enough. That recommendation is preserved for provenance only. The current repo still uses a mixed compatibility model.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/weapon-proficiency-system/weapon-audit-report.md","sha256WithoutMarker":"80c156f937b0d164d13b30b3034fc465c106299e2b4fee0826f7708dd646f39c","markedAtUtc":"2026-06-25T22:29:38.617Z"} -->

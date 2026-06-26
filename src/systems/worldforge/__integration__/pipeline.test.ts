@@ -475,16 +475,20 @@ describe('worldforge pipeline integration', () => {
     }).toEqual({
       burgId: 264,
       // 2026-06-14: town gen added the `workshop` plot role (one extra RNG draw
-      // per eligible plot) — the hamlet probe now yields 8 plots. Re-frozen on
-      // acceptance of the accepted, already-wired workshop feature.
-      plotCount: 8,
+      // per eligible plot) — the hamlet probe then yielded 8 plots.
+      // 2026-06-25: re-frozen for the accepted, already-wired 2026-06-24 town-gen
+      // pass (typology street scaling + civic anatomy: temple/keep/administrative/
+      // barracks). The extra per-plot RNG draws and typology-scaled street growth
+      // reshuffle the deterministic stream — the probe now yields 15 plots and
+      // shifts plot 0's footprint. Matches the unit snapshot re-frozen the same day.
+      plotCount: 15,
       firstPlot: {
         id: 0,
         footprint: [
-          [337141.0104583791, 106998.96632789141],
-          [337200.3556304727, 106990.12604796478],
-          [337191.10964927793, 106928.05738614306],
-          [337131.76447718433, 106936.8976660697],
+          [337216.04163570807, 106990.58918139627],
+          [337282.4797627084, 107012.63402842879],
+          [337298.2260820174, 106965.17822342855],
+          [337231.78795501706, 106943.13337639603],
         ],
         role: 'inn',
         storeys: 3,
@@ -557,8 +561,12 @@ describe('worldforge pipeline integration', () => {
       addedPlotRole: 'market',
       // 2026-06-14: the workshop role shifts the plot-id counter, so
       // newPlotId (= max plot id + 100) changed, reseeding the added
-      // building's room-packing → 9 rooms. Re-frozen with the workshop feature.
-      addedInteriorRoomCount: 9,
+      // building's room-packing → 9 rooms.
+      // 2026-06-25: re-frozen for the 2026-06-24 typology + civic-anatomy town-gen
+      // pass. More plots (15) shift max-plot-id, so newPlotId changes again,
+      // reseeding the added building's room-packing → 7 rooms. Role/delta logic
+      // is unchanged (still market → shopfloor); only the geometry seed moved.
+      addedInteriorRoomCount: 7,
       hasAddedExteriorDoor: true,
       removedPlotPresent: false,
     });

@@ -68,3 +68,5 @@ Each dispatch file should:
 Returning-agent dispatches can skip the background (their conversation
 history already supplies it). First-time dispatches should always
 include it.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/atlas-prompts/README.md","sha256WithoutMarker":"e3aa8adfeea6ee00920c5a9ff730fd2d106ae36e169f4e1138df7f09de69e704","markedAtUtc":"2026-06-25T22:29:38.483Z"} -->

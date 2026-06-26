@@ -81,5 +81,6 @@ See [architecture/README.md](./architecture/README.md) for:
 ## Related Documentation
 
 - [VISION.md](./VISION.md) - Product philosophy and design principles
-- [CODE_WALKTHROUGH.md](./CODE_WALKTHROUGH.md) - Execution flow documentation
-- [@PROJECT-OVERVIEW.README.md](./@PROJECT-OVERVIEW.README.md) - Project summary
+- [PROJECT_ARCHITECTURE.md](./PROJECT_ARCHITECTURE.md) - Verified project overview and architecture map
+- [DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md) - Development workflow and execution guidance
+- [@README-INDEX.md](./@README-INDEX.md) - Documentation index

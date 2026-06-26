@@ -458,3 +458,5 @@ whatever appears in `BUCKET_META` in `PreviewSpellDataFlow.tsx`.
 - Closure tasks (Phase 3) only belong on buckets where Phase 1 and Phase 2 are
   empty. Otherwise they're forward-looking notes, which belong in a
   `follow-up tasks` phase instead.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_BUCKET_EXECUTION_MAP_TEMPLATE.md","sha256WithoutMarker":"7725401f5f45a7232253d43af8f2da871f41f42660757bc7cf5bc81f0e2362df","markedAtUtc":"2026-06-25T22:29:38.536Z"} -->

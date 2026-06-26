@@ -33,3 +33,5 @@ Noble-house support is implemented as a foundation capability. It is not just a 
 
 - This doc no longer treats noble-house generation as missing from the repo, because the generator and intrigue manager are already present.
 - This pass verified the data and systems layers, not a dedicated player-facing noble-house UI or a complete campaign-facing intrigue loop.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/feature-capabilities/noble-house-generation.md","sha256WithoutMarker":"58606703acdce6335f877a91ee2faae89608e303a19b14d8744e14ae6b0ac366","markedAtUtc":"2026-06-25T22:29:38.609Z"} -->

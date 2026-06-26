@@ -503,3 +503,5 @@ Total: **135** spells - each DAMAGE effect uses one known token only.
 - `wrathful-smite`
 
 </details>
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/damage-type/SPELL_DAMAGE_TYPE_RUNTIME_INVENTORY.md","sha256WithoutMarker":"97b2913d2fa70eec985a31373126d9e552639849e2e0ebb855be3cade2cac62a","markedAtUtc":"2026-06-25T22:29:38.514Z"} -->

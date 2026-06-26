@@ -23,3 +23,5 @@ This path now exists only to redirect readers away from the older cantrip-first 
 - that the older PR choreography is still the active migration strategy
 - that the archived Gemini/Jules sequencing is the current authoritative workflow
 - that this pointer file is itself the live spell migration plan
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/TASK_STRATEGY_UPDATE.md","sha256WithoutMarker":"82594f887a8b6a135908d51d2b41207449e75e871913a15ab73b7b4b0a11379f","markedAtUtc":"2026-06-25T22:29:38.596Z"} -->

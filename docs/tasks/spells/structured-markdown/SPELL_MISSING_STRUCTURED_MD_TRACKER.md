@@ -115,3 +115,5 @@ The Atlas V3 verification pass found that this tracker was ahead of the checkout
 - `2026-04-14`: Initial structured-block pass claimed closure, but the later Atlas V3 check found the checkout still had canonical-only markers.
 - `2026-04-28`: Atlas V3 report reopened the bucket from the stale closure state.
 - `2026-04-29`: Follow-up pass patched the live `43` remaining marker files and returned the marker scan to `0`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/structured-markdown/SPELL_MISSING_STRUCTURED_MD_TRACKER.md","sha256WithoutMarker":"83043f208a284ed61ab377aeab4dd949e23ebd1630f8ffd2484abb7bfd170b82","markedAtUtc":"2026-06-25T22:29:38.559Z"} -->

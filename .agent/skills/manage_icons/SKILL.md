@@ -1,6 +1,6 @@
 ---
 name: Manage Icons
-description: Instructions for adding, updating, auditing, and configuring icons in the Aralia codebase using MDI and Google Material Symbols.
+description: Add, update, audit, and configure SVG icons in the Aralia registry using MDI and Material Symbols.
 ---
 
 # Manage Icons Skill
@@ -86,42 +86,12 @@ In the Design Preview UI:
 
 ---
 
-## Critical Safeguards
+## Completion Criteria
 
-### Pre-Validation (Before Adding)
-```powershell
-Select-String -Path src/components/Glossary/IconRegistry.tsx -Pattern "icon_name"
-```
-*If it exists*: Update the existing definition. Duplicate keys cause silent failures.
+Before concluding any icon task, you must satisfy the following checklist:
 
-### Post-Edit Verification
-After editing, **read the file back** to confirm changes were applied. Check for:
--   Presence of the new SVG code in `IconRegistry.tsx`.
--   Icon name in `VALID_ICONS` set.
--   **No fallback rendering** in Design Preview (icon shows as graphic, not text).
-
----
-
-## Troubleshooting
-
-### Icon Showing as Text (Fallback)
-- **Cause**: Icon key missing from `IconRegistry.tsx` or typo in key.
-- **Fix**: Search the file to ensure the definition exists.
-
-### Icon Not Updating / Old Version Persists
-- **Cause**: Duplicate keys in `IconRegistry.tsx`.
-- **Fix**: Search for the key. Delete outdated duplicates.
-
-### Code Edit Tool Failed Silently
-- **Cause**: Tool mismatch (content not found).
-- **Fix**: Always `view_file` after edits to verify state on disk.
-
----
-
-## Command Line Tips (Windows/PowerShell)
-
-| Problem | Solution |
-|---------|----------|
-| `rm file1 file2` fails | Use `rm file1, file2` (comma-separated) |
-| `grep` not found | Use `Select-String -Path file -Pattern "text"` |
-| SVG has wrong viewBox | Use raw GitHub URLs, not web UI |
+1. **Uniqueness:** Check `src/components/Glossary/IconRegistry.tsx` to verify the new icon key is unique and does not cause a duplicate key syntax/runtime error.
+2. **Registry Inclusion:** Verify the SVG path and element structure are successfully saved in the registry under the correct snake_case key.
+3. **Validator Registration:** Confirm the icon key is added to the `VALID_ICONS` set in `src/components/Glossary/GlossaryTraitTable.tsx`.
+4. **Visual Verification:** Check the rendered output (e.g. Design Preview page or in-game trait UI) to verify the icon renders as a graphical SVG shape and does not fallback to raw text rendering.
+5. **No-Op / Code check:** Ensure the code compiles cleanly and does not introduce warnings or console errors.

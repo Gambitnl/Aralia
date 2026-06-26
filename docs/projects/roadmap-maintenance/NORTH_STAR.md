@@ -6,11 +6,11 @@ category: Projectized Planning Areas
 main_category: "Content & Rules"
 subcategory: "Items & Content Pipelines"
 status: active
-last_updated: 2026-06-12
+last_updated: 2026-06-25
 iteration: 2
 confidence: medium
 evidence: docs/projects/roadmap-maintenance
-gap_signal: "3 open gaps; G2, G3, and G5 remain open after G1 and G4 closure"
+gap_signal: "6 open gaps; G2, G3, G5, G6, G7, and G8 remain open"
 protocol: living project doc set
 next_step: Keep the remaining roadmap-local open items routed here until a fresh audit run changes the evidence set.
 agent_comments: ""
@@ -39,7 +39,7 @@ human_decision_required: "no"
 # Roadmap Maintenance North Star
 
 Status: active
-Last updated: 2026-06-12
+Last updated: 2026-06-25
 
 ## Why this project exists
 
@@ -65,7 +65,7 @@ Category: Projectized Planning Areas
 Status: active
 Confidence: medium
 Evidence: `docs/projects/roadmap-maintenance`
-Gap signal: 3 open gaps; G2, G3, and G5 remain open after G1 and G4 closure
+Gap signal: 6 open gaps; G2, G3, G5, G6, G7, and G8 remain open
 Protocol: living project doc set
 Next step: Keep the remaining roadmap-local open items routed here until a fresh audit run changes the evidence set.
 Required verification: docs_consistency
@@ -77,7 +77,7 @@ Workflow gaps reviewed: 2026-06-05
 
 - Registered row exists in `docs/projects/PROJECT_TRACKER.md` and still acts as the stable cross-cycle owner.
 - The durable project docs in this folder are present and now carry the dashboard card schema directly (`NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`).
-- The open roadmap-local items from the visualizer evidence are now routed as project-owned gaps instead of being left implicit in local notes.
+- The open roadmap-local items from the visualizer evidence and retired roadmap plan files are now routed as project-owned gaps instead of being left implicit in local notes.
 - The shared workflow path mismatch remains a workflow-level concern and is tracked centrally, not duplicated here.
 - The dated roadmap audit artifacts remain useful as historical evidence, but this project docs set should not imply they are fresh proof unless a new run updates them.
 

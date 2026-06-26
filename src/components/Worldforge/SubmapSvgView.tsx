@@ -6,6 +6,8 @@ import {
 } from '../../systems/worldforge/submap/submapEngine';
 import type { RoutePlan } from '../../systems/travel/routePlanning';
 import { formatRouteSummary, dangerRating } from '../../systems/travel/travelReadout';
+import { useDrillLayers } from './useDrillLayers';
+import DrillLayerPanel from './DrillLayerPanel';
 
 /** Muted parchment-toned fills per sub-biome (keeps the atlas palette family). */
 const BIOME_TINT: Record<string, string> = {
@@ -40,6 +42,8 @@ export interface SubmapSvgViewProps {
   planRoute?: (toCellIndex: number) => RoutePlan | null;
   /** Transport label for the travel readout. */
   transportLabel?: string;
+  /** Per-save scope for the drill-tier layer toggles (pass the world seed). */
+  prefsScope?: string | number;
 }
 
 /** Vertex-mean centroid of a polygon (inside convex Voronoi cells). */
@@ -55,7 +59,8 @@ const cellCentroid = (pts: Array<readonly [number, number]>): [number, number] =
  * fit-to-view + manual pan/zoom and click-to-drill. Clicking a cell resolves it
  * by point-in-polygon and reports its siteIndex so the host can recurse.
  */
-const SubmapSvgView: React.FC<SubmapSvgViewProps> = ({ model, width = 900, height = 560, onPickCell, playerCellIndex = null, travelActive = false, planRoute, transportLabel = 'on foot' }) => {
+const SubmapSvgView: React.FC<SubmapSvgViewProps> = ({ model, width = 900, height = 560, onPickCell, playerCellIndex = null, travelActive = false, planRoute, transportLabel = 'on foot', prefsScope }) => {
+  const { layers, toggle } = useDrillLayers(prefsScope);
   const bounds = useMemo(() => polygonBounds(model.boundary), [model]);
   const fit = useMemo(() => {
     const w = bounds.maxX - bounds.minX || 1;
@@ -146,6 +151,8 @@ const SubmapSvgView: React.FC<SubmapSvgViewProps> = ({ model, width = 900, heigh
   const burg = model.burgCellIndex != null ? model.cells[model.burgCellIndex]?.feature : undefined;
 
   return (
+    <div style={{ position: 'relative', width, height }}>
+    <DrillLayerPanel layers={layers} toggle={toggle} />
     <svg
       ref={svgRef}
       width={width}
@@ -167,7 +174,9 @@ const SubmapSvgView: React.FC<SubmapSvgViewProps> = ({ model, width = 900, heigh
           const d = 'M' + c.polygon.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L') + 'Z';
           return <path key={i} d={d} fill={fill} stroke="#7a8a6a" strokeWidth={0.6} vectorEffect="non-scaling-stroke" />;
         })}
-        {(model.polylines ?? []).map((pl, i) => {
+        {(model.polylines ?? [])
+          .filter((pl) => (pl.kind === 'river' ? layers.rivers : pl.kind === 'road' ? layers.roads : true))
+          .map((pl, i) => {
           const d = 'M' + pl.points.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L');
           return pl.kind === 'river'
             ? <path key={`pl${i}`} d={d} fill="none" stroke="#5d97bb" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
@@ -201,7 +210,7 @@ const SubmapSvgView: React.FC<SubmapSvgViewProps> = ({ model, width = 900, heigh
           </>
         ) : null}
       </g>
-      {burg ? (
+      {burg && layers.labels ? (
         <text
           x={burg.x * view.k + view.x}
           y={burg.y * view.k + view.y - 10}
@@ -227,6 +236,7 @@ const SubmapSvgView: React.FC<SubmapSvgViewProps> = ({ model, width = 900, heigh
         </g>
       ) : null}
     </svg>
+    </div>
   );
 };
 

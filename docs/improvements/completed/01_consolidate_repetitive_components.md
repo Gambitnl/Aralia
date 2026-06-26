@@ -38,3 +38,5 @@ This note still captures an important architectural shift:
 - reusable character-creator selection components are preferable to race-specific duplication
 - racial choice data should flow through shared state structures
 - new races should extend shared scaffolding where possible instead of adding another bespoke component
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/improvements/completed/01_consolidate_repetitive_components.md","sha256WithoutMarker":"c994a2f2c4348182ce72ea6e370bc295fba84ed6975a3c072e40e9eefef7f185","markedAtUtc":"2026-06-25T22:49:17.522Z"} -->

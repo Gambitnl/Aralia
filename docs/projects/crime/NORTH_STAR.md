@@ -5,14 +5,14 @@ slug: crime
 category: Game Systems
 main_category: Review / Archive
 subcategory: Deprecation Review
-status: active
+status: complete_for_current_gap_set
 last_updated: 2026-06-25
-iteration: 6
+iteration: 8
 confidence: medium
 evidence: docs/projects/crime/TRACKER.md
-gap_signal: "2 open gaps; G1 expired-bounty cleanup, G2 fence outcome contract, G3 market utility ownership, and G4 heat/severity boundary resolved; G5-G6 remain open"
+gap_signal: "0 open gaps; G1 expired-bounty cleanup, G2 fence outcome contract, G3 market utility ownership, G4 heat/severity boundary, G5 TODO/type-debt classification, and G6 suspect/report decision resolved"
 protocol: living project doc set
-next_step: Resume T3 with G5 TODO/type-debt classification.
+next_step: Run a fresh source-backed Crime scan before assigning more Crime work.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -30,7 +30,7 @@ completed_verification:
 last_proof: 2026-06-25
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: not_needed
-lifecycle_status: active
+lifecycle_status: complete_for_current_gap_set
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: docs/projects/crime
@@ -44,17 +44,17 @@ Last updated: 2026-06-25
 Project: Crime System
 Slug: crime
 Category: Game Systems
-Status: active
+Status: complete_for_current_gap_set
 Confidence: medium
 Evidence: docs/projects/crime/TRACKER.md
-Gap signal: 2 open gaps; G1 expired-bounty cleanup, G2 fence outcome contract, G3 market utility ownership, and G4 heat/severity boundary resolved; G5-G6 remain open
+Gap signal: 0 open gaps; G1 expired-bounty cleanup, G2 fence outcome contract, G3 market utility ownership, G4 heat/severity boundary, G5 TODO/type-debt classification, and G6 suspect/report decision resolved
 Protocol: living project doc set
-Next step: Resume T3 with G5 TODO/type-debt classification.
+Next step: Run a fresh source-backed Crime scan before assigning more Crime work.
 Required verification: docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-25
 Workflow gaps reviewed: 2026-06-08
-Lifecycle status: active
+Lifecycle status: complete_for_current_gap_set
 Deprecation confidence: none
 Deprecation reason: none
 Canonical owner: docs/projects/crime
@@ -62,14 +62,14 @@ Human decision required: no
 
 ## Current State
 
-Crime is in an implementation-forward state. The active queue is T3, G1-G4 are
-resolved, and the next implementation slice should classify or resolve G5
-TODO/type debt before revisiting the remaining crime gaps.
+Crime is complete for the current gap set. T3 and G1-G6 are resolved; the
+suspect/report aggregate was intentionally deferred until a guard, memory,
+faction, or UI caller needs structured report data.
 
 ## Resume Path
 
-1. Open `docs/projects/crime/TRACKER.md` and keep T3 active.
-2. Continue with G5 and use G6 as follow-up debt unless the slice must widen.
+1. Open `docs/projects/crime/TRACKER.md` and confirm no new source-backed gap has been added.
+2. Run a fresh source scan before selecting new Crime work.
 3. Keep the handoff compact and route any new project blockers back into
    `docs/projects/crime/GAPS.md`.
 

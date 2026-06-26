@@ -5,7 +5,7 @@ project: Character Creator
 slug: character-creator
 status: active
 last_updated: 2026-06-25
-iteration: 12
+iteration: 16
 source_agent: Codex
 target_agent: next cold-start agent
 runtime_surface: application agent
@@ -40,32 +40,51 @@ Project entry point: docs/projects/character-creator/NORTH_STAR.md
 | 10 | Codex | application agent | certain | 2026-06-25 | Resolved G15 by keeping background-granted class skill rows visible with source badges while preserving replacement choices |
 | 11 | Codex | application agent | certain | 2026-06-25 | Resolved G4 by removing unused alias imports from the CharacterCreator flow test and updating Changeling size selection |
 | 12 | Codex | application agent | certain | 2026-06-25 | Resolved G17 by keeping legacy Rusty Sword out of mastery choices and making weapon details reachable by focus/click |
+| 13 | Codex | application agent | certain | 2026-06-25 | Structurally implemented G16 shared spell summary component; class spell selection and Magic Initiate visuals captured; spellbook visual remains before closure |
+| 14 | Codex | application agent | certain | 2026-06-25 | Resolved G16 by capturing the Character Sheet spellbook list rendered through `SpellbookTab.tsx` with shared `SpellSummaryCard` rows |
+| 15 | Codex | application agent | certain | 2026-06-25 | Resolved G8 by centralizing `StepLockedPlaceholder` copy in typed sidebar step config and proving each message family renders |
+| 16 | Codex | application agent | certain | 2026-06-25 | Resolved G5 by hardening the Human Fighter Playwright flow with exact final-submit selection and visible/state gameplay assertions |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Character Creator
 Project folder: docs/projects/character-creator
-iteration: 12
+iteration: 16
 North Star: docs/projects/character-creator/NORTH_STAR.md
 Tracker: docs/projects/character-creator/TRACKER.md
 Gaps: docs/projects/character-creator/GAPS.md
 
 ## Current Mission
 
-Redundant base-race validation checks are removed (G18), rest choices are fully resolved and typed (G19), the sidebar racial-feat visibility test now matches the live UI contract (G7), the Skillful raceId test mismatch is already resolved in the current checkout (G20), the sidebar progress counter no longer credits future default-complete steps (G14), background-granted class skills now remain visible with source badges (G15), the CharacterCreator flow test lint-intent cleanup is complete (G4), and Weapon Mastery selection now hides legacy Rusty Sword while exposing details by focus/click (G17). Next mission: proceed to the next audited Character Creator gap, likely G16.
+Redundant base-race validation checks are removed (G18), rest choices are fully resolved and typed (G19), the sidebar racial-feat visibility test now matches the live UI contract (G7), the Skillful raceId test mismatch is already resolved in the current checkout (G20), the sidebar progress counter no longer credits future default-complete steps (G14), background-granted class skills now remain visible with source badges (G15), the CharacterCreator flow test lint-intent cleanup is complete (G4), Weapon Mastery selection now hides legacy Rusty Sword while exposing details by focus/click (G17), G16 is resolved, G8 is resolved, and G5 is resolved. `tests/character-creator-flow.spec.ts` now proves the Human Fighter flow reaches visible gameplay and a `PLAYING` state with `Sir Testalot` in the party.
 
 ## Required End State For This Iteration
 
-- Pick one remaining audited Character Creator gap from `GAPS.md`, keeping the slice small and source-backed.
-- Run focused Character Creator tests for the touched files and typecheck when production state/types are changed.
+- Do not reopen G5 unless the Human Fighter flow again lacks final gameplay assertions or a new creator-to-game handoff regression is found.
+- Do not reopen G8 unless a new lock-message ownership or render regression is found.
+- Do not reopen G16 unless a new spell-specific rendering regression is found.
+- Pick the next unresolved Character Creator gap from `TRACKER.md` / `GAPS.md`.
 
 ## Evidence
 
-- Spell card surfaces across creator/sheet views (G16 evidence)
-- `SpellCard`/spell list components across `*FeatureSelection`, `FeatSpellPicker`, and `CharacterSheet` Spellbook (G16 evidence)
+- `src/components/ui/SpellSummaryCard.tsx`
+- `src/components/CharacterCreator/Class/SpellCard.tsx`
+- `src/components/CharacterCreator/FeatSpellPicker.tsx`
+- `src/components/CharacterSheet/Spellbook/SpellbookTab.tsx`
+- Focused tests pass 33/33 for the touched creator/sheet spell surfaces.
+- `.agent/scratch/g16-class-spell-surface.png`, `.agent/scratch/g16-magic-initiate-spell-rows.png`, and `.agent/scratch/g16-spellbook-list.png` capture the three target spell surfaces.
+- `src/components/CharacterCreator/config/sidebarSteps.ts`
+- `src/components/CharacterCreator/CharacterCreator.tsx`
+- `src/components/CharacterCreator/__tests__/CharacterCreator.test.tsx`
+- `npm exec vitest run src/components/CharacterCreator/__tests__/CharacterCreator.test.tsx src/components/CharacterCreator/__tests__/CreationSidebar.test.tsx` passes 10/10.
+- `tests/character-creator-flow.spec.ts`
+- `.agent/scratch/proof/character-creator/flow-assertions/before/human-fighter-masked-incomplete-state.png`
+- `.agent/scratch/proof/character-creator/flow-assertions/after/human-fighter-verified-final-game-state.png`
+- `npx playwright test tests/character-creator-flow.spec.ts -g "Complete Human Fighter creation flow" --project=chromium --headed` passes 1/1.
+- `npm run projects:audit` passes.
 
 ## agent_comments
 
-- Iteration 12 resolved G17. `WeaponMasterySelection.tsx` now uses current weapon categories for eligibility, excludes only the legacy `rusty_sword` duplicate from mastery choices, and previews details by hover, focus, or click/tap.
+- Iteration 16 resolved G5. Proof screenshots are intentionally centralized under ignored `.agent/scratch/proof/character-creator/flow-assertions/`; `test-results/` remains transient Playwright output. The headed Playwright run still logs Vite `/tags` proxy ECONNREFUSED messages from the local dependency surface, but the focused Human Fighter final-state assertions pass.
 Required docs to account for before closeout:
 - NORTH_STAR.md
 - TRACKER.md
@@ -112,6 +131,9 @@ Before selecting work, identify yourself and the surface you are running through
 | 10 | Codex | application agent | certain | 2026-06-25 | Resolved G15 by keeping background-granted class skill rows visible with source badges while preserving replacement choices |
 | 11 | Codex | application agent | certain | 2026-06-25 | Resolved G4 by removing unused alias imports from the CharacterCreator flow test and updating Changeling size selection |
 | 12 | Codex | application agent | certain | 2026-06-25 | Resolved G17 by keeping legacy Rusty Sword out of mastery choices and making weapon details reachable by focus/click |
+| 13 | Codex | application agent | certain | 2026-06-25 | Structurally implemented G16 shared spell summary component; class spell selection and Magic Initiate visuals captured; spellbook visual remains before closure |
+| 14 | Codex | application agent | certain | 2026-06-25 | Resolved G16 by capturing the Character Sheet spellbook list rendered through `SpellbookTab.tsx` with shared `SpellSummaryCard` rows |
+| 15 | Codex | application agent | certain | 2026-06-25 | Resolved G8 by centralizing `StepLockedPlaceholder` copy in typed sidebar step config and proving each message family renders |
 
 ### Required project docs to account for
 

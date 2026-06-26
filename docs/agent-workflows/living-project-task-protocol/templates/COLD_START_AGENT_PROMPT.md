@@ -185,3 +185,5 @@ out-of-flow note is useful, and keep only the current handoff between the same
 BEGIN/END markers. Keep the iteration agent ledger as one compact row per
 completed iteration; do not preserve old handoff transcripts in this file.
 ---END NEXT AGENT HANDOFF---
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/agent-workflows/living-project-task-protocol/templates/COLD_START_AGENT_PROMPT.md","sha256WithoutMarker":"a7cda89c5692f7e3abcc304c069a5587d550b3d34c66fbb8b8ba8940e0d2b782","markedAtUtc":"2026-06-25T22:57:26.958Z"} -->

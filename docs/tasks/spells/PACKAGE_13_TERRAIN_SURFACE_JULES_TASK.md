@@ -1,6 +1,6 @@
 # Package 13 Jules Task: Terrain And Surface Mechanics
 
-Status: draft package packet for the next Jules-preferred mechanics slice.
+Status: historical Package 13 packet; PR #1096 merged on 2026-05-26.
 
 This packet promotes tracker gap `G125` into a bounded implementation task. It
 exists because Package 12 closed the representative `conditional_ending` slice,
@@ -232,3 +232,5 @@ PR-branch repair/rebase, or replacement handoff from current `origin/master`.
 - External Symphony / local ignored state: dashboard run state, draft IDs,
   handoff receipts, generated manifests, click logs, and raw Jules process
   output.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_13_TERRAIN_SURFACE_JULES_TASK.md","sha256WithoutMarker":"8d7fdba33265519a004bdabd4f2ad796ad642855964e7b85d7276198d657c3da","markedAtUtc":"2026-06-25T22:29:38.374Z"} -->

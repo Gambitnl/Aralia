@@ -117,3 +117,5 @@ After Jules returns:
 3. Run rendered simulator proof if the PR changes player-visible combat flow.
 4. Refresh spell gates and Atlas/gate receipt.
 5. Record PR/review/deployment/local-sync evidence in the Symphony trail.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_4_COMBAT_SIMULATOR_DETERMINISTIC_PILOT_JULES_PROMPT.md","sha256WithoutMarker":"5d60500fce34e3d343c22474d9fb93486c2175f87a3e449bd09704987bc4d62c","markedAtUtc":"2026-06-25T22:29:38.358Z"} -->

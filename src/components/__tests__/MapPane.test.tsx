@@ -29,6 +29,59 @@ describe('MapPane', () => {
     expect(screen.queryByRole('grid')).not.toBeInTheDocument();
     expect(onTileClick).not.toHaveBeenCalled();
   });
+
+  it('exposes a sea-preference toggle in travel mode', async () => {
+    const onTileClick = vi.fn();
+    const onClose = vi.fn();
+    const mapData = createMapData();
+
+    render(
+      <MapPane
+        mapData={mapData}
+        onTileClick={onTileClick}
+        onClose={onClose}
+        allowTravel
+      />,
+    );
+
+    const seaPreference = await screen.findByTestId('travel-sea-pref');
+    expect(seaPreference).toHaveValue('none');
+  });
+
+  it('keeps island-harbor generation default-off but exposes an explicit proof opt-in', () => {
+    const onTileClick = vi.fn();
+    const onClose = vi.fn();
+    const mapData = createMapData();
+
+    const { rerender } = render(
+      <MapPane
+        mapData={mapData}
+        onTileClick={onTileClick}
+        onClose={onClose}
+        allowTravel
+      />,
+    );
+
+    expect(screen.getByTestId('worldforge-map-viewport')).toHaveAttribute(
+      'data-island-harbors-enabled',
+      'false',
+    );
+
+    rerender(
+      <MapPane
+        mapData={mapData}
+        onTileClick={onTileClick}
+        onClose={onClose}
+        allowTravel
+        enableIslandHarbors
+      />,
+    );
+
+    expect(screen.getByTestId('worldforge-map-viewport')).toHaveAttribute(
+      'data-island-harbors-enabled',
+      'true',
+    );
+  });
 });
 
 function createMapData(): MapData {

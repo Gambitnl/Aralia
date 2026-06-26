@@ -1,6 +1,6 @@
 # Weapon Proficiency System - Workflow Guide
 
-Last reviewed: 2026-03-12
+Last reviewed: 2026-06-25
 
 Use this workflow for continuing the weapon-proficiency subtree after the core implementation already landed.
 
@@ -29,8 +29,8 @@ This subtree is no longer a start from task 01 packet. It is a mixed bundle of:
 
 ## How to treat the task files
 
-- Tasks 01 through 08 should be read mainly as preserved implementation and audit history.
-- Tasks 09 through 11 are the active follow-through notes, but even they must be checked against current combat code before work begins.
+- Tasks 01 through 09 and 11 are retired; use `GAPS.md`, `TRACKER.md`, and the
+  backlog retirement ledger instead of reopening those packet files.
 - weapon-audit-report.md is evidence, not an instruction to blindly remove isMartial.
 
 ## Current focus areas
@@ -45,10 +45,8 @@ This subtree is no longer a start from task 01 packet. It is a mixed bundle of:
 
 ### Needs narrower follow-through
 
-- Attack Roll Proficiency Penalty in the final combat modifier path
-- Combat Weapon Proficiency Warning surfaces
 - Fresh rendered verification of the warning UX
-- Fresh test coverage or reruns if confidence is needed
+- Fresh end-to-end proof that warning copy and attack penalty behavior align
 
 ## Review rule
 
@@ -57,3 +55,5 @@ When changing this subtree, prefer:
 1. update stale planning language into current-state notes
 2. preserve historical intent where useful
 3. only create new work items for the concrete remaining combat gaps
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/weapon-proficiency-system/@WORKFLOW.md","sha256WithoutMarker":"c5032ee26c0f35e492bc3b99a8e2a9797e75e0b1f32536b80ea2b4f410d45853","markedAtUtc":"2026-06-25T22:29:38.612Z"} -->

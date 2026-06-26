@@ -337,3 +337,5 @@ Actions:
 - audit work still needed: no current grouped runtime audit work; future selected-spell
   checks can reopen this if evidence changes
 - runtime gate-checker coverage: implemented
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/components/SPELL_COMPONENTS_BUCKET_TRACKER.md","sha256WithoutMarker":"547b2f6fb12e4d4a1ae6e24fcfa11aec30874836c691e2d8f6f3ffedf4151c77","markedAtUtc":"2026-06-25T22:29:38.509Z"} -->

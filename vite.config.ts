@@ -58,6 +58,7 @@ const patVaultManager = () => ({
   },
 });
 import { portraitApiManager } from './scripts/vite-plugins/portraitApiManager';
+import { sceneApiManager } from './scripts/vite-plugins/sceneApiManager';
 
 import {
   conductorManager,
@@ -65,7 +66,8 @@ import {
   gitStatusManager,
   scriptRegistryManager,
   glossaryIndexManager,
-  glossarySpellGateManager
+  glossarySpellGateManager,
+  traitApprovalManager
 } from './scripts/vite-plugins/miscManagers';
 
 import { formatProxyTarget } from './scripts/vite-plugins/utils';
@@ -157,8 +159,10 @@ export default defineConfig(async ({ mode, command }) => {
     atlasApiManager(),
     glossarySpellGateManager(),
     glossaryIndexManager(),
+    traitApprovalManager(),
     scriptRegistryManager(),
     portraitApiManager(),
+    sceneApiManager(),
     codexRunManager(),
     codexChatManager(),
     ptyTerminalManager(),
@@ -180,8 +184,10 @@ export default defineConfig(async ({ mode, command }) => {
     atlasApiManager(),
     glossarySpellGateManager(),
     glossaryIndexManager(),
+    traitApprovalManager(),
     scriptRegistryManager(),
     portraitApiManager(),
+    sceneApiManager(),
     codexRunManager(),
     codexChatManager(),
     ptyTerminalManager(),
@@ -296,6 +302,10 @@ export default defineConfig(async ({ mode, command }) => {
             : {}),
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'dev_hub.html'))
             ? { dev_hub: path.resolve(__dirname, 'misc', 'dev_hub.html') }
+            : {}),
+          ...(fs.existsSync(path.resolve(__dirname, 'misc', 'url_directory.html'))
+            && fs.existsSync(path.resolve(__dirname, 'src', 'url-directory-entry.ts'))
+            ? { url_directory: path.resolve(__dirname, 'misc', 'url_directory.html') }
             : {}),
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'spell_data_validation.html'))
             ? { spell_data_validation: path.resolve(__dirname, 'misc', 'spell_data_validation.html') }

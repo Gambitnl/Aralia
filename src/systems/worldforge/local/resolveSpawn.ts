@@ -80,12 +80,24 @@ export function resolveWorldSpawn(world: FmgWorldResult, gridSize: GridSize): Wo
     atlasCellId = land >= 0 ? land : 0;
   }
 
+  return spawnFromAtlasCell(world, gridSize, atlasCellId, burgName);
+}
+
+/**
+ * Map a chosen WF atlas land cell onto a non-ocean legacy grid spawn. Shared by
+ * the auto resolver and explicit town selection: the grid is coarse (e.g. 30×20),
+ * so a coastal cell's grid cell can center over water — which would put the spawn
+ * marker (grid-cell center) in the sea. Nudge to the nearest land grid cell.
+ */
+export function spawnFromAtlasCell(
+  world: FmgWorldResult,
+  gridSize: GridSize,
+  atlasCellId: number,
+  burgName?: string,
+): WorldSpawn {
   let gridCell = atlasCellToLegacyGrid(world, atlasCellId, gridSize)
     ?? { x: Math.floor((gridSize.cols || 1) / 2), y: Math.floor((gridSize.rows || 1) / 2) };
 
-  // The grid is coarse (e.g. 30×20), so a coastal burg's grid cell can center
-  // over water — which would put the spawn marker (grid-cell center) in the sea.
-  // Nudge to the nearest grid cell whose center maps to WF land.
   if (!gridCellIsLand(world, gridCell, gridSize)) {
     gridCell = nearestLandGridCell(world, gridCell, gridSize) ?? gridCell;
   }
@@ -133,6 +145,13 @@ export interface ApplyWfSpawnOptions {
   fallbackBiomeId?: string;
   /** Predicate; a biome that returns false is replaced by the fallback. */
   isWalkable?: (biomeId: string) => boolean;
+  /**
+   * Spawn at THIS WF atlas cell (a player-chosen town's `burg.cell`) instead of
+   * the auto capital/burg pick. Set by the Start Point Selection step.
+   */
+  spawnAtlasCellId?: number;
+  /** Name recorded for a chosen-cell spawn (the town's name). */
+  spawnBurgName?: string;
 }
 
 /**
@@ -150,7 +169,9 @@ export function applyWfSpawnToMap(
 ): WorldSpawn {
   const world = generateFmgWorld(String(worldSeed));
   unifyMapBiomesWithWorld(mapData, world, gridSize);
-  const spawn = resolveWorldSpawn(world, gridSize);
+  const spawn = opts.spawnAtlasCellId != null
+    ? spawnFromAtlasCell(world, gridSize, opts.spawnAtlasCellId, opts.spawnBurgName)
+    : resolveWorldSpawn(world, gridSize);
   relocateStartTile(mapData, spawn.gridCell, {
     biomeId: opts.biomeIndexToLegacyId?.(spawn.biomeIndex),
     fallbackBiomeId: opts.fallbackBiomeId,

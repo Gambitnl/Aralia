@@ -4,8 +4,10 @@ import {
   formatDistance,
   dangerRating,
   formatRouteSummary,
+  formatProvisionLine,
 } from '../travelReadout';
 import type { RoutePlan } from '../routePlanning';
+import type { ProvisionStatus } from '../provisioning';
 
 describe('formatTravelTime', () => {
   it('formats minutes / hours / days', () => {
@@ -42,5 +44,46 @@ describe('formatRouteSummary', () => {
     const route: RoutePlan = { cells: [0, 1, 2], points: [[0, 0]], miles: 19.3, minutes: 380, danger: 0.4 };
     expect(formatRouteSummary(route, 'on foot')).toBe('≈ 6h 20m · ~19 mi · Danger: Moderate · on foot');
     expect(formatRouteSummary(route, 'by horse')).toContain('by horse');
+  });
+});
+
+describe('formatProvisionLine', () => {
+  const status = (over: Partial<ProvisionStatus>): ProvisionStatus => ({
+    inRange: true,
+    shortfallDays: 0,
+    severity: 'none',
+    foodRangeDays: 0,
+    tripDays: 0,
+    ...over,
+  });
+
+  it('reads OK and shows the food range when in range', () => {
+    const line = formatProvisionLine(status({ inRange: true, foodRangeDays: 6, tripDays: 4 }));
+    expect(line.text).toContain('Food: 6 days');
+    expect(line.ok).toBe(true);
+    expect(line.color).toBe('#22c55e');
+  });
+
+  it('reads the shortfall and an amber color when minor-short', () => {
+    const line = formatProvisionLine(
+      status({ inRange: false, shortfallDays: 2, severity: 'minor', foodRangeDays: 3, tripDays: 5 }),
+    );
+    expect(line.text).toContain('short 2 days');
+    expect(line.ok).toBe(false);
+    expect(line.color).toBe('#eab308');
+  });
+
+  it('uses a red color when major-short', () => {
+    const line = formatProvisionLine(
+      status({ inRange: false, shortfallDays: 5, severity: 'major', foodRangeDays: 1, tripDays: 6 }),
+    );
+    expect(line.color).toBe('#ef4444');
+  });
+
+  it('singularizes a one-day range and a one-day shortfall', () => {
+    const line = formatProvisionLine(
+      status({ inRange: false, shortfallDays: 1, severity: 'minor', foodRangeDays: 1, tripDays: 2 }),
+    );
+    expect(line.text).toBe('Food: 1 day · short 1 day');
   });
 });

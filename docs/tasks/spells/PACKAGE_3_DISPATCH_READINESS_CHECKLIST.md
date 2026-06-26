@@ -126,3 +126,5 @@ If Package 3 uncovers a broad assembly, class-rule, or spellbook data-model
 decision, record it in the decision report before allowing Jules to broaden the
 slice. If the decision belongs to combat simulator casting or AI arbitration,
 record it as a Package 4 or Package 5 gap instead of expanding Package 3.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_3_DISPATCH_READINESS_CHECKLIST.md","sha256WithoutMarker":"b523506d14e73845d3e333e28ab98f3371bf8e7f61450582cfdb920c2cb16bab","markedAtUtc":"2026-06-25T22:29:38.353Z"} -->

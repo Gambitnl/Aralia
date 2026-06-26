@@ -3,19 +3,19 @@ schema_version: 1
 gap_schema: project_gap_registry
 project: Crime UI
 slug: crime-ui
-status: active
+status: complete_for_current_gap_set
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-15"
+last_updated: "2026-06-25"
 gap_count: 5
-open_gap_count: 3
-resolved_gap_count: 2
+open_gap_count: 0
+resolved_gap_count: 5
 routed_gap_count: 0
 imported_gap_count: 0
 decision_required_count: 0
 visual_proof_required_count: 0
-highest_severity: medium
-proof_freshness: verified
+highest_severity: none
+proof_freshness: recorded
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 north_star: docs/projects/crime-ui/NORTH_STAR.md
 tracker: docs/projects/crime-ui/TRACKER.md
@@ -101,9 +101,9 @@ supported_optional_sections:
 ---
 project: Crime UI
 slug: crime-ui
-last_updated: "2026-06-15"
+last_updated: "2026-06-25"
 gap_count: 5
-open_gap_count: 3
+open_gap_count: 0
 north_star: docs/projects/crime-ui/NORTH_STAR.md
 tracker: docs/projects/crime-ui/TRACKER.md
 global_gaps: docs/projects/GLOBAL_GAPS.md
@@ -111,8 +111,8 @@ highest_severity: medium
 ---
 # Crime UI Gap Registry
 
-Status: active
-Last updated: 2026-06-15
+Status: complete_for_current_gap_set
+Last updated: 2026-06-25
 
 Use this file for durable unresolved findings specific to Crime UI ownership.
 
@@ -120,11 +120,19 @@ Use this file for durable unresolved findings specific to Crime UI ownership.
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | active | adjacent_follow_up | Worker B | `docs/projects/crime/TRACKER.md` | scope scan + 2026-06-15 code re-scan | No dedicated suspect/report flow implementation was found in `src/components/Crime` or `src/systems/crime` | `src/components/Crime`, `src/systems/crime`, `rg suspect\|report` output | Future UI work may assume reporting flow exists and bypass core design | Route decision to core Crime tracker; keep scope in this project as adjacency note | Decision note recorded in `docs/projects/crime` |
-| G2 | active | support_needed_now | Worker B | `docs/projects/crime-ui/TRACKER.md` | code scan + 2026-06-15 re-verified | Fence sales dispatch `SELL_ITEM` generic action with text message; no dedicated crime transaction or heat side-effect in UI path | `FenceInterface.tsx:42-48` (dispatches `SELL_ITEM`), `actionTypes.ts:109` (SELL_ITEM type), `crimeReducer.ts` (no SELL_ITEM handler) | Core criminal consequence model (heat, notice, exposure) cannot be enforced from fence UI currently | Decide whether to keep generic action or add a `FENCE_SELL_ITEM` crime-specific action with heat/bounty side-effects | Add regression check for heat and bounty impact of fence sales |
-| G3 | resolved | in_scope_now | Worker B | `docs/projects/crime-ui/TRACKER.md` | code scan + 2026-06-15 re-verified | Heist planning modal uses local cast `plan as HeistPlan & { approaches: HeistApproach[]; intelGathered: HeistIntel[] }` to enforce non-optionality on fields that are optional in the HeistPlan interface | `HeistPlanningModal.tsx:26-29` (local cast), `types/crime/index.ts:149-150` (approaches?/intelGathered? optional), `crimeReducer.ts` (SELECT_HEIST_APPROACH handler) | Fragile type boundary: cast bypasses TS null-safety; a future refactor could pass `undefined` approaches and the UI would crash silently | Narrow HeistPlan.approaches to required when plan enters planning phase, or add runtime guard in modal | Type test for plan shape in `src/state/reducers` and UI compile check |
-| G4 | resolved | support_needed_now | Worker B | `docs/projects/crime-ui/TRACKER.md` | code scan + 2026-06-15 re-verified | Safehouse service list is hardcoded in `ThievesGuildSafehouse.tsx:17-22` (4 services with mock names/costs) while `ThievesGuildSystem.getAvailableServices()` generates authoritative service data with real economy context | `ThievesGuildSafehouse.tsx:17-22` (hardcoded array), `ThievesGuildSystem.ts:133+` (getAvailableServices with rank gates), `ThievesGuildInterface.tsx:50` (uses system for services) | Service names, rank requirements, and costs can diverge between safehouse UI and system; the safehouse component comment acknowledges "ideally fetched from ThievesGuildSystem" | Replace hardcoded array with `ThievesGuildSystem.getAvailableServices(membership.rank)` call, consistent with how `ThievesGuildInterface` already uses it | Unit or snapshot check for service list consistency |
-| G5 | active | support_needed_now | Worker B | `docs/projects/crime/TRACKER.md` | code scan + 2026-06-15 re-verified | Modal visibility and heist phase lifecycle are split across `uiReducer` (TOGGLE_THIEVES_GUILD, TOGGLE_THIEVES_GUILD_SAFEHOUSE) and `crimeReducer` (heist phase actions) with implicit close-on-open assumptions (other modals close when thieves guild opens, line 135/155/202) | `uiReducer.ts:135,144-153`, `crimeReducer.ts:53-80` (START_HEIST_PLANNING), `GameModals.tsx:633-648` (lazy-loaded entry) | New UI slices cannot safely compose if visibility and plan lifecycle assumptions are undocumented; the close-other-modals pattern is repeated but not formally specified | Capture explicit modal lifecycle rules (which modals are mutually exclusive, heist planning vs. guild modal interaction) in docs before editing flow | Add acceptance check in implementation slice |
+| G1 | done | design_decision_deferred | Codex | `docs/projects/crime/TRACKER.md` | scope scan + 2026-06-25 Crime closeout | No dedicated suspect/report flow implementation was found in `src/components/Crime` or `src/systems/crime`. | `docs/projects/crime/GAPS.md` G6, `src/types/crime/index.ts`, `src/types/state.ts`, `src/state/reducers/crimeReducer.ts` | Future UI work now knows the absence is intentional for this stage, not an overlooked UI model. | Completed 2026-06-25: core Crime deferred suspect/report aggregate types until a guard, memory, faction, or UI caller needs structured reports. | Crime G6 proof recorded in `docs/projects/crime/AUDIT_OR_PROOF.md`. |
+| G2 | done | support_needed_now | Codex | `docs/projects/crime-ui/TRACKER.md` | code scan + 2026-06-25 Crime fence contract | Fence sales previously dispatched generic `SELL_ITEM`; the live UI now dispatches a dedicated crime fence action with heat. | `FenceInterface.tsx` dispatches `SELL_FENCED_ITEM`; `actionTypes.ts` defines the payload; `characterReducer.ts` pays gold/removes item; `crimeReducer.ts` raises heat. | Core criminal consequence model is now enforceable from the fence UI path. | Completed 2026-06-25: preserve `SELL_FENCED_ITEM` as the UI-owned fence transaction contract. | Focused reducer tests in Crime core passed for fence item/gold and heat behavior. |
+| G3 | done | in_scope_now | Gemini CLI | `docs/projects/crime-ui/TRACKER.md` | Iteration 4 + 2026-06-25 recheck | Heist planning modal used a local cast to enforce non-optionality on plan fields. | `HeistPlanningModal.tsx` now maps `plan.approaches` and `plan.intelGathered` directly; `HeistPlan` carries required arrays. | The modal no longer bypasses TS null-safety for heist plan arrays. | Completed before this pass; verified source still matches the closure. | `HeistPlanningModal.test.tsx` exists for UI behavior, and current source no longer contains the local cast. |
+| G4 | done | support_needed_now | Gemini CLI | `docs/projects/crime-ui/TRACKER.md` | Iteration 4 + 2026-06-25 recheck | Safehouse service list was hardcoded while `ThievesGuildSystem.getAvailableServices()` was authoritative. | `ThievesGuildSafehouse.tsx` now calls `ThievesGuildSystem.getAvailableServices(membership.rank)`. | Service names, rank requirements, and costs now come from the shared system contract. | Completed before this pass; verified source still matches the closure. | `ThievesGuildSafehouse.test.tsx` exists for safehouse behavior, and current source no longer contains the hardcoded list. |
+| G5 | done | workflow | Codex | `docs/projects/crime-ui/TRACKER.md` | code scan + 2026-06-25 lifecycle readout | Modal visibility and heist phase lifecycle are split across `uiReducer` and `crimeReducer` with close-on-open assumptions. | `uiReducer.ts:144-155`, `GameModals.tsx:624-659`, `crimeReducer.ts` heist planning/advance/abort cases | New UI slices can now compose against explicit lifecycle rules instead of rediscovering modal assumptions. | Completed 2026-06-25: lifecycle rules documented below; no UI code change needed. | Docs consistency audit plus focused heist/crime reducer tests. |
+
+## Modal Lifecycle Rules
+
+| Surface | Open condition | Close / advance action | Exclusivity rule |
+|---|---|---|---|
+| Thieves Guild modal | `isThievesGuildVisible` in `uiReducer` | `TOGGLE_THIEVES_GUILD` from `GameModals.tsx` close handler | Opening closes map/dev/logbook/glossary/game-guide/merchant and other listed side panels, but does not clear `activeHeist`. |
+| Safehouse modal | `isThievesGuildSafehouseVisible` and `thievesGuild` in `GameModals.tsx` | `TOGGLE_THIEVES_GUILD_SAFEHOUSE` from close handler; services dispatch `USE_GUILD_SERVICE` | Opening closes the main guild modal and the same side-panel set. |
+| Heist planning modal | `activeHeist && activeHeist.phase === 'Planning'` in `GameModals.tsx` | approach dispatches `SELECT_HEIST_APPROACH`; begin dispatches `ADVANCE_HEIST_PHASE`; close dispatches `ABORT_HEIST` | Heist visibility is crime-state-driven, not a UI toggle. Future modal changes must decide explicitly whether to abort, advance, or preserve `activeHeist`. |
 
 ## Classification Notes
 

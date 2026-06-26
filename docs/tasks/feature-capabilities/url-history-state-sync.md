@@ -33,3 +33,5 @@ URL and history synchronization is implemented as a baseline app capability.
 
 - This pass verified the hook logic and reducer touchpoints, not every rendered screen transition that depends on that hook.
 - The doc now reflects implemented baseline behavior instead of treating history sync as a purely planned capability.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/feature-capabilities/url-history-state-sync.md","sha256WithoutMarker":"1605b7f6a4ae11238c48607e16349b73ea024761d0bbbd24569a21e089418487","markedAtUtc":"2026-06-25T22:29:38.610Z"} -->

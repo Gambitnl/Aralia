@@ -91,3 +91,5 @@ Record only after merge and deployment proof or waiver:
   the decision report before filling this receipt.
 - If deployment is waived, record why the waiver is acceptable for this spell
   slice and what later proof will replace it.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md","sha256WithoutMarker":"5ae906cf084af85afa66548412999300e709764ef8237774c959aa25e99daa99","markedAtUtc":"2026-06-25T22:29:38.351Z"} -->

@@ -6,7 +6,7 @@ slug: dice
 status: review-required
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-12"
+last_updated: "2026-06-25"
 gap_count: 0
 open_gap_count: 0
 resolved_gap_count: 0
@@ -101,9 +101,9 @@ supported_optional_sections:
 ---
 project: Dice
 slug: dice
-last_updated: \"2026-06-12\"
-gap_count: 2
-open_gap_count: 1
+last_updated: \"2026-06-25\"
+gap_count: 4
+open_gap_count: 3
 north_star: docs/projects/dice/NORTH_STAR.md
 tracker: docs/projects/dice/TRACKER.md
 global_gaps: docs/projects/GLOBAL_GAPS.md
@@ -113,7 +113,7 @@ registry_mode: mixed
 # Dice Gap Registry
 
 Status: review-required
-Last updated: 2026-06-12
+Last updated: 2026-06-25
 
 Use this file for durable, in-project unresolved findings.
 
@@ -124,6 +124,8 @@ Use this file for durable unresolved findings that are too important or too larg
 |---|---|---|---|---|---|---|---|---|---|---|
 | D-G2 | not_started | in_scope_now | Agent | `docs/projects/dice/TRACKER.md` | narrow code scan | No dice roll history persistence for users or replay logs | `src/components/dice/DiceRollerModal.tsx`, `src/services/DiceService.ts` | Hard to debug outcomes or audit roll outcomes after session events | Specify history storage and retention policy | Add UI and state persistence definition |
 | D-G3 | blocked_human_decision | support_needed_now | Agent | `docs/projects/dice/TRACKER.md` | narrow code scan | Silent and visual roll paths share behavior expectations but differ by deterministic contract | `src/services/DiceService.ts`, `src/hooks/useDiceBox.ts`, `src/components/dice/DiceOverlay.tsx` | Divergent behavior can make outcomes inconsistent between gameplay and visual display | Finalize deterministic + history contract in review brief | Add a policy acceptance test |
+| D-G4 | not_started | adjacent_follow_up | Codex | `docs/tasks/investigations/DICE_ROLLER_ANALYSIS.md` retirement | investigation packet routing 2026-06-25 | DiceBox initialization logic is split between the modal hook and overlay service. | `src/hooks/useDiceBox.ts`; `src/services/DiceService.ts`; retired `docs/tasks/investigations/DICE_ROLLER_ANALYSIS.md` | Strict-mode canvas cleanup and asset-path robustness can drift between manual and system-triggered visual rolls. | Decide whether to extract shared DiceBox initialization/factory behavior or keep the two lanes intentionally separate. | Focused mount/remount proof for both `DiceRollerModal` and `DiceOverlay`, or a documented decision that only one lane owns strict-mode hardening. |
+| D-G5 | not_started | adjacent_follow_up | Codex | `docs/tasks/investigations/DICE_ROLLER_ANALYSIS.md` retirement | investigation packet routing 2026-06-25 | Dice roller modal still carries local canvas style concerns that should be verified before broad CSS cleanup. | `src/components/dice/DiceRollerModal.tsx`; retired `docs/tasks/investigations/DICE_ROLLER_ANALYSIS.md` | Inline canvas style behavior can be broken by visual cleanup if pointer-event and dice-canvas layering are not preserved. | Recheck the rendered modal first; if the inline style is still present and problematic, move it through the owning UI/style lane with screenshot proof. | Rendered modal proof before and after any style extraction. |
 
 ## Classification reference
 

@@ -14,3 +14,4 @@ This is the second parity phase in the spell-truth workflow. It shows where runt
 
 No structured-vs-json mismatches found.
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_STRUCTURED_VS_JSON_REPORT.md","sha256WithoutMarker":"a7b96bf304e926e6b06746dcfa4fb34e528a17d870a9c4c39a945f925293a220","markedAtUtc":"2026-06-25T22:29:38.559Z"} -->

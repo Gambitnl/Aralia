@@ -37,4 +37,8 @@ Proof: `.agent/game-entry-situation/npcs-in-scene-capture.txt` captured generate
 
 ## Gaps / Follow-Ups
 
-See `GAPS.md` for the two remaining follow-ups: full in-browser click-through proof and optional narrative-model preference cleanup.
+See `GAPS.md` for the remaining follow-up: full in-browser click-through proof.
+The optional narrative-model preference cleanup is closed; `gemma4:12b` is now
+listed in the prose model preference chain used by `opening_situation`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/game-entry-situation/TRACKER.md","sha256WithoutMarker":"662e26cae9e7d0cf68cb170f2d3386ea9ca66fd6da1f37947fd6f5521fe9b80f","markedAtUtc":"2026-06-25T22:29:38.626Z"} -->

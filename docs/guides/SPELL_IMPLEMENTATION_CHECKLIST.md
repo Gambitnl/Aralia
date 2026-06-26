@@ -111,3 +111,5 @@ Treat a spell update as complete only when:
 - docs/spells/SPELL_JSON_EXAMPLES.md
 - docs/spells/SPELL_INTEGRATION_CHECKLIST.md
 - docs/SPELL_INTEGRATION_STATUS.md
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/guides/SPELL_IMPLEMENTATION_CHECKLIST.md","sha256WithoutMarker":"421aaa0c3657ccd43a2057b218445c336e4cc2c30de1637b676eb896d734fccc","markedAtUtc":"2026-06-25T22:29:38.321Z"} -->

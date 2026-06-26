@@ -1,0 +1,5062 @@
+{
+  "generatedFor": "backlog-retirement",
+  "generatedAtUtc": "2026-06-25T23:59:12.259Z",
+  "ledgerPath": "docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md",
+  "summary": {
+    "total": 561,
+    "missing": 87,
+    "file": 471,
+    "glob": 3
+  },
+  "entries": [
+    {
+      "backlogFile": "docs/tasks/CONFIG_REFACTOR_PROPOSAL.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/implementation_plan.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/1A-3D-EXPLORATION-ROADMAP.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/2B-3D-INTEGRATION-DESIGN-PLAN.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/2024_phb_rules_migration.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/lint-setup.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/ORACLE_REACTIVE_EFFECT_TYPES.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/combat-messaging-enhancement/IMPLEMENTATION_PLAN.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/action-system-refactor/1A-ARCHITECTURAL-PROPOSALS.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/action-system-refactor/NORTH_STAR.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "42d6ff3e5650a69d51a8091548222f27fd5bcfaf4af253f92a799f9509ba22e2",
+      "bytes": 4113,
+      "modifiedUtc": "2026-06-25T22:29:38.300Z"
+    },
+    {
+      "backlogFile": "docs/tasks/action-system-refactor/GAPS.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1a0dac7353c4ea47a4f955fe9121b68b9f8f0ed124693911989267354c26052e",
+      "bytes": 5790,
+      "modifiedUtc": "2026-06-25T22:29:38.301Z"
+    },
+    {
+      "backlogFile": "docs/tasks/action-system-refactor/TRACKER.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e3ef8c45eea4c75b70c6b4930bb129fa2c0a8dd7c8e354912f895b2a86f6c003",
+      "bytes": 4597,
+      "modifiedUtc": "2026-06-25T22:29:38.302Z"
+    },
+    {
+      "backlogFile": "docs/tasks/investigations/DICE_ROLLER_ANALYSIS.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/glossary/GLOSSARY_LINK_SURFACES_PLAN.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/glossary/NORTH_STAR.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "754288ae727b558b2936dbf7bbdf2732e1fd3232162f2c5754ee3f5842caa0b2",
+      "bytes": 4993,
+      "modifiedUtc": "2026-06-25T22:29:38.303Z"
+    },
+    {
+      "backlogFile": "docs/tasks/glossary/GAPS.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d84a5596148ede7eb2b35eb9fc5a36c5d246622d1a5b6d2ffb659ae15b6cee67",
+      "bytes": 4617,
+      "modifiedUtc": "2026-06-25T23:48:24.816Z"
+    },
+    {
+      "backlogFile": "docs/tasks/glossary/TRACKER.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "9f64537772d3d7531305132eb7bef83fca7f22e3a2e622b5f011e80abf47e612",
+      "bytes": 2776,
+      "modifiedUtc": "2026-06-25T23:48:24.817Z"
+    },
+    {
+      "backlogFile": "docs/tasks/glossary/GLOSSARY_LINK_SURFACES_INVENTORY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "8387e6c46206cb001433dcf81d82400759be48a9f82fb53d84cfe622a0a32cb1",
+      "bytes": 101949,
+      "modifiedUtc": "2026-06-25T22:29:38.307Z"
+    },
+    {
+      "backlogFile": "docs/tasks/glossary/GLOSSARY_RELEVANT_RULES_TARGET_SET.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f1575d647c97dd0211dca01c0895d6598d761aa5cd83398fafdadcf60915fcdf",
+      "bytes": 4418,
+      "modifiedUtc": "2026-06-25T22:29:38.308Z"
+    },
+    {
+      "backlogFile": "docs/tasks/glossary/DND_BEYOND_RULES_GLOSSARY_FIRST_PASS_AUDIT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1cc28641362b3483d6e9acca33afd6af2319f3835f21ef3d689e6a9a04d1399e",
+      "bytes": 50461,
+      "modifiedUtc": "2026-06-25T22:29:38.309Z"
+    },
+    {
+      "backlogFile": "docs/tasks/item-icons/NORTH_STAR.md",
+      "walkState": "walked, kept-complete",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b44a654013a5ef093cb80c7b6815638aa103c1cac11eac4cbcfb486eed031369",
+      "bytes": 2727,
+      "modifiedUtc": "2026-06-25T22:29:38.310Z"
+    },
+    {
+      "backlogFile": "docs/tasks/item-icons/TRACKER.md",
+      "walkState": "walked, kept-complete",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4a5b2c9331d4a7a8e894e8c9c5bec8ea51347f0c01158bdd1c2c0058e32a1383",
+      "bytes": 2985,
+      "modifiedUtc": "2026-06-25T22:29:38.310Z"
+    },
+    {
+      "backlogFile": "docs/tasks/item-icons/GAPS.md",
+      "walkState": "walked, kept-complete",
+      "exists": true,
+      "kind": "file",
+      "sha256": "72a231707558d0f281523bb61531f3d641e6b61347c7dd9e40bc460581d1ae3c",
+      "bytes": 3592,
+      "modifiedUtc": "2026-06-25T22:29:38.311Z"
+    },
+    {
+      "backlogFile": "docs/tasks/item-icons/JULES_ACCEPTANCE_CRITERIA.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e7f2e835f08bbfdcd933f7e8c3f3221db89fbd03e4ca1496589f3c0cfc33428d",
+      "bytes": 1412,
+      "modifiedUtc": "2026-06-25T22:29:38.311Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/11A-DYNAMIC-LIGHTING-SUPPORT.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/11B-SAVE-PENALTY-RIDER.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/11C-TERRAIN-UTILITY-STRUCTURES.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/COMPLETE-STUB-COMMANDS.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/IMPLEMENT-AOE-ALGORITHMS.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/IMPLEMENT-CONCENTRATION-TRACKING.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/IMPLEMENT-REMAINING-EFFECT-COMMANDS.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/00-GAP-ANALYSIS.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/GAP-01-AI-INPUT-UI.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/GAP-02-EXAMPLE-AI-SPELLS.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/GAP-03-AI-CACHING.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/GAP-04-REAL-TERRAIN-DATA.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/00-TASK-INDEX.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/1A-PROJECT-MASTER-SPRINGBOARD.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/0-PRIORITY-SCHEMA-EVOLUTION.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/19-ai-spell-arbitrator.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/weapon-proficiency-system/10-weapon-mastery-integration.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/weapon-proficiency-system/01-09-and-11.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/roadmap/1C-ROADMAP-IMPLEMENTATION-PLAN.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/roadmap/1B-ROADMAP-VISUALIZER-EVOLUTION-HANDOVER.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/roadmap/1D-ROADMAP-ORCHESTRATION-CONTRACT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "8963e56fc7c2a313d6e2b6d3535b3a5b00be6ef5314584422a6c0c5beda6652e",
+      "bytes": 2014,
+      "modifiedUtc": "2026-06-25T22:29:38.313Z"
+    },
+    {
+      "backlogFile": "docs/tasks/roadmap/@HANDOVER-CREATION-GUIDE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "34583956f8152eed26f9dafa235f44c18a502330de35d0b156afd1ca826cbf7c",
+      "bytes": 2166,
+      "modifiedUtc": "2026-06-25T22:29:38.314Z"
+    },
+    {
+      "backlogFile": "docs/tasks/roadmap/ROADMAP-TOOL-NODE-AUDIT.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/roadmap/ROADMAP-TOOL-REFERENCE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e31e86dec19a666f39fbe4ea3c882145cdc16d5ad72a6dcaf655dc5b5c78814e",
+      "bytes": 8166,
+      "modifiedUtc": "2026-06-25T22:29:38.316Z"
+    },
+    {
+      "backlogFile": "docs/tasks/roadmap/1E-SPELL-ROADMAP-ONTOLOGY-QUESTIONS.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/improvements/09_remove_obsolete_files.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/improvements/SETTINGS_MENU_PLAN.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/refactors/CONFIG_REFACTOR_PLAN.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/refactors/PROPOSED_TIME_REFACTOR.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/refactors/ARCH_TYPES_REFACTOR.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/refactors/TYPES_REFACTOR_PLAN.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/improvements/12_expand_village_system.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/improvements/CREATURE-TYPE-ENUM-AND-REQUIREMENT.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/improvements/MALLEABLE_WORLD_DEV_NOTES.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/improvements/SPRITE-POSE-CONTROL-VARIANTS.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/improvements/DEVELOPMENT_FLOW_ENHANCEMENT_PLAN.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-02-27-codex-terminal-dev-hub.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-02-27-codex-terminal-dev-hub-impl.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-02-27-roadmap-audit-corrections.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-02-27-roadmap-branch-completion-design.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-02-27-roadmap-branch-completion-plan.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-03-15-capability-decision-plan.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-03-18-roadmap-server-separation-plan.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-03-19-spell-branch-ontology.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-03-19-spells-graph-overlay-design.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-03-19-spells-graph-overlay.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-03-21-roadmap-node-media-previews-design.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-03-21-roadmap-node-media-previews.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-03-23-roadmap-node-layman-renames-design.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-03-23-roadmap-node-layman-renames-impl.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-03-23-spell-branch-navigator-node-cleanup.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-03-23-spell-branch-navigator-node-cleanup-impl.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-03-24-reset-node-positions-dock-button-design.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-03-24-reset-node-positions-dock-button.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-05-18-local-git-cleanup-evaluation.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/2026-06-25-3d-agent-walking-integration.md",
+      "walkState": "walked, migrated, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ef151730718e3f168e2d39d6f6b163cb115b154e90702c60b107aa8a9bf3f6c4",
+      "bytes": 8263,
+      "modifiedUtc": "2026-06-25T22:37:27.397Z"
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-05-11-death-saving-throws.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-05-12-equip-premade-characters.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-05-13-spell-mechanics-discovery-closure.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "befadcd90e7dd29181cadfa7a22d04e9dfec6ab127e673739c2462d407345a1b",
+      "bytes": 9010,
+      "modifiedUtc": "2026-06-25T22:29:38.317Z"
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-04-04-takram-sky-fixes.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-05-28-world-sim-extensions.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-05-30-world3d-streaming-infrastructure.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-05-31-world3d-chunk-rendering.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-05-31-world3d-rendering-hardening.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-06-01-world-3d-ui-transition-and-marker-sync.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-06-15-isolated-web-account-probes.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-06-22-sp0-atlas-svg-render-port-iter1.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-06-23-sp1-voronoi-submap-engine-iter1.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-06-25-maritime-travel-plan1-routing-core.md",
+      "walkState": "walked, migrated, executed, retired",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/guides/@RACE-ADDITION-DEV-GUIDE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f5eb6fa2ca183e5104deadef1f24b0cf6cfb4948fb52a46188deee17bb2b8c22",
+      "bytes": 3652,
+      "modifiedUtc": "2026-06-25T22:29:38.318Z"
+    },
+    {
+      "backlogFile": "docs/guides/CLASS_ADDITION_GUIDE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5ea750368531402578353548ec7abcaed0851f4fa69993f39c40f8d9f7d493df",
+      "bytes": 3757,
+      "modifiedUtc": "2026-06-25T22:29:38.318Z"
+    },
+    {
+      "backlogFile": "docs/guides/FEAT_SELECTION_IMPLEMENTATION_GUIDE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f5f6c0bf1a69a7a434a44c3337612a485d99632912557ca0657eb3753ba5f48e",
+      "bytes": 3206,
+      "modifiedUtc": "2026-06-25T22:29:38.319Z"
+    },
+    {
+      "backlogFile": "docs/guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "347828b43a5a0c15511ad6788bbb2baff954d812758adfc243f0173ae0f0ec07",
+      "bytes": 3520,
+      "modifiedUtc": "2026-06-25T22:29:38.320Z"
+    },
+    {
+      "backlogFile": "docs/guides/RACE_ADDITION_GUIDE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "8f1d0947e07b1fc0f3ce587b527105ebf7a50f278531f989b9780a4a23e08646",
+      "bytes": 3173,
+      "modifiedUtc": "2026-06-25T22:29:38.321Z"
+    },
+    {
+      "backlogFile": "docs/guides/SPELL_IMPLEMENTATION_CHECKLIST.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c5f03b3d2891ef1c7df75fb22ca0d8f721e89146750944384952b6bda5afe3ae",
+      "bytes": 4735,
+      "modifiedUtc": "2026-06-25T22:29:38.321Z"
+    },
+    {
+      "backlogFile": "docs/guides/TABLE_CREATION_GUIDE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e0d6e042d0e59089b91f98cdd20702cf47d2173d8ecca67f11b9cc9837070b20",
+      "bytes": 2883,
+      "modifiedUtc": "2026-06-25T22:29:38.322Z"
+    },
+    {
+      "backlogFile": "docs/superpowers/specs/2026-05-21-3d-combat-map-design.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "7081c607ef3f41882a85a261664f49f115fe264943dcaa426cc5e5454c300f1b",
+      "bytes": 29810,
+      "modifiedUtc": "2026-06-25T22:29:38.324Z"
+    },
+    {
+      "backlogFile": "docs/superpowers/specs/2026-05-28-azgaar-3d-streamed-world-design.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "897a2f40ea6a0b549eb16b7ac227ae6d388305c84cf204cfcb55348633dadf53",
+      "bytes": 24878,
+      "modifiedUtc": "2026-06-25T22:43:27.470Z"
+    },
+    {
+      "backlogFile": "docs/superpowers/specs/2026-06-15-isolated-web-account-probes-design.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "05ee5e161bae5bc261159edaa87edd591f18e73c402ba625421078dd92081d6d",
+      "bytes": 5884,
+      "modifiedUtc": "2026-06-25T22:43:27.471Z"
+    },
+    {
+      "backlogFile": "docs/superpowers/specs/2026-06-24-submap-neighbourhood-view-design.md",
+      "walkState": "walked, executed, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "dff346c192f358ecc5daf7397a969115cc19518027ec2a9f28e18af509de0337",
+      "bytes": 3181,
+      "modifiedUtc": "2026-06-25T22:43:27.472Z"
+    },
+    {
+      "backlogFile": "docs/superpowers/specs/2026-06-25-maritime-travel-design.md",
+      "walkState": "walked, migrated, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "170af9012639e7a462017a5bcc41a97c702d42cc85642543074e8e720d842676",
+      "bytes": 19648,
+      "modifiedUtc": "2026-06-25T23:38:33.390Z"
+    },
+    {
+      "backlogFile": "docs/superpowers/specs/2026-06-25-travel-provisioning-design.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1a07b7170249f007fe9a05c3af5ba36397842a5448a66e6ea8601da5e6e30db0",
+      "bytes": 7822,
+      "modifiedUtc": "2026-06-25T22:43:27.473Z"
+    },
+    {
+      "backlogFile": "docs/improvements/completed/01_consolidate_repetitive_components.md",
+      "walkState": "walked, kept-complete",
+      "exists": true,
+      "kind": "file",
+      "sha256": "752710e48682ffb767f491be5d5860e105112424133e0a0a576fd251a914db27",
+      "bytes": 2257,
+      "modifiedUtc": "2026-06-25T22:49:17.525Z"
+    },
+    {
+      "backlogFile": "docs/improvements/completed/02_decouple_configuration.md",
+      "walkState": "walked, kept-complete",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f2ae3f673167ba091e567639fa021002360b9850ed7edb1df641ea265c7ab1bb",
+      "bytes": 2159,
+      "modifiedUtc": "2026-06-25T22:49:17.526Z"
+    },
+    {
+      "backlogFile": "docs/improvements/completed/03_refactor_player_character_type.md",
+      "walkState": "walked, kept-complete",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5f70f9a01ad08055395e0460713fb756fa495c49a77a9ccaa2adf7cd2643a929",
+      "bytes": 2071,
+      "modifiedUtc": "2026-06-25T22:49:17.527Z"
+    },
+    {
+      "backlogFile": "docs/improvements/completed/04_externalize_css.md",
+      "walkState": "walked, kept-complete",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b3b534f2882df2aa0b7db9f010622b3d859a7e77326c7820cfd00f5f84ecaa99",
+      "bytes": 1962,
+      "modifiedUtc": "2026-06-25T22:49:17.527Z"
+    },
+    {
+      "backlogFile": "docs/improvements/completed/05_standardize_api_error_handling.md",
+      "walkState": "walked, kept-complete",
+      "exists": true,
+      "kind": "file",
+      "sha256": "869562bdfc8e2b4e8f134e01a0383ec416d9f143d90d3be436388b6123c928dc",
+      "bytes": 2851,
+      "modifiedUtc": "2026-06-25T22:49:17.528Z"
+    },
+    {
+      "backlogFile": "docs/improvements/completed/06_optimize_submap_rendering.md",
+      "walkState": "walked, kept-complete",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2798228346d22c268eb6a8a641b18246d857b9c0c433fb7e1ba767755eeb0c13",
+      "bytes": 2704,
+      "modifiedUtc": "2026-06-25T22:49:17.529Z"
+    },
+    {
+      "backlogFile": "docs/improvements/completed/07_invert_reducer_action_logic.md",
+      "walkState": "walked, kept-complete",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d5ee5c92b89bddee1938515db8d08bdabcf9e66c3bb23fec20ea278028167aed",
+      "bytes": 2793,
+      "modifiedUtc": "2026-06-25T22:49:17.529Z"
+    },
+    {
+      "backlogFile": "docs/improvements/completed/10_enhance_loading_transition.md",
+      "walkState": "walked, kept-complete",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c90513001cfa6a908ba4ab39a4721db581117bd7321bb05e39255bb7aef6847c",
+      "bytes": 2557,
+      "modifiedUtc": "2026-06-25T22:49:17.530Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/01_consolidate_repetitive_components.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1bff0cbb5b85849e469384ce4717026629115bad60bff0982e7b33d36cba7530",
+      "bytes": 1365,
+      "modifiedUtc": "2026-06-25T22:49:17.531Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/02_decouple_configuration.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6505a6042ea44caf49245cdaf4314ec7acb3dc65aa5049a3a20f6b91b5284f4d",
+      "bytes": 1417,
+      "modifiedUtc": "2026-06-25T22:49:17.532Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/03_refactor_player_character_type.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "3e4794cb4ef8732d3142ff9b1b320033b40590b9303400d2af021f36abddb74f",
+      "bytes": 1406,
+      "modifiedUtc": "2026-06-25T22:49:17.532Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/04_externalize_css.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ccc08b8431d6ff6f33a2d1d729aa60b2f6fb6d94d614da0e62bda6a274fecc87",
+      "bytes": 1463,
+      "modifiedUtc": "2026-06-25T22:49:17.533Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/05_standardize_api_error_handling.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "75a43fda3121dc1af14e9c88f8b40fb35c90e6c540ac9e89a8612d8469ee50c6",
+      "bytes": 1522,
+      "modifiedUtc": "2026-06-25T22:49:17.533Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/06_optimize_submap_rendering.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "8da21c1137ba3302e62829f9f149881aef9e7a8475cc5370485e448e596ac202",
+      "bytes": 1439,
+      "modifiedUtc": "2026-06-25T22:49:17.534Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/07_invert_reducer_action_logic.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6c6a8e9cbf2817e9faeba893cbca4f85e0aea15af5bcf458af5404e824050e76",
+      "bytes": 1439,
+      "modifiedUtc": "2026-06-25T22:49:17.534Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/08_improve_point_buy_ui.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "10ccaafad9b560636537d547c04c2d6c282a56714e6bcf5772a5a00a830e95ba",
+      "bytes": 1399,
+      "modifiedUtc": "2026-06-25T22:49:17.535Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/10_enhance_loading_transition.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "9f0fc68d356c3e51167bf4c81aaeaf94c8098a7568bbd13e3e2810acc48d003b",
+      "bytes": 1555,
+      "modifiedUtc": "2026-06-25T22:49:17.535Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/QOL_TODO_COMPLETED.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f93d29ef5023472407d2206a373b52c5a91bd9b65335f9dfc4d71f496b188a4a",
+      "bytes": 1387,
+      "modifiedUtc": "2026-06-25T22:49:17.536Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/11_submap_generation_deep_dive/@PLAN_CELLULAR_AUTOMATA.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ba70ed7ce732057b942d31df026591e32bdff8ba7ed531686040a06f60af2ec1",
+      "bytes": 1420,
+      "modifiedUtc": "2026-06-25T22:49:17.537Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/11_submap_generation_deep_dive/PLAN_BIOME_BLENDING.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "00dd5004b4efc5bed800718ad4d71fcebcf2bf897a8ab491e118738f6848c7ab",
+      "bytes": 1495,
+      "modifiedUtc": "2026-06-25T22:49:17.537Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/11_submap_generation_deep_dive/PLAN_PIXIJS_RENDERING.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a228efd604e3d7dc00aa497c63a6a059a20ea57c28528bcc778ec36ea48bda77",
+      "bytes": 1478,
+      "modifiedUtc": "2026-06-25T22:49:17.538Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/11_submap_generation_deep_dive/PLAN_WAVE_FUNCTION_COLLAPSE.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "add331f68ca7f9665a2461717fcef1eacec82ebe46fffc9347253607b491daf1",
+      "bytes": 1420,
+      "modifiedUtc": "2026-06-25T22:49:17.538Z"
+    },
+    {
+      "backlogFile": "docs/archive/improvements/11_submap_generation_deep_dive/SUBMAP_SYSTEM_ANALYSIS.md",
+      "walkState": "walked, kept-archive",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1840f5b39ab0c2c5b59a4b057d39eb60be517411ff1a1cbaddd8a890d5f4237c",
+      "bytes": 1910,
+      "modifiedUtc": "2026-06-25T22:49:17.539Z"
+    },
+    {
+      "backlogFile": "docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "00cae9abfd54fd2687590e9b8c19e63ca4e56bcdbe4ef467aa211cfd4d14852c",
+      "bytes": 31381,
+      "modifiedUtc": "2026-06-25T22:54:19.194Z"
+    },
+    {
+      "backlogFile": "docs/projects/GLOBAL_GAPS.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "0da061fd0c07abf4d9375b1999ee5b1d64929d355b43395d4825155174e9af16",
+      "bytes": 27753,
+      "modifiedUtc": "2026-06-25T22:54:19.195Z"
+    },
+    {
+      "backlogFile": "docs/projects/PROJECT_DEPRECATION_REVIEW.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "dc36b331d68c902d6c2f50412cae5ebf7ff2e650b8ae23921a76df98a2e876ef",
+      "bytes": 9162,
+      "modifiedUtc": "2026-06-25T22:54:19.196Z"
+    },
+    {
+      "backlogFile": "docs/spells/GAPS.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a9552e6832522f63acfeda2081dfb325933907fa00167e5934e848c48480ca7f",
+      "bytes": 1273,
+      "modifiedUtc": "2026-06-25T22:54:19.197Z"
+    },
+    {
+      "backlogFile": "docs/spells/TRACKER.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "109ee9a9c130f8a58ddfde2617a7dc25ce540eaf8ff71d6424d0e0c08685e51a",
+      "bytes": 1316,
+      "modifiedUtc": "2026-06-25T22:54:19.198Z"
+    },
+    {
+      "backlogFile": "docs/spells/NORTH_STAR.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ef522ffce2257f660dbbd514cc714e11dabbe53678deb0a453fb444de84d9fe2",
+      "bytes": 2702,
+      "modifiedUtc": "2026-06-25T22:54:19.198Z"
+    },
+    {
+      "backlogFile": "docs/VISION.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "893dafeb3596255ead0e404170c6c989f0b294d8287129ef06ffccbac2b06800",
+      "bytes": 29489,
+      "modifiedUtc": "2026-06-25T22:29:38.326Z"
+    },
+    {
+      "backlogFile": "docs/plans/tooling/VERSION_SIZING_REVIEW_AGENT_CONCEPT.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/1F-VERSION-REVIEW-AGENT-CONCEPT.md",
+      "walkState": "walked, retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/plans/features/SLASHER_FEAT_DESIGN.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "SCRIPTS_INVENTORY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d29e4f60d085ebe4c13b41ee2432d9b05435da245876f28503c627748a168960",
+      "bytes": 283756,
+      "modifiedUtc": "2026-06-25T22:29:38.331Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/COMBAT_MAP_PRESENTATION_MATRIX.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "646d37455f93da127d6853912a0af56a0fc6911d2a66c6c3dca1469042e1469f",
+      "bytes": 24242,
+      "modifiedUtc": "2026-06-25T22:29:38.334Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/TASK_SLICE.md",
+      "walkState": "walked, executed, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "13bd7a49c80fa74c01064e85ff3fdacc2ff026af63e31510c0d4058534eff4d8",
+      "bytes": 16191,
+      "modifiedUtc": "2026-06-25T22:29:38.334Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/ATLAS_GAPS_REGISTRY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "83c137ca53947b67c5a979fd3c541defafd57c50c64e753da5d62adbad3a5751",
+      "bytes": 17241,
+      "modifiedUtc": "2026-06-25T22:29:38.337Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6fedbdfce2fa9e7615d39aaf3817c88ad6957089bfae85a0dbdf03eb6dfa5634",
+      "bytes": 185076,
+      "modifiedUtc": "2026-06-25T22:29:38.340Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/EARLY_GAME_SPELL_EXECUTION_PLAN.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "726e33431def8f10fcc0045c91df5d3bf1b6420ea770b6017826f19238f29d50",
+      "bytes": 40020,
+      "modifiedUtc": "2026-06-25T22:29:38.342Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_DATA_VALIDATION_PLAN.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "407036473fda202c48c9258dd58ebc99c4caa498c5729d4c1f25c5b22f6d4d1d",
+      "bytes": 92630,
+      "modifiedUtc": "2026-06-25T22:29:38.344Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "736ddcbf6f6d29401d77bbe39dd8b3757c6dbbb627c84a7e88c907a591b9bfeb",
+      "bytes": 34448,
+      "modifiedUtc": "2026-06-25T22:29:38.345Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_2_FOREMAN_REVIEW_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c277b93588e42e59609bfcd1c7b65ebe735864e4c310c59d2ca3be9abece527e",
+      "bytes": 8380,
+      "modifiedUtc": "2026-06-25T22:29:38.345Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "84d3ff133bd9876653980b0397656f24a22f468955c29127200f13d1fec5875a",
+      "bytes": 11468,
+      "modifiedUtc": "2026-06-25T22:29:38.346Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "aa2b56528efdd7d05c0d694504009532b31273557e6457bb7feae0db972a6237",
+      "bytes": 5768,
+      "modifiedUtc": "2026-06-25T22:29:38.347Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_2_DISPATCH_READINESS_CHECKLIST.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "dbbab1d0ceb6c360b309fe025c0830aa457c935055c6fd1d7e85381562d74760",
+      "bytes": 6410,
+      "modifiedUtc": "2026-06-25T22:29:38.349Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_2_TASK_COMMUNICATION_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "bbefb6694d9db3a1ece00b0ab66bc03a944fc875b0239336ed16717bb9adf4db",
+      "bytes": 5406,
+      "modifiedUtc": "2026-06-25T22:29:38.350Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b4b14126e0dfe1e09a99d06f6064882dd606d13d949098a6c92fa764c2448542",
+      "bytes": 4815,
+      "modifiedUtc": "2026-06-25T22:29:38.351Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_2_ATLAS_GATE_CHECKPOINT_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "9dd2ef3094a9efd36d6488e4342ec4d23947f5c9b6bc1e0f6145ee8b2b0100be",
+      "bytes": 4188,
+      "modifiedUtc": "2026-06-25T22:29:38.352Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_PHASE_1_JULES_ENVIRONMENT_SNAPSHOT_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "18b10cd12700722a9acf4a83cce3ad6be34c374f67b2c68d3ff0766ce043c416",
+      "bytes": 6112,
+      "modifiedUtc": "2026-06-25T22:29:38.352Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_PHASE_1_ROI_BASELINE_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5640d568b8062bf33c7c57e573f56ae35ddf6c3ecbfea40684a56d80f36bc088",
+      "bytes": 3542,
+      "modifiedUtc": "2026-06-25T22:29:38.353Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_3_DISPATCH_READINESS_CHECKLIST.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "183c92804f7335e0304029113707552c531814c24717e63f166bd767d33842d6",
+      "bytes": 6960,
+      "modifiedUtc": "2026-06-25T22:29:38.354Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_3_SYMPHONY_HANDOFF_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d6673292fc6960ca19f96bb656a82435316b878b668b35cb3687bdf71f3c82b0",
+      "bytes": 21148,
+      "modifiedUtc": "2026-06-25T22:29:38.355Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6d25a14fd77aed9d475cd4cc3fe750d4842c5657de99b68f44b9f7fb3730ec94",
+      "bytes": 4128,
+      "modifiedUtc": "2026-06-25T22:29:38.356Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_4_DISPATCH_READINESS_CHECKLIST.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1883f1c601d1224ad79979bb0eae126daa4a00c2e9aa5e8ee60bb100e636f83d",
+      "bytes": 5201,
+      "modifiedUtc": "2026-06-25T22:29:38.357Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_4_COMBAT_SIMULATOR_DETERMINISTIC_PILOT_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f269e5978feb415f2ab2a0b233b23f3251620baf29e7c2604f04acbfb044d488",
+      "bytes": 8415,
+      "modifiedUtc": "2026-06-25T22:29:38.357Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_4_COMBAT_SIMULATOR_DETERMINISTIC_PILOT_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e19a2643675232741fda3c8ba6ea6eed796de172a110089ba0a8b51d3d641730",
+      "bytes": 5853,
+      "modifiedUtc": "2026-06-25T22:29:38.358Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_4_ATLAS_GATE_CHECKPOINT_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "04dce91c35563a59036e10b81d92dff71b968c79ad8d07fca168da480aa55d98",
+      "bytes": 3793,
+      "modifiedUtc": "2026-06-25T22:29:38.359Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_PHASE_1_PACKAGE_HISTORY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ee10ef3929156f652b0cd5d547a79147b8ab88fca97fde6b23c75a1a449e3f93",
+      "bytes": 19355,
+      "modifiedUtc": "2026-06-25T22:29:38.359Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5418b953c326f010f657a55f4aebc69ef5337258d76150d53f976472200a3905",
+      "bytes": 11947,
+      "modifiedUtc": "2026-06-25T22:29:38.360Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_PHASE_1_PR_HANDOFF_INDEX.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f20420359f482bd07db8c49d92268f4192ba45ce9ca9edd3b4062634bd7bdb4d",
+      "bytes": 4597,
+      "modifiedUtc": "2026-06-25T22:29:38.361Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "79599e237e20583d52832efc3af89a2e7357398e9f11e12cb1264b8d62687ee1",
+      "bytes": 16328,
+      "modifiedUtc": "2026-06-25T22:29:38.361Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c07496e4a48ee3886f9aa8e2d4fcf95bfbf13bbec68b5d8eeedda2cde74d48d5",
+      "bytes": 3982,
+      "modifiedUtc": "2026-06-25T22:29:38.362Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "00b7493ccf4a703cca7948f9a6e8bf160ba9f44eb9ac17010486f51222f71e75",
+      "bytes": 8998,
+      "modifiedUtc": "2026-06-25T22:29:38.362Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "48478fa0d85f845df21f654767b549dc7667f5e3a9e21f97e538f21f6b90922d",
+      "bytes": 2044,
+      "modifiedUtc": "2026-06-25T22:29:38.364Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "59b9c7425023dbc6437c1834573bf3b71872390f3daba642474b93ed793e294b",
+      "bytes": 8868,
+      "modifiedUtc": "2026-06-25T22:29:38.364Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "02010492f39a150f415d71cb2e822265533fe81f8131880ce7f1802bcc4415f0",
+      "bytes": 4942,
+      "modifiedUtc": "2026-06-25T22:29:38.365Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "741ae8abefb9cc0f33e32e0bb54ce6d4be11c545e050833b259e5ff7a26a5c4c",
+      "bytes": 4837,
+      "modifiedUtc": "2026-06-25T22:29:38.366Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_7_STALE_PR_FALLBACK_DECISION.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "71171a15bae4e27106e1d1022113237dcf25711bbe1109a3490937a9d8614ca0",
+      "bytes": 6647,
+      "modifiedUtc": "2026-06-25T22:29:38.366Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_8_BLESS_BANE_ROLL_MODIFIERS_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c7e315057b95cb4bb0ef9f0d72f79f1a46341b36da52d0248b87f5258401e3ec",
+      "bytes": 11237,
+      "modifiedUtc": "2026-06-25T22:29:38.367Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_8_BLESS_BANE_ROLL_MODIFIERS_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "69f6060f8d752219d32dadc47d6318d57115db99c1609eb9cbef865477e7fef9",
+      "bytes": 2535,
+      "modifiedUtc": "2026-06-25T22:29:38.368Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_9_CASTER_FIXTURE_COVERAGE_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "628b90ef2ee5e45ab0c427c19fa44e864e0bd2442a22a7e1b4a6727ceadb2c98",
+      "bytes": 9444,
+      "modifiedUtc": "2026-06-25T22:29:38.368Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_9_CASTER_FIXTURE_COVERAGE_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "29954792c4bf4a401c94d4cb653a3465d86b633fd15853767567de4c855439af",
+      "bytes": 3825,
+      "modifiedUtc": "2026-06-25T22:29:38.369Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_9_STALE_PR_REPLACEMENT_DECISION.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1b28e4557fe61518d529dd64d06eb2841d4ef948ac6d1f0efe746c09155ba6c4",
+      "bytes": 3328,
+      "modifiedUtc": "2026-06-25T22:29:38.370Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_10_TARGET_FILTER_ELIGIBILITY_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "55571e5ce86ab5df5cbdc7de91bc3f3772eaef8179835610e99ec39c254076c2",
+      "bytes": 10338,
+      "modifiedUtc": "2026-06-25T22:29:38.371Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_10_TARGET_FILTER_ELIGIBILITY_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4ef2f11cec08258914b148d669a9c9dee02564a70e22e759d47df6bbe37994b1",
+      "bytes": 3684,
+      "modifiedUtc": "2026-06-25T22:29:38.372Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_11_STATUS_OR_STATE_CHANGE_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fb9d9f58b781d58b92c96d72cfd8c1f0ba5dbe2d878434566f8b57bb7c2ad816",
+      "bytes": 10094,
+      "modifiedUtc": "2026-06-25T22:29:38.372Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_11_STATUS_OR_STATE_CHANGE_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4e5b01eee209caef523fc64216562beaab052a696ec935090932bd34f6a5da68",
+      "bytes": 3488,
+      "modifiedUtc": "2026-06-25T22:29:38.373Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_12_CONDITIONAL_ENDING_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f24acb4e78ab8bc975f19513ea39bd16d0289affcd98996f0dda59432e5694e6",
+      "bytes": 9232,
+      "modifiedUtc": "2026-06-25T22:29:38.374Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_12_CONDITIONAL_ENDING_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fff4173583b62222b3fdead939d38e25b4506a998e92f5a2df7da6d333dbd54a",
+      "bytes": 3368,
+      "modifiedUtc": "2026-06-25T22:29:38.374Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_13_TERRAIN_SURFACE_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "221347529af016225302ffcdcf75d91df461ceb3b8a8897b9ac280173b3315c1",
+      "bytes": 10847,
+      "modifiedUtc": "2026-06-25T22:29:38.375Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_13_TERRAIN_SURFACE_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e7a7534ce95596a4407e189140be5b4296a4bee68bd81f7c42aa8fadc9a96c80",
+      "bytes": 3834,
+      "modifiedUtc": "2026-06-25T22:29:38.376Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_13_COMPLETION_NOTES.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2775df02e27400193f58200283758904a57639d3c7182f9eb8e561fa82723163",
+      "bytes": 4287,
+      "modifiedUtc": "2026-06-25T22:29:38.376Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_14_VISION_LIGHT_SOUND_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6d3b712a4462f2f98b0fc2d95e4f11fb4bb054b7520923d3f874a61879cc1851",
+      "bytes": 11945,
+      "modifiedUtc": "2026-06-25T22:29:38.377Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_14_VISION_LIGHT_SOUND_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "264e43bc5ad1a5e9f6c3737ba393f626016b722a7c69a819feeed5760171fcb7",
+      "bytes": 4148,
+      "modifiedUtc": "2026-06-25T22:29:38.378Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_15_SUMMON_CONTROLLED_ENTITY_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "16b61466cedf23e98fc98434b7e7b6c378261df98924be339003087974e92605",
+      "bytes": 10396,
+      "modifiedUtc": "2026-06-25T22:29:38.378Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_15_SUMMON_CONTROLLED_ENTITY_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4117bcea9e89f3e27b764e6f747f715129b10b44436afbdfc5734a388e3955be",
+      "bytes": 4470,
+      "modifiedUtc": "2026-06-25T22:29:38.379Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_16_SUSTAIN_RECAST_ACTION_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e787d77397ae3fd89c9420a866a8c99ee8ee4bbb413a65df31486d688c6dcdf3",
+      "bytes": 11945,
+      "modifiedUtc": "2026-06-25T22:29:38.380Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_16_SUSTAIN_RECAST_ACTION_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ac52d9a2dcb6194d63d501f9a63ef2aa90f7cac4daf6ae9eb760ed4ae2707c8b",
+      "bytes": 4395,
+      "modifiedUtc": "2026-06-25T22:29:38.380Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_17_REACTION_OPPORTUNITY_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "13ae687af40a98ea44efa94e2bc98aa64f6ec93c14c3da4943972a6857428eb0",
+      "bytes": 11550,
+      "modifiedUtc": "2026-06-25T22:29:38.381Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_17_REACTION_OPPORTUNITY_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a089933c36b59d21fd22de99bc45cbc45ee5a263ec46ecf3f99f73feab0b5610",
+      "bytes": 4539,
+      "modifiedUtc": "2026-06-25T22:29:38.382Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "0eef9bd768725b1b939b3251cc914c01d0c9a8d6c4f2e1a7ecb42e6819a950bb",
+      "bytes": 7604,
+      "modifiedUtc": "2026-06-25T22:29:38.382Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "452fd39a318feb8119972ae0169a47a17580715d5c8ae5934bfb801457e4e951",
+      "bytes": 4336,
+      "modifiedUtc": "2026-06-25T22:29:38.383Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_18_REACTION_OPPORTUNITY_SAFE_REPLACEMENT_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1f1e44649f712a71bda43c47ac63ee31b30386e3809c2f49b9faca724826b363",
+      "bytes": 10227,
+      "modifiedUtc": "2026-06-25T22:29:38.383Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_18_REACTION_OPPORTUNITY_SAFE_REPLACEMENT_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "631eac85bacf4db7b5fb7caae62911277543ab474e8ceab2fd46b8751e6e7707",
+      "bytes": 3425,
+      "modifiedUtc": "2026-06-25T22:29:38.384Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_19_CREATED_OBJECT_STRUCTURE_JULES_TASK.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "aa8042528300fde5c9d2a312cfb5dd831877f735fdbdbbb518d62bac2be2dff4",
+      "bytes": 7687,
+      "modifiedUtc": "2026-06-25T22:29:38.385Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_19_CREATED_OBJECT_STRUCTURE_JULES_PROMPT.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "04258e8d0815c39fc98c6f32815af85364590c6de23244ee0e2eaf2371b1734d",
+      "bytes": 4463,
+      "modifiedUtc": "2026-06-25T22:29:38.385Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_19_FOREMAN_REVIEW_RECEIPT.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "7126a612a6269d13da3ef52e687deb07ea967e7ff2c7b848372c406fdfc72e4d",
+      "bytes": 3918,
+      "modifiedUtc": "2026-06-25T22:29:38.389Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_19_BOUNDED_REPAIR_REQUEST.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "71ed0d8c9518ee9c888f557de5199671fcffb53189b8235bb163bf2e58360871",
+      "bytes": 5200,
+      "modifiedUtc": "2026-06-25T22:29:38.392Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/vision_light_sound.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ee2ba06e2fac391ed9ce7b2bdd615df08e7490b2703029fb1ff7330d2e1c70bf",
+      "bytes": 174089,
+      "modifiedUtc": "2026-06-25T22:29:38.397Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/conditional_ending.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "9093b358562e6f0f5e4821c1ad8b845afc8909a7e54200d5b131ff67346e7007",
+      "bytes": 226359,
+      "modifiedUtc": "2026-06-25T22:29:38.401Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/attack_or_save_modifier.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "56698391377d20c7734953480c68eefcffc2a56bbdecfcc504d4faeaa705616d",
+      "bytes": 325402,
+      "modifiedUtc": "2026-06-25T22:29:38.407Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/choice_or_mode.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d696dfb760d44fc823645275f6f06a1a55f1f6f1ea33a15fd41ecad1cea32ce2",
+      "bytes": 181608,
+      "modifiedUtc": "2026-06-25T22:29:38.411Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/status_or_state_change.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e1f082963b9b41ecee83c77d592ee752680d668de58d909f6152858ddf5b0536",
+      "bytes": 178233,
+      "modifiedUtc": "2026-06-25T22:29:38.415Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/terrain_or_surface.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "bdda99079b7b9c80eb17249295b6e2d50c928f714f8aa94aa005af8019b4bc3d",
+      "bytes": 114408,
+      "modifiedUtc": "2026-06-25T22:29:38.418Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/target_filter_or_eligibility.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "0e837f84438e823cbd901e598544ea9cf0c3ea0d1b209c3a70cd65fa408dd903",
+      "bytes": 80748,
+      "modifiedUtc": "2026-06-25T22:29:38.420Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/sustain_or_recast_action.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "8ed0128e40a64817f60055d40aee4fc914f416aeef919a7d5ccf4996fcb188f6",
+      "bytes": 73215,
+      "modifiedUtc": "2026-06-25T22:29:38.422Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/summon_or_controlled_entity.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4d42b79009c22338ef20fe3a462eb5ac6c5647d374e15b43b339d31b9eb6f87d",
+      "bytes": 94680,
+      "modifiedUtc": "2026-06-25T22:29:38.428Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/created_object_or_structure.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "396490008595d25876e45ce2b75015e91d9d45df34349fa0ff6650c655152e6c",
+      "bytes": 53119,
+      "modifiedUtc": "2026-06-25T22:29:38.431Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/ACTIONABLE_SCHEMA_BUCKETS.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "52b6e83357300df9450275cf3e20da3b6f4790bb189a465abc825d1ebce78024",
+      "bytes": 59507,
+      "modifiedUtc": "2026-06-25T22:29:38.433Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/aftermath_or_memory.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d4f30f815046c950afa10d26eeee4f8a5f0e0f7a03ac0720ca570f28f88bb092",
+      "bytes": 30315,
+      "modifiedUtc": "2026-06-25T22:29:38.435Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/damage_reduction_or_prevention.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2b6598e100aecb116952a02cd3bd7a5b7f6275fc1496ea82918d340e57154901",
+      "bytes": 30794,
+      "modifiedUtc": "2026-06-25T22:29:38.437Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/deferred_descriptive_flavor.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6542135bf01c57038a73260089550f59f617cc33d6cb295ef10f36d56e806507",
+      "bytes": 52913,
+      "modifiedUtc": "2026-06-25T22:29:38.440Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/environmental_change.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "75ca72ce9334991131f1532e26f221b3f9369578c96f30ce3540ab3bcdae0660",
+      "bytes": 70139,
+      "modifiedUtc": "2026-06-25T22:29:38.443Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/forced_movement.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ebe66700c4da49813554c0ccb75084fb2039282969f93f065dbb84d50903648a",
+      "bytes": 36623,
+      "modifiedUtc": "2026-06-25T22:29:38.445Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/healing_or_restoration.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e862cd08f3e0c4d5fc7a0d6f76480b856622c8f89b2810145142035ec72eec2f",
+      "bytes": 54678,
+      "modifiedUtc": "2026-06-25T22:29:38.447Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/illusion_or_disguise.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5c41194564555cc6bd4eddabdfe82e726f84e05311c4a089564d559bfd273960",
+      "bytes": 33429,
+      "modifiedUtc": "2026-06-25T22:29:38.449Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/message_or_communication.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a77996308130228b5a62a6b13d4a66ab3d9c49406359e424f9899b4ab1475374",
+      "bytes": 54200,
+      "modifiedUtc": "2026-06-25T22:29:38.451Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/movement_or_repositioning.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "82e7c55499a3cdb1b16da489b2ab8b172c27cd002c9c2a1c61642af5450727b3",
+      "bytes": 18800,
+      "modifiedUtc": "2026-06-25T22:29:38.452Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/multi_instance_or_split_targeting.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c6e5d00ed77cbbc6f3edaec9a4095dc108f7c27ac59034b0f11cffd9ef21b522",
+      "bytes": 18880,
+      "modifiedUtc": "2026-06-25T22:29:38.454Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/object_stats_or_damageability.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b339d89a6b847c3a8ce8e37114ed44aab423a36340f1175922a7f23644f05240",
+      "bytes": 49581,
+      "modifiedUtc": "2026-06-25T22:29:38.456Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/reaction_or_opportunity_restriction.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "80d35b2a3ac166671f589b658fc510e56a89cc56e33cf6fc24570ff9c2b92de7",
+      "bytes": 30452,
+      "modifiedUtc": "2026-06-25T22:29:38.458Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/repeat_save_or_recurring_check.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4d9f325ba0d0dcffb7828349f9890a6cfba7c9319ba280caa9f1a5fbea8ff772",
+      "bytes": 33240,
+      "modifiedUtc": "2026-06-25T22:29:38.460Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/resource_or_consumption.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a7db18067d38f10bbb41afc5ce31286550b7615dd5bd0a88a2185a7048fca3ed",
+      "bytes": 22919,
+      "modifiedUtc": "2026-06-25T22:29:38.461Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/sensor_or_remote_perception.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c3182413ba4c5a268a49ee047e8d64e7acda217e012ce9824c4d1815620e9f28",
+      "bytes": 28482,
+      "modifiedUtc": "2026-06-25T22:29:38.463Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/social_or_knowledge_effect.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ed657f0f542d46b994f104294fe3bea4c2a83fac8dd80a0d47dc7b54ecc775fb",
+      "bytes": 92421,
+      "modifiedUtc": "2026-06-25T22:29:38.465Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/travel_or_planar_movement.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "213722164971cfe27c351cac36cb11d147e904b10fd7816dad0256112d78ddd1",
+      "bytes": 94098,
+      "modifiedUtc": "2026-06-25T22:29:38.468Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/buckets/ward_alarm_or_trigger.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "3b043b56a4ee812952e89e604ac8360519dd047699cbbbe71290abac942f97d9",
+      "bytes": 83176,
+      "modifiedUtc": "2026-06-25T22:29:38.471Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/mechanics-discovery/SPELL_MECHANICS_DISCOVERY_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a9f02215c0fdf345126a39824280d7c90e37d8a11c020ebfd1263e81c8054582",
+      "bytes": 22932,
+      "modifiedUtc": "2026-06-25T22:29:38.473Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6fb71014b1814082e5ce97a14a91ba70f3482a7ee359fcbc44aee675bee79905",
+      "bytes": 7988,
+      "modifiedUtc": "2026-06-25T22:29:38.474Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/agent_prompts/01_missing_references_and_json.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "30cf8208cd06d33f46462976d970c57d5b516360ff338309e89476753bb92b4e",
+      "bytes": 7045,
+      "modifiedUtc": "2026-06-25T22:29:38.475Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/agent_prompts/02_non_ascii_guardrails.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "54ffed3b3119bfc4fda76a98e199f6af92e8758bb89bf4dd6084fe6fdeab5032",
+      "bytes": 5132,
+      "modifiedUtc": "2026-06-25T22:29:38.476Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/agent_prompts/03_aoe_shapes_schema_and_mechanics.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "7643b634b070d761ca67be211a0a2a4c101ef6929bfcce83a9f5460eda0f5605",
+      "bytes": 12082,
+      "modifiedUtc": "2026-06-25T22:29:38.476Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/agent_prompts/04_targeting_type_and_attack_save_mechanics.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4dbbf366337954441a2b9984c7ca2f69097cc06da1d4a5b80905355c0cec454f",
+      "bytes": 6430,
+      "modifiedUtc": "2026-06-25T22:29:38.477Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/agent_prompts/05_material_components_split_model.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5ace9def985d127c93d307776433d39c088b89ff3c777cb296d3db63e3f3033d",
+      "bytes": 4396,
+      "modifiedUtc": "2026-06-25T22:29:38.477Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/agent_prompts/06_subclass_spell_access_glossary_feature.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b306443786fb7fd964456072b49ebff8268153a5386c529db3845bc8816df7f0",
+      "bytes": 5665,
+      "modifiedUtc": "2026-06-25T22:29:38.478Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/agent_prompts/07_feat_spell_access_glossary_feature.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "375068e1199238f86bffbb9e62d30bf18727512b1b89cfe352d02b62c8e3d06e",
+      "bytes": 5354,
+      "modifiedUtc": "2026-06-25T22:29:38.479Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-prompts/attack-roll-riders-v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fbbf322f761f1e98bb2733b0d12281f52f100133bcca160b53f83389e29c1149",
+      "bytes": 8527,
+      "modifiedUtc": "2026-06-25T22:29:38.480Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-prompts/components-v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "3b10b6797e02a72325d60706fbb2d832bb829fc753da13e0ac90f78ede1436da",
+      "bytes": 8095,
+      "modifiedUtc": "2026-06-25T22:29:38.482Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-prompts/damage-type-v4.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "18317f3947603e586850cf73d34b84b3f99f112e59a0d8d18454d163ec6d92ea",
+      "bytes": 12225,
+      "modifiedUtc": "2026-06-25T22:29:38.483Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-prompts/README.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b2fce446de2f4f5f0be692ff47f4f1de7099e9c173a7653c8ff39a409479ba3b",
+      "bytes": 3044,
+      "modifiedUtc": "2026-06-25T22:29:38.483Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-prompts/school-v4.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fc482a604b1db989a521416c10d66758b79bae4c22f921f78cd48ee034bce711",
+      "bytes": 11334,
+      "modifiedUtc": "2026-06-25T22:29:38.484Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-prompts/structured-markdown-v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "006663a9e4d1b886677be7c5e4e546a52d99951455f0cfdeb556cd8eb0456210",
+      "bytes": 8869,
+      "modifiedUtc": "2026-06-25T22:29:38.485Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/attack-roll-riders/v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a32f46e18cbf21086cfa3a33662a81efb5071a2f021bb60a38cbe6900680ac27",
+      "bytes": 2582,
+      "modifiedUtc": "2026-06-25T22:29:38.486Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/casting-time/v2.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d3cf89fd00bc85d200f2d5275d72691514cd0590754dfa5fe913a02e9c1c5d5c",
+      "bytes": 2019,
+      "modifiedUtc": "2026-06-25T22:29:38.487Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/casting-time/v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "3de9a55571c012957daa9b071cae95aa9c2a2170dcc954d5b8ef12e13e95d165",
+      "bytes": 1972,
+      "modifiedUtc": "2026-06-25T22:29:38.488Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/classes/v2.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2b092a344d248d339f2945c7b55d888f085e3d9d607e22a59fcbc1e83b99744d",
+      "bytes": 1595,
+      "modifiedUtc": "2026-06-25T22:29:38.489Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/classes/v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e2f9858db972bf837ce00713b95a55d7ff1027904f92c38b921a0e612827d0b5",
+      "bytes": 1497,
+      "modifiedUtc": "2026-06-25T22:29:38.490Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/components/v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "7edbbe3ec2af768ea8d1b28d0387fcdae0b05ea734ba194a471a02234baed8a2",
+      "bytes": 1877,
+      "modifiedUtc": "2026-06-25T22:29:38.490Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/conditions/v2.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b235422657607236bea5eaedb2f6fc96ab3a81fa5a05c3d80a7fbe74563eb41f",
+      "bytes": 1911,
+      "modifiedUtc": "2026-06-25T22:29:38.491Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/conditions/v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d6a304ce5543c6773a2a81523f3d52edc35cd9f8ba902b7d03945c9ebff74536",
+      "bytes": 1356,
+      "modifiedUtc": "2026-06-25T22:29:38.492Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/damage-type/v4.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "0d543182e2f06adb570436aa12432ba99398aa97e6533bc0a85afac5614095d9",
+      "bytes": 6307,
+      "modifiedUtc": "2026-06-25T22:29:38.493Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/description/v2.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ea6a659901ab8c0681bad77b65af294c0ee595c23ae3e1e658764f10ee358b7d",
+      "bytes": 2055,
+      "modifiedUtc": "2026-06-25T22:29:38.493Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/description/v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "21a2f352bfca5adf65f1ec26b73914c0dc9543bfde8b86610c4befb53115c95a",
+      "bytes": 2513,
+      "modifiedUtc": "2026-06-25T22:29:38.494Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/duration/v2.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d6e3d303b515b7e5771319636693c859d062d78ef1a55152ca8c619ada4092f8",
+      "bytes": 1291,
+      "modifiedUtc": "2026-06-25T22:29:38.494Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/duration/v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b23c73c3788f589462c81b29aa9fc8830fd0a445369c34ea1271d3ae1b314e1f",
+      "bytes": 1412,
+      "modifiedUtc": "2026-06-25T22:29:38.495Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/higher-levels/v2.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b3a1b2dcc53236693a60430a1c5ac69f1f3d9b35a579c94171b10fee04389505",
+      "bytes": 1536,
+      "modifiedUtc": "2026-06-25T22:29:38.496Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/higher-levels/v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "79f94174b65aea36120ce2af71eae520e418cd8b2b1fe5092820f51c508ffc95",
+      "bytes": 1809,
+      "modifiedUtc": "2026-06-25T22:29:38.497Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/material-component/v2.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "55d789a414aadd8e19c3a009a55c5d2f5c4c1642fc6e8323458cbac5b07dc3ce",
+      "bytes": 1978,
+      "modifiedUtc": "2026-06-25T22:29:38.497Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/material-component/v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "150b0dc66aa966e9e887dfae718b6b686c0abce581188da4fa3a9864b826bc2b",
+      "bytes": 3418,
+      "modifiedUtc": "2026-06-25T22:29:38.498Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/range-area/v2.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "3438ee1c9d282e16bb499dfdf69979a48a1effc61580f90dd86200c8cc2585d5",
+      "bytes": 1668,
+      "modifiedUtc": "2026-06-25T22:29:38.498Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/range-area/v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e0952cf62b48db0ed7a93ac6c5fd9a52965850fd0be372e4e4f2eba942128a82",
+      "bytes": 1650,
+      "modifiedUtc": "2026-06-25T22:29:38.499Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/README.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "8dbba3b10b828f5745286d70cd0c5695ecd6a3a4099158fa884efd896d8373cd",
+      "bytes": 2772,
+      "modifiedUtc": "2026-06-25T22:29:38.500Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/school/v4.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5f749b8c826d70bb98fa1958a68d4ad65b11e7a7bea89230146e62fc70054930",
+      "bytes": 6558,
+      "modifiedUtc": "2026-06-25T22:29:38.500Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/structured-markdown/v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5dc403aea2d88fdaec7acf50995d3a533b82b3ca7d73081827c30e7a2c6f803a",
+      "bytes": 2379,
+      "modifiedUtc": "2026-06-25T22:29:38.501Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/sub-classes/v2.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1b90fb184237e405984489b2fd55f2758b081b5ac7032078f3e9d7c418651b40",
+      "bytes": 4707,
+      "modifiedUtc": "2026-06-25T22:29:38.501Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/sub-classes/v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "3164e7c727d9a071edda7b6885a6c22df082f40de258a05e75fa0389e770e446",
+      "bytes": 4448,
+      "modifiedUtc": "2026-06-25T22:29:38.502Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/summoned-entities/v2.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "0f7d672c91efbd4707909c8746bf23af672ab3b6f94bd037c33b6b64febff669",
+      "bytes": 1271,
+      "modifiedUtc": "2026-06-25T22:29:38.503Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/summoned-entities/v3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ded9dc1700a2e74010504104d1d53a328e60824a7a654c8c2a2822327aad00fe",
+      "bytes": 1353,
+      "modifiedUtc": "2026-06-25T22:29:38.503Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/atlas-reports/_LOOP_CLOSED.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e7c19a23dd657427d1347cb68b80fe11874734d2e919a0d700f7890368a5f5e3",
+      "bytes": 7778,
+      "modifiedUtc": "2026-06-25T22:29:38.504Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/archive/spell-canonical-retrieval/SPELL_CANONICAL_RETRIEVAL_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "58b39bd4c2f86bc403591b593737bcd81b35e5a8b26148fa2c94aaf89b20d49f",
+      "bytes": 51442,
+      "modifiedUtc": "2026-06-25T22:29:38.505Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/ATLAS_AGENT_PROMPT_V2.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b359b55805a282b4f6d5c16f4e4a6dc3db7c838720a59b5c403c9db705d1052e",
+      "bytes": 15013,
+      "modifiedUtc": "2026-06-25T22:29:38.506Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/ATLAS_AGENT_PROMPT_V3.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "22ec50025dee599917e21c72dff85bf97066e7ed7e12efb4a43eeb3432257bd0",
+      "bytes": 10945,
+      "modifiedUtc": "2026-06-25T22:29:38.507Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/attack-roll-riders/SPELL_ATTACK_ROLL_RIDERS_BUCKET_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "9d52fc136548fb4bd3e964bb53181d1e64dda81e30898cf43343c1ced811dcec",
+      "bytes": 5845,
+      "modifiedUtc": "2026-06-25T22:29:38.507Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/casting-time/SPELL_CASTING_TIME_BUCKET_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "9f0610734ffb360acc6f9126928c1956b7e7c52be4a014ee2fb0d9629d6da7ae",
+      "bytes": 8748,
+      "modifiedUtc": "2026-06-25T22:29:38.508Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/CHARACTER_POLICY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "258dbbcec42f39bb26cee78695050bf2f7669891c318bd55fce2139448e67dda",
+      "bytes": 1821,
+      "modifiedUtc": "2026-06-25T22:29:38.509Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/classes/SPELL_CLASSES_BUCKET_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "168e4d4a98d21ee23b3d1b78fee0b0ed5a84b6f22827f3d5e2689d89d595637e",
+      "bytes": 11262,
+      "modifiedUtc": "2026-06-25T22:29:38.509Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/components/SPELL_COMPONENTS_BUCKET_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2a7a03af22e4ded644260dc8ac460c1bc700fec9129b75b30661d643bd2c8f06",
+      "bytes": 11425,
+      "modifiedUtc": "2026-06-25T22:29:38.510Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/conditions/SPELL_CONDITIONS_BUCKET_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d53e3cd6e9b0f77f676f6e105641f024bd93952e1ec46ba491809286dfd56c0c",
+      "bytes": 8973,
+      "modifiedUtc": "2026-06-25T22:29:38.511Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/conditions/SPELL_CONDITIONS_INVENTORY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fa9c60d0aec38030b4180bc4d8532849e10d1e488860773fbef5426de8a0fbd0",
+      "bytes": 4112,
+      "modifiedUtc": "2026-06-25T22:29:38.511Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/damage-type/SPELL_DAMAGE_TYPE_BUCKET_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ca60cf0f3663def2b7849e8e3f354e4267d8f145e7e38756126c854de40d0d64",
+      "bytes": 10171,
+      "modifiedUtc": "2026-06-25T22:29:38.512Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/damage-type/SPELL_DAMAGE_TYPE_CANONICAL_PARITY_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "7f32a0414322c6fe011e94eb13ef1e4c1ee993b9f0e0e03b7fd2dc93014e3dfc",
+      "bytes": 45997,
+      "modifiedUtc": "2026-06-25T22:29:38.514Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/damage-type/SPELL_DAMAGE_TYPE_RUNTIME_INVENTORY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "846453c338d33ebf8e3e19ac04964851b1e418638b81ff0e03ff226e7927a950",
+      "bytes": 26265,
+      "modifiedUtc": "2026-06-25T22:29:38.514Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/description/SPELL_DESCRIPTION_BUCKET_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4f98a6e0484a013d4f7ed81abfcdddc291eb12e8c29bd762eacbc917246cec15",
+      "bytes": 10971,
+      "modifiedUtc": "2026-06-25T22:29:38.516Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/description/SPELL_DESCRIPTION_SUBBUCKET_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f68ef08d7326be63950ce10eecd02b27211183689bd54af18bff3fd058d9dc04",
+      "bytes": 2498,
+      "modifiedUtc": "2026-06-25T22:29:38.518Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/duration/SPELL_DURATION_BUCKET_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5cc5cb5e7bddfa2e41442429c3557be0ae36fe2805002e266c96ae3d6f633c2e",
+      "bytes": 9844,
+      "modifiedUtc": "2026-06-25T22:29:38.519Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/GAPS.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1287d2a5827ca050cb2e2070487b19d7a9a3706d38897b14773b336a535a5b1b",
+      "bytes": 4055,
+      "modifiedUtc": "2026-06-25T22:29:38.520Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/higher-levels/SPELL_HIGHER_LEVELS_BUCKET_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c8e88ed12ec81eef5ca7f621c17fa4be9383dbd9e1f5dee397cea1036bb760d1",
+      "bytes": 11079,
+      "modifiedUtc": "2026-06-25T22:29:38.521Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/material-component/SPELL_MATERIAL_COMPONENT_BUCKET_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "8b645db8cb16ba5bd5a123b6201a621c299197a2906e656b487fb4750ba95dd1",
+      "bytes": 6849,
+      "modifiedUtc": "2026-06-25T22:29:38.522Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/NORTH_STAR.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "59b290925ae841cb29c0bd3c677d207083510526a3e12bb408681eba0830502e",
+      "bytes": 6077,
+      "modifiedUtc": "2026-06-25T22:29:38.522Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "8b866b45164d57ec16c3252cc3ce654ab42c2c404f00ad30c9bbee792a17c7e9",
+      "bytes": 2771,
+      "modifiedUtc": "2026-06-25T22:29:38.524Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5876d2966e22b01fcdeebb46988c979db34a2b05a49713f3673d762c7990a261",
+      "bytes": 2119,
+      "modifiedUtc": "2026-06-25T22:29:38.527Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "006b2bbb9f040f5ea7dea86c8d65c21bfd192cbe832ef8b4d0e3e0545ce847d7",
+      "bytes": 3060,
+      "modifiedUtc": "2026-06-25T22:29:38.527Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_TASK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "633f00de8423e7e61524e8c43645ede08735528d31ec3760a042a4805b2b300f",
+      "bytes": 7787,
+      "modifiedUtc": "2026-06-25T22:29:38.530Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5b7bdc30a30658a1b5b68c30a659ec95aa521645328263c73b5f116fe1fd09da",
+      "bytes": 5275,
+      "modifiedUtc": "2026-06-25T22:29:38.531Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_3_VISUAL_PROOF_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1cd430fad2a534a945fa8a62eef0a4234ffbcea85697057bcfb3bd2f7173a238",
+      "bytes": 3482,
+      "modifiedUtc": "2026-06-25T22:29:38.531Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_4_COMBAT_PROOF_RECEIPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f6dedfdb4a885c131397bf4ba0d56b0af8f10ee676b5aebaac0798f477e89fea",
+      "bytes": 4270,
+      "modifiedUtc": "2026-06-25T22:29:38.532Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "cbaed48f2f1fa1838deff8c61256fac582189f3e86af076c558ef70543930bd3",
+      "bytes": 7270,
+      "modifiedUtc": "2026-06-25T22:29:38.533Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/range-area/SPELL_RANGE_AREA_BUCKET_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "39796de9166ffb5c390b9301bf9c8974ffcb0f7ec9a42e6283a4a3b50e96c1c0",
+      "bytes": 45196,
+      "modifiedUtc": "2026-06-25T22:29:38.534Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/range-area/SPELL_RANGE_AREA_INVENTORY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "178ef20399d3b3f87dc72c57af06bf5934e280ab97a68c6233d46f64c2a35971",
+      "bytes": 10025,
+      "modifiedUtc": "2026-06-25T22:29:38.534Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/school/SPELL_SCHOOL_BUCKET_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "67494f059847a53478a605de2b07d674c784aa6608130a8e94bcf836484bbc1d",
+      "bytes": 6794,
+      "modifiedUtc": "2026-06-25T22:29:38.535Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_ALIGNMENT_ARBITRATION_LEDGER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "75a5e7b5e3bdcc5488836862852efd138a498a01cb46457d918fe00b2570183a",
+      "bytes": 15618,
+      "modifiedUtc": "2026-06-25T22:29:38.536Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_BUCKET_EXECUTION_MAP_TEMPLATE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a80e3f7147ee53c82bc738a1bd108d57b718efbc18ae9856b21c170f6fa5931e",
+      "bytes": 23535,
+      "modifiedUtc": "2026-06-25T22:29:38.537Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_CANONICAL_RULES_AUDIT_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "3df0428a6202c15058f5a5111270c56dc512d4ce14f4cacfe14fc806b6877308",
+      "bytes": 153124,
+      "modifiedUtc": "2026-06-25T22:29:38.539Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_CANONICAL_SYNC_FLAGS.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "29668dec4c4fba5b76564255e3f6b3399bb9cdbd26783121aa43fe11b5455bd8",
+      "bytes": 48411,
+      "modifiedUtc": "2026-06-25T22:29:38.541Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_CANONICAL_SYNC_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c5fe476538b96a0204078aebfcaec88ba85f2151ffd5b420ca482891c912860d",
+      "bytes": 27156,
+      "modifiedUtc": "2026-06-25T22:29:38.542Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_CLASS_SUBCLASS_VARIATIONS.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "26b8345dada4a9a24918da406a6fe46b9bc79dcfe9c8a9cb369c0ddbb10cfbbb",
+      "bytes": 6639,
+      "modifiedUtc": "2026-06-25T22:29:38.543Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_CORPUS_DNDBEYOND_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "253cebda544e614101d1658eab6fb3a9aa023d387dcdd2bf73e7b81e53986e7c",
+      "bytes": 10074,
+      "modifiedUtc": "2026-06-25T22:29:38.544Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_DESCRIPTION_SUBBUCKET_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d630d345bc82bd033b42e788d1ef810fe58028b12d0e85d6e66b434679ce42f2",
+      "bytes": 29383,
+      "modifiedUtc": "2026-06-25T22:29:38.545Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_HIGHER_LEVEL_DESCRIPTION_COVERAGE_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "34fafa63661bc21aff154a7a407f65f28cb44c241e89ba1b7850f35d920b7181",
+      "bytes": 6418,
+      "modifiedUtc": "2026-06-25T22:29:38.546Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_HIGHER_LEVEL_SCALING_SPECIAL_TEXT_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4a8c2752dd119a0c3ec674f3205bf6b5cf57c2fce4480e1d017ddbc191d3f0eb",
+      "bytes": 27196,
+      "modifiedUtc": "2026-06-25T22:29:38.548Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_HIGHER_LEVEL_SCALING_STRUCTURED_RULES_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "17621f4ef01c284fd376817567d7275968e853a1c5dd5c2a109c48da9cf9ea60",
+      "bytes": 32147,
+      "modifiedUtc": "2026-06-25T22:29:38.551Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_MARKDOWN_PARITY_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e3ac538d47bc16e448f3bfeee955f0c51bab764455363d84e768b3eee9237c1d",
+      "bytes": 12838,
+      "modifiedUtc": "2026-06-25T22:29:38.552Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_MECHANICS_CONTRACT_AUDIT_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2a95226e0e3a40f12649fe2fcbc65f29f64feeefb65d61eff9966eacf0650c9c",
+      "bytes": 7108,
+      "modifiedUtc": "2026-06-25T22:29:38.554Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_PHASE_1_BASELINE_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "8d7d43963103af7a1530ec9cf91e670ff48d80fbc5ba29284cfde9ebc814f6a2",
+      "bytes": 8167,
+      "modifiedUtc": "2026-06-25T22:29:38.555Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_PHASE_1_JULES_ENVIRONMENT_OPERATOR_RUNBOOK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "51dc6b387d0d12c47a565aeb05e710c71010c815cd53885a52261f285d18027b",
+      "bytes": 2718,
+      "modifiedUtc": "2026-06-25T22:29:38.555Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_REGENERATED_REFERENCE_OFFICIAL_CHECK.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "355cbfc6d719db8937ec1f39e348250bebce99d387b6c27dc7cdbf5fb7c45d2b",
+      "bytes": 18515,
+      "modifiedUtc": "2026-06-25T22:29:38.556Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_RUNTIME_TEMPLATE_AUDIT_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5efb1c47d96dbc300e2aa333ddacc75c661c5e26575045ad3bc2d8c8961946b7",
+      "bytes": 2630,
+      "modifiedUtc": "2026-06-25T22:29:38.557Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_STRUCTURED_VS_CANONICAL_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4e35232699a523dc7e18823364774d7c027659c0cb0bc183ea9698a82e71ac6d",
+      "bytes": 138992,
+      "modifiedUtc": "2026-06-25T22:29:38.558Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/SPELL_STRUCTURED_VS_JSON_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b1c88b8ee9ea6e5333dbee0f91497e75560dd3464d9c1f719e2760531ae619f1",
+      "bytes": 841,
+      "modifiedUtc": "2026-06-25T22:29:38.559Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/structured-markdown/SPELL_MISSING_STRUCTURED_MD_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4dde548f5903b5a27b05b5064c0637690357cf170850bc7568a89658c365240e",
+      "bytes": 3753,
+      "modifiedUtc": "2026-06-25T22:29:38.560Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/sub-classes/SPELL_SUB_CLASSES_BUCKET_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ea2bcf0523509f16d2247751126f6cc131064a747556d521523b483eb14040b4",
+      "bytes": 24780,
+      "modifiedUtc": "2026-06-25T22:29:38.562Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/sub-classes/SPELL_SUB_CLASSES_GEMINI_HANDOVER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4900427063e32c128ee06fce0475078f1820492c7d2bbb97103d522d829947d4",
+      "bytes": 6074,
+      "modifiedUtc": "2026-06-25T22:29:38.562Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/sub-classes/SPELL_SUB_CLASSES_HANDOVER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "00f1e85467ca42a6af3e84230a5890ae5d590d4381b9fb4d232c557b32fa3e90",
+      "bytes": 2948,
+      "modifiedUtc": "2026-06-25T22:29:38.563Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/sub-classes/SPELL_SUB_CLASSES_ROSTER_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5bbde01ecad16d43f4678328b87658cb44c8cf7fc090659557db2e1330c4bc77",
+      "bytes": 39780,
+      "modifiedUtc": "2026-06-25T22:29:38.564Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/sub-classes/SPELL_SUPPORTED_SUBCLASS_ROSTERS.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e33f0806fa85fc857799caa328099a496fd1c79918e4fd2e94a6c9524d899565",
+      "bytes": 3317,
+      "modifiedUtc": "2026-06-25T22:29:38.564Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/summoned-entities/SPELL_SUMMONED_ENTITIES_TRACKER.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5cd98f0e9a2c3a978086c8bdff880a188c15b41e9ac1326687553df53f66c84f",
+      "bytes": 16742,
+      "modifiedUtc": "2026-06-25T22:29:38.565Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/templates/SPELL_TEMPLATE_VALIDATION_REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d63926161c839b62110c0c7809265ed1230d890195fd3078c44392fe6acbd1ac",
+      "bytes": 16560,
+      "modifiedUtc": "2026-06-25T22:29:38.566Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spells/TRACKER.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "082248a51fbb1b0eaab80c658dcc063a79ea811b90387c707e423470a8c87f0a",
+      "bytes": 3950,
+      "modifiedUtc": "2026-06-25T22:29:38.567Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/2A-EXTRACT-LEVEL-1-DESCRIPTIONS.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/2B-EXTRACT-REMAINING-LEVELS.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/1A~INVENTORY-LOCAL-SPELLS.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/1B~RESEARCH-PHB-2024-LIST.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/1C~GAP-ANALYSIS.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/GAPS.md",
+      "walkState": "retired, migrated",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/QUEST_MIGRATION_PLAN.md",
+      "walkState": "retired, executed",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/TOWN_REFACTOR_PLAN.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/documentation-cleanup/1G*.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "glob",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/documentation-cleanup/1A-1F*.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "glob",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/tasks/documentation-cleanup/NORTH_STAR.md",
+      "walkState": "walked, migrated, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "3c7d190dc0479d2d1daa8ab67dbe0c5156029a4da27fe4fc4219fe9617465226",
+      "bytes": 3601,
+      "modifiedUtc": "2026-06-25T22:29:38.568Z"
+    },
+    {
+      "backlogFile": "docs/tasks/documentation-cleanup/GAPS.md",
+      "walkState": "walked, migrated, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "84b45ccb4af0fa8a9e386bd758b5cf4d78aa3999237f8c7f57a585e11fb85a4d",
+      "bytes": 2495,
+      "modifiedUtc": "2026-06-25T22:29:38.569Z"
+    },
+    {
+      "backlogFile": "docs/tasks/documentation-cleanup/TRACKER.md",
+      "walkState": "walked, migrated, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "dab81fc6eac4b86e47d7aa49598b8d0325cbc2d4966b74e8f727bc1c84ab88ad",
+      "bytes": 2632,
+      "modifiedUtc": "2026-06-25T22:29:38.571Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/00-AGENT-COORDINATION.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a225fc514baf2e137653937e5dff2ecd08d4d6b02ff4fc5d6200c4212bf9c548",
+      "bytes": 1439,
+      "modifiedUtc": "2026-06-25T22:29:38.571Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/00-DATA-VALIDATION-STRATEGY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b4f961697ac708dc9db211a8d1e61bc9cd769263abc235d7840a67787bf24ce0",
+      "bytes": 1252,
+      "modifiedUtc": "2026-06-25T22:29:38.572Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/00-PARALLEL-ARCHITECTURE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2423a17981fbe5be65d60f7e3189c7a660b84484ee8219d7304e924298d3e6fe",
+      "bytes": 1371,
+      "modifiedUtc": "2026-06-25T22:29:38.573Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/01-typescript-interfaces.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "21f8aed475cbad142134e2d8e9213848ce8fe4846b586fab76a3c533686e8611",
+      "bytes": 3520,
+      "modifiedUtc": "2026-06-25T22:29:38.573Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/03-command-pattern-base.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "27b17c458a94b5eca276c5756cb826c89c8b1c881e6b71c5b2d6f39350fff447",
+      "bytes": 4315,
+      "modifiedUtc": "2026-06-25T22:29:38.574Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md",
+      "walkState": "walked, migrated, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ede6ffa0cc576a1fc96cbc200da4900966e990e3ab41824be6f76a07a0b53e51",
+      "bytes": 3506,
+      "modifiedUtc": "2026-06-25T22:29:38.574Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md",
+      "walkState": "walked, superseded, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "05a0b2c937fb3d52680fa26ad84d55ec639212e49e02b7b1b293ac96fd3d4e0f",
+      "bytes": 2149,
+      "modifiedUtc": "2026-06-25T22:29:38.575Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/1D-ARCHIVE-OLD-SPELL-DOCS.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5336b5b0a49c07a6d7d25834b0c1ad14aa2783792913811ff619bb6c5bc9100f",
+      "bytes": 1191,
+      "modifiedUtc": "2026-06-25T22:29:38.575Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/1E-CONSOLIDATE-JULES-WORKFLOW.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "0e76e079910cf7d7f12074f05ebaa380dcc1870db9c810ad00968ca69b8ae7a1",
+      "bytes": 1095,
+      "modifiedUtc": "2026-06-25T22:29:38.576Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/1F-AUDIT-SPELL-SCOPE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ecb947a81abc89e619b65f0092a67e3264715f502d58c84e5be0ed12ccca5a08",
+      "bytes": 1018,
+      "modifiedUtc": "2026-06-25T22:29:38.576Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/1G-REORGANIZE-SPELL-FILES.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f570d7c9e8d8eede94f987beff5e407786738ea41e9583c344bb22e06d861154",
+      "bytes": 1083,
+      "modifiedUtc": "2026-06-25T22:29:38.577Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/1H-CREATE-GLOSSARY-TEMPLATE-SYSTEM.md",
+      "walkState": "walked, migrated, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "864aefeca202b3220d30a63dace1f8c0a9102497d755563021bcd6bd171293cf",
+      "bytes": 2120,
+      "modifiedUtc": "2026-06-25T22:29:38.578Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/1I-MIGRATE-CANTRIPS-BATCH-1.md",
+      "walkState": "walked, superseded, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fc1511c0e9c637d001f522e3db8f530eca139f85b415647c6aad206e2e29d9e7",
+      "bytes": 1295,
+      "modifiedUtc": "2026-06-25T22:29:38.578Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/@DISPATCH-SPELLS-TO-JULES.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6f9865eb07e594c10903b645d2d108026522a601be4b0b46a6897171200fcf3d",
+      "bytes": 2916,
+      "modifiedUtc": "2026-06-25T22:29:38.579Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/@SPELL-SYSTEM-OVERHAUL-TODO.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c46ab161ffdecf2f4c3e115fe3707a5eb427b5f1be9ed6836d63af1c6e2541e1",
+      "bytes": 1901,
+      "modifiedUtc": "2026-06-25T22:29:38.580Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/@WORKFLOW-SPELL-CONVERSION.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "8772b9f1dbcbea3a3fcd28a907868acfeab5661b4a370df24949d04b198f03be",
+      "bytes": 3017,
+      "modifiedUtc": "2026-06-25T22:29:38.580Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/AGENT-ALPHA-TYPES.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "69ae2580b6fce8b95415ce36242d00d492cc286d1302ae9c706fb59a8440e1a6",
+      "bytes": 828,
+      "modifiedUtc": "2026-06-25T22:29:38.581Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/AGENT-BETA-TARGETING.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2e891a12b97db639b4e659d13dfaacb67fb8c9c05dea3d06533e324d5f648471",
+      "bytes": 842,
+      "modifiedUtc": "2026-06-25T22:29:38.581Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/AGENT-DELTA-MECHANICS.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5d4eafddf1128074eab562b27e8ba3c68a59000e06d1c285debb05d4258086de",
+      "bytes": 846,
+      "modifiedUtc": "2026-06-25T22:29:38.582Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/AGENT-EPSILON-AI.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "faafb4710f1b86b6a180731ba501b64168bb243d35808ad8d68a969c91582dee",
+      "bytes": 791,
+      "modifiedUtc": "2026-06-25T22:29:38.582Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/AGENT-GAMMA-COMMANDS.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "7178e89e0d78dac3a71f84de0b2471948d5c53fedc490cb1273421ea827a8c5d",
+      "bytes": 837,
+      "modifiedUtc": "2026-06-25T22:29:38.583Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/AGENT-PROMPTS-STUB-COMPLETION.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b097d97e233ee4dc2288df4b697401245cbbcb67071afa0ee3b35cba2df23717",
+      "bytes": 832,
+      "modifiedUtc": "2026-06-25T22:29:38.584Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/ARCHITECTURE_NOTE.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a89e3399eb4cb8959cdf7ffc07083d12217f31811a1177afd5e118efccd3950b",
+      "bytes": 1920,
+      "modifiedUtc": "2026-06-25T22:29:38.584Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/BATCH-CREATION-GUIDE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fe8f02e9d7c028e8c85ac9fc3945266741646d79de89eef2a26f0331d8ef6809",
+      "bytes": 5739,
+      "modifiedUtc": "2026-06-25T22:29:38.585Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/DECISIONS.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2292c0c2b4988855b63815bb37472f132cb6ab7ff0391fee90dbfd2be72281b1",
+      "bytes": 4112,
+      "modifiedUtc": "2026-06-25T22:29:38.585Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/GAP_REGISTRY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e0425c138bb5e18b4d47f11cd8c10d28827e996ba0ab2f2a12d4dc76a0dcf662",
+      "bytes": 3107,
+      "modifiedUtc": "2026-06-25T22:29:38.586Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ee1b2e24852419a6fe69fa6b5439b7e48a7574c2d34b1ebc2e1a5a1ee83bf53c",
+      "bytes": 9097,
+      "modifiedUtc": "2026-06-25T22:29:38.586Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/LEVEL-1-BATCHES.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "51b994e5eac4fbe45ce252726530e1eb4019955b67d1c502c7b519645e09cf3d",
+      "bytes": 5924,
+      "modifiedUtc": "2026-06-25T22:29:38.587Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/LEVEL-2-BATCHES.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fdf650822da68c740ee46e99215e2f66200d7a08aebd2b69ae00a84ef89b912b",
+      "bytes": 1590,
+      "modifiedUtc": "2026-06-25T22:29:38.588Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/LEVELS-1-9-MIGRATION-GUIDE.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1bc76d58064f6a4066862f069f77ea6b07a97f51bcb04945005bc34640e66a29",
+      "bytes": 2527,
+      "modifiedUtc": "2026-06-25T22:29:38.588Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/RUNBOOK.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "92485bf2bdd408f6a9e514ef500753c231d593d8c4117c1f22f10010dd40f8c8",
+      "bytes": 2267,
+      "modifiedUtc": "2026-06-25T22:29:38.589Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/SPELL-WORKFLOW-QUICK-REF.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e75e594343cbd4dfb48207b954d5d12614b99e7ec1460a83be7a8889fa4c82e4",
+      "bytes": 2002,
+      "modifiedUtc": "2026-06-25T22:29:38.590Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/SPELL_MIGRATION_PATH.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "dcb91a2de32b5acdf96096351e7460055c34009061ff71d9ee73eb1acba2c937",
+      "bytes": 1387,
+      "modifiedUtc": "2026-06-25T22:29:38.590Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/SPELL_MIGRATION_PROMPT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1041e3db97acebfe451ff13ce2997a43b579783cf404c1ca2e2e3c3627beba44",
+      "bytes": 6399,
+      "modifiedUtc": "2026-06-25T22:29:38.591Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/START-HERE.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "293c94c54d15f906be31dc379cfdaddb573035b092ec4ba4491d3a06dc7141a3",
+      "bytes": 12676,
+      "modifiedUtc": "2026-06-25T22:29:38.593Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/SUMMONING_RUNTIME_BOUNDARY.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4c426faf19460ead580891d31fc6747a77d420b0149fe4c351c77a492726a8dc",
+      "bytes": 10109,
+      "modifiedUtc": "2026-06-25T22:29:38.595Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/TASK-01.5-TYPE-PATCHES.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b4b2727cdcca5e37c6e83e00033996afbc380641ea57c1148e77a70093895557",
+      "bytes": 4678,
+      "modifiedUtc": "2026-06-25T22:29:38.595Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/TASK-TEMPLATE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "47c3037235fbfc07b0bc7202ce37c1b22db17da998bba8795eada3b7b7358a2f",
+      "bytes": 2619,
+      "modifiedUtc": "2026-06-25T22:29:38.596Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/TASK_STRATEGY_UPDATE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1b191ba5ffd739e6444f9aca62783afe8c73e184769639cb757af9d4661fb3e3",
+      "bytes": 1238,
+      "modifiedUtc": "2026-06-25T22:29:38.596Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/VALIDATION-ALIGNMENT-ANALYSIS.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4a143be66d5665db3d787b4121d8f763b0c1e02a2f20623d848a107a8f5412cd",
+      "bytes": 6394,
+      "modifiedUtc": "2026-06-25T22:29:38.597Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/archive/@README.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "9ca2bb821caa202343c70ec0378c8f0597634ffcc3f0cd27edde7fb75c01bff0",
+      "bytes": 1478,
+      "modifiedUtc": "2026-06-25T22:29:38.598Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/archive/SPELL_DATA_CREATION_GUIDE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "aa422732f88aaa2841a63cd5c0f6bc496339d37bb19751d31bf5b61595a292d0",
+      "bytes": 1869,
+      "modifiedUtc": "2026-06-25T22:29:38.598Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/gaps/GAP-CHOICE-SPELLS.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "bb8c14662926723f4e245eb76d5e3acb575245c6de62fa226b48f1c0141c5f45",
+      "bytes": 2903,
+      "modifiedUtc": "2026-06-25T22:29:38.599Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/gaps/GAP-UNSPLIT-SPELL-EFFECTS.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "8dbac30b7471aa1cc1460e394ccb335d44a8b7265521466c85cbd879ffa8de5f",
+      "bytes": 8071,
+      "modifiedUtc": "2026-06-25T22:29:38.600Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md",
+      "walkState": "walked, migrated, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6462adba255648219676e81c06fa82704db4e3ba5632c4e37619d631bfd1825f",
+      "bytes": 1931,
+      "modifiedUtc": "2026-06-25T22:29:38.600Z"
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/world-map-rewire-mapping.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "276c296c3cf314a3ccaf855a4eec36572e18f4f527f634849f343a7799bf6d6f",
+      "bytes": 2919,
+      "modifiedUtc": "2026-06-25T22:29:38.601Z"
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/feature-capabilities/3d-exploration-combat/INDEX.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f62d5e78c5e792fea8a6e9a6f3aeb73817e4af4e200bf60d133bcd1470d383d4",
+      "bytes": 595,
+      "modifiedUtc": "2026-06-25T22:29:38.601Z"
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/feature-capabilities/world-map/INDEX.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "7a241b7b941e4aa3543d818a61016aa048cfadfc755ed0e553d98d3c86f939ff",
+      "bytes": 753,
+      "modifiedUtc": "2026-06-25T22:29:38.602Z"
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/feature-capabilities/world-map/generation-determinism/INDEX.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c549cecbcdf21ca0995a590b8f082ed232d0014a43b56da04006f3b47837dcae",
+      "bytes": 477,
+      "modifiedUtc": "2026-06-25T22:29:38.602Z"
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/feature-capabilities/world-map/generation-determinism/azgaar-world-generation-backbone.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ade50225d2e77bbf0e1b5e9b68c21dee00784bccc524bc7f2056e0091d520413",
+      "bytes": 596,
+      "modifiedUtc": "2026-06-25T22:29:38.603Z"
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/feature-capabilities/world-map/navigation/INDEX.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "98f39f2bbd1f211c10cead6103e82e0f1c2b5298b9fc53ac387842c7fca60409",
+      "bytes": 528,
+      "modifiedUtc": "2026-06-25T22:29:38.603Z"
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/feature-capabilities/world-map/navigation/travel-precision-overlay-controls.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ba32f6bb468db1869c7fb17e620233bec836625a241849fd4d37bd286c83b686",
+      "bytes": 1028,
+      "modifiedUtc": "2026-06-25T22:29:38.604Z"
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/feature-capabilities/world-map/submap-continuity/INDEX.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "49601aee7829fbc932a1d88b8d60459e8fe9435e7e7192e5a077e11daf2f0c01",
+      "bytes": 435,
+      "modifiedUtc": "2026-06-25T22:29:38.604Z"
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/feature-capabilities/world-map/visuals/INDEX.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a5d7f3fb526c9104cb468858dec53f893fc6208fa6a890677decde3767eab1d8",
+      "bytes": 580,
+      "modifiedUtc": "2026-06-25T22:29:38.605Z"
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/feature-capabilities/world-map/visuals/azgaar-layer-controls-political-borders-toggleable.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "37c310bd6eff7cd5363bcc0f1a8eb7582e73ff2efeb1929a2a33d82abb542644",
+      "bytes": 678,
+      "modifiedUtc": "2026-06-25T22:29:38.605Z"
+    },
+    {
+      "backlogFile": "docs/tasks/3d-exploration/feature-capabilities/world-map/visuals/continuous-world-map-view-no-visible-tile-grid.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "0c963beb925a5c02f1e747370c28b940b7340be170a0e321fb911abf816441fa",
+      "bytes": 648,
+      "modifiedUtc": "2026-06-25T22:29:38.606Z"
+    },
+    {
+      "backlogFile": "docs/tasks/feature-capabilities/NORTH_STAR.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6eca8726d1fe9abc5b27d83cea9b0442164c73f6d91eee4a8171b14f7a760fb4",
+      "bytes": 5612,
+      "modifiedUtc": "2026-06-25T22:29:38.607Z"
+    },
+    {
+      "backlogFile": "docs/tasks/feature-capabilities/TRACKER.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e1ecb8a90ac2dff42502a989ceee56eae2753225dd347c670a03bb4c252ef962",
+      "bytes": 4429,
+      "modifiedUtc": "2026-06-25T22:29:38.607Z"
+    },
+    {
+      "backlogFile": "docs/tasks/feature-capabilities/GAPS.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "3485e985ace635f1bc1bce0a7ccbb28f9b17eac7362547c1fb2b6ba14949363e",
+      "bytes": 4468,
+      "modifiedUtc": "2026-06-25T22:29:38.608Z"
+    },
+    {
+      "backlogFile": "docs/tasks/feature-capabilities/character-creator.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d3b1f45b854c2d8bb600ad5ac09b2a16bde1d2179a952087834b9cdcc9560eaa",
+      "bytes": 2280,
+      "modifiedUtc": "2026-06-25T22:29:38.608Z"
+    },
+    {
+      "backlogFile": "docs/tasks/feature-capabilities/companion-banter.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b50adc2bc62ec404386c29eadd4910575f5ab97bda6256c72466f92d2ddbbf6f",
+      "bytes": 1837,
+      "modifiedUtc": "2026-06-25T22:29:38.609Z"
+    },
+    {
+      "backlogFile": "docs/tasks/feature-capabilities/merchant-pricing-economy.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "93b67399ad64db9a694c69238c07a13fee4b2f6bf2973c3cfebf84cf490db567",
+      "bytes": 2429,
+      "modifiedUtc": "2026-06-25T22:29:38.609Z"
+    },
+    {
+      "backlogFile": "docs/tasks/feature-capabilities/noble-house-generation.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d767dc6b43189216c8952f967782da7207f2fcb6c26c972251b1b2cb1f064263",
+      "bytes": 2108,
+      "modifiedUtc": "2026-06-25T22:29:38.610Z"
+    },
+    {
+      "backlogFile": "docs/tasks/feature-capabilities/url-history-state-sync.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "29b2e9107d5974a4ced738cbe6b7f9efdf4b5b007ffd35c313c5fcd9202804ff",
+      "bytes": 1912,
+      "modifiedUtc": "2026-06-25T22:29:38.611Z"
+    },
+    {
+      "backlogFile": "docs/tasks/feature-capabilities/voyage-management.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c5c32664c24ab956fd03e2da259ae48859493d0a1904006887c9b0b1b5058dcf",
+      "bytes": 2431,
+      "modifiedUtc": "2026-06-25T22:29:38.611Z"
+    },
+    {
+      "backlogFile": "docs/tasks/weapon-proficiency-system/@PROJECT-INDEX.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c07ef3682063b9402a4ea0a5a1f109da7a7d15063cf63d7445dd3fb2ba572cc4",
+      "bytes": 4582,
+      "modifiedUtc": "2026-06-25T22:29:38.612Z"
+    },
+    {
+      "backlogFile": "docs/tasks/weapon-proficiency-system/@WORKFLOW.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6380db4f31cb28385a23085469b4f55fea5c604d60a805245b2f7eeba142686d",
+      "bytes": 2299,
+      "modifiedUtc": "2026-06-25T22:29:38.613Z"
+    },
+    {
+      "backlogFile": "docs/tasks/weapon-proficiency-system/NORTH_STAR.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "22d0af9c510dad5e8522477d1914bee7adb358c6c36cf69ca0432da3e2c69cec",
+      "bytes": 7134,
+      "modifiedUtc": "2026-06-25T22:29:38.613Z"
+    },
+    {
+      "backlogFile": "docs/tasks/weapon-proficiency-system/GAPS.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1f7e41130d56592dd7c81ab097b5e8895af658f8b4e58bc8ae6b1f02516db21d",
+      "bytes": 3455,
+      "modifiedUtc": "2026-06-25T22:29:38.614Z"
+    },
+    {
+      "backlogFile": "docs/tasks/weapon-proficiency-system/TRACKER.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2001dbfc39ddc648f8d6353a66a6d32867c36a2a8b0e4e5db83706a4fe992416",
+      "bytes": 2972,
+      "modifiedUtc": "2026-06-25T22:29:38.614Z"
+    },
+    {
+      "backlogFile": "docs/tasks/weapon-proficiency-system/README.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c1c01c3aa1ec8e99c55c7b296ee339ae24036fc22c99eb5a7ca16722b3e4caef",
+      "bytes": 3295,
+      "modifiedUtc": "2026-06-25T22:29:38.615Z"
+    },
+    {
+      "backlogFile": "docs/tasks/weapon-proficiency-system/START-HERE.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "55648eb68da98af6b4c295e6ae48f388658f9b061f3f5ea6fa18657eda9fd55d",
+      "bytes": 3207,
+      "modifiedUtc": "2026-06-25T22:29:38.616Z"
+    },
+    {
+      "backlogFile": "docs/tasks/weapon-proficiency-system/TASK-TEMPLATE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "9a71e90b8a5d207197eeabbb8c81347b76718dfd6c622dfa9fb59008e7957798",
+      "bytes": 5629,
+      "modifiedUtc": "2026-06-25T22:29:38.616Z"
+    },
+    {
+      "backlogFile": "docs/tasks/weapon-proficiency-system/weapon-audit-report.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a61a24218b03906df9b1ae964ea3f9152ab0e1373f66d8dd07f50b724cf62a00",
+      "bytes": 2019,
+      "modifiedUtc": "2026-06-25T22:29:38.617Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/@PROJECT-INDEX.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b2aa4b686a04c13969e1c04a49999f180af9619fae988b929c111a0a510f2122",
+      "bytes": 3527,
+      "modifiedUtc": "2026-06-25T22:29:38.618Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/@WORKFLOW.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fa19e833024ed958937aaa8897dc4432aac6552da2ebcaaa76b40845fc517bb3",
+      "bytes": 2837,
+      "modifiedUtc": "2026-06-25T22:29:38.618Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/NORTH_STAR.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "8587300423e80aa9cf9790ef54a6657f7011ed42966f9592caddeb7512b870b3",
+      "bytes": 6437,
+      "modifiedUtc": "2026-06-25T22:29:38.619Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/PROPOSED_SCHEMA_V2.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d378b41ecb26acc699786f4f6721bbfb51b120307c0a5c6a805009f7e94cad01",
+      "bytes": 1625,
+      "modifiedUtc": "2026-06-25T22:29:38.619Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/TRACKER.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "182e1ad23c942a2e93df1abd5ca7a922768ec4a4fdc58813b9f350a5cee16ba4",
+      "bytes": 4163,
+      "modifiedUtc": "2026-06-25T22:29:38.621Z"
+    },
+    {
+      "backlogFile": "docs/tasks/combat-messaging-enhancement/NORTH_STAR.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "573bf47cd7d966167dc0db2c0eb5729bf4453c7ffed48b6db6bb40a3d5daad04",
+      "bytes": 3625,
+      "modifiedUtc": "2026-06-25T22:29:38.622Z"
+    },
+    {
+      "backlogFile": "docs/tasks/combat-messaging-enhancement/GAPS.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f5efdb6c7d5880ad5eb95efe10ec6b3a9054675cba7636959f7477aca5f39d2b",
+      "bytes": 4217,
+      "modifiedUtc": "2026-06-25T22:29:38.622Z"
+    },
+    {
+      "backlogFile": "docs/tasks/combat-messaging-enhancement/TRACKER.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2b141fd98a66eea24593140dd2a015ebeacb0a64b2ccdcaaf4fe1b09443f016e",
+      "bytes": 4651,
+      "modifiedUtc": "2026-06-25T22:29:38.623Z"
+    },
+    {
+      "backlogFile": "docs/tasks/combat-messaging-enhancement/README.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "8b94a2a682f423397cb8a0de0b4493f63c88cdb5f362c06e477044f085bea54c",
+      "bytes": 2188,
+      "modifiedUtc": "2026-06-25T22:29:38.624Z"
+    },
+    {
+      "backlogFile": "docs/tasks/combat-messaging-enhancement/SUMMARY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d68764c3a5e6545d9de713ae8e3a70594302053735138f9dd729f396222d804a",
+      "bytes": 2227,
+      "modifiedUtc": "2026-06-25T22:29:38.624Z"
+    },
+    {
+      "backlogFile": "docs/tasks/combat-scenario-tester/NORTH_STAR.md",
+      "walkState": "walked, migrated, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fa2a462222509efd965ee6e944c38e2c3c5c253a29e871e3b2562ab8c0cda458",
+      "bytes": 6226,
+      "modifiedUtc": "2026-06-25T22:29:38.625Z"
+    },
+    {
+      "backlogFile": "docs/tasks/combat-scenario-tester/TRACKER.md",
+      "walkState": "walked, migrated, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e62eb12e298c7504287137b9377521de202581e1f66f838c284df0c11a286f84",
+      "bytes": 5557,
+      "modifiedUtc": "2026-06-25T22:29:38.625Z"
+    },
+    {
+      "backlogFile": "docs/tasks/game-entry-situation/GAPS.md",
+      "walkState": "walked, executed, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5ccc9c77e845aed682871d34592f4c5694e07d3ad36d93de7387712f702f6727",
+      "bytes": 2186,
+      "modifiedUtc": "2026-06-25T22:29:38.626Z"
+    },
+    {
+      "backlogFile": "docs/tasks/game-entry-situation/TRACKER.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f406571e1c881c005a41d2edf0eb782adae0b0925e07298889ef9dcdb43a2e39",
+      "bytes": 4228,
+      "modifiedUtc": "2026-06-25T22:29:38.626Z"
+    },
+    {
+      "backlogFile": "docs/tasks/game-entry-situation/REPORT.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "397fc4382ea10d2e55abbd4f0fccbab18a5ba0fb82234637839f004cdb3586ac",
+      "bytes": 5064,
+      "modifiedUtc": "2026-06-25T22:29:38.627Z"
+    },
+    {
+      "backlogFile": "docs/tasks/ui-features/NORTH_STAR.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5e5f7bf724ed141d4690084696999b6824f751e1dab201f4162f38b818329065",
+      "bytes": 4613,
+      "modifiedUtc": "2026-06-25T22:29:38.628Z"
+    },
+    {
+      "backlogFile": "docs/tasks/ui-features/GAPS.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "aeacf83803f94fcc1a3d9dd7b08ae20a78915d7147b8359f6100deec24e7e1ff",
+      "bytes": 3805,
+      "modifiedUtc": "2026-06-25T22:29:38.629Z"
+    },
+    {
+      "backlogFile": "docs/tasks/ui-features/TRACKER.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b080ff46348a193805ce1103356a76fc07ba26c8d393dd85ad575b1da5239221",
+      "bytes": 3883,
+      "modifiedUtc": "2026-06-25T22:29:38.629Z"
+    },
+    {
+      "backlogFile": "docs/tasks/testing-overhaul/NORTH_STAR.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1bd75c0c1bdb0eb3aba433b3f1c666831547639b7c5bfc826a3eeea276660b7f",
+      "bytes": 3877,
+      "modifiedUtc": "2026-06-25T22:29:38.630Z"
+    },
+    {
+      "backlogFile": "docs/tasks/testing-overhaul/GAPS.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e9f5d9269c5e16687c4f0fe189545315107baa8166551701cf88c04095267850",
+      "bytes": 6059,
+      "modifiedUtc": "2026-06-25T22:29:38.631Z"
+    },
+    {
+      "backlogFile": "docs/tasks/testing-overhaul/TRACKER.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ea42f814ef5d271f7c648c44efc893a297466ce8cd5c6ff022c31dc2f2824b5c",
+      "bytes": 3905,
+      "modifiedUtc": "2026-06-25T22:29:38.632Z"
+    },
+    {
+      "backlogFile": "docs/tasks/architecture/NORTH_STAR.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a9f5c2251c16757f9f09c72e1a42dd2b0f1299c1a7ef18060b3fedd0b6428ad5",
+      "bytes": 4174,
+      "modifiedUtc": "2026-06-25T22:29:38.632Z"
+    },
+    {
+      "backlogFile": "docs/tasks/architecture/GAPS.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4b78d4ff995d2421aed708e7b2709e5c7640ef6201367b8f288ef5270639b815",
+      "bytes": 2560,
+      "modifiedUtc": "2026-06-25T22:29:38.633Z"
+    },
+    {
+      "backlogFile": "docs/tasks/architecture/TRACKER.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "3102862e527286d5b60d6ea868d75fbd327c071ba6aeadb20081254fb0019724",
+      "bytes": 1872,
+      "modifiedUtc": "2026-06-25T22:29:38.633Z"
+    },
+    {
+      "backlogFile": "docs/tasks/architecture/agent_prompts/01_architecture_compendium.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2cdda81b01c8074f6ccc046603027aa550714fdc58ad884026cac91dd695efa9",
+      "bytes": 10675,
+      "modifiedUtc": "2026-06-25T22:29:38.634Z"
+    },
+    {
+      "backlogFile": "docs/tasks/investigations/NORTH_STAR.md",
+      "walkState": "walked, executed, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "33c0fca6b64f13d3d9773bd9c00cb6fb3d21a5fdc78a2f032050d8ccf7e0f5e8",
+      "bytes": 5067,
+      "modifiedUtc": "2026-06-25T22:29:38.635Z"
+    },
+    {
+      "backlogFile": "docs/tasks/investigations/GAPS.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "54b81f4e67ac7640134f46c1fab32f65e6d7e3e48293fa7cf09b7631fa1cb387",
+      "bytes": 2382,
+      "modifiedUtc": "2026-06-25T22:29:38.636Z"
+    },
+    {
+      "backlogFile": "docs/tasks/investigations/TRACKER.md",
+      "walkState": "walked, migrated, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f9fd5c5cbbc60a03357a21c1a01834a39c98d4bba7c55be39695a7db273e186e",
+      "bytes": 2788,
+      "modifiedUtc": "2026-06-25T22:29:38.637Z"
+    },
+    {
+      "backlogFile": "docs/tasks/roadmap/NORTH_STAR.md",
+      "walkState": "walked, executed, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2a16f4b096dbf0118b59e90112411934e6ce38a913a71408e365549bd90ee5bb",
+      "bytes": 5399,
+      "modifiedUtc": "2026-06-25T22:29:38.641Z"
+    },
+    {
+      "backlogFile": "docs/tasks/roadmap/GAPS.md",
+      "walkState": "walked, migrated, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6bb10a0bdcae28201fa13315270a5ab38422fa3ee2966e8de4b2dc5b3aacf4f3",
+      "bytes": 5806,
+      "modifiedUtc": "2026-06-25T22:29:38.643Z"
+    },
+    {
+      "backlogFile": "docs/tasks/roadmap/TRACKER.md",
+      "walkState": "walked, migrated, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b98546e3aee3ceea6875634fe79b3a24809c90837d2495368654b24622b2d869",
+      "bytes": 5741,
+      "modifiedUtc": "2026-06-25T22:29:38.645Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/@SPELL-COMPLETENESS-REPORT.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b7f036820f1f7fc84bf4bf5e0e826e54ecdc79594a7e41d19033e68df3bc2a74",
+      "bytes": 4570,
+      "modifiedUtc": "2026-06-25T22:29:38.645Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/output/LOCAL-INVENTORY.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "897ede1acb4ab0a322dec96af8d7b1cf9f36c9e68cef519619522f0a1ee2fa57",
+      "bytes": 6948,
+      "modifiedUtc": "2026-06-25T22:29:38.647Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-completeness-audit/output/PHB-2024-REFERENCE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "81d5a94a19945e6f3cb292f33d6e2070b44ba251e45ec7eea9ab86d4595bf560",
+      "bytes": 21120,
+      "modifiedUtc": "2026-06-25T22:29:38.649Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/AUDIT_OR_PROOF.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f3e041e93e93729ddfb70a3d6ccee2e0511fddfe60120fae237450e15210e7b7",
+      "bytes": 173474,
+      "modifiedUtc": "2026-06-25T22:29:38.652Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/GAPS.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "920ceb93e984582bbd949dca34b59df1cb09de9bb20f21b9e4bae7a47da560a5",
+      "bytes": 899178,
+      "modifiedUtc": "2026-06-25T22:29:38.663Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/IMPLEMENT-AI-ARBITRATION-SERVICE.md",
+      "walkState": "walked, kept",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5b27f53077ad4837e66fff61e211427f7447ffa49448799628a52ca06b844f97",
+      "bytes": 3089,
+      "modifiedUtc": "2026-06-25T22:29:38.668Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/NORTH_STAR.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e971cdbaf5b4ff07866a582f70b583cee6855413adc3ce9b921256798e4d2c91",
+      "bytes": 7656,
+      "modifiedUtc": "2026-06-25T22:29:38.669Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/README.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "21c4a9189dd135df073a615c8c2fa3b38746dcff1a0127b5cf474dd7d338cd94",
+      "bytes": 10139,
+      "modifiedUtc": "2026-06-25T22:29:38.670Z"
+    },
+    {
+      "backlogFile": "docs/tasks/spell-system-overhaul/TRACKER.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5b6d5842e1e72ef471530415b2b3a4358248aeeba1f72e4427db2e0d7ee422e7",
+      "bytes": 158277,
+      "modifiedUtc": "2026-06-25T22:29:38.672Z"
+    },
+    {
+      "backlogFile": "docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2704ef906c423bfda6aa540dae0972f33f96a826868086464aea6b634357a423",
+      "bytes": 18565,
+      "modifiedUtc": "2026-06-25T22:57:26.954Z"
+    },
+    {
+      "backlogFile": "docs/agent-workflows/living-project-task-protocol/PARENT_PROJECT_WITH_SUBPROJECTS.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "7ca573a6c51a3d2910cee4803965e5a2d455504b035bc53be3d0bc37316ec606",
+      "bytes": 12129,
+      "modifiedUtc": "2026-06-25T22:57:26.956Z"
+    },
+    {
+      "backlogFile": "docs/agent-workflows/living-project-task-protocol/README.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "9b3173842973c965dba62b12bf8420987ad718e00ee206be94be0806cd0c437f",
+      "bytes": 35557,
+      "modifiedUtc": "2026-06-25T22:57:26.957Z"
+    },
+    {
+      "backlogFile": "docs/agent-workflows/living-project-task-protocol/templates/AUDIT_OR_PROOF.md",
+      "walkState": "walked, kept-template",
+      "exists": true,
+      "kind": "file",
+      "sha256": "afcfb1fad8d9c8030181d86a82f85fe39e31a80c614098ebce9798cfed5213a4",
+      "bytes": 1186,
+      "modifiedUtc": "2026-06-25T22:57:26.958Z"
+    },
+    {
+      "backlogFile": "docs/agent-workflows/living-project-task-protocol/templates/COLD_START_AGENT_PROMPT.md",
+      "walkState": "walked, kept-template",
+      "exists": true,
+      "kind": "file",
+      "sha256": "098394ebb247443be082f10d05c37c494b99dacaa32fcba0430add869909c713",
+      "bytes": 9040,
+      "modifiedUtc": "2026-06-25T22:57:26.959Z"
+    },
+    {
+      "backlogFile": "docs/agent-workflows/living-project-task-protocol/templates/DECISIONS.md",
+      "walkState": "walked, kept-template",
+      "exists": true,
+      "kind": "file",
+      "sha256": "257d25bb5c55fad45ffd688ccfc85ad5fda6d3f2aaa6f4342c8c073d55f17b2a",
+      "bytes": 1112,
+      "modifiedUtc": "2026-06-25T22:57:26.960Z"
+    },
+    {
+      "backlogFile": "docs/agent-workflows/living-project-task-protocol/templates/GAPS.md",
+      "walkState": "walked, kept-template",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4834963bff920459a7a3a346dacaef95e23e33dcb4b91c6b6e686dc0ceebd113",
+      "bytes": 6152,
+      "modifiedUtc": "2026-06-25T22:57:26.961Z"
+    },
+    {
+      "backlogFile": "docs/agent-workflows/living-project-task-protocol/templates/GLOBAL_GAPS.md",
+      "walkState": "walked, kept-template",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c7a8c0910cfe042d953be01c1d930a244ea50fdced54f319415ff7bf8813d718",
+      "bytes": 2692,
+      "modifiedUtc": "2026-06-25T22:57:26.963Z"
+    },
+    {
+      "backlogFile": "docs/agent-workflows/living-project-task-protocol/templates/LIVING_TRACKER.md",
+      "walkState": "walked, kept-template",
+      "exists": true,
+      "kind": "file",
+      "sha256": "501a3458143fc9118d77c0a4840a7849acb607069d35231734026d8582135735",
+      "bytes": 1753,
+      "modifiedUtc": "2026-06-25T22:57:26.965Z"
+    },
+    {
+      "backlogFile": "docs/agent-workflows/living-project-task-protocol/templates/NORTH_STAR.md",
+      "walkState": "walked, kept-template",
+      "exists": true,
+      "kind": "file",
+      "sha256": "121a72712ed222bdec0afbaf4fa374545e14a32eefbf4168045311c906e61f9f",
+      "bytes": 3267,
+      "modifiedUtc": "2026-06-25T22:57:26.965Z"
+    },
+    {
+      "backlogFile": "docs/agent-workflows/living-project-task-protocol/templates/RUNBOOK.md",
+      "walkState": "walked, kept-template",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e9515ea489d28f3ffecb8efe634efe5df19ee5f8743a007c22d2896c1a68147e",
+      "bytes": 1173,
+      "modifiedUtc": "2026-06-25T22:57:26.966Z"
+    },
+    {
+      "backlogFile": "docs/agent-workflows/living-project-task-protocol/templates/TASK_SLICE.md",
+      "walkState": "walked, kept-template",
+      "exists": true,
+      "kind": "file",
+      "sha256": "14b00cd39eb30a7abb9b5e4cdefbb007bb824041d019fece351de964c0052378",
+      "bytes": 1341,
+      "modifiedUtc": "2026-06-25T22:57:26.968Z"
+    },
+    {
+      "backlogFile": "docs/projects/GAPS_SCHEMA_FIT_REPORT.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "74fb46ddb608dc01c2e8ae0a96868357c78474ada6cedd2e0dbda38ba3f93fa9",
+      "bytes": 6292,
+      "modifiedUtc": "2026-06-25T23:08:44.605Z"
+    },
+    {
+      "backlogFile": "docs/projects/PROJECT_CARD_SCHEMA.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ac817c879ad4a65972a2f0ed370e3845dc3c5d7dc47e4fe5ffc7d4a6fd1a6b26",
+      "bytes": 21767,
+      "modifiedUtc": "2026-06-25T23:08:44.607Z"
+    },
+    {
+      "backlogFile": "docs/projects/PROJECT_SCHEMA_MIGRATION_NOTES.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "943886b89d520a731abaa3dd8bf4f7554bc6c706ea5c67d5fd62f9aced667824",
+      "bytes": 7841,
+      "modifiedUtc": "2026-06-25T23:08:44.609Z"
+    },
+    {
+      "backlogFile": "docs/projects/PROJECT_WORKFLOW_DOC_MIGRATION_NOTES.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "3a9ef7a119142677e4a78f38a65cc9ee1cbd251b00b8004069e636b968868499",
+      "bytes": 3277,
+      "modifiedUtc": "2026-06-25T23:08:44.610Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/orchestration/README.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "80edd6cc091c7a22992dc34ba7191a317c4a1c6076a989ebc2ab2f016f496c9d",
+      "bytes": 6665,
+      "modifiedUtc": "2026-06-25T23:10:04.803Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/orchestration/BRIEF-NOFALLBACK-AUDIT-1.md",
+      "walkState": "walked, superseded-by-resolution, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "0d37e42f4d437b3e384ddab1c0ca507c65fe926632ac75274baa6689668f4c97",
+      "bytes": 3496,
+      "modifiedUtc": "2026-06-25T23:10:04.804Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/orchestration/REPORT-NOFALLBACK-AUDIT-1.md",
+      "walkState": "walked, superseded-by-resolution, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2af869e46f3351685fd78408205b25883320cffd31c6ee86464b6c41b100d1c3",
+      "bytes": 7447,
+      "modifiedUtc": "2026-06-25T23:10:04.806Z"
+    },
+    {
+      "backlogFile": "docs/archive/@FEATURES-COMPLETED.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "dfd359f1510bf4b69baaa15bae40417e79492c063d8a25340d00a7e2e69c3a03",
+      "bytes": 1690,
+      "modifiedUtc": "2026-06-25T23:14:14.345Z"
+    },
+    {
+      "backlogFile": "docs/archive/@README.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "808a39744d9d068bf8ff1ad408b792ea59f72c1a17f748dae1f0edca15cd2527",
+      "bytes": 1834,
+      "modifiedUtc": "2026-06-25T23:14:14.347Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/cantrips/@SPELL-AUDIT-CANTRIPS.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "59f816737ad9c93a066786195cf0135802154c08e796ad783082e17a156851ce",
+      "bytes": 2083,
+      "modifiedUtc": "2026-06-25T23:14:14.348Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/cantrips/README.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "20357cfda640dab095e06bb857625da3901bd3702d9a755b1a02c3af898abf6d",
+      "bytes": 2488,
+      "modifiedUtc": "2026-06-25T23:14:14.349Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/cantrips/CANTRIP-MIGRATION-KNOWLEDGE.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "91659922f28ae5597f48bf6c6de77e90ec4da3028b31b56f66aed177c9b1601f",
+      "bytes": 2289,
+      "modifiedUtc": "2026-06-25T23:14:14.350Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/cantrips/1I-MIGRATE-CANTRIPS-BATCH-1.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c11ded12e5f845779122f4800dbe768c5a9598db1693d59ef4aae2e63414f6f2",
+      "bytes": 1591,
+      "modifiedUtc": "2026-06-25T23:14:14.351Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/cantrips/1J-MIGRATE-CANTRIPS-BATCH-2.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f84c6abbde41f7d692bd78e11cd97797b7f1628805206d8cc479b3d52af7d29a",
+      "bytes": 2020,
+      "modifiedUtc": "2026-06-25T23:14:14.352Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/cantrips/1K-MIGRATE-CANTRIPS-BATCH-3.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "25cf404171330ee837e5a7f83fbd99f727c7e2e2764e09fff4b47c80d50c9e0e",
+      "bytes": 1840,
+      "modifiedUtc": "2026-06-25T23:14:14.353Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/cantrips/1L-MIGRATE-CANTRIPS-BATCH-4.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "96422aa1a08b41fa44eeb41bbba3c507c8c0b999b59e810a93d18fe9ba3aaa69",
+      "bytes": 1494,
+      "modifiedUtc": "2026-06-25T23:14:14.355Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/cantrips/1M-MIGRATE-CANTRIPS-BATCH-5.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "66176288fb44d5876a69a421f6854f1a797d63de0220ac50f981ca6ca81c9550",
+      "bytes": 1459,
+      "modifiedUtc": "2026-06-25T23:14:14.358Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/cantrips/1N-MIGRATE-CANTRIPS-BATCH-6.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "9784a430336989744a839777173b79abb822c1d42cda582d3377f3527bf26f00",
+      "bytes": 1569,
+      "modifiedUtc": "2026-06-25T23:14:14.360Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/cantrips/1O-MIGRATE-CANTRIPS-BATCH-7.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6ceb285660278c9dcab9a16a12354af5c1b7ce36fce5f263a49a6e4ea662c759",
+      "bytes": 1359,
+      "modifiedUtc": "2026-06-25T23:14:14.361Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/cantrips/1P-MIGRATE-CANTRIPS-BATCH-8.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5bfb1a385077804d279268f1fe54df14ee78727483d14b39d0a386ad5685dfcb",
+      "bytes": 1335,
+      "modifiedUtc": "2026-06-25T23:14:14.364Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/cantrips/1Q-MIGRATE-CANTRIPS-BATCH-9.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "aeaf60e1917a47881d69fd30bdb3de57da177073ebcd1fbec2b98f0422d7762b",
+      "bytes": 1350,
+      "modifiedUtc": "2026-06-25T23:14:14.365Z"
+    },
+    {
+      "backlogFile": "docs/audits/level-1-targeting-audit.md",
+      "walkState": "walked, migrated, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "9d7130c82803ebbda7583661dfb38ebc3cc1a94def442660196e71da2fb9ff1f",
+      "bytes": 2673,
+      "modifiedUtc": "2026-06-25T23:14:14.366Z"
+    },
+    {
+      "backlogFile": "docs/portraits/race_portrait_regen_handoff.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "0fae967ff7ec19e549d2f0e605d92872c29708c548353137d4f7e23f0a295a80",
+      "bytes": 29502,
+      "modifiedUtc": "2026-06-25T23:14:14.368Z"
+    },
+    {
+      "backlogFile": "docs/projects/battle-map/PARITY_CHECKLIST.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "666774a04aaa3433311db0b569c2b705f627273f9fb262e82df711bc722ae6ca",
+      "bytes": 2857,
+      "modifiedUtc": "2026-06-25T23:14:14.369Z"
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/2026-06-25-travel-provisions.md",
+      "walkState": "walked, migrated, partially-executed, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fb5ae449c22b927ef610d3421a1f80b35b9885fe92e70f129009e04b01cc0df3",
+      "bytes": 32956,
+      "modifiedUtc": "2026-06-25T23:16:33.018Z"
+    },
+    {
+      "backlogFile": "docs/archive/2025-12-branch-cleanup/BRANCH_CLEANUP_SUMMARY.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6be22df000a0b639e0b3ccaa42a612e304c29bb5b949e5388131589ce822a9fd",
+      "bytes": 1511,
+      "modifiedUtc": "2026-06-25T23:32:27.639Z"
+    },
+    {
+      "backlogFile": "docs/archive/2025-12-branch-cleanup/QUICK_WINS_MERGE_SUMMARY.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "cad1378276363292af6770822ec161f2a235d6fec19f02519a841613d85fac20",
+      "bytes": 1591,
+      "modifiedUtc": "2026-06-25T23:32:27.641Z"
+    },
+    {
+      "backlogFile": "docs/archive/2025-12-branch-cleanup/REMOTE_BRANCH_ANALYSIS.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "0070a52e11aedacf789521d703b8da557233e9e776ebca420ef41d70e01e4345",
+      "bytes": 1557,
+      "modifiedUtc": "2026-06-25T23:32:27.642Z"
+    },
+    {
+      "backlogFile": "docs/archive/2025-12-branch-cleanup/REMOTE_BRANCHES_ACTIONABLE_SUMMARY.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "49758346149458990fd06d7b24a2e32da013b106bb00d5a6182dc9a4d9c00227",
+      "bytes": 1622,
+      "modifiedUtc": "2026-06-25T23:32:27.643Z"
+    },
+    {
+      "backlogFile": "docs/archive/AGENT-COORDINATION-REVIEW.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "40ac8a7b519c7af33fac46c2d944917e963158ba3730e4664dfc01b90b013eeb",
+      "bytes": 1691,
+      "modifiedUtc": "2026-06-25T23:32:27.644Z"
+    },
+    {
+      "backlogFile": "docs/archive/bugs/2025-11-submap-rendering/CRITICAL_BUG_SUBMAP_RENDERING.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "36738edef607f9e531083fda10bc55d701728a8e804d3a283721837f147ae6d1",
+      "bytes": 1714,
+      "modifiedUtc": "2026-06-25T23:32:27.645Z"
+    },
+    {
+      "backlogFile": "docs/archive/bugs/2025-11-submap-rendering/FIX_APPLIED_SUBMAP.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b6c29a8218280b48c3653f249231d25ba7f1258be8953b6a0f3bcfaf5d54dd09",
+      "bytes": 1693,
+      "modifiedUtc": "2026-06-25T23:32:27.651Z"
+    },
+    {
+      "backlogFile": "docs/archive/DOCUMENT-REVIEW-SUMMARY.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5a94015f1e3bd8a1a1a9ccddf0e4ab1f2d927764c500236fbd5101b2b437143d",
+      "bytes": 1597,
+      "modifiedUtc": "2026-06-25T23:32:27.651Z"
+    },
+    {
+      "backlogFile": "docs/archive/SPELL-SYSTEM-RESEARCH-REVIEW.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "db71a40526ef08db8afee9a1488e3fd83e51bf25a10de55dc276aa2352799286",
+      "bytes": 1658,
+      "modifiedUtc": "2026-06-25T23:32:27.652Z"
+    },
+    {
+      "backlogFile": "docs/decision_logs/race_glossary_sync_questions.md",
+      "walkState": "walked, routed, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "649c06b73909da070eb06511fbb1adb84822a76f3d9f5665e1accad97335a981",
+      "bytes": 17397,
+      "modifiedUtc": "2026-06-25T23:32:27.653Z"
+    },
+    {
+      "backlogFile": "docs/projects/history/COLD_START_AGENT_PROMPT_new.md",
+      "walkState": "retired, superseded",
+      "exists": false,
+      "kind": "missing",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    },
+    {
+      "backlogFile": "docs/projects/PROJECT_COMPLETION_ARCHIVE.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6eda6e4b03e8f58c8d36002acac47f9864d8028345b6e9dcf98009a42384b21c",
+      "bytes": 390548,
+      "modifiedUtc": "2026-06-25T23:34:52.151Z"
+    },
+    {
+      "backlogFile": "docs/projects/racial-mechanics/traits-implementation-mapping.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5cd9d6d204917ecb0c030da4bda0d71430f5b7bc5f27773eda1ee8ef5c205cfb",
+      "bytes": 183727,
+      "modifiedUtc": "2026-06-25T23:34:52.157Z"
+    },
+    {
+      "backlogFile": "docs/projects/submap/DEPENDENCY_CONTRACT.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4f8f446bb13f3d08bb7706374b14b02e219fc3009496e5bdf1cb136a819b0afb",
+      "bytes": 12488,
+      "modifiedUtc": "2026-06-25T23:34:52.159Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/orchestration/REPORT-ECON-WIRE-1.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fb840288168cadd6baa742626ea1984f52428e79960d99f593d1139da903b292",
+      "bytes": 3454,
+      "modifiedUtc": "2026-06-25T23:34:52.163Z"
+    },
+    {
+      "backlogFile": "docs/spells/audit/AUDIT_LEVEL_2.md",
+      "walkState": "walked, kept-placeholder",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d80d1537bb5abf1d7dab89b177841320d9de3b172e9e164b05e22870115b1318",
+      "bytes": 1004,
+      "modifiedUtc": "2026-06-25T23:34:52.164Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/@CLEANUP-CLASSIFICATION-REPORT.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d3c437fa001edf4d92995e99afbc35af2d09c539375d061ad8646505fd7dd28a",
+      "bytes": 2186,
+      "modifiedUtc": "2026-06-25T23:38:33.498Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/@DOCUMENTATION-SYSTEM-STATUS.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "823ea6fe6fff97bea14fa5fdee25a78607ff9f4eb1adb72611c0a67453b59148",
+      "bytes": 2052,
+      "modifiedUtc": "2026-06-25T23:38:33.500Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/AUDIT_ACTIONS_COMPLETED.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "7bcc568688692b8fe571d4b51a70ffe82322cb891e572e1096eb48481ba2539a",
+      "bytes": 2129,
+      "modifiedUtc": "2026-06-25T23:38:33.501Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/DOCS_OVERVIEW_COMPLETE_AUDIT.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "534eccbea795c22bb8e2e5b37427303ef3c15f49ff06fb6e372bf2686033577c",
+      "bytes": 2153,
+      "modifiedUtc": "2026-06-25T23:38:33.502Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/DOCS_OVERVIEW.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2a18e183a5ee49d0a9dc51aefd5b0424399113829b00c4dfd72576731460a826",
+      "bytes": 2177,
+      "modifiedUtc": "2026-06-25T23:38:33.503Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/LEGACY_CODE_REPORT.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2380bcb526bb43459cf8a27c43e73388ef2564c20e3235da38ab64ddd47a70f6",
+      "bytes": 2132,
+      "modifiedUtc": "2026-06-25T23:38:33.504Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/review_worklogs.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "37a4eb3b8470d243063610de81b818b4c4632149164c2d77458310bedb5460f7",
+      "bytes": 1825,
+      "modifiedUtc": "2026-06-25T23:38:33.505Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/@SPELL-SYSTEM-OVERHAUL-TODO.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "94adadbd4d10878028a6eedec4c3abea9b4f4c723138f87d3a569ba67007cc11",
+      "bytes": 2107,
+      "modifiedUtc": "2026-06-25T23:38:33.506Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-system/AGENT-PROMPTS-STUB-COMPLETION.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6b52771fb1f5011b488556c48e4b6211b8f345684f6726f0c5cc3b0f32b40e88",
+      "bytes": 1784,
+      "modifiedUtc": "2026-06-25T23:38:33.508Z"
+    },
+    {
+      "backlogFile": "docs/audits/source-references-inventory.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "1c830154c844eb6191322d674394930b698383cd4ec12f3a7300b50c1474d223",
+      "bytes": 124388,
+      "modifiedUtc": "2026-06-25T23:38:33.509Z"
+    },
+    {
+      "backlogFile": "docs/guides/completed/NPC_MECHANICS_IMPLEMENTATION_GUIDE.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b7e1ffed9e530fc24f625d8ec23fb1a1464f189a0d16287ac9f1052918fed9f0",
+      "bytes": 2110,
+      "modifiedUtc": "2026-06-25T23:38:33.510Z"
+    },
+    {
+      "backlogFile": "docs/projects/3d-combat-map/HANDOFF.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "3220bf34821d417ca8ffe965d4d061924e083b67ed940f051fac925b9922500c",
+      "bytes": 5394,
+      "modifiedUtc": "2026-06-25T23:38:33.511Z"
+    },
+    {
+      "backlogFile": "docs/projects/town-description-system/IMPLEMENTATION_PLAN.md",
+      "walkState": "walked, routed, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "3937e9ebeafdf0861000833bfd95b2c37a3597e57346449fdf6ff2d5a32a5920",
+      "bytes": 3693,
+      "modifiedUtc": "2026-06-25T23:38:33.514Z"
+    },
+    {
+      "backlogFile": "docs/projects/DECISION_BLITZ_2026-06-10.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b4e2f02f86b860c7b472172bbe351caace710a2fb1cea37a5fc6affc489501b4",
+      "bytes": 7611,
+      "modifiedUtc": "2026-06-25T23:41:49.192Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/orchestration/LANE-A.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "7e46900ffb7314b55dd175660629874fcc1b96cf0e5eebec4b27b3d7b200fec7",
+      "bytes": 29951,
+      "modifiedUtc": "2026-06-25T23:41:49.198Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/orchestration/LANE-C.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "be0a3b46fdbe395e461576bf4a893ad1c655cd89fd95f1e1b90d875c49463561",
+      "bytes": 32085,
+      "modifiedUtc": "2026-06-25T23:41:49.201Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/orchestration/REPORT-CONSTRUCT-A.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "206c5e290aadd935d663719b27e749ed19a0ae9196b4324c7d7fbfb4fa8581fa",
+      "bytes": 2790,
+      "modifiedUtc": "2026-06-25T23:41:49.202Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/orchestration/REPORT-CONSTRUCT-B.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "4c1a7234e044295daafd1a11a87e4ba41d862e575e8af5ffe56d553efc3bdbf1",
+      "bytes": 4488,
+      "modifiedUtc": "2026-06-25T23:41:49.206Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/orchestration/REPORT-HOSTILE-1.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fc88a1b79a0da7e74bc202c9f82fbe833e360cbcdac75b77f2bbd77426750106",
+      "bytes": 4428,
+      "modifiedUtc": "2026-06-25T23:41:49.208Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/orchestration/REPORT-NAMEPLATE-1.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "063ac24dc53d1459d899bbca20020fb2d42bcb447f79fbfee6529b4fd534476b",
+      "bytes": 6533,
+      "modifiedUtc": "2026-06-25T23:41:49.213Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/orchestration/REPORT-ROSTER-1.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "92df983ca79e196603cb7b643e504be5e0bc8a08d22b7330ad9e9999e2731b3a",
+      "bytes": 5071,
+      "modifiedUtc": "2026-06-25T23:41:49.214Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/orchestration/REPORT-SPARK-1.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f4e935160195ab8ffa7c350ca8ae4029a159c030c854a9842309bac92864cae4",
+      "bytes": 2794,
+      "modifiedUtc": "2026-06-25T23:41:49.216Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/orchestration/REPORT-WF-STORE-2.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d2f8f536819bfc922284636a8c59b273b86e0393c2a754516becb18fde027cd6",
+      "bytes": 4629,
+      "modifiedUtc": "2026-06-25T23:41:49.217Z"
+    },
+    {
+      "backlogFile": "docs/registry/@DOC-MIGRATION-LEDGER.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "7dc549689f8f824148cf14d9adf0242c3c0ed232d164aa0a4b6e16857c9fa474",
+      "bytes": 110357,
+      "modifiedUtc": "2026-06-25T23:48:24.940Z"
+    },
+    {
+      "backlogFile": "docs/registry/@DOC-REVIEW-LEDGER.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "abeee352c2d81e643db0bf52ff638528fae44cb4d25f09b0d609c1ff429aecd5",
+      "bytes": 237351,
+      "modifiedUtc": "2026-06-25T23:48:24.945Z"
+    },
+    {
+      "backlogFile": "docs/reports/charset-review-report.md",
+      "walkState": "walked, routed, executed, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "df743a997e4ce23c486e86c80cfd466a0ead9ad83f861b804e62ec583d33e17c",
+      "bytes": 1006720,
+      "modifiedUtc": "2026-06-25T23:48:24.962Z"
+    },
+    {
+      "backlogFile": "docs/projects/PROJECT_CATEGORY_TAXONOMY.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "d367bdf72e62decd63a7d803260fd44f712e29ea5ed02523b337bcdf90533905",
+      "bytes": 4225,
+      "modifiedUtc": "2026-06-25T23:59:02.672Z"
+    },
+    {
+      "backlogFile": "docs/projects/PROJECT_VERIFICATION_SCHEMA.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c3a047bad317c128f928395539e1e1624984669dbf06cdbebe372f8eb2ca3114",
+      "bytes": 2167,
+      "modifiedUtc": "2026-06-25T23:59:02.674Z"
+    },
+    {
+      "backlogFile": "docs/projects/world-3d-ui/PERF.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "85785ceaa54a13b229bcb418c4eaf80338778c6eaf473a47f3d83d9d5224d444",
+      "bytes": 2338,
+      "modifiedUtc": "2026-06-25T23:59:02.675Z"
+    },
+    {
+      "backlogFile": "docs/projects/world/WORLD_GEOGRAPHY_ADAPTER_CONTRACT.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e2dcba6e7a0cd389a0a2534c7b11f8af8a640a796322f5321bf6d68af51f3d0c",
+      "bytes": 8966,
+      "modifiedUtc": "2026-06-25T23:59:02.677Z"
+    },
+    {
+      "backlogFile": "docs/projects/worldforge/subprojects/sp3-leaf-to-3d/SPEC.md",
+      "walkState": "walked, routed, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "c72c4c7bc76ed8ca3808ffe46aa6cf9c00940c02e73d0320ec7f6ab840a5672d",
+      "bytes": 3930,
+      "modifiedUtc": "2026-06-25T23:59:02.678Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/@CONSOLIDATION-LOG.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f50bf9881ebccc8129195949812433449eaac1f9e8da0cc294bd50c5eb437093",
+      "bytes": 2004,
+      "modifiedUtc": "2026-06-25T23:59:02.680Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/@LINK-VERIFICATION-REPORT.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "a5d0750b559c6d9f98869c6249b267bcaecc977c6592549e5ae2ff2d9724e202",
+      "bytes": 2091,
+      "modifiedUtc": "2026-06-25T23:59:02.681Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/CONTRIBUTING_MANUS.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "fd0ff215a2162d0168a90d1abb7e621c60a2ff21b6e7098af7ad8ca6afde7fbf",
+      "bytes": 1837,
+      "modifiedUtc": "2026-06-25T23:59:02.682Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/DEAD_CODE_REPORT.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "420bf301f6956cc5b3e6c0891cc2952efdff5068367cb4a1b85ce67c2c848b02",
+      "bytes": 1835,
+      "modifiedUtc": "2026-06-25T23:59:02.683Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/NEXT-DOC-REVIEW-PROMPT.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "93c3b08ee31a860b3cbfb7b0f84b3e34d5d7470ab8e33df13676119fa8aed1d4",
+      "bytes": 1765,
+      "modifiedUtc": "2026-06-25T23:59:02.683Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/NEXT-DOC-REVIEW.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ef5d4052e1a6b62568c170cd8946e49acd4f8c595c4d905fb31aa64d43e7d9cb",
+      "bytes": 1697,
+      "modifiedUtc": "2026-06-25T23:59:02.684Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/REMOVAL_LOGIC.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "ab8755a29a93d82af60dc4bc5f51a35d2c299a53775ed39d5817404afcbeaf0a",
+      "bytes": 1701,
+      "modifiedUtc": "2026-06-25T23:59:02.685Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/SCOUT_RUN_SUMMARY.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "2795712d791e376f96a44d5fcc8b8f336b45f636560f70da233611820f3cc1f8",
+      "bytes": 1905,
+      "modifiedUtc": "2026-06-25T23:59:02.685Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/TESTING_SUMMARY.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "b84ee0792e3c30897ecb206769e14cc0405146165092c0a518194b9925f859e6",
+      "bytes": 2012,
+      "modifiedUtc": "2026-06-25T23:59:02.686Z"
+    },
+    {
+      "backlogFile": "docs/archive/reports/V1.1_BUG_VERIFICATION_REPORT.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "e500b88066f261ed7992f6c320881212684780a875b556b5072b154e1f0085e3",
+      "bytes": 1752,
+      "modifiedUtc": "2026-06-25T23:59:02.687Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-docs-2025-12/COMPONENT_DEPENDENCIES.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "5b4e2f2ee6880345cc52c60e495c8f1f24e301bc583a1e6f721fe5aa7101ec92",
+      "bytes": 1820,
+      "modifiedUtc": "2026-06-25T23:59:02.687Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-docs-2025-12/FINAL_SUMMARY.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "7d6461c3ae53ce517d1bce358f9e8ee441c8a6d10d2115742e78a391c7615120",
+      "bytes": 1964,
+      "modifiedUtc": "2026-06-25T23:59:02.688Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-docs-2025-12/README.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "40734e8be149616da7bb08edfd78a36c13fde651aefb63d57e55b946ccd91ffa",
+      "bytes": 1630,
+      "modifiedUtc": "2026-06-25T23:59:02.689Z"
+    },
+    {
+      "backlogFile": "docs/archive/spell-docs-2025-12/UPDATES-SUMMARY.md",
+      "walkState": "walked, kept-reference",
+      "exists": true,
+      "kind": "file",
+      "sha256": "6fd74ee6664c1c1c786e64c6be2b32bc2cd63827de79ef249296fd6840615790",
+      "bytes": 1767,
+      "modifiedUtc": "2026-06-25T23:59:02.690Z"
+    },
+    {
+      "backlogFile": "docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md",
+      "walkState": "walked, kept-active",
+      "exists": true,
+      "kind": "file",
+      "sha256": "f285d3fc8d6b4fd6862943af0e77251ff2043c310227ea9ec16e2e8e45c4a5f6",
+      "bytes": 314914,
+      "modifiedUtc": "2026-06-25T23:59:02.695Z"
+    },
+    {
+      "backlogFile": "docs/superpowers/plans/*.md",
+      "walkState": "bucket_walked",
+      "exists": false,
+      "kind": "glob",
+      "sha256": null,
+      "bytes": null,
+      "modifiedUtc": null
+    }
+  ]
+}

@@ -75,3 +75,5 @@ Completion output:
 - verification commands and outcomes
 - explicit confirmation that no forbidden files were touched
 - residual rows or broader reaction-engine gaps left for later packages
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_18_REACTION_OPPORTUNITY_SAFE_REPLACEMENT_JULES_PROMPT.md","sha256WithoutMarker":"15ad59641b3a3a88a79cf01d79b07cfba1db9c795eb65f6b7d4545a6f24f41ca","markedAtUtc":"2026-06-25T22:29:38.383Z"} -->

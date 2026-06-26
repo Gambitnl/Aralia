@@ -32,3 +32,5 @@ For concrete follow-through, consult:
 - docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md
 - docs/tasks/spell-system-overhaul/gaps/GAP-CHOICE-SPELLS.md
 - docs/spells/STATUS_LEVEL_1.md
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md","sha256WithoutMarker":"a8866911e78eaa82c66364f7fd3230a995eaad84850473403094d00d73f7e7db","markedAtUtc":"2026-06-25T22:29:38.599Z"} -->

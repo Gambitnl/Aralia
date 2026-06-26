@@ -14,14 +14,12 @@ This plan also makes the early-game spell project the next live production trial
 for Symphony. Symphony refinement and finalization should happen inside this
 work, but only when the spell flow exposes a concrete workflow need.
 
-Current live boundary: Packages 1 through 15 have merged history and receipts,
-including the Package 9 higher-level caster fixture coverage, the `G93` Jules
-post-launch update-boundary repair, Package 10 target-filter/eligibility,
-Package 11 status/state-change, Package 12 conditional-ending, Package 13
-terrain/surface, Package 14 vision/light/sound, Package 15
-`summon_or_controlled_entity`, and Package 16 `sustain_or_recast_action`
-slices. Treat the task tracker below as the spell-project source of truth for
-the exact packet, launch, PR, closeout, and next-package state.
+Current live boundary: use
+`docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md` as the source of truth for
+the exact package queue, launch, PR, closeout, and next-package state. Earlier
+versions of this plan named specific package ranges inline; that wording is now
+treated as historical because the tracker carries the current Package 19
+mergeability boundary and later package handoff state.
 
 The live task collection and status tracker is
 `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding
@@ -897,3 +895,5 @@ Immediate action:
    for real forks, compact wait rows for repeated unchanged Jules/GitHub states,
    reusable lessons in the lesson-resolution matrix, and routine implementation
    details in the completion report.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/EARLY_GAME_SPELL_EXECUTION_PLAN.md","sha256WithoutMarker":"1f2f4095e06fcd18105cc834b482026dae529dd537cba744b84ab92d114c6151","markedAtUtc":"2026-06-25T22:29:38.342Z"} -->

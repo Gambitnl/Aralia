@@ -126,3 +126,4 @@ Convert batch {N} of {count} {level} spells from Old Format to New Format.
 
 **Note**: The skeleton above is intentionally abstract. Do not add specific spell names or inline examples - let Jules discover the spell list from the audit file.
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/BATCH-CREATION-GUIDE.md","sha256WithoutMarker":"bc1982ad6c1bf51f3037eb1752be51640ea6c062ee3e24c9e49ba7cb71c68cff","markedAtUtc":"2026-06-25T22:29:38.584Z"} -->

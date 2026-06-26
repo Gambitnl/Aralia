@@ -1,8 +1,6 @@
 # Package 5: AI Arbitration Pilot
 
-Status: scoped for Jules handoff; Linear issue `ARA-11` is linked, and the task
-page now renders a visible form-backed `Prepare Handoff` button, but browser
-activation of that visible button is still blocked.
+Status: historical Package 5 packet; PR #991 merged on 2026-05-24.
 
 This is the durable Aralia-facing task packet for Spell Phase 1 Package 5. The
 goal is to prove that open-ended early-game spells can ask for player intent,
@@ -237,3 +235,4 @@ PR #991 merged on 2026-05-24 after:
 | P5-13 Post-approval stale boundary | After approval succeeded, the dashboard still offered `Approve Jules Plan` because cached Jules state remained `AWAITING_PLAN_APPROVAL`. | Repair Symphony so an approved receipt routes to `Refresh Jules Status`, avoiding duplicate mutating approval attempts. | Temporary Symphony source repair in Aralia GitHub; should migrate with Symphony when separated. |
 | P5-14 PR #991 scope cleanup | Jules produced the implementation PR but included generated report churn and briefly pushed a workflow-config change after feedback. | Keep the implementation, remove generated/workflow churn, correct the PR body, and merge once checks are green. | Aralia GitHub implementation PR plus Codex foreman cleanup; Symphony runtime state remains external/local. |
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT.md","sha256WithoutMarker":"411ac530d01576d496b6f5b3473238fe71ffdeb3a076b83fa1a5ba717375438c","markedAtUtc":"2026-06-25T22:29:38.361Z"} -->

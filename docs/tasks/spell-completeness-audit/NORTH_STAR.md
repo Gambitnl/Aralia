@@ -1,7 +1,7 @@
 # Spell Completeness Audit North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-25
 
 ## Why This Project Exists
 
@@ -27,7 +27,9 @@ Keep `spell-completeness-audit` as the compact cold-start memory for:
   - `output/PHB-2024-REFERENCE.md`
   - `@SPELL-COMPLETENESS-REPORT.md`
 - Historical task context remains in `@PROJECT-INDEX.md`, `@WORKFLOW.md`,
-  `1A~`, `1B~`, `1C~`, `2A~`, `2B~`, and `PROPOSED_SCHEMA_V2.md`.
+  `PROPOSED_SCHEMA_V2.md`, the preserved output/report files, and the backlog
+  retirement ledger rows for the retired `1A~`, `1B~`, `1C~`, `2A~`, `2B~`,
+  and old task-folder `GAPS.md` packets.
 - The per-level inventory snapshot used by the audit is from Dec 2025 and is not a
   current runtime truth.
 - `docs/spells/STATUS_LEVEL_1.md` through `STATUS_LEVEL_9.md` are the
@@ -49,10 +51,10 @@ Keep `spell-completeness-audit` as the compact cold-start memory for:
 | Field | Value |
 |---|---|
 | Task | Refresh this project surface as a current handoff for coverage work and stale-drift tracking. |
-| Acceptance criteria | `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` describe scope, links, implemented/planned state, integrations, and next checks in one pass. |
+| Acceptance criteria | `NORTH_STAR.md`, `TRACKER.md`, and `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md` describe scope, links, implemented/planned state, integrations, and next checks in one pass. |
 | Allowed boundaries | `docs/tasks/spell-completeness-audit` only. |
 | Stop condition | Stop after the three docs reflect the live evidence boundary without source edits. |
-| Verification | Internal consistency between this North Star, `TRACKER.md`, `GAPS.md`, and external registry links. |
+| Verification | Internal consistency between this North Star, `TRACKER.md`, the nested Spells subproject `GAPS.md`, and external registry links. |
 | Owner | Worker D |
 | Next action | Decide whether to replay the audit against current local data before any new gap claims are treated as current. |
 
@@ -85,7 +87,7 @@ Out of scope:
 |---|---|
 | `NORTH_STAR.md` | Cold-start entry and current project memory. |
 | `TRACKER.md` | Queue and active action planning. |
-| `GAPS.md` | Project-specific unresolved findings. |
+| `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md` | Living unresolved findings for this lane. |
 | `output/LOCAL-INVENTORY.md` | Historical local spell list snapshot. |
 | `output/PHB-2024-REFERENCE.md` | Historical PHB 2024 reference snapshot. |
 | `@SPELL-COMPLETENESS-REPORT.md` | Historical present/missing/extra output. |
@@ -98,6 +100,7 @@ Out of scope:
 - `docs/projects/GLOBAL_GAPS.md` (cross-project gap routing).
 - `docs/spells/STATUS_LEVEL_*.md` (current inventory surfaces).
 - `docs/projects/spells/NORTH_STAR.md` and `docs/projects/spells/TRACKER.md` for broader spell-project context.
+- `docs/projects/spells/subprojects/spell-completeness-audit/{NORTH_STAR.md,TRACKER.md,GAPS.md}` for the current living subproject packet.
 - `docs/tasks/spell-system-overhaul/NORTH_STAR.md` (overall migration strategy).
 - `docs/tasks/spell-system-overhaul/LEVELS-1-9-MIGRATION-GUIDE.md` (batch workflow handoff).
 - `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` and source spell validation files when testing whether a spell is actually runnable.
@@ -123,6 +126,8 @@ Out of scope:
 
 1. Read this file.
 2. Read `TRACKER.md`.
-3. Read `GAPS.md`.
+3. Read `docs/projects/spells/subprojects/spell-completeness-audit/GAPS.md`.
 4. Read `@SPELL-COMPLETENESS-REPORT.md` and both `output` snapshots.
 5. Continue from the next action in `TRACKER.md`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/NORTH_STAR.md","sha256WithoutMarker":"b625631e635a59be10150cb2df9925f36a4e88cd51fc8718959c83a01f3c8b85","markedAtUtc":"2026-06-25T22:29:38.619Z"} -->

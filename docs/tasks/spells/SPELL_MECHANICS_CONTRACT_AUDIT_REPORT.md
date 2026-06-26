@@ -112,3 +112,5 @@ Runtime read tokens: 1558
 - Runtime-read detection is token based. It is useful for triage, not proof of complete behavior.
 - Type detection is based on field-name tokens in `src/types/spells.ts`, so nested fields with common names may need manual review.
 - Use this report to decide where spell-related `any` casts are hiding real contract drift before replacing them.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_MECHANICS_CONTRACT_AUDIT_REPORT.md","sha256WithoutMarker":"466eed68789ed541091422a664bbabaa01930556d237edd47704045532a54654","markedAtUtc":"2026-06-25T22:29:38.553Z"} -->

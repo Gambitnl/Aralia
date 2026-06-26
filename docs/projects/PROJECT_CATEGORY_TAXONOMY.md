@@ -60,3 +60,5 @@ Potential duplicates should be classified before any merge/archive decision:
 | 3D Combat Map conductor path and docs/projects path | stale_pointer | Keep `docs/projects/3d-combat-map`; review/demote old conductor pointer. |
 | UI/system pairs like Crafting UI + Crafting System | ui_runtime_pair | Keep both unless their North Stars converge on the same owner and tasks. |
 | Crime project giant North Star | corrupted_doc_surface | Repair/rebuild docs; do not deprecate Crime System. |
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/projects/PROJECT_CATEGORY_TAXONOMY.md","sha256WithoutMarker":"16c11eb3953c11d291d2a9c8783ac077db9a01c838f4effb75e8f3395eaf00f0","markedAtUtc":"2026-06-25T23:59:02.669Z"} -->

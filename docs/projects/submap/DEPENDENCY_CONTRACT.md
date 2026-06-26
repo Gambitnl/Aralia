@@ -149,3 +149,5 @@ Before component deprecation:
 
 If a future renderer or navigation surface replaces the tile surface, it should
 satisfy this contract before changing visuals or input routing.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/projects/submap/DEPENDENCY_CONTRACT.md","sha256WithoutMarker":"5f1fdb05e09350f2aee97a2b101fb7360f6a661c9507bbec24fe8e57d8ccb951","markedAtUtc":"2026-06-25T23:34:52.158Z"} -->

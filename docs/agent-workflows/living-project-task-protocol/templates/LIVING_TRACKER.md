@@ -38,3 +38,5 @@ Last updated: <YYYY-MM-DD>
   Do not use "no gaps found" unless the sweep tested nearby boundaries, not
   only touched files.
 - Keep raw process artifacts out unless a concise summary helps future work.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/agent-workflows/living-project-task-protocol/templates/LIVING_TRACKER.md","sha256WithoutMarker":"5d6dd127a575eb0e8438cde8567e5a3bd7f18620e91ac35523825b84563d8059","markedAtUtc":"2026-06-25T22:57:26.963Z"} -->

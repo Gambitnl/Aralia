@@ -375,3 +375,5 @@ Current reading:
 - This is a working execution inventory, not a final arbitration report.
 - When a spell moves out of one queue, update both this file and the main
   `SPELL_RANGE_AREA_BUCKET_TRACKER.md` surface.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/range-area/SPELL_RANGE_AREA_INVENTORY.md","sha256WithoutMarker":"c449a298fd258f1b197c0aae88b6861ed010be9be7f4fe7f62b7d35e0049d9ab","markedAtUtc":"2026-06-25T22:29:38.534Z"} -->

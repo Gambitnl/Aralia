@@ -13,3 +13,4 @@
 
 - [`../../archive/spell-system/1E-CONSOLIDATE-JULES-WORKFLOW.md`](../../archive/spell-system/1E-CONSOLIDATE-JULES-WORKFLOW.md)
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/1E-CONSOLIDATE-JULES-WORKFLOW.md","sha256WithoutMarker":"c49105fe6e3c3787dc6e799327123868d526e40ecdeaa6235ce6b4de63af42eb","markedAtUtc":"2026-06-25T22:29:38.575Z"} -->

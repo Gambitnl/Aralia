@@ -149,7 +149,24 @@
     "tough"
   ],
   "featChoices": {},
-  "equippedItems": {},
+  "equippedItems": {
+    "MainHand": {
+      "id": "greataxe",
+      "name": "Greataxe",
+      "description": "A heavy two-handed axe for brutal melee strikes.",
+      "type": "weapon",
+      "category": "Martial Melee Weapon",
+      "damageDice": "1d12",
+      "damageType": "slashing",
+      "properties": [
+        "heavy",
+        "two-handed"
+      ],
+      "isMartial": true,
+      "mastery": "Cleave",
+      "rarity": "Common"
+    }
+  },
   "statusEffects": [],
   "limitedUses": {
     "racial_feature_frost_giant_goliath__frost_s_chill__resource": {

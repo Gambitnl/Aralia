@@ -1,6 +1,11 @@
 # Package 2 Foreman Review And Failure Classification Receipt
 
-Status: active PR #935 foreman review.
+Status: historical PR #935 foreman review; PR #935 has merged.
+
+Backlog-retirement note, 2026-06-25: this receipt is retained as Package 2
+review provenance. Current package state lives in
+`docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md` and package history; do not
+restart Package 2 from the stale active-review wording below.
 
 This receipt is the review desk for Codex after Jules returns the premade party
 and gear slice. It exists before dispatch so the first Spell Phase 1 Jules PR
@@ -160,3 +165,5 @@ through the dashboard/Scout/Core bridge before merge.
   AI arbitration policy into this receipt.
 - If Codex performs any review repair, record why Jules feedback was not the
   better first repair path.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_2_FOREMAN_REVIEW_RECEIPT.md","sha256WithoutMarker":"7d7d77091b97844c86ae1e4504cbb1e6f0a8341676bfb3718088be6146ee338f","markedAtUtc":"2026-06-25T22:29:38.345Z"} -->

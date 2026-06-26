@@ -36,3 +36,5 @@ This file defines the standard codes for bundled gaps in the D&D 5e / PHB 2024 s
 ## Legacy Gaps
 - `LEGACY_FORMAT`: The spell is in an old JSON format and lacks structural fidelity.
 - `TODO_MECHANICS`: Documentation-only catch-all for complex riders mentioned in `_todo` strings or similar notes; do not assume this code is schema-backed unless the target surface explicitly supports it.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/GAP_REGISTRY.md","sha256WithoutMarker":"6b99eaeaadb4ed51e4c89407768a72f8cf37ba1ad033c4bc630879a11edfb1dd","markedAtUtc":"2026-06-25T22:29:38.585Z"} -->

@@ -102,7 +102,7 @@ supported_optional_sections:
 # Code Modularization Audit Gap Registry
 
 Status: active
-Last updated: 2026-06-12
+Last updated: 2026-06-25
 
 | ID | Status | Risk | Owner | Surface | Evidence | Why it matters | Next action | Next proof |
 |---|---|---|---|---|---|---|---|---|
@@ -124,6 +124,7 @@ Last updated: 2026-06-12
 | CMA-G17 | routed | high | layout | Global modal manager | `src/components/layout/GameModals.tsx` (~721 lines) | Central modal orchestration crosses many owners and lazy-load boundaries, making regressions easy to hide. | Route to layout for modal-manager decomposition and acceptance of a smaller owner-specific manager split. | Layout modal smoke proof plus open/close coverage for the extracted manager. |
 | CMA-G18 | routed | high | combat | Combat execution and UI orchestration | `src/hooks/combat/useActionExecutor.ts` (~753 lines); `src/components/Combat/CombatView.tsx` (~619 lines); `src/components/Combat/EncounterModal.tsx` (~586 lines); `src/types/combat.ts` (~704 lines) | Combat core types, action execution, and combat UI are still co-located enough that behavior can drift if modularized without end-to-end combat proof. | Route to combat for a bounded split plan that preserves turn flow, log state, and encounter generation. | `src/hooks/combat/__tests__`, `src/components/Combat/__tests__`, and combat scenario replay/smoke proof. |
 | CMA-G19 | routed | medium | scripts-audits | Spell audit and enrichment scripts | `scripts/generateSpellReferencedRulesEnrichment.ts` (~743 lines); `scripts/auditSpellSubClassesRoster.ts` (~671 lines); `scripts/archive/spell-canonical-retrieval/captureSpellCanonicalData.ts` (~658 lines) | The spell audit/tooling lane is accumulating multi-stage scripts; modularization should preserve the generator/harvest sequence and emitted artifacts. | Route to scripts-audits for stage boundaries and script ownership review. | Script dry-run or diff-check proof against the generated glossary or canonical outputs. |
+| CMA-G20 | routed | medium | code-modularization-audit, owning type consumers | Type barrel dependency pressure | `src/types/index.ts`; `src/types/core.ts`; `src/types/items.ts`; `src/types/character.ts`; `src/types/combat.ts`; retired `docs/plans/refactors/ARCH_TYPES_REFACTOR.md` and `docs/plans/refactors/TYPES_REFACTOR_PLAN.md` | The old type-consolidation notes are stale because the type lane is already split into many domain files, but the remaining barrel/import-graph concern is still valid and should be scored from current imports before any physical movement. | Keep this as a routing/scoring signal: inspect current imports from `src/types/index.ts`, route risky consumers to their owning projects, and avoid broad type churn without focused compile/test proof. | Import-graph audit plus focused tests or type checks for whichever owner accepts a bounded type-boundary change. |
 
 Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Status Notes
@@ -136,6 +137,7 @@ Use this file for durable unresolved findings that are too important or too larg
 - CMA-T5 complete 2026-06-08: second-tranche candidates CMA-G8 through CMA-G13 were added from the next largest human-maintained source files. Character-creator-facing scope stays review-only while that project is gated; central state/save/load scope is high-risk route-only until migration/load proof is explicit.
 - CMA-T6 complete 2026-06-08: second-tranche candidates CMA-G8 through CMA-G13 are now owner-routed. These are still split-planning signals, not permission for implementation.
 - CMA-T7 complete 2026-06-08: next-tranche routes CMA-G14 through CMA-G19 cover the `three-d-modal`, `battle-map`, `submap`, `layout`, `combat`, and `scripts-audits` clusters. They remain routing-only until owners accept them.
+- 2026-06-25 backlog-retirement pass: retired the old standalone type refactor notes after confirming `src/types/core.ts`, `items.ts`, `character.ts`, and many domain type files already exist. CMA-G20 preserves only the still-valid import-graph/barrel pressure as a current scoring signal.
 
 ## Next Assignment
 

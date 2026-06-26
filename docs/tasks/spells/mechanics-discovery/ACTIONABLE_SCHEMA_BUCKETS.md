@@ -728,3 +728,4 @@ Grouped mechanics families: 24
   - unseen-servant / movement_or_repositioning: The servant can be commanded to move up to 15 feet, but movement is only in objectDescription prose.
   - levitate / movement_or_repositioning: Levitate raises and suspends a creature or loose object and later changes altitude by up to 20 feet, but the current movement model has no vertical suspension/altitude-change type and is forced to use teleport.
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/mechanics-discovery/ACTIONABLE_SCHEMA_BUCKETS.md","sha256WithoutMarker":"44da5fbc90326ed39c636a2562ba41bb89144607c6e0c56c0c6b3e5511033e7f","markedAtUtc":"2026-06-25T22:29:38.433Z"} -->

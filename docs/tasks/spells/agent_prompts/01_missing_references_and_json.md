@@ -122,3 +122,5 @@ Append to this file:
 - "Completion Notes"
 - "Detected TODOs (Out of Scope)"
 See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/agent_prompts/01_missing_references_and_json.md","sha256WithoutMarker":"77ab7335896fa734a16a7321ec9515ea04e3f333c05eadd5aa23715c1a7fc27a","markedAtUtc":"2026-06-25T22:29:38.474Z"} -->

@@ -649,3 +649,5 @@ What should an agent do until the workflow is clarified?
 What rule, wording, dashboard signal, template change, or closeout requirement
 would remove the ambiguity?
 ```
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md","sha256WithoutMarker":"89ff064a82aa77aefb755a0b75bdc9a057a6c5f548f6b77e4dc0560b9b988d9d","markedAtUtc":"2026-06-25T22:54:19.191Z"} -->

@@ -1463,3 +1463,4 @@ This report does not arbitrate which side is correct. It surfaces where the stru
   - Structured: `Unsupported Entries`
   - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_STRUCTURED_VS_CANONICAL_REPORT.md","sha256WithoutMarker":"ddb807564be28e6a67e81c8d76a0f2cfcda2db58cd2cc64be54623a7bbc64ef5","markedAtUtc":"2026-06-25T22:29:38.558Z"} -->

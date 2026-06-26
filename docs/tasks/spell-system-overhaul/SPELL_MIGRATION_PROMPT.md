@@ -171,3 +171,5 @@ Log progress in `docs/tasks/spell-system-overhaul/LEVEL-{N}-BATCHES.md` (do NOT 
 - Template item: `ritual` and `castingTime.combatCost.type` present?
 - Template item: Files in level subfolder? Manifest paths nested?
 - Template item: Companion-doc assumptions verified before creating, updating, or deleting any non-JSON artifact?
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/SPELL_MIGRATION_PROMPT.md","sha256WithoutMarker":"bb66b7fe28c004ac3e7a6867b9760a7eb97597760bb6ce0a510fd5e98b4136f1","markedAtUtc":"2026-06-25T22:29:38.590Z"} -->

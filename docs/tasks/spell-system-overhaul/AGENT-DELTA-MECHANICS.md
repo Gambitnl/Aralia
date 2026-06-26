@@ -10,3 +10,5 @@ Why it was archived:
 - it should be treated as historical mechanics-planning context rather than a current assignment surface
 
 Use the archived copy for historical coordination context only.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/AGENT-DELTA-MECHANICS.md","sha256WithoutMarker":"6013d3e3479a482b41551ed9828060a22bc540cd4be2bc1ea374be2aa0fb850d","markedAtUtc":"2026-06-25T22:29:38.581Z"} -->

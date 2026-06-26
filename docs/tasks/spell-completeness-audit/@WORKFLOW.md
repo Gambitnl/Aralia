@@ -47,3 +47,5 @@ Preserve how the Dec 2025 completeness-audit project was executed without overst
 ## Current Use
 
 Use this file to understand how the completeness-audit project was performed and how it handed off into the spell-overhaul migration stream. Do not treat it as the only current spell workflow authority.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/@WORKFLOW.md","sha256WithoutMarker":"ba7aca80d3515c90e59ea6eff8e557a00e42208987c3084cd9b5fcd655e2dfe0","markedAtUtc":"2026-06-25T22:29:38.618Z"} -->

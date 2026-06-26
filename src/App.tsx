@@ -57,6 +57,7 @@ import { useGameActions } from './hooks/useGameActions';
 import { useGameInitialization } from './hooks/useGameInitialization';
 import { useOllamaLogBridge } from './hooks/useOllamaLogBridge';
 import { useHistorySync } from './hooks/useHistorySync';
+import { isWorldGenDeepLink } from './routes';
 import { useCompanionCommentary } from './hooks/useCompanionCommentary';
 import { useCompanionBanter } from './hooks/useCompanionBanter';
 import { useMissingChoice } from './hooks/useMissingChoice';
@@ -111,12 +112,20 @@ const GameLayout = lazy(() => import('./components/layout/GameLayout'));
 const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(module => ({ default: module.LoadGameTransition })));
 const NotFound = lazy(() => import('./components/ui/NotFound'));
 const World3DDemo = lazy(() => import('./components/World3D/World3DDemo'));
+const StartPointSelection = lazy(() => import('./components/Worldforge/StartPointSelection'));
 const NotificationSystem = lazy(() => import('./components/ui/NotificationSystem').then(module => ({ default: module.NotificationSystem })));
 const CompanionReaction = lazy(() => import('./components/ui/CompanionReaction').then(module => ({ default: module.CompanionReaction })));
 const GameModals = lazy(() => import('./components/layout/GameModals'));
 // Worldforge atlas cartographer demo (?phase=worldforge) — lazy: pulls the
 // whole ported-FMG generation stack, which the main bundle must not pay for.
 const WorldforgeAtlasDemo = lazy(() => import('./components/Worldforge/AtlasDemo'));
+// Spawn-on-land preview harness (?phase=spawnpreview) — lazy: pulls the ported-FMG
+// generation stack like the cartographer demo, kept off the main bundle.
+const SpawnPreview = lazy(() => import('./components/Worldforge/SpawnPreview'));
+// Agent-sim motion preview (?phase=agentsim) — lazy: town/roster generation stack.
+const AgentSimPreview = lazy(() => import('./components/Worldforge/AgentSimPreview'));
+// Standalone 3D agent-walking proof (?phase=agentsim3d).
+const AgentSim3DPreview = lazy(() => import('./components/Worldforge/AgentSim3DPreview'));
 const TransitionController = lazy(() => import('./components/World3D/TransitionController'));
 const World3DWrapper = lazy(() => import('./components/World3D/World3DWrapper'));
 // Classic ↔ Worldforge 2D-surface toggle (small, eager — no generation stack).
@@ -605,6 +614,39 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
   }, [dispatch]);
 
+  // Holds the freshly-created character + inventory while the player chooses a
+  // start town (Start Point Selection), before startGame boots into play.
+  const pendingNewGameRef = useRef<{ character: PlayerCharacter; inventory: Item[] } | null>(null);
+
+  // Character creation finished → hold the build and let the player pick where in
+  // the world to begin (a town), rather than auto-dropping them at the capital.
+  const handleCharacterCreated = useCallback((character: PlayerCharacter, inventory: Item[]) => {
+    pendingNewGameRef.current = { character, inventory };
+    dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.START_POINT_SELECTION });
+  }, [dispatch]);
+
+  // Player confirmed a start town → boot into play spawning at that town.
+  const handleStartTownConfirmed = useCallback((town: { atlasCellId: number; name?: string; stateName?: string }) => {
+    const pending = pendingNewGameRef.current;
+    if (!pending) {
+      // No pending character (e.g. a reload landed here) — bounce to creation.
+      dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.CHARACTER_CREATION });
+      return;
+    }
+    pendingNewGameRef.current = null;
+    startGame(pending.character, pending.inventory, gameState.worldSeed, {
+      atlasCellId: town.atlasCellId,
+      name: town.name,
+      region: town.stateName,
+    });
+  }, [dispatch, startGame, gameState.worldSeed]);
+
+  // Back out of start selection to re-roll the character.
+  const handleStartSelectionBack = useCallback(() => {
+    pendingNewGameRef.current = null;
+    dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.CHARACTER_CREATION });
+  }, [dispatch]);
+
   const handleClearAllSaves = useCallback(() => {
     SaveLoadService.clearAllSaves();
     // Force a re-render of the Main Menu by updating a local state if necessary,
@@ -860,8 +902,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (worldMapDeepLinkRef.current) return;
     if (gameState.phase !== GamePhase.MAIN_MENU) return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('worldmap') !== '1' && params.get('view') !== 'worldgen') return;
+    if (!isWorldGenDeepLink()) return;
     worldMapDeepLinkRef.current = true;
     handleOpenWorldGenerationFromMainMenu();
   }, [gameState.phase, handleOpenWorldGenerationFromMainMenu]);
@@ -1123,7 +1164,7 @@ const App: React.FC = () => {
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred during Character Creation.">
         <CharacterCreator
-          onCharacterCreate={(character, inventory) => startGame(character, inventory, gameState.worldSeed)}
+          onCharacterCreate={(character, inventory) => handleCharacterCreated(character, inventory)}
           onExitToMainMenu={handleExitCharacterCreatorToMainMenu}
           dispatch={dispatch}
         />
@@ -1153,6 +1194,44 @@ const App: React.FC = () => {
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred in the Worldforge cartographer.">
         <WorldforgeAtlasDemo />
+      </ErrorBoundary>
+    );
+  } else if (gameState.phase === GamePhase.START_POINT_SELECTION) {
+    // Start Point Selection (?phase=startselect): after character creation, the
+    // player picks a TOWN in the generated world to begin in (spawn is always a
+    // settlement). Confirming boots into play spawning at the chosen town.
+    mainContent = (
+      <ErrorBoundary fallbackMessage="An error occurred while choosing your starting point.">
+        <StartPointSelection
+          worldSeed={gameState.worldSeed}
+          characterName={pendingNewGameRef.current?.character?.name}
+          onConfirm={handleStartTownConfirmed}
+          onBack={handleStartSelectionBack}
+        />
+      </ErrorBoundary>
+    );
+  } else if (gameState.phase === GamePhase.SPAWN_PREVIEW) {
+    // Spawn-on-land audit harness (?phase=spawnpreview): reproduces the reroll→spawn
+    // marker pipeline in isolation so an ocean spawn is visible + reproducible.
+    mainContent = (
+      <ErrorBoundary fallbackMessage="An error occurred in the Spawn Preview.">
+        <SpawnPreview />
+      </ErrorBoundary>
+    );
+  } else if (gameState.phase === GamePhase.AGENTSIM_PREVIEW) {
+    // Agent-sim motion preview (?phase=agentsim): demo burg + roster with townsfolk
+    // walking the streets between home and work as the clock scrubs the day.
+    mainContent = (
+      <ErrorBoundary fallbackMessage="An error occurred in the Agent-Sim Preview.">
+        <AgentSimPreview />
+      </ErrorBoundary>
+    );
+  } else if (gameState.phase === GamePhase.AGENTSIM_3D_PREVIEW) {
+    // Standalone 3D agent-walking proof (?phase=agentsim3d): <GroundAgents> in a
+    // real R3F scene over a demo town, reachable without the Enter-3D game chain.
+    mainContent = (
+      <ErrorBoundary fallbackMessage="An error occurred in the Agent-Sim 3D Preview.">
+        <AgentSim3DPreview />
       </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.COMBAT_MESSAGING_DEMO) {

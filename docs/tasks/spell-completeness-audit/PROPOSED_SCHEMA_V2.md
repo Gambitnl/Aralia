@@ -22,3 +22,5 @@ Treat this file as a preserved schema-design note that explains why the referenc
 - It still captures the reasoning for preferring granular reference fields over older clumped summaries.
 - It is still useful when comparing older spell reference drafts against the newer per-spell reference structure.
 - It should not be read as proof that the exact sample schema here is still the only acceptable end-state.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/PROPOSED_SCHEMA_V2.md","sha256WithoutMarker":"eccc57876c8e979c397d193593057420587d53e90020a192442aea3597bff035","markedAtUtc":"2026-06-25T22:29:38.619Z"} -->

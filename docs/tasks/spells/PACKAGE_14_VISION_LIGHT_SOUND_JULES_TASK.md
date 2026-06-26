@@ -1,6 +1,6 @@
 # Package 14 Jules Task: Vision, Light, And Sound Mechanics
 
-Status: draft package packet for the next Jules-preferred mechanics slice.
+Status: historical Package 14 packet; PR #1110 merged on 2026-05-26.
 
 This packet promotes the next tracker-defined bucket after Package 13:
 `vision_light_sound`. Package 13 closed the terrain/surface slice through PR
@@ -251,3 +251,5 @@ PR-branch repair/rebase, or replacement handoff from current `origin/master`.
 - External Symphony / local ignored state: dashboard run state, draft IDs,
   handoff receipts, generated manifests, click logs, and raw Jules process
   output.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_14_VISION_LIGHT_SOUND_JULES_TASK.md","sha256WithoutMarker":"309e65c5f078323c2973a4086eb03569f6cdc4c67ae1cc3cda3bdebc908898e5","markedAtUtc":"2026-06-25T22:29:38.376Z"} -->

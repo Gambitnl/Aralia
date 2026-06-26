@@ -7,6 +7,11 @@ This file captures the current plan for validating spell JSON structure and spel
 ## Current Status Snapshot
 
 - `npm run validate:spells` is currently green: `459 / 459` valid spell JSON files.
+- Backlog-retirement freshness note, 2026-06-25: `npm run validate:spells --
+  --spell public\data\spells\level-1\grease.json` again reported `459` valid
+  and `0` invalid spell JSON files. The older report-count bullets below remain
+  routing context; regenerate the named reports before treating any mismatch
+  count as current execution evidence.
 - Canonical retrieval is complete for the supported corpus. Every supported spell now has a canonical snapshot stored in its spell reference markdown file.
 - The canonical-to-structured comparison lane is still active as a review lane, but the current report is now much smaller and more targeted than the earlier stale snapshot:
   - `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
@@ -1734,3 +1739,5 @@ The following working answers now guide the spell-data validation lane:
 - the roadmap should track this work in a dedicated `Spell Data Validation` branch with layered milestones
 - the isolated spell-only schema validator now exists as a working command and currently passes across the live spell dataset
 - the spell validation lane now also includes a repeatable repair step for zero-byte spell reference docs so blank placeholders stop polluting the grouped parity results
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_DATA_VALIDATION_PLAN.md","sha256WithoutMarker":"b9b3b5af5faf779545d7f9c59d4c88f8388b8d587ca87a992d7cd38e0dfdfa9b","markedAtUtc":"2026-06-25T22:29:38.343Z"} -->

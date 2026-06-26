@@ -42,3 +42,5 @@ This note still captures a durable service-layer principle:
 - caller-facing AI services should return a predictable typed result shape
 - prompt and raw-response metadata should remain available for logging and debugging
 - error handling should be explicit at the call site instead of hidden behind inconsistent thrown/returned hybrids
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/improvements/completed/05_standardize_api_error_handling.md","sha256WithoutMarker":"21beb861761933b1f14d59f45e2b88ffe3c225eab74d0925849dd53ea95db7f3","markedAtUtc":"2026-06-25T22:49:17.527Z"} -->

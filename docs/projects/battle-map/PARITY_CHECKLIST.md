@@ -40,3 +40,5 @@ renderer behavior expansion.
 
 Before any future behavior expansion that changes movement, targeting, overlays,
 or visibility, read this checklist first and re-run the focused parity tests.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/projects/battle-map/PARITY_CHECKLIST.md","sha256WithoutMarker":"c6e2451f360076eaae9bd8a86b8e268166ceecb70e126b4ba2dd7c1d7c6739af","markedAtUtc":"2026-06-25T23:14:14.368Z"} -->

@@ -45,3 +45,5 @@ When spell docs or spell JSON are edited:
 - `npm run validate`
 - `npm run validate:charset`
 - `npm run fix:charset`
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/CHARACTER_POLICY.md","sha256WithoutMarker":"0156fcfee656ffa46b95ea888bd14f34c1265ae99396dbcaa50b0ebab5b35784","markedAtUtc":"2026-06-25T22:29:38.508Z"} -->

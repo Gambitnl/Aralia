@@ -39,7 +39,17 @@ export interface AtlasSvgLayer { id: string; polygons: AtlasSvgPolygon[]; region
 export interface AtlasSvgRoute { d: string; group: string }
 /** Settlement hierarchy tier — drives which glyph the atlas draws for a burg. */
 export type BurgTier = 'capital' | 'city' | 'town' | 'village';
-export interface AtlasSvgBurg { x: number; y: number; capital: boolean; tier: BurgTier }
+export interface AtlasSvgBurg {
+  x: number;
+  y: number;
+  capital: boolean;
+  tier: BurgTier;
+  /** Burg name + its FMG cell index — used by the atlas town-hover info panel. */
+  name?: string;
+  cell?: number;
+}
+/** One swatch in a discrete coloring's legend (which color = which named group). */
+export interface AtlasLegendEntry { name: string; color: string }
 export interface AtlasSvgModel {
   width: number;
   height: number;
@@ -49,12 +59,19 @@ export interface AtlasSvgModel {
   routes?: AtlasSvgRoute[];
   burgs?: AtlasSvgBurg[];
   stateBorders?: string;
+  /** Merged per-state land regions (political coloring). */
+  stateRegions?: AtlasSvgRegion[];
   /** Merged per-culture land regions (Azgaar "cultural" overlay; toggle layer). */
   cultureRegions?: AtlasSvgRegion[];
   /** Merged per-religion land regions (Azgaar "religions" overlay; toggle layer). */
   religionRegions?: AtlasSvgRegion[];
   /** Merged per-province land regions (Azgaar "provinces" overlay; toggle layer). */
   provinceRegions?: AtlasSvgRegion[];
+  /** Named color keys for the discrete colorings (drives the legend swatches). */
+  stateLegend?: AtlasLegendEntry[];
+  cultureLegend?: AtlasLegendEntry[];
+  religionLegend?: AtlasLegendEntry[];
+  provinceLegend?: AtlasLegendEntry[];
   /** Per-cell population color-ramp fills (Azgaar "population" overlay; toggle layer). */
   populationCells?: AtlasSvgPolygon[];
   /** Per-cell temperature color-ramp fills (Azgaar "temperature" overlay; toggle layer). */
@@ -360,7 +377,7 @@ export function buildBurgs(atlas: FmgAtlasResult): AtlasSvgBurg[] {
       : pop > 0 && pop >= cityCut ? 'city'
       : pop > 0 && pop >= townCut ? 'town'
       : 'village';
-    out.push({ x: b.x, y: b.y, capital, tier });
+    out.push({ x: b.x, y: b.y, capital, tier, name: b.name, cell: b.cell });
   }
   return out;
 }
@@ -521,10 +538,25 @@ const RAMP_PRECIPITATION = ramp3('#f6e8c3', '#80cdc1', '#01665e'); // dry → we
  * value or null to skip it; values are min/max normalized across included land
  * cells and mapped through `ramp`. Returns one filled polygon per included cell.
  */
+export interface CellRampOptions {
+  /**
+   * Clamp the normalization domain to this central percentile band (0–0.5)
+   * before mapping to the ramp. Without it, a handful of outlier cells (e.g.
+   * frozen mountain peaks dragging the temperature minimum far below the
+   * common range) compress every ordinary cell into one end of the ramp, so
+   * the whole map reads as a single colour. Clamping to e.g. 0.02 spreads the
+   * common 2nd–98th-percentile range across the full ramp; the rare outliers
+   * simply pin to the ends. Population/precipitation pass nothing (their raw
+   * spread is already legible).
+   */
+  clampPercentile?: number;
+}
+
 export function buildCellRamp(
   atlas: FmgAtlasResult,
   valueOf: (i: number) => number | null,
   ramp: (t: number) => string,
+  opts: CellRampOptions = {},
 ): AtlasSvgPolygon[] {
   const cells = atlas.pack.cells;
   const n = cells.h.length;
@@ -540,6 +572,18 @@ export function buildCellRamp(
     }
   }
   if (!isFinite(min)) return [];
+
+  // Percentile-clamp the domain so outliers don't flatten the common range.
+  const p = opts.clampPercentile;
+  if (p != null && p > 0 && p < 0.5) {
+    const sorted = (vals.filter((v) => v != null) as number[]).sort((a, b) => a - b);
+    if (sorted.length > 2) {
+      const lo = sorted[Math.floor((sorted.length - 1) * p)];
+      const hi = sorted[Math.ceil((sorted.length - 1) * (1 - p))];
+      if (hi > lo) { min = lo; max = hi; }
+    }
+  }
+
   const range = max - min || 1;
   const out: AtlasSvgPolygon[] = [];
   for (let i = 0; i < n; i++) {
@@ -547,7 +591,8 @@ export function buildCellRamp(
     if (v == null) continue;
     const points = cellPolygonPoints(atlas, i);
     if (!points) continue;
-    out.push({ points, fill: ramp((v - min) / range) });
+    const t = (v - min) / range;
+    out.push({ points, fill: ramp(t < 0 ? 0 : t > 1 ? 1 : t) });
   }
   return out;
 }
@@ -646,37 +691,81 @@ export function buildAtlasSvgModel(atlas: FmgAtlasResult): AtlasSvgModel {
   const coastline = buildMergedRegions(atlas, (i) => (isLand(i) ? 1 : null), () => '')
     .map((r) => r.d)
     .join('');
+  // Build a discrete coloring (merged regions) AND its legend (the distinct
+  // named color-keys that actually appear on the map), in one pass. The legend
+  // lists only groups with land here, sorted by name, so the swatch key matches
+  // what's drawn. Returns [] / [] when the source layer is absent.
+  const discreteOverlay = (
+    keyOf: (i: number) => number | null,
+    fillOf: (key: number) => string,
+    nameOf: (key: number) => string,
+  ): { regions: AtlasSvgRegion[]; legend: AtlasLegendEntry[] } => {
+    const regions = buildMergedRegions(atlas, keyOf, (k) => fillOf(k as number));
+    const seen = new Map<number, AtlasLegendEntry>();
+    for (let i = 0; i < cells.h.length; i++) {
+      const k = keyOf(i);
+      if (k == null || seen.has(k)) continue;
+      seen.set(k, { name: nameOf(k), color: fillOf(k) });
+    }
+    const legend = [...seen.values()].filter((e) => e.name).sort((a, b) => a.name.localeCompare(b.name));
+    return { regions, legend };
+  };
+
+  // Political overlay: merged per-state land regions, colored from pack.states.
+  const states = (atlas.pack as { states?: Array<{ color?: string; name?: string; fullName?: string; removed?: boolean }> }).states;
+  const stateColorPalette = ['#d98880', '#85c1e9', '#82e0aa', '#f8c471', '#bb8fce', '#76d7c4', '#f7dc6f', '#e59866', '#aeb6bf', '#f0a3c8'];
+  const { regions: stateRegions, legend: stateLegend } = states
+    ? discreteOverlay(
+        (i) => {
+          if (!isLand(i)) return null;
+          const s = (cells as { state?: number[] }).state?.[i];
+          return s && s > 0 && !states[s]?.removed ? s : null; // state 0 = neutrals
+        },
+        (key) => states[key]?.color ?? stateColorPalette[key % stateColorPalette.length],
+        (key) => states[key]?.fullName || states[key]?.name || `State ${key}`,
+      )
+    : { regions: [], legend: [] };
+
   // Cultural overlay (Azgaar's "cultures" layer): merged per-culture land regions,
   // colored from pack.cultures. Off by default in the view (it overlaps biomes).
-  const cultures = atlas.pack.cultures;
-  const cultureKey = (i: number): number | null => {
-    if (!isLand(i)) return null;
-    const c = cells.culture?.[i];
-    return c && c > 0 ? c : null; // culture 0 = "wildlands" (no overlay)
-  };
-  const cultureFill = (key: string | number): string =>
-    cultures?.[key as number]?.color ?? '#b0a8c0';
-  const cultureRegions = cultures ? buildMergedRegions(atlas, cultureKey, cultureFill) : [];
+  const cultures = atlas.pack.cultures as Array<{ color?: string; name?: string }> | undefined;
+  const { regions: cultureRegions, legend: cultureLegend } = cultures
+    ? discreteOverlay(
+        (i) => {
+          if (!isLand(i)) return null;
+          const c = cells.culture?.[i];
+          return c && c > 0 ? c : null; // culture 0 = "wildlands" (no overlay)
+        },
+        (key) => cultures[key]?.color ?? '#b0a8c0',
+        (key) => cultures[key]?.name || `Culture ${key}`,
+      )
+    : { regions: [], legend: [] };
   // Religions overlay (Azgaar's "religions" layer): merged per-religion regions.
-  const religions = (atlas.pack as { religions?: Array<{ color?: string }> }).religions;
-  const religionKey = (i: number): number | null => {
-    if (!isLand(i)) return null;
-    const r = (cells as { religion?: number[] }).religion?.[i];
-    return r && r > 0 ? r : null; // religion 0 = "no religion"
-  };
-  const religionFill = (key: string | number): string =>
-    religions?.[key as number]?.color ?? '#c0b0a8';
-  const religionRegions = religions ? buildMergedRegions(atlas, religionKey, religionFill) : [];
+  const religions = (atlas.pack as { religions?: Array<{ color?: string; name?: string }> }).religions;
+  const { regions: religionRegions, legend: religionLegend } = religions
+    ? discreteOverlay(
+        (i) => {
+          if (!isLand(i)) return null;
+          const r = (cells as { religion?: number[] }).religion?.[i];
+          return r && r > 0 ? r : null; // religion 0 = "no religion"
+        },
+        (key) => religions[key]?.color ?? '#c0b0a8',
+        (key) => religions[key]?.name || `Religion ${key}`,
+      )
+    : { regions: [], legend: [] };
   // Provinces overlay (Azgaar's "provinces" layer): merged per-province regions.
-  const provinces = (atlas.pack as { provinces?: Array<{ color?: string }> }).provinces;
-  const provinceKey = (i: number): number | null => {
-    if (!isLand(i)) return null;
-    const p = (cells as { province?: number[] }).province?.[i];
-    return p && p > 0 ? p : null; // province 0 = "no province"
-  };
-  const provinceFill = (key: string | number): string =>
-    provinces?.[key as number]?.color ?? '#a8c0b0';
-  const provinceRegions = provinces ? buildMergedRegions(atlas, provinceKey, provinceFill) : [];
+  const provinces = (atlas.pack as { provinces?: Array<{ color?: string; name?: string; fullName?: string }> }).provinces;
+  const { regions: provinceRegions, legend: provinceLegend } = provinces
+    ? discreteOverlay(
+        (i) => {
+          if (!isLand(i)) return null;
+          const p = (cells as { province?: number[] }).province?.[i];
+          return p && p > 0 ? p : null; // province 0 = "no province"
+        },
+        (key) => provinces[key]?.color ?? '#a8c0b0',
+        (key) => provinces[key]?.fullName || provinces[key]?.name || `Province ${key}`,
+      )
+    : { regions: [], legend: [] };
   // Continuous per-cell ramps (Azgaar population/temperature/precipitation).
   // Population lives on the pack cells; climate lives on the GRID cells, reached
   // via pack.cells.g[i]. Each guards on its source array existing → [] when absent.
@@ -688,7 +777,7 @@ export function buildAtlasSvgModel(atlas: FmgAtlasResult): AtlasSvgModel {
   const gridCells = (atlas as { grid?: { cells?: { temp?: ArrayLike<number>; prec?: ArrayLike<number> } } }).grid?.cells;
   const tempArr = gridCells?.temp;
   const temperatureCells = tempArr && gArr
-    ? buildCellRamp(atlas, (i) => tempArr[gArr[i]] ?? null, RAMP_TEMPERATURE)
+    ? buildCellRamp(atlas, (i) => tempArr[gArr[i]] ?? null, RAMP_TEMPERATURE, { clampPercentile: 0.02 })
     : [];
   const precArr = gridCells?.prec;
   const precipitationCells = precArr && gArr
@@ -702,9 +791,14 @@ export function buildAtlasSvgModel(atlas: FmgAtlasResult): AtlasSvgModel {
     routes: buildRoutes(atlas),
     burgs: buildBurgs(atlas),
     stateBorders: buildStateBorders(atlas),
+    stateRegions,
     cultureRegions,
     religionRegions,
     provinceRegions,
+    stateLegend,
+    cultureLegend,
+    religionLegend,
+    provinceLegend,
     populationCells,
     temperatureCells,
     precipitationCells,

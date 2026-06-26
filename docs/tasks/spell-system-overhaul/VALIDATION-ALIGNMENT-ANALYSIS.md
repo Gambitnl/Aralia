@@ -187,3 +187,5 @@ This analysis is complete when:
 - Decide if validation should be enhanced
 - Decide if Jules' criteria should be adjusted
 - Update documentation accordingly
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/VALIDATION-ALIGNMENT-ANALYSIS.md","sha256WithoutMarker":"6834563c7f1e352a2d1d5fbeb9ad26b9ce166aedb1302cc9582378917b6cdd04","markedAtUtc":"2026-06-25T22:29:38.596Z"} -->

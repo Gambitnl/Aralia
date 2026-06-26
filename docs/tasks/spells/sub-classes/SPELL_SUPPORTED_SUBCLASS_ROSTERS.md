@@ -127,3 +127,5 @@ tabletop-complete roster.
 
 If the project later expands subclass support, update this file first and then
 rerun the spell `Sub-Classes` bucket against the broader allowlist.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/sub-classes/SPELL_SUPPORTED_SUBCLASS_ROSTERS.md","sha256WithoutMarker":"570eee393314c2f5f02f1efbb3d7efa4951f0ca00cc461f36482727bb59ebb0a","markedAtUtc":"2026-06-25T22:29:38.564Z"} -->

@@ -5,7 +5,10 @@ Legacy name / folder slug: Spell System Overhaul (`docs/tasks/spell-system-overh
 
 This directory keeps the historical `spell-system-overhaul` path because many older task files, status docs, and handoff notes already link here. The current living-project name is **Structured Spell Execution** because the active work is about proving and extending the data-to-validation-to-runtime spell pipeline, not just performing a broad "overhaul."
 
-This directory contains detailed implementation tasks for the Component-Based Spell System overhaul.
+This directory contains historical and current implementation notes for the
+Component-Based Spell System overhaul. Current routing now lives in the Spells
+parent project docs; use this folder for legacy evidence and lane-local
+structured execution context, not as a standalone phased schedule.
 
 ---
 
@@ -13,16 +16,18 @@ This directory contains detailed implementation tasks for the Component-Based Sp
 
 ```
 spell-system-overhaul/
-├── 00-TASK-INDEX.md           # Master index with dependency graph
 ├── TASK-TEMPLATE.md            # Template for creating new tasks
 ├── README.md                   # This file
 ├── 01-typescript-interfaces.md # Phase 1 tasks
-├── 02-aoe-calculations.md
 ├── 03-command-pattern-base.md
-├── 04-damage-healing-commands.md
-├── [05-27 tasks...]
 └── images/                     # Diagrams and screenshots (if needed)
 ```
+
+The old `00-TASK-INDEX.md` 27-task schedule and duplicate
+`1A-PROJECT-MASTER-SPRINGBOARD.md` springboard were retired on 2026-06-25.
+Their still-valid routing is now represented by `docs/projects/spells/NORTH_STAR.md`,
+`docs/projects/spells/SUBPROJECTS.md`, `docs/projects/spells/GAPS.md`, the
+Spells child-lane registries, and the backlog retirement ledger.
 
 ---
 
@@ -30,14 +35,14 @@ spell-system-overhaul/
 
 ### For Project Managers / Orchestrators
 
-1. **Start with [00-TASK-INDEX.md](00-TASK-INDEX.md)**
-   - Review dependency graph
-   - Understand critical path
-   - Assign tasks to agents
+1. **Start with the current Spells routing docs**
+   - `docs/projects/spells/NORTH_STAR.md`
+   - `docs/projects/spells/SUBPROJECTS.md`
+   - `docs/projects/spells/GAPS.md`
 
 2. **Track Progress**
-   - Each task has clear acceptance criteria
-   - Update task status in index as completed
+   - Use the owning child-lane tracker or gap row
+   - Update the parent only for routing, ownership, or imported gap changes
    - Monitor for blockers
 
 3. **Review Phase Completion**
@@ -97,30 +102,15 @@ Each task file follows a standard format:
 
 ### Critical Path
 
-The critical path (longest chain of dependent tasks) is:
-
-```
-01 -> 03 -> 04 -> 05 -> 07 -> 14 -> 19 -> 23 -> 27
-```
-
-**Total Critical Path Time:** ~22 days
+The older critical path was part of the retired 27-task schedule. Current work
+should be routed through `docs/projects/spells/SUBPROJECTS.md` before execution.
 
 ### Parallel Work Streams
 
-Tasks can be worked in parallel if dependencies allow:
-
-**Week 1-2 (Phase 1):**
-- Alpha: Task 01 -> 03
-- Beta: Task 02 (parallel with 01)
-
-**Week 3-4 (Phase 2):**
-- Alpha: Task 04 -> 05 -> 06 -> 07
-- Beta: Task 08 (parallel with 06-07)
-
-**Week 5-6 (Phase 3):**
-- Alpha: Task 14 -> 16 -> 17
-- Beta: Task 10 -> 11 -> 12 -> 13
-- Gamma: Task 15 (parallel with 10-13)
+Work can still proceed in parallel, but assignment should follow the current
+child lanes: structured execution, targeting/object-area, validation, choice
+flows, data taxonomy, completeness audit, mechanics discovery, and linked
+runtime-template audit support.
 
 ---
 
@@ -255,7 +245,7 @@ describe('Spell Execution Flow', () => {
 **Solution:** Check for hardcoded paths, timezone issues, or missing env vars
 
 **Issue:** Task blocked by incomplete dependency
-**Solution:** Check 00-TASK-INDEX.md for alternate parallel tasks
+**Solution:** Check `docs/projects/spells/SUBPROJECTS.md` for the owning lane and alternate parallel work.
 
 ### Getting Help
 
@@ -298,7 +288,7 @@ When creating new tasks using TASK-TEMPLATE.md:
 
 1. Copy template to new file: `XX-task-name.md`
 2. Fill in all sections with specific details
-3. Add to 00-TASK-INDEX.md dependency graph
+3. Add to the owning child-lane tracker or gap registry
 4. Ensure estimated effort is realistic
 5. Include code examples where helpful
 6. Define clear, testable acceptance criteria
@@ -308,3 +298,5 @@ When creating new tasks using TASK-TEMPLATE.md:
 **Last Updated:** November 27, 2025
 **Maintainer:** Architecture Team
 **Status:** Active Development
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/README.md","sha256WithoutMarker":"aace3220f1cf769a8b76cab22ee6fae32a9569ede66ddfe3ef2b6ef0d423999f","markedAtUtc":"2026-06-25T22:29:38.669Z"} -->

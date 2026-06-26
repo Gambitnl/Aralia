@@ -41,3 +41,4 @@ The normal spell validator can be green while this report is not. That means the
   - Conjure Animals uses "Recurring Mechanic Timing", which is not registered in the strict template vocabulary yet.
   - Enemies Abound uses "Recurring Mechanic Timing", which is not registered in the strict template vocabulary yet.
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_RUNTIME_TEMPLATE_AUDIT_REPORT.md","sha256WithoutMarker":"b794a846054549e7bd88565ff9b0ac8b8eba62c5289079b62c720ffb15cda76c","markedAtUtc":"2026-06-25T22:29:38.556Z"} -->

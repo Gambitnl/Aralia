@@ -241,3 +241,5 @@ The safest later order would be:
 3. decide whether repeated-base subclass lines should stay canonical-only evidence
    or be allowed in normalized spell JSON
 4. only then collapse true duplicate variants
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_CLASS_SUBCLASS_VARIATIONS.md","sha256WithoutMarker":"65d8fea71ccc8ebb228bb89a5806175aecd4def580e00b48dbf85ec2736361d7","markedAtUtc":"2026-06-25T22:29:38.543Z"} -->

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 25/06/2026, 01:21:23
+ * Last Sync: 25/06/2026, 07:55:29
  * Dependents: state/appState.ts
  * Imports: 5 files
  *
@@ -18,7 +18,7 @@ import { GameState, Crime, HeistActionType } from '../../types';
 import { AppAction } from '../actionTypes';
 import { CrimeSystem } from '../../systems/crime/CrimeSystem';
 import { HeistManager } from '../../systems/crime/HeistManager';
-import type { Location, HeistAction, GuildMembership, GameMessage } from '../../types';
+import type { HeistAction, GuildMembership, GameMessage } from '../../types';
 import { generateId } from '../../utils/core/idGenerator';
 
 const getGuildMembershipOrDefault = (guild: GameState['thievesGuild'] | undefined): GuildMembership => {
@@ -53,13 +53,9 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
         case 'START_HEIST_PLANNING': {
             const { targetLocationId, leaderId, guildJobId } = action.payload;
 
-            // HeistManager.startPlanning currently only uses the ID from the location object.
-            // We pass a minimal object to avoid needing to look up the full Location entity here.
-            // TODO: If startPlanning needs more location data later, fetch it from state.dynamicLocations or similar.
-            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-            const targetLocation = { id: targetLocationId } as Location;
+            // The heist planner only needs a stable location id at this stage; richer
+            // location data can be threaded later when planning rules begin using it.
+            const targetLocation = { id: targetLocationId };
             let plan = HeistManager.startPlanning(targetLocation, leaderId);
 
             if (guildJobId) {
@@ -104,8 +100,8 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             const { approachType } = action.payload;
             if (!state.activeHeist) return {};
 
-            const activeHeist = state.activeHeist as any;
-            const selectedApproach = activeHeist.approaches?.find((a: { type: string }) => a.type === approachType);
+            const activeHeist = state.activeHeist;
+            const selectedApproach = activeHeist.approaches.find((a) => a.type === approachType);
             if (!selectedApproach) return {};
 
             return {
@@ -214,12 +210,9 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
                 witnessed,
             };
 
-            // Use the normalized severity for heat calculations to keep balance
-            // (Assuming existing 1-10 logic expected ~20 heat max for severe crimes)
-            // But if we switch to 1-100, we need to adjust the heat scaling.
-            // Let's adopt 1-100 as the standard.
-            // Old: 10 * 2 = 20 heat. New: 100 * 0.2 = 20 heat.
-            // TODO: This currently applies 0.5/0.1 multipliers on 1–100, so a witnessed severity 5 yields +25 heat instead of the expected ~10; align the units or drop normalization.
+            // Heat uses the same normalized severity scale as bounty generation:
+            // max witnessed crimes add about +20 local heat, while unwitnessed
+            // crimes leave a smaller rumor trail.
             const heatIncrease = CrimeSystem.calculateCrimeHeat(normalizedSeverity, witnessed);
 
             const currentLocalHeat = state.notoriety.localHeat[locationId] || 0;

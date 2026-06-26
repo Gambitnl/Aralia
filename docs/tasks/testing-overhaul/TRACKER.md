@@ -42,3 +42,5 @@ See `GAPS.md` for the durable gap registry. This tracker keeps the execution que
 - Update this tracker before new work starts in a slice.
 - Active, waiting, blocked, and in-progress rows should include owner, evidence, and next proof/check.
 - Cross-project or out-of-scope findings should be routed to `docs/projects/GLOBAL_GAPS.md`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/testing-overhaul/TRACKER.md","sha256WithoutMarker":"9a1c90b1a9c0db9fbc6436b806e6bdeb117de19f673bfc8022c3801945678375","markedAtUtc":"2026-06-25T22:29:38.631Z"} -->

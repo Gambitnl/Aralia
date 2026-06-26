@@ -964,6 +964,84 @@ describe('useAbilitySystem - immediate forced-movement repeat saves', () => {
 });
 
 describe('useAbilitySystem - mode-choice input', () => {
+    it('collects required AI-DM player intent before creating spell commands', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+        const caster = {
+            id: 'caster-ai-input',
+            name: 'AI Input Caster',
+            team: 'player',
+            position: { x: 0, y: 0 },
+            actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
+            spellSlots: { 0: { used: 0, total: 0 } }
+        } as unknown as CombatCharacter;
+        const aiSpell: Spell = {
+            id: 'prestidigitation',
+            name: 'Prestidigitation',
+            level: 0,
+            school: 'Transmutation',
+            classes: ['Wizard'],
+            description: 'Describe a harmless magical effect.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 10 },
+            components: { verbal: true, somatic: true, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'self', range: 0, validTargets: ['self'], lineOfSight: false },
+            effects: [],
+            arbitrationType: 'ai_dm',
+            aiContext: {
+                prompt: 'Adjudicate the requested harmless magical effect.',
+                playerInputRequired: true
+            }
+        } as unknown as Spell;
+        const aiAbility: Ability = {
+            id: aiSpell.id,
+            name: aiSpell.name,
+            description: aiSpell.description,
+            type: 'spell',
+            cost: { type: 'action' },
+            range: 0,
+            targeting: 'self',
+            effects: [],
+            spell: aiSpell
+        } as unknown as Ability;
+        let confirmInput: ((input: string) => void) | undefined;
+        const onRequestInput = vi.fn((_spell: Spell, onConfirm: (input: string) => void) => {
+            confirmInput = onConfirm;
+        });
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [caster],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn(),
+            onRequestInput
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                aiAbility,
+                caster,
+                caster.position,
+                [caster.id]
+            );
+        });
+
+        // AI-DM spells that need player intent must pause before command
+        // creation, otherwise they can spend action resources with no prompt
+        // text for the arbitrator.
+        expect(onRequestInput).toHaveBeenCalledWith(aiSpell, expect.any(Function));
+        expect(SpellCommandFactory.createCommands).not.toHaveBeenCalled();
+
+        await act(async () => {
+            confirmInput?.('Make the torch glow blue');
+        });
+
+        await _waitFor(() => expect(SpellCommandFactory.createCommands).toHaveBeenCalled());
+        expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[5]).toBe('Make the torch glow blue');
+    });
+
     it('collects a mode choice before creating spell commands', async () => {
         const { SpellCommandFactory } = await import('../../commands');
         const caster = {

@@ -160,3 +160,5 @@ This means:
 - Both `phase1Gate` and `phase2Gate` are `implemented`, so the
   Atlas knows about your bucket end-to-end. Your job is to make sure
   the execution map matches what the gate report says.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/atlas-prompts/components-v3.md","sha256WithoutMarker":"bdb70281dd5f01af08a3393e0003fd74744ff283631c85c713a43f32d871b508","markedAtUtc":"2026-06-25T22:29:38.481Z"} -->

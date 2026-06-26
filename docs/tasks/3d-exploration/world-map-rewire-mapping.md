@@ -60,3 +60,5 @@ Use this file when touching:
 - map seed setup
 - save/load world-map persistence
 - submap continuity and hidden-cell anchoring
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/3d-exploration/world-map-rewire-mapping.md","sha256WithoutMarker":"0dc9823567d5c34ed04c75e98651dcb45a25411810a33510e17a7c06f65fd949","markedAtUtc":"2026-06-25T22:29:38.600Z"} -->

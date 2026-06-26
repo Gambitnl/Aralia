@@ -1,7 +1,7 @@
 # Spells Decisions
 
 Status: active
-Last updated: 2026-06-22
+Last updated: 2026-06-25
 
 Use this file for durable choices that affect project scope, required documentation, or protocol interpretation. Keep operational notes in `AUDIT_OR_PROOF.md` and re-openable workflow deltas in `TRACKER.md` or `GAPS.md`.
 
@@ -68,3 +68,26 @@ Rationale and evidence:
 
 Follow-up:
 When a future agent wants to implement spell runtime/data/UI/audit work, route to the child packet first and update this parent only for cross-lane visibility or ownership changes.
+
+### D4: Dashboard recommended-lane handoff is the preferred parent routing path
+
+Date: 2026-06-25
+
+Owner: Codex
+
+Decision point:
+The Spells parent dashboard now has enough structure to guide a next agent without making them infer routing from raw markdown alone. The project needed one durable rule for how `SUBPROJECTS.md` priority metadata, rendered lane details, and child-packet handoff prompts relate to parent execution boundaries.
+
+Decision made:
+Use `SUBPROJECTS.md` frontmatter `highest_priority` and `proof_freshness` as the parent registry source for the rendered `Recommended next lane` callout. When the local dashboard is available, agents should inspect the recommended lane details and handoff preview before opening or copying the child setup packet. If the dashboard is unavailable, agents should fall back to `SUBPROJECTS.md` and the child packet files. The recommended handoff starts work in the child packet; it does not authorize executing spell runtime/data/UI/audit work directly from the parent folder.
+
+Rationale and evidence:
+- Parent registry: `docs/projects/spells/SUBPROJECTS.md`
+- Rendered parent overlay: `misc/project_tracker.html`
+- Shared renderer: `misc/project_ui.js`
+- Parent UI template: `misc/project_ui_template.html`
+- Schema source: `docs/projects/PROJECT_CARD_SCHEMA.md`
+- Parent proof: `docs/projects/spells/AUDIT_OR_PROOF.md`
+
+Follow-up:
+Keep the dashboard recommendation, handoff preview, and copied handoff text generated from the same child-lane data. If the dashboard recommendation disagrees with `SUBPROJECTS.md`, repair the registry or renderer before launching another child-lane agent from the parent.

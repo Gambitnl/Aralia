@@ -49,3 +49,5 @@ Files or systems this slice should not touch:
 
 <Fill in when complete: what changed, what passed, what stayed open, and where
 follow-up work was recorded.>
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/agent-workflows/living-project-task-protocol/templates/TASK_SLICE.md","sha256WithoutMarker":"ed5946cafca742e0ee6a3f78fb09541bae45246a0d2602735959b04ab884bd04","markedAtUtc":"2026-06-25T22:57:26.966Z"} -->

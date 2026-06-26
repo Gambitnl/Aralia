@@ -104,3 +104,5 @@ before continuing the package queue:
 3. If browser text entry remains blocked by the missing virtual clipboard,
    leave the session paused and record the blocker rather than using hidden
    endpoints or accepting a polluted PR.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_4_DISPATCH_READINESS_CHECKLIST.md","sha256WithoutMarker":"aa73c049349252ed640dc137a4a2fbeefde6a22b9d9976f9b4a0b3edeb9616f2","markedAtUtc":"2026-06-25T22:29:38.356Z"} -->

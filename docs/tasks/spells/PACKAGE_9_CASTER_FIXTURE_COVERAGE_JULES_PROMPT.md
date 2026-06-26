@@ -72,3 +72,5 @@ Expected output:
    changed.
 6. A completion note naming changed files, tests run, behavior proven, and any
    residual limitation.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_9_CASTER_FIXTURE_COVERAGE_JULES_PROMPT.md","sha256WithoutMarker":"54dff4a3dc1e0abc6e902ceffd21ffe42c1556e6eed067309fdf10848c5ce835","markedAtUtc":"2026-06-25T22:29:38.368Z"} -->

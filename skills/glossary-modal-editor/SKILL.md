@@ -21,3 +21,13 @@ Use this skill when you need to:
 
 - `references/component-architecture.md`
 - `references/data-editing.md`
+
+## Completion Criteria
+
+Before concluding any glossary modal task, you must satisfy the following checklist:
+
+1. **Schema Validation:** Confirm that any modified or new glossary entry conforms to the required markdown structure, and that the ID and category keys match.
+2. **Index Generation:** Run `node scripts/generateGlossaryIndex.js` and verify it runs successfully with no duplicate keys or missing metadata.
+3. **No Overflows:** Verify that the UI layout handles rendering correctly inside the modal window, and that text/data resizing works without spilling or breaking layout constraints.
+4. **Link/Search Integrity:** Confirm that searching works and that external links (from traits, spells, or tooltips) target the correct entry ID.
+5. **No TS Warnings:** Verify that TypeScript typechecks compile without errors.

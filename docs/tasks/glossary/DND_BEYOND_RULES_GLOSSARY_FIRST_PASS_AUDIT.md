@@ -1591,3 +1591,5 @@ These entries continue directly from the same official D&D Beyond glossary page:
   - [weapon_attack.json](F:\Repos\Aralia\public\data\glossary\entries\rules\weapon_attack.json)
 - Notes:
   - Present as a standalone combat-resolution rule.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/glossary/DND_BEYOND_RULES_GLOSSARY_FIRST_PASS_AUDIT.md","sha256WithoutMarker":"34da47a2fbb5878f367638a2eaddc3958c5c966a50c6cb07576151dcb76634f8","markedAtUtc":"2026-06-25T22:29:38.308Z"} -->

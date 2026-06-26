@@ -1,0 +1,31 @@
+import type { ProxyOptions } from 'vite';
+export declare const MCP_CLI: string;
+export declare const MCP_CONFIG: string;
+export declare const MCP_CLI_ENTRY: string;
+export declare const BUN_BIN: string;
+export declare const STITCH_TOOL_OVERRIDE: string;
+export declare const STITCH_EXTRA_ARGS: string;
+export declare const PORTRAIT_OUTPUT_DIR: string;
+export declare const SCENE_OUTPUT_DIR: string;
+export declare const STITCH_GCLOUD_CONFIG: string;
+export declare const formatProxyTarget: (target: ProxyOptions["target"]) => string;
+export declare const execAsync: (cmd: string, opts: any) => Promise<{
+    stdout: string;
+    stderr: string;
+}>;
+export declare const readBody: (req: any) => Promise<string>;
+export declare const stripMarkdownInline: (value: string) => string;
+export declare const toProjectSlug: (value: string) => string;
+export declare const toProjectDisplayName: (slug: string) => string;
+export declare const projectSlugFromNorthStarPath: (value: string) => string | null;
+export declare function findFreePort(): Promise<number>;
+export declare function waitForPort(port: number, maxMs?: number): Promise<void>;
+export declare function sanitizePromptText(input: string, maxLength?: number): string;
+export declare function parseJsonInput(value: string): Record<string, unknown>;
+export declare function extractJsonFromOutput(output: string): unknown | null;
+export declare function parseToolsFromOutput(output: string): string[];
+export declare function listTools(serverName: string): Promise<string[]>;
+export declare function callMcpTool(server: string, tool: string, args: Record<string, unknown>, timeoutMs?: number): Promise<{
+    stdout: string;
+    stderr: string;
+}>;

@@ -79,3 +79,5 @@ These older plan assumptions were not confirmed during the current audit:
 3. one description generator
 4. one presentation surface
 5. only then advanced town-state and performance work
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/projects/town-description-system/IMPLEMENTATION_PLAN.md","sha256WithoutMarker":"a8833435d1dbc2ae06a72f61087382b4d0409c176209319a8a1be7088ed87602","markedAtUtc":"2026-06-25T23:38:33.512Z"} -->

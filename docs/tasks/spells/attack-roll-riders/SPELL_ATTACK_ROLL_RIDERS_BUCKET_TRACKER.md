@@ -140,3 +140,5 @@ spell system; it does not mean the effect is a real condition.
 - The glossary spell gate checker now has a dedicated `Attack Roll Riders Runtime Review` block.
 - That block compares the structured rider rows in the spell markdown against the live spell JSON the glossary actually renders.
 - It should be the first place we look when a spell needs rider mechanics that are not real conditions.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/attack-roll-riders/SPELL_ATTACK_ROLL_RIDERS_BUCKET_TRACKER.md","sha256WithoutMarker":"ee17f1a1f56dfdb299ddc956eaa6339fe12c56c8f7f2fed853ab45a78adb8d18","markedAtUtc":"2026-06-25T22:29:38.507Z"} -->

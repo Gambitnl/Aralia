@@ -62,3 +62,5 @@ Do not assume:
 - that every missing feat behavior starts in the UI
 - that a nonexistent useCombatSystem hook is the combat integration surface
 - that a feat is fully working just because the picker renders the right controls
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/guides/FEAT_SELECTION_IMPLEMENTATION_GUIDE.md","sha256WithoutMarker":"80cf926960b50e0e75a693bb627f4bc1c8da052ccc02c79ccd7e584592426238","markedAtUtc":"2026-06-25T22:29:38.319Z"} -->

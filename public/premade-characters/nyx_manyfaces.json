@@ -190,7 +190,26 @@
     "lucky"
   ],
   "featChoices": {},
-  "equippedItems": {},
+  "equippedItems": {
+    "MainHand": {
+      "id": "longbow",
+      "name": "Longbow",
+      "description": "A tall bow requiring two hands. Normal range 150 ft.",
+      "type": "weapon",
+      "category": "Martial Ranged Weapon",
+      "damageDice": "1d8",
+      "damageType": "piercing",
+      "properties": [
+        "ranged",
+        "ammunition",
+        "two-handed",
+        "range:30"
+      ],
+      "isMartial": true,
+      "mastery": "Slow",
+      "rarity": "Common"
+    }
+  },
   "statusEffects": [],
   "spellbook": {
     "cantrips": [],

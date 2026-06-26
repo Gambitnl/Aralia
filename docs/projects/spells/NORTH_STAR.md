@@ -9,7 +9,7 @@ main_category: Game & Simulation
 subcategory: Spell Runtime And Data
 tracker_group: Spells
 status: active
-last_updated: 2026-06-22
+last_updated: 2026-06-25
 iteration: 0
 confidence: medium
 evidence: docs/projects/spells
@@ -43,7 +43,8 @@ required_verification:
   - rendered_parent_dashboard_check
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-22
+  - rendered_parent_dashboard_check
+last_proof: 2026-06-25
 workflow_gaps_reviewed: 2026-06-22
 compaction_status: not_needed
 lifecycle_status: active
@@ -56,7 +57,7 @@ source_path: docs/projects/spells/NORTH_STAR.md
 # Spells Parent North Star
 
 status: active
-Last updated: 2026-06-22
+Last updated: 2026-06-25
 
 ## Why This Project Exists
 
@@ -85,6 +86,7 @@ Keep the spell project family coherent while the spell runtime, data corpus, val
 - The parent registry is `docs/projects/spells/SUBPROJECTS.md`.
 - The current registry tracks seven owned Spells lanes and one linked support project.
 - The highest-priority parent route is the created-object / persistent-structure mechanics stream, which belongs to the Mechanics Discovery Packages child lane until a narrower runtime/data owner is selected.
+- The rendered parent dashboard now surfaces that route as a recommended lane with registry proof freshness, in-place lane details, setup-packet links, and copyable/previewable child-lane handoffs.
 - Parent gaps are import/routing signals only. Child packets own executable work, proof, pass telemetry, and lane-local gap detail.
 
 ## Parent Scope
@@ -135,8 +137,9 @@ A normal resume should be:
 
 1. Read this file for parent scope.
 2. Read `SUBPROJECTS.md` for lane ownership and priority.
-3. Open the chosen child packet and run the executable pass there.
-4. Update parent `GAPS.md`, `TRACKER.md`, or `DECISIONS.md` only when ownership, routing, imported gaps, or dashboard-visible status changes.
+3. In the rendered project tracker, use the recommended-lane callout or child-lane details to inspect the chosen lane before launching work.
+4. Open or copy the dashboard handoff for the chosen child packet and run the executable pass there.
+5. Update parent `GAPS.md`, `TRACKER.md`, or `DECISIONS.md` only when ownership, routing, imported gaps, or dashboard-visible status changes.
 
 ## Supporting Files
 
@@ -173,8 +176,8 @@ A normal resume should be:
 
 | ID | Status | Task | Owner | Last updated | Acceptance criteria | Next action | Next proof |
 |---|---|---|---|---|---|---|---|
-| SP-PARENT-T1 | active | Keep the Spells parent aligned with the parent-with-subprojects layout. | Codex | 2026-06-24 | Parent `NORTH_STAR.md` has template-aligned sections; `SUBPROJECTS.md` uses canonical count keys; child lanes remain the executable units. | Refresh the rendered tracker page and confirm the parent page reads as a routing surface with a scoped child registry. | Project tracker detail page shows parent routing plus `SUBPROJECTS.md` child-lane structure without implying one parent implementation pass. |
-| SP-PARENT-T2 | active | Route the next executable pass through the highest-impact child lane. | Future agent | 2026-06-24 | The chosen child packet owns pass telemetry, tracker updates, gap detail, and proof. Parent updates only routing/imported gap summary if needed. | Start from the `mechanics-discovery-packages` row unless a newer `SUBPROJECTS.md` priority supersedes it. | Child tracker/proof update plus parent gap/import summary only if the child discovers parent-visible changes. |
+| SP-PARENT-T1 | done | Keep the Spells parent aligned with the parent-with-subprojects layout. | Codex | 2026-06-25 | Parent `NORTH_STAR.md` has template-aligned sections; `SUBPROJECTS.md` uses canonical count keys; `misc/project_tracker.html` and `misc/project_tracker.js` now render the parent scoped child-lane dashboard inside the project detail overlay. | Keep this current when the parent template or project detail overlay changes. | Rendered `misc/project_tracker.html`, filtered to `spells`, opened the Spells parent, and observed the `Subproject Dashboard`, 8 child lanes, 7 active lanes, 7 owned lanes, 1 linked support lane, scoped filters, and all child setup packet rows. |
+| SP-PARENT-T2 | active | Route the next executable pass through the highest-impact child lane. | Codex | 2026-06-25 | The chosen child packet owns pass telemetry, tracker updates, gap detail, and proof. Parent updates only routing/imported gap summary if needed. Mechanics Discovery Packages is selected by the dashboard recommended-lane callout, and Package 19 PR #1145 is the active created-object/structure pass. | Continue from the Mechanics Discovery Packages child packet and PR #1145; use the rendered handoff preview/copy action before launching another agent, and do not relaunch the same slice from the parent. | Rendered parent dashboard shows one recommended lane, registry proof freshness, in-place lane details, setup-packet link, handoff preview/copy parity, and child tracker/proof update only after child work changes parent-visible state. |
 
 ## Resume Path
 

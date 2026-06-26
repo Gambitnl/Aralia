@@ -312,3 +312,26 @@ px tsx scripts/syncSpellJsonSchemaRegistry.ts --check.
 
 Next active target:
 - Continue the evidence-first workflow on another tracked project gap, unless verification is approved.
+
+## Backlog-retirement review - 2026-06-25
+
+This file is retained as a running slice log, not as the current execution
+queue. Its last schema note was stale: the first 2026-06-25 schema check
+failed because `targeting.allocation` existed in
+`src/systems/spells/schema/parts/00-schema-root.json` but had not been
+regenerated into `src/systems/spells/schema/spell.schema.json`. The aggregate
+was regenerated from parts and the follow-up check passed.
+
+Verified in this retirement pass:
+- `npx tsx scripts\syncSpellJsonSchemaRegistry.ts --check` passes with 5
+  schema parts after aggregate regeneration.
+- `npm run test -- src\systems\spells\validation\__tests__\effectTriggers.test.ts --reporter=dot`
+  passes 1 focused trigger test.
+
+Do not restart `SSO-ONMOVEINAREA-001` or `SSO-JSON-SCHEMA-DRIFT-001` from this
+old tail. Current executable work should start from `TRACKER.md`, `GAPS.md`,
+and the owning Spells child project rows, especially
+`SSO-AREA-MOVE-WITHIN-COVERAGE-001` when continuing movement-through-zone
+behavior proof.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/TASK_SLICE.md","sha256WithoutMarker":"ba368d500c0d65a09e36a3cd9ebf588c53f21bae3cbbe0bf9dc72963269ca454","markedAtUtc":"2026-06-25T22:29:38.334Z"} -->

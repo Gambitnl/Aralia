@@ -60,3 +60,5 @@ Do not assume:
 - that index.html is the right current reference for glossary table rendering
 - that older markdown-inside-HTML examples are still the safest default pattern
 - that a custom HTML table is automatically better than a standard markdown table
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/guides/TABLE_CREATION_GUIDE.md","sha256WithoutMarker":"501a764acd9510b1feb0452b1d60c11ac11d45645359a1d2b80210c76e55fc9e","markedAtUtc":"2026-06-25T22:29:38.322Z"} -->

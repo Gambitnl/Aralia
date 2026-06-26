@@ -49,3 +49,4 @@ Generated: 2026-04-29T08:12:44.561Z
 - Rationale: The runtime spell JSON still carries materially different Description prose than the structured layer.
 - Sample spells: chill-touch, disguise-self, disintegrate, find-traps, greater-restoration, harm, ottos-irresistible-dance, shocking-grasp, sleep, snare
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/description/SPELL_DESCRIPTION_SUBBUCKET_REPORT.md","sha256WithoutMarker":"4fc5ba49a5af48ccfffe6721d7dec89dcd98ea38b05d2f438ccedddeeff40182","markedAtUtc":"2026-06-25T22:29:38.517Z"} -->

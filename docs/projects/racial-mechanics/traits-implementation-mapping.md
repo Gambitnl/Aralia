@@ -1836,3 +1836,4 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 
 ---
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/projects/racial-mechanics/traits-implementation-mapping.md","sha256WithoutMarker":"b9df7978e549b9cb8497ee58ec9225592025cd4fe790d2ff820aac53d53f4f3d","markedAtUtc":"2026-06-25T23:34:52.155Z"} -->

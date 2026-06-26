@@ -68,3 +68,5 @@
 - `npx tsx scripts/regenerate-manifest.ts`
 - `npm run validate`
 - `npx tsx scripts/check-spell-integrity.ts`
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/LEVEL-1-BATCHES.md","sha256WithoutMarker":"71ff6f400e69bd56cbc084c3af0479a81ff18afc9a70c0a2f6cdc7b1567f09df","markedAtUtc":"2026-06-25T22:29:38.586Z"} -->

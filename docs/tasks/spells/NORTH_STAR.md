@@ -124,3 +124,5 @@ Out of scope:
 | `docs/tasks/spells/SPELL_DATA_VALIDATION_PLAN.md` | Validation lane plan and lane split | active |
 | `docs/tasks/spells/SPELL_CANONICAL_SYNC_TRACKER.md` | Current corpus sync/lane status | active |
 | `docs/tasks/spells/ATLAS_AGENT_PROMPT_V3.md` | Atlas execution contract | active |
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/NORTH_STAR.md","sha256WithoutMarker":"b5189f21eb9a97d0673d51c8e44c6a1d472c77be55b78159043b67715109fd60","markedAtUtc":"2026-06-25T22:29:38.522Z"} -->

@@ -10,8 +10,9 @@ It is still useful as historical planning context, but it should not be treated 
 
 Use it together with:
 - [`README.md`](./README.md)
-- [`1A-PROJECT-MASTER-SPRINGBOARD.md`](./1A-PROJECT-MASTER-SPRINGBOARD.md)
-- [`00-TASK-INDEX.md`](./00-TASK-INDEX.md)
+- [`../../projects/spells/NORTH_STAR.md`](../../projects/spells/NORTH_STAR.md)
+- [`../../projects/spells/SUBPROJECTS.md`](../../projects/spells/SUBPROJECTS.md)
+- [`../../projects/spells/GAPS.md`](../../projects/spells/GAPS.md)
 
 Important cautions:
 - timeline and staffing assumptions here are historical
@@ -423,9 +424,11 @@ Next phase adds:
 
 **Ready to start?**
 
-1. Read [00-PARALLEL-ARCHITECTURE.md](00-PARALLEL-ARCHITECTURE.md)
+1. Read [../../projects/spells/NORTH_STAR.md](../../projects/spells/NORTH_STAR.md)
 2. Read your agent task file
 3. Ask questions in standup
 4. Start coding!
 
 **Last Updated:** November 28, 2025
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/START-HERE.md","sha256WithoutMarker":"96bfb01bba1e648a73ae025b0138d0c932fc4154fdba05590f80d1e723f07064","markedAtUtc":"2026-06-25T22:29:38.592Z"} -->

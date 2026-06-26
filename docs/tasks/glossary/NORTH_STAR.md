@@ -1,7 +1,7 @@
 # Glossary North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-25
 
 ## Purpose and Scope
 
@@ -22,7 +22,6 @@ Out of scope:
 ## Implemented State
 
 - Core task docs are present in this folder:
-  - `GLOSSARY_LINK_SURFACES_PLAN.md`
   - `GLOSSARY_LINK_SURFACES_INVENTORY.md`
   - `GLOSSARY_LINK_SURFACES_INVENTORY.json`
   - `GLOSSARY_RELEVANT_RULES_TARGET_SET.md`
@@ -37,8 +36,8 @@ Out of scope:
 
 ## Planned State
 
-- Add a terminology governance note that names who owns final inclusion,
-  exclusion, and section placement decisions.
+- Keep the terminology governance note current when PHB audit, item taxonomy, or
+  glossary UI ownership changes.
 - Keep `TRACKER.md` and `GAPS.md` as the operational handoff path for all
   planning updates.
 - Re-check glossary link surface evidence against current preview/runtime
@@ -49,8 +48,8 @@ Out of scope:
 - `NORTH_STAR.md`: This summary and handoff.
 - `TRACKER.md`: Active queue, status, and next checks.
 - `GAPS.md`: Durable unresolved items and escalation routes.
-- `GLOSSARY_LINK_SURFACES_PLAN.md` + `GLOSSARY_LINK_SURFACES_INVENTORY.md/json`:
-  canonical link-surface taxonomy and generated inventory.
+- `GLOSSARY_LINK_SURFACES_INVENTORY.md/json`: generated inventory for
+  glossary redirect surfaces.
 - `GLOSSARY_RELEVANT_RULES_TARGET_SET.md`: relevance filter for PHB 2024 rules.
 - `DND_BEYOND_RULES_GLOSSARY_FIRST_PASS_AUDIT.md`: manual audit criteria and
   first-pass judgments.
@@ -66,13 +65,48 @@ Out of scope:
   rendering components that consume `GlossaryContentRenderer`, `GlossarySidebar`,
   and link marker paths.
 
+## Terminology Governance
+
+`docs/tasks/glossary` owns inclusion, exclusion, and section-placement decisions
+for broad glossary terminology planning. Use the relevant-rules target set and
+the first-pass D&D Beyond audit as evidence, but do not treat either file as a
+standalone execution queue.
+
+`docs/projects/phb2024_glossary_audit` is reference-only after the 2026-06-10
+D24 decision; it should not receive new forward iteration work. Remaining PHB
+glossary scope-overlap questions route here, while item metadata and equipment
+taxonomy decisions route to `docs/projects/item_categorization`.
+
+`docs/projects/glossary-ui` owns rendered glossary UI behavior, link rendering,
+modal/search behavior, and rebuild-pipeline proof. Runtime glossary changes
+should enter through that project unless the work is only terminology policy or
+audit-scope clarification.
+
+## Glossary Link Surface Taxonomy
+
+The glossary currently has three durable redirect surface families:
+
+- Pill redirects: compact chip-like metadata links rendered through
+  `GlossaryPill` and tooltip-backed by `GlossaryTooltip` when a real term id is
+  present.
+- Inline redirect text: prose-first links rendered by `GlossaryContentRenderer`
+  from `[[term]]`, `[[term|Display]]`, `{{term}}`, `{{term|Display}}`, and
+  `<g t="...">Text</g>` markers.
+- Footer redirect buttons: `See Also` cross-reference chips rendered by
+  `GlossaryEntryTemplate` from `seeAlso` arrays.
+
+`GlossaryTooltip` is supporting behavior, not its own link surface. The
+inventory script records all four signals so preview and audit work can still
+distinguish visual families, shared primitives, one-off implementations, and
+hover behavior.
+
 ## Gaps and Uncertainties
 
-- No explicit terminology-governance artifact exists yet for this project area.
-  The tracker row still points to governance work but does not provide a single
-  owning document.
-- The scope of glossary term inclusion is still partly split between PHB-2024
-  and in-surface rule decisions; a one-line decision record is still needed.
+- Complex PHB 2024 rule tables still need a rendered Glossary UI inspection
+  after ingestion; this remains tracked in `GAPS.md` G3.
+- The scope of glossary term inclusion is now routed here for terminology
+  policy, while PHB audit history and item taxonomy decisions stay with their
+  named owner surfaces.
 
 ## Resume Path
 
@@ -81,3 +115,5 @@ Out of scope:
 3. Read `GAPS.md`.
 4. Confirm term governance evidence against `docs/projects/PROJECT_TRACKER.md`
    and the two owning project folders above.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/glossary/NORTH_STAR.md","sha256WithoutMarker":"665d720175b8119901b91db209b4cedc02071f69bf710dd31446ced201dc1c84","markedAtUtc":"2026-06-25T22:29:38.302Z"} -->

@@ -1,8 +1,6 @@
 # Package 9 Jules Task: Higher-Level Caster Fixture Coverage
 
-Status: active replacement package packet; Package 8 has merged, the first
-Package 9 Jules PR was filed stale/unaccepted, and this is still the next Spell
-Phase 1 Jules implementation boundary.
+Status: historical Package 9 replacement packet; PR #1043 merged on 2026-05-25.
 
 This packet promotes tracker gap `G3` into the next non-overlapping Spell Phase
 1 candidate. Package 8 has now merged, so fixture coverage for level 2 and
@@ -207,3 +205,5 @@ Artifact boundary:
 - External Symphony / local ignored state: dashboard run state, draft IDs,
   handoff receipts, generated manifests, click logs, and raw Jules process
   output.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_9_CASTER_FIXTURE_COVERAGE_JULES_TASK.md","sha256WithoutMarker":"2ea306c9bb41665a15b3c5be06fdf3115f2417cecb31f3978e3b77be4a382636","markedAtUtc":"2026-06-25T22:29:38.368Z"} -->

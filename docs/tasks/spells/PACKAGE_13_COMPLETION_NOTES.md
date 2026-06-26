@@ -33,3 +33,5 @@
 * **wall-of-water**: `defer_broader_system` - Wall engine.
 * **water-walk**: `defer_broader_system` - Walking on liquids requires advanced movement system.
 * **wind-wall**: `defer_broader_system` - Wall engine.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_13_COMPLETION_NOTES.md","sha256WithoutMarker":"4c17259d8bc39a3f42f64512f92ee88bd8344eb87738c9a6dafc30e76bb21da8","markedAtUtc":"2026-06-25T22:29:38.376Z"} -->

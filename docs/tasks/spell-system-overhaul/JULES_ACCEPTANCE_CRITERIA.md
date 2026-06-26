@@ -116,3 +116,5 @@ Before finishing your turn, ask yourself:
 1. Did I use `damage` (lowercase) instead of `DAMAGE` (uppercase)? -> **Fix it.**
 2. Did I forget the `trigger` field because the example didn't have it? -> **Check SPELL_JSON_EXAMPLES.md again, they ALL have it.**
 3. Did I invent a `buff` type? -> **Change to DEFENSIVE or STATUS_CONDITION.**
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md","sha256WithoutMarker":"fbe9423aebe92a839b1874fc92afee5a015e6ee81dfead6c70216cabd1f04f57","markedAtUtc":"2026-06-25T22:29:38.586Z"} -->

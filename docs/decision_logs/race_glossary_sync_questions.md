@@ -1,6 +1,6 @@
 # Race Glossary Sync - Open Questions + Decisions
 
-Last updated: 2026-02-09
+Last updated: 2026-06-26
 
 Scope: Align Glossary race grouping and images with Character Creator; decide how to handle base-race chooser entries and trait inheritance.
 
@@ -12,7 +12,7 @@ Scope: Align Glossary race grouping and images with Character Creator; decide ho
 - Q1c: What counts as "significant difference" (chosen: case-by-case; wording-only is not significant).
 - Q1d: Which races are affected (repo evidence).
 - Q2: Should Glossary grouping match Character Creator exactly (chosen: yes, exact match).
-- Q3: When to hide base races vs show variants-only (chosen: forced-choice bases are variants-only).
+- Q3: When to hide base races vs show variants-only (chosen: forced-choice bases are variants-only; per-family confirmation recorded).
 - Q4: What Glossary should do with forced-choice bases (chosen: Aasimar method, variants-only in group).
 - Q5: Trait inheritance policy when removing base races (chosen: case-by-case).
 - Q6: How chooser traits appear on variants (chosen: variants replace chooser text).
@@ -164,7 +164,7 @@ Decision:
 
 ## Q3. "Base Race" Chooser Entries: Keep Selectable or Variants-Only (Per Family)
 
-Status: Answered (rule), pending (per-family confirmation)
+Status: Answered
 
 Question:
 
@@ -189,7 +189,7 @@ Decision (rule):
 - If the base race is explicitly designed for the player to make a choice (lineage/legacy/ancestry/season), then: variants-only.
 - If the base race can exist on its own without forcing such a choice, then: keep base selectable, but discuss any edge cases first.
 
-Follow-up needed (per family):
+Resolved follow-up (per family):
 
 - Confirm which of the listed families you consider "explicitly designed for a forced choice" vs "can exist on its own."
 
@@ -531,13 +531,27 @@ Unanswered / still to decide:
 - Whether to support "upload existing image and outpaint/zoom out" workflow (vs always regenerate fresh).
 - Whether to post-process Category D (white border) via deterministic trimming, or always regenerate.
 
+Backlog-retirement routing update (2026-06-26):
+
+- Treat Character Creator gap `G23` plus `docs/portraits/race_portrait_regen_backlog.json` as the active execution owner.
+- Keep this decision log as provenance for why the portrait QA/tooling lane exists; do not launch duplicate portrait work from this file.
+
 ---
 
 ## Q20. Appearance Research Flags (Prompt Guidance)
 
-Status: Pending research
+Status: Routed pending research
 
 Questions:
 
 - Wood Half-Elf: should skin tone ever be green, or only subtle woodland tint?
 - Forgeborn Human (Mark of Making): should skin tone be normal human, with the dragonmark glow providing the "unusual" visual?
+
+Backlog-retirement routing update (2026-06-26):
+
+- The same unresolved visual concerns are already present in `docs/portraits/race_portrait_regen_backlog.json`:
+  - Wood Half-Elf has reason `green skin questionable`.
+  - Forgeborn Human has reason `blue skin questionable`.
+- Route execution through Character Creator gap `G23` and the portrait regeneration tooling. This decision log should preserve the question and rationale, not act as a separate hidden backlog.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/decision_logs/race_glossary_sync_questions.md","sha256WithoutMarker":"de9dcf3a62c4f324fd4e5c139f949e3e7331eb33e509eff4036892f6a2feca4e","markedAtUtc":"2026-06-25T23:32:27.652Z"} -->

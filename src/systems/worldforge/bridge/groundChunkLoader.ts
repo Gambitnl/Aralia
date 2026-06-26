@@ -38,8 +38,10 @@ import { biomeColor } from "../../world3d/terrainColor";
 import type { LocalArtifact, RegionArtifact } from "../artifacts";
 import { localArtifactToWorldData, GROUND_METERS_PER_CELL } from "./groundWorldAdapter";
 import { generateTownPlan } from "../town/generateTownPlan";
+import type { TownPlan } from "../artifacts";
 import { buildInteriorParts, interiorEnvelopeM, type SitePart, type OccupantBody } from "./interiorParts";
 import { generateTownRoster } from "../roster/generateTownRoster";
+import { occupantLocationAt, type ActivityKind } from "../roster/occupantSchedule";
 import type { TownRoster, Occupant } from "../roster/types";
 import { generateBody } from "../body/generateBody";
 import type { BodyPlan } from "../body/types";
@@ -69,7 +71,17 @@ interface GroundOccupantSite {
   name: string;
   xM: number;
   zM: number;
+  /** Schedule activity at the bake hour (drives the close-range nameplate). */
+  activity?: ActivityKind;
 }
+
+/** Player-facing label for a townsperson's current activity. */
+const ACTIVITY_LABEL: Record<ActivityKind, string> = {
+  sleeping: 'asleep',
+  home: 'at home',
+  working: 'working',
+  out: 'out & about',
+};
 
 /** An artifact feature in ground meters (world space, origin = artifact NW). */
 export interface GroundFeature {
@@ -152,6 +164,14 @@ export interface GroundWorld {
    * already live inside building parts; these entries are marker-only labels.
    */
   occupants: GroundOccupantSite[];
+  /**
+   * Per-town plans (feet frame), paired with `rosters` by burgId. Together with
+   * `boundsFeet` these are the inputs `groundTownAgentsAt` needs to animate
+   * townsfolk walking the streets per-frame against the live clock.
+   */
+  townPlans?: Array<{ burgId: number; plan: TownPlan }>;
+  /** Artifact window origin in town/plan FEET (`local.bounds`) for feet→meters. */
+  boundsFeet?: { x: number; y: number };
 }
 
 const FEET_TO_METERS = 0.3048;
@@ -280,6 +300,8 @@ export function makeGroundWorld(
     buildings: townContent.buildings,
     rosters: townContent.rosters,
     occupants: townContent.occupants,
+    townPlans: townContent.townPlans,
+    boundsFeet: { x: local.bounds.x, y: local.bounds.y },
   };
 }
 
@@ -474,6 +496,7 @@ function groundTowns(
   planStreets: GroundPolyline[];
   rosters: TownRoster[];
   occupants: GroundOccupantSite[];
+  townPlans: Array<{ burgId: number; plan: TownPlan }>;
 } {
   const exX = local.bounds.width * FEET_TO_METERS;
   const exZ = local.bounds.height * FEET_TO_METERS;
@@ -483,6 +506,7 @@ function groundTowns(
   const planStreets: GroundPolyline[] = [];
   const rosters: TownRoster[] = [];
   const occupants: GroundOccupantSite[] = [];
+  const townPlans: Array<{ burgId: number; plan: TownPlan }> = [];
 
   for (const t of region?.townSites ?? []) {
     const xM = (t.envelope.x + t.envelope.width / 2 - local.bounds.x) * FEET_TO_METERS;
@@ -499,6 +523,7 @@ function groundTowns(
     const plan = deltas.length
       ? (localWithDeltas(local, basePlan, deltas).townPlan ?? basePlan)
       : basePlan;
+    townPlans.push({ burgId: t.burgId, plan });
     for (const s of plan.streets) {
       planStreets.push({
         points: s.centerline.map(([fx, fy]) => ({
@@ -546,11 +571,15 @@ function groundTowns(
     }
 
     rosters.push(roster);
-    const byPlot = new Map<number, Array<Occupant & { atWork: boolean; resolvedPlotId: number }>>();
+    const byPlot = new Map<number, Array<Occupant & { atWork: boolean; resolvedPlotId: number; activity: ActivityKind }>>();
     for (const o of roster.occupants) {
-      const atWork = o.workPlotId !== undefined && isAtWork(o.id, hour);
-      const placeAt = atWork ? o.workPlotId! : o.homePlotId;
-      byPlot.set(placeAt, [...(byPlot.get(placeAt) ?? []), { ...o, atWork, resolvedPlotId: placeAt }]);
+      // Place via the CANONICAL schedule (`occupantLocationAt`) — the same source
+      // of truth the 2D agent-sim uses — so the 3D scene and the overlay never
+      // disagree about where someone is (was a cruder, divergent `isAtWork`).
+      const block = occupantLocationAt(o, hour);
+      const placeAt = block.plotId;
+      const atWork = block.activity === 'working';
+      byPlot.set(placeAt, [...(byPlot.get(placeAt) ?? []), { ...o, atWork, resolvedPlotId: placeAt, activity: block.activity }]);
     }
 
     for (const p of plan.plots) {
@@ -586,6 +615,7 @@ function groundTowns(
           name: occupant.name,
           xM,
           zM,
+          activity: occupant.activity,
         });
       }
 
@@ -629,7 +659,7 @@ function groundTowns(
     }
   }
 
-  return { towns, buildings, planStreets, rosters, occupants };
+  return { towns, buildings, planStreets, rosters, occupants, townPlans };
 }
 
 /** Encoded-height bilinear sample at world meters → true meters via heightToMeters. */
@@ -896,9 +926,11 @@ export function sampleGroundChunk(
           population: undefined,
           surfaceY: groundSurfaceY(ground, o.xM, o.zM),
           // Occupant bodies are already rendered as interior parts. This
-          // marker carries only the close-range roster nameplate.
+          // marker carries only the close-range roster nameplate — enriched with
+          // the person's current activity (from the unified schedule) so walking
+          // up reads e.g. "Mara Fen · asleep".
           markerOnly: true,
-          name: o.name,
+          name: o.activity ? `${o.name} · ${ACTIVITY_LABEL[o.activity]}` : o.name,
           labelRangeM: 12,
         })),
       // Mapped hostiles: these render as high-contrast red boxes on the

@@ -54,3 +54,5 @@ Worker is terminated when `worldData` changes or `World3DWrapper` unmounts.
 ## Deferred / out of scope (T11)
 
 - Chunk-ready-before-dive-end (needs streamer instrumentation).
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/projects/world-3d-ui/PERF.md","sha256WithoutMarker":"c59b7136baace366ce38d58fcf122fdbe19f3e6fa25714101f048c66b6d1d75a","markedAtUtc":"2026-06-25T23:59:02.674Z"} -->

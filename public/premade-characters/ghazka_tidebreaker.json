@@ -147,7 +147,23 @@
       "selectedAbilityScore": "Strength"
     }
   },
-  "equippedItems": {},
+  "equippedItems": {
+    "MainHand": {
+      "id": "quarterstaff",
+      "name": "Quarterstaff",
+      "description": "A sturdy wooden staff. Versatile - can be used one or two-handed.",
+      "type": "weapon",
+      "category": "Simple Melee Weapon",
+      "damageDice": "1d6",
+      "damageType": "bludgeoning",
+      "properties": [
+        "versatile"
+      ],
+      "isMartial": false,
+      "mastery": "Topple",
+      "rarity": "Common"
+    }
+  },
   "statusEffects": [],
   "limitedUses": {
     "racial_feature_orc__adrenaline_rush__resource": {

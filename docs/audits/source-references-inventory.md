@@ -612,7 +612,6 @@ Current interpretation:
 - **docs\tasks\combat-messaging-enhancement\README.md:86**: `addDamageMessage({`
 - **docs\tasks\spell-completeness-audit\output\PHB-2024-REFERENCE.md:4**: `Last Updated: 2025-12-04 16:34 UTC`
 - **docs\tasks\spell-completeness-audit\1A~INVENTORY-LOCAL-SPELLS.md:15**: `- Codebase `public/data/spells/``
-- **docs\tasks\spell-system-overhaul\0-PRIORITY-SCHEMA-EVOLUTION.md:5**: `*
 - **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:277**: `appliedTurn: currentState.turnState.currentTurn,`
 - **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:481**: `appliedTurn: number`
 - **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:525**: `appliedTurn: state.turnState.currentTurn,`
@@ -1401,7 +1400,6 @@ Current interpretation:
 - **docs\tasks\combat-messaging-enhancement\README.md:86**: `addDamageMessage({`
 - **docs\tasks\spell-completeness-audit\output\PHB-2024-REFERENCE.md:4**: `Last Updated: 2025-12-04 16:34 UTC`
 - **docs\tasks\spell-completeness-audit\1A~INVENTORY-LOCAL-SPELLS.md:15**: `- Codebase `public/data/spells/``
-- **docs\tasks\spell-system-overhaul\0-PRIORITY-SCHEMA-EVOLUTION.md:5**: `*
 - **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:277**: `appliedTurn: currentState.turnState.currentTurn,`
 - **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:481**: `appliedTurn: number`
 - **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:525**: `appliedTurn: state.turnState.currentTurn,`
@@ -1414,3 +1412,4 @@ Current interpretation:
 - **docs\review_worklogs.md:201**: `*
 - **docs\V1.1_BUG_VERIFICATION_REPORT.md:4**: `*
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/audits/source-references-inventory.md","sha256WithoutMarker":"78897c23462e619cb7a3d6110ab8d4b2145120e999ecfc2a0438b4fbb6a6bed2","markedAtUtc":"2026-06-25T23:38:33.508Z"} -->

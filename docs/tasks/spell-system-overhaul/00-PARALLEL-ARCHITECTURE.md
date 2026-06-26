@@ -12,9 +12,11 @@ Why it was archived:
 
 Current live spell-overhaul entry points:
 - [`README.md`](./README.md)
-- [`1A-PROJECT-MASTER-SPRINGBOARD.md`](./1A-PROJECT-MASTER-SPRINGBOARD.md)
+- [`../../projects/spells/NORTH_STAR.md`](../../projects/spells/NORTH_STAR.md)
 - [`1B-SPELL-MIGRATION-ROADMAP.md`](./1B-SPELL-MIGRATION-ROADMAP.md)
 - [`../../projects/spells/SUBPROJECTS.md`](../../projects/spells/SUBPROJECTS.md)
 - [`../../projects/spells/subprojects/structured-spell-execution/GAPS.md`](../../projects/spells/subprojects/structured-spell-execution/GAPS.md)
 
 Use the archived copy for historical coordination context only.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/00-PARALLEL-ARCHITECTURE.md","sha256WithoutMarker":"df9549af7b4200e4074db7108af44415f13a74766bbda591a89d2c2a2636b270","markedAtUtc":"2026-06-25T22:29:38.572Z"} -->

@@ -1,7 +1,7 @@
 # Combat Scenario Tester North Star
 
-Status: active
-Last updated: 2026-06-01
+Status: reference-only
+Last updated: 2026-06-25
 
 ## Why This Project Exists
 
@@ -27,19 +27,20 @@ Create a visual sandbox inside Aralia's design dashboard (`misc/design.html`) wh
 
 ---
 
-## Bounded Active Task: Prone & Grappled States Sandbox
+## Reference-Only Routing
 
-We are moving forward with implementing the Prone and Grappled states playground to isolate and verify martial/positional rules.
+This folder is no longer the forward assignment owner for Tactical Sandbox
+scenario work. The canonical owner is now
+`docs/projects/design-preview-scenarios`, which tracks the full scenario catalog
+as a parent project with child packets for each lane.
 
 | Field | Value |
 |---|---|
-| Task | Implement the Prone & Grappled States test sandbox. |
-| Acceptance criteria | The new sandbox template mounts in the selector, populating an adjacent target that can be knocked Prone to verify melee advantage and ranged disadvantage mechanics. |
-| Allowed boundaries | `src/components/DesignPreview/steps/PreviewCombatScenarios.tsx` only |
-| Stop condition | Do not implement the underlying grapple check resolver; isolate using transient properties. |
-| Verification | Manual inspection on `/misc/design.html`. |
-| Owner | Next Agent |
-| Next action | Build the programmatic layout and character presets for T7. |
+| Current owner | `docs/projects/design-preview-scenarios/NORTH_STAR.md` |
+| Relevant child lane | `docs/projects/design-preview-scenarios/subprojects/conditions` for prone/grappled/condition-state work |
+| Runtime evidence | `src/components/DesignPreview/steps/PreviewCombatScenarioCatalog.ts`; `src/components/DesignPreview/steps/PreviewCombatScenarios.tsx` |
+| Stop condition | Do not assign new forward iteration here unless the canonical project reopens this folder explicitly. |
+| Next action | Route scenario behavior work through the active Design Preview Scenarios parent and child packet. |
 
 ---
 
@@ -98,13 +99,15 @@ Out of scope:
 | File | Purpose | Status |
 |---|---|---|
 | `docs/projects/PROJECT_TRACKER.md` | Long-term registry anchor | active |
-| `docs/tasks/combat-scenario-tester/TRACKER.md` | Active queue and task logs | active |
+| `docs/tasks/combat-scenario-tester/TRACKER.md` | Historical queue and task logs | reference-only |
 
 ---
 
 ## Resume Path For A Cold Agent
 
 1. Read this file.
-2. Read [TRACKER.md](file:///f:/Repos/Aralia/docs/tasks/combat-scenario-tester/TRACKER.md).
-3. Access `/misc/design.html` on a local dev server and select "Combat Scenarios".
-4. Continue from **T2** in the active queue.
+2. Read [TRACKER.md](file:///f:/Repos/Aralia/docs/tasks/combat-scenario-tester/TRACKER.md) for historical context only.
+3. Read `docs/projects/design-preview-scenarios/NORTH_STAR.md` and `SUBPROJECTS.md`.
+4. Continue from the relevant Design Preview Scenarios child packet, not from this folder.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/combat-scenario-tester/NORTH_STAR.md","sha256WithoutMarker":"f5d34d027d07331f2d62387869739aab990d76e176e7a6eb32c990aa164c0c06","markedAtUtc":"2026-06-25T22:29:38.625Z"} -->

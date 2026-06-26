@@ -69,3 +69,5 @@ Do not dispatch Jules for Package 2 until the Package 2 branch context is
 confirmed visible to the external worker by that refreshed Symphony preflight,
 or an explicit recorded waiver explains why the pushed setup branch is
 sufficient despite any remaining local Symphony blocker.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md","sha256WithoutMarker":"5efd81df1db161604ed94af273aadfed9ec9370bcb84e95f3e8c79b98be9da3c","markedAtUtc":"2026-06-25T22:29:38.523Z"} -->

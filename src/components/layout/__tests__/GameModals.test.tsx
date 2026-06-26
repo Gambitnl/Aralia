@@ -387,4 +387,29 @@ describe('GameModals focus-trap coverage', () => {
         createProps(withOpenModal({ isShortRestModalVisible: true }));
         expect(await screen.findByTestId('rest-modal')).toBeInTheDocument();
     });
+
+    // Regression: every direct child of the AnimatePresence wrapper must carry a
+    // unique, stable key. When two modals are open at once they become sibling
+    // children of <AnimatePresence>; without explicit keys they all collapse to
+    // key="" and React floods the console with "two children with the same key".
+    it('does not emit a duplicate-key warning when multiple modals are open at once', async () => {
+        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        createProps(withOpenModal({
+            isMapVisible: true,
+            mapData,
+            isQuestLogVisible: true,
+        }));
+
+        // Let the lazy children settle so reconciliation of the sibling set runs.
+        await screen.findByTestId('map-pane');
+        await screen.findByTestId('quest-first');
+
+        const duplicateKeyWarning = errorSpy.mock.calls.find(
+            (call) => typeof call[0] === 'string' && call[0].includes('same key'),
+        );
+        expect(duplicateKeyWarning).toBeUndefined();
+
+        errorSpy.mockRestore();
+    });
 });

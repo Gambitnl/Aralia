@@ -44,4 +44,74 @@ describe('convertLogEntryToMessage', () => {
     expect(message.type).toBe(CombatMessageType.MISSED_ATTACK);
     expect(message.data).toMatchObject({ rawValue: entry.message });
   });
+
+  it('normalizes canonical and legacy damage amount fields into the rich damage payload', () => {
+    const canonicalEntry: CombatLogEntry = {
+      id: 'damage-canonical',
+      timestamp: 3,
+      type: 'damage',
+      message: 'Goblin takes 7 fire damage from Fighter.',
+      characterId: 'goblin',
+      data: { damageAmount: 7, damageType: 'fire', source: 'Fighter' },
+    };
+    const legacyEntry: CombatLogEntry = {
+      id: 'damage-legacy',
+      timestamp: 4,
+      type: 'damage',
+      message: 'Goblin takes 5 cold damage from Fighter.',
+      characterId: 'goblin',
+      data: { damage: 5, damageType: 'cold', source: 'Fighter' },
+    };
+
+    const canonicalMessage = convertLogEntryToMessage(canonicalEntry, characters);
+    const legacyMessage = convertLogEntryToMessage(legacyEntry, characters);
+
+    expect(canonicalMessage.type).toBe(CombatMessageType.DAMAGE_DEALT);
+    expect(canonicalMessage.sourceEntityId).toBe('fighter');
+    expect(canonicalMessage.targetEntityId).toBe('goblin');
+    expect(canonicalMessage.data).toMatchObject({
+      rawValue: 7,
+      formattedValue: '7 fire',
+      damageType: 'fire',
+    });
+    expect(legacyMessage.data).toMatchObject({
+      rawValue: 5,
+      formattedValue: '5 cold',
+      damageType: 'cold',
+    });
+  });
+
+  it('normalizes canonical and legacy healing amount fields into the rich healing payload', () => {
+    const canonicalEntry: CombatLogEntry = {
+      id: 'heal-canonical',
+      timestamp: 5,
+      type: 'heal',
+      message: 'Fighter recovers 6 HP from Cure Wounds.',
+      characterId: 'fighter',
+      data: { healAmount: 6, source: 'Cure Wounds' },
+    };
+    const legacyEntry: CombatLogEntry = {
+      id: 'heal-legacy',
+      timestamp: 6,
+      type: 'heal',
+      message: 'Fighter recovers 4 HP from Second Wind.',
+      characterId: 'fighter',
+      data: { heal: 4, source: 'Second Wind' },
+    };
+
+    const canonicalMessage = convertLogEntryToMessage(canonicalEntry, characters);
+    const legacyMessage = convertLogEntryToMessage(legacyEntry, characters);
+
+    expect(canonicalMessage.type).toBe(CombatMessageType.HEALING_RECEIVED);
+    expect(canonicalMessage.data).toMatchObject({
+      rawValue: 6,
+      formattedValue: '6 HP',
+      spellName: 'Cure Wounds',
+    });
+    expect(legacyMessage.data).toMatchObject({
+      rawValue: 4,
+      formattedValue: '4 HP',
+      spellName: 'Second Wind',
+    });
+  });
 });

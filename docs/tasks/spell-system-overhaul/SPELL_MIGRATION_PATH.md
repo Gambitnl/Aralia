@@ -27,3 +27,5 @@ Use this file when you need a quick pointer, not when you need current implement
 - that the archived long-form strategy still reflects current totals
 - that the archived milestone order is the current authoritative migration path
 - that this pointer file by itself is enough to judge spell migration progress
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/SPELL_MIGRATION_PATH.md","sha256WithoutMarker":"90b4d92be365285f2c34b556144d5d2fc345ee61ed802a89fd660f569672d0b2","markedAtUtc":"2026-06-25T22:29:38.590Z"} -->

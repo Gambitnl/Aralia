@@ -6,9 +6,9 @@ slug: battle-map
 status: "active (G6 tactical spawn scoring implemented 2026-06-19)"
 status_note: ""
 registry_mode: canonical
-last_updated: "2026-06-19"
-gap_count: 3
-open_gap_count: 2
+last_updated: "2026-06-25"
+gap_count: 4
+open_gap_count: 3
 resolved_gap_count: 1
 routed_gap_count: 0
 imported_gap_count: 0
@@ -102,7 +102,7 @@ supported_optional_sections:
 # Battle Map Gap Registry
 
 Status: active (G6 tactical spawn scoring implemented 2026-06-19)
-Last updated: 2026-06-19
+Last updated: 2026-06-25
 
 Use this file for durable unresolved findings that genuinely belong to this project.
 
@@ -118,6 +118,7 @@ Research triage note, 2026-06-10: the useful spawn-placement part of the AAA-lit
 | G5 | not_started | adjacent_follow_up | Codex | `docs/projects/code-modularization-audit` CMA-G5 | Code modularization audit routing | `VFXSystem.tsx` is a large render-aware VFX surface (~1083 lines) mixing spell-zone effects, weapon trails, impact particles, damage numbers, light-source glows, visibility masks, and AoE previews. Splitting without renderer-boundary proof can break zone-effect parity with the 2D overlay and the visibility mask contract. | `src/components/BattleMap/vfx/VFXSystem.tsx`; `src/components/BattleMap/vfx/__tests__/VFXSystem.visibility.test.ts`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G5 | VFX sub-components share render state (light levels, spell zones, visibility) with the 2D battle-map overlay; a split that moves helpers without preserving the shared-prop contract can create silent divergence between 2D and 3D combat feedback. | Define renderer-boundary proof before any VFX modularization; keep `buildTileVisibilityOverlays` export and spell-zone parity as the test anchor. | `VFXSystem.visibility.test.ts` stays green; any split plan names which sub-components move and how shared overlay props are preserved. |
 | G6 | done | adjacent_follow_up | Battle Map owner | `docs/projects/battle-map/GAPS.md` | AAA-lite visual readability research triage (2026-06-10) | Spawn placement now uses deterministic tactical scoring for cover/blocked-line proximity, elevation, chokepoints, enemy distance bands, and fallback-to-nearest-walkable behavior when preferred zones are exhausted. | `src/hooks/useBattleMapGeneration.ts` (`getTacticalSpawnTiles`, `MIN_SEP`, tactical scoring helpers), `src/hooks/__tests__/useBattleMapGeneration.test.ts`, `docs/projects/battle-map/AUDIT_OR_PROOF.md` | Fights start from tactically stronger positions while preserving deterministic setup, team separation, and no-undefined character placement on dense maps. | Re-check only if spawn-zone shapes, terrain facts, or battle-map dimensions change. | `npx vitest run src/hooks/__tests__/useBattleMapGeneration.test.ts` passed 2026-06-19 with fixed-seed determinism, dense-map fallback, separation, tactical-score, and <=50ms 40x30 budget coverage. |
 | CMA-G15 | not_started | adjacent_follow_up | battle-map owner | `docs/projects/code-modularization-audit/GAPS.md` CMA-G15 | Code modularization audit routing | `CharacterActor.tsx` (~697 lines) and `TerrainMesh.tsx` (~675 lines) are large 3D files mixing animation, selection decals, and terrain generation; modularization needs frame/render parity before any split. | `src/components/BattleMap/characters/CharacterActor.tsx`; `src/components/BattleMap/terrain/TerrainMesh.tsx`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G15 | A split that moves actor animation or terrain helpers without preserving render parity can break 3D battle-map visuals. | Accept or defer the inbound CMA-G15 route; if accepting, create a narrow split plan with actor/terrain render-parity proof. | Owner gap row exists and CMA-G15 status is updated to reflect acceptance or deferral. |
+| G7 | not_started | adjacent_follow_up | battle-map / presentation owner | `docs/improvements/SPRITE-POSE-CONTROL-VARIANTS.md` retirement 2026-06-25 | Control-option commands have gameplay proof, but no shared visual pose/variant path exists for affected creatures. | Retired `docs/improvements/SPRITE-POSE-CONTROL-VARIANTS.md`; `src/commands/effects/UtilityCommand.ts`; `src/commands/__tests__/UtilityCommand.test.ts`; `src/hooks/useAbilitySystem.ts`; BattleMap sprite/actor surfaces | Command-control effects such as approach, flee, drop, grovel, and halt already alter gameplay. Without an optional presentation path, visual feedback can remain generic or fragment into bespoke per-effect hacks. | Define a non-blocking visual-state contract for one control option, including cache/fallback/restore behavior and whether the 2D sprite or 3D actor surface owns the first slice. | Focused command/UI proof showing gameplay still resolves if no variant exists, and rendered proof that one selected control option visibly swaps/restores presentation when an asset or state marker is available. |
 
 ## Classification Reference
 

@@ -38,3 +38,5 @@ Next expected proof:
 
 Follow-up tracker/gap entry:
 <Tracker row, gap ID, or "none".>
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/agent-workflows/living-project-task-protocol/templates/DECISIONS.md","sha256WithoutMarker":"55fe6e9e2263e2daad7c8ac6e1365aaaea8f3b3e0289ad8bd447908f3c8acec7","markedAtUtc":"2026-06-25T22:57:26.960Z"} -->

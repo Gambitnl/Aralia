@@ -115,3 +115,5 @@ This file should be read as preserved task context, not as fresher truth than th
 - that this task is still blocking migration in the same way it once was
 
 Use this file as preserved implementation context plus a pointer to the live type and validation layers.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/TASK-01.5-TYPE-PATCHES.md","sha256WithoutMarker":"4f9062b999ebe30f384393fef793d544a7a6859f0789744a9b541dafa9b83949","markedAtUtc":"2026-06-25T22:29:38.595Z"} -->

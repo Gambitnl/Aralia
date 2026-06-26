@@ -74,3 +74,5 @@ or enemies.
   pilot. Record the pilot coverage and the next mechanics buckets honestly.
 - If the simulator cannot render or target because of an unrelated blocker,
   record whether that belongs inside Package 4 or should become a follow-up.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_4_COMBAT_PROOF_RECEIPT.md","sha256WithoutMarker":"6fa28918d66f657fadd993650b2a0f57678f00cc51ca389a5f9ddcc32c5eab31","markedAtUtc":"2026-06-25T22:29:38.531Z"} -->

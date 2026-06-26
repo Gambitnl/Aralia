@@ -502,3 +502,5 @@ This report is the control surface for the full manual mechanics pass. Detector 
 | `true-resurrection` | 9 | 6 | 0 | 0 |
 | `weird` | 9 | 6 | 0 | 0 |
 | `wish` | 9 | 16 | 0 | 0 |
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/mechanics-discovery/SPELL_MECHANICS_DISCOVERY_REPORT.md","sha256WithoutMarker":"5b950ba76f00562678dd021327a5a7b1fa4725f21eab2cd5bba2ca621e212d49","markedAtUtc":"2026-06-25T22:29:38.473Z"} -->

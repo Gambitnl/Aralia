@@ -40,6 +40,8 @@ import FreeRoamCameraController from './FreeRoamCameraController';
 import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
 import { useChunkStreaming } from './useChunkStreaming';
 import World3DNameplates from './World3DNameplates';
+import GroundAgents from './GroundAgents';
+import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import type { ChunkLoader, LoadedChunk } from '@/systems/world3d/types';
 import { chunkOriginWorld } from '@/systems/world3d/coords';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
@@ -75,6 +77,10 @@ interface World3DSceneProps {
   viewProfile?: 'continent' | 'ground';
   /** Service for runtime AI-generated textures. */
   forgeAssetService?: ForgeAssetService;
+  /** WF ground world — when present, townsfolk walk its streets (ground mode). */
+  groundWorld?: GroundWorld | null;
+  /** Fractional hour driving agent schedules/motion (live game clock). */
+  agentClock?: number;
 }
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
@@ -382,6 +388,8 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   onChunkUpdate,
   viewProfile = 'continent',
   forgeAssetService,
+  groundWorld = null,
+  agentClock,
 }) => {
   const { loaded, update } = useChunkStreaming(loader);
 
@@ -484,6 +492,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
         {loaded.map((c) => (
           <ChunkPieces key={`${c.cx}|${c.cy}`} chunk={c} origin={sceneOrigin} />
         ))}
+        <GroundAgents ground={groundWorld} clock={agentClock} sceneOrigin={sceneOrigin} />
       </Canvas>
       </ForgeAssetContext.Provider>
     </div>

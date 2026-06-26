@@ -179,3 +179,5 @@ As of this handoff:
   - subbucket structure
   - remaining runtime follow-through work
   - the exact shared files Gemini should keep updated while working
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/sub-classes/SPELL_SUB_CLASSES_GEMINI_HANDOVER.md","sha256WithoutMarker":"df944136462c51a4a11029697d6eb66b406542a14fc00df02bc921f95ec3f8da","markedAtUtc":"2026-06-25T22:29:38.562Z"} -->

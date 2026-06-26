@@ -274,3 +274,5 @@ follow-up V5 round.
 5. Verify Dashboard / Matrix / Map. Bump `lastUpdated`.
 6. Write report to
    `docs/tasks/spells/atlas-reports/damage-type/v4.md`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/atlas-prompts/damage-type-v4.md","sha256WithoutMarker":"c1824258fcdb1fbc216538a9c9a9901af92409daeb9b2736f6844214c02aa719","markedAtUtc":"2026-06-25T22:29:38.482Z"} -->

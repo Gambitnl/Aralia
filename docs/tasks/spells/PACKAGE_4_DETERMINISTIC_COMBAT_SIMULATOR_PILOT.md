@@ -152,3 +152,5 @@ Handoff notes:
 - The packet stays here as a durable record of scope and proof for future
   Aralia contributors.
 ```
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md","sha256WithoutMarker":"7f04d5238cf14a4c34cc3333cf711224e92b45b123b332b7c9010de768f8701a","markedAtUtc":"2026-06-25T22:29:38.532Z"} -->

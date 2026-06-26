@@ -194,11 +194,11 @@
 |---|---|
 | 10 | `It captures a coordination style that was useful for parallel agent work, especially when shared docs and registry files were prone to merge conflicts...` |
 
-### `docs/improvements/SPRITE-POSE-CONTROL-VARIANTS.md`
+### `docs/projects/battle-map/GAPS.md`
 
 | Line | Snippet |
 |---|---|
-| 12 | `- The current behavior is gameplay-first: movement, prone application, and combat-log updates already happen without waiting on any sprite-generation ...` |
+| G7 | Retired `docs/improvements/SPRITE-POSE-CONTROL-VARIANTS.md`; control-option gameplay already handles prone/grovel behavior, while optional pose/variant presentation is now tracked as a Battle Map gap. |
 
 ### `docs/spells/reference/level-1/grease.md`
 
@@ -289,12 +289,6 @@
 | Line | Snippet |
 |---|---|
 | 29 | `- **Description**: A wave of healing energy washes over one creature you can see within range. The target regains all its Hit Points. If the creature ...` |
-
-### `docs/tasks/investigations/DICE_ROLLER_ANALYSIS.md`
-
-| Line | Snippet |
-|---|---|
-| 73 | `**Risk**: `useDiceBox.ts` contains critical fixes for React Strict Mode (removing stale canvases) that are **missing** from `DiceService.ts`. This sug...` |
 
 ### `docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md`
 

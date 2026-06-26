@@ -65,3 +65,5 @@ Expected output:
    changed.
 6. A completion note naming changed files, tests run, rows proven closed, and
    residual rows left for later.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_12_CONDITIONAL_ENDING_JULES_PROMPT.md","sha256WithoutMarker":"5052449e70e00c51418c2cc35c079855c67274dfac252530358f147a470da93b","markedAtUtc":"2026-06-25T22:29:38.374Z"} -->

@@ -2,7 +2,7 @@
 
 Current-state task packet for Aralia's weapon proficiency behavior.
 
-This subtree is no longer a greenfield plan. Manual repo verification on 2026-03-12 confirmed that the core helper, permissive equip rule, inventory wiring, mannequin warning, and weapon-mastery proficiency gate already exist in code. The remaining work is narrower: combat-roll penalty enforcement, combat-facing warning surfaces, and any follow-through tests or visual verification that have not been rerun recently.
+This subtree is no longer a greenfield plan. Manual repo verification on 2026-03-12 confirmed that the core helper, permissive equip rule, inventory wiring, mannequin warning, and weapon-mastery proficiency gate already exist in code. Follow-up proof on 2026-06-25 confirmed attack-roll penalty regression coverage and added a combat ability-button warning surface. The remaining work is narrower: rendered warning verification and end-to-end alignment proof.
 
 ## Start surfaces
 
@@ -22,8 +22,10 @@ This subtree is no longer a greenfield plan. Manual repo verification on 2026-03
 
 ## Subtree shape
 
-- Tasks 01 through 08 now function mostly as preserved implementation and audit notes for work that already landed.
-- Tasks 09 through 11 remain the active gap notes for combat-roll penalties and combat-facing warning UX.
+- Tasks 01 through 09 and 11 were retired on 2026-06-25 after their useful
+  implementation history and active work were centralized in `GAPS.md`,
+  `TRACKER.md`, and the backlog retirement ledger.
+- Task 10 was retired earlier into the living gap rows.
 - weapon-audit-report.md remains the preserved audit evidence packet, but its older recommendation to remove isMartial should not be treated as already-landed truth.
 
 ## Current capability summary
@@ -33,10 +35,12 @@ This subtree is no longer a greenfield plan. Manual repo verification on 2026-03
 - Inventory Weapon Proficiency Filtering: implemented
 - Equipped Weapon Warning: implemented
 - Inventory Weapon Proficiency Tooltip: implemented through shared warning text
-- Weapon Mastery Proficiency Gate: partially implemented in combat ability generation
-- Attack Roll Proficiency Penalty: not yet verified as enforced in final attack resolution
-- Combat Weapon Proficiency Warning: not yet verified in the combat UI
+- Weapon Mastery Proficiency Gate: implemented in combat ability generation; downstream bypass and warning proof stay in `GAPS.md`
+- Attack Roll Proficiency Penalty: verified in command and opportunity attack tests
+- Combat Weapon Proficiency Warning: implemented on the combat ability button; rendered flow verification remains open
 
 ## Historical note
 
 Most files in this subtree were written in December 2025 as forward-looking task briefs. They are being preserved because they explain intent and landing order, but they should now be read through the verified-current-state framing in this subtree rather than as untouched implementation instructions.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/weapon-proficiency-system/README.md","sha256WithoutMarker":"8a4a4e15f1ee00225c959d25f9840aceeb4ac959b1b08264959ec1bb5dd385a5","markedAtUtc":"2026-06-25T22:29:38.614Z"} -->

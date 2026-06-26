@@ -6,9 +6,9 @@
     "source:xphb",
     "variantrule"
   ],
-  "excerpt": "Some magic items require a creature to form a bond—called Attunement—with them before the creature can use an item's magical properties. A creature ca...",
+  "excerpt": "Some magic items require a creature to form a bond-called Attunement-with them before the creature can use an item's magical properties. A creature ca...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/attunement.json",
-  "markdown": "# Attunement\n\nSome magic items require a creature to form a bond—called Attunement—with them before the creature can use an item's magical properties. A creature can have Attunement with no more than three magic items at a time."
+  "markdown": "# Attunement\n\nSome magic items require a creature to form a bond-called Attunement-with them before the creature can use an item's magical properties. A creature can have Attunement with no more than three magic items at a time."
 }

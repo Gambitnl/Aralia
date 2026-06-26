@@ -74,3 +74,9 @@ Rationale and evidence:
 
 Follow-up:
 QTS-3 is closed as a decision task. QTS-5 (new) tracks Phase 1 adapter implementation. GQ-1 is resolved by this decision.
+
+Update 2026-06-25:
+QTS-5 is implemented for the adapter bridge. `src/systems/quests/questAdapter.ts`
+now exposes `adaptQuestDefinitionToQuest`, and the focused adapter plus
+QuestManager deadline proof passed. GQ-7 remains open for factory/helper
+adoption so reducer-facing tests can consume legacy `Quest` without casts.

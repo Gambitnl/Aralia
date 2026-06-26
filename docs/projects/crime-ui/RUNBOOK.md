@@ -1,7 +1,7 @@
 # Crime UI Runbook
 
-Status: active
-Last updated: 2026-06-10
+Status: complete_for_current_gap_set
+Last updated: 2026-06-25
 
 Use this file for repeatable project checks, safe handoff operations, and recovery steps.
 

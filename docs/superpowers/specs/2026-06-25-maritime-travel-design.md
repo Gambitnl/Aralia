@@ -258,3 +258,83 @@ data.
 - Naval combat (encounters are rolls, not tactical battles, in v1).
 - Sub-map / region-tier sea travel (v1 targets the world atlas tier; the multimodal
   graph generalizes to lower tiers later).
+
+---
+
+## Iteration II — implementation reality + revised direction (2026-06-26)
+
+### What is already built (working tree, uncommitted, 28 tests green)
+
+A concurrent autonomous run implemented **subsystems 1–2** while this spec was being
+designed. Present and tested, but **not committed**, and the reachability pass is **opt-in
+(default off)**:
+
+- `systems/travel/routePlanning.ts` — `edgeMinutes?(from,to)` per-edge cost hook (land
+  graphs unchanged).
+- `systems/worldforge/travel/multiModalAtlasGraph.ts` — unified land+sea+port-transfer
+  graph. **Vessels are lane-only** (`isFerryWater` restricts sea movement to `searoutes`
+  cells); `kind:'ship'` currently behaves like `kind:'ferry'`.
+- `systems/travel/multiModalRoute.ts` + `formatMultiModalSummary` — segmenter + readout
+  (mojibake in the readout string fixed 2026-06-26).
+- `systems/worldforge/fmg/ensureIslandHarbors.ts` — land-component BFS → significance
+  filter (`minLandCells` 8, or has-burg) → promote best coastal burg / spawn a Fishing
+  Village → link a sea route → report. Wired into `generateWorld.ts` behind
+  `options.ensureIslandHarbors` (**default `false` — not active in real games yet**).
+
+### Pre-existing naval system (the pivot)
+
+`types/naval.ts` (committed 2026-06-09) is a **complete but dormant, map-disconnected**
+voyage sim: rich `Ship` (crew/cargo/supplies/weapons/hull), `VoyageState`, `navalReducer`
+(`NAVAL_START_VOYAGE`/`ADVANCE_VOYAGE` model day-by-day sailing with weather, supplies,
+crew wages, hull damage). `knownPorts: string[]` is a **dead stub** (never populated/read);
+real ports live in FMG `burg.port`. `ShipPane` is a standalone modal not wired to the map.
+Ships here are a separate model from `travel.ts` `STANDARD_VEHICLES` water vehicles.
+
+### Revised decisions (interview 2026-06-26)
+
+8. **Two-tier maritime travel.** **Ferries** = lightweight for-hire crossings on the map
+   (gold + time only, no crew/supply sim) along lanes. **Owned ships** = the full naval
+   voyage sim — "set sail" from the map drives `NAVAL_START_VOYAGE`; weather/supplies/crew
+   apply. Casual travel stays simple; owning a ship unlocks depth.
+9. **Full open-water sailing for owned ships.** Owned ships route over **any** sea cell
+   (Dijkstra), free to pioneer routes; **ferries remain lane-bound.** This finally
+   delivers decision #2's "sail anywhere port→port" — needs sea-cell passability for the
+   `ship` capability + open-ocean danger tiers (lane < coastal < open ocean).
+10. **Bridge to the naval system, don't duplicate it.** The owned-ship transport IS the
+    player's naval `Ship` (drop the parallel `ownedShips` shape from §"Data/state").
+    Populate `naval.knownPorts` from FMG burg ports; a completed voyage docks the ship at
+    the arrival port (its new embarkation point).
+
+### Re-scoped Plans 3–6
+
+- **Plan 3 — Owned-ship bridge.** Make `multiModalAtlasGraph`'s `kind:'ship'` passable
+  over all sea cells (open-water) gated on the ship being docked at the embark port;
+  `knownPorts` ← FMG ports; map "set sail" → `NAVAL_START_VOYAGE`; voyage completion
+  relocates the ship. Replaces the `ownedShips` array.
+- **Plan 4 — Dock tiers + tenders.** Unchanged in intent; applies to owned ships
+  (oversized ship at a small dock → offshore anchor + tender leg, a third `CellKind`).
+- **Plan 5 — Ferry tier + economy.** Lightweight ferry fare (gold × sea-miles × class) on
+  lanes; **then** the *living ferry economy* branch (named operators, schedules, fare
+  tiers, reputation gates).
+- **Plan 6 — Sea danger, weather & piracy.** Open-ocean danger tiers feed the encounter
+  roll; surface the naval sim's **weather/seasons** on the map (slow/close lanes); make
+  **piracy** sea encounters playable choices (fight/board/flee/pay toll) rather than a
+  silent roll.
+
+### Branch vision (approved directions, later projects)
+
+- **Nautical fog-of-war** — sea lanes/islands start uncharted; revealed by sailing or by
+  buying rumors/charts at ports. Ties into the existing hidden-places discovery loop.
+- **Weather & seasons** — dynamic storms/seasons slow, endanger, or close lanes (reuse the
+  naval weather model at map scale).
+- **Piracy as playable events** — pirate territories near certain lanes; real choices.
+- **Living ferry economy** — NPC operators with schedules, fare tiers, smuggler routes,
+  reputation-gated service.
+
+### Immediate status
+
+Mojibake fixed; 28/28 tests green. **Holding — no commits** (per 2026-06-26 decision; the
+2am snapshot will capture the working tree). Reachability pass remains default-off pending
+the decision to enable it.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-25-maritime-travel-design.md","sha256WithoutMarker":"a6b8a825fe1a438c847c43fd15ff4fd57d9050a893641fc09ed263da7dfc5bc1","markedAtUtc":"2026-06-25T23:38:33.387Z"} -->

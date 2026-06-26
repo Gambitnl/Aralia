@@ -2,7 +2,7 @@
 
 ## Scope
 
-Package 9 remains the active Spell Phase 1 implementation target: provide legal higher-level caster fixtures so the combat simulator can test representative level 2 and level 3 spell behavior without changing the normal level 1 starting party semantics.
+Package 9 was the active Spell Phase 1 implementation target for legal higher-level caster fixtures so the combat simulator could test representative level 2 and level 3 spell behavior without changing the normal level 1 starting party semantics.
 
 This decision only files stale PR #1030 and chooses the next routing path. It does not accept, merge, or locally port the stale PR implementation.
 
@@ -39,3 +39,5 @@ The replacement path should reuse the existing Package 9 acceptance criteria, bu
 ## Next Action
 
 Refresh `PACKAGE_9_CASTER_FIXTURE_COVERAGE_JULES_TASK.md` and `PACKAGE_9_CASTER_FIXTURE_COVERAGE_JULES_PROMPT.md` for a replacement handoff if needed, then launch the replacement through the visible Symphony/Jules dashboard path from a clean current `origin/master` worktree.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_9_STALE_PR_REPLACEMENT_DECISION.md","sha256WithoutMarker":"6ef60eeda37513a9765f6664b86a61c0e68264ae8bcb7d9e57e3d039907fdea4","markedAtUtc":"2026-06-25T22:29:38.369Z"} -->

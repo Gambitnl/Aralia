@@ -78,11 +78,11 @@ The generated full-markdown listing was moved out of the root surface:
 
 ### Root plan clutter reduced
 
-These active plan/spec docs were moved into structured plan or reference locations:
-- `ARCH_TYPES_REFACTOR.md` -> [`../plans/refactors/ARCH_TYPES_REFACTOR.md`](../plans/refactors/ARCH_TYPES_REFACTOR.md)
-- `CONFIG_REFACTOR_PLAN.md` -> [`../plans/refactors/CONFIG_REFACTOR_PLAN.md`](../plans/refactors/CONFIG_REFACTOR_PLAN.md)
-- `PROPOSED_TIME_REFACTOR.md` -> [`../plans/refactors/PROPOSED_TIME_REFACTOR.md`](../plans/refactors/PROPOSED_TIME_REFACTOR.md)
-- `TYPES_REFACTOR_PLAN.md` -> [`../plans/refactors/TYPES_REFACTOR_PLAN.md`](../plans/refactors/TYPES_REFACTOR_PLAN.md)
+These active plan/spec docs were moved into structured plan or reference locations. Four refactor notes were later retired on 2026-06-25 after their surviving work moved into living project gaps:
+- `ARCH_TYPES_REFACTOR.md` -> moved to `../plans/refactors/ARCH_TYPES_REFACTOR.md` on 2026-03-11, then retired into [`../projects/code-modularization-audit/GAPS.md`](../projects/code-modularization-audit/GAPS.md) CMA-G20.
+- `CONFIG_REFACTOR_PLAN.md` -> moved to `../plans/refactors/CONFIG_REFACTOR_PLAN.md` on 2026-03-11, then retired into [`../projects/scripts-workflows/GAPS.md`](../projects/scripts-workflows/GAPS.md) G2.
+- `PROPOSED_TIME_REFACTOR.md` -> moved to `../plans/refactors/PROPOSED_TIME_REFACTOR.md` on 2026-03-11, then retired into [`../projects/time/GAPS.md`](../projects/time/GAPS.md) G5.
+- `TYPES_REFACTOR_PLAN.md` -> moved to `../plans/refactors/TYPES_REFACTOR_PLAN.md` on 2026-03-11, then retired into [`../projects/code-modularization-audit/GAPS.md`](../projects/code-modularization-audit/GAPS.md) CMA-G20.
 - `SLASHER_FEAT_DESIGN.md` -> [`../plans/features/SLASHER_FEAT_DESIGN.md`](../plans/features/SLASHER_FEAT_DESIGN.md)
 - `BIOME_DNA_API.md` -> [`../architecture/BIOME_DNA_API.md`](../architecture/BIOME_DNA_API.md)
 - `MCP_INTEGRATION.md` -> [`../guides/MCP_INTEGRATION.md`](../guides/MCP_INTEGRATION.md)
@@ -159,6 +159,14 @@ Early read confirms this subtree mixes at least three documentation eras:
 - the older 27-task phased implementation plan
 - later cantrip-batch and migration-status work
 - agent/workflow and prompt-heavy coordination docs
+
+2026-06-25 update: `00-TASK-INDEX.md` was retired after the backlog-retirement
+pass confirmed that it was a historical 27-task schedule whose live work is now
+routed by the Spells parent docs, child-lane registry, and tracked gap rows.
+
+2026-06-25 update: `1A-PROJECT-MASTER-SPRINGBOARD.md` was retired after the
+backlog-retirement pass confirmed that its useful orientation is now duplicated
+by the Structured Spell Execution north star and the Spells parent routing docs.
 
 That means normalization here will likely require:
 - keeping one stable entry path
@@ -243,7 +251,7 @@ The next "00-" spell-overhaul docs were processed on 2026-03-11:
 Key decisions:
 - `00-AGENT-COORDINATION.md` and `00-DATA-VALIDATION-STRATEGY.md` were moved into `docs/archive/spell-system/` because they had become historical design/coordination artifacts rather than current execution authorities
 - the original task-tree paths for those two docs were preserved as compatibility pointers because older start docs and agent docs still reference them
-- `00-GAP-ANALYSIS.md` stayed live as a narrow AI arbitration gap index after current checks confirmed the backend surfaces still exist and the expected UI surface was still absent
+- `00-GAP-ANALYSIS.md` stayed live as a narrow AI arbitration gap index in the 2026-03-11 pass, then was retired on 2026-06-25 after Package 5 and fresh hook proof closed the AI input wiring concern and the remaining AI follow-through moved into `docs/projects/spells/GAPS.md` G21-G23.
 
 ### Spell-system architecture / implementation-spec slice refreshed
 
@@ -256,7 +264,7 @@ The next spell-overhaul architecture/spec docs were processed on 2026-03-11:
 Key decisions:
 - `00-PARALLEL-PROJECT_ARCHITECTURE.md` was moved into `docs/archive/spell-system/` because it had become a historical five-agent delivery plan with a broken research reference and a module map that no longer matches the live repo
 - the original `00-PARALLEL-PROJECT_ARCHITECTURE.md` path was preserved as a compatibility pointer
-- `0-PRIORITY-SCHEMA-EVOLUTION.md` stayed live, but was rebased into a current gap-audit note after verifying that many of the older "missing schema" claims are now partly or fully implemented
+- `0-PRIORITY-SCHEMA-EVOLUTION.md` stayed live in the 2026-03-11 pass, then was retired on 2026-06-25 after its still-valid rider-consumption concern moved into `docs/projects/spells/GAPS.md` G24 and its repeat-save, area-trigger, summon, and defensive timing concerns were confirmed in existing Spells gap rows.
 - `01-typescript-interfaces.md` stayed live as preserved task context with a current-status note because the requested type layer and tests now exist under `src/types`
 - `03-command-pattern-base.md` stayed live as preserved task context with a current-status note because the command foundation now exists under `src/commands`, even though the older planned module map no longer matches the repo
 
@@ -272,13 +280,13 @@ The next AI-focused spell-overhaul docs were processed on 2026-03-11:
 - `00-GAP-ANALYSIS.md`
 
 Key decisions:
-- `19-ai-spell-arbitrator.md` stayed live as preserved task context after verifying that the arbitrator already exists under `src/systems/spells/ai`, not under the older proposed `src/services/ai/` tree
+- `19-ai-spell-arbitrator.md` stayed live as preserved task context in the 2026-03-11 pass, then was retired on 2026-06-25 after the current implementation, `IMPLEMENT-AI-ARBITRATION-SERVICE.md`, and Spells G21-G23 preserved the remaining AI arbitration follow-through.
 - `IMPLEMENT-AI-ARBITRATION-SERVICE.md` stayed live, but was narrowed into a current follow-through brief rather than a contradictory "already implemented but still needs to be created" task
-- `GAP-01-AI-INPUT-UI.md` was rebased after verifying that the repo already contains `AISpellInputModal.tsx` plus `useAbilitySystem` input-request handling; the remaining gap is wiring/proof-of-life
-- `GAP-02-EXAMPLE-AI-SPELLS.md` was rebased after verifying that AI-tagged spell JSON already exists, while curated proof-of-life examples still need better prompts and input requirements
-- `GAP-03-AI-CACHING.md` stayed live as a real optimization gap because no `ArbitrationCache.ts` was found
-- `GAP-04-REAL-TERRAIN-DATA.md` was narrowed after verifying that `MaterialTagService` already uses concrete tile information when available and only falls back to biome inference when needed
-- `00-GAP-ANALYSIS.md` was corrected so it no longer repeats the stale "AI input UI is missing entirely" assumption
+- `GAP-01-AI-INPUT-UI.md` was rebased after verifying that the repo already contains `AISpellInputModal.tsx` plus `useAbilitySystem` input-request handling; on 2026-06-25 it was retired after fresh hook proof covered the required AI-DM input pause and factory handoff
+- `GAP-02-EXAMPLE-AI-SPELLS.md` was rebased after verifying that AI-tagged spell JSON already exists; on 2026-06-25 it was retired after Package 5 made `prestidigitation` and `suggestion` curated pilot examples and the ongoing boundary moved to Spells G21
+- `GAP-03-AI-CACHING.md` stayed live as a real optimization gap because no `ArbitrationCache.ts` was found; on 2026-06-25 it was retired into Spells G22 as a cache-policy follow-up rather than a standalone packet
+- `GAP-04-REAL-TERRAIN-DATA.md` was narrowed after verifying that `MaterialTagService` already uses concrete tile information when available; on 2026-06-25 it was retired into Spells G23 as a fallback-confidence correctness gap
+- `00-GAP-ANALYSIS.md` was corrected so it no longer repeats the stale "AI input UI is missing entirely" assumption, then retired with the AI gap cluster on 2026-06-25
 
 ### Spell-system single-agent brief slice refreshed
 
@@ -319,11 +327,11 @@ The next spell-overhaul implementation-spec docs were processed on 2026-03-11:
 - `TODO_OBJECT_TARGETING.md`
 
 Key decisions:
-- `COMPLETE-STUB-COMMANDS.md` stayed live, but was reduced to a preserved completion note after verifying that `HealingCommand` already handles temporary-HP logic and that the real remaining follow-through is condition expiry plus defensive-effect lifecycle cleanup
+- `COMPLETE-STUB-COMMANDS.md` stayed live in the 2026-03-11 pass, then was retired on 2026-06-25 after its condition-expiry and defensive-effect lifecycle follow-through were folded into `docs/projects/spells/subprojects/structured-spell-execution/GAPS.md` G7 and G8.
 - `TASK-01.5-TYPE-PATCHES.md` stayed live as preserved task context because other spell docs still point to it, but it was rebased after verifying that the type, validator, and schema additions it demanded already exist in the current repo
-- `IMPLEMENT-REMAINING-EFFECT-COMMANDS.md` stayed live as preserved task context after verifying that the once-missing command families now exist under `src/commands/effects`, while some runtime depth still remains open
-- `IMPLEMENT-AOE-ALGORITHMS.md` stayed live as preserved task context after verifying that the AoE suite already exists under `src/systems/spells/targeting` and that the old utility-first plan is now historical
-- `IMPLEMENT-CONCENTRATION-TRACKING.md` stayed live as preserved task context after verifying that concentration now exists across combat types, commands, damage checks, helper utilities, and UI-adjacent surfaces
+- `IMPLEMENT-REMAINING-EFFECT-COMMANDS.md` stayed live in the 2026-03-11 pass, then was retired on 2026-06-25 after the remaining defensive lifecycle, terrain mapless persistence, summon lifecycle, effect-family coverage, and mapless movement/teleport bounds follow-through were folded into tracked parent gaps `docs/projects/spells/GAPS.md` G19-G20 plus the local child-lane gap files.
+- `IMPLEMENT-AOE-ALGORITHMS.md` stayed live in the 2026-03-11 pass, then was retired on 2026-06-25 after its AoE containment, geometry policy, cone/line fidelity, and bridge-ownership follow-through were folded into `docs/projects/spells/subprojects/targeting-object-area/GAPS.md` G2 and G4.
+- `IMPLEMENT-CONCENTRATION-TRACKING.md` stayed live in the 2026-03-11 pass, then was retired on 2026-06-25 after its concentration cleanup, voluntary-drop, sustain-cost, and rendered-proof follow-through were folded into `docs/projects/spells/subprojects/structured-spell-execution/GAPS.md` G4.
 - `TODO_OBJECT_TARGETING.md` remained live as an active rebased gap note at the time, then was retired on 2026-06-26 after its current object-targeting decisions were folded into `docs/projects/spells/subprojects/targeting-object-area/GAPS.md` G5.
 
 ### Spell-system light / rider / terrain gap slice refreshed
@@ -334,9 +342,9 @@ The next spell-overhaul gap docs were processed on 2026-03-11:
 - `11C-TERRAIN-UTILITY-STRUCTURES.md`
 
 Key decisions:
-- `11A-DYNAMIC-LIGHTING-SUPPORT.md` stayed live, but was rebased into a current-status note after verifying that structured light data already exists in `light.json`, combat state already tracks `activeLightSources`, and `UtilityCommand` already emits light sources; the remaining gap is expiry and renderer/vision follow-through
-- `11B-SAVE-PENALTY-RIDER.md` stayed live, but was rebased after verifying that `mind-sliver.json` already carries `savePenalty`, combat types already define `SavePenaltyRider`, and `SavePenaltySystem` already supports registration plus `next_save` consumption
-- `11C-TERRAIN-UTILITY-STRUCTURES.md` stayed live, but was rebased after verifying that `mold-earth.json` already uses structured `manipulation` blocks and `TerrainCommand` already handles the relevant manipulation cases; the remaining gap is broader persistence/integration depth rather than absent structure
+- `11A-DYNAMIC-LIGHTING-SUPPORT.md` stayed live in the 2026-03-11 pass, then was retired on 2026-06-25 after its light-source expiry, concentration cleanup, renderer, and vision follow-through were folded into `docs/projects/spells/subprojects/structured-spell-execution/GAPS.md` G4 and `docs/projects/spells/subprojects/targeting-object-area/GAPS.md` G7.
+- `11B-SAVE-PENALTY-RIDER.md` stayed live in the 2026-03-11 pass, then was retired on 2026-06-25 after current proof confirmed command-side registration and `DamageCommand` save consumption; the remaining broader save-entry/UI/AI follow-through was folded into `docs/projects/spells/subprojects/structured-spell-execution/GAPS.md` G6.
+- `11C-TERRAIN-UTILITY-STRUCTURES.md` stayed live in the 2026-03-11 pass, then was retired on 2026-06-25 after its mapless persistence, terrain integration, and rendered-feedback follow-through were folded into `docs/projects/spells/subprojects/targeting-object-area/GAPS.md` G6.
 
 ### Roadmap-local spell branch rebase applied
 
@@ -387,7 +395,7 @@ Key decisions:
 - `1D-ARCHIVE-OLD-SPELL-DOCS.md` moved into `docs/archive/spell-system/` because it described an earlier archive/salvage phase whose local archive-path assumptions and `SALVAGED_SPELL_CONTEXT.md` plan never became the maintained workflow; the original task path now survives as a compatibility pointer
 - `1E-CONSOLIDATE-JULES-WORKFLOW.md` moved into `docs/archive/spell-system/` because the current workflow surfaces already exist and the brief's missing-file assumptions had become historical; the original task path now survives as a compatibility pointer
 - `1F-AUDIT-SPELL-SCOPE.md` moved into `docs/archive/spell-system/` because it belonged to the earlier cantrip-audit phase and pointed at deliverables that are now historical; the original task path now survives as a compatibility pointer
-- `1F-VERSION-REVIEW-AGENT-CONCEPT.md` moved into `docs/plans/tooling/VERSION_SIZING_REVIEW_AGENT_CONCEPT.md` because it is a future tooling/versioning concept rather than a spell-system implementation task; the original task path now survives as a compatibility pointer
+- `1F-VERSION-REVIEW-AGENT-CONCEPT.md` moved into `docs/plans/tooling/VERSION_SIZING_REVIEW_AGENT_CONCEPT.md` because it is a future tooling/versioning concept rather than a spell-system implementation task; on 2026-06-25 the relocated concept was retired into Scripts: Workflows G4/T6, and the original task-path compatibility pointer was also deleted after `docs/@DOC-REGISTRY.md` preserved the duplicate identifier as a non-linking historical row
 - `1G-REORGANIZE-SPELL-FILES.md` moved into `docs/archive/spell-system/` because the level-folder reorganization is already reflected in the live `public/data/spells/level-*` layout and loader/manifest flow; the original task path now survives as a compatibility pointer
 
 ### Spell-system glossary spillover rebased
@@ -433,6 +441,16 @@ Key decisions:
 - 2A now states explicitly that no LEVEL-1-REFERENCE.md file was found under docs/spells/reference/ during this pass
 - 2B now states explicitly that no LEVEL-2 through LEVEL-9 reference markdown files were found there either
 
+Update 2026-06-25:
+- both files were retired after their surviving coverage-map work was executed in
+  `docs/projects/spells/subprojects/spell-completeness-audit/LEVEL_1_2_COVERAGE_MAP.md`
+- level 1 now has current inventory proof of 68 structured JSON files and 68
+  per-spell reference markdown files
+- level 2 now has current inventory proof of 65 structured JSON files and 65
+  per-spell reference markdown files
+- the old level-summary output files remain absent by current path checks; the
+  maintained shape is per-spell references plus mechanic-level SSO gap rows
+
 ### Spell-completeness-audit schema note refreshed
 
 The remaining schema note in docs/tasks/spell-completeness-audit/ was processed on 2026-03-11:
@@ -466,9 +484,9 @@ The first `docs/improvements/` slice was processed on 2026-03-11:
 - `CREATURE-TYPE-ENUM-AND-REQUIREMENT.md`
 
 Key decisions:
-- `09_remove_obsolete_files.md` stayed in place, but was rewritten as a historical completion note after verifying that its targeted obsolete files are already gone from the repo
-- `12_expand_village_system.md` stayed in place, but was rebased to acknowledge that the repo already has live village/town generation and exploration surfaces; the real remaining work is richer depth and persistence, not basic existence
-- `CREATURE-TYPE-ENUM-AND-REQUIREMENT.md` stayed live as a current improvement brief because the gap it describes still exists in narrowed form: creature-type handling is already widespread, but it is still governed by strings rather than a single canonical type source
+- `09_remove_obsolete_files.md` stayed in place in the 2026-03-11 pass, then was retired on 2026-06-25 because it explicitly carried no remaining deletion work.
+- `12_expand_village_system.md` stayed in place in the 2026-03-11 pass, then was retired on 2026-06-25 after its still-valid richer-depth and persistence work was confirmed in `docs/projects/town/GAPS.md` G3 and `docs/projects/town-description-system/GAPS.md` G6.
+- `CREATURE-TYPE-ENUM-AND-REQUIREMENT.md` stayed live in the 2026-03-11 pass, then was retired on 2026-06-25 after current source inspection found `src/types/creatures.ts` already exports `CreatureType`. The surviving adoption/filter-parity concern moved into `docs/projects/spells/GAPS.md` G17.
 - roadmap signal for this slice is process-only: these docs help describe improvement branches and current gaps, but they do not directly emit new roadmap nodes by themselves
 ### Improvements settings, malleable-world, and sprite-variant slice verified
 
@@ -478,9 +496,9 @@ The next `docs/improvements/` slice was processed on 2026-03-11:
 - `SPRITE-POSE-CONTROL-VARIANTS.md`
 
 Key decisions:
-- `SETTINGS_MENU_PLAN.md` stayed live as a valid feature plan after verifying that the repo has menu infrastructure but no confirmed first-class settings surface in the current pass
-- `MALLEABLE_WORLD_DEV_NOTES.md` stayed live as an experimental subsystem note because the deformation and overlay stack already exists under `src/components/ThreeDModal/Experimental/`, even though full production gameplay integration was not verified
-- `SPRITE-POSE-CONTROL-VARIANTS.md` stayed live as a forward feature brief because `UtilityCommand.ts` already exposes the control-option gameplay hook, while a sprite-variant manifest or swap system was not found
+- `SETTINGS_MENU_PLAN.md` stayed live as a valid feature plan in the 2026-03-11 pass, then was retired on 2026-06-25 after its still-valid settings surface work moved into `docs/projects/layout/GAPS.md` G7.
+- `MALLEABLE_WORLD_DEV_NOTES.md` stayed live in the 2026-03-11 pass, then was retired on 2026-06-25 after the production-owner/gameplay-bridge question moved into `docs/projects/world3d/GAPS.md` W3D-G28.
+- `SPRITE-POSE-CONTROL-VARIANTS.md` stayed live in the 2026-03-11 pass, then was retired on 2026-06-25 after the non-blocking control-option visual-state work moved into `docs/projects/battle-map/GAPS.md` G7.
 - roadmap signal for this slice is process-only: these docs describe verified feature gaps and experimental lanes, but they do not directly emit roadmap nodes by themselves
 
 ### Improvements completed slice A rebased as historical completion notes
@@ -526,16 +544,30 @@ The following docs/improvements files were processed on 2026-03-11:
 - DEVELOPMENT_FLOW_ENHANCEMENT_PLAN.md
 
 Key decisions:
-- SETTINGS_MENU_PLAN.md stayed live as a feature plan, but was rewritten to stop implying that a dedicated settings surface already exists
-- MALLEABLE_WORLD_DEV_NOTES.md stayed live as an experimental subsystem note after verifying the deformation stack in the ThreeD experimental path
-- SPRITE-POSE-CONTROL-VARIANTS.md stayed live as a feature request, but now anchors itself to the verified control-option hook in UtilityCommand instead of assuming a sprite-variant pipeline already exists
-- DEVELOPMENT_FLOW_ENHANCEMENT_PLAN.md stayed live as a tooling-improvement note, but was compressed to reflect the repo's real current process infrastructure rather than a large speculative automation suite
+- SETTINGS_MENU_PLAN.md stayed live as a feature plan in the earlier pass, then was retired on 2026-06-25 after the dedicated settings surface work moved into Layout G7.
+- MALLEABLE_WORLD_DEV_NOTES.md stayed live as an experimental subsystem note after verifying the deformation stack in the ThreeD experimental path, then was retired on 2026-06-25 after the production-owner/gameplay-bridge question moved into `docs/projects/world3d/GAPS.md` W3D-G28.
+- SPRITE-POSE-CONTROL-VARIANTS.md stayed live as a feature request, then was retired on 2026-06-25 after the non-blocking control-option visual-state work moved into `docs/projects/battle-map/GAPS.md` G7.
+- DEVELOPMENT_FLOW_ENHANCEMENT_PLAN.md stayed live as a tooling-improvement note in the 2026-03-11 pass, then was retired on 2026-06-25 after the surviving workflow-reconciliation checklist work moved into `docs/projects/scripts-workflows/GAPS.md` G3 and `TRACKER.md` T5. Roadmap-local feature ownership stays in `docs/projects/roadmap-maintenance/GAPS.md` G2.
 
 ### Improvements completed slice B refreshed
 
 The next docs/improvements/completed slice was re-audited on 2026-03-11.
 The four files stayed in place as preserved completion notes because the completed subtree is already the correct historical home for them.
 Each file was rebased against the current repo so the preserved note explains what landed and where the repo shape drifted afterward.
+
+### Refactor plan slice retired into living project gaps
+
+The standalone refactor notes under `docs/plans/refactors/` were inspected during the 2026-06-25 backlog-retirement pass:
+- `CONFIG_REFACTOR_PLAN.md`
+- `PROPOSED_TIME_REFACTOR.md`
+- `ARCH_TYPES_REFACTOR.md`
+- `TYPES_REFACTOR_PLAN.md`
+
+Key decisions:
+- `CONFIG_REFACTOR_PLAN.md` was retired because the central `src/config/env.ts` lane already exists. Its remaining documentation/ownership concern moved into `docs/projects/scripts-workflows/GAPS.md` G2, focused on the env-var matrix and intentional direct `import.meta.env` exceptions.
+- `PROPOSED_TIME_REFACTOR.md` was retired because `src/utils/core/timeUtils.ts` exists and has current consumers. Its remaining work moved into `docs/projects/time/GAPS.md` G5, focused on whether social-context day-part labels should be centralized without changing prompt semantics.
+- `ARCH_TYPES_REFACTOR.md` and `TYPES_REFACTOR_PLAN.md` were retired because the original monolithic-type assumption is stale. Their still-valid import-graph/barrel pressure moved into `docs/projects/code-modularization-audit/GAPS.md` CMA-G20.
+- No runtime code was changed in this retirement slice; the surviving work needs owner-specific proof boundaries before implementation.
 
 ### Architecture slice A opened
 
@@ -853,16 +885,44 @@ The docs/tasks/roadmap band was re-audited on 2026-03-12.
 These files are mostly process and roadmap-tool docs rather than gameplay-feature docs, so this slice was handled primarily as process-only or stale-roadmap-correction work.
 
 Key decisions:
-- 1B-ROADMAP-VISUALIZER-EVOLUTION-HANDOVER.md stayed live as preserved vision and handover context, but it no longer overclaims older storage assumptions as if they are still the whole live roadmap-tool state.
-- 1C-ROADMAP-IMPLEMENTATION-PLAN.md stayed live as the current high-level roadmap-tool plan, but now reflects the verified SQLite-backed storage layer and the current live roadmap scripts instead of older monolithic JSON assumptions.
+- 1B-ROADMAP-VISUALIZER-EVOLUTION-HANDOVER.md stayed live as preserved vision and handover context in the 2026-03-12 pass, then was retired on 2026-06-25 after its still-useful feature-first and storage-drift context was represented by `docs/@ROADMAP-SYSTEM-GUIDE.md`, Roadmap Maintenance G7, the active 1D contract, and the roadmap-local mirror.
+- 1C-ROADMAP-IMPLEMENTATION-PLAN.md stayed live as the current high-level roadmap-tool plan in the 2026-03-12 pass, then was retired on 2026-06-25 after its remaining open items moved into `docs/projects/roadmap-maintenance/GAPS.md` G2.
 - 1D-ROADMAP-ORCHESTRATION-CONTRACT.md stayed live and was tightened so its storage and signal language matches the current repo.
 - @HANDOVER-CREATION-GUIDE.md stayed live, but is now explicitly a reusable process guide rather than a hidden higher authority than the active roadmap contract.
-- ROADMAP-TOOL-NODE-AUDIT.md stayed in place as a historical export and now explicitly says so.
+- ROADMAP-TOOL-NODE-AUDIT.md stayed in place as a historical export in the 2026-03-12 pass, then was retired on 2026-06-25 after the roadmap-local mirror and active roadmap references were confirmed.
 - ROADMAP-TOOL-REFERENCE.md stayed live, but was narrowed to the roadmap-tool claims that were actually re-verified in code during this pass.
 
 Roadmap-local follow-through:
 - matching roadmap-local mirror docs were refreshed under .agent/roadmap-local/features/roadmap-visualizer/docs/.
 - .agent/roadmap-local/features/roadmap-visualizer/open_tasks.md was rebased from stale pre-landing tasks into concrete current roadmap-tool capability rows plus the remaining open backlog.
+
+### Roadmap tool node audit export retired
+
+On 2026-06-25, `docs/tasks/roadmap/ROADMAP-TOOL-NODE-AUDIT.md` was retired.
+
+Key decisions:
+- The file was a preserved 2026-03-02 audit export, not live roadmap-tool node
+  authority.
+- The historical snapshot remains available in
+  `.agent/roadmap-local/features/roadmap-visualizer/docs/ROADMAP-TOOL-NODE-AUDIT.md`.
+- `docs/tasks/roadmap/ROADMAP-TOOL-REFERENCE.md` remains active as the
+  task-facing roadmap tool reference, with
+  `devtools/roadmap/ROADMAP-TOOL-REFERENCE.local.md` as the local tooling
+  reference.
+
+### Roadmap visualizer evolution handover retired
+
+On 2026-06-25, `docs/tasks/roadmap/1B-ROADMAP-VISUALIZER-EVOLUTION-HANDOVER.md`
+was retired.
+
+Key decisions:
+- The file was vision/provenance, not the active roadmap-processing contract.
+- Current feature-first roadmap rules live in `docs/@ROADMAP-SYSTEM-GUIDE.md`
+  and Roadmap Maintenance G7.
+- `docs/tasks/roadmap/1D-ROADMAP-ORCHESTRATION-CONTRACT.md` remains the active
+  worker/orchestrator contract.
+- The roadmap-local mirror preserves the historical handover text for local
+  processing provenance.
 
 ### Documentation-cleanup slice AQ refreshed
 
@@ -924,10 +984,10 @@ On 2026-03-12, the docs/tasks/weapon-proficiency-system subtree was re-audited a
 
 Key decisions:
 - README.md, START-HERE.md, @PROJECT-INDEX.md, and @WORKFLOW.md all stayed in place but were rewritten into current-state documents because the old planning-phase narrative was no longer true.
-- Tasks 01 through 08 stayed in place as preserved implementation and audit notes because the core helper, permissive equip rule, inventory wiring, mannequin warning, and data-cleanup intent already landed or partially landed.
-- Task 09 stayed live as the narrow Attack Roll Proficiency Penalty gap because src/utils/combat/combatUtils.ts exposes isProficient but this pass did not prove final modifier stripping.
-- Task 10 stayed live as a partial-gap note because combat ability generation already enforces a Weapon Mastery Proficiency Gate.
-- Task 11 stayed live as the Combat Weapon Proficiency Warning gap because no dedicated combat warning surface was verified.
+- Tasks 01 through 08 stayed in place as preserved implementation and audit notes in the 2026-03-12 pass, then were retired on 2026-06-25 after their useful provenance was centralized in the living docs and backlog retirement ledger.
+- Task 09 stayed live as the narrow Attack Roll Proficiency Penalty gap in the 2026-03-12 pass, then was retired on 2026-06-25 after focused command and opportunity-attack regression coverage proved non-proficient attacks omit proficiency bonus.
+- Task 10 stayed live as a partial-gap note in the 2026-03-12 pass because combat ability generation already enforced a Weapon Mastery Proficiency Gate; it was retired on 2026-06-25 after focused tests confirmed the core gate and the remaining warning/bypass work stayed in `GAPS.md` G1-G3.
+- Task 11 stayed live as the Combat Weapon Proficiency Warning gap in the 2026-03-12 pass, then was retired on 2026-06-25 after `AbilityButton.tsx` gained a non-proficient weapon warning marker and accessible/tooltip copy. Fresh rendered proof remains active in G2/T2.
 - weapon-audit-report.md stayed in place as preserved evidence, but it now explicitly warns that the old remove-isMartial recommendation is historical only.
 
 Roadmap-local follow-through:
@@ -1079,6 +1139,189 @@ Roadmap-local follow-through:
 - .agent/roadmap-local/features/combat-messaging-enhancement/open_tasks.md was rewritten from stale all-unchecked checklist rows into concrete capability rows.
 - the concrete roadmap capability names now used for this feature are Combat Message Type Model, Combat Message Factory, Combat Messaging Hook, Combat Log Rich Message Rendering, Combat View Messaging Integration, Combat Messaging Demo Surface, Combat Event Coverage Completion, Combat Notification Integration Depth, Combat Visual Effect Follow-Through, Combat Audio Cue Follow-Through, and Combat Messaging Player Preference Surface.
 
+### Codex Terminal dev-hub historical plans retired
+
+On 2026-06-25, the two preserved Codex Terminal dev-hub plan files under
+`docs/plans/` were retired after a fresh source/reference check.
+
+Key decisions:
+- `docs/plans/2026-02-27-codex-terminal-dev-hub.md` already identified
+  itself as historical design context and had no live backlog items left.
+- `docs/plans/2026-02-27-codex-terminal-dev-hub-impl.md` already identified
+  itself as a historical implementation note and had no live step-by-step work
+  left.
+- Current implementation truth remains in `misc/dev_hub.html` and
+  `vite.config.ts`, where the Dev Hub terminal UI, xterm/PTY lane, and
+  `codexChatManager` plugin wiring still exist.
+- No living gap was opened because the retired files were superseded rather
+  than carrying a still-valid unowned task.
+
+### Roadmap audit and branch-completion historical plans retired
+
+On 2026-06-25, three preserved roadmap plan files under `docs/plans/` were
+retired after a fresh source/reference check.
+
+Key decisions:
+- `docs/plans/2026-02-27-roadmap-audit-corrections.md` was a historical
+  correction log, not the current roadmap authority.
+- `docs/plans/2026-02-27-roadmap-branch-completion-design.md` and
+  `docs/plans/2026-02-27-roadmap-branch-completion-plan.md` preserved useful
+  branch-completion intent, but their current actionable residue is already
+  represented by Roadmap Maintenance's stale-audit/freshness gap.
+- Current implementation truth remains in
+  `devtools/roadmap/scripts/roadmap-engine/generate.ts`, `vite.config.ts`, and
+  `devtools/roadmap/src/components/debug/roadmap/health-signals/`.
+- No new gap was opened because `docs/projects/roadmap-maintenance/GAPS.md`
+  already tracks the unresolved audit-freshness risk.
+
+### Roadmap capability extraction and server-separation plans migrated
+
+On 2026-06-25, two still-valid roadmap plans under `docs/plans/` were migrated
+into Roadmap Maintenance and then retired.
+
+Key decisions:
+- `docs/plans/2026-03-15-capability-decision-plan.md` carried valid roadmap
+  extraction doctrine, but the durable work is now the smaller Roadmap
+  Maintenance gap `G7`: create an enforceable extraction contract covering
+  capability name, parent branch, primary status, optional blocked note,
+  evidence basis, node type, atomized naming, and backlog separation.
+- `docs/plans/2026-03-18-roadmap-server-separation-plan.md` remains valid as an
+  architecture direction because `npm run dev:roadmap` still uses root Vite
+  mode and root `vite.config.ts` still owns roadmap runtime behavior. The
+  durable work is now Roadmap Maintenance gap `G8`.
+- The old standalone plan files were deleted after their surviving work moved
+  into `docs/projects/roadmap-maintenance/GAPS.md` and `TRACKER.md`.
+
+### Spell branch and spell graph overlay implementation packets retired
+
+On 2026-06-25, three implemented roadmap spell-navigation packets under
+`docs/plans/` were retired after focused source and test proof.
+
+Key decisions:
+- `docs/plans/2026-03-19-spell-branch-ontology.md` is superseded by the live
+  `devtools/roadmap/src/spell-branch/` implementation, generator, and
+  acceptance tests.
+- `docs/plans/2026-03-19-spells-graph-overlay-design.md` and
+  `docs/plans/2026-03-19-spells-graph-overlay.md` are superseded by the live
+  recursive `SpellGraphOverlay`, `pillar_spells` roadmap injection, virtual
+  node detail wiring, and Spell Branch tab handoff.
+- Focused proof: `npx vitest run devtools/roadmap/src/spell-branch/
+  devtools/roadmap/scripts/generate-spell-profiles.test.ts --reporter=dot`
+  passed 62 tests, and `npx tsx devtools/roadmap/scripts/generate-spell-profiles.ts`
+  emitted 459 profiles.
+- The current roadmap tool reference was updated to avoid preserving the old
+  hard-coded 469-profile count from the retired packets.
+
+### Roadmap media preview and layman rename packets retired
+
+On 2026-06-25, four implemented roadmap tool packets under `docs/plans/` were
+retired after source and focused test proof.
+
+Key decisions:
+- `docs/plans/2026-03-21-roadmap-node-media-previews-design.md` and
+  `docs/plans/2026-03-21-roadmap-node-media-previews.md` are superseded by the
+  live `.media/` policy files, media scanner module, `hasMedia` node annotation,
+  media endpoint, info-panel preview button, and lightbox wiring.
+- `docs/plans/2026-03-23-roadmap-node-layman-renames-design.md` and
+  `docs/plans/2026-03-23-roadmap-node-layman-renames-impl.md` are superseded by
+  the live `ROADMAP_CAPABILITY_RENAME_RULES` and curated roadmap source entries
+  in `devtools/roadmap/scripts/roadmap-engine/generate.ts`.
+- Focused proof: `npx vitest run
+  devtools/roadmap/scripts/roadmap/node-media-presence/media-scanner.test.ts
+  devtools/roadmap/scripts/roadmap-server-logic.test.ts --reporter=dot`
+  passed 8 tests.
+- The roadmap tool reference now describes Node Media Previews as current
+  behavior rather than a planned item.
+
+### Spell branch cleanup, reset dock, and local cleanup packets retired
+
+On 2026-06-25, five remaining direct packets under `docs/plans/` were retired
+after source and destination checks.
+
+Key decisions:
+- `docs/plans/2026-03-23-spell-branch-navigator-node-cleanup.md` and
+  `docs/plans/2026-03-23-spell-branch-navigator-node-cleanup-impl.md` are
+  superseded by the current roadmap generator and local `.media` inventory: the
+  old infrastructure-only Spell Branch Navigator nodes are absent, while the
+  top-level navigator GIF and current child captures exist under the local media
+  directory.
+- `docs/plans/2026-03-24-reset-node-positions-dock-button-design.md` and
+  `docs/plans/2026-03-24-reset-node-positions-dock-button.md` are superseded by
+  current `RoadmapVisualizer` source, where `Reset Node Positions` lives beside
+  `Reset View` in the bottom dock instead of the toolbar menu.
+- `docs/plans/2026-05-18-local-git-cleanup-evaluation.md` is historical local
+  operator state. Its docs scaffold and ignore-rule decisions already landed,
+  weapon icon path normalization exists in source, premade-party gear work has
+  Package 2 spell task ownership, and the IconRegistry split concern is already
+  routed through Glossary UI G5 / code-modularization CMA-G11. No stash was
+  applied or deleted because the old note's stash reference is order-stale.
+
+### First Superpowers plan slice processed
+
+On 2026-06-25, the first three `docs/superpowers/plans/` files were walked.
+
+Key decisions:
+- `docs/superpowers/plans/2026-05-11-death-saving-throws.md` was retired after
+  fresh focused proof confirmed the current death-save/downed-state runtime
+  passes 10 tests. Remaining design-preview screenshot/proof work belongs to
+  the separate Design Preview Scenarios lane, not this implementation packet.
+- `docs/superpowers/plans/2026-05-12-equip-premade-characters.md` was still
+  partially valid: fresh combat utility proof found additional martial premades
+  without `equippedItems.MainHand`. This pass equipped Borin Vance, Ghazka
+  Tidebreaker, Korag Frostpeak, Maelis Deepcurrent, Nyx Manyfaces, Posy
+  Underbough, Sylvaris Frostbloom, Thorgrim Anvilmar, Unit Seven-Tin, and
+  Vlaakith Szarn, then reran the focused tests successfully.
+- `docs/superpowers/plans/2026-05-13-spell-mechanics-discovery-closure.md` was
+  kept because the mechanics-discovery report and Spells parent gaps still show
+  open actionable bucket findings. It remains an active packet until the
+  mechanics-discovery lanes supersede or close it.
+
+### Superpowers world and 3D plans retired
+
+On 2026-06-25, four older `docs/superpowers/plans/` implementation packets were
+retired after source, project-doc, and focused-test checks.
+
+Key decisions:
+- `docs/superpowers/plans/2026-04-04-takram-sky-fixes.md` is superseded by the
+  current Takram source: `trueSunDirection`, Takram moon/effect-composer/cloud
+  controls, `correctAltitude`, cloud layers, and ToneMapping exposure are wired.
+  This pass did not claim fresh rendered sky proof.
+- `docs/superpowers/plans/2026-05-28-world-sim-extensions.md` is superseded by
+  the live `WorldData`/`runWorldSim` pipeline, Azgaar producer wiring,
+  save-load migration, and Worldsim Service gap rows WSS-001 through WSS-008.
+- `docs/superpowers/plans/2026-05-30-world3d-streaming-infrastructure.md` and
+  `docs/superpowers/plans/2026-05-31-world3d-chunk-rendering.md` are superseded
+  by current World3D source and living World3D gaps. Streaming, chunk bundles,
+  terrain, water, roads, site boxes, and vegetation all have current source and
+  project-doc owners.
+- Focused proof already run in this retirement pass: the WorldSim/map/save-load
+  sweep passed 93 tests across 15 files, and the World3D/component sweep passed
+  118 tests across 32 files.
+
+### Remaining Superpowers implementation packets walked
+
+On 2026-06-25, the rest of the executable `docs/superpowers/plans/` bucket was
+walked. Only the mechanics-discovery closure packet remains because it still
+contains active spell-mechanics findings.
+
+Key decisions:
+- `docs/superpowers/plans/2026-05-31-world3d-rendering-hardening.md` is
+  superseded by current World3D source and living docs. Scene origin,
+  vegetation cap, WebGL context-loss handling, concrete scene sizing, and the
+  deep-link guard are represented in source and tests.
+- `docs/superpowers/plans/2026-06-01-world-3d-ui-transition-and-marker-sync.md`
+  is superseded by the World 3D UI living docs and current PLAYING-phase
+  routing/HUD/marker/minimap/nameplate implementation. `NORTH_STAR.md` now
+  points to the retirement ledger for old Plan 4 provenance.
+- `docs/superpowers/plans/2026-06-15-isolated-web-account-probes.md` was
+  removed from Aralia backlog because it is Agent Matrix control-plane work.
+  `F:\Repos\Aralia-operator-dashboard` already owns and implements the
+  Cursor web-account probe path.
+- `docs/superpowers/plans/2026-06-22-sp0-atlas-svg-render-port-iter1.md` and
+  `docs/superpowers/plans/2026-06-23-sp1-voronoi-submap-engine-iter1.md` are
+  superseded by the Worldforge tracker and source. SP0 Atlas SVG and SP1
+  Voronoi submap engine work now live in Worldforge's SP0/SP1/SP2 lanes.
+
 ### 2026-03-14 - Non-spell backlog sweep continued
 
 Processed and rebased four more non-spell packets:
@@ -1092,3 +1335,186 @@ Key decisions:
 - stale plan docs that still implied blank-slate work were rewritten in place as preserved backlog notes tied to current repo reality
 - the roadmap system guide now reflects the SQLite-backed local tooling state instead of the older manifest-only phrasing
 - the generated all-markdown snapshot is now explicitly preserved as historical generated inventory provenance rather than a live docs-cleanup control surface
+
+### Loose checklist and tooling concept bucket walked
+
+On 2026-06-25, the loose unchecked-checkbox bucket was walked to separate
+durable reusable checklists from true backlog packets.
+
+Key decisions:
+- `docs/guides/@RACE-ADDITION-DEV-GUIDE.md`,
+  `docs/guides/CLASS_ADDITION_GUIDE.md`,
+  `docs/guides/FEAT_SELECTION_IMPLEMENTATION_GUIDE.md`,
+  `docs/guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md`,
+  `docs/guides/RACE_ADDITION_GUIDE.md`,
+  `docs/guides/SPELL_IMPLEMENTATION_CHECKLIST.md`, and
+  `docs/guides/TABLE_CREATION_GUIDE.md` stayed in place as durable authoring
+  guides. Their unchecked boxes are reusable future-work checklists, not
+  current backlog items to migrate or auto-close.
+- `docs/superpowers/specs/2026-05-21-3d-combat-map-design.md` stayed in place
+  as implemented design rationale. Current 3D combat-map follow-ups live in
+  `docs/projects/3d-combat-map/` and `docs/projects/battle-map/`.
+- `docs/VISION.md` stayed in place as a long-horizon product-direction file,
+  not an executable backlog file to empty.
+- `docs/plans/tooling/VERSION_SIZING_REVIEW_AGENT_CONCEPT.md` was retired after
+  its surviving useful work was routed into Scripts: Workflows gap `G4` and
+  tracker task `T6`: add lightweight version-bump guidance only if
+  release/version decisions become active. The specialized review-agent idea is
+  deferred until actual inconsistency proves that a separate tool is needed.
+
+### Slasher feat design note retired
+
+On 2026-06-25, `docs/plans/features/SLASHER_FEAT_DESIGN.md` was retired.
+
+Key decisions:
+- Slasher combat behavior is implemented in `src/commands/effects/DamageCommand.ts`
+  and covered by Slasher command tests.
+- The design note's remaining STR/DEX setup concern is now covered by
+  `src/components/CharacterCreator/FeatSelection.test.tsx`, which proves Slasher
+  cannot be confirmed until an ability is selected and records that choice.
+- Remaining non-Slasher feat-choice proof stays in Character Creator gap `G22`
+  and tracker task `T8`; the standalone Slasher design file no longer owns
+  actionable work.
+
+### Quest migration plan retired
+
+On 2026-06-25, `docs/tasks/QUEST_MIGRATION_PLAN.md` was retired.
+
+Key decisions:
+- Quests decision `D2` is now the durable migration path: a phased adapter
+  bridge keeps legacy `Quest` as the runtime state contract while
+  `QuestDefinition` becomes the authoring/template contract.
+- This pass implemented the Phase 1 adapter in
+  `src/systems/quests/questAdapter.ts` and added focused adapter proof.
+- Remaining quest migration work stays in Quests `GQ-7` for factory/helper
+  adoption and `GQ-8` for save/load schema validation.
+
+### Town refactor plan retired
+
+On 2026-06-25, `docs/tasks/TOWN_REFACTOR_PLAN.md` was retired.
+
+Key decisions:
+- The old component-grouping work is superseded by current source under
+  `src/components/Town/`.
+- `src/App.tsx` currently lazy-loads `./components/Town/TownCanvas`.
+- `VillageScene` remains exported and tested as a secondary surface, so the
+  surviving question is not file movement; it is whether `VillageScene` should
+  remain documented secondary surface or be decommissioned/activated.
+- That surviving question now lives in Town gap `G4` and tracker task `T4`.
+
+### Documentation Cleanup 1G packet bucket retired
+
+On 2026-06-25, the historical
+`docs/tasks/documentation-cleanup/1G*.md` migration packet bucket was retired.
+
+Key decisions:
+- Documentation Cleanup was already closed as complete-enough by D-04.
+- The 1G packet content was historical provenance for moving archived
+  improvement docs toward source-adjacent READMEs.
+- Current checks found the target/source documentation for the migrated slices,
+  except the old `src/components/CharacterCreator/README.md` folder README from
+  1G.8. That missing README is not reopened here because D-04 explicitly chose
+  not to widen the duplicate-cleanup scope.
+- Future agents should use `docs/projects/documentation-cleanup/`,
+  `docs/archive/improvements/`, source-adjacent READMEs, and this ledger instead
+  of the deleted 1G packets.
+
+### Documentation Cleanup 1A-1F packet bucket retired
+
+On 2026-06-25, the historical 1A through 1F documentation-cleanup task packet
+bucket was retired.
+
+Key decisions:
+- Documentation Cleanup was already closed as complete-enough by D-04 with no
+  open project gaps.
+- Each 1A through 1F brief already framed itself as historical December 2025
+  provenance rather than current documentation authority.
+- The cited archive report deliverables still exist under `docs/archive/reports/`,
+  and current navigation/authority lives in `docs/@DOC-REGISTRY.md`,
+  `docs/@DOCUMENTATION-GUIDE.md`, `docs/archive/@README.md`, and the registry
+  ledgers.
+- The stale `docs/@DOC-NAMING-CONVENTIONS.md` pointer from 1B was not preserved
+  as an active handoff because naming rules now live in `docs/@DOC-REGISTRY.md`.
+
+Future agents should use the living Documentation Cleanup project folder,
+archive reports, and registry ledgers instead of the deleted 1A through 1F
+packets.
+
+### Spell Completeness 1A-1C and task GAPS retired
+
+On 2026-06-25, the historical
+`docs/tasks/spell-completeness-audit/1A~*.md`, `1B~*.md`, `1C~*.md`, and
+task-folder `GAPS.md` backlog surfaces were retired.
+
+Key decisions:
+- The 1A, 1B, and 1C files were completion notes whose outputs still exist:
+  `output/LOCAL-INVENTORY.md`, `output/PHB-2024-REFERENCE.md`, and
+  `@SPELL-COMPLETENESS-REPORT.md`.
+- The still-valid stale-inventory, PHB revalidation, and count-drift backlog
+  from task-folder G001-G003 now lives in the living Spells subproject gap
+  `spell-completeness-audit-G1`.
+- The preserved output files and report remain in place as historical evidence;
+  only the empty task briefs and duplicate GAPS owner were removed.
+
+### Weapon Proficiency task packet series retired
+
+On 2026-06-25, the historical
+`docs/tasks/weapon-proficiency-system/01-*.md` through `09-*.md` and
+`11-combat-ui-warnings.md` packets were retired.
+
+Key decisions:
+- Tasks 01 through 08 were implementation/audit provenance for behavior already
+  represented by the living docs and source anchors.
+- Task 09 was verified by existing command and opportunity-attack regression
+  coverage.
+- Task 11 was executed in this pass by adding a visible/accessibility-backed
+  combat ability-button warning for non-proficient weapon attacks.
+- Fresh rendered combat-flow proof remains active in `GAPS.md` G2 and
+  `TRACKER.md` T2; the old standalone task packets no longer own the work.
+
+### Roadmap spell ontology questions retired
+
+On 2026-06-25, `docs/tasks/roadmap/1E-SPELL-ROADMAP-ONTOLOGY-QUESTIONS.md`
+was retired.
+
+Key decisions:
+- The original spell ontology questions are resolved or implemented by the live
+  Spell Branch Navigator, profile generator, V/S/M tree, axis engine, graph
+  overlay, and roadmap integration.
+- The packet's stale 469-spell count is superseded by current generator proof
+  recorded in the backlog retirement ledger: 459 emitted profiles.
+- The only surviving follow-through is `arbitrationType` depth. Roadmap
+  Maintenance now owns capability cross-links in G9, while Spells owns cast-time
+  `ai_assisted` / `ai_dm` semantics through G21-G23.
+- No rendered roadmap proof was claimed in this retirement row.
+
+### Maritime Travel Plan 1 executed and retired
+
+On 2026-06-25,
+`docs/superpowers/plans/2026-06-25-maritime-travel-plan1-routing-core.md` was
+walked during backlog retirement.
+
+Key decisions:
+- The plan was valid when walked: current `routePlanning.ts` did not yet support
+  graph-supplied per-edge travel time, and no multimodal atlas graph existed.
+- Tasks 1 through 5 source/test work was executed in place by adding `TravelGraph.edgeMinutes`,
+  focused route-planning coverage, the first `multiModalAtlasGraph` slice,
+  route segmentation, the composite multimodal readout, and AtlasSvgView
+  segmented land/sea rendering with screen-space harbor markers, plus MapPane
+  ferry sea-preference wiring.
+- Controlled rendered proof exists for the route overlay:
+  `.agent/scratch/maritime-map-proof/atlas-route-proof.png` shows the real
+  AtlasSvgView rendering land and sea segments, a harbor marker, a destination
+  pin, and the composite readout.
+- Generated-atlas proof exists in
+  `.agent/scratch/maritime-map-proof/generated-route-proof.png`, and full
+  MapPane Travel-session proof exists in
+  `.agent/scratch/maritime-map-proof/map-pane-generated-route-proof.png`.
+- The remaining appendix work now has living Travel owners in G13-G16:
+  owned-ship travel, dock tiers/tenders, ferry fares, and sea danger/encounters.
+- The standalone plan packet was deleted after its completed work and remaining
+  intent were moved into `docs/projects/travel/`. The completed core is recorded
+  in `docs/projects/travel/GAPS.md` G12 and `TRACKER.md` T5, while the follow-up
+  maritime scope is recorded in G13-G16.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/registry/@DOC-MIGRATION-LEDGER.md","sha256WithoutMarker":"20b9685230b54e145706b67a032a9e640e6fb502ee25699e84d55b424ca767ef","markedAtUtc":"2026-06-25T23:48:24.938Z"} -->

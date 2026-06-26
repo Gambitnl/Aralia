@@ -49,6 +49,7 @@ const UTILITY_MODELS = [
 const PROSE_MODELS = [
     'qwen3.5:9b-q4_K_M',
     'qwen3:8b-q4_K_M',
+    'gemma4:12b',
     'adi0adi/ollama_stheno-8b_v3.1_q6k',
     'granite4.1:8b-q4_K_M',
     'llama3.1:instruct'

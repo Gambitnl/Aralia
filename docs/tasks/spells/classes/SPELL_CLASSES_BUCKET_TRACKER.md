@@ -275,3 +275,5 @@ than about an active broad implementation backlog.
    subsection even though there is currently no grouped runtime `Classes` backlog,
    or is the current `Classes Review` plus the general structured-to-json status
    sufficient until a real runtime case appears?
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/classes/SPELL_CLASSES_BUCKET_TRACKER.md","sha256WithoutMarker":"f6731d424782f1cddc1acf07ba928c71cec3b3eeee8464e48ac404baaf81c19d","markedAtUtc":"2026-06-25T22:29:38.509Z"} -->

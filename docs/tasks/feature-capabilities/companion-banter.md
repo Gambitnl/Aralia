@@ -33,3 +33,5 @@ Companion banter is implemented at the hook level and is not just planned behavi
 
 - This pass verified the hook-level behavior and surrounding data surfaces, not the rendered in-game pacing or UI presentation.
 - The doc now avoids implying that banter behavior is missing when the core implementation is already present.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/feature-capabilities/companion-banter.md","sha256WithoutMarker":"b0ca54bf6b4b64c344300842a589f2beff7bb6e2a63cec533e5cfa63c5ef9bfa","markedAtUtc":"2026-06-25T22:29:38.608Z"} -->

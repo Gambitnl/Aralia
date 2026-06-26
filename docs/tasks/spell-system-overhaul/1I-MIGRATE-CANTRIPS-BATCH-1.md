@@ -22,3 +22,5 @@ Use it only as a pointer to the archived historical batch record.
 ## Verified Drift
 
 A 2026-03-12 repo check confirmed that the Batch 1 cantrips already exist under public/data/spells/level-0, so this path no longer represents an active execution checklist.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/1I-MIGRATE-CANTRIPS-BATCH-1.md","sha256WithoutMarker":"2316f082bc20dae89cb50df60ae753c284776c8646ab0c164cafeb44cc0d4419","markedAtUtc":"2026-06-25T22:29:38.578Z"} -->

@@ -522,6 +522,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // and load flows keep their own seeded messages elsewhere.
                 messages: [],
                 currentLocationId: STARTING_LOCATION_ID,
+                startTownName: restOfPayload.startTownName,
+                startTownRegion: restOfPayload.startTownRegion,
                 subMapCoordinates: restOfPayload.initialSubMapCoordinates,
                 mapData: restOfPayload.mapData,
                 dynamicLocationItemIds: restOfPayload.dynamicLocationItemIds,

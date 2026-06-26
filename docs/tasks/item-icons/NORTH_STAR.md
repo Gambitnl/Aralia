@@ -50,3 +50,5 @@ Planned:
 
 - If product quality requires hand-authored art, replace icons in place without restoring the old batch checklist backlog.
 - Regenerate `src/data/items/generatedGlossaryItems.ts` after icon changes when a runtime proof needs the item registry to point at newly present SVGs.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/item-icons/NORTH_STAR.md","sha256WithoutMarker":"5e7ac0d071feadabfc66c985aea41158d6fcdc69762340fd3b4e4630364518a8","markedAtUtc":"2026-06-25T22:29:38.309Z"} -->

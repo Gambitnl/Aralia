@@ -1,6 +1,6 @@
 # Package 10 Jules Task: Target Filters And Eligibility
 
-Status: draft package packet for the next Jules-preferred mechanics slice.
+Status: historical Package 10 packet; PR #1059 merged on 2026-05-25.
 
 This packet promotes tracker gap `G95` into a bounded implementation task. It
 exists because Package 8 closed the first attack/save modifier slice, Package 9
@@ -217,3 +217,5 @@ Artifact boundary:
 - External Symphony / local ignored state: dashboard run state, draft IDs,
   handoff receipts, generated manifests, click logs, and raw Jules process
   output.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_10_TARGET_FILTER_ELIGIBILITY_JULES_TASK.md","sha256WithoutMarker":"06c2ae26fa278b9694e2b20f94f3050d3b8639df99adf37f8eb37ea49514adcd","markedAtUtc":"2026-06-25T22:29:38.370Z"} -->

@@ -54,6 +54,7 @@ import { createWorkerChunkLoader, type DisposableChunkLoader } from './createWor
 import { usePlayerWorldPos, useWorldViewMode } from '../../hooks/useWorldViewMode';
 import { getTerrainHeight, gridWorldDimensions } from '../../utils/worldCoords';
 import { useGameState } from '../../state/GameContext';
+import { scheduleClockFromGameTime } from '../../systems/worldforge/roster/gameClock';
 import { GamePhase } from '../../types/core';
 import type { WorldData } from '../../services/worldSim/types';
 import type { PlayerWorldPosition } from '../../types';
@@ -491,7 +492,17 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           if (discoveredHiddenRef.current.has(hs.id)) continue;
           if (Math.hypot(x - hs.xM, z - hs.zM) <= hs.discoveryRadiusM) {
             discoveredHiddenRef.current.add(hs.id);
-            dispatch({ type: 'REVEAL_HIDDEN_SITE', payload: { id: hs.id, tileX: tile.x, tileY: tile.y, name: hs.name, kind: hs.kind } });
+            // The ground session IS this world tile's local surface, so every
+            // hidden site it contains belongs to `tile` — pinning to the player's
+            // current tile is correct at world-tile resolution (do NOT "fix" this
+            // to the player's meters). The site's position WITHIN the tile becomes
+            // a sub-tile offset (−0.5..0.5 from tile center) so the atlas pin sits
+            // where the place actually is, not just at the cell center.
+            const exX = gwForDiscovery.extentMetersX || 1;
+            const exZ = gwForDiscovery.extentMetersZ || 1;
+            const offsetX = Math.max(-0.5, Math.min(0.5, hs.xM / exX - 0.5));
+            const offsetY = Math.max(-0.5, Math.min(0.5, hs.zM / exZ - 0.5));
+            dispatch({ type: 'REVEAL_HIDDEN_SITE', payload: { id: hs.id, tileX: tile.x, tileY: tile.y, name: hs.name, kind: hs.kind, offsetX, offsetY } });
             // Surface the discovery in the game log (SP4 in-game message).
             dispatch({
               type: 'ADD_MESSAGE',
@@ -669,6 +680,9 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           playerWorldPos={wfGroundView ? null : position}
           onPositionChange={wfGroundView ? handleGroundPositionChange : handlePositionChange}
           onChunkUpdate={handleChunkUpdate}
+          // Ground mode only: townsfolk walk the streets on the game clock.
+          groundWorld={wfGroundView ? groundRef.current : null}
+          agentClock={state.gameTime instanceof Date ? scheduleClockFromGameTime(state.gameTime) : undefined}
         />
       ) : (
         <div

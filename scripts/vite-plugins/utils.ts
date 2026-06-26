@@ -20,6 +20,16 @@ export const PORTRAIT_OUTPUT_DIR = path.resolve(
   'portraits',
   'generated'
 );
+// Opening-scenario VISUAL output (wide scene illustrations), kept separate from
+// head-and-shoulders portraits. Served from /assets/images/scenes/generated.
+export const SCENE_OUTPUT_DIR = path.resolve(
+  process.cwd(),
+  'public',
+  'assets',
+  'images',
+  'scenes',
+  'generated'
+);
 export const STITCH_GCLOUD_CONFIG = process.env.CLOUDSDK_CONFIG
   || (process.env.USERPROFILE ? path.join(process.env.USERPROFILE, '.stitch-mcp', 'config') : '');
 

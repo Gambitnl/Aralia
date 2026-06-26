@@ -35,3 +35,4 @@ This file preserves a useful Level 1 targeting audit, but it is no longer a full
 
 The original 2024 audit correctly identified a real gap, but it should now be treated as a preserved partial-gap note rather than proof of a system-wide missing framework.
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/audits/level-1-targeting-audit.md","sha256WithoutMarker":"5a86ae749c225f480b6716546f624bc0ad2461cffb0cb5ae445770c992c46c76","markedAtUtc":"2026-06-25T23:14:14.365Z"} -->

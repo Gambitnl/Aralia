@@ -237,3 +237,5 @@ The remaining review checkpoints were routed on 2026-06-26 to `docs/projects/spe
 - Validate that `followsCaster` semantics match official spell text.
 - Review wall dimension calculations, including variable sizing.
 - Confirm trigger zone distances match official spell text.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/agent_prompts/03_aoe_shapes_schema_and_mechanics.md","sha256WithoutMarker":"7d7788bc33540a887a570b6e72556ea4926b115e4a347923d34f609c3f10da3c","markedAtUtc":"2026-06-25T22:29:38.475Z"} -->

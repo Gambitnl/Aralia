@@ -60,3 +60,5 @@ Before calling a converted spell done:
 - [`SPELL-WORKFLOW-QUICK-REF.md`](./SPELL-WORKFLOW-QUICK-REF.md)
 - [`../../spells/SPELL_INTEGRATION_CHECKLIST.md`](../../spells/SPELL_INTEGRATION_CHECKLIST.md)
 - [`../../SPELL_INTEGRATION_STATUS.md`](../../SPELL_INTEGRATION_STATUS.md)
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/@WORKFLOW-SPELL-CONVERSION.md","sha256WithoutMarker":"8443fa721a01757f9a7ad9c803a6aa51c64d851f95dd704ad1be9d5fcc214e35","markedAtUtc":"2026-06-25T22:29:38.579Z"} -->

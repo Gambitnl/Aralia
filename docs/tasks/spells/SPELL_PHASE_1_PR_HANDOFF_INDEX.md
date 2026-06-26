@@ -34,3 +34,4 @@ active queue state, live blockers, and update rules.
 - Use this appendix for package lineage and stable PR/handoff references.
 - Keep transient Symphony receipts, local dashboard state, and runtime manifests out of this appendix unless a short durable summary is explicitly needed.
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_PHASE_1_PR_HANDOFF_INDEX.md","sha256WithoutMarker":"e8fd44a803f3390a1750d95b6898161e750a1f551853ad94a7c363b995f60c59","markedAtUtc":"2026-06-25T22:29:38.360Z"} -->

@@ -63,3 +63,5 @@ was fixed.
 - If the character creator or spellbook surface cannot render because of an
   unrelated blocker, record that blocker and classify whether it belongs in
   Package 3 or a follow-up.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_3_VISUAL_PROOF_RECEIPT.md","sha256WithoutMarker":"e7517f3cc21ac5881b080381f78f60ac41404f3cb48732598f2c9f0c76fe1014","markedAtUtc":"2026-06-25T22:29:38.531Z"} -->

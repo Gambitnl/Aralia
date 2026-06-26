@@ -1,6 +1,7 @@
 # Package 6 Jules Task: Choice/Mode Mechanics Bucket
 
-Status: draft package packet for the next Jules-preferred implementation slice.
+Status: historical Package 6 packet; useful scope was locally consolidated after
+PR #997 stayed conflicted.
 
 This packet turns the first post-pilot mechanics bucket into a bounded Jules
 task. It exists because the Spell Phase 1 tracker now has Packages 4 and 5
@@ -202,3 +203,5 @@ For this package:
 - Fields reused/added: Used `modeChoice` for multi-effect toggles, reused `damageTypeSource: "chosen_damage_type"` for damage choice, adding it to `DamageData` in schemas and templates.
 - Tests run: `npm run validate:spells` passed, added `src/commands/factory/__tests__/SpellCommandFactoryMode.test.ts` to prove damage source parsing.
 - Residual gaps: Atlas proof was blocked by `G48` missing source files.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md","sha256WithoutMarker":"c1eefaf36d745f2e9330b1d83c3b23a9fd769d022d0b6b0c29395f2e0ca651ff","markedAtUtc":"2026-06-25T22:29:38.362Z"} -->

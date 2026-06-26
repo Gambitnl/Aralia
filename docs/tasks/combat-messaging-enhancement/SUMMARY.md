@@ -45,3 +45,5 @@ Still-open follow-through likely includes some combination of:
 ## Preservation Note
 
 This file remains useful as a completion record, but current truth should be checked against the live combat messaging files rather than against the original milestone language alone.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/combat-messaging-enhancement/SUMMARY.md","sha256WithoutMarker":"d34bb401b3310bdfe9df340f8f34c01455d34df0323d3da298220a8c4b0773d4","markedAtUtc":"2026-06-25T22:29:38.624Z"} -->

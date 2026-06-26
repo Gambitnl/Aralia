@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:29:47
- * Dependents: crimeReducer.ts
+ * Last Sync: 25/06/2026, 07:55:30
+ * Dependents: state/reducers/crimeReducer.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -19,7 +19,7 @@
  * Core logic for managing active heists, alert levels, and turn-based resolution.
  */
 
-import { HeistPlan, HeistPhase, HeistAction, HeistActionType, HeistRole } from '../../types/crime';
+import { HeistPlan, HeistPhase, HeistAction, HeistActionType, HeistRole, HeistIntel } from '../../types/crime';
 import { Location } from '../../types';
 import { SeededRandom } from '@/utils/random';
 import { generateId } from '../../utils/core/idGenerator';
@@ -29,7 +29,7 @@ export class HeistManager {
     /**
      * Initializes a new heist plan.
      */
-    static startPlanning(target: Location, leaderId: string): HeistPlan {
+    static startPlanning(target: Pick<Location, 'id'>, leaderId: string): HeistPlan {
         return {
             id: generateId(),
             targetLocationId: target.id,
@@ -110,7 +110,7 @@ export class HeistManager {
     /**
      * Adds gathered intel to the plan, potentially revealing complications or lowering difficulty.
      */
-    static addIntel(plan: HeistPlan, intel: any): HeistPlan {
+    static addIntel(plan: HeistPlan, intel: HeistIntel): HeistPlan {
         // Mock logic: Intel reduces starting alert or reveals hidden routes
         return {
             ...plan,

@@ -1,6 +1,6 @@
 # Package 15 Jules Task: Summons And Controlled Entities
 
-Status: draft package packet for the next Jules-preferred mechanics slice.
+Status: historical Package 15 packet; PR #1122 merged on 2026-05-26.
 
 This packet promotes the next tracker-defined bucket after Package 14:
 `summon_or_controlled_entity`. Package 14 closed the `vision_light_sound` slice
@@ -214,3 +214,5 @@ Repeated unchanged waits should be compact wait-state rows that name observed
 state, what is being waited for, and the next recheck condition. Routine
 implementation choices, files changed, and verification results belong in the
 completion note or PR summary, not in the assumed-approval decision ledger.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_15_SUMMON_CONTROLLED_ENTITY_JULES_TASK.md","sha256WithoutMarker":"ec0f701b42cda78ae1c9a4cd60f0c8737ba18522f933c840a6c78166cba3b2d1","markedAtUtc":"2026-06-25T22:29:38.377Z"} -->

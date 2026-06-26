@@ -78,3 +78,5 @@ If the exact combat test path changes, record the actual path used.
   the command result still needs to be recorded.
 - If the gate report changes unexpectedly, record the changed summary and route
   the cause as a follow-up before opening Package 3.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_2_ATLAS_GATE_CHECKPOINT_RECEIPT.md","sha256WithoutMarker":"a7c8304a7cbf082a5f72a80f325932feb2ab00f2ed6fef8d99576c43772c9164","markedAtUtc":"2026-06-25T22:29:38.351Z"} -->

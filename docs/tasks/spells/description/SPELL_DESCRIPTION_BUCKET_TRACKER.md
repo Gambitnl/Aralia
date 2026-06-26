@@ -278,3 +278,5 @@ Actions:
 - runtime gate-checker coverage: partial
   - the dedicated runtime block exists, but its field-level row still depends on the
     generated structured-vs-json artifact rather than a fresh per-field server recompute
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/description/SPELL_DESCRIPTION_BUCKET_TRACKER.md","sha256WithoutMarker":"53cc6c89d746b7b01042e05c4e03a82616c940fbb15702b2aa686cfd1dd672f3","markedAtUtc":"2026-06-25T22:29:38.514Z"} -->

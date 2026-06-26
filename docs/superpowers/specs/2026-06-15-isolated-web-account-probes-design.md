@@ -152,3 +152,5 @@ real dashboard and login state are external:
   contexts.
 - Headless authentication can fail for some login providers, so the visible
   login fallback must stay part of the design.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-15-isolated-web-account-probes-design.md","sha256WithoutMarker":"465cd8dec6cf897b1663d06d5b26f9123cdd3b89dfa59534cf5a17816bd7d804","markedAtUtc":"2026-06-25T22:43:27.469Z"} -->

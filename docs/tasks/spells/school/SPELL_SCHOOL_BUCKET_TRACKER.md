@@ -123,3 +123,5 @@ is reactive only:
   (Level, School) sourced from the gitignored 5etools vendor mirror,
   and intentionally omits rules text, description prose, and component
   prose.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/school/SPELL_SCHOOL_BUCKET_TRACKER.md","sha256WithoutMarker":"f6a91f42a8a297cf67c29553172e27015f65cf2808e67a41bf89f93cfa0c5569","markedAtUtc":"2026-06-25T22:29:38.534Z"} -->

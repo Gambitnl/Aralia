@@ -62,3 +62,13 @@ Use this skill to modify the multi-step character creation flow. Focus on the re
 - Prefer inline race variant selection in `RaceDetailPane` unless a step must block forward progress (see existing centaur/changeling patterns).
 - Keep `NAVIGATE_TO_STEP` conservative: it must not allow jumping past incomplete data.
 - If the step affects stats, sync with `useCharacterAssembly` so preview and final assembly match.
+
+## Completion Criteria
+
+Before concluding any character creator step task, you must satisfy the following checklist:
+
+1. **State Preservation:** Confirm that when the user clicks the "Go Back" button from the modified step, all newly captured data for that step is correctly cleared (resets in `getFieldsToResetOnGoBack` are executed).
+2. **Navigation Gating:** Verify that the step flow transitions and gating helpers (`determineNextStepAfterRace`, `getNextStep`, etc.) prevent jumping past incomplete required steps.
+3. **Sidebar Alignment:** Confirm that the sidebar visibility and completion indicator (`isStepCompleted`) are updated to reflect the new step's active state.
+4. **Integration Tests:** Verify that the Playwright flow tests (`tests/character-creator-flow.spec.ts`) and reducer tests run and pass without failures.
+5. **No Compilation Errors:** Verify the code compiles without TypeScript errors.

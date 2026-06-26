@@ -108,3 +108,5 @@ Verification to run:
   display behavior rather than moving into combat resolution.
 - If a later pass discovers a broader spell-data issue, record it separately so
   the selection/sheet proof does not quietly widen into a corpus rewrite.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md","sha256WithoutMarker":"11cd9684eec934b6fed630ed68ec088952f4e85bf9a35d383f8e079a237e5c54","markedAtUtc":"2026-06-25T22:29:38.530Z"} -->

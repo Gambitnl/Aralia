@@ -1,6 +1,6 @@
 ---
 name: typecheck-preservationist
-description: Run typecheck/tests for the Aralia codebase and resolve TypeScript errors without trimming features. Use when asked for "Typecheck Errorstate-0", "preservationist test run", or "Fix all typecheck issues" and when typecheck errors need to reach 0 while leaving TODOs for any/undefined risks.
+description: Run typecheck/tests in Aralia and resolve TypeScript errors without deleting features or mutating tests.
 ---
 
 # Typecheck Preservationist
@@ -99,3 +99,13 @@ For future follow-ups that are not learnings, use:
 **Plan:** [Steps to implement]
 **Status:** Pending
 ```
+
+## Completion Criteria
+
+Before concluding any typecheck preservationist task, you must satisfy the following checklist:
+
+1. **Error State Zero:** Run `npm run typecheck` and verify the compilation completes with 0 errors (or only explicitly marked and commented type safety skips).
+2. **Feature Preservation:** Confirm that no features, exports, or variables were deleted. Fixes should be achieved via narrowing, typeguards, or explicit interface typings.
+3. **Debt Documentation:** Verify that any forced type overrides (like `as any`) are preceded by a clear `// DEBT:` comment explaining the shortcut, why it was chosen, and what the correct type resolution should be.
+4. **Test Integrity:** Run `npm test` and verify all tests pass. Do not mutate tests to make them pass unless explicitly authorized or if the test itself has a comment explaining why it is outdated.
+5. **Review Intent Flag:** Verify that any ambiguous logic that cannot be resolved cleanly is left intact and marked with a `// REVIEW_INTENT:` comment for human review.

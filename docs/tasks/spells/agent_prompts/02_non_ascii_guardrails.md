@@ -107,3 +107,5 @@ Run:
 - Consider a pre-commit hook specifically for the charset check if the build time grows too large (current scan ~1.5s for 1450 files).
 
 See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/agent_prompts/02_non_ascii_guardrails.md","sha256WithoutMarker":"46e5dcdb0fe0bd543f15c2d25573dee4c51dd9790d0db0689eb5719060710f9f","markedAtUtc":"2026-06-25T22:29:38.475Z"} -->

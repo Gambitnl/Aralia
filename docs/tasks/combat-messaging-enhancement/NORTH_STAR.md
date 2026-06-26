@@ -78,3 +78,5 @@ This folder captures where combat messaging stands today: core infrastructure is
 2. Read `TRACKER.md`.
 3. Read `GAPS.md`.
 4. Execute tracker next checks and record results.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/combat-messaging-enhancement/NORTH_STAR.md","sha256WithoutMarker":"158c09adf0cadb89185c849768751813c01c39f67aa2d9fe7a8f84178c4c4127","markedAtUtc":"2026-06-25T22:29:38.622Z"} -->

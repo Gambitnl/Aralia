@@ -1,7 +1,49 @@
 # Documentation Cleanup Audit and Proof
 
-Status: active
-Last updated: 2026-06-08
+Status: complete
+Last updated: 2026-06-25
+
+## Backlog Retirement: 1A-1F Historical Packets (2026-06-25)
+
+The backlog-retirement pass retired and deleted the historical 1A through 1F
+documentation-cleanup task briefs under `docs/tasks/documentation-cleanup/`.
+
+Evidence used:
+- The living Documentation Cleanup project is closed as complete-enough by
+  `DECISIONS.md` D-04 and has zero open gaps in `GAPS.md`.
+- Each 1A through 1F packet already self-classified as historical provenance,
+  not current authority.
+- The historical deliverables still exist under `docs/archive/reports/`:
+  `@CLEANUP-CLASSIFICATION-REPORT.md`, `@CONSOLIDATION-LOG.md`,
+  `@LINK-VERIFICATION-REPORT.md`, and `@DOCUMENTATION-SYSTEM-STATUS.md`.
+- The archive entrypoint `docs/archive/@README.md`, documentation guide
+  `docs/@DOCUMENTATION-GUIDE.md`, registry `docs/@DOC-REGISTRY.md`, and both
+  registry ledgers exist and now own the replacement navigation. The old
+  `docs/@DOC-NAMING-CONVENTIONS.md` pointer from 1B no longer exists; its
+  naming rules now live in `docs/@DOC-REGISTRY.md`.
+
+Result:
+The 1A through 1F task files no longer own work. Use this project folder,
+`docs/archive/reports/`, `docs/archive/@README.md`, `docs/@DOCUMENTATION-GUIDE.md`,
+`docs/@DOC-REGISTRY.md`, and the registry ledgers for provenance.
+
+## Backlog Retirement: 1G Historical Packets (2026-06-25)
+
+The backlog-retirement pass retired and deleted the historical 1G improvement-doc
+migration packets under `docs/tasks/documentation-cleanup/`.
+
+Evidence used:
+- D-01 and D-03 already reconciled the 1G.7 through 1G.10 path-drift claims.
+- D-04 closed the duplicate-cleanup scope as complete-enough for this project.
+- Current path checks found the migrated source-adjacent docs for 1G.1 through
+  1G.7, 1G.9, and 1G.10. The 1G.8 target folder README remains absent, but that
+  omission is not reopened here because the project owner decision closed the
+  scope rather than widening it into another cleanup campaign.
+- The preserved archive sources remain under `docs/archive/improvements/`.
+
+Result:
+The 1G task files no longer own work. Use this project folder, the archive
+sources, source-adjacent READMEs, and the registry ledgers for provenance.
 
 ## Iteration 3: G1 Wording Reconciliation (2026-06-08)
 

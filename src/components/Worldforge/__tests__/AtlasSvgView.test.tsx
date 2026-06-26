@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import AtlasSvgView from '../AtlasSvgView';
+import type { MultiModalRoute } from '../../../systems/travel/multiModalRoute';
 
 // Layer prefs persist to localStorage (real behavior); clear between tests so
 // one test's coloring choice doesn't leak into the next.
@@ -55,6 +56,35 @@ describe('AtlasSvgView', () => {
     expect(container.querySelectorAll('[data-testid="atlas-discovery-pin"]')).toHaveLength(2);
   });
 
+  it('a pan gesture (drag) suppresses the travel-click — onPickCell is not fired', () => {
+    let picks = 0;
+    const { getByTestId } = render(
+      <AtlasSvgView atlas={stub} width={300} height={300} onPickCell={() => { picks += 1; }} />,
+    );
+    const svg = getByTestId('atlas-svg-view');
+    // Grab → move beyond the slop → release → click: this is a pan, not a pick.
+    fireEvent.mouseDown(svg, { clientX: 100, clientY: 100 });
+    fireEvent.mouseMove(svg, { clientX: 140, clientY: 130 });
+    fireEvent.mouseUp(svg);
+    fireEvent.click(svg, { clientX: 140, clientY: 130 });
+    expect(picks).toBe(0);
+  });
+
+  it('a stray move after the drag is released does not crash (drag.current null-read regression)', () => {
+    const { getByTestId, container } = render(
+      <AtlasSvgView atlas={stub} width={300} height={300} onPickCell={() => {}} />,
+    );
+    const svg = getByTestId('atlas-svg-view');
+    // Grab → pan → release → a stray move arrives after onUp nulled drag.current.
+    // The setView updater used to lazily read drag.current!.x → "reading 'x' of null".
+    fireEvent.mouseDown(svg, { clientX: 100, clientY: 100 });
+    fireEvent.mouseMove(svg, { clientX: 140, clientY: 130 });
+    fireEvent.mouseUp(svg);
+    expect(() => fireEvent.mouseMove(svg, { clientX: 180, clientY: 160 })).not.toThrow();
+    // Component survives (no error boundary swap): the atlas svg is still mounted.
+    expect(container.querySelector('[data-testid="atlas-svg-view"]')).toBeTruthy();
+  });
+
   it('menu exposes a Map coloring section + an Info panel detail selector', () => {
     const { getByTestId, getByText, queryByTestId } = render(
       <AtlasSvgView atlas={stub} width={300} height={300} />,
@@ -104,5 +134,93 @@ describe('AtlasSvgView', () => {
     fireEvent.click(getByTestId('atlas-layers-toggle'));
     const cultures = getByLabelText(/Cultures/) as HTMLInputElement;
     expect(cultures.disabled).toBe(true); // empty layer is disabled, not a dead toggle
+    const states = getByLabelText(/States/) as HTMLInputElement;
+    expect(states.disabled).toBe(true);   // no pack.states ⇒ States coloring disabled too
+  });
+
+  // A world with two land cells under one named state, for political-coloring tests.
+  const statefulStub = {
+    graphWidth: 100, graphHeight: 100,
+    biomesData: { color: ['#000', '#11aa33'] },
+    pack: {
+      vertices: { p: [[0, 0], [10, 0], [10, 10], [0, 10]] },
+      cells: { h: [50, 50], v: [[0, 1, 2], [0, 1, 2, 3]], biome: [1, 1], p: [[2, 2], [7, 7]], state: [1, 1] },
+      states: [{ i: 0, name: 'Neutrals' }, { i: 1, name: 'Aralia', fullName: 'Kingdom of Aralia', color: '#cc4444' }],
+    },
+  } as any;
+
+  it('States coloring fills land by state color and names the state in the legend swatch', () => {
+    const { container, getByTestId, getByLabelText } = render(
+      <AtlasSvgView atlas={statefulStub} width={300} height={300} />,
+    );
+    const hasFill = (f: string) =>
+      Array.from(container.querySelectorAll('path')).some((p) => p.getAttribute('fill') === f);
+
+    fireEvent.click(getByTestId('atlas-layers-toggle'));
+    const states = getByLabelText(/States/) as HTMLInputElement;
+    expect(states.disabled).toBe(false); // has pack.states ⇒ enabled
+    fireEvent.click(states);
+
+    expect(hasFill('#cc4444')).toBe(true);  // land painted by the state color
+    expect(hasFill('#11aa33')).toBe(false); // biome coloring replaced (exclusive)
+    // Named swatch (not the generic "each tint = one state" caption).
+    const swatches = getByTestId('atlas-legend-swatches');
+    expect(swatches.textContent).toContain('Kingdom of Aralia');
+  });
+
+  it('persists layer prefs per scope (different worlds remember different colorings)', () => {
+    // World A: switch to None and remember it.
+    const a = render(<AtlasSvgView atlas={stub} width={300} height={300} prefsScope="world-A" />);
+    fireEvent.click(a.getByTestId('atlas-layers-toggle'));
+    fireEvent.click(a.getByLabelText('None (plain land)'));
+    a.unmount();
+
+    // World B (different scope) opens at the default coloring, not World A's choice.
+    const b = render(<AtlasSvgView atlas={stub} width={300} height={300} prefsScope="world-B" />);
+    expect(b.getByTestId('atlas-legend').textContent).toContain('Biomes');
+    b.unmount();
+
+    // Reopening World A restores its remembered None mode (legend hidden).
+    const a2 = render(<AtlasSvgView atlas={stub} width={300} height={300} prefsScope="world-A" />);
+    expect(a2.queryByTestId('atlas-legend')).toBeNull();
+  });
+  it('renders segmented multimodal travel legs and the composite readout', () => {
+    const multimodalRoute: MultiModalRoute = {
+      cells: [0, 1, 2],
+      points: [[2, 2], [5, 5], [7, 7]],
+      segments: [
+        { kind: 'land', points: [[2, 2], [5, 5]] },
+        { kind: 'sea', points: [[5, 5], [7, 7]] },
+      ],
+      miles: 4,
+      landMiles: 2,
+      seaMiles: 2,
+      minutes: 200,
+      danger: 0.4,
+    };
+    const { container } = render(
+      <AtlasSvgView
+        atlas={stub}
+        width={300}
+        height={300}
+        travelActive
+        planRoute={() => null}
+        planMultiModalRoute={() => multimodalRoute}
+      />,
+    );
+
+    const svg = container.querySelector('[data-testid="atlas-svg-view"]')!;
+    svg.getBoundingClientRect = () => ({
+      x: 0, y: 0, left: 0, top: 0, right: 300, bottom: 300,
+      width: 300, height: 300,
+      toJSON: () => ({}),
+    } as DOMRect);
+    fireEvent.mouseMove(svg, { clientX: 150, clientY: 150 });
+
+    expect(container.querySelectorAll('[data-testid="atlas-travel-segment-land"]')).toHaveLength(1);
+    expect(container.querySelectorAll('[data-testid="atlas-travel-segment-sea"]')).toHaveLength(1);
+    expect(container.querySelectorAll('[data-testid="atlas-harbor-marker"]')).toHaveLength(1);
+    expect(container.querySelector('[data-testid="atlas-travel-readout"]')?.textContent).toContain('2.0 mi land');
+    expect(container.querySelector('[data-testid="atlas-travel-readout"]')?.textContent).toContain('2.0 mi sea');
   });
 });

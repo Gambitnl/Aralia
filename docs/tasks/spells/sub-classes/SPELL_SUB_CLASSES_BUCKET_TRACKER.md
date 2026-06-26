@@ -515,4 +515,4 @@ Representative spell surfaces for review:
    - after structured transfer
    - or only after structured + runtime JSON both match
 
-
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/sub-classes/SPELL_SUB_CLASSES_BUCKET_TRACKER.md","sha256WithoutMarker":"4163f1f94ab44a2e8a91971d3755789db78671e4b29259a51af7b3aeb99c0707","markedAtUtc":"2026-06-25T22:29:38.560Z"} -->

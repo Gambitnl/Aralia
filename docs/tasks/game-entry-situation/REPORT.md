@@ -62,6 +62,15 @@ scene (D-NOFB).
 
 See `TRACKER.md` for the file-by-file map and the gap note on the full UI click-through.
 
+## Backlog Retirement Update (2026-06-25)
+
+The optional narrative-model preference cleanup is closed. `ollama list` showed
+`gemma4:12b` installed locally, and `src/services/ollama/taskProfiles.ts` now
+includes `gemma4:12b` in the prose model preference chain used by the
+`opening_situation` task. The remaining open follow-up is still the owner-facing
+full browser click-through from New Game through generated conversation and one
+reply/response.
+
 ## Scope honoured
 
 No git commit/stage/push. Hot shared files (`App.tsx`, `appState.ts`,
@@ -69,3 +78,5 @@ No git commit/stage/push. Hot shared files (`App.tsx`, `appState.ts`,
 `actionTypes.ts`, state types) touched additively only. New code lives under
 `src/systems/gameEntry/**`, `src/hooks/useOpeningSituation.ts`,
 `src/components/gameEntry/**`, and tests.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/game-entry-situation/REPORT.md","sha256WithoutMarker":"2da136502cb71b814266664084885f2aafa26906b29277d2c625995b903f22f7","markedAtUtc":"2026-06-25T22:29:38.627Z"} -->

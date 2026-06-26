@@ -13,3 +13,4 @@
 
 - [`../../archive/spell-system/1F-AUDIT-SPELL-SCOPE.md`](../../archive/spell-system/1F-AUDIT-SPELL-SCOPE.md)
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/1F-AUDIT-SPELL-SCOPE.md","sha256WithoutMarker":"e9e8a5aa0a348c61200c3e0f28cc6e51ff7ca73b89374229bc3ba965c104bec6","markedAtUtc":"2026-06-25T22:29:38.576Z"} -->

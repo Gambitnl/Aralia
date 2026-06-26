@@ -2568,6 +2568,25 @@ Limitations:
 ## 2026-06-01 - Combat-map matrix duplicate check and spell-level ledger seed
 
 - Sub-agent duplicate check confirmed `COMBAT_MAP_PRESENTATION_MATRIX.md` is the canonical artifact and should be expanded in place, not duplicated under another name.
+
+## Backlog-retirement schema check - 2026-06-25
+
+- Reviewed stale `TASK_SLICE.md` tail entries for `SSO-ONMOVEINAREA-001` and
+  `SSO-JSON-SCHEMA-DRIFT-001`.
+- Initial verification found real aggregate drift:
+  `npx tsx scripts\syncSpellJsonSchemaRegistry.ts --check` failed because
+  `src/systems/spells/schema/parts/00-schema-root.json` included
+  `targeting.allocation`, while the stable aggregate
+  `src/systems/spells/schema/spell.schema.json` did not.
+- Ran `npx tsx scripts\syncSpellJsonSchemaRegistry.ts --write-aggregate` to
+  regenerate the stable aggregate from the existing schema parts.
+- Follow-up `npx tsx scripts\syncSpellJsonSchemaRegistry.ts --check` passed
+  with 5 schema parts.
+- Follow-up `npm run test -- src\systems\spells\validation\__tests__\effectTriggers.test.ts --reporter=dot`
+  passed 1 focused trigger test.
+- Updated `TRACKER.md` so the old trigger/schema rows no longer ask future
+  agents to rerun a stale pending slice; remaining executable work is routed
+  through concrete rows such as `SSO-AREA-MOVE-WITHIN-COVERAGE-001`.
 - Added an initial spell-level proof ledger covering Enhance Ability, Grease, Entangle, Fog Cloud, Darkness-style visibility, Thunderwave-style forced movement, Misty Step-style teleport, Find Familiar, Find Steed, Summon Beast, Summon Demon cases, Shield, and no-map ritual/material flows.
 - All ledger rows are intentionally proof-pending; no rendered inspection or runtime verification was run.
 
@@ -2783,3 +2802,5 @@ Remaining tracked work:
 Verification status:
 - Required dependency-map sync only.
 - No tests, typecheck, or rendered visual verification were run in this slice.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/AUDIT_OR_PROOF.md","sha256WithoutMarker":"025ca25c6b47582cb668c7dfdc5fa067ab5043304e966cbc6257e43162c5a59d","markedAtUtc":"2026-06-25T22:29:38.650Z"} -->

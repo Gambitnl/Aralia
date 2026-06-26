@@ -286,3 +286,13 @@ You must wire up the images in **TWO** places: the Glossary (JSON) and the Chara
 - [ ] Stormborn Half-Elf (Female)
 - [ ] Seersight Half-Elf (Male)
 - [ ] Seersight Half-Elf (Female)
+
+## Completion Criteria
+
+Before concluding any image generation task, you must satisfy the following checklist:
+
+1. **Visual Adherence:** Confirm that the generated image has been validated using the visual verification checks (adhering to Full Body view, common D&D villager aesthetic, slice-of-life setting).
+2. **File Naming:** Verify the image is saved to `public/assets/images/races/` and is named strictly under the `Parent_Subrace_Gender.png` title-case convention.
+3. **Double Variation:** Confirm that both Male and Female illustrations are generated and successfully saved to trigger the correct dual-image card layout in the UI.
+4. **Data Wiring:** Run `npx tsx scripts/audit_and_wire_images.ts` and confirm that all new image paths are successfully wired into the glossary JSON files and Character Creator TypeScript definitions.
+5. **No Broken Links:** Verify the images load correctly on the front-end without rendering missing resource fallbacks or broken image placeholders.

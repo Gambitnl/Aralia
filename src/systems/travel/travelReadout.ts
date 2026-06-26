@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 25/06/2026, 17:11:03
+ * Dependents: components/MapPane.tsx, components/Worldforge/AtlasSvgView.tsx, components/Worldforge/SubmapSvgView.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file travelReadout.ts — player-facing formatting for a planned route.
  *
@@ -6,6 +22,8 @@
  * far it is, and how dangerous it is. Pure: no React/DOM.
  */
 import type { RoutePlan } from './routePlanning';
+import type { MultiModalRoute } from './multiModalRoute';
+import type { ProvisionStatus } from './provisioning';
 
 /** Human travel duration: "15 min", "6h 20m", "2d 4h". */
 export function formatTravelTime(minutes: number): string {
@@ -44,10 +62,41 @@ export function dangerRating(danger: number): DangerRating {
 }
 
 /**
+ * One-line summary for a route that includes both land and sea legs.
+ *
+ * This keeps the total time and danger wording consistent with ordinary travel,
+ * while splitting distance so the player can see how much of the trip is over
+ * roads/terrain versus water.
+ */
+export function formatMultiModalSummary(route: MultiModalRoute): string {
+  const rating = dangerRating(route.danger);
+  return `≈ ${formatTravelTime(route.minutes)} · ${formatDistance(route.landMiles)} land + ${formatDistance(route.seaMiles)} sea · Danger: ${rating.level}`;
+}
+
+/**
  * One-line route summary for the travel readout, e.g.
  * "≈ 6h 20m · ~19 mi · Danger: Moderate · on foot".
  */
 export function formatRouteSummary(route: RoutePlan, transportLabel = 'on foot'): string {
   const rating = dangerRating(route.danger);
   return `≈ ${formatTravelTime(route.minutes)} · ~${formatDistance(route.miles)} · Danger: ${rating.level} · ${transportLabel}`;
+}
+
+export interface ProvisionLine {
+  text: string;
+  ok: boolean;
+  /** Color for the chip/line, matching severity. */
+  color: string;
+}
+
+/** One-line provisions readout: "Food: 6 days" or "Food: 3 days · short 2 days". */
+export function formatProvisionLine(status: ProvisionStatus): ProvisionLine {
+  const base = `Food: ${status.foodRangeDays} day${status.foodRangeDays === 1 ? '' : 's'}`;
+  if (status.inRange) return { text: base, ok: true, color: '#22c55e' };
+  const color = status.severity === 'major' ? '#ef4444' : '#eab308';
+  return {
+    text: `${base} · short ${status.shortfallDays} day${status.shortfallDays === 1 ? '' : 's'}`,
+    ok: false,
+    color,
+  };
 }

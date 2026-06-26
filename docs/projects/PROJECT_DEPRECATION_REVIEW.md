@@ -104,3 +104,5 @@ target are clear.
 | `deprecation_reason` | `duplicate_owner`, `stale_pointer`, `task_not_project`, `reference_only`, `corrupted_surface`, `superseded_by`, `non_project_artifact` |
 | `canonical_owner` | Project/card that should own routed work. |
 | `human_decision_required` | `yes` or `no`; use `yes` when merge/archive could lose intent. |
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/projects/PROJECT_DEPRECATION_REVIEW.md","sha256WithoutMarker":"e28292780f8eb165fce28992db6cf3185329d65bd2b6a9d2592657225ca9b24c","markedAtUtc":"2026-06-25T22:54:19.195Z"} -->

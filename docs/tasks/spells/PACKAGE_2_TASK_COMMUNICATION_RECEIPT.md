@@ -1,6 +1,6 @@
 # Package 2 Task Communication Receipt
 
-Status: active Package 2 task communication receipt.
+Status: historical Package 2 communication receipt; PR #935 merged.
 
 This receipt is the durable communication log for Package 2 once the Symphony
 draft, Jules handoff, or task page exists. It keeps task-scoped messages,
@@ -95,3 +95,5 @@ Do not treat broad Codex thread context as task-scoped Package 2 communication.
   answer, and next proof in the decision report as well as this receipt.
 - If Jules feedback is sent, record why local review, a decision-report entry, or
   a GitHub comment was not the better communication channel.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_2_TASK_COMMUNICATION_RECEIPT.md","sha256WithoutMarker":"d3d50309acf269032aec100316cd8e22948fbbe83d2ac71fe3b635a35b376b7a","markedAtUtc":"2026-06-25T22:29:38.349Z"} -->

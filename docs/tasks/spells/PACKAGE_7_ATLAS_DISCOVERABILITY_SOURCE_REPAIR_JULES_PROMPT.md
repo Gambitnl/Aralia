@@ -97,3 +97,5 @@ git diff --check -- .gitignore src\spell-pipeline-atlas.tsx src\components\Desig
 
 Return a PR that contains only the bounded Atlas repair and documentation notes.
 Do not include Symphony runtime/source/local-state artifacts.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_PROMPT.md","sha256WithoutMarker":"4beca42b224bd08b2537fdf95c05917eb69fedd23b589ac9ff90f2e239e08a21","markedAtUtc":"2026-06-25T22:29:38.365Z"} -->

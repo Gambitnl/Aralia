@@ -73,3 +73,5 @@ Do not assume:
 - that spell entries need standalone glossary content files
 - that every hierarchy still requires manual JSON nesting after regeneration
 - that a design guide should override the actual generator behavior on disk
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md","sha256WithoutMarker":"5e635082b34e44f4454ef1413d9cf95b26d7d805d7c03ea397eeb8e596f3d343","markedAtUtc":"2026-06-25T22:29:38.319Z"} -->

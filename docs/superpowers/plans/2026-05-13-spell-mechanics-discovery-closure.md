@@ -148,3 +148,5 @@
 - [ ] **Step 3: Completion audit**
 
   Restate the goal as deliverables, map each requirement to the report or command that proves it, inspect the evidence, and mark the active goal complete only if all actionable discovery buckets are closed or intentionally deferred.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-05-13-spell-mechanics-discovery-closure.md","sha256WithoutMarker":"c00b2a42f4cdd11aa45f46b7f800ab39be5fd4047d5847f565df821c21f4f45e","markedAtUtc":"2026-06-25T22:29:38.316Z"} -->

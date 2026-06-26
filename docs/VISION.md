@@ -912,3 +912,5 @@ Every session, the world should feel different because:
 *This document is a living vision. It will evolve as the game develops.*
 
 $12026-05-17
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/VISION.md","sha256WithoutMarker":"cccf39bf6b5ad29428de07069468274006f9b3328119b61b3485ee9eaf9e9c27","markedAtUtc":"2026-06-25T22:29:38.325Z"} -->

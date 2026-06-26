@@ -170,3 +170,5 @@ This packet is safe to keep as durable Aralia-facing task context. The previous
 local-change boundary was resolved before dispatch. Keep Symphony
 runtime/source/local-state artifacts out of Aralia; only preserve the bounded
 Atlas repair and the concise package-facing documentation updates listed above.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_TASK.md","sha256WithoutMarker":"cdb5f13eb7cbd6b45b25b1942a53f076f65b1b3e723bbd19739a4e77b3016bf4","markedAtUtc":"2026-06-25T22:29:38.364Z"} -->

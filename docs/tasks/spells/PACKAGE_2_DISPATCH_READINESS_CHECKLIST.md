@@ -1,6 +1,6 @@
 # Package 2 Dispatch Readiness Checklist
 
-Status: dispatched to Jules; waiting on Jules queue/plan/PR state.
+Status: historical dispatch checklist; Package 2 completed and PR #935 merged.
 
 Historical closeout note: Package 2 has since completed the dispatch, Jules
 session, PR, review, merge, and closeout path. This checklist is retained as
@@ -143,3 +143,5 @@ npm run validate:spells
 
 That fallback may change lockfile state inside Jules' working copy, so it must
 not silently replace `npm ci` without a recorded decision.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_2_DISPATCH_READINESS_CHECKLIST.md","sha256WithoutMarker":"214c82bd8ad4d249bd4b7456558768ab4750a8aa2cf9b05bf70dd965d1f25106","markedAtUtc":"2026-06-25T22:29:38.347Z"} -->

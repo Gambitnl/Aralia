@@ -44,3 +44,5 @@ critical scope review.
   cross-reference this global gap ID, evidence/source, classification, why it
   matters, next action, and next proof/check.
 - When scope review rejects a gap, mark it `declined` with a concise reason.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/agent-workflows/living-project-task-protocol/templates/GLOBAL_GAPS.md","sha256WithoutMarker":"81b5daa161f53a942bb083e6dca69526521222678ef8a6cb186a96f61b25e9c7","markedAtUtc":"2026-06-25T22:57:26.961Z"} -->

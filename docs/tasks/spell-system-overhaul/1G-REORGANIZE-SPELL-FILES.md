@@ -13,3 +13,4 @@
 
 - [`../../archive/spell-system/1G-REORGANIZE-SPELL-FILES.md`](../../archive/spell-system/1G-REORGANIZE-SPELL-FILES.md)
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/1G-REORGANIZE-SPELL-FILES.md","sha256WithoutMarker":"1125d36a1c07142bc5b01856da1c9b220c4332ed16ab4dfb5659cdabbf413a88","markedAtUtc":"2026-06-25T22:29:38.576Z"} -->

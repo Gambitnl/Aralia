@@ -72,3 +72,5 @@ If a more focused combat pilot test is added, record the exact command that ran.
   committing timestamp churn.
 - Do not use this receipt to claim AI arbitration spell behavior; that belongs
   to Package 5.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_4_ATLAS_GATE_CHECKPOINT_RECEIPT.md","sha256WithoutMarker":"9e3f184297afa7d132da8bd9d9bf9a100a8959da473a285b877383eef3e40607","markedAtUtc":"2026-06-25T22:29:38.358Z"} -->

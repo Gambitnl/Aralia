@@ -158,7 +158,24 @@
     "alert"
   ],
   "featChoices": {},
-  "equippedItems": {},
+  "equippedItems": {
+    "MainHand": {
+      "id": "shortsword",
+      "name": "Shortsword",
+      "description": "A light, agile blade. Finesse - can use Strength or Dexterity.",
+      "type": "weapon",
+      "category": "Martial Melee Weapon",
+      "damageDice": "1d6",
+      "damageType": "piercing",
+      "properties": [
+        "finesse",
+        "light"
+      ],
+      "isMartial": true,
+      "mastery": "Nick",
+      "rarity": "Common"
+    }
+  },
   "statusEffects": [],
   "racialSelections": {},
   "visuals": {

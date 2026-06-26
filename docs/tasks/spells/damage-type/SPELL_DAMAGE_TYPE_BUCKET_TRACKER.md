@@ -218,3 +218,5 @@ Blocked on Phase 1 per Gap 15. Once Phase 1 closes:
   scope here.
 - Saving throws and damage application logic live in the runtime
   damage-resolution code, not in this bucket.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/damage-type/SPELL_DAMAGE_TYPE_BUCKET_TRACKER.md","sha256WithoutMarker":"45aedaf3b6c140e4d900e98ec41baddc171a53bb6b74dc8ba272c35f77f37da9","markedAtUtc":"2026-06-25T22:29:38.511Z"} -->

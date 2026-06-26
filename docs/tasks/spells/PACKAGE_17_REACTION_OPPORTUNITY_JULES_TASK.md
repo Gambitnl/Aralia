@@ -1,6 +1,6 @@
 # Package 17 Jules Task: Reaction And Opportunity Restrictions
 
-Status: draft package packet for the next Jules-preferred mechanics slice.
+Status: historical Package 17 packet; PR #1140 and repair PR #1141 merged.
 
 This packet promotes the next tracker-defined bucket after Package 16:
 `reaction_or_opportunity_restriction`. Package 16 closed the safe
@@ -234,3 +234,5 @@ with the package verification rather than widening into tooling repair.
 - Focused tests prove the selected rows expose the intended facts through the
   chosen runtime/data path.
 - Bucket counts and statuses are updated only for rows proven by the final diff.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_17_REACTION_OPPORTUNITY_JULES_TASK.md","sha256WithoutMarker":"934e3b5ac58571a5db8ff9a908ab7db2a0122da3a6f7087b1ba7f7c813a905dd","markedAtUtc":"2026-06-25T22:29:38.380Z"} -->

@@ -13,6 +13,7 @@
 import type { TownPlan } from '../artifacts';
 import type { Occupant, TownRoster, TownPlot } from './types';
 import { occupantLocationAt, type ActivityKind } from './occupantSchedule';
+import { routeAlongStreets, positionAlongPath, type StreetGraph, type Point } from './agentPath';
 
 export interface AgentSnapshot {
   occupantId: number;
@@ -73,4 +74,60 @@ export function activityTallyAt(
   const tally: Record<ActivityKind, number> = { sleeping: 0, home: 0, working: 0, out: 0 };
   for (const a of townSnapshotAt(plan, roster, hour)) tally[a.activity]++;
   return tally;
+}
+
+/** An agent placed with continuous (possibly in-transit) motion. */
+export interface MovingAgentSnapshot extends AgentSnapshot {
+  /** True while the agent is walking a street route between two plots. */
+  moving: boolean;
+}
+
+/**
+ * Fraction of an hour an agent spends walking the streets after their scheduled
+ * plot changes (a plot flip at the hour boundary = a commute). For the first
+ * `COMMUTE_FRAC` of that hour they interpolate along the street route from the
+ * previous plot to the new one; afterward they're settled at the destination.
+ */
+const COMMUTE_FRAC = 0.5;
+
+/**
+ * Like `townSnapshotAt`, but at a FRACTIONAL `clock` (hours, e.g. 7.5) and with
+ * continuous positions: an agent whose scheduled plot just changed walks the
+ * street route between the two plots (via `routeAlongStreets`/`positionAlongPath`)
+ * across the commute window instead of teleporting at the boundary. The town
+ * feels alive — people are seen moving between home and work — while staying pure
+ * and deterministic. Build the `graph` once with `buildStreetGraph(plan)`.
+ */
+export function townMotionSnapshotAt(
+  plan: TownPlan,
+  graph: StreetGraph,
+  roster: TownRoster,
+  clock: number,
+): MovingAgentSnapshot[] {
+  const centroids = new Map<number, [number, number]>();
+  for (const plot of plan.plots) centroids.set(plot.id, centroidOf(plot));
+
+  const wrapped = ((clock % 24) + 24) % 24;
+  const hr = Math.floor(wrapped);
+  const frac = wrapped - hr;
+
+  const out: MovingAgentSnapshot[] = [];
+  for (const occ of roster.occupants as Occupant[]) {
+    const cur = occupantLocationAt(occ, hr);
+    const dest = centroids.get(cur.plotId);
+    if (!dest) continue; // defensive: roster always references plan plots
+
+    const prev = occupantLocationAt(occ, hr - 1);
+    const from = prev.plotId !== cur.plotId ? centroids.get(prev.plotId) : undefined;
+    if (from && frac < COMMUTE_FRAC) {
+      // Walking the streets from the previous plot to the new one.
+      const route = routeAlongStreets(graph, from as Point, dest as Point);
+      const [x, y] = positionAlongPath(route, frac / COMMUTE_FRAC);
+      out.push({ occupantId: occ.id, name: occ.name, activity: cur.activity, plotId: cur.plotId, x, y, moving: true });
+    } else {
+      // Settled at the scheduled plot's centroid.
+      out.push({ occupantId: occ.id, name: occ.name, activity: cur.activity, plotId: cur.plotId, x: dest[0], y: dest[1], moving: false });
+    }
+  }
+  return out;
 }

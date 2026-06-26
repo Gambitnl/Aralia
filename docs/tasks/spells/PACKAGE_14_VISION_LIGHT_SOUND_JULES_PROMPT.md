@@ -74,3 +74,5 @@ Expected output:
    changed, or the exact reason that documented sync could not run.
 8. A completion note naming changed files, tests run, rows proven closed, and
    residual rows left for later.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_14_VISION_LIGHT_SOUND_JULES_PROMPT.md","sha256WithoutMarker":"f62d76c31607967ea49ece1f75b0329c80fc52e508f1df7a6e7867c4b24339ba","markedAtUtc":"2026-06-25T22:29:38.377Z"} -->

@@ -7,8 +7,8 @@ status: "active (G3/G4 decided 2026-06-10; implementation lane open)"
 status_note: ""
 registry_mode: canonical
 last_updated: "2026-06-25"
-gap_count: 4
-open_gap_count: 4
+gap_count: 5
+open_gap_count: 5
 resolved_gap_count: 0
 routed_gap_count: 0
 imported_gap_count: 0
@@ -102,8 +102,8 @@ supported_optional_sections:
 project: Layout Project
 slug: layout
 last_updated: \"2026-06-25\"
-gap_count: 4
-open_gap_count: 4
+gap_count: 5
+open_gap_count: 5
 north_star: docs/projects/layout/NORTH_STAR.md
 tracker: docs/projects/layout/TRACKER.md
 global_gaps: docs/projects/GLOBAL_GAPS.md
@@ -125,6 +125,7 @@ Use this file for durable unresolved findings tied directly to Layout.
 | CMA-G17 | not_started | adjacent_follow_up | layout owner | `docs/projects/code-modularization-audit/GAPS.md` CMA-G17 | Code modularization audit routing | `GameModals.tsx` (~721 lines) is the central modal orchestration file; it crosses many owners and lazy-load boundaries, making regressions easy to hide. | `src/components/layout/GameModals.tsx`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G17 | A split of the modal manager without open/close smoke proof and interaction-lock clarity can break overlays across many surfaces. Blocked on G3 (`isUIInteractive` decision) and G4 (App-shell split contract) â€” both decided 2026-06-10 (D7), so the precondition is cleared. | Accept or defer the inbound CMA-G17 route; G3/G4 are resolved (2026-06-10, D7), so if accepting, create a narrow modal-manager split plan with open/close coverage. | Owner gap row exists and CMA-G17 status is updated to reflect acceptance or deferral. |
 | G5 | not_started | support_needed_now | Codex | Modal focus and keyboard navigation | `docs/BACKLOG.md` migration 2026-06-25 | Centralized modal focus management and keyboard navigation need a layout-owned contract. | `docs/BACKLOG.md`; `src/components/layout/GameModals.tsx` | Modal behavior spans many surfaces; without a shared focus/keyboard policy, fixes fragment across individual dialogs. | Define focus trap, escape, restore-focus, and tab-order expectations before refactoring modal orchestration. | Focused tests proving at least one modal opens, traps focus, closes with Escape, and restores focus. |
 | G6 | not_started | adjacent_follow_up | Codex | Shared UI action registry | `docs/BACKLOG.md` migration 2026-06-25 | The UI toggle list in `useGameActions` should derive from a shared action registry to reduce drift. | `docs/BACKLOG.md`; `src/hooks/useGameActions.ts`; `src/types/ui.ts` | Toggle drift can leave loading states or UI actions classified inconsistently across the app shell. | Move toggle classification to the shared action metadata path, preserving current exceptions. | Unit tests proving known UI toggles do not trigger global loading while gameplay actions still do. |
+| G7 | not_started | ui | Codex | User-facing settings surface | `docs/improvements/SETTINGS_MENU_PLAN.md` retirement 2026-06-25 | Aralia still lacks a confirmed first-class settings menu or settings modal for player preferences such as reduced motion, animation control, autosave behavior, or local/cloud model preference. | Retired `docs/improvements/SETTINGS_MENU_PLAN.md`; `src/components/layout/MainMenu.tsx`; `src/App.tsx`; `src/components/layout/GameModals.tsx`; `src/state/appState.ts`; `src/components/ui/NotificationSystem.tsx` reduced-motion consumer | Player preferences are already present in scattered state and UI behavior, but without a central settings surface users cannot discover or manage them consistently. | Define the first settings vertical slice: where preferences live, where the player opens settings, and one behavior that visibly changes from the setting. Start with reduced motion or another existing preference before adding a broad options suite. | Focused UI/state tests plus rendered proof that the Settings entry opens, the first preference persists, and one existing UI behavior changes according to that preference. |
 
 ## Classification Reference
 

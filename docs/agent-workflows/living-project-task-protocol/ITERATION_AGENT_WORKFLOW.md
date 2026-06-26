@@ -340,3 +340,5 @@ Then output the refreshed project handoff between these markers:
 
 Do not add text after the `---END NEXT AGENT HANDOFF---` marker when the
 handoff is intended for direct copy-paste into a cold-start agent.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md","sha256WithoutMarker":"d53cce2ca89853c1ca4c022f05f7732b4e544649263dfba4ff3806be871043e3","markedAtUtc":"2026-06-25T22:57:26.953Z"} -->

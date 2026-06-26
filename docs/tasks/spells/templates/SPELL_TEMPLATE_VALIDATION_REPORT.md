@@ -237,3 +237,5 @@ This report checks the structured markdown template, runtime JSON template, and 
   - Structured markdown uses an implicit blank-like non-applicable value instead of the explicit not_applicable sentinel.
   - Actual: `none`
   - Expected: `not_applicable`
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/templates/SPELL_TEMPLATE_VALIDATION_REPORT.md","sha256WithoutMarker":"726b5479510cf7acfb6958ac4b29c3521bb59c9f79f4c57c48a1c512025a38c1","markedAtUtc":"2026-06-25T22:29:38.565Z"} -->

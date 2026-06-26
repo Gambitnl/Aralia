@@ -685,3 +685,5 @@ tracker. Add the other files only when the project needs that supporting role.
 | [DECISIONS.md](./templates/DECISIONS.md) | The project has meaningful path choices to preserve. |
 | [AUDIT_OR_PROOF.md](./templates/AUDIT_OR_PROOF.md) | Verification summaries or non-regenerable proof need a focused record. |
 | [RUNBOOK.md](./templates/RUNBOOK.md) | Repeatable operator steps need to survive beyond the conversation. |
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/agent-workflows/living-project-task-protocol/README.md","sha256WithoutMarker":"016729851f72bab958cc5b11b2f601305221f09a04fa35dcc7aecb59ac7404e2","markedAtUtc":"2026-06-25T22:57:26.956Z"} -->

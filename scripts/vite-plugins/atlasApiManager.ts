@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { execFileSync } from 'child_process';
 
 /**
  * Local Vite API for the Aralia Atlas explorer.
@@ -23,6 +24,22 @@ const ATLAS_ROOT = path.resolve(process.cwd(), '.agent', 'atlas');
 const KNOWLEDGE_TREE_PATH = path.join(ATLAS_ROOT, 'exports', 'knowledge-tree.json');
 const PLAN_HEALTH_PATH = path.join(ATLAS_ROOT, 'exports', 'plan-health.json');
 const REPORT_DIR = path.join(ATLAS_ROOT, 'reports');
+const BACKLOG_SNAPSHOT_PATH = path.resolve(process.cwd(), 'docs', 'tasks', 'backlog-retirement', 'WALKED_FILE_SNAPSHOT.json');
+const BACKLOG_MARKER_PREFIX = '<!-- aralia-backlog-walked:';
+const BACKLOG_RECENT_LIMIT = 8;
+
+interface BacklogSnapshotEntry {
+  backlogFile: string;
+  walkState: string;
+  exists?: boolean;
+  kind?: string;
+  modifiedUtc?: string | null;
+  sha256?: string | null;
+}
+
+interface BacklogSnapshot {
+  entries?: BacklogSnapshotEntry[];
+}
 
 function sendJson(res: any, status: number, data: unknown): void {
   res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
@@ -31,6 +48,99 @@ function sendJson(res: any, status: number, data: unknown): void {
 
 function readJsonFile(filePath: string): unknown {
   return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+}
+
+function toRepoPath(absolutePath: string): string {
+  return path.relative(process.cwd(), absolutePath).replace(/\\/g, '/');
+}
+
+function shouldSkipMarkdownDirectory(absolutePath: string): boolean {
+  const directoryName = path.basename(absolutePath);
+  const repoPath = toRepoPath(absolutePath);
+  return ['.git', 'node_modules', 'dist', 'build', '.vite', '.cache', 'coverage'].includes(directoryName)
+    || repoPath.startsWith('.agent/scratch/')
+    || repoPath.startsWith('.agent/roadmap-local/tooling_state');
+}
+
+function walkMarkdownFiles(rootPath: string): string[] {
+  const files: string[] = [];
+
+  function visit(currentPath: string): void {
+    if (shouldSkipMarkdownDirectory(currentPath)) return;
+
+    const stat = fs.statSync(currentPath);
+    if (stat.isDirectory()) {
+      for (const child of fs.readdirSync(currentPath)) {
+        visit(path.join(currentPath, child));
+      }
+      return;
+    }
+
+    if (stat.isFile() && currentPath.endsWith('.md')) {
+      files.push(currentPath);
+    }
+  }
+
+  if (fs.existsSync(rootPath)) visit(rootPath);
+  return files.sort();
+}
+
+function readBacklogCandidates(): unknown {
+  const output = execFileSync(
+    process.execPath,
+    ['scripts/audits/mark-backlog-walked.cjs', '--candidates', '--root', 'docs', '--limit', '12', '--json'],
+    { cwd: process.cwd(), encoding: 'utf-8', timeout: 10_000 },
+  );
+  return JSON.parse(output);
+}
+
+function readRecentBacklogActivity(snapshot: BacklogSnapshot): unknown[] {
+  const entries = Array.isArray(snapshot?.entries) ? snapshot.entries : [];
+
+  // The ledger is append-oriented, so the newest concrete review rows are near
+  // the end. Skip the ledger's self-reference and bucket globs because they are
+  // control state, not files the user needs to see as "last worked".
+  return entries
+    .filter((entry) => typeof entry?.backlogFile === 'string')
+    .filter((entry) => !entry.backlogFile.includes('*'))
+    .filter((entry) => entry.backlogFile !== 'docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md')
+    .slice()
+    .reverse()
+    .slice(0, BACKLOG_RECENT_LIMIT)
+    .map((entry) => ({
+      path: entry.backlogFile,
+      walkState: entry.walkState,
+      exists: Boolean(entry.exists),
+      kind: entry.kind,
+      modifiedUtc: entry.modifiedUtc ?? null,
+      sha256: entry.sha256 ?? null,
+    }));
+}
+
+function readBacklogRetirementState(): unknown {
+  if (!fs.existsSync(BACKLOG_SNAPSHOT_PATH)) {
+    return {
+      available: false,
+      message: 'Run `npm run backlog:snapshot` before opening backlog-retirement progress.',
+    };
+  }
+
+  const docsMarkdown = walkMarkdownFiles(path.resolve(process.cwd(), 'docs'));
+  const markedMarkdown = docsMarkdown.filter((filePath) => fs.readFileSync(filePath, 'utf-8').includes(BACKLOG_MARKER_PREFIX));
+  const snapshot = readJsonFile(BACKLOG_SNAPSHOT_PATH);
+
+  return {
+    available: true,
+    generatedAt: new Date().toISOString(),
+    snapshot,
+    markerSummary: {
+      totalMarkdown: docsMarkdown.length,
+      markedMarkdown: markedMarkdown.length,
+      missingMarkdown: docsMarkdown.length - markedMarkdown.length,
+    },
+    recentActivity: readRecentBacklogActivity(snapshot),
+    candidates: readBacklogCandidates(),
+  };
 }
 
 function latestReportPath(): string | null {
@@ -87,6 +197,18 @@ export const atlasApiManager = () => ({
           path: reportPath,
           content: fs.readFileSync(reportPath, 'utf-8'),
         });
+        return;
+      }
+
+      if (urlPath === '/api/atlas/backlog-retirement') {
+        try {
+          sendJson(res, 200, readBacklogRetirementState());
+        } catch (error) {
+          sendJson(res, 500, {
+            error: 'Atlas backlog-retirement state failed to load',
+            message: error instanceof Error ? error.message : String(error),
+          });
+        }
         return;
       }
 

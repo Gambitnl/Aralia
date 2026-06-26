@@ -34,3 +34,5 @@ If you need current level-2 truth, trust:
 ## Preserved Historical Value
 
 This file still helps explain how level-2 spells were grouped and what mechanics were considered notable during that migration wave.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/LEVEL-2-BATCHES.md","sha256WithoutMarker":"e594847d4156c7a0897c2e4086df90e18f15e3da014666ea7124b51b50c52a26","markedAtUtc":"2026-06-25T22:29:38.587Z"} -->

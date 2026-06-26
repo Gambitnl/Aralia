@@ -168,3 +168,5 @@ cleanly by the schema yet.
   preserve it until a migration pass can map the current rows into the
   canonical columns without discarding decision, routing, proof, or ownership
   context.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/agent-workflows/living-project-task-protocol/templates/GAPS.md","sha256WithoutMarker":"4ef34f24b3656c7fcd1cea04da27c6ec6205c3a589b26c31a5e85114aecf9cbc","markedAtUtc":"2026-06-25T22:57:26.961Z"} -->

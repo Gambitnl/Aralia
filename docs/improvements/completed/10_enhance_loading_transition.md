@@ -45,3 +45,5 @@ This note still captures a durable UX principle:
 - major save/load state changes benefit from a dedicated transition state instead of an abrupt UI jump
 - game phase transitions can be used to stage smoother user experiences
 - save/load presentation should live near the save/load feature surface rather than as an orphaned one-off component
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/improvements/completed/10_enhance_loading_transition.md","sha256WithoutMarker":"232a66b391cb0835f9a51a8ec3b072a248bd65685d1fc11313a7d5306aebe251","markedAtUtc":"2026-06-25T22:49:17.529Z"} -->

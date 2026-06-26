@@ -49,3 +49,4 @@ Expected output:
 6. A completion note naming changed files, tests run, behavior proven, and any
    residual limitation.
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_8_BLESS_BANE_ROLL_MODIFIERS_JULES_PROMPT.md","sha256WithoutMarker":"3dd35febf3519d6be9174bb7fe423a9fe4bdeb818e475db125641f86cc6b494e","markedAtUtc":"2026-06-25T22:29:38.367Z"} -->

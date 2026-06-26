@@ -28,3 +28,5 @@ Treat it as local historical context only.
 ## Preserved Value
 
 This packet still helps explain the transition from older flat spell-data guidance into the current levelized and validator-first spell workflow.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/archive/@README.md","sha256WithoutMarker":"29bbdb4a6661416e093dcc82077b36dcfa64182efcfea09fe8b5fecd1d6c07c6","markedAtUtc":"2026-06-25T22:29:38.597Z"} -->

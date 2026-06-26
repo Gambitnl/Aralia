@@ -1,6 +1,6 @@
 # Package 11 Jules Task: Status And State Changes
 
-Status: draft package packet for the next Jules-preferred mechanics slice.
+Status: historical Package 11 packet; PR #1072 merged on 2026-05-25.
 
 This packet promotes tracker gap `G105` into a bounded implementation task. It
 exists because Package 10 closed the representative target-filter/eligibility
@@ -215,3 +215,5 @@ Artifact boundary:
 - External Symphony / local ignored state: dashboard run state, draft IDs,
   handoff receipts, generated manifests, click logs, and raw Jules process
   output.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_11_STATUS_OR_STATE_CHANGE_JULES_TASK.md","sha256WithoutMarker":"868db59fbe394e3e95089b062bdc1fa0f1f0bbb109b56a6ad21366084e972c17","markedAtUtc":"2026-06-25T22:29:38.372Z"} -->

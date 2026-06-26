@@ -308,12 +308,6 @@
 |---|---|
 | 40 | `A staff of one hundred invisible servants obeys any command given to them by creatures you designate when you cast the spell. Each servant functions a...` |
 
-### `docs/tasks/investigations/DICE_ROLLER_ANALYSIS.md`
-
-| Line | Snippet |
-|---|---|
-| 73 | `**Risk**: `useDiceBox.ts` contains critical fixes for React Strict Mode (removing stale canvases) that are **missing** from `DiceService.ts`. This sug...` |
-
 ### `docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md`
 
 | Line | Snippet |

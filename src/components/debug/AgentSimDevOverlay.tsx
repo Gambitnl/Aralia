@@ -3,7 +3,7 @@ import { useGameState } from '../../state/GameContext';
 import { rootSeedPath } from '../../systems/worldforge/seedPath';
 import { generateTownPlan } from '../../systems/worldforge/town/generateTownPlan';
 import { generateTownRoster } from '../../systems/worldforge/roster/generateTownRoster';
-import { scheduleHourFromGameTime } from '../../systems/worldforge/roster/gameClock';
+import { scheduleClockFromGameTime } from '../../systems/worldforge/roster/gameClock';
 import TownAgentSnapshotView from '../Worldforge/TownAgentSnapshotView';
 
 /**
@@ -53,7 +53,11 @@ const AgentSimDevOverlay: React.FC = () => {
     return { plan: p, roster: r };
   }, [worldSeed]);
 
-  const hour = state.gameTime instanceof Date ? scheduleHourFromGameTime(state.gameTime) : 0;
+  // Fractional clock from the game time; a manual scrub overrides it so you can
+  // drag through the day and watch agents walk the streets between home and work.
+  const liveClock = state.gameTime instanceof Date ? scheduleClockFromGameTime(state.gameTime) : 0;
+  const [scrub, setScrub] = useState<number | null>(null);
+  const clock = scrub ?? liveClock;
 
   return (
     <div style={{ position: 'fixed', right: 12, bottom: 12, zIndex: 4000, fontFamily: 'sans-serif' }} data-testid="agent-sim-dev-overlay">
@@ -70,9 +74,30 @@ const AgentSimDevOverlay: React.FC = () => {
               ×
             </button>
           </div>
-          <TownAgentSnapshotView plan={plan} roster={roster} hour={hour} width={300} height={300} />
+          <TownAgentSnapshotView plan={plan} roster={roster} hour={Math.floor(clock)} clock={clock} width={300} height={300} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
+            <input
+              type="range"
+              min={0}
+              max={24}
+              step={0.05}
+              value={clock}
+              onChange={(e) => setScrub(Number(e.target.value))}
+              style={{ flex: 1 }}
+              aria-label="Scrub town clock"
+              data-testid="agent-sim-clock-scrub"
+            />
+            <button
+              type="button"
+              onClick={() => setScrub(null)}
+              style={{ background: '#21262d', color: '#c9d1d9', border: '1px solid #30363d', borderRadius: 4, fontSize: 10, cursor: 'pointer', padding: '1px 6px' }}
+              title="Follow the live game clock"
+            >
+              live
+            </button>
+          </div>
           <div style={{ color: '#8b949e', fontSize: 10, marginTop: 4 }}>
-            Live on the game clock — advance time to watch the town wake, work, and sleep.
+            {scrub === null ? 'Live on the game clock' : 'Scrubbing'} — drag to watch townsfolk walk between home and work.
           </div>
         </div>
       ) : (

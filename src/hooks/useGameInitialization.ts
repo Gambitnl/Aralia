@@ -251,7 +251,14 @@ export function useGameInitialization({
   // Takes the fully built character, their chosen starting inventory,
   // and the world seed, then assembles all the data needed to boot into gameplay.
   const startGame = useCallback(
-    async (character: PlayerCharacter, startingInventory: Item[], worldSeed: number) => {
+    async (
+      character: PlayerCharacter,
+      startingInventory: Item[],
+      worldSeed: number,
+      // When the player picked a start town (Start Point Selection), spawn there
+      // instead of the auto capital/burg. Omitted ⇒ auto spawn (dev skip path).
+      startTown?: { atlasCellId: number; name?: string; region?: string },
+    ) => {
       // Look up the starting location (e.g. the town square) for its description text.
       const initialLocation = LOCATIONS[STARTING_LOCATION_ID];
 
@@ -285,6 +292,8 @@ export function useGameInitialization({
             biomeIndexToLegacyId: (idx) => wfBiomeIndexToLegacyId(idx),
             fallbackBiomeId: initialLocation.biomeId,
             isWalkable: (biomeId) => BIOMES[biomeId]?.passable ?? false,
+            spawnAtlasCellId: startTown?.atlasCellId,
+            spawnBurgName: startTown?.name,
           },
         );
       } catch (err) {
@@ -308,6 +317,8 @@ export function useGameInitialization({
         initialActiveDynamicNpcIds: initialActiveDynamicNpcs,
         worldHistory: createBootstrapWorldHistory(worldSeed),
         worldSeed,
+        startTownName: startTown?.name,
+        startTownRegion: startTown?.region,
       };
 
       // Dispatch transitions the game phase from character creation into active gameplay.

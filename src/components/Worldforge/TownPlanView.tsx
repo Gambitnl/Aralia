@@ -1,11 +1,20 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { polygonBounds, pointInPolygon, type Pt } from '../../systems/worldforge/submap/submapEngine';
 import type { TownPlan, CivicKind, BuildingPlot } from '../../systems/worldforge/town/townEngine';
+import { generateHousehold } from '../../systems/worldforge/town/household';
+import { BUILDING_FILL, BUILDING_LABEL } from '../../systems/worldforge/town/buildingStyle';
+import type { SeedPath } from '../../systems/worldforge/seedPath';
+import { useTownLayers, TOWN_LAYER_DEFS } from './useDrillLayers';
+import DrillLayerPanel from './DrillLayerPanel';
 
 export interface TownPlanViewProps {
   plan: TownPlan;
   width?: number;
   height?: number;
+  /** Town seed-path — enables naming the household living in a hovered home. */
+  seedPath?: SeedPath;
+  /** Per-save scope for the town layer toggles (pass the world seed). */
+  prefsScope?: string | number;
 }
 
 const CIVIC_COLOR: Record<CivicKind, string> = {
@@ -53,9 +62,13 @@ const hashPt = (x: number, y: number): number => {
 // Architectural building types by position — town-map categories, not wired to
 // specific NPCs/businesses. Central street-fronts read as commercial/civic,
 // outer fronts residential, ward interiors as utility/outbuildings.
+// (Fallback only — used when a plan carries no population/buildingType data.)
 const TYPES_CENTRAL = ['Inn', 'Tavern', 'Trade Hall', 'Merchant Shop', 'Guild House', 'Townhouse'];
 const TYPES_OUTER = ['Townhouse', 'Cottage', 'Workshop', 'Smithy', 'Bakehouse', 'Longhouse'];
 const TYPES_INTERIOR = ['Cottage', 'Storehouse', 'Stable', 'Workshop', 'Granary'];
+
+// Building-type colours + labels live in the shared `buildingStyle` module so the
+// 2D map and the 3D town agree (see BUILDING_FILL / BUILDING_LABEL imports).
 
 interface HoverInfo {
   poly: Pt[];
@@ -72,7 +85,8 @@ interface HoverInfo {
  * fit-to-view + manual pan/zoom. Hovering a building or civic structure highlights
  * it and shows an inspector tooltip. This is the deepest 2D tier the drill reaches.
  */
-const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height = 560 }) => {
+const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height = 560, seedPath, prefsScope }) => {
+  const { layers, toggle } = useTownLayers(prefsScope);
   const bounds = useMemo(() => polygonBounds(plan.footprint), [plan]);
   const fit = useMemo(() => {
     const w = bounds.maxX - bounds.minX || 1;
@@ -101,19 +115,41 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
 
   const describeBuilding = (pl: BuildingPlot, wardCivic?: CivicKind): { title: string; lines: string[] } => {
     const c = centroidOf(pl.polygon);
+    const area = areaOf(pl.polygon);
+    const size = area < stats.median * 0.6 ? 'Small' : area > stats.median * 1.6 ? 'Large' : 'Average';
+
+    // Engine-backed path: the population pass tagged this plot with a concrete type,
+    // occupancy, and a stable home id → show WHO lives here (lazy named household).
+    if (pl.buildingType) {
+      const title = BUILDING_LABEL[pl.buildingType];
+      const lines: string[] = [];
+      if (pl.residential) {
+        const occ = pl.occupants ?? 0;
+        lines.push(`Home · ${occ} resident${occ === 1 ? '' : 's'}`);
+        if (seedPath && pl.homeId && occ > 0) {
+          const hh = generateHousehold(seedPath, pl.homeId, occ, pl.buildingType);
+          lines.push(hh.summary);
+          for (const m of hh.members.slice(0, 3)) lines.push(`• ${m.name}, ${m.age} (${m.role})`);
+          if (hh.members.length > 3) lines.push(`…and ${hh.members.length - 3} more`);
+        }
+      } else {
+        lines.push('Workplace · no permanent residents');
+        lines.push(`${size} footprint · ${pl.shape === 'L' ? 'L-shaped' : 'rectangular'}`);
+      }
+      if (wardCivic) lines.push(`In the ${CIVIC_LABEL[wardCivic].toLowerCase()} ward`);
+      return { title, lines };
+    }
+
+    // Fallback (no population data): positional heuristic.
     const dist = Math.hypot(c[0] - stats.centre[0], c[1] - stats.centre[1]) / stats.span; // 0=centre .. ~0.7 edge
     const interior = pl.kind === 'interior';
     const central = !interior && dist < 0.22;
     const pool = interior ? TYPES_INTERIOR : central ? TYPES_CENTRAL : TYPES_OUTER;
     const h = hashPt(c[0], c[1]);
     const title = pool[h % pool.length];
-
-    const area = areaOf(pl.polygon);
-    const size = area < stats.median * 0.6 ? 'Small' : area > stats.median * 1.6 ? 'Large' : 'Average';
     // Estimated storeys: central commercial taller, interior outbuildings low.
     // (Unsigned shift — a signed >> can go negative when h's top bit is set.)
     const storeys = central ? 2 + ((h >>> 3) % 2) : interior ? 1 : 1 + ((h >>> 3) % 2);
-
     const lines = [
       interior ? 'Courtyard building (ward interior)' : 'Street-front building',
       `${size} footprint · ${pl.shape === 'L' ? 'L-shaped' : 'rectangular'}`,
@@ -182,6 +218,20 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
         }
       }
     }
+    // Rural farmsteads (point homes on the farm parcels) — small hit box.
+    for (const f of plan.farmsteads ?? []) {
+      if (Math.abs(g[0] - f.x) <= 5 && Math.abs(g[1] - f.y) <= 5) {
+        const box: Pt[] = [[f.x - 4, f.y - 6], [f.x + 4, f.y - 6], [f.x + 4, f.y + 3], [f.x - 4, f.y + 3]];
+        const lines = [`Rural home · ${f.occupants} resident${f.occupants === 1 ? '' : 's'}`];
+        if (seedPath) {
+          const hh = generateHousehold(seedPath, f.id, f.occupants, 'farmstead');
+          lines.push(hh.summary);
+          for (const m of hh.members.slice(0, 3)) lines.push(`• ${m.name}, ${m.age} (${m.role})`);
+          if (hh.members.length > 3) lines.push(`…and ${hh.members.length - 3} more`);
+        }
+        return { poly: box, title: 'Farmstead', lines, px: f.x, py: f.y };
+      }
+    }
     return null;
   };
 
@@ -205,13 +255,15 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
   // Tooltip anchor in viewBox space (constant-size, follows the hovered shape).
   const tipX = hover ? hover.px * view.k + view.x : 0;
   const tipY = hover ? hover.py * view.k + view.y : 0;
-  const tipW = 168;
+  const tipW = 214;
   const tipLeft = Math.min(Math.max(tipX + 12, 4), width - tipW - 4);
   const lineH = 14;
   const tipH = 22 + (hover?.lines.length ?? 0) * lineH + 6;
   const tipTop = Math.min(Math.max(tipY + 12, 4), height - tipH - 4);
 
   return (
+    <div style={{ position: 'relative', width, height }}>
+    <DrillLayerPanel layers={layers} toggle={toggle} defs={TOWN_LAYER_DEFS} />
     <svg
       ref={svgRef}
       width={width}
@@ -248,19 +300,30 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
           <path key={`w${i}`} d={poly(w.block ?? w.polygon)} fill={w.civic === 'plaza' ? '#e7dcc0' : '#efe6d2'} stroke="#b7a77f" strokeWidth={0.4} vectorEffect="non-scaling-stroke" />
         ))}
         {/* Inherited main roads on top of the street grid (wider, distinct). */}
-        {plan.streets.map((s, i) => (
+        {layers.roads && plan.streets.map((s, i) => (
           <path key={`st${i}`} d={open(s)} fill="none" stroke="#b8a577" strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
         ))}
-        {plan.wards.flatMap((w, wi) => w.plots.map((pl, pi) => (
-          <path key={`p${wi}-${pi}`} d={poly(pl.polygon)} fill={pl.kind === 'interior' ? '#b89a72' : '#9c7b54'} stroke="#5f4527" strokeWidth={0.5} vectorEffect="non-scaling-stroke" />
+        {layers.buildings && plan.wards.flatMap((w, wi) => w.plots.map((pl, pi) => (
+          <path key={`p${wi}-${pi}`} d={poly(pl.polygon)}
+            fill={pl.buildingType ? BUILDING_FILL[pl.buildingType] : pl.kind === 'interior' ? '#b89a72' : '#9c7b54'}
+            stroke="#5f4527" strokeWidth={0.5} vectorEffect="non-scaling-stroke"
+            data-testid={pl.buildingType ? `town-building-${pl.buildingType}` : undefined} />
         )))}
-        {plan.civic.map((c, i) => (
+        {/* Rural farmsteads: scattered homes out on the farm parcels (where the
+            rural share of the population lives, working the fields). */}
+        {layers.buildings && (plan.farmsteads ?? []).map((f, i) => (
+          <g key={`fs${i}`} data-testid="town-farmstead">
+            <rect x={f.x - 3.5} y={f.y - 3} width={7} height={6} fill="#a98a5f" stroke="#5f4527" strokeWidth={0.5} vectorEffect="non-scaling-stroke" />
+            <path d={`M${(f.x - 4).toFixed(1)},${(f.y - 3).toFixed(1)}L${f.x.toFixed(1)},${(f.y - 6).toFixed(1)}L${(f.x + 4).toFixed(1)},${(f.y - 3).toFixed(1)}`} fill="#8a6643" stroke="#5f4527" strokeWidth={0.5} vectorEffect="non-scaling-stroke" />
+          </g>
+        ))}
+        {layers.civic && plan.civic.map((c, i) => (
           <path key={`c${i}`} d={poly(c.polygon)} fill={CIVIC_COLOR[c.kind]} stroke="#1c150a" strokeWidth={1} vectorEffect="non-scaling-stroke" />
         ))}
-        {plan.walls.ring.length > 0 && (
+        {layers.walls && plan.walls.ring.length > 0 && (
           <path d={poly(plan.walls.ring)} fill="none" stroke="#6b5836" strokeWidth={3} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
         )}
-        {plan.walls.gatehouses.map((g, i) => (
+        {layers.walls && plan.walls.gatehouses.map((g, i) => (
           <rect key={`g${i}`} x={g[0] - 4} y={g[1] - 4} width={8} height={8} fill="#5a4a2a" stroke="#2a1f10" strokeWidth={1} vectorEffect="non-scaling-stroke" />
         ))}
         <path d={poly(plan.footprint)} fill="none" stroke="#3a2a14" strokeWidth={2} vectorEffect="non-scaling-stroke" />
@@ -286,6 +349,7 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
         </g>
       )}
     </svg>
+    </div>
   );
 };
 

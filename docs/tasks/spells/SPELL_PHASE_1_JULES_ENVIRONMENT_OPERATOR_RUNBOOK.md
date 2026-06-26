@@ -78,3 +78,5 @@ npm run validate:spells
 
 The fallback can change lockfile state in the Jules working copy, so it is not
 equivalent to a clean setup snapshot.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_PHASE_1_JULES_ENVIRONMENT_OPERATOR_RUNBOOK.md","sha256WithoutMarker":"b41968bf56749fe8b85b3cc96a48314a961af7cbb4d774c23be2c9c9358b3c5a","markedAtUtc":"2026-06-25T22:29:38.555Z"} -->

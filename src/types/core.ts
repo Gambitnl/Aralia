@@ -41,6 +41,37 @@ export enum GamePhase {
    * unified combat logging and notification system in action.
    */
   COMBAT_MESSAGING_DEMO,
+  /**
+   * Spawn-on-land audit harness (?phase=spawnpreview). A dedicated preview mode
+   * for the reroll→spawn problem: rerolls worlds and renders the EXACT MapPane
+   * marker pipeline (grid↔atlas bridge → Voronoi site) over the real atlas, with
+   * a pass/fail readout and a batch iterator, so an ocean spawn is reproducible
+   * and visible in isolation. Appended LAST to keep phase indexes save-compatible.
+   * URL slug: 'spawnpreview'.
+   */
+  SPAWN_PREVIEW,
+  /**
+   * Agent-sim motion preview (?phase=agentsim). Standalone harness for the
+   * WF-AGENTSIM street-movement slice: generates a demo burg + roster and renders
+   * townsfolk walking between home and work as a clock scrubs the day — a visual
+   * sign-off for the sim-LOD motion layer, reachable without a playing session.
+   * Appended LAST to keep phase indexes save-compatible. URL slug: 'agentsim'.
+   */
+  AGENTSIM_PREVIEW,
+  /**
+   * 3D agent-walking proof (?phase=agentsim3d). Standalone R3F scene rendering the
+   * real <GroundAgents> InstancedMesh over a demo town — townsfolk walk the streets
+   * as the clock scrubs, reachable without the load-save → Enter-3D → click-cell
+   * chain. Appended LAST (save-compatible). URL slug: 'agentsim3d'.
+   */
+  AGENTSIM_3D_PREVIEW,
+  /**
+   * Start Point Selection — shown after character creation, before play. The
+   * player surveys the generated world and picks a *town* to begin in (the spawn
+   * is always a settlement, never wilderness/ocean). Appended LAST to keep phase
+   * indexes save-compatible. URL slug: 'startselect'.
+   */
+  START_POINT_SELECTION,
 }
 
 // Core D&D attributes

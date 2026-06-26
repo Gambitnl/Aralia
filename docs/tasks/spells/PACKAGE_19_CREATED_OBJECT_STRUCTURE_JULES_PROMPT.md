@@ -96,3 +96,5 @@ Output you should include at package completion:
 - Proof commands and outcomes.
 - Files changed.
 - Residual rows left for later packages or broader systems.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/PACKAGE_19_CREATED_OBJECT_STRUCTURE_JULES_PROMPT.md","sha256WithoutMarker":"6e596e3ea41690c5e95b39323134b30ea4039eb94a4481f68a39a92e8ba5f177","markedAtUtc":"2026-06-25T22:29:38.385Z"} -->

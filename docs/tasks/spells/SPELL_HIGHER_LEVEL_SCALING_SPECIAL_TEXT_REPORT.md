@@ -89,3 +89,5 @@ Distinct spells: 80
 | Crown of Stars | [docs/spells/reference/level-7/crown-of-stars.md](/F:/Repos/Aralia/docs/spells/reference/level-7/crown-of-stars.md:32) | When you cast this spell using a spell slot of 8th level or higher, the number of motes created increases by two for each slot level above 7th. |
 | Etherealness | [docs/spells/reference/level-7/etherealness.md](/F:/Repos/Aralia/docs/spells/reference/level-7/etherealness.md:29) | You can target up to three willing creatures (including yourself) for each spell slot level above 7. The creatures must be within 10 feet of you when you cast the spell. |
 | Dominate Monster | [docs/spells/reference/level-8/dominate-monster.md](/F:/Repos/Aralia/docs/spells/reference/level-8/dominate-monster.md:33) | Your Concentration can last longer with a level 9 spell slot (up to 8 hours). |
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/SPELL_HIGHER_LEVEL_SCALING_SPECIAL_TEXT_REPORT.md","sha256WithoutMarker":"8f37f9552ad72dbe041b3585e8ef83ffb429f264b8844cff9aa307ce8ab0e20e","markedAtUtc":"2026-06-25T22:29:38.547Z"} -->

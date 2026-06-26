@@ -6,13 +6,13 @@ category: active project
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-15
+last_updated: 2026-06-26
 iteration: 3
 confidence: high
 evidence: "docs/projects/travel/TRACKER.md; docs/projects/travel/GAPS.md"
-gap_signal: "10 open gaps; cell-native travel integration gaps (G6-G10) and travel core gaps (G1-G5) open"
+gap_signal: "16 open gaps; cell-native travel integration gaps (G6-G10), travel core gaps (G1-G5), marker merge G11, maritime follow-ups G13-G16, and provisioning G17 active with first helper slice; G12 done"
 protocol: living-project
-next_step: "Define first bounded task to spike cell-native Voronoi-keyed travel/discovery model behind the legacy grid (T4)."
+next_step: "Continue follow-up maritime scope through G13-G16 or return to cell-native travel gaps G6-G10."
 agent_comments: "Upgraded existing travel project to own cell-native travel path per D2."
 required_docs:
   - NORTH_STAR.md
@@ -40,7 +40,7 @@ human_decision_required: no
 # Travel System North Star
 
 Status: active
-Last updated: 2026-06-15
+Last updated: 2026-06-26
 
 ## Dashboard Card Schema
 
@@ -52,9 +52,9 @@ Last updated: 2026-06-15
 | Status | active |
 | Confidence | high |
 | Evidence | docs/projects/travel/TRACKER.md; docs/projects/travel/GAPS.md |
-| Gap signal | 10 open gaps; cell-native travel integration gaps (G6-G10) and travel core gaps (G1-G5) open |
+| Gap signal | 16 open gaps; cell-native travel integration gaps (G6-G10), travel core gaps (G1-G5), marker merge G11, maritime follow-ups G13-G16, and provisioning G17 active with first helper slice; G12 done |
 | Protocol | living-project |
-| Next step | Define first bounded task to spike cell-native Voronoi-keyed travel/discovery model behind the legacy grid (T4). |
+| Next step | Continue follow-up maritime scope through G13-G16 or return to cell-native travel gaps G6-G10. |
 | Required verification | docs_consistency, scoped_tests |
 | Completed verification | docs_consistency |
 | Last proof | 2026-06-15 |
@@ -118,10 +118,16 @@ Cell-native travel where the cell selected on the map, the cell traveled to, and
 | G4: Transport edge cases simplified. | adjacent_follow_up | Worker A | `TravelCalculations.ts` | Expand vehicle/load contracts. |
 | G5: Quick travel fatigue ignored. | adjacent_follow_up | Worker A | `SubmapPane.tsx` | Wire resource drain to quick travel. |
 | G6: Grid-resolution limit (Voronoi centroid-grid collapse). | in_scope_now | Worker A | `MapPane.tsx:458` (`gridTileFromWorld`) | Re-root travel target resolution to Voronoi cells. |
+| G12: Maritime multimodal routing core complete. | integration | Codex | Maritime Plan 1, `routePlanning.ts`, `multiModalAtlasGraph.ts`, `ensureIslandHarbors.ts`, `generateWorld.ts`, `multiModalRoute.ts`, `travelReadout.ts`, `AtlasSvgView.tsx`, `MapPane.tsx`, `.agent/scratch/maritime-map-proof/map-pane-generated-route-proof.png` | Done; future maritime work lives in G13-G16. |
 | G7: Cell-native player discovery tracking. | in_scope_now | Worker A | `MapPane.tsx` (`tile.discovered`) | Map discovery states to Voronoi cell IDs. |
 | G8: Decoupling map seed generation (`deriveAzgaarSeed`) from grid tiles. | support_needed_now | Worker A | `MapPane.tsx:67` | Derivation of map seed directly from world seed. |
 | G9: Cell-native Atlas player marker positioning. | in_scope_now | Worker A | `MapPane.tsx` / `AtlasPlayerMarker` | Render player marker at cell centroid. |
 | G10: Compass and travel reducers coupling to grid coords. | in_scope_now | Worker A | `worldReducer.ts` | Add cell ID tracking to travel reducers. |
+| G13: Owned ship as tracked travel asset. | support_needed_now | Codex / future agent | `MapPane.tsx`, Naval G2 | Add owned-ship state and "Your ship" sea preference gating. |
+| G14: Dock tiers and tender legs. | adjacent_follow_up | Codex / future agent | `ensureIslandHarbors.ts`, `multiModalRoute.ts` | Add dock size, dock class, and tender segment proof. |
+| G15: Ferry fares and affordability. | support_needed_now | Codex / future agent | `travelReadout.ts`, `MapPane.tsx`, gold state | Add fare calculation, unaffordable messaging, and gold deduction. |
+| G16: Sea danger and maritime encounters. | adjacent_follow_up | Codex / future agent | `travelEncounter.ts`, Naval G3 | Add sea danger bands and encounter handoff. |
+| G17: Travel provisioning and route-gating. | support_needed_now | Codex / future agent | `docs/superpowers/specs/2026-06-25-travel-provisioning-design.md`, `docs/superpowers/plans/2026-06-25-travel-provisions.md`, `src/systems/travel/provisioning.ts`, `MapPane.tsx`, `src/systems/travel` | First helper slice landed (`daysOfFood`); continue with food range math, route-hover shortfall readout, atlas affordance, and underprovisioned departure choices. |
 
 ## Global Gap Imports
 No global gaps imported during this pass.

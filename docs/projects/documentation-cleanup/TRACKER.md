@@ -1,7 +1,7 @@
 ﻿# Documentation Cleanup Living Tracker
 
 Status: complete â€” G3 decision recorded 2026-06-10; project closed as complete-enough
-Last updated: 2026-06-10
+Last updated: 2026-06-25
 
 ## Status Vocabulary
 
@@ -27,6 +27,17 @@ Last updated: 2026-06-10
 T2 is now done. Iteration 2 resolved G2 (path-drift verification) with full evidence in `DECISIONS.md` D-01 and `AUDIT_OR_PROOF.md`. G4 (stale PROJECT_TRACKER.md link) and G5 (missing RUNBOOK requirement) are resolved in the living docs. G1 is resolved by D-03 in `DECISIONS.md`; G3 is review-blocked on a duplicate-cleanup scope decision.
 
 2026-06-10 update: the G3 scope decision is recorded (Remy, `docs/projects/DECISION_BLITZ_2026-06-10.md` D23, local D-04) â€” closed as complete-enough; scope not widened; evidence preserved. The project is closed; no further iteration work is queued.
+
+2026-06-25 backlog-retirement update: the historical 1G improvement-doc migration
+packets were deleted after their provenance was centralized in this project
+folder and `docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md`. This does not
+reopen the project or widen the duplicate-cleanup scope.
+
+2026-06-25 backlog-retirement update: the historical 1A through 1F
+documentation-cleanup task packets were also deleted after their archive report
+outputs and replacement registry/navigation owners were verified. This preserves
+the project as closed complete-enough and avoids leaving old December 2025 task
+briefs as active-looking backlog.
 
 ## Update Rules
 

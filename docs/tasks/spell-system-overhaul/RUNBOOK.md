@@ -52,3 +52,5 @@ Provide the minimum recurring workflow for maintaining this living project surfa
 4. `TASK_SLICE.md`
 5. `docs/projects/spells/SUBPROJECTS.md`
 6. The relevant `docs/projects/spells/subprojects/*/GAPS.md` file for the selected child lane
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/RUNBOOK.md","sha256WithoutMarker":"05d0edb9948e7f8da81a1a00365bdf9216dfbab37e5e41b39263aa6c11527fd0","markedAtUtc":"2026-06-25T22:29:38.588Z"} -->

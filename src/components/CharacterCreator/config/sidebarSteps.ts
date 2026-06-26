@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/06/2026, 20:43:53
- * Dependents: components/CharacterCreator/CreationSidebar.tsx
+ * Last Sync: 25/06/2026, 08:51:23
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/CreationSidebar.tsx
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -23,6 +23,32 @@ import { CreationStep, CharacterCreationState } from '../state/characterCreatorS
 import { hasRacialSpellCastingAbilityChoiceForRace } from '../../../data/races';
 
 export type StepGroup = 'origin' | 'class' | 'abilities' | 'final';
+
+export type LockedStepMessageKey =
+  | 'selectRaceFirst'
+  | 'selectClassFirst'
+  | 'assignAbilityScoresFirst'
+  | 'noAdditionalClassFeatures'
+  | 'missingReviewData';
+
+// ============================================================================
+// Locked Step Messaging
+// ============================================================================
+// These messages explain why permissive sidebar navigation has landed on a
+// locked creator step. Keeping them beside the sidebar step config makes the
+// navigation labels and their blocked-state wording share one owned home.
+// ============================================================================
+export const LOCKED_STEP_MESSAGES: Record<LockedStepMessageKey, string> = {
+  selectRaceFirst: 'Select a race first to unlock this step.',
+  selectClassFirst: 'Select a class first to unlock this step.',
+  assignAbilityScoresFirst: 'Assign ability scores first to unlock this step.',
+  noAdditionalClassFeatures: 'This class has no additional features to configure.',
+  missingReviewData: 'Missing required character data. Please complete earlier steps first.',
+};
+
+// Return a locked-step message through a typed key so CharacterCreator can stay
+// focused on prerequisite checks instead of owning scattered player-facing copy.
+export const getLockedStepMessage = (key: LockedStepMessageKey): string => LOCKED_STEP_MESSAGES[key];
 
 export interface SidebarStepConfig {
   step: CreationStep;

@@ -41,3 +41,5 @@ Voyage management is partially implemented. Core state and reducer paths exist, 
 
 - This doc no longer treats voyage management as fully absent, because the state model and reducer path already exist.
 - The remaining uncertainty is about complete player-facing orchestration and UI maturity, not about whether voyage foundations exist in code.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/feature-capabilities/voyage-management.md","sha256WithoutMarker":"b69e81762c1cb5eed98d1b2c7d06fa4f474b0dfcc3fb5bf158cd0d6fec44892e","markedAtUtc":"2026-06-25T22:29:38.611Z"} -->

@@ -407,4 +407,19 @@ describe('fmg world — sanity invariants', () => {
     // 5 folk (per culture) + 3 organized + placeholder
     expect(pack.religions!.length).toBe(9);
   });
+
+  it('keeps island-harbor generation opt-in so frozen worlds do not silently change', () => {
+    const defaultResult = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
+    const optInResult = generateFmgWorld(GOLDEN_SEED, {
+      ...GOLDEN_OPTIONS,
+      ensureIslandHarbors: true,
+    });
+
+    expect(defaultResult.islandHarborReport).toBeUndefined();
+    expect(optInResult.islandHarborReport).toMatchObject({
+      promotedBurgIds: [],
+      spawnedBurgIds: [],
+    });
+    expect(optInResult.islandHarborReport?.skippedComponentCells.length).toBeGreaterThan(0);
+  });
 });

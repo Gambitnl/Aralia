@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/06/2026, 16:10:24
- * Dependents: components/MapPane.tsx
- * Imports: 2 files
+ * Last Sync: 25/06/2026, 18:30:09
+ * Dependents: components/MapPane.tsx, components/Worldforge/SpawnPreview.tsx
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -16,10 +16,11 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
-import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, type CellTraits, type BurgTier } from './atlasSvg';
+import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, type CellTraits, type BurgTier, type AtlasLegendEntry } from './atlasSvg';
 import AtlasLayers from './AtlasLayers';
 import type { RoutePlan } from '../../systems/travel/routePlanning';
-import { formatRouteSummary, dangerRating } from '../../systems/travel/travelReadout';
+import type { MultiModalRoute } from '../../systems/travel/multiModalRoute';
+import { formatRouteSummary, dangerRating, formatMultiModalSummary } from '../../systems/travel/travelReadout';
 
 /** How much detail the hover info panel shows. */
 type InfoVerbosity = 'off' | 'minimal' | 'standard' | 'full';
@@ -44,8 +45,21 @@ export interface AtlasSvgViewProps {
   travelActive?: boolean;
   /** Plan the fastest route from the player to a hovered cell id (MapPane supplies). */
   planRoute?: (toCell: number) => RoutePlan | null;
+  /** Plan a pre-segmented mixed land/sea route for the hovered cell. */
+  planMultiModalRoute?: (toCell: number) => MultiModalRoute | null;
   /** Transport label for the travel readout (e.g. "on foot", "by horse"). */
   transportLabel?: string;
+  /**
+   * Scope for persisted layer prefs (map coloring + feature toggles). Pass a
+   * stable per-world/per-save id (e.g. the world seed) so different campaigns
+   * remember different views; omit for a single shared/global scope.
+   */
+  prefsScope?: string | number;
+}
+
+/** Read the persisted layer prefs for a given storage key (scoped per save). */
+function loadLayerPrefs(key: string): { mapMode?: string; features?: Partial<Record<string, boolean>> } {
+  try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch { return {}; }
 }
 
 /**
@@ -62,7 +76,7 @@ export interface AtlasSvgViewProps {
 // one base (Biomes) off blanked the land entirely. They are now a single radio:
 // pick what the land is colored BY. A neutral land base is always drawn beneath.
 type AreaModeId =
-  | 'biomes' | 'cultures' | 'religions' | 'provinces'
+  | 'biomes' | 'states' | 'cultures' | 'religions' | 'provinces'
   | 'population' | 'temperature' | 'precipitation' | 'none';
 type LegendKind = 'biomes' | 'discrete' | 'ramp' | 'none';
 interface AreaModeDef {
@@ -77,12 +91,15 @@ interface AreaModeDef {
   dataKey?: keyof import('./atlasSvg').AtlasSvgModel;
   /** Discrete-legend noun for the "each color = one ___" caption. */
   noun?: string;
+  /** Model key holding the named legend entries (color↔name swatches). */
+  legendKey?: keyof import('./atlasSvg').AtlasSvgModel;
 }
 const AREA_MODES: AreaModeDef[] = [
   { id: 'biomes', label: 'Biomes', desc: 'Natural terrain type (forest, desert, tundra…)', legend: 'biomes' },
-  { id: 'cultures', label: 'Cultures', desc: 'Which culture inhabits each region', legend: 'discrete', dataKey: 'cultureRegions', noun: 'culture' },
-  { id: 'religions', label: 'Religions', desc: 'Dominant faith of each region', legend: 'discrete', dataKey: 'religionRegions', noun: 'religion' },
-  { id: 'provinces', label: 'Provinces', desc: 'Administrative provinces within states', legend: 'discrete', dataKey: 'provinceRegions', noun: 'province' },
+  { id: 'states', label: 'States', desc: 'Which state controls each region (political)', legend: 'discrete', dataKey: 'stateRegions', noun: 'state', legendKey: 'stateLegend' },
+  { id: 'cultures', label: 'Cultures', desc: 'Which culture inhabits each region', legend: 'discrete', dataKey: 'cultureRegions', noun: 'culture', legendKey: 'cultureLegend' },
+  { id: 'religions', label: 'Religions', desc: 'Dominant faith of each region', legend: 'discrete', dataKey: 'religionRegions', noun: 'religion', legendKey: 'religionLegend' },
+  { id: 'provinces', label: 'Provinces', desc: 'Administrative provinces within states', legend: 'discrete', dataKey: 'provinceRegions', noun: 'province', legendKey: 'provinceLegend' },
   { id: 'population', label: 'Population', desc: 'How densely each area is settled', legend: 'ramp', ramp: ['#ffffcc', '#fd8d3c', '#800026'], ends: ['Sparse', 'Dense'], dataKey: 'populationCells' },
   { id: 'temperature', label: 'Temperature', desc: 'Average temperature, cold to hot', legend: 'ramp', ramp: ['#2c7bb6', '#ffffbf', '#d7191c'], ends: ['Cold', 'Hot'], dataKey: 'temperatureCells' },
   { id: 'precipitation', label: 'Precipitation', desc: 'Rainfall, dry to wet', legend: 'ramp', ramp: ['#f6e8c3', '#80cdc1', '#01665e'], ends: ['Dry', 'Wet'], dataKey: 'precipitationCells' },
@@ -124,6 +141,8 @@ const DEFAULT_FEATURES: Record<FeatureLayerId, boolean> = {
 };
 const DEFAULT_AREA_MODE: AreaModeId = 'biomes';
 const LAYER_PREFS_KEY = 'aralia.atlas.layerPrefs.v1';
+/** Max named swatches shown in a discrete-coloring legend before "+N more". */
+const LEGEND_SWATCH_CAP = 14;
 
 // Settlement glyphs (screen-space, constant size). Parchment-map ink-on-cream so
 // they read as little towns rather than facet-sized dots on the Voronoi. Capitals
@@ -200,27 +219,41 @@ const SECTION_HEADER: React.CSSProperties = {
   letterSpacing: 0.5, marginBottom: 3,
 };
 
-const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], onPickCell, travelActive = false, planRoute, transportLabel = 'on foot' }) => {
+const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], onPickCell, travelActive = false, planRoute, planMultiModalRoute, transportLabel = 'on foot', prefsScope }) => {
   const model = useMemo(() => buildAtlasSvgModel(atlas), [atlas]);
 
   // Map coloring is a single exclusive choice; feature layers are independent
-  // toggles. Persisted across map opens so a player's preferred view sticks.
-  const [mapMode, setMapMode] = useState<AreaModeId>(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(LAYER_PREFS_KEY) || '{}');
-      if (saved.mapMode && AREA_MODES.some((m) => m.id === saved.mapMode)) return saved.mapMode;
-    } catch { /* ignore */ }
-    return DEFAULT_AREA_MODE;
-  });
-  const [features, setFeatures] = useState<Record<FeatureLayerId, boolean>>(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(LAYER_PREFS_KEY) || '{}');
-      if (saved.features) return { ...DEFAULT_FEATURES, ...saved.features };
-    } catch { /* ignore */ }
-    return { ...DEFAULT_FEATURES };
-  });
+  // toggles. Persisted across map opens, scoped per save (prefsScope) so a
+  // player's preferred view sticks per-campaign.
+  const prefsKey = `${LAYER_PREFS_KEY}:${prefsScope ?? 'global'}`;
+  const prefsKeyRef = useRef(prefsKey);
+  const readMode = (key: string): AreaModeId => {
+    const s = loadLayerPrefs(key).mapMode;
+    return s && AREA_MODES.some((m) => m.id === s) ? (s as AreaModeId) : DEFAULT_AREA_MODE;
+  };
+  const readFeatures = (key: string): Record<FeatureLayerId, boolean> => {
+    const f = loadLayerPrefs(key).features;
+    return f ? { ...DEFAULT_FEATURES, ...f } : { ...DEFAULT_FEATURES };
+  };
+  const [mapMode, setMapMode] = useState<AreaModeId>(() => readMode(prefsKey));
+  const [features, setFeatures] = useState<Record<FeatureLayerId, boolean>>(() => readFeatures(prefsKey));
+
+  // Reload prefs when the scope (save/world) changes after mount, so switching
+  // campaigns restores that campaign's view instead of bleeding the old one.
+  const prefsMounted = useRef(false);
   useEffect(() => {
-    try { localStorage.setItem(LAYER_PREFS_KEY, JSON.stringify({ mapMode, features })); } catch { /* ignore */ }
+    if (!prefsMounted.current) { prefsMounted.current = true; return; }
+    if (prefsKeyRef.current === prefsKey) return;
+    prefsKeyRef.current = prefsKey;
+    setMapMode(readMode(prefsKey));
+    setFeatures(readFeatures(prefsKey));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefsKey]);
+
+  // Persist to the CURRENT scope's key. (prefsKeyRef trails the reload effect so
+  // a scope change loads-then-saves, never overwriting the new save with old state.)
+  useEffect(() => {
+    try { localStorage.setItem(prefsKeyRef.current, JSON.stringify({ mapMode, features })); } catch { /* ignore */ }
   }, [mapMode, features]);
 
   const [layersOpen, setLayersOpen] = useState(false);
@@ -247,6 +280,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   // changes (not on hover/pan), preserving the memoized layer subtree.
   const visible = useMemo<Record<string, boolean>>(() => ({
     biomes: mapMode === 'biomes',
+    states: mapMode === 'states',
     cultures: mapMode === 'cultures',
     religions: mapMode === 'religions',
     provinces: mapMode === 'provinces',
@@ -257,9 +291,18 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   }), [mapMode, features]);
 
   const activeMode = AREA_MODES.find((m) => m.id === mapMode) ?? AREA_MODES[0];
+  // Named swatches for the active discrete coloring (which color = which group).
+  const discreteLegend = useMemo<AtlasLegendEntry[]>(() => {
+    if (activeMode.legend !== 'discrete' || !activeMode.legendKey) return [];
+    const arr = model[activeMode.legendKey];
+    return Array.isArray(arr) ? (arr as AtlasLegendEntry[]) : [];
+  }, [activeMode, model]);
   // Hover read-out: the cell under the cursor (highlighted + described), and how
   // much of its info the bottom-left panel shows.
   const [hoveredCell, setHoveredCell] = useState<number | null>(null);
+  // Index into model.burgs when the cursor is over a settlement glyph — its info
+  // panel takes over from the generic cell readout while hovered.
+  const [hoveredBurg, setHoveredBurg] = useState<number | null>(null);
   const [infoVerbosity, setInfoVerbosity] = useState<InfoVerbosity>('standard');
   const fitView = useCallback(() => {
     const k = Math.min(width / model.width, height / model.height);
@@ -272,6 +315,10 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   const [view, setView] = useState(fitView);
   const drag = useRef<{ x: number; y: number } | null>(null);
   const downPos = useRef<{ x: number; y: number } | null>(null);
+  // True once the pointer has moved beyond DRAG_SLOP while pressed — marks the
+  // gesture a PAN so the release is never treated as a cell click (which, in
+  // Travel mode, would travel + close the map). Reset on each mousedown.
+  const draggedRef = useRef(false);
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
@@ -311,6 +358,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   const onDown = (e: React.MouseEvent) => {
     drag.current = { x: e.clientX - view.x, y: e.clientY - view.y };
     downPos.current = { x: e.clientX, y: e.clientY };
+    draggedRef.current = false;
   };
   // Pointer (client) → atlas graph coords, accounting for pan/zoom + svg scaling.
   const pointerToGraph = (clientX: number, clientY: number): { gx: number; gy: number } | null => {
@@ -320,9 +368,17 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     const sy = (clientY - rect.top) * (height / rect.height);
     return { gx: (sx - view.x) / view.k, gy: (sy - view.y) / view.k };
   };
+  const DRAG_SLOP = 4; // px of movement before a press is treated as a pan
   const onMove = (e: React.MouseEvent) => {
-    if (drag.current) {
-      setView((v) => ({ ...v, x: e.clientX - drag.current!.x, y: e.clientY - drag.current!.y }));
+    const d = drag.current;
+    if (d) {
+      const dp = downPos.current;
+      if (dp && Math.hypot(e.clientX - dp.x, e.clientY - dp.y) > DRAG_SLOP) {
+        draggedRef.current = true; // any real movement → this gesture is a pan
+      }
+      // Capture the drag origin locally: the setView updater runs later, by which
+      // time onUp/onLeave may have nulled drag.current (→ "reading 'x' of null").
+      setView((v) => ({ ...v, x: e.clientX - d.x, y: e.clientY - d.y }));
       return;
     }
     // Hover: resolve and highlight the cell under the cursor (always, even when
@@ -331,13 +387,35 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     if (!p) return;
     const i = findCellAtPoint(atlas, p.gx, p.gy);
     setHoveredCell(i >= 0 ? i : null);
+    // Prefer a settlement under the cursor: if a visible burg glyph is within a
+    // small screen-space radius, the town info panel takes over from the cell one.
+    let hb: number | null = null;
+    if (visible.burgs) {
+      const rGraph = 16 / view.k; // ~16px hit radius, converted to graph units
+      let best = rGraph * rGraph;
+      const burgs = model.burgs ?? [];
+      for (let bi = 0; bi < burgs.length; bi++) {
+        const b = burgs[bi];
+        if (view.k < BURG_MIN_K[b.tier]) continue; // hidden at this zoom → not hoverable
+        const dx = b.x - p.gx;
+        const dy = b.y - p.gy;
+        const dd = dx * dx + dy * dy;
+        if (dd < best) { best = dd; hb = bi; }
+      }
+    }
+    setHoveredBurg(hb);
   };
   const onUp = () => { drag.current = null; };
-  const onLeave = () => { drag.current = null; setHoveredCell(null); };
+  const onLeave = () => { drag.current = null; setHoveredCell(null); setHoveredBurg(null); };
   const onClick = (e: React.MouseEvent) => {
     if (!onPickCell) return;
+    // Suppress the pick when the gesture was a pan — either the press moved during
+    // the drag (draggedRef), or net down→up displacement exceeds the slop. This
+    // stops a grab-and-pan from being read as a cell click (which travels + closes
+    // the map in Travel mode).
+    if (draggedRef.current) return;
     const dp = downPos.current;
-    if (dp && Math.hypot(e.clientX - dp.x, e.clientY - dp.y) > 4) return; // it was a drag, not a click
+    if (dp && Math.hypot(e.clientX - dp.x, e.clientY - dp.y) > DRAG_SLOP) return;
     const p = pointerToGraph(e.clientX, e.clientY);
     if (!p) return;
     const i = findCellAtPoint(atlas, p.gx, p.gy);
@@ -349,6 +427,18 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     () => (hoveredCell != null ? cellTraits(atlas, hoveredCell) : null),
     [atlas, hoveredCell],
   );
+  // Town readout for a hovered settlement glyph: resolve the burg's cell and
+  // reuse cellTraits (which carries the burg name, state, culture, etc.).
+  const hoveredBurgInfo = useMemo(() => {
+    if (hoveredBurg == null) return null;
+    const b = (model.burgs ?? [])[hoveredBurg];
+    if (!b) return null;
+    // Use the burg's own FMG cell (exact) rather than the nearest cell center,
+    // which can snap a coastal burg onto a neighbouring water cell.
+    const cell = b.cell != null && b.cell >= 0 ? b.cell : findCellAtPoint(atlas, b.x, b.y);
+    const traits = cell >= 0 ? cellTraits(atlas, cell) : null;
+    return { tier: b.tier, capital: b.capital, name: b.name, traits };
+  }, [hoveredBurg, model.burgs, atlas]);
   const hoveredOutline = hoveredCell != null ? cellPolygonPoints(atlas, hoveredCell) : '';
 
   // Travel preview: the fastest route from the player to the hovered cell. null
@@ -357,6 +447,11 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     () => (travelActive && planRoute && hoveredCell != null ? planRoute(hoveredCell) : null),
     [travelActive, planRoute, hoveredCell],
   );
+  const multiModalRoute = useMemo<MultiModalRoute | null>(
+    () => (travelActive && planMultiModalRoute && hoveredCell != null ? planMultiModalRoute(hoveredCell) : null),
+    [travelActive, planMultiModalRoute, hoveredCell],
+  );
+  const displayedRoute = multiModalRoute ?? travelRoute;
 
   // "Find Me": zoom in on the player's marker and surface their current cell in
   // the info panel (the red outline + readout answer "which cell am I at?").
@@ -374,7 +469,11 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   // its overview amount (~1 unit at fit) regardless of zoom — facet-hiding at
   // overview, crisp biome edges when zoomed in. Clamped for safety.
   const fitK = Math.min(width / model.width, height / model.height);
-  const softenStdDev = Math.min(2, Math.max(0.05, fitK / view.k));
+  // On a degenerate first frame (model dims or view.k not yet measured) the ratio
+  // can be NaN/±Infinity — feGaussianBlur would then warn "Received NaN for
+  // stdDeviation". Fall back to the overview blur amount until real values land.
+  const softenRatio = fitK / view.k;
+  const softenStdDev = Number.isFinite(softenRatio) ? Math.min(2, Math.max(0.05, softenRatio)) : 1;
 
   return (
     <div style={{ position: 'relative', width, height }}>
@@ -412,7 +511,29 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           <polygon points={hoveredOutline} fill="none" stroke="#ef4444" strokeWidth={1.6} strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none" />
         ) : null}
         {/* Travel route preview — fastest path from player to hovered cell. */}
-        {travelRoute && travelRoute.points.length > 1 ? (
+        {multiModalRoute && multiModalRoute.segments.length > 0 ? (
+          <>
+            {multiModalRoute.segments.map((segment, index) => {
+              const points = segment.points.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+              const stroke = segment.kind === 'sea' ? '#38bdf8' : dangerRating(multiModalRoute.danger).color;
+              return (
+                <polyline
+                  key={`${segment.kind}-${index}`}
+                  data-testid={`atlas-travel-segment-${segment.kind}`}
+                  points={points}
+                  fill="none"
+                  stroke={stroke}
+                  strokeWidth={segment.kind === 'sea' ? 2.4 : 2.2}
+                  strokeDasharray={segment.kind === 'sea' ? '2 5' : '6 4'}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  vectorEffect="non-scaling-stroke"
+                  pointerEvents="none"
+                />
+              );
+            })}
+          </>
+        ) : travelRoute && travelRoute.points.length > 1 ? (
           <>
             <polyline
               points={travelRoute.points.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')}
@@ -424,32 +545,17 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
               fill="none" stroke={dangerRating(travelRoute.danger).color} strokeWidth={2.2}
               strokeDasharray="6 4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none"
             />
-            {(() => {
-              const end = travelRoute.points[travelRoute.points.length - 1];
-              return <circle cx={end[0]} cy={end[1]} r={3} fill={dangerRating(travelRoute.danger).color} stroke="#0f172a" strokeWidth={1} vectorEffect="non-scaling-stroke" pointerEvents="none" />;
-            })()}
           </>
         ) : null}
       </g>
-      {/* Burg settlement glyphs — screen space (constant size), tier-distinct,
-          zoom-thresholded so the overview shows only capitals + cities. */}
-      {visible.burgs ? (model.burgs ?? []).filter((b) => view.k >= BURG_MIN_K[b.tier]).map((b, i) => (
-        <g
-          key={`burg${i}`}
-          transform={`translate(${b.x * view.k + view.x},${b.y * view.k + view.y})`}
-          style={{ pointerEvents: 'none' }}
-          data-testid="atlas-burg"
-          data-tier={b.tier}
-        >
-          {burgGlyph(b.tier)}
-        </g>
-      )) : null}
-      {/* Labels overlay — screen space (constant size), zoom-thresholded + decluttered (T5c). */}
+      {/* Labels overlay — screen space (constant size), zoom-thresholded + decluttered (T5c).
+          Burg names (capital/town) are nudged below their point so the settlement
+          glyph (drawn after this block) sits ABOVE the name without overlapping. */}
       {visible.labels ? declutterLabels(model.labels ?? [], view).map((l, i) => (
         <text
           key={`lb${i}`}
           x={l.sx}
-          y={l.sy}
+          y={l.sy + (l.kind === 'state' ? 0 : 15)}
           textAnchor="middle"
           fontFamily={l.kind === 'state' ? 'Georgia, serif' : 'sans-serif'}
           fontSize={l.fontSize}
@@ -463,6 +569,26 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           {l.text}
         </text>
       )) : null}
+      {/* Burg settlement glyphs — screen space (constant size), tier-distinct,
+          zoom-thresholded so the overview shows only capitals + cities. Drawn
+          AFTER labels so the icon sits on top of (and just above) its name. */}
+      {visible.burgs ? (model.burgs ?? [])
+        .map((b, i) => ({ b, i }))
+        .filter(({ b }) => view.k >= BURG_MIN_K[b.tier])
+        .map(({ b, i }) => (
+          <g
+            key={`burg${i}`}
+            transform={`translate(${b.x * view.k + view.x},${b.y * view.k + view.y})`}
+            style={{ pointerEvents: 'none' }}
+            data-testid="atlas-burg"
+            data-tier={b.tier}
+          >
+            {hoveredBurg === i ? (
+              <circle r={13} fill="none" stroke="#f5c542" strokeWidth={1.5} opacity={0.9} />
+            ) : null}
+            {burgGlyph(b.tier)}
+          </g>
+        )) : null}
       {/* Discovered hidden-place pins (SP4) — screen space, constant size. */}
       {markers.map((m, i) => (
         <g key={`disc${i}`} transform={`translate(${m.x * view.k + view.x},${m.y * view.k + view.y})`} style={{ pointerEvents: 'none' }} data-testid="atlas-discovery-pin">
@@ -472,6 +598,45 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           ) : null}
         </g>
       ))}
+      {/* Travel route overlays below live in screen space, so harbor markers and
+          the destination pin stay readable instead of ballooning with zoom. */}
+      {/* Harbor markers live in screen space so embark/disembark points stay
+          readable while the player zooms. Each marker uses the shared boundary
+          point where one land/sea segment hands off to the next segment. */}
+      {multiModalRoute ? multiModalRoute.segments.slice(0, -1).map((segment, index) => {
+        const boundary = segment.points[segment.points.length - 1];
+        return (
+          <g
+            key={`harbor${index}`}
+            transform={`translate(${boundary[0] * view.k + view.x},${boundary[1] * view.k + view.y})`}
+            style={{ pointerEvents: 'none' }}
+            data-testid="atlas-harbor-marker"
+          >
+            <circle r={5} fill="#0ea5e9" stroke="#0f172a" strokeWidth={1.5} />
+            <path d="M0,-3 L0,3 M-2.5,0.5 a2.5,2.5 0 0 0 5,0" fill="none" stroke="#e0f2fe" strokeWidth={1} />
+          </g>
+        );
+      }) : null}
+      {/* Destination flag for the hovered travel target. */}
+      {displayedRoute && displayedRoute.points.length > 1 ? (() => {
+        const end = displayedRoute.points[displayedRoute.points.length - 1];
+        const c = dangerRating(displayedRoute.danger).color;
+        return (
+          <g
+            transform={`translate(${end[0] * view.k + view.x},${end[1] * view.k + view.y})`}
+            style={{ pointerEvents: 'none' }}
+            data-testid="atlas-travel-destination"
+          >
+            {/* target ring centred on the cell */}
+            <circle r={9} fill="none" stroke={c} strokeWidth={2} opacity={0.9} />
+            <circle r={2} fill={c} />
+            {/* flag pole rising from the cell */}
+            <line x1={0} y1={0} x2={0} y2={-26} stroke="#0f172a" strokeWidth={2} />
+            <path d="M0,-26 L15,-22 L0,-15 Z" fill={c} stroke="#0f172a" strokeWidth={1} strokeLinejoin="round" />
+            <text x={0} y={-30} textAnchor="middle" fontFamily="sans-serif" fontSize={10} fontWeight={700} fill="#e2e8f0" stroke="#0f172a" strokeWidth={2.5} paintOrder="stroke">Travel to</text>
+          </g>
+        );
+      })() : null}
       {/* Always-on "you are here" marker (SP0 T7) — screen space, constant size. */}
       {marker ? (
         <g
@@ -509,13 +674,15 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       <div
         data-testid="atlas-travel-readout"
         style={{
-          position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
+          position: 'absolute', bottom: 44, left: '50%', transform: 'translateX(-50%)',
           fontFamily: 'sans-serif', fontSize: 12, whiteSpace: 'nowrap',
           background: 'rgba(15,30,45,0.9)', border: '1px solid #475569', borderRadius: 6,
           padding: '5px 12px', color: '#e2e8f0', pointerEvents: 'none',
         }}
       >
-        {travelRoute
+        {multiModalRoute
+          ? formatMultiModalSummary(multiModalRoute)
+          : travelRoute
           ? formatRouteSummary(travelRoute, transportLabel)
           : <span style={{ color: '#f87171' }}>No route to here</span>}
       </div>
@@ -613,7 +780,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)',
           background: 'rgba(15,30,45,0.9)', border: '1px solid #475569', borderRadius: 4,
           padding: '5px 10px', fontFamily: 'sans-serif', fontSize: 11, color: '#e2e8f0',
-          pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 8, maxWidth: '70%',
+          pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 8, maxWidth: '78%', flexWrap: 'wrap',
         }}
         data-testid="atlas-legend"
       >
@@ -627,15 +794,42 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           </span>
         ) : null}
         {activeMode.legend === 'discrete' ? (
-          <span style={{ color: '#cbd5e1' }}>each tint = one {activeMode.noun}</span>
+          discreteLegend.length > 0 ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }} data-testid="atlas-legend-swatches">
+              {discreteLegend.slice(0, LEGEND_SWATCH_CAP).map((e) => (
+                <span key={e.name} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ width: 11, height: 11, borderRadius: 2, border: '1px solid #1e293b', background: e.color, flex: '0 0 auto' }} />
+                  <span style={{ color: '#e2e8f0', whiteSpace: 'nowrap' }}>{e.name}</span>
+                </span>
+              ))}
+              {discreteLegend.length > LEGEND_SWATCH_CAP ? (
+                <span style={{ color: '#94a3b8' }}>+{discreteLegend.length - LEGEND_SWATCH_CAP} more</span>
+              ) : null}
+            </span>
+          ) : (
+            <span style={{ color: '#cbd5e1' }}>each tint = one {activeMode.noun}</span>
+          )
         ) : null}
         {activeMode.legend === 'biomes' ? (
           <span style={{ color: '#cbd5e1' }}>natural terrain type</span>
         ) : null}
       </div>
     ) : null}
-    {/* Hover cell info panel — bottom-left of the world map window. */}
-    {infoVerbosity !== 'off' && hoveredTraits ? (
+    {/* Hover info panel — bottom-left. A hovered settlement glyph shows TOWN info
+        (name, tier, state…); otherwise the generic cell readout. */}
+    {infoVerbosity !== 'off' && hoveredBurgInfo ? (
+      <div
+        style={{
+          position: 'absolute', bottom: 8, left: 8, maxWidth: 240,
+          background: 'rgba(28,20,12,0.92)', border: '1px solid #b3892f', borderRadius: 4,
+          padding: '6px 9px', fontFamily: 'sans-serif', fontSize: 12, color: '#f5ecd8',
+          pointerEvents: 'none',
+        }}
+        data-testid="atlas-town-info"
+      >
+        {renderTownInfo(hoveredBurgInfo, infoVerbosity)}
+      </div>
+    ) : infoVerbosity !== 'off' && hoveredTraits ? (
       <div
         style={{
           position: 'absolute', bottom: 8, left: 8, maxWidth: 240,
@@ -651,6 +845,36 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     </div>
   );
 };
+
+const TIER_LABEL: Record<BurgTier, string> = { capital: 'Capital', city: 'City', town: 'Town', village: 'Village' };
+
+/** Render the hover info rows for a hovered settlement glyph, gated by verbosity. */
+function renderTownInfo(
+  info: { tier: BurgTier; capital: boolean; name?: string; traits: CellTraits | null },
+  level: InfoVerbosity,
+): React.ReactNode {
+  const { tier, capital, traits } = info;
+  const Row = ({ k, v }: { k: string; v: React.ReactNode }) => (
+    <div style={{ display: 'flex', gap: 6, lineHeight: 1.5 }}>
+      <span style={{ color: '#cdb588', minWidth: 64 }}>{k}</span>
+      <span style={{ color: '#fbf3e0' }}>{v}</span>
+    </div>
+  );
+  const name = info.name ?? traits?.burg?.name ?? 'Settlement';
+  const rows: React.ReactNode[] = [];
+  rows.push(<Row key="name" k="Town" v={<strong>{name}</strong>} />);
+  rows.push(<Row key="type" k="Type" v={capital ? `${TIER_LABEL[tier]} (capital)` : TIER_LABEL[tier]} />);
+  if (traits?.state) rows.push(<Row key="state" k={capital ? 'Capital of' : 'State'} v={traits.state} />);
+  if (level === 'minimal') return rows;
+  if (traits?.culture) rows.push(<Row key="culture" k="Culture" v={traits.culture} />);
+  if (traits?.biome) rows.push(<Row key="terrain" k="Terrain" v={traits.biome} />);
+  if (level === 'full') {
+    if (traits?.province) rows.push(<Row key="prov" k="Province" v={traits.province} />);
+    if (traits?.religion) rows.push(<Row key="rel" k="Religion" v={traits.religion} />);
+    if (traits?.population != null) rows.push(<Row key="pop" k="Cell pop." v={traits.population.toLocaleString()} />);
+  }
+  return rows;
+}
 
 /** Render the hover info rows for a cell, gated by the verbosity level. */
 function renderCellInfo(t: CellTraits, level: InfoVerbosity): React.ReactNode {

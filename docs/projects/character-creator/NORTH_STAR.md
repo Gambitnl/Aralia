@@ -7,12 +7,12 @@ main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
 last_updated: 2026-06-25
-iteration: 12
+iteration: 15
 confidence: high
 evidence: docs/projects/character-creator
-gap_signal: "6 open gaps; G1, G3, G5, G6, G8, and G16 remain open after G4, G7, G14, G15, G17, and G18-G20 resolution"
+gap_signal: "5 open gaps; G5 flow assertions are resolved with headed Playwright final-state proof"
 protocol: living project doc set
-next_step: G4, G7, G14, G15, G17, and G18-G20 resolved. Proceed to address the next audited Character Creator gap, likely G16.
+next_step: Pick the next unresolved Character Creator gap from TRACKER.md / GAPS.md; G5 is closed with focused headed Playwright proof.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -33,6 +33,10 @@ completed_verification:
   - SkillSelection background-granted class skill badge test (2026-06-25)
   - CharacterCreator flow test lint-intent cleanup (2026-06-25)
   - WeaponMasterySelection canonical weapon and click/focus details test (2026-06-25)
+  - Shared SpellSummaryCard structural tests across creator/sheet spell surfaces (2026-06-25)
+  - G16 class spell selection and Magic Initiate rendered captures (2026-06-25)
+  - G16 Character Sheet spellbook rendered capture (2026-06-25)
+  - G8 centralized locked-step message render coverage (2026-06-25)
 last_proof: 2026-06-25
 workflow_gaps_reviewed: 2026-06-14
 compaction_status: not_needed
@@ -55,16 +59,16 @@ Category: Feature/UI Projects
 Status: active (G2 resolved 2026-06-08; no pending review hold)
 Confidence: high
 Evidence: docs/projects/character-creator
-Gap signal: 6 open gaps; G1, G3, G5, G6, G8, and G16 remain open after G4, G7, G14, G15, G17, and G18-G20 resolution
+Gap signal: 5 open gaps; G5 flow assertions are resolved with headed Playwright final-state proof
 Protocol: living project doc set
-Next step: G4, G7, G14, G15, G17, and G18-G20 resolved. Proceed to address the next audited Character Creator gap, likely G16.
+Next step: Pick the next unresolved Character Creator gap from TRACKER.md / GAPS.md; G5 is closed with focused headed Playwright proof.
 Required verification: docs_consistency
-Completed verification: docs_consistency, CreationSidebar racial feat visibility test (2026-06-24), skillSelectionUtils raceId-constrained Skillful test (2026-06-24), CreationSidebar progress counter default-step test (2026-06-25), SkillSelection background-granted class skill badge test (2026-06-25), CharacterCreator flow test lint-intent cleanup (2026-06-25), WeaponMasterySelection canonical weapon and click/focus details test (2026-06-25)
+Completed verification: docs_consistency, CreationSidebar racial feat visibility test (2026-06-24), skillSelectionUtils raceId-constrained Skillful test (2026-06-24), CreationSidebar progress counter default-step test (2026-06-25), SkillSelection background-granted class skill badge test (2026-06-25), CharacterCreator flow test lint-intent cleanup (2026-06-25), WeaponMasterySelection canonical weapon and click/focus details test (2026-06-25), Shared SpellSummaryCard structural tests across creator/sheet spell surfaces (2026-06-25), G16 class spell selection and Magic Initiate rendered captures (2026-06-25), G16 Character Sheet spellbook rendered capture (2026-06-25), G8 centralized locked-step message render coverage (2026-06-25), G5 Human Fighter headed Playwright final-state assertions (2026-06-25)
 Last proof: 2026-06-25
 Workflow gaps reviewed: 2026-06-14
 
 Dashboard lifecycle: reviewed (G2 resolved)
-Next step: G18 and G19 resolved. Proceed to address open wizard/sidebar/feat selection gaps (G7, G14, G20).
+Next step: Pick the next unresolved Character Creator gap from TRACKER.md / GAPS.md; G8 is closed with focused structural proof.
 Housekeeping note (2026-06-10): the 2026-06-10 decision blitz (`docs/projects/DECISION_BLITZ_2026-06-10.md`, "Items converted to work") confirmed G2 was already resolved on 2026-06-08 — no decision was pending, and this project should not be read as review-blocked.
 
 ## Required Review Brief

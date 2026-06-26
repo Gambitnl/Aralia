@@ -69,3 +69,5 @@ Do not assume:
 - that every race must create a new race-group entry
 - that glossary race entries are markdown files
 - that character_races.json should be treated as hand-authored source of truth before checking the generator output
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/guides/RACE_ADDITION_GUIDE.md","sha256WithoutMarker":"ae625a561a0ddf4e1d0781408a31eac9c40618f5af1eaba8990e926c2ce1425e","markedAtUtc":"2026-06-25T22:29:38.320Z"} -->

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 01:20:12
+ * Last Sync: 25/06/2026, 13:13:23
  * Dependents: App.tsx
- * Imports: 9 files
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -27,7 +27,6 @@ import { NPCS } from '../data/world/npcs';
 import { AddMessageFn, PlayPcmAudioFn, GetCurrentLocationFn, GetCurrentNPCsFn, GetTileTooltipTextFn, AddGeminiLogFn, LogDiscoveryFn } from './actions/actionHandlerTypes';
 import { getDiegeticPlayerActionMessage } from '../utils/actionUtils';
 import { generateGeneralActionContext } from '../utils/contextUtils';
-import { UIToggleAction } from '../types/ui';
 
 
 interface UseGameActionsProps {
@@ -88,12 +87,11 @@ export function useGameActions({
   const processAction = useCallback(
     async (action: Action) => {
       // RALPH: UI Toggle Gate.
-      // Uses explicit action metadata first, then falls back to the historical
-      // UIToggleAction enum to determine if the global loading spinner should be suppressed.
-      // DEBT: Cast to any to allow loose membership check against UI toggle union.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const isUiToggle = ACTION_METADATA[action.type]?.isUiToggle ||
-        Object.values(UIToggleAction).includes(action.type as any);
+      // ACTION_METADATA is the single source for global loading policy. Keeping
+      // loading exceptions here explicit makes new action types fail visibly
+      // instead of being hidden by string suffix checks.
+      const actionMetadata = ACTION_METADATA[action.type];
+      const isUiToggle = Boolean(actionMetadata?.isUiToggle);
       if (!isUiToggle) {
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Processing action..." } });
       }
@@ -169,14 +167,9 @@ export function useGameActions({
         dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
         dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
       } finally {
-        // Clear loading state if it was set initially.
-        // handlers for complex actions (like save_game or encounter generation) 
-        // manage their own loading lifecycle and should not be reset here.
-        const handledByComponent = Boolean(ACTION_METADATA[action.type]?.managesLoading) ||
-          action.type === 'save_game' ||
-          action.type === 'GENERATE_ENCOUNTER' ||
-          action.type.includes('_MERCHANT') ||
-          action.type.includes('_ITEM');
+        // Clear loading state if it was set initially. Actions marked with
+        // `managesLoading` own their own lifecycle and should not be reset here.
+        const handledByComponent = Boolean(actionMetadata?.managesLoading);
 
         if (!isUiToggle && !handledByComponent) {
           dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });

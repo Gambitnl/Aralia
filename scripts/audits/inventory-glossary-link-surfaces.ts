@@ -7,7 +7,7 @@
  * per-entry report to docs/tasks/glossary/GLOSSARY_LINK_SURFACES_INVENTORY.md
  * and a JSON sidecar for later tooling.
  *
- * Classifications follow the plan in docs/tasks/glossary/GLOSSARY_LINK_SURFACES_PLAN.md:
+ * Classifications follow docs/tasks/glossary/NORTH_STAR.md:
  *   - GlossaryPill usage                      => pill redirect
  *   - glossaryTermId present                  => clickable pill
  *   - GlossaryTooltip wrapping a pill         => hover-backed redirect
@@ -223,7 +223,7 @@ function renderMarkdown(
   lines.push('npx tsx scripts/audits/inventory-glossary-link-surfaces.ts');
   lines.push('```');
   lines.push('');
-  lines.push('See [GLOSSARY_LINK_SURFACES_PLAN.md](./GLOSSARY_LINK_SURFACES_PLAN.md) for the surface taxonomy this report classifies against.');
+  lines.push('See [NORTH_STAR.md](./NORTH_STAR.md) for the surface taxonomy this report classifies against.');
   lines.push('');
 
   lines.push('## Totals');

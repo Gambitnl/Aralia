@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/06/2026, 18:11:54
+ * Last Sync: 25/06/2026, 08:54:42
  * Dependents: App.tsx
- * Imports: 42 files
+ * Imports: 43 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -100,6 +100,7 @@ import { Button } from '../ui/Button';
 import { SafeStorage } from '../../utils/storageUtils';
 import { sanitizeAIPromptText } from '../../utils/securityUtils';
 import { ENV } from '../../config/env';
+import { getLockedStepMessage } from './config/sidebarSteps';
 
 interface CharacterCreatorProps {
   onCharacterCreate: (character: PlayerCharacter, startingInventory: Item[]) => void;
@@ -429,6 +430,23 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
     </div>
   );
 
+  // Pick the shared prerequisite wording in the same order the old inline
+  // checks used it, preserving the player's visible guidance for blocked steps.
+  const getPrerequisiteLockMessage = ({
+    requiresRace,
+    requiresClass,
+    requiresAbilityScores,
+  }: {
+    requiresRace?: boolean;
+    requiresClass?: boolean;
+    requiresAbilityScores?: boolean;
+  }) => {
+    if (requiresRace && !selectedRace) return getLockedStepMessage('selectRaceFirst');
+    if (requiresClass && !selectedClass) return getLockedStepMessage('selectClassFirst');
+    if (requiresAbilityScores && !finalAbilityScores) return getLockedStepMessage('assignAbilityScoresFirst');
+    return getLockedStepMessage('missingReviewData');
+  };
+
   const renderStep = (): React.ReactElement | null => {
     if (!allSpells) {
       return <LoadingSpinner message="Loading spell data..." />;
@@ -446,23 +464,23 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
           />
         );
       case CreationStep.AgeSelection:
-        if (!selectedRace) return <StepLockedPlaceholder message="Select a race first to unlock this step." />;
+        if (!selectedRace) return <StepLockedPlaceholder message={getLockedStepMessage('selectRaceFirst')} />;
         return <AgeSelection selectedRace={selectedRace} currentAge={state.characterAge} onAgeChange={handleAgeChange} onNext={() => dispatch({ type: 'SET_STEP', payload: CreationStep.BackgroundSelection })} onBack={goBack} />;
       case CreationStep.BackgroundSelection:
-        if (!selectedRace) return <StepLockedPlaceholder message="Select a race first to unlock this step." />;
+        if (!selectedRace) return <StepLockedPlaceholder message={getLockedStepMessage('selectRaceFirst')} />;
         return <BackgroundSelection selectedRace={selectedRace} characterAge={state.characterAge} currentBackground={state.selectedBackground} onBackgroundChange={(backgroundId) => dispatch({ type: 'SELECT_BACKGROUND', payload: backgroundId })} onNext={() => dispatch({ type: 'SET_STEP', payload: CreationStep.Visuals })} onBack={goBack} />;
       case CreationStep.Visuals:
         return <VisualsSelection visuals={state.visuals} onVisualsChange={handleVisualsChange} selectedRace={state.selectedRace} onNext={() => dispatch({ type: 'SET_STEP', payload: CreationStep.Class })} onBack={goBack} />;
       case CreationStep.Class:
         return <ClassSelection classes={Object.values(CLASSES_DATA)} onClassSelect={handleClassSelect} onBack={goBack} />;
       case CreationStep.AbilityScores:
-        if (!selectedRace || !selectedClass) return <StepLockedPlaceholder message={!selectedRace ? "Select a race first to unlock this step." : "Select a class first to unlock this step."} />;
+        if (!selectedRace || !selectedClass) return <StepLockedPlaceholder message={getPrerequisiteLockMessage({ requiresRace: true, requiresClass: true })} />;
         return <AbilityScoreAllocation race={selectedRace} selectedClass={selectedClass} onAbilityScoresSet={handleAbilityScoresSet} onBack={goBack} />;
       case CreationStep.HumanSkillChoice:
-        if (!finalAbilityScores) return <StepLockedPlaceholder message="Assign ability scores first to unlock this step." />;
+        if (!finalAbilityScores) return <StepLockedPlaceholder message={getLockedStepMessage('assignAbilityScoresFirst')} />;
         return <HumanSkillSelection abilityScores={finalAbilityScores} onSkillSelect={handleHumanSkillSelect} onBack={goBack} />;
       case CreationStep.Skills:
-        if (!selectedClass || !finalAbilityScores || !selectedRace) return <StepLockedPlaceholder message={!selectedRace ? "Select a race first to unlock this step." : !selectedClass ? "Select a class first to unlock this step." : "Assign ability scores first to unlock this step."} />;
+        if (!selectedClass || !finalAbilityScores || !selectedRace) return <StepLockedPlaceholder message={getPrerequisiteLockMessage({ requiresRace: true, requiresClass: true, requiresAbilityScores: true })} />;
         return (
           <SkillSelection
             charClass={selectedClass}
@@ -475,7 +493,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
           />
         );
       case CreationStep.ClassFeatures:
-        if (!selectedClass || !finalAbilityScores) return <StepLockedPlaceholder message={!selectedClass ? "Select a class first to unlock this step." : "Assign ability scores first to unlock this step."} />;
+        if (!selectedClass || !finalAbilityScores) return <StepLockedPlaceholder message={getPrerequisiteLockMessage({ requiresClass: true, requiresAbilityScores: true })} />;
         if (selectedClass.id === 'fighter' && selectedClass.fightingStyles) { return <FighterFeatureSelection styles={selectedClass.fightingStyles} onStyleSelect={handleFighterFeaturesSelect} onBack={goBack} />; }
         if (selectedClass.id === 'cleric' && selectedClass.divineOrders && selectedClass.spellcasting) { return <ClericFeatureSelection divineOrders={selectedClass.divineOrders} spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onClericFeaturesSelect={handleClericFeaturesSelect} onBack={goBack} />; }
         if (selectedClass.id === 'druid' && selectedClass.primalOrders && selectedClass.spellcasting) { return <DruidFeatureSelection primalOrders={selectedClass.primalOrders} spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onDruidFeaturesSelect={handleDruidFeaturesSelect} onBack={goBack} />; }
@@ -489,7 +507,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         // This class has no feature sub-screen — offer a continue button to advance.
         return (
           <StepLockedPlaceholder
-            message="This class has no additional features to configure."
+            message={getLockedStepMessage('noAdditionalClassFeatures')}
             onContinue={() => {
               if ((selectedClass.weaponMasterySlots ?? 0) > 0) {
                 dispatch({ type: 'SET_STEP', payload: CreationStep.WeaponMastery });
@@ -502,7 +520,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
           />
         );
       case CreationStep.WeaponMastery:
-        if (!selectedClass) return <StepLockedPlaceholder message="Select a class first to unlock this step." />;
+        if (!selectedClass) return <StepLockedPlaceholder message={getLockedStepMessage('selectClassFirst')} />;
         return <WeaponMasterySelection charClass={selectedClass} onMasteriesSelect={handleWeaponMasteriesSelect} onBack={goBack} />;
       case CreationStep.BackgroundFeatSelection: {
         const previewForFeat = generatePreviewCharacter(state, state.characterName);
@@ -563,7 +581,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
           console.error("Missing critical data for review step.", state);
           return (
             <StepLockedPlaceholder
-              message="Missing required character data. Please complete earlier steps first."
+              message={getLockedStepMessage('missingReviewData')}
               onContinue={() => dispatch({ type: 'SET_STEP', payload: CreationStep.Race })}
             />
           );
@@ -603,7 +621,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
             size="sm"
             onClick={handleAutoFillRandom}
             disabled={!allSpells}
-            title="Auto-fill the creator with legal random choices"
+            title={allSpells ? 'Auto-fill the creator with legal random choices' : 'Loading spell data — available in a moment…'}
             className="border border-amber-500/40 bg-amber-900/20 text-amber-200 hover:bg-amber-800/30 hover:text-amber-100"
           >
             Auto-Fill (Random)

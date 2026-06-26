@@ -67,4 +67,35 @@ describe('AbilityButton', () => {
 
         expect(screen.getByText('2')).toBeInTheDocument();
     });
+
+    it('warns when a weapon attack is not proficient', () => {
+        const weaponAbility: Ability = {
+            ...mockAbility,
+            id: 'attack_greatsword',
+            name: 'Greatsword',
+            description: 'Attack with Greatsword.',
+            type: 'attack',
+            spell: undefined,
+            icon: 'âš”ï¸',
+            range: 1,
+            weapon: {
+                id: 'greatsword',
+                name: 'Greatsword',
+                type: 'weapon',
+                weight: 6,
+                value: 50,
+                description: 'A heavy blade.',
+                quantity: 1,
+                damageDice: '2d6',
+                damageType: 'slashing',
+                category: 'Martial'
+            },
+            isProficient: false
+        };
+
+        render(<AbilityButton ability={weaponAbility} onSelect={mockOnSelect} isDisabled={false} />);
+
+        expect(screen.getByText('!')).toBeInTheDocument();
+        expect(screen.getByRole('button')).toHaveAccessibleName(/warning: No proficiency bonus or weapon mastery on this attack/);
+    });
 });

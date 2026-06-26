@@ -229,3 +229,5 @@ This task is complete when:
 **Created**: [Date]
 **Last Updated**: [Date]
 **Completed By**: [Name/Date]
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/weapon-proficiency-system/TASK-TEMPLATE.md","sha256WithoutMarker":"708675de84358d8a8c074245a749922a63253bb219465db28f41996b1658ed7a","markedAtUtc":"2026-06-25T22:29:38.616Z"} -->

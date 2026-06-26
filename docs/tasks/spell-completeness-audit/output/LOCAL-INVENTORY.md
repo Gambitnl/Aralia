@@ -88,3 +88,5 @@ animal-shapes, antimagic-field, antipathy-sympathy, clone, control-weather, demi
 ### Level 9 (15 spells)
 
 astral-projection, foresight, gate, imprisonment, mass-heal, meteor-swarm, power-word-kill, prismatic-wall, shapechange, storm-of-vengeance, time-stop, true-polymorph, true-resurrection, weird, wish
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/output/LOCAL-INVENTORY.md","sha256WithoutMarker":"db423d2137ca3c54ddc9bba91e87d0ad393e1b8bb4cdae752dfe8d177bca5cd7","markedAtUtc":"2026-06-25T22:29:38.646Z"} -->

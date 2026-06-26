@@ -32,3 +32,5 @@ Expected result:
 
 - <Verification that was not run, proof that is stale, or evidence that should
   be refreshed before relying on it.>
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/agent-workflows/living-project-task-protocol/templates/AUDIT_OR_PROOF.md","sha256WithoutMarker":"183ca10e9f92ee8fb05eb04ea99096564401acde8c012019622d2d0d14050227","markedAtUtc":"2026-06-25T22:57:26.957Z"} -->

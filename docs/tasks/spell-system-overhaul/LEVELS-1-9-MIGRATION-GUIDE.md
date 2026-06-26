@@ -49,3 +49,5 @@ For active migration work, prefer this order:
 
 Finish one level before claiming progress on the next level.
 The purpose of that rule is not ceremony; it is to keep level inventory, gap notes, and validation evidence from getting mixed together across levels.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/LEVELS-1-9-MIGRATION-GUIDE.md","sha256WithoutMarker":"7b0c189f4b20a054d2aa305e469eb87a8535cd716203060895862955b7729cc4","markedAtUtc":"2026-06-25T22:29:38.588Z"} -->

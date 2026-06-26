@@ -3,9 +3,9 @@ schema_version: 1
 handoff_type: agent_to_agent
 project: Crime System
 slug: crime
-status: active
+status: complete_for_current_gap_set
 last_updated: 2026-06-25
-iteration: 6
+iteration: 8
 source_agent: Codex
 target_agent: next cold-start agent
 runtime_surface: application agent
@@ -48,11 +48,13 @@ docs/projects/crime/NORTH_STAR.md
 | 3 | Codex | application agent | certain | 2026-06-25 | Resolved G2 fence outcome contract with `SELL_FENCED_ITEM` |
 | 4 | Codex | application agent | certain | 2026-06-25 | Resolved G3 criminal market utility ownership as preserved tested scaffolding |
 | 5 | Codex | application agent | certain | 2026-06-25 | Resolved G4 heat/severity unit boundary in `CrimeSystem.ts` and `crimeReducer.ts` |
+| 6 | Codex | application agent | certain | 2026-06-25 | Resolved G5 TODO/type-debt classification with heist typing cleanup and preserved-scaffold notes |
+| 7 | Codex | application agent | certain | 2026-06-25 | Resolved G6 suspect/report aggregate decision as intentionally deferred until an active caller needs structured reports |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Crime
 Project folder: docs/projects/crime
-iteration: 6
+iteration: 8
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -70,18 +72,21 @@ now uses in-game crime time, and expired timed bounties prune during
 crime heat through crime state. Iteration 4 completed G3: `BlackMarketSystem.ts`
 and `fencing/FenceSystem.ts` are preserved as tested future scaffolds with no
 active product callers. Iteration 5 completed G4: crime severity normalization
-and heat calculation now live in `CrimeSystem`.
+and heat calculation now live in `CrimeSystem`. Iteration 6 completed G5:
+heist planning/intel typing is tightened, reducer `any` casts are gone, and the
+remaining Crime TODO markers are classified in `GAPS.md`. Iteration 7 completed
+G6: no suspect/report aggregate is added yet because no guard, memory, faction,
+or UI caller currently consumes structured Crime reports.
 
 ## Current Mission
 
 Active task:
-T3 - Continue the in-scope Crime gap set with G5 TODO/type-debt classification.
+None in current Crime gap set. T3 and G1-G6 are complete.
 
 Acceptance criteria:
-Use the T3 row in `TRACKER.md` and the open entries in `GAPS.md`. G5 should
-classify each remaining Crime TODO/lint-intent marker as either intentional
-preserved debt with a clear next step or a narrow wiring/type cleanup that can
-be implemented safely.
+Before assigning more Crime work, run a fresh source-backed scan and open a new
+gap if the source evidence supports it. Do not add canonical suspect/report
+types unless a concrete caller needs structured reports.
 
 Key files to touch:
 - `docs/projects/crime/NORTH_STAR.md`
@@ -91,28 +96,28 @@ Key files to touch:
 - `docs/projects/crime/AUDIT_OR_PROOF.md`
 - `src/state/reducers/crimeReducer.ts`
 - `src/systems/crime/CrimeSystem.ts`
+- `src/systems/crime/HeistManager.ts`
 - `src/systems/crime/SmugglingSystem.ts`
 - `src/systems/crime/fencing/FenceSystem.ts`
-- `src/state/appState.ts`
 - Any source/docs named by the selected implementation path
 
 Scoped verification:
 If changing code, run focused tests for the touched behavior. If policy-only,
-record a source-backed classification table and proof expectations before
-closing the gap.
+record source-backed ownership and proof expectations before opening or closing
+any new gap.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of copying them here. Do not reopen G1-G4 unless their focused tests
+instead of copying them here. Do not reopen G1-G6 unless their focused tests
 fail or the source contract has changed.
 
 Recent progress:
-G1-G3 are resolved. `CrimeSystem.test.ts` covers deterministic bounty
-expiration and pruning; `crimeReducer.test.ts` covers `ADVANCE_TIME` cleanup
-and fence heat; `characterReducer.test.ts` covers fence item/gold handling;
+G1-G6 are resolved. `CrimeSystem.test.ts` covers deterministic bounty
+expiration, pruning, severity normalization, and heat scaling;
+`crimeReducer.test.ts` covers `ADVANCE_TIME` cleanup, fence heat, and heist
+typing behavior; `characterReducer.test.ts` covers fence item/gold handling;
 BlackMarket/Fence utility tests cover preserved scaffolding. `TRACKER.md` now
-points the next agent at G5, and `GAPS.md` remains the authoritative blocker
-list for G5-G6.
+marks T3 done, and `GAPS.md` has zero open Crime-owned entries.
 
 ## Required End State For This Iteration
 

@@ -518,3 +518,5 @@ Stage meanings:
 | True Resurrection | [x] | [x] | [x] | Captured and written into the existing spell reference markdown file. |
 | Weird | [x] | [x] | [x] | Captured and written into the existing spell reference markdown file. |
 | Wish | [x] | [x] | [x] | Captured and written into the existing spell reference markdown file. |
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/archive/spell-canonical-retrieval/SPELL_CANONICAL_RETRIEVAL_TRACKER.md","sha256WithoutMarker":"1923592851d8cd0af37f6f129c5dccefcc11dd5c631c6e42962b1835ed965c76","markedAtUtc":"2026-06-25T22:29:38.504Z"} -->

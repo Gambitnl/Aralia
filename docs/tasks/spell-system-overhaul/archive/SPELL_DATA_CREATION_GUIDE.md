@@ -31,3 +31,5 @@ Use it only as historical reference for how the spell-data workflow used to be e
 ## Preserved Value
 
 This file still shows what kinds of normalization and authoring concerns the spell migration team originally tried to standardize, but it should not be treated as current schema authority.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/archive/SPELL_DATA_CREATION_GUIDE.md","sha256WithoutMarker":"73f0a958c542505cc62c8466a35989bc15f463329b6d4f63e073614bc040d75d","markedAtUtc":"2026-06-25T22:29:38.598Z"} -->

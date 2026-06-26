@@ -34,3 +34,5 @@ This note still captures an important principle that remains valid:
 - character data should scale through shared structures
 - adding a new race should not require bloating the core character type with another one-off field
 - type cleanliness and future extensibility were both improved by converging on `racialSelections`
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/improvements/completed/03_refactor_player_character_type.md","sha256WithoutMarker":"20e6aaa128f99ac82c8e9304587903c329f84ed3e5d6fc3abeb48e39751114f4","markedAtUtc":"2026-06-25T22:49:17.525Z"} -->

@@ -332,3 +332,88 @@ export const glossarySpellGateManager = () => ({
     });
   },
 });
+
+export const traitApprovalManager = () => ({
+  name: 'trait-approval-manager',
+  configureServer(server: any) {
+    server.middlewares.use(async (req: any, res: any, next: any) => {
+      const urlPath = (req.url || '').split('?')[0];
+      const isApprovePath = urlPath === '/api/traits/approve' || urlPath === '/Aralia/api/traits/approve';
+      if (!isApprovePath) {
+        next();
+        return;
+      }
+
+      const json = (data: any, status = 200) => {
+        res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify(data));
+      };
+
+      if (req.method !== 'POST') {
+        json({ error: 'Method not allowed.' }, 405);
+        return;
+      }
+
+      try {
+        const body = JSON.parse(await readBody(req));
+        const { filePath, traitName, approved } = body;
+
+        if (!filePath || typeof filePath !== 'string') {
+          json({ error: 'Missing or invalid filePath.' }, 400);
+          return;
+        }
+        if (!traitName || typeof traitName !== 'string') {
+          json({ error: 'Missing or invalid traitName.' }, 400);
+          return;
+        }
+        if (typeof approved !== 'boolean') {
+          json({ error: 'Missing or invalid approved status.' }, 400);
+          return;
+        }
+
+        // Security check: validate the path resolves under public/data/glossary/entries/races
+        const cleanPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
+        const resolvedPath = path.resolve(process.cwd(), 'public', cleanPath);
+        const allowedDir = path.resolve(process.cwd(), 'public/data/glossary/entries/races');
+
+        if (!resolvedPath.startsWith(allowedDir)) {
+          json({ error: 'Access denied: invalid file path' }, 403);
+          return;
+        }
+
+        if (!fs.existsSync(resolvedPath)) {
+          json({ error: `File not found: ${filePath}` }, 404);
+          return;
+        }
+
+        // Read and parse
+        const fileContent = fs.readFileSync(resolvedPath, 'utf8');
+        const data = JSON.parse(fileContent);
+
+        if (!data.traits || !Array.isArray(data.traits)) {
+          json({ error: 'File does not contain a traits array' }, 400);
+          return;
+        }
+
+        const trait = data.traits.find((t: any) => t.name === traitName);
+        if (!trait) {
+          json({ error: `Trait '${traitName}' not found in file` }, 404);
+          return;
+        }
+
+        // Set the approved status
+        trait.approved = approved;
+
+        // Write back
+        fs.writeFileSync(resolvedPath, JSON.stringify(data, null, 2), 'utf8');
+
+        json({ ok: true });
+      } catch (err) {
+        console.error('[dev] Failed to toggle trait approval:', err);
+        const message = err instanceof Error ? err.message : String(err);
+        json({ error: 'Failed to update trait approval', message }, 500);
+      }
+    });
+  },
+});
+

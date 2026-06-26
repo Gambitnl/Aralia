@@ -99,3 +99,5 @@ excerpt is useful later.
 3. Read `<active-task-or-package-file>` if one exists.
 4. Check `<evidence source or verification command>`.
 5. Continue from: `<next action>`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/agent-workflows/living-project-task-protocol/templates/NORTH_STAR.md","sha256WithoutMarker":"7eb9c267f3b049859d16d5a40b5393f5b1bf4e2b5e79689fbae139ab7e190f59","markedAtUtc":"2026-06-25T22:57:26.964Z"} -->
