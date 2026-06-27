@@ -1,3 +1,7 @@
+/**
+ * @file Golden drill-path fixture: deterministically drills one settlement cell
+ * World -> Region -> Local -> Ground for the cell-provenance-audit tests.
+ */
 import {
   getBridgeAtlas,
   getTownTilesForGrid,
@@ -29,7 +33,7 @@ export interface GoldenDrillPath {
  */
 export function buildGoldenDrillPath(): GoldenDrillPath {
   const atlas = getBridgeAtlas(GOLDEN_WORLD_SEED);
-  const pack = atlas.pack as Pack;
+  const pack = atlas.pack;
 
   const townTiles = getTownTilesForGrid(GOLDEN_WORLD_SEED, GRID_COLS, GRID_ROWS);
   if (townTiles.length === 0) {
@@ -37,7 +41,10 @@ export function buildGoldenDrillPath(): GoldenDrillPath {
   }
   const tile = townTiles[0];
   const burgId = tile.burgId;
-  const burg = pack.burgs?.[burgId];
+  if (!pack.burgs) {
+    throw new Error('drillPath fixture: atlas pack has no burgs (slice-3 not generated)');
+  }
+  const burg = pack.burgs[burgId];
   if (!burg) {
     throw new Error(`drillPath fixture: burg ${burgId} not found on pack`);
   }
