@@ -1,6 +1,7 @@
 import type { GroundWorld } from '../bridge/groundChunkLoader';
 import type { CellFacts } from './worldCell';
 import type { EntityVerdict } from './types';
+import type { RegionArtifact } from '../artifacts';
 
 /** Terrain: the biome the submap used must equal the cell's biome fact. */
 export function classifyTerrainBiome(facts: CellFacts, biomeIdUsed: number): EntityVerdict {
@@ -58,4 +59,50 @@ export function classifyTownsAndBuildings(cellBurgId: number, ground: GroundWorl
   }
 
   return verdicts;
+}
+
+/** Hostiles trace to region markers/zones (which the worldmap cell seeds). */
+export function classifyHostiles(region: RegionArtifact, ground: GroundWorld): EntityVerdict[] {
+  const hasSource = (region.markers?.length ?? 0) > 0 || (region.zones?.length ?? 0) > 0;
+  return ground.hostiles.map((h): EntityVerdict => ({
+    kind: 'hostile',
+    id: `hostile-${h.id}`,
+    state: hasSource ? 'inherited' : 'orphaned',
+    anchor: hasSource ? 'region.markers|zones' : null,
+    severity: hasSource ? 'ok' : 'fail',
+    reason: hasSource
+      ? 'hostile traces to a region marker/zone'
+      : 'hostile spawned with no marker/zone anchor',
+  }));
+}
+
+/** Vegetation/rock scatter elaborates the inherited biome. */
+export function classifyFeatures(ground: GroundWorld): EntityVerdict[] {
+  return ground.features.map((f): EntityVerdict => ({
+    kind: 'feature',
+    id: `feature-${f.id}`,
+    state: 'elaborated',
+    anchor: 'cell.biome (scatter)',
+    severity: 'ok',
+    reason: `${f.kind} elaborates the inherited biome`,
+  }));
+}
+
+/**
+ * Hidden sites are off-map discovery points. They should trace to a region
+ * marker. Until that anchor is wired, an unanchored hidden site is surfaced as
+ * a 'warn' orphan (non-blocking this slice) rather than silently accepted.
+ */
+export function classifyHiddenSites(region: RegionArtifact, ground: GroundWorld): EntityVerdict[] {
+  const hasSource = (region.markers?.length ?? 0) > 0;
+  return ground.hiddenSites.map((s): EntityVerdict => ({
+    kind: 'hidden-site',
+    id: `hidden-${s.id}`,
+    state: hasSource ? 'inherited' : 'orphaned',
+    anchor: hasSource ? 'region.markers' : null,
+    severity: hasSource ? 'ok' : 'warn',
+    reason: hasSource
+      ? 'hidden site traces to a region marker'
+      : 'hidden site has no marker anchor (warn: harden in a later slice)',
+  }));
 }
