@@ -169,6 +169,19 @@ const WallPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   );
 };
 
+const DeckPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
+  const decks = chunk.bundle.decks;
+  const geometry = useDisposableGeometry(
+    decks ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
+  );
+  if (!decks) return null;
+  return (
+    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
+      <meshStandardMaterial color="#6b4b2f" roughness={0.9} side={THREE.DoubleSide} /> {/* timber dock/bridge planking */}
+    </mesh>
+  );
+};
+
 // Roof rise scales with the building's narrow span (classic pitched-roof
 // proportion) but stays within walkable-scale bounds.
 const roofHeight = (w: number, d: number): number =>
@@ -388,6 +401,7 @@ const ChunkPieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ ch
     <WaterPiece chunk={chunk} origin={origin} />
     <RoadPiece chunk={chunk} origin={origin} />
     <WallPiece chunk={chunk} origin={origin} />
+    <DeckPiece chunk={chunk} origin={origin} />
     <SitePieces chunk={chunk} origin={origin} />
     <VegetationPiece chunk={chunk} origin={origin} />
   </>

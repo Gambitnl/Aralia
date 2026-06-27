@@ -23,7 +23,7 @@ import { generateTownPlan, type TownPlan } from './townEngine';
 import { polygonBounds, type Pt } from '../submap/submapEngine';
 import type { FmgWorldResult } from '../fmg/generateWorld';
 import { rootSeedPath, childSeedPath, streamPath } from '../seedPath';
-import { burgCellPolygon, cellWaterPolylines, cellRoadPolylines } from './cellFeatures';
+import { burgCellPolygon, cellWaterPolylines, cellWaterFeatures, cellRoadPolylines } from './cellFeatures';
 
 export { burgCellPolygon } from './cellFeatures';
 
@@ -125,6 +125,25 @@ export function getCanonicalTownPlan(
   });
   perBurg.set(burgId, plan);
   return plan;
+}
+
+/**
+ * The burg's inherited water in the NORMALIZED canonical frame, split by kind —
+ * the SAME polylines (same `canonAffine`) that {@link getCanonicalTownPlan} fed
+ * to the generator to seat docks/bridges. The 3D bake transforms these to feet
+ * and fills them into water bodies, so the rendered water sits exactly under the
+ * docks. Pure + deterministic from (atlas, burgId).
+ */
+export function getCanonicalTownWaterFeatures(
+  atlas: TownAtlas,
+  burgId: number,
+): { rivers: Pt[][]; coast: Pt[][] } {
+  const toCanon = canonAffine(burgCellPolygon(atlas, burgId));
+  const { rivers, coast } = cellWaterFeatures(atlas, burgId);
+  return {
+    rivers: rivers.map((l) => l.map(toCanon)),
+    coast: coast.map((l) => l.map(toCanon)),
+  };
 }
 
 const mapPt = (p: Pt, k: number, dx: number, dy: number): Pt => [p[0] * k + dx, p[1] * k + dy];

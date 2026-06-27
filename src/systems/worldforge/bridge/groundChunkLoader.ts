@@ -37,7 +37,8 @@ import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from "../../world3d/
 import { biomeColor } from "../../world3d/terrainColor";
 import type { LocalArtifact, RegionArtifact, RegionTownSite } from "../artifacts";
 import { localArtifactToWorldData, GROUND_METERS_PER_CELL } from "./groundWorldAdapter";
-import { getCanonicalTownPlan, transformTownPlan, townSpanFtForBurg, CANON_TOWN_SPAN } from "../town/canonicalTown";
+import { getCanonicalTownPlan, transformTownPlan, townSpanFtForBurg, CANON_TOWN_SPAN, getCanonicalTownWaterFeatures } from "../town/canonicalTown";
+import { buildTownWaterBodies } from "../town/townWaterBodies";
 import { toArtifactPlan, type AdaptedTownPlan } from "../town/townPlanAdapter";
 import type { TownPlan } from "../artifacts";
 import { buildInterior, type SitePart, type OccupantBody } from "./interiorParts";
@@ -63,6 +64,20 @@ import { generateGroundHostiles } from "./groundHostiles";
 interface GroundPolyline {
   points: Array<{ x: number; z: number }>;
   widthM: number;
+}
+
+/** A filled town water body (river channel / harbour apron), ground meters. */
+export interface GroundWaterBody {
+  pointsM: Array<{ x: number; z: number }>;
+  /** Flat water-surface Y in world meters (set by the terrain-carve pass). */
+  surfaceY: number;
+}
+
+/** A dock pier / bridge span deck (convex quad), ground meters. */
+export interface GroundDeck {
+  cornersM: Array<{ x: number; z: number }>;
+  /** Deck-top Y in world meters, just above the adjacent water (carve pass). */
+  topY: number;
 }
 
 /** A roster person resolved to the plot center where their figure is rendered. */
@@ -139,6 +154,10 @@ export interface GroundWorld {
   roads: GroundPolyline[];
   /** Town defensive wall rings (closed polylines), ground meters. */
   walls: GroundPolyline[];
+  /** Town water bodies (rivers/harbour), filled flat surfaces, ground meters. */
+  waterBodies: GroundWaterBody[];
+  /** Town dock/bridge deck slabs, ground meters. */
+  decks: GroundDeck[];
   /** Town sites overlapping the artifact, center in ground meters. */
   towns: Array<{ burgId: number; xM: number; zM: number; halfM: number }>;
   /** Town-plan building plots (C3 generateTownPlan), centers in meters. */
@@ -235,6 +254,19 @@ export function makeGroundWorld(
     townContent.buildings,
   );
 
+  // Carve a shallow basin under each town water body (so the flat water surface
+  // reads with a shoreline) and resolve each body's surfaceY + deck's topY from
+  // the surrounding shore height. Building footprint cells are protected, so
+  // waterfront plots keep their level pads (buildings win over water).
+  carveTownWaterBasins(
+    wd.heights,
+    wd.gridSize.cols,
+    wd.gridSize.rows,
+    townContent.planWaterBodies,
+    townContent.planDecks,
+    townContent.buildings,
+  );
+
   const features: GroundFeature[] = local.features.map((f) => ({
     id: f.id,
     kind: f.kind,
@@ -300,6 +332,8 @@ export function makeGroundWorld(
       ...townContent.planStreets,
     ],
     walls: townContent.planWalls,
+    waterBodies: townContent.planWaterBodies,
+    decks: townContent.planDecks,
     towns: townContent.towns,
     buildings: townContent.buildings,
     rosters: townContent.rosters,
@@ -386,6 +420,89 @@ function flattenBuildingTerrainPads(
     if (footprintPads.has(index)) continue;
     const averagePadHeight = padHeights.reduce((sum, height) => sum + height, 0) / padHeights.length;
     heights[index] = originalHeights[index] + (averagePadHeight - originalHeights[index]) * 0.5;
+  }
+}
+
+/** Encoded-height drops (0..100 domain) that shape town water + its banks. */
+const WATER_SURFACE_DROP_ENC = 1.5; // water surface sits this far below the shore
+const WATER_BED_DROP_ENC = 4;       // carved bed sits this far below the shore
+const DECK_CLEARANCE_M = 0.4;       // deck top stands this far above the water
+
+/** Even-odd point-in-polygon on the X/Z plane (handles concave channels). */
+function pointInPolygonXZ(px: number, pz: number, poly: Array<{ x: number; z: number }>): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i], b = poly[j];
+    if ((a.z > pz) !== (b.z > pz) &&
+        px < ((b.x - a.x) * (pz - a.z)) / (b.z - a.z) + a.x) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+/** Grid cell indices whose centers fall inside a (possibly concave) polygon. */
+function polygonCellIndices(cols: number, rows: number, poly: Array<{ x: number; z: number }>): number[] {
+  if (poly.length < 3) return [];
+  const minCol = Math.max(0, Math.floor(Math.min(...poly.map((p) => p.x)) / GROUND_METERS_PER_CELL) - 1);
+  const maxCol = Math.min(cols - 1, Math.ceil(Math.max(...poly.map((p) => p.x)) / GROUND_METERS_PER_CELL) + 1);
+  const minRow = Math.max(0, Math.floor(Math.min(...poly.map((p) => p.z)) / GROUND_METERS_PER_CELL) - 1);
+  const maxRow = Math.min(rows - 1, Math.ceil(Math.max(...poly.map((p) => p.z)) / GROUND_METERS_PER_CELL) + 1);
+  const out: number[] = [];
+  for (let row = minRow; row <= maxRow; row++) {
+    for (let col = minCol; col <= maxCol; col++) {
+      const cxm = (col + 0.5) * GROUND_METERS_PER_CELL;
+      const czm = (row + 0.5) * GROUND_METERS_PER_CELL;
+      if (pointInPolygonXZ(cxm, czm, poly)) out.push(row * cols + col);
+    }
+  }
+  return out;
+}
+
+/**
+ * Carve a shallow basin under each town water body (so the flat surface reads
+ * with a shoreline) and resolve every body's surfaceY + deck's topY from the
+ * surrounding shore height. Mutates `heights` (lowering only) and the Y fields.
+ */
+function carveTownWaterBasins(
+  heights: number[],
+  cols: number,
+  rows: number,
+  waterBodies: GroundWaterBody[],
+  decks: GroundDeck[],
+  buildings: GroundWorld["buildings"],
+): void {
+  const original = heights.slice();
+  const centroidOf = (pts: Array<{ x: number; z: number }>) => ({
+    x: pts.reduce((s, p) => s + p.x, 0) / (pts.length || 1),
+    z: pts.reduce((s, p) => s + p.z, 0) / (pts.length || 1),
+  });
+
+  // Building footprint cells are off-limits to carving — their level pads win,
+  // so a waterfront plot never sinks into the carved channel beside it.
+  const protectedCells = new Set<number>();
+  for (const b of buildings) {
+    if (b.cornersM.length < 3) continue;
+    for (const idx of buildingFootprintCells(cols, rows, b.cornersM)) protectedCells.add(idx);
+  }
+
+  for (const body of waterBodies) {
+    if (body.pointsM.length < 3) continue;
+    const c = centroidOf(body.pointsM);
+    const shoreEnc = sampleEncodedHeight(original, cols, rows, c.x, c.z);
+    body.surfaceY = heightToMeters(Math.max(0, shoreEnc - WATER_SURFACE_DROP_ENC));
+    const bedEnc = Math.max(0, shoreEnc - WATER_BED_DROP_ENC);
+    for (const idx of polygonCellIndices(cols, rows, body.pointsM)) {
+      if (protectedCells.has(idx)) continue; // buildings win — keep their level pad
+      heights[idx] = Math.min(heights[idx], bedEnc); // lower only — never raise land
+    }
+  }
+
+  for (const deck of decks) {
+    if (deck.cornersM.length < 3) continue;
+    const c = centroidOf(deck.cornersM);
+    const shoreEnc = sampleEncodedHeight(original, cols, rows, c.x, c.z);
+    deck.topY = heightToMeters(Math.max(0, shoreEnc - WATER_SURFACE_DROP_ENC)) + DECK_CLEARANCE_M;
   }
 }
 
@@ -508,6 +625,61 @@ export function canonicalArtifactTownForSite(
 }
 
 /**
+ * Town water bodies (filled surfaces) + dock/bridge deck quads for a site, in
+ * ground meters. Derived from the SAME canonical plan + inherited water that
+ * seated the 2D docks/bridges, transformed with the SAME placement as the town —
+ * so the rendered water sits exactly under the piers. Surface/top Y are filled
+ * later by the terrain-carve pass (heights aren't known here).
+ */
+export function canonicalTownWaterAndDecks(
+  worldSeed: number,
+  site: RegionTownSite,
+  bounds: { x: number; y: number },
+): { waterBodies: GroundWaterBody[]; decks: GroundDeck[] } {
+  const townAtlas = getBridgeAtlas(worldSeed);
+  const enginePlan = getCanonicalTownPlan(townAtlas, worldSeed, site.burgId);
+  const spanFt = townSpanFtForBurg(townAtlas, site.burgId);
+  const placeScale = spanFt / CANON_TOWN_SPAN;
+  const placeDx = site.envelope.x + site.envelope.width / 2;
+  const placeDy = site.envelope.y + site.envelope.height / 2;
+  const feetPlan = transformTownPlan(enginePlan, placeScale, placeDx, placeDy);
+
+  const toM = (fx: number, fy: number) => ({
+    x: (fx - bounds.x) * FEET_TO_METERS,
+    z: (fy - bounds.y) * FEET_TO_METERS,
+  });
+  const toFeet = (line: Array<[number, number]>): Array<[number, number]> =>
+    line.map(([x, y]) => [x * placeScale + placeDx, y * placeScale + placeDy]);
+
+  // Footprint centroid (feet) → the inland reference for outward apron direction.
+  const fp = feetPlan.footprint;
+  const centroid: [number, number] = [
+    fp.reduce((s, p) => s + p[0], 0) / (fp.length || 1),
+    fp.reduce((s, p) => s + p[1], 0) / (fp.length || 1),
+  ];
+
+  const wf = getCanonicalTownWaterFeatures(townAtlas, site.burgId);
+  const bodiesFt = buildTownWaterBodies({
+    rivers: wf.rivers.map(toFeet),
+    coast: wf.coast.map(toFeet),
+    centroid,
+    channelHalfWidth: spanFt * 0.03,
+    apronDepth: spanFt * 0.4,
+  });
+  const waterBodies: GroundWaterBody[] = bodiesFt.map((poly) => ({
+    pointsM: poly.map(([fx, fy]) => toM(fx, fy)),
+    surfaceY: 0,
+  }));
+
+  const decks: GroundDeck[] = [];
+  for (const c of feetPlan.civic) {
+    if (c.kind !== 'dock' && c.kind !== 'bridge') continue;
+    decks.push({ cornersM: c.polygon.map(([fx, fy]) => toM(fx, fy)), topY: 0 });
+  }
+  return { waterBodies, decks };
+}
+
+/**
  * Town content for the ground window: the site marker (label + keep box),
  * and — the C3 payoff — the town's GENERATED plan: streets become road
  * ribbons, plots become building boxes. Deterministic via the region's
@@ -527,6 +699,8 @@ function groundTowns(
   buildings: GroundWorld["buildings"];
   planStreets: GroundPolyline[];
   planWalls: GroundPolyline[];
+  planWaterBodies: GroundWaterBody[];
+  planDecks: GroundDeck[];
   rosters: TownRoster[];
   occupants: GroundOccupantSite[];
   townPlans: Array<{ burgId: number; plan: TownPlan }>;
@@ -538,6 +712,8 @@ function groundTowns(
   const buildings: GroundWorld["buildings"] = [];
   const planStreets: GroundPolyline[] = [];
   const planWalls: GroundPolyline[] = [];
+  const planWaterBodies: GroundWaterBody[] = [];
+  const planDecks: GroundDeck[] = [];
   const rosters: TownRoster[] = [];
   const occupants: GroundOccupantSite[] = [];
   const townPlans: Array<{ burgId: number; plan: TownPlan }> = [];
@@ -556,6 +732,11 @@ function groundTowns(
     // is the same place. Shared with World3DWrapper's business/NPC registration
     // via `canonicalArtifactTownForSite`, so plot IDs never diverge.
     const adapted = canonicalArtifactTownForSite(worldSeed, t);
+    // Town water (filled surfaces) + dock/bridge decks from the SAME canonical
+    // plan/water — surface/top Y filled by the terrain-carve pass below.
+    const wd = canonicalTownWaterAndDecks(worldSeed, t, local.bounds);
+    planWaterBodies.push(...wd.waterBodies);
+    planDecks.push(...wd.decks);
     // Player edits replay over the regenerated plan (GROUND-DELTA-1): a
     // modified plot changes its interior, a removed one vanishes, an added
     // building appears — deterministic base + delta layer (decision #14).
@@ -711,7 +892,7 @@ function groundTowns(
     }
   }
 
-  return { towns, buildings, planStreets, planWalls, rosters, occupants, townPlans };
+  return { towns, buildings, planStreets, planWalls, planWaterBodies, planDecks, rosters, occupants, townPlans };
 }
 
 /** Encoded-height bilinear sample at world meters → true meters via heightToMeters. */
@@ -921,7 +1102,20 @@ export function sampleGroundChunk(
     rivers: ground.rivers.flatMap((r) => clipGroundPolylineToChunk(r, cx, cy)),
     roads: ground.roads.flatMap((r) => clipGroundPolylineToChunk(r, cx, cy)),
     walls: ground.walls.flatMap((w) => clipGroundPolylineToChunk(w, cx, cy)),
-    lakes: [],
+    // Town water bodies → filled lake surfaces; dock/bridge decks → timber slabs.
+    // Both clipped to the chunk rectangle and emitted in pseudo-grid (meters/M).
+    lakes: ground.waterBodies.flatMap((b) => {
+      const clipped = clipPolygonToChunk(b.pointsM, cx, cy);
+      return clipped.length >= 3
+        ? [{ points: clipped.map((p) => pseudoGrid(p.x, p.z)), surfaceY: b.surfaceY }]
+        : [];
+    }),
+    decks: ground.decks.flatMap((d) => {
+      const clipped = clipPolygonToChunk(d.cornersM, cx, cy);
+      return clipped.length >= 3
+        ? [{ points: clipped.map((p) => pseudoGrid(p.x, p.z)), topY: d.topY }]
+        : [];
+    }),
     // Sites whose center falls in this chunk (sampler convention):
     // town markers (label + keep box) and the town plan's building plots
     // as small 'ruin' boxes. Positions ride the pseudo-grid trick.
@@ -1016,6 +1210,53 @@ function pseudoGrid(xM: number, zM: number): { x: number; y: number } {
     x: xM / WORLD3D_CONFIG.METERS_PER_CELL,
     y: zM / WORLD3D_CONFIG.METERS_PER_CELL,
   };
+}
+
+/**
+ * Sutherland–Hodgman clip of a (meters) polygon to the chunk rectangle. The
+ * clip region is convex (the chunk box), so this is exact for any subject
+ * polygon; returns the clipped ring (meters) or [] if nothing survives.
+ */
+function clipPolygonToChunk(
+  poly: Array<{ x: number; z: number }>,
+  cx: number,
+  cy: number,
+): Array<{ x: number; z: number }> {
+  const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
+  const minX = cx * S, minZ = cy * S, maxX = minX + S, maxZ = minZ + S;
+  type P = { x: number; z: number };
+  // inside-tests + intersection per rectangle edge (left, right, top, bottom).
+  const clipEdge = (
+    input: P[],
+    inside: (p: P) => boolean,
+    intersect: (a: P, b: P) => P,
+  ): P[] => {
+    const out: P[] = [];
+    for (let i = 0; i < input.length; i++) {
+      const cur = input[i];
+      const prev = input[(i + input.length - 1) % input.length];
+      const curIn = inside(cur);
+      const prevIn = inside(prev);
+      if (curIn) {
+        if (!prevIn) out.push(intersect(prev, cur));
+        out.push(cur);
+      } else if (prevIn) {
+        out.push(intersect(prev, cur));
+      }
+    }
+    return out;
+  };
+  const lerpX = (a: P, b: P, x: number): P => ({ x, z: a.z + (b.z - a.z) * ((x - a.x) / (b.x - a.x)) });
+  const lerpZ = (a: P, b: P, z: number): P => ({ x: a.x + (b.x - a.x) * ((z - a.z) / (b.z - a.z)), z });
+  let ring: P[] = poly.map((p) => ({ x: p.x, z: p.z }));
+  ring = clipEdge(ring, (p) => p.x >= minX, (a, b) => lerpX(a, b, minX));
+  if (ring.length < 3) return [];
+  ring = clipEdge(ring, (p) => p.x <= maxX, (a, b) => lerpX(a, b, maxX));
+  if (ring.length < 3) return [];
+  ring = clipEdge(ring, (p) => p.z >= minZ, (a, b) => lerpZ(a, b, minZ));
+  if (ring.length < 3) return [];
+  ring = clipEdge(ring, (p) => p.z <= maxZ, (a, b) => lerpZ(a, b, maxZ));
+  return ring.length >= 3 ? ring : [];
 }
 
 /**

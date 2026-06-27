@@ -85,14 +85,13 @@ function cellCoastEdges(atlas: TownAtlas, cellId: number): Pt[][] {
  * - Coast: every water-facing boundary edge of a coastal cell, so waterfront
  *   wards seat docks on the true harbour side.
  */
-export function cellWaterPolylines(atlas: TownAtlas, burgId: number): Pt[][] {
+export function cellWaterFeatures(atlas: TownAtlas, burgId: number): { rivers: Pt[][]; coast: Pt[][] } {
   const pack = atlas.pack as any;
   const cellId = burgCellId(atlas, burgId);
   const cellsP = pack.cells.p;
-  const out: Pt[][] = [];
+  const rivers: Pt[][] = [];
 
-  const rivers: any[] = pack.rivers ?? [];
-  for (const r of rivers) {
+  for (const r of (pack.rivers ?? []) as any[]) {
     const seq: number[] = (r.cells ?? []).filter((c: number) => c >= 0);
     const idx = seq.indexOf(cellId);
     if (idx < 0) continue;
@@ -102,13 +101,16 @@ export function cellWaterPolylines(atlas: TownAtlas, burgId: number): Pt[][] {
     if (idx > 0 && cellsP[seq[idx - 1]]) seg.push(mid(cellsP[seq[idx - 1]], cur));
     seg.push([cur[0], cur[1]]);
     if (idx < seq.length - 1 && cellsP[seq[idx + 1]]) seg.push(mid(cur, cellsP[seq[idx + 1]]));
-    if (seg.length >= 2) out.push(seg);
+    if (seg.length >= 2) rivers.push(seg);
   }
 
-  if ((pack.cells.harbor?.[cellId] ?? 0) > 0) {
-    out.push(...cellCoastEdges(atlas, cellId));
-  }
-  return out;
+  const coast = (pack.cells.harbor?.[cellId] ?? 0) > 0 ? cellCoastEdges(atlas, cellId) : [];
+  return { rivers, coast };
+}
+
+export function cellWaterPolylines(atlas: TownAtlas, burgId: number): Pt[][] {
+  const { rivers, coast } = cellWaterFeatures(atlas, burgId);
+  return [...rivers, ...coast];
 }
 
 /**

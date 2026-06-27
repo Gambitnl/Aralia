@@ -56,6 +56,11 @@ export interface ChunkData {
   /** Town wall rings clipped to this chunk (grid space), rendered as extruded barriers. */
   walls?: ClippedPolyline[];
   /**
+   * Town dock/bridge deck quads clipped to this chunk (grid-space corners) with a
+   * flat top in world-meters Y, rendered as low timber slabs over town water.
+   */
+  decks?: { points: { x: number; y: number }[]; topY: number }[];
+  /**
    * Lake polygons clipped to this chunk (grid space) with a shared flat water surface.
    * Lakes are filled meshes, not ribbons, so the builder can triangulate them directly.
    */
@@ -223,6 +228,8 @@ export interface ChunkMeshBundle {
   roads?: ChunkGeometryArrays;
   /** Extruded town wall-ring barriers (Worldforge Option B). */
   walls?: ChunkGeometryArrays;
+  /** Town dock/bridge deck slabs over water (Worldforge Option B). */
+  decks?: ChunkGeometryArrays;
   sites: ChunkSite[];
   vegetation?: VegetationScatter;
   /** Second vegetation layer (ground mode): bushes, rendered as their own

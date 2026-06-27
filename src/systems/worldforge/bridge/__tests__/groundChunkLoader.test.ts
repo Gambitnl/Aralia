@@ -45,6 +45,8 @@ function makeGroundWorldFixture(overrides: Partial<GroundWorld> = {}): GroundWor
     rivers: [],
     roads: [],
     walls: [],
+    waterBodies: [],
+    decks: [],
     towns: [],
     buildings: [],
     rosters: [],

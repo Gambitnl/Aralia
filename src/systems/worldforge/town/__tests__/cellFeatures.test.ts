@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   burgCellPolygon,
   cellWaterPolylines,
+  cellWaterFeatures,
   cellRoadPolylines,
 } from '../cellFeatures';
 
@@ -91,6 +92,23 @@ describe('cellWaterPolylines — rivers', () => {
 
   it('ignores rivers that do not pass through the cell', () => {
     expect(cellWaterPolylines(baseAtlas({ rivers: [{ cells: [30, 40] }] }), 1)).toEqual([]);
+  });
+});
+
+describe('cellWaterFeatures — typed river/coast split', () => {
+  it('routes the river crossing to .rivers and the coast edge to .coast', () => {
+    const feats = cellWaterFeatures(
+      baseAtlas({ harbor: 2, waterNeighbours: [20], rivers: [{ cells: [30, 10, 40] }] }),
+      1,
+    );
+    expect(feats.rivers).toEqual([[[50, 5], [50, 50], [50, 95]]]);
+    expect(feats.coast).toEqual([[[0, 0], [100, 0]]]);
+  });
+
+  it('cellWaterPolylines is the concatenation of rivers then coast', () => {
+    const atlas = baseAtlas({ harbor: 2, waterNeighbours: [20], rivers: [{ cells: [30, 10, 40] }] });
+    const feats = cellWaterFeatures(atlas, 1);
+    expect(cellWaterPolylines(atlas, 1)).toEqual([...feats.rivers, ...feats.coast]);
   });
 });
 
