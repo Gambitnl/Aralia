@@ -62,3 +62,5 @@ Start by checking:
 2. whether it should be event-driven through handleWorldEvents.ts
 3. whether the change is tuning-only and belongs in npcBehaviorConfig.ts
 4. whether the player-facing effect should reuse existing social or journal surfaces instead of inventing a new one
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/guides/@NPC-GOSSIP-SYSTEM-GUIDE.md","sha256WithoutMarker":"bde2ceb9a0ba852c91bdee3ca119c55141038844d9c8bd8cabdbad93b5ecf2f4","markedAtUtc":"2026-06-26T00:12:35.443Z"} -->

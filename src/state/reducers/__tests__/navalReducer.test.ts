@@ -100,6 +100,101 @@ describe('navalReducer', () => {
     expect(stateA.naval.playerShips[0].crew.members).toEqual(stateB.naval.playerShips[0].crew.members);
   });
 
+  // ============================================================================
+  // Bridge tests (3B): NAVAL_SET_KNOWN_PORTS, destinationId persistence,
+  // and docking-on-arrival.
+  // ============================================================================
+
+  it('NAVAL_SET_KNOWN_PORTS replaces knownPorts', () => {
+    const initialGameState = createMockGameState({ worldSeed: 12345 });
+    const action: AppAction = {
+      type: 'NAVAL_SET_KNOWN_PORTS',
+      payload: { ports: ['1', '3', '7'] },
+    };
+    const newState = navalReducer(initialGameState, action);
+
+    expect(newState.naval.knownPorts).toEqual(['1', '3', '7']);
+  });
+
+  it('NAVAL_SET_KNOWN_PORTS overwrites a prior knownPorts value', () => {
+    let state = createMockGameState({ worldSeed: 12345 });
+    state = navalReducer(state, { type: 'NAVAL_SET_KNOWN_PORTS', payload: { ports: ['1', '2'] } });
+    state = navalReducer(state, { type: 'NAVAL_SET_KNOWN_PORTS', payload: { ports: ['5', '6', '7'] } });
+
+    expect(state.naval.knownPorts).toEqual(['5', '6', '7']);
+  });
+
+  it('NAVAL_START_VOYAGE persists destinationId on currentVoyage', () => {
+    let state = navalReducer(createMockGameState({ worldSeed: 12345 }), { type: 'NAVAL_INITIALIZE_FLEET' });
+    state = navalReducer(state, {
+      type: 'NAVAL_START_VOYAGE',
+      payload: { destinationId: '42', distance: 200 },
+    });
+
+    expect(state.naval.currentVoyage?.destinationId).toBe('42');
+  });
+
+  it('NAVAL_ADVANCE_VOYAGE docks the active ship at the arrival port burg', () => {
+    // Use a very small distance so the Sloop arrives in one advance.
+    let state = navalReducer(createMockGameState({ worldSeed: 12345 }), { type: 'NAVAL_INITIALIZE_FLEET' });
+    const shipId = state.naval.activeShipId!;
+
+    state = navalReducer(state, {
+      type: 'NAVAL_START_VOYAGE',
+      payload: { destinationId: '99', distance: 1 }, // 1 mile — guaranteed arrival in 1 day
+    });
+
+    state = navalReducer(state, { type: 'NAVAL_ADVANCE_VOYAGE' });
+
+    // Status confirms the voyage actually arrived; only then is the bridge
+    // field (dockedPortBurgId) meaningful — these are not a redundant pair.
+    expect(state.naval.currentVoyage?.status).toBe('Docked');
+    const activeShip = state.naval.playerShips.find(s => s.id === shipId);
+    expect(activeShip?.dockedPortBurgId).toBe(99);
+  });
+
+  it('NAVAL_ADVANCE_VOYAGE does NOT dock when destinationId is a non-positive id', () => {
+    // destinationId '0' is not a valid FMG burg id (ids start at 1). The
+    // strengthened guard (Number.isInteger && > 0) must reject it.
+    let state = navalReducer(createMockGameState({ worldSeed: 12345 }), { type: 'NAVAL_INITIALIZE_FLEET' });
+    const shipId = state.naval.activeShipId!;
+
+    state = navalReducer(state, {
+      type: 'NAVAL_START_VOYAGE',
+      payload: { destinationId: '0', distance: 1 },
+    });
+
+    state = navalReducer(state, { type: 'NAVAL_ADVANCE_VOYAGE' });
+
+    expect(state.naval.currentVoyage?.status).toBe('Docked'); // really arrived
+    const activeShip = state.naval.playerShips.find(s => s.id === shipId);
+    expect(activeShip?.dockedPortBurgId).toBeUndefined();
+  });
+
+  it('NAVAL_ADVANCE_VOYAGE does NOT set dockedPortBurgId when destinationId is absent', () => {
+    let state = navalReducer(createMockGameState({ worldSeed: 12345 }), { type: 'NAVAL_INITIALIZE_FLEET' });
+    const shipId = state.naval.activeShipId!;
+
+    // Manually construct a voyage without a destinationId (simulates pre-bridge saves).
+    state = navalReducer(state, {
+      type: 'NAVAL_START_VOYAGE',
+      payload: { destinationId: '', distance: 1 },
+    });
+    // Strip the destinationId to simulate an old-format voyage record.
+    state = {
+      ...state,
+      naval: {
+        ...state.naval,
+        currentVoyage: { ...state.naval.currentVoyage!, destinationId: undefined },
+      },
+    };
+
+    state = navalReducer(state, { type: 'NAVAL_ADVANCE_VOYAGE' });
+
+    const activeShip = state.naval.playerShips.find(s => s.id === shipId);
+    expect(activeShip?.dockedPortBurgId).toBeUndefined();
+  });
+
   it('should advance voyages deterministically for identical seeded states', () => {
     const baseStateA = createMockGameState({ worldSeed: 24680 });
     const baseStateB = createMockGameState({ worldSeed: 24680 });

@@ -244,6 +244,23 @@
       },
       "grantedActions": [],
       "attackAugments": [],
+      "createdObjects": [
+        {
+          "objectType": "food",
+          "name": "Enriched Plants",
+          "count": 1,
+          "countUnit": "not_applicable",
+          "appearsIn": "spell_area",
+          "harvestYieldMultiplier": 2,
+          "harvestYieldRadiusFeet": 2640,
+          "harvestYieldDurationDays": 365,
+          "harvestYieldAppliesTo": "plants",
+          "harvestBenefitLimit": "one Plant Growth benefit per year",
+          "expiresWithSpell": false,
+          "shelfLife": "365 days",
+          "notes": "The 8-hour Enrichment casting alters existing plants in a half-mile radius so their future harvest yields twice the normal food. This does not immediately create ration inventory because the food appears only when harvested later."
+        }
+      ],
       "controlOptions": [],
       "taunt": {
         "disadvantageAgainstOthers": false,

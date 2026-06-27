@@ -15,7 +15,7 @@
  */
 
 import { generateInterior, type InteriorPlotInput } from '../interior/generateInterior';
-import { EXTERIOR } from '../interior/types';
+import { EXTERIOR, type InteriorRoom, type InteriorPlan } from '../interior/types';
 import type { SeedPath } from '../seedPath';
 
 /** One renderable box, site-local meters (y sits on the ground). */
@@ -143,19 +143,44 @@ export function interiorEnvelopeM(
   return { wallWidthM: plan.widthFt * FT, wallDepthM: plan.depthFt * FT };
 }
 
+/**
+ * Wall envelope AND interior parts from a SINGLE interior generation. The 3D
+ * bake needs both per plot; calling `interiorEnvelopeM` + `buildInteriorParts`
+ * separately would regenerate the (deterministic) interior twice. Identical
+ * output to those two calls — just one `generateInterior`.
+ */
+export function buildInterior(
+  plot: InteriorPlotInput,
+  seedPath: SeedPath,
+  shellHeightM: number,
+  occupants: OccupantFigure[] = [],
+): { envelope: { wallWidthM: number; wallDepthM: number }; parts: SitePart[] } {
+  const plan = generateInterior(plot, seedPath);
+  return {
+    envelope: { wallWidthM: plan.widthFt * FT, wallDepthM: plan.depthFt * FT },
+    parts: buildInteriorParts(plot, seedPath, shellHeightM, occupants, plan),
+  };
+}
+
 export function buildInteriorParts(
   plot: InteriorPlotInput,
   seedPath: SeedPath,
   shellHeightM: number,
   occupants: OccupantFigure[] = [],
+  // Optional precomputed interior — lets a caller that also needs the wall
+  // envelope (the 3D bake) generate the interior ONCE and reuse it here rather
+  // than regenerating. Defaults to generating from (plot, seedPath).
+  precomputedPlan?: InteriorPlan,
 ): SitePart[] {
-  const plan = generateInterior(plot, seedPath);
+  const plan = precomputedPlan ?? generateInterior(plot, seedPath);
   const W = plan.widthFt;
   const D = plan.depthFt;
   const toX = (fx: number): number => (fx - W / 2) * FT;
   const toZ = (fy: number): number => (fy - D / 2) * FT;
   const parts: SitePart[] = [];
   const wallH = Math.min(shellHeightM, 3);
+  // Vertical spacing between floors (the shell is divided evenly by storey).
+  const storeyHeightM = shellHeightM / Math.max(1, plan.storeys);
 
   // Emit the full-envelope floor before walls, furniture, or people. The
   // renderer places part bottoms on local ground, so this thin plank slab
@@ -256,22 +281,34 @@ export function buildInteriorParts(
   const entryDoor = plan.doorways.find((door) => door.a === EXTERIOR);
   const fallbackRoom = plan.rooms[0];
   const entryRoom = plan.rooms.find((room) => room.id === entryDoor?.b) ?? fallbackRoom;
-  const residentRooms = plan.rooms.filter((room) => room.id !== entryRoom?.id);
-  const roomForOccupants = occupants.map((occupant, index) => {
-    if (occupant.atWork && entryRoom) return entryRoom;
-    const choices = residentRooms.length > 0 ? residentRooms : plan.rooms;
-    return choices[index % choices.length] ?? fallbackRoom;
+  // Placeable rooms across every floor, each tagged with its elevation. Resident
+  // (non-working) occupants fill the ground rooms first, then upstairs bedrooms,
+  // so a multi-storey home is inhabited top to bottom. Keyed `<level>:<roomId>`
+  // because each floor numbers its rooms from 0 (ids are not globally unique).
+  interface Placeable { room: InteriorRoom; baseY: number; key: string }
+  const groundResidents: Placeable[] = plan.rooms
+    .filter((room) => room.id !== entryRoom?.id)
+    .map((room) => ({ room, baseY: 0, key: `0:${room.id}` }));
+  const upperResidents: Placeable[] = plan.upperFloors.flatMap((floor) =>
+    floor.rooms.map((room) => ({ room, baseY: floor.level * storeyHeightM, key: `${floor.level}:${room.id}` })),
+  );
+  const residentPool: Placeable[] = [...groundResidents, ...upperResidents];
+  const entryPlaceable: Placeable = { room: entryRoom, baseY: 0, key: `0:${entryRoom?.id ?? 0}` };
+
+  const placeFor: Placeable[] = occupants.map((occupant, index) => {
+    if (occupant.atWork && entryRoom) return entryPlaceable;
+    const choices = residentPool.length > 0 ? residentPool : [entryPlaceable];
+    return choices[index % choices.length] ?? entryPlaceable;
   });
-  const occupantsPerRoom = new Map<number, number>();
-  for (const room of roomForOccupants) {
-    occupantsPerRoom.set(room.id, (occupantsPerRoom.get(room.id) ?? 0) + 1);
-  }
-  const placedPerRoom = new Map<number, number>();
+  const perKey = new Map<string, number>();
+  for (const p of placeFor) perKey.set(p.key, (perKey.get(p.key) ?? 0) + 1);
+  const placedPerKey = new Map<string, number>();
   occupants.forEach((o, k) => {
-    const room = roomForOccupants[k] ?? fallbackRoom;
-    const totalInRoom = occupantsPerRoom.get(room.id) ?? 1;
-    const slotInRoom = placedPerRoom.get(room.id) ?? 0;
-    placedPerRoom.set(room.id, slotInRoom + 1);
+    const placeable = placeFor[k] ?? entryPlaceable;
+    const room = placeable.room;
+    const totalInRoom = perKey.get(placeable.key) ?? 1;
+    const slotInRoom = placedPerKey.get(placeable.key) ?? 0;
+    placedPerKey.set(placeable.key, slotInRoom + 1);
     const centerX = room.x + room.w / 2;
     const centerY = room.y + room.d / 2;
     const ringRadiusM = totalInRoom > 1 ? 0.6 : 0;
@@ -283,7 +320,8 @@ export function buildInteriorParts(
     // A villager reads as a person, not a crate: a clothed body box under a
     // skin-toned head. Dimensions and palette come from the occupant's
     // parametric BodyPlan (BODY-1) — height, build, skin and clothing all vary
-    // per person, so a crowd reads as a population rather than clones.
+    // per person, so a crowd reads as a population rather than clones. The floor's
+    // elevation (placeable.baseY) lifts upstairs occupants onto their storey.
     const body = o.body;
     const headH = body.headSizeM;
     const bodyH = Math.max(0.1, body.heightM - headH);
@@ -294,6 +332,8 @@ export function buildInteriorParts(
       d: body.depthM,
       h: bodyH,
       colorHex: body.clothingHex,
+      // Omit baseY on the ground floor so the part shape is unchanged there.
+      ...(placeable.baseY > 0 ? { baseY: placeable.baseY } : {}),
     });
     parts.push({
       x: px,
@@ -301,10 +341,79 @@ export function buildInteriorParts(
       w: body.headSizeM * 0.85,
       d: body.headSizeM * 0.8,
       h: headH,
-      baseY: bodyH,
+      baseY: placeable.baseY + bodyH,
       colorHex: body.skinToneHex,
     });
   });
+
+  // ── Upper storeys (L4 multi-storey). The exterior shell already encloses every
+  // storey, so each upper floor adds only its own floor slab, INTERNAL room-divider
+  // walls (with doorway gaps), and furniture — lifted to the floor's elevation via
+  // baseY, which the renderer already honors. A stair flight box fills each shaft
+  // gap. Single-storey buildings have no upperFloors, so this block is skipped and
+  // their part list is byte-identical to before. ──
+  if (plan.upperFloors.length > 0) {
+    const upperWallH = Math.min(storeyHeightM, 3);
+    for (const floor of plan.upperFloors) {
+      const baseY = floor.level * storeyHeightM;
+      parts.push({ x: 0, z: 0, w: W * FT, d: D * FT, h: FLOOR_H, colorHex: FLOOR_COLOR, baseY });
+
+      const fLines = new Map<string, Run[]>();
+      const addF = (key: string, lo: number, hi: number): void => {
+        const runs = fLines.get(key) ?? [];
+        runs.push({ lo, hi });
+        fLines.set(key, runs);
+      };
+      for (const r of floor.rooms) {
+        // Skip envelope-edge lines (h:0/h:D/v:0/v:W) — the shell wall covers them.
+        if (r.y > 0) addF(`h:${r.y}`, r.x, r.x + r.w);
+        if (r.y + r.d < D) addF(`h:${r.y + r.d}`, r.x, r.x + r.w);
+        if (r.x > 0) addF(`v:${r.x}`, r.y, r.y + r.d);
+        if (r.x + r.w < W) addF(`v:${r.x + r.w}`, r.y, r.y + r.d);
+      }
+      for (const [key, runs] of fLines) fLines.set(key, mergeRuns(runs));
+      for (const door of floor.doorways) {
+        const half = DOOR_FT / 2;
+        if (door.axis === 'x') {
+          const key = `h:${door.y}`;
+          if (fLines.has(key)) fLines.set(key, cutRuns(fLines.get(key)!, door.x - half, door.x + half));
+        } else {
+          const key = `v:${door.x}`;
+          if (fLines.has(key)) fLines.set(key, cutRuns(fLines.get(key)!, door.y - half, door.y + half));
+        }
+      }
+      for (const [key, runs] of fLines) {
+        const horizontal = key.startsWith('h:');
+        const lineAt = Number(key.slice(2));
+        for (const r of runs) {
+          if (r.hi - r.lo < 1) continue;
+          const len = (r.hi - r.lo) * FT;
+          if (horizontal) {
+            parts.push({ x: toX((r.lo + r.hi) / 2), z: toZ(lineAt), w: len, d: WALL_T, h: upperWallH, colorHex: INTERIOR_WALL_COLOR, baseY });
+          } else {
+            parts.push({ x: toX(lineAt), z: toZ((r.lo + r.hi) / 2), w: WALL_T, d: len, h: upperWallH, colorHex: INTERIOR_WALL_COLOR, baseY });
+          }
+        }
+      }
+      for (const f of floor.furnishings) {
+        const spec = FURNITURE[f.kind];
+        if (!spec) continue;
+        const rotated = f.rotation === 90 || f.rotation === 270;
+        parts.push({
+          x: toX(f.x), z: toZ(f.y),
+          w: rotated ? spec.d : spec.w, d: rotated ? spec.w : spec.d,
+          h: spec.h, colorHex: spec.colorHex, baseY,
+        });
+      }
+    }
+    // Stair flight: one wood box per gap, rising a full storey at the shaft.
+    for (const s of plan.stairs) {
+      parts.push({
+        x: toX(s.x), z: toZ(s.y), w: DOOR_FT * FT, d: DOOR_FT * FT,
+        h: storeyHeightM, colorHex: '#7a5a36', baseY: s.fromFloor * storeyHeightM,
+      });
+    }
+  }
 
   return parts;
 }

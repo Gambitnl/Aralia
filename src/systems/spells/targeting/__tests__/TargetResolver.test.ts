@@ -162,6 +162,10 @@ describe('TargetResolver', () => {
 
       expect(TargetResolver.isValidTarget(targeting, caster, enemyClose, mockGameState)).toBe(true)
       expect(TargetResolver.isValidTarget(targeting, caster, ally, mockGameState)).toBe(false)
+      expect(TargetResolver.getTargetRejectionReason(targeting, caster, ally, mockGameState)).toMatchObject({
+        code: 'requires_enemy',
+        message: 'This spell can only target enemies.'
+      })
     })
 
     it('should filter by Team (Allies)', () => {
@@ -279,6 +283,66 @@ describe('TargetResolver', () => {
         size: 'Medium',
         weightPounds: 30
       }, mockGameState)).toBe(false)
+    })
+
+    it('honors grouped object size and weight eligibility fields', () => {
+      const targeting: SpellTargeting = {
+        type: 'single',
+        range: 60,
+        validTargets: ['objects'],
+        filter: {
+          objectEligibility: {
+            wornOrCarried: 'excluded',
+            magicalStatus: 'nonmagical',
+            fixedToSurface: 'excluded',
+            sizeLimit: { maxSize: 'Small' },
+            weightLimit: { maxWeightPounds: 5 }
+          } as unknown as NonNullable<SpellTargeting['filter']>['objectEligibility']
+        }
+      }
+
+      // Object-target spell data migrated from flat fields to grouped size and
+      // weight blocks. The resolver must read those grouped blocks or spells
+      // can incorrectly allow oversized or overweight map objects.
+      expect(TargetResolver.isValidObjectTarget(targeting, caster, {
+        id: 'tiny-stone',
+        name: 'Tiny Stone',
+        position: { x: 11, y: 10 },
+        size: 'Tiny',
+        weightPounds: 2
+      }, mockGameState)).toBe(true)
+      expect(TargetResolver.isValidObjectTarget(targeting, caster, {
+        id: 'heavy-stone',
+        name: 'Heavy Stone',
+        position: { x: 11, y: 10 },
+        size: 'Tiny',
+        weightPounds: 30
+      }, mockGameState)).toBe(false)
+      expect(TargetResolver.getObjectTargetRejectionReason(targeting, caster, {
+        id: 'heavy-stone',
+        name: 'Heavy Stone',
+        position: { x: 11, y: 10 },
+        size: 'Tiny',
+        weightPounds: 30
+      }, mockGameState)).toMatchObject({
+        code: 'object_too_heavy'
+      })
+      expect(TargetResolver.isValidObjectTarget(targeting, caster, {
+        id: 'large-stone',
+        name: 'Large Stone',
+        position: { x: 11, y: 10 },
+        size: 'Large',
+        weightPounds: 2
+      }, mockGameState)).toBe(false)
+      expect(TargetResolver.getObjectTargetRejectionReason(targeting, caster, {
+        id: 'large-stone',
+        name: 'Large Stone',
+        position: { x: 11, y: 10 },
+        size: 'Large',
+        weightPounds: 2
+      }, mockGameState)).toMatchObject({
+        code: 'object_too_large'
+      })
     })
 
     it('treats creature and object filters as allowed target categories, not impossible AND filters', () => {

@@ -56,6 +56,29 @@ describe('AtlasSvgView', () => {
     expect(container.querySelectorAll('[data-testid="atlas-discovery-pin"]')).toHaveLength(2);
   });
 
+  it('draws a provisioning ring (with labeled legend) for each resource horizon prop', () => {
+    const { queryByTestId } = render(<AtlasSvgView atlas={stub} width={300} height={300} />);
+    // No rings without the prop.
+    expect(queryByTestId('atlas-provision-ring')).toBeNull();
+    expect(queryByTestId('atlas-provision-ring-legend')).toBeNull();
+
+    const { container, getByTestId } = render(
+      <AtlasSvgView
+        atlas={stub}
+        width={300}
+        height={300}
+        provisionRings={[
+          { cellIds: [1], color: '#eab308', label: 'Food reach' },
+          { cellIds: [1], color: '#38bdf8', label: 'Water reach' },
+        ]}
+      />,
+    );
+    expect(container.querySelectorAll('[data-testid="atlas-provision-ring"]')).toHaveLength(2);
+    const legend = getByTestId('atlas-provision-ring-legend');
+    expect(legend.textContent).toContain('Food reach');
+    expect(legend.textContent).toContain('Water reach');
+  });
+
   it('a pan gesture (drag) suppresses the travel-click — onPickCell is not fired', () => {
     let picks = 0;
     const { getByTestId } = render(
@@ -166,6 +189,34 @@ describe('AtlasSvgView', () => {
     // Named swatch (not the generic "each tint = one state" caption).
     const swatches = getByTestId('atlas-legend-swatches');
     expect(swatches.textContent).toContain('Kingdom of Aralia');
+  });
+
+  it('Danger overlay (PROTOTYPE) hatches threatened cells over the active coloring', () => {
+    // Cell 1 is the lone land cell (like the base stub) and hosts a war ⇒ the
+    // danger overlay should hatch it while the biome coloring stays underneath.
+    const dangerStub = {
+      graphWidth: 100, graphHeight: 100,
+      biomesData: { color: ['#000', '#11aa33'] },
+      pack: {
+        vertices: { p: [[0, 0], [10, 0], [10, 10], [0, 10]] },
+        cells: { h: [5, 50], v: [[0, 1, 2], [0, 1, 2, 3]], biome: [0, 1], p: [[2, 2], [7, 7]], c: [[1], [0]] },
+        zones: [{ type: 'Invasion', cells: [1] }],
+      },
+    } as any;
+    const { container, getByTestId, getByLabelText } = render(
+      <AtlasSvgView atlas={dangerStub} width={300} height={300} />,
+    );
+    const hatched = () =>
+      Array.from(container.querySelectorAll('polygon')).filter((p) => (p.getAttribute('fill') || '').includes('danger-hatch')).length;
+    expect(hatched()).toBe(0); // off by default
+
+    fireEvent.click(getByTestId('atlas-layers-toggle'));
+    const danger = getByLabelText(/Danger/) as HTMLInputElement;
+    expect(danger.disabled).toBe(false); // has a zone ⇒ enabled
+    fireEvent.click(danger);
+    expect(hatched()).toBeGreaterThan(0); // threatened cell(s) now hatched
+    // Danger is a feature toggle (blends), so the biome coloring is still present.
+    expect(Array.from(container.querySelectorAll('path')).some((p) => p.getAttribute('fill') === '#11aa33')).toBe(true);
   });
 
   it('persists layer prefs per scope (different worlds remember different colorings)', () => {

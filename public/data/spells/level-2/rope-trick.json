@@ -133,7 +133,7 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
+      "utilityType": "creation",
     "description": "Touch a rope up to 60 feet long for 1 hour; one end rises until the rope hangs vertically, opening an invisible extradimensional entrance at the top that up to eight Medium-or-smaller creatures can enter by climbing, the rope can be pulled inside and hidden, attacks and spells cannot cross the entrance, occupants can see out through a 3-foot-by-5-foot window, and anything inside drops out when the spell ends.",
       "scaling": {
         "type": "slot_level",
@@ -142,6 +142,26 @@
       },
       "grantedActions": [],
       "attackAugments": [],
+      "createdObjects": [
+        {
+          "objectType": "portal",
+          "name": "Rope Trick Extradimensional Entrance",
+          "count": 1,
+          "countUnit": "not_applicable",
+          "appearsIn": "unoccupied_space",
+          "portalWidthFeet": 3,
+          "portalHeightFeet": 5,
+          "extradimensionalSpace": true,
+          "capacityCreatures": 8,
+          "capacityCreatureMaxSize": "Medium",
+          "blocksCrossBoundaryEffects": true,
+          "occupantsCanSeeOut": true,
+          "contentsDropOutOnEnd": true,
+          "expiresWithSpell": true,
+          "shelfLife": "1 hour",
+          "notes": "An invisible 3-foot-by-5-foot entrance opens at the rope's upper end into an extradimensional space for up to eight Medium or smaller creatures. Attacks, spells, and effects cannot cross the entrance; occupants can see out, and anything inside drops out when the spell ends."
+        }
+      ],
       "controlOptions": [],
       "taunt": {
         "disadvantageAgainstOthers": false,

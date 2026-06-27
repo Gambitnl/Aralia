@@ -135,6 +135,7 @@
       "summon": {
         "entityType": "mount",
         "persistent": true,
+        "count": 1,
         "dismissAction": "action",
         "formOptions": [
           "Horse",
@@ -142,6 +143,8 @@
           "Dire Wolf",
           "Elk"
         ],
+        "objectDescription": "Persistent loyal otherworldly steed that shares the caster's initiative, functions as a controlled mount while ridden, and communicates telepathically within 1 mile.",
+        "initiative": "shared",
         "statBlock": {
           "type": "Celestial/Fey/Fiend",
           "size": "Large",
@@ -172,5 +175,48 @@
     "summoning",
     "mount",
     "utility"
-  ]
+  ],
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 3,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Celestial",
+        "summary": "The steed is Celestial, uses Radiant damage for Otherworldly Slam, and gains the Celestial Healing Touch trait.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "persistent until replaced, dismissed, reduced to 0 Hit Points, or caster dies"
+      },
+      {
+        "label": "Fey",
+        "summary": "The steed is Fey, uses Psychic damage for Otherworldly Slam, and gains the Fey Step teleport trait.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "persistent until replaced, dismissed, reduced to 0 Hit Points, or caster dies"
+      },
+      {
+        "label": "Fiend",
+        "summary": "The steed is Fiend, uses Necrotic damage for Otherworldly Slam, and gains the Fiend Fell Glare trait.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "persistent until replaced, dismissed, reduced to 0 Hit Points, or caster dies"
+      }
+    ],
+    "notes": "The summon.formOptions list carries the separate appearance choice. This mode menu captures the creature-type choice that changes damage type and type-specific traits."
+  }
 }

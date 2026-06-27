@@ -174,3 +174,5 @@ every feature task into a full QA project.
   text, reproduction path, and suspected owner.
 
 Backlog-style work belongs in the owning project gap registry under [`docs/projects/`](./projects/) or in [`GLOBAL_GAPS.md`](./projects/GLOBAL_GAPS.md) when no owner exists yet.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/DEVELOPMENT_GUIDE.md","sha256WithoutMarker":"dc35a147a8930a1524da3bb14679ab29d0aa010ae9395e3e12aa17ed01305598","markedAtUtc":"2026-06-26T00:12:35.440Z"} -->

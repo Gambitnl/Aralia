@@ -195,8 +195,23 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "utilityType": "control",
+      "utilityType": "creation",
       "description": "When the spell is cast and as a Bonus Action on each later turn, the caster can expend one or two of the six orbiting meteors, sending them to one or two points within 120 feet; each meteor explodes when it reaches its destination or hits a solid surface.",
+      "createdObjects": [
+        {
+          "objectType": "ammunition",
+          "name": "Minute Meteor",
+          "count": 6,
+          "countUnit": "item",
+          "appearsIn": "not_applicable",
+          "orbitsCaster": true,
+          "expendable": true,
+          "maxExpendedPerAction": 2,
+          "expiresWithSpell": true,
+          "shelfLife": "10 minutes",
+          "notes": "Six tiny meteors float in the air and orbit the caster for the spell duration; each later bonus action can expend one or two meteors."
+        }
+      ],
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -208,7 +223,17 @@
           "action": "Expend Meteors",
           "frequency": "each_turn",
           "actor": "caster",
-          "actionKind": "standard_action",
+          "actionKind": "bonus_action",
+          "areaShape": "Sphere",
+          "areaSize": 5,
+          "areaSizeUnit": "feet",
+          "rangeLimit": 120,
+          "damage": {
+            "dice": "2d6",
+            "type": "Fire"
+          },
+          "saveType": "Dexterity",
+          "saveEffect": "half",
           "notes": "Expend one or two of the meteors, sending them streaking toward a point or points you choose within 120 feet of you."
         }
       ],

@@ -356,6 +356,45 @@
         }
       ],
       "attackAugments": [],
+      "createdObjects": [
+        {
+          "objectType": "hazard",
+          "name": "Frozen Water Sheet",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "affectedVolumeShape": "Cube",
+          "affectedVolumeSizeFeet": 30,
+          "depthFeet": 0.5,
+          "canFreeze": true,
+          "frozenSectionSizeFeet": 30,
+          "trapsCreaturesOnSurface": true,
+          "trappedCondition": "Restrained",
+          "escapeCheck": "Strength (Athletics) against spell save DC as an action",
+          "expiresWithSpell": false,
+          "shelfLife": "1 minute",
+          "notes": "If the globe strikes a body of water, it freezes a 30-foot-square area to a depth of 6 inches for 1 minute. Creatures swimming on the frozen surface are trapped in the ice with the Restrained condition and can use an action to make a Strength (Athletics) check against the caster's spell save DC to break free."
+        },
+        {
+          "objectType": "ammunition",
+          "name": "Stored Freezing Globe",
+          "count": 1,
+          "countUnit": "item",
+          "appearsIn": "caster_hand",
+          "affectedVolumeShape": "Sphere",
+          "manipulationOptions": [
+            "throw_40_feet",
+            "hurl_with_sling",
+            "set_down_without_shattering",
+            "delayed_explosion"
+          ],
+          "maxManipulationDistanceFeet": 40,
+          "expendable": true,
+          "expiresWithSpell": false,
+          "shelfLife": "1 minute",
+          "notes": "The caster can hold a sling-bullet-sized globe instead of firing it immediately. It can be thrown 40 feet, hurled with a sling to that weapon's normal range, set down without shattering, or left to explode after 1 minute if it has not already shattered."
+        }
+      ],
       "controlOptions": [
         {
           "name": "Freeze Water",

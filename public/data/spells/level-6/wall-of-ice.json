@@ -368,6 +368,67 @@
       },
       "utilityType": "creation",
       "description": "The wall can be formed as a hemisphere, globe, or contiguous flat panels; destroyed sections leave frigid air behind.",
+      "createdObjects": [
+        {
+          "objectType": "structure",
+          "name": "Wall of Ice",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "materialOptions": [
+            "ice"
+          ],
+          "shapeOptions": [
+            "hemispherical_dome",
+            "globe",
+            "flat_contiguous_panels"
+          ],
+          "wallLengthFeet": 100,
+          "wallHeightFeet": 10,
+          "wallThickness": 1,
+          "wallThicknessUnit": "feet",
+          "panelCount": 10,
+          "panelWidthFeet": 10,
+          "panelHeightFeet": 10,
+          "panelContiguityRequired": true,
+          "diameterFeet": 20,
+          "orientationOptions": [
+            "vertical",
+            "caster_choice"
+          ],
+          "freeFloating": false,
+          "requiresAnchoring": true,
+          "anchoringOptions": [
+            "solid_surface"
+          ],
+          "blocksPhysicalPassage": true,
+          "blocksLineOfSight": true,
+          "immuneToDamage": false,
+          "objectArmorClass": 12,
+          "sectionHitPoints": 30,
+          "damageImmunities": [
+            "Cold",
+            "Poison",
+            "Psychic"
+          ],
+          "damageVulnerabilities": [
+            "Fire"
+          ],
+          "pushesCreaturesToChosenSide": true,
+          "leavesHazardOnSectionDestroyed": true,
+          "lingeringHazardName": "Frigid Air",
+          "lingeringHazardDamage": {
+            "dice": "5d6",
+            "type": "Cold"
+          },
+          "lingeringHazardSaveType": "Constitution",
+          "lingeringHazardSaveEffect": "half",
+          "lingeringHazardFrequency": "first_per_turn",
+          "expiresWithSpell": true,
+          "shelfLife": "10 minutes",
+          "notes": "A 1-foot-thick ice wall that can be a 10-foot-radius dome/globe or ten contiguous 10-foot panels. Each 10-foot section has AC 12 and 30 HP, is immune to Cold, Poison, and Psychic damage, is vulnerable to Fire damage, and leaves frigid air that damages creatures moving through it after destruction."
+        }
+      ],
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

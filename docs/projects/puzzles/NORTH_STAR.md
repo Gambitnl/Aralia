@@ -6,14 +6,14 @@ category: Gameplay Systems
 main_category: "Game & Simulation"
 subcategory: Core Sim Systems
 status: active
-last_updated: 2026-06-12
-iteration: 6
+last_updated: 2026-06-27
+iteration: 7
 confidence: medium
 evidence: docs/projects/puzzles
-gap_signal: "5 open gaps; 5 open project gaps; PZ-007 decision recorded 2026-06-10 (dedicated puzzle-facing runtime surface approved) Ã¢â‚¬â€ implementation lane open"
+gap_signal: "4 open gaps; PZ-007 runtime surface closed 2026-06-27; PZ-003 key path is next"
 protocol: living project doc set
-next_step: Build the approved dedicated puzzle-facing runtime surface and wire the first gameplay getPuzzleHint caller there with a focused test (PZ-007), then continue with PZ-003.
-agent_comments: PZ-007 Required Review Brief resolved 2026-06-10 (Option A). See docs/projects/DECISION_BLITZ_2026-06-10.md D13.
+next_step: Continue with PZ-003 key-based lock progression path.
+agent_comments: PZ-007 Required Review Brief resolved 2026-06-10 (Option A) and implemented 2026-06-27 with a puzzle-owned runtime modal caller.
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -45,8 +45,8 @@ human_decision_required: "no"
 ---
 # Puzzles System North Star
 
-Status: active (PZ-007 decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-12
+Status: active (PZ-007 runtime surface complete; PZ-003 key path next)
+Last updated: 2026-06-27
 
 ## Why This Project Exists
 This project owns the existing puzzle-family runtime in `src/systems/puzzles` and the lockpicking UI bridge. It was previously represented in the registry but had only a scaffold-level project doc. This pass preserves the actual working boundaries so future work does not erase partial systems.
@@ -56,8 +56,9 @@ Create a documentation-first cold-start pack for Puzzles System that preserves w
 
 ## Current State
 
-This project has a living-project doc set in place and a live puzzle hint helper
-is now active, but no runtime caller owns a `Puzzle` object yet.
+This project has a living-project doc set in place, a live puzzle hint helper,
+and a first puzzle-owned runtime surface that can own a `Puzzle` object in
+gameplay.
 
 ### Implemented Runtime
 
@@ -73,6 +74,8 @@ is now active, but no runtime caller owns a `Puzzle` object yet.
   - physical mechanism operation and linked-event emission.
 - `src/systems/puzzles/puzzleSystem.ts`
   - sequence/item/riddle puzzle attempt logic plus live hint resolution via `getPuzzleHint`.
+- `src/systems/puzzles/puzzleRuntime.ts`
+  - puzzle-facing runtime envelope for gameplay hint requests via `requestPuzzleHint`.
 - `src/systems/puzzles/skillChallengeSystem.ts`
   - structured challenge creation and success/failure accounting.
 - `src/systems/puzzles/types.ts` and `src/systems/puzzles/types.d.ts`
@@ -82,6 +85,8 @@ is now active, but no runtime caller owns a `Puzzle` object yet.
 
 - `src/components/puzzles/LockpickingModal.tsx`
   - interactive lock picking and disarming modal with dice hooks and trap callbacks.
+- `src/components/puzzles/PuzzleRuntimeModal.tsx`
+  - first puzzle-owned runtime modal; renders a live `Puzzle` object and asks `requestPuzzleHint` from the hint action.
 - `src/state/actionTypes.ts`, `src/state/actionTypes.d.ts`, `src/state/initialState.ts`, `src/state/appState.ts`, `src/state/reducers/uiReducer.ts`
   - lockpicking modal visibility and active lock state are persisted in app state.
 - `src/types/state.ts`, `src/types/state.d.ts`
@@ -92,10 +97,12 @@ is now active, but no runtime caller owns a `Puzzle` object yet.
   - dev action `test_lockpicking` dispatches `OPEN_LOCKPICKING_MODAL` with a sample locked object.
 - `src/data/world/locations.ts`
   - added `cave_entrance.interactableFeatures` with a lock contract that routes into action generation.
+- `src/data/world/locations.ts`
+  - added `cave_chamber.interactableFeatures` with a `puzzle` contract that routes into the puzzle runtime surface.
 - `src/components/ActionPane/useActionGeneration.ts`
-  - real location feature scan now emits `OPEN_LOCKPICKING_MODAL` action items.
+  - real location feature scan now emits `OPEN_LOCKPICKING_MODAL` and `OPEN_PUZZLE_RUNTIME` action items.
 - `src/hooks/actions/actionHandlers.ts`
-  - added lock action handling that dispatches `OPEN_LOCKPICKING_MODAL` into UI state.
+  - added lock and puzzle action handling that dispatches modal open actions into UI state.
 
 ## Required Review Brief
 
@@ -115,7 +122,7 @@ Proof after decision: A focused runtime caller test plus the chosen caller wirin
 Outcome: **Option A Ã¢â‚¬â€ approve a dedicated puzzle-facing runtime surface** and wire the first gameplay `getPuzzleHint` caller there with a focused test. The Puzzles project owns the runtime `Puzzle` instance and the hint UI contract; no adapter through another project's surface is needed.
 Decider: Remy (project owner), batched decision session.
 Record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D13).
-Effect: the PZ-007 review gate is lifted. Next slice: build the puzzle-facing runtime surface, wire the first gameplay `getPuzzleHint` callsite, and add the focused runtime caller test named in the brief. PZ-003 (key path) continues after that.
+Effect: the PZ-007 review gate was lifted. The implementation landed 2026-06-27 with a puzzle-owned runtime surface, a real `puzzle` location feature, a rendered hint caller, focused tests, and after screenshot proof. PZ-003 (key path) continues next.
 
 ### Test Coverage
 
@@ -123,21 +130,23 @@ Effect: the PZ-007 review gate is lifted. Next slice: build the puzzle-facing ru
 - `src/systems/puzzles/__tests__/pressurePlateSystem.test.ts`
 - `src/systems/puzzles/__tests__/secretDoorSystem.test.ts`
 - `src/systems/puzzles/__tests__/puzzleSystem.test.ts`
+- `src/systems/puzzles/__tests__/puzzleRuntime.test.ts`
 - `src/systems/puzzles/__tests__/skillChallengeSystem.test.ts`
 - `src/components/ActionPane/__tests__/ActionPane.test.tsx`
-  - validates the production lock route from `cave_entrance` interaction to an action payload.
+- `src/components/puzzles/PuzzleRuntimeModal.test.tsx`
+  - validates production lock and puzzle routes from location interaction data to action payloads, and proves the rendered hint action calls the puzzle runtime surface.
 
 ## Dashboard Card Schema
 
 Project: Puzzles System
 Slug: puzzles
 Category: Gameplay Systems
-Status: active (PZ-007 decision recorded 2026-06-10; implementation lane open)
+Status: active (PZ-007 runtime surface complete; PZ-003 key path next)
 Confidence: medium
 Evidence: docs/projects/puzzles
-Gap signal: 5 open project gaps; PZ-007 decided 2026-06-10 (dedicated puzzle-facing runtime surface approved)
+Gap signal: 4 open project gaps; PZ-007 complete 2026-06-27
 Protocol: living project doc set
-Next step: Build the approved puzzle-facing runtime surface and wire the first gameplay `getPuzzleHint` caller with a focused test, then continue with PZ-003.
+Next step: Continue with PZ-003 key-based lock progression path.
 Required verification: scoped_tests, docs_consistency, git_diff_check
 Completed verification: scoped_tests, docs_consistency, git_diff_check
 Last proof: 2026-06-09
@@ -147,13 +156,13 @@ Workflow gaps reviewed: 2026-06-09
 
 | Field | Value |
 |---|---|
-| Task | Resolve `getPuzzleHint` runtime caller ownership. Decision recorded 2026-06-10 (DECISION_BLITZ D13): dedicated puzzle-facing runtime surface approved Ã¢â‚¬â€ implement it as the next slice. |
-| Acceptance criteria | The puzzle-facing runtime surface exists, the first gameplay `getPuzzleHint` callsite is wired there, and a focused runtime caller test proves the path. |
+| Task | Continue with PZ-003 key-based lock progression path after PZ-007 completion. |
+| Acceptance criteria | Decide key matching ownership, implement deterministic key unlock behavior, and prove both pick and key paths with production-oriented tests. |
 | Allowed boundaries | `src/systems/puzzles/`, `src/components/puzzles/`, the modal/state wiring files already in the file map, nearby tests, and `docs/projects/puzzles/`. |
 | Stop condition | Stop after the first gameplay hint caller and its focused test land; do not widen into map-integration follow-ups (PZ-005) in the same slice. |
-| Verification | Focused runtime caller test plus `docs/projects/puzzles/NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`, `AUDIT_OR_PROOF.md`, and `RUNBOOK.md` aligned with the decided state. |
+| Verification | Focused key path tests plus docs aligned with the new state. |
 | Owner | Worker A (decision: Remy 2026-06-10) |
-| Next action | Implement the approved puzzle-facing runtime surface and the first gameplay `getPuzzleHint` caller with a focused test, then continue with `PZ-003`. |
+| Next action | Resolve `Lock.keyId` ownership and implement the first deterministic key unlock path. |
 
 ## Scope and Boundaries
 
@@ -181,7 +190,7 @@ Out of scope:
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| `getPuzzleHint` is live, but no runtime `Puzzle` owner exists yet. Decided 2026-06-10: dedicated puzzle-facing runtime surface approved (DECISION_BLITZ D13). | in_scope_now | Worker A | `src/systems/puzzles/puzzleSystem.ts`, `src/systems/puzzles/__tests__/puzzleSystem.test.ts`, `src/components/puzzles/LockpickingModal.tsx`, `docs/projects/DECISION_BLITZ_2026-06-10.md` D13 | Build the approved runtime surface and wire the first gameplay `getPuzzleHint` caller with a focused test. |
+| `getPuzzleHint` is live and now has a puzzle-owned runtime caller. | done | Worker A | `src/systems/puzzles/puzzleRuntime.ts`, `src/components/puzzles/PuzzleRuntimeModal.tsx`, `src/components/ActionPane/useActionGeneration.ts`, `src/data/world/locations.ts`, focused tests, `.agent/scratch/proof/puzzles/runtime-surface/after/puzzle-runtime-modal-after.png` | Closed 2026-06-27; continue with `PZ-003`. |
 | Lockpicking modal has only dev entry (`test_lockpicking`) for state dispatch. | done | Worker A | `src/data/world/locations.ts`, `src/components/ActionPane/useActionGeneration.ts`, `src/hooks/actions/actionHandlers.ts` | Production path now routes a cave location lock interaction through `OPEN_LOCKPICKING_MODAL`. |
 | `Lock.keyId` exists in the type model but is not consumed by lock resolution logic. | in_scope_now | Worker A | `src/systems/puzzles/types.ts`, `src/systems/puzzles/lockSystem.ts`, `src/components/puzzles/LockpickingModal.tsx` | Clarify key ownership and the unlock path before any lock-key progression work. |
 | Legacy character fallback flow spans many puzzle modules and tests. | support_needed_now | Worker A | `src/systems/puzzles/*.ts`, `src/types/character.ts` | Preserve shim behavior and define the migration target before expanding puzzle checks. |
@@ -194,13 +203,16 @@ Out of scope:
 |---|---|---|
 | `src/systems/puzzles/*` | Runtime modules are implemented and cover lock, trap, puzzle, and mechanism behavior. | `src/systems/puzzles/` |
 | `src/systems/puzzles/puzzleSystem.ts` and `src/systems/puzzles/__tests__/puzzleSystem.test.ts` | `getPuzzleHint` now resolves a live Intelligence check and a deterministic test proves a hint can be returned. | `src/systems/puzzles/` |
+| `src/systems/puzzles/puzzleRuntime.ts` and `src/systems/puzzles/__tests__/puzzleRuntime.test.ts` | Gameplay callers now use a puzzle-owned runtime envelope around `getPuzzleHint`. | `src/systems/puzzles/` |
 | `src/systems/puzzles/__tests__/*` | Each implemented puzzle module has targeted unit tests. | `src/systems/puzzles/__tests__/` |
 | `src/components/puzzles/LockpickingModal.tsx` | Lockpicking modal UI exists and is functionalized with callbacks. | `src/components/puzzles/LockpickingModal.tsx` |
-| `src/state/actionTypes.ts` and `src/state/reducers/uiReducer.ts` | Lock modal actions and reducer transitions are wired into state. | `src/state/` |
-| `src/components/layout/GameModals.tsx` | Active lockpicking modal is rendered from game state. | `src/components/layout/GameModals.tsx` |
-| `src/data/world/locations.ts` | Real-world encounter feature data now seeds a lock interaction payload. | `src/data/world/locations.ts` |
-| `src/components/ActionPane/useActionGeneration.ts` | World features now emit gameplay lock actions with lock payload. | `src/components/ActionPane/useActionGeneration.ts` |
-| `src/hooks/actions/actionHandlers.ts` | Lock action now dispatches `OPEN_LOCKPICKING_MODAL` into UI state. | `src/hooks/actions/actionHandlers.ts` |
+| `src/components/puzzles/PuzzleRuntimeModal.tsx` and `src/components/puzzles/PuzzleRuntimeModal.test.tsx` | The rendered puzzle surface asks the runtime for a hint from the hint action. | `src/components/puzzles/` |
+| `src/state/actionTypes.ts` and `src/state/reducers/uiReducer.ts` | Lock and puzzle modal actions and reducer transitions are wired into state. | `src/state/` |
+| `src/components/layout/GameModals.tsx` | Active lockpicking and puzzle runtime modals are rendered from game state. | `src/components/layout/GameModals.tsx` |
+| `src/data/world/locations.ts` | Real-world encounter feature data now seeds lock and puzzle interaction payloads. | `src/data/world/locations.ts` |
+| `src/components/ActionPane/useActionGeneration.ts` | World features now emit gameplay lock actions and puzzle runtime actions with their domain payloads. | `src/components/ActionPane/useActionGeneration.ts` |
+| `src/hooks/actions/actionHandlers.ts` | Lock and puzzle actions now dispatch their modal open actions into UI state. | `src/hooks/actions/actionHandlers.ts` |
+| `.agent/scratch/proof/puzzles/runtime-surface/after/puzzle-runtime-modal-after.png` | Rendered after proof shows the puzzle runtime modal and returned hint. | `.agent/scratch/proof/puzzles/runtime-surface/after/` |
 | `docs/architecture/domains/puzzles-quests-rituals.md` | Architecture view confirms puzzle lane breadth. | `docs/architecture/domains/puzzles-quests-rituals.md` |
 
 ## Supporting Files
@@ -223,10 +235,12 @@ Out of scope:
 | `src/systems/puzzles/secretDoorSystem.ts` | Secret door operations | active |
 | `src/systems/puzzles/mechanism.ts` | Mechanism operation | active |
 | `src/systems/puzzles/puzzleSystem.ts` | Riddle/sequence/item puzzle resolution and live hint lookup | active |
+| `src/systems/puzzles/puzzleRuntime.ts` | Gameplay-facing puzzle runtime envelope for hint requests | active |
 | `src/systems/puzzles/skillChallengeSystem.ts` | Social/combat skill challenge flow | active |
 | `src/systems/puzzles/__tests__/` | Test coverage for runtime behavior | active |
 | `src/components/puzzles/LockpickingModal.tsx` | Puzzle UI entry surface | active |
-| `src/state/actionTypes.ts` / `src/state/initialState.ts` / `src/state/appState.ts` / `src/state/reducers/uiReducer.ts` / `src/types/state.ts` | Lockpicking modal state lifecycle | active |
+| `src/components/puzzles/PuzzleRuntimeModal.tsx` | Puzzle-owned runtime modal and first hint caller | active |
+| `src/state/actionTypes.ts` / `src/state/initialState.ts` / `src/state/appState.ts` / `src/state/reducers/uiReducer.ts` / `src/types/state.ts` | Lockpicking and puzzle runtime modal state lifecycle | active |
 | `src/components/layout/GameModals.tsx` | Modal mount and display path | active |
 
 
@@ -236,6 +250,6 @@ The next cold-start agent must:
 - read `TRACKER.md` and `GAPS.md` first
 - tackle the next highest-value evidence-backed project gap in the same pass
 - keep the key, hint, and map-integration follow-ups separated unless the chosen slice needs them
-- do not treat the live hint helper as gameplay-complete until a caller is wired
+- treat the live hint helper as gameplay-wired through PZ-007, but do not widen that proof into full puzzle progression, solving UI, or map integration
 - if no valid in-scope project gaps exist, identify real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy a count

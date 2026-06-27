@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 22/06/2026, 00:46:20
+ * Last Sync: 27/06/2026, 01:55:54
  * Dependents: state/reducers/craftingReducer.ts, types/index.ts, utils/world/sceneUtils.ts, utils/world/worldGeographyAdapter.ts
  * Imports: None
  *
@@ -363,6 +363,9 @@ export interface GameState {
   // Lockpicking Modal State
   isLockpickingModalVisible: boolean;
   activeLock: import('../systems/puzzles/types.js').Lock | null;
+  // Puzzle Runtime Modal State
+  isPuzzleRuntimeVisible: boolean;
+  activePuzzle: import('../systems/puzzles/types.js').Puzzle | null;
 
   // Dice Roller Modal State
   isDiceRollerVisible: boolean;

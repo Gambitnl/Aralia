@@ -91,6 +91,34 @@ describe('ActionPane', () => {
     ],
   };
 
+  const puzzleLocation: Location = {
+    ...baseLocation,
+    id: 'moon_gate',
+    name: 'Moon Gate',
+    interactableFeatures: [
+      {
+        id: 'moon-gate-riddle',
+        type: 'puzzle',
+        label: 'Study Moon Gate Riddle',
+        puzzle: {
+          id: 'puzzle-moon-gate',
+          name: 'Moon Gate Riddle',
+          type: 'riddle',
+          description: 'A silver door asks what grows brighter in darkness.',
+          hint: 'Think about moonlight.',
+          hintDC: 12,
+          acceptedAnswers: ['moon'],
+          isSolved: false,
+          isFailed: false,
+          currentAttempts: 0,
+          currentInputSequence: [],
+          onSuccess: { message: 'The moon gate opens.' },
+          onFailure: { message: 'The silver door remains shut.' },
+        },
+      },
+    ],
+  };
+
   const npcsInLocation: NPC[] = [
     { id: 'npc-1', name: 'Ava', baseDescription: '', initialPersonalityPrompt: '', role: 'civilian' },
   ];
@@ -229,6 +257,28 @@ describe('ActionPane', () => {
           id: 'lock-cave-entrance',
           dc: 14,
           isLocked: true,
+        }),
+      })
+    );
+  });
+
+  it('renders puzzle actions for location interactable puzzles and routes payload to the runtime surface', () => {
+    const onAction = vi.fn();
+    render(
+      <ActionPane
+        {...defaultProps}
+        currentLocation={puzzleLocation}
+        onAction={onAction}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Study Moon Gate Riddle'));
+    expect(onAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'OPEN_PUZZLE_RUNTIME',
+        payload: expect.objectContaining({
+          id: 'puzzle-moon-gate',
+          hint: 'Think about moonlight.',
         }),
       })
     );

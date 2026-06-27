@@ -8,7 +8,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTurnManager } from '../useTurnManager';
-import type { CombatCharacter } from '@/types/combat';
+import type { CombatCharacter, LightSource } from '@/types/combat';
 import type { Class } from '@/types';
 
 const mockClass: Class = {
@@ -272,6 +272,51 @@ describe('useTurnManager duration tick-down & AC recalculation', () => {
     expect(finalUpdate?.activeEffects?.length).toBe(1);
     expect(finalUpdate?.activeEffects?.[0].duration.value).toBe(1);
     expect(finalUpdate?.armorClass).toBe(17); // AC remains boosted!
+  });
+
+  it('removes expired timed light sources at the next turn boundary', () => {
+    const target = makeCharacter();
+    const expiredLight: LightSource = {
+      id: 'expired-light',
+      sourceSpellId: 'dancing-lights',
+      casterId: target.id,
+      brightRadius: 10,
+      dimRadius: 10,
+      attachedTo: 'caster',
+      attachedToCharacterId: target.id,
+      createdTurn: 0,
+      expiresAtRound: 0
+    };
+    const persistentLight: LightSource = {
+      id: 'persistent-light',
+      sourceSpellId: 'continual-flame',
+      casterId: target.id,
+      brightRadius: 20,
+      dimRadius: 20,
+      attachedTo: 'point',
+      position: { x: 1, y: 1 },
+      createdTurn: 0
+    };
+
+    const { result } = renderHook(() => useTurnManager({
+      characters: [target],
+      mapData: null,
+      onCharacterUpdate: vi.fn(),
+      onLogEntry: vi.fn()
+    }));
+
+    act(() => {
+      // The turn manager owns active light sources as map artifacts. Seeding
+      // both an expired timed light and an untimed light proves the cleanup
+      // removes only the spell artifact whose duration has elapsed.
+      result.current.setActiveLightSources([expiredLight, persistentLight]);
+    });
+
+    act(() => {
+      result.current.initializeCombat([target]);
+    });
+
+    expect(result.current.activeLightSources.map(light => light.id)).toEqual(['persistent-light']);
   });
 
   it('recalculates movement total when a speed debuff expires at the next turn boundary', async () => {

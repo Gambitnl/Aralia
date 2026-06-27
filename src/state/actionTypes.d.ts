@@ -315,6 +315,11 @@ export type AppAction = {
         count?: number;
     };
 } | {
+    type: 'ADD_SPELL_CREATED_ITEMS';
+    payload: {
+        items: Item[];
+    };
+} | {
     type: 'REMOVE_ITEM';
     payload: {
         itemId: string;
@@ -848,6 +853,11 @@ export type AppAction = {
         shipId: string;
     };
 } | {
+    type: 'NAVAL_SET_KNOWN_PORTS';
+    payload: {
+        ports: string[];
+    };
+} | {
     type: 'TOGGLE_NAVAL_DASHBOARD';
 } | {
     type: 'TOGGLE_TRADE_ROUTE_DASHBOARD';
@@ -1036,6 +1046,11 @@ export type AppAction = {
     payload: import('../systems/puzzles/types.js').Lock;
 } | {
     type: 'CLOSE_LOCKPICKING_MODAL';
+} | {
+    type: 'OPEN_PUZZLE_RUNTIME';
+    payload: import('../systems/puzzles/types.js').Puzzle;
+} | {
+    type: 'CLOSE_PUZZLE_RUNTIME';
 } | {
     type: 'TOGGLE_DICE_ROLLER';
 } | {

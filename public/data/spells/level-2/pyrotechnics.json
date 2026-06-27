@@ -293,8 +293,42 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose Fireworks or Smoke after selecting the nonmagical flame cube to extinguish.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 2,
+    "optionsSource": "effects",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Fireworks",
+        "summary": "Extinguish the flame in a dazzling burst; creatures within 10 feet make a Constitution save or become Blinded until the end of the caster's next turn.",
+        "effectIndices": [
+          0,
+          2
+        ],
+        "effectTypes": [
+          "UTILITY",
+          "CONDITION"
+        ],
+        "duration": "Instantaneous burst, Blinded until end of caster's next turn"
+      },
+      {
+        "label": "Smoke",
+        "summary": "Extinguish the flame and create a 20-foot Cube of Heavily Obscured smoke for 1 minute or until strong wind disperses it.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 minute, dispersible by strong wind"
+      }
+    ],
+    "notes": "Both options consume the same selected nonmagical flame cube; the choice determines whether the follow-up effect is a blinding burst or obscuring smoke."
   },
   "description": "Choose an area of nonmagical flame that you can see and that fits within a 5-foot cube within range. You can extinguish the fire in that area, and you create either fireworks or smoke when you do so. Fireworks. The target explodes with a dazzling display of colors. Each creature within 10 feet of the target must succeed on a Constitution saving throw or become blinded until the end of your next turn. Smoke. Thick black smoke spreads out from the target in a 20-foot radius, moving around corners. The area of the smoke is heavily obscured. The smoke persists for 1 minute or until a strong wind disperses it.",
   "higherLevels": "None",

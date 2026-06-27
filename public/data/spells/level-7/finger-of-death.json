@@ -213,8 +213,9 @@
           "size": "Medium"
         },
         "commandCost": "free",
-        "commandsPerTurn": 0,
+        "commandsPerTurn": 1,
         "initiative": "immediate",
+        "objectDescription": "Permanent Zombie created from a Humanoid killed by the spell; it follows the caster's verbal orders.",
         "specialActions": []
       },
       "description": "A Humanoid killed by this spell rises at the start of the caster's next turn as a Zombie that follows the caster's verbal orders.",
@@ -328,5 +329,10 @@
   },
   "description": "You unleash negative energy toward a creature you can see within range. The target makes a Constitution saving throw, taking 7d8 + 30 Necrotic damage on a failed save or half as much damage on a successful one. A Humanoid killed by this spell rises at the start of your next turn as a Zombie that follows your verbal orders.",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "damage",
+    "summoning",
+    "controlled-entity",
+    "undead"
+  ]
 }

@@ -31,3 +31,5 @@ Use:
 ## Historical Note
 
 The older level-4 table is preserved as migration-era context. It is no longer presented here as a reliable current map of level-4 behavior.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/spells/STATUS_LEVEL_4.md","sha256WithoutMarker":"76b95e8f799897294189a56cec7bfcb3c512d9993861d8c6d9c8f93a9f941c66","markedAtUtc":"2026-06-26T00:26:22.327Z"} -->

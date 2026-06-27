@@ -130,15 +130,15 @@ The combat runtime is now clearly split:
 
 These are direct code/docs observations, not guesses:
 
-- `TODO(lint-intent)` comments indicate testability or typing debt in `AttackRiderSystem.ts`, `SustainActionSystem.ts`, `useActionExecutor.ts`, `useCombatEngine.ts`, and `useTurnManager.ts` (unused imports/parameters, stale-closure workaround notes, singleton extraction concerns, centralization opportunities).
-- Event/sustain singletons are shared via `getInstance()` and may require explicit reset hooks for strict unit isolation (noted in file comments and `Combat_Ralph.md`).
+- `AttackRiderSystem.ts` still has maintainability debt around inline rider predicate composition and broad combat-type imports; `Combat_Ralph.md` retirement routed this as G32/T8.
+- Event/sustain singletons are shared via `getInstance()`, but the reset/test-isolation hooks from the old `Combat_Ralph.md` note are now present via `setInstance`/`createFresh` and `src/test/combatEmitters.ts`.
 - `docs/architecture/domains/combat.md` still carries some historical omission text, so implementation behavior should be validated against code/tests rather than the stale note alone.
 - `useCombatAI.ts` now has focused regression coverage for the move/ability loop cap and auto-controlled ally turns; any future per-creature AI budget tuning should be tracked as a separate follow-up.
 - G11 class-feature palette generation is complete for the named classes, but downstream execution semantics may still need feature-specific command/effect work in later combat slices.
 
 ## Uncertain / Open Questions (Needs Follow-Up)
 
-- Whether singleton-backed emitters/systems should be refactored to injectable instances before broad AI/automated combat test expansion.
+- Whether rider predicate extraction should happen before more complex rider families are added.
 - Whether reaction/OA edge cases are complete enough for non-combat-map movement paths and special conditions.
 - Whether any future renderer-only defense cue should go denser than the current token/actor badge language.
 

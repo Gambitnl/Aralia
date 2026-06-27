@@ -37,6 +37,8 @@ import { processPlayerBusinessManagement } from '../../systems/economy/BusinessM
 import { SeededRandom } from '@/utils/random';
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
+const MILLIS_PER_HOUR = 60 * 60 * 1000;
+const MILLIS_PER_MINUTE = 60 * 1000;
 
 type SetMapDataPayload = Extract<AppAction, { type: 'SET_MAP_DATA' }>['payload'];
 type UpdateInspectedTileDescriptionPayload = Extract<AppAction, { type: 'UPDATE_INSPECTED_TILE_DESCRIPTION' }>['payload'];
@@ -66,6 +68,39 @@ const hashStringToSeed = (value: string): number => {
   }
 
   return hash >>> 0;
+};
+
+const parseShelfLifeMillis = (shelfLife?: string): number | null => {
+  if (!shelfLife) return null;
+
+  const match = /^(\d+(?:\.\d+)?)\s*(minute|minutes|hour|hours|day|days)$/i.exec(shelfLife.trim());
+  if (!match) return null;
+
+  const quantity = Number(match[1]);
+  const unit = match[2].toLowerCase();
+
+  if (!Number.isFinite(quantity) || quantity <= 0) return null;
+  if (unit.startsWith('minute')) return quantity * MILLIS_PER_MINUTE;
+  if (unit.startsWith('hour')) return quantity * MILLIS_PER_HOUR;
+  if (unit.startsWith('day')) return quantity * MILLIS_PER_DAY;
+
+  return null;
+};
+
+const removeExpiredPerishableInventory = (
+  inventory: GameState['inventory'],
+  currentTime: Date
+): GameState['inventory'] => {
+  const currentTimeMs = currentTime.getTime();
+
+  return inventory.filter((item) => {
+    if (!item.perishable) return true;
+
+    const shelfLifeMillis = parseShelfLifeMillis(item.shelfLife);
+    if (item.acquiredAt === undefined || shelfLifeMillis === null) return true;
+
+    return item.acquiredAt + shelfLifeMillis > currentTimeMs;
+  });
 };
 
 const resolveBiomeId = (state: GameState): string => {
@@ -385,6 +420,14 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
           nextState = { ...nextState, playerInvestments: investState };
         }
       }
+
+      // Spell-created food uses the same world clock as travel, rests, and
+      // exploration. Keep the cleanup here so Goodberry-style perishables expire
+      // from durable inventory without adding a parallel spell-specific timer.
+      nextState = {
+        ...nextState,
+        inventory: removeExpiredPerishableInventory(nextState.inventory, newTime),
+      };
 
       // Return ONLY the fields that changed to satisfy the slice reducer contract
       // Actually, since we produced a full state, we could return it all, 

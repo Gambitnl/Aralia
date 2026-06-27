@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/06/2026, 03:45:27
+ * Last Sync: 27/06/2026, 01:52:47
  * Dependents: App.tsx
  * Imports: 43 files
  *
@@ -656,6 +656,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 isNavalDashboardVisible: loadedState.isNavalDashboardVisible ?? false,
                 isLockpickingModalVisible: loadedState.isLockpickingModalVisible ?? false,
                 activeLock: loadedState.activeLock ?? null,
+                isPuzzleRuntimeVisible: loadedState.isPuzzleRuntimeVisible ?? false,
+                activePuzzle: loadedState.activePuzzle ?? null,
                 isDiceRollerVisible: loadedState.isDiceRollerVisible ?? false,
                 visualDiceEnabled: loadedState.visualDiceEnabled ?? true,
                 geminiGeneratedActions: null,

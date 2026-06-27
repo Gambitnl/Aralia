@@ -13,7 +13,8 @@
 
 import { generateInterior } from '../../interior/generateInterior';
 import { rootSeedPath } from '../../seedPath';
-import { generateTownPlan } from '../../town/generateTownPlan';
+import { generateTownPlan as generateEngineTown } from '../../town/townEngine';
+import { toArtifactPlan } from '../../town/townPlanAdapter';
 import type { RegionTownSite, TownPlan } from '../../artifacts';
 import { generateTownRoster } from '../generateTownRoster';
 
@@ -51,7 +52,17 @@ function makeSite(envelopeSize: number, gateCount: number, burgId = 77): RegionT
 }
 
 function generatedPlan(): TownPlan {
-  return generateTownPlan(makeSite(2_000, 4), SEED_PATH);
+  // The owned Voronoi-ward generator (`townEngine`) + `toArtifactPlan` — the same
+  // path live towns use, after the retired rect `generateTownPlan.ts`. The site
+  // envelope becomes the generation footprint.
+  const { envelope, burgId } = makeSite(2_000, 4);
+  const footprint: Array<[number, number]> = [
+    [envelope.x, envelope.y],
+    [envelope.x + envelope.width, envelope.y],
+    [envelope.x + envelope.width, envelope.y + envelope.height],
+    [envelope.x, envelope.y + envelope.height],
+  ];
+  return toArtifactPlan(generateEngineTown(footprint, SEED_PATH, { population: 4000 }), burgId).plan;
 }
 
 function syntheticPlan(): TownPlan {

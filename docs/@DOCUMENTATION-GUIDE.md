@@ -239,3 +239,5 @@ The current migration direction is:
 - keep `src` READMEs as a secondary local-reference surface
 
 See [`docs/registry/@DOC-MIGRATION-LEDGER.md`](./registry/@DOC-MIGRATION-LEDGER.md) for the current migration decisions.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/@DOCUMENTATION-GUIDE.md","sha256WithoutMarker":"468060fce2eacf661e6cdcdeeb6ac40ad06027ee5ce85219991dca74cc4f3fd0","markedAtUtc":"2026-06-26T00:07:34.893Z"} -->

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 13/06/2026, 10:45:41
+ * Last Sync: 26/06/2026, 20:35:14
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 10 files
  *
@@ -315,6 +315,45 @@ const getOpportunityAttackDamageFormula = (ability: Ability): string | null => {
   return null;
 };
 
+const buildLegacyAttackResult = (
+  attacker: CombatCharacter,
+  target: CombatCharacter,
+  ability: Ability
+): NonNullable<CombatAction['attackResults']>[number] => {
+  // Older ability actions can still reach the action executor without a
+  // command-side attack result. Armor of Agathys-style reactions need a real
+  // hit/miss fact, so this fallback makes the legacy producer speak the same
+  // attackResults contract instead of letting reactive damage infer a hit from
+  // the mere existence of an attack-shaped action.
+  const d20 = rollD20();
+  const weaponType = ability.spell?.attackType === 'ranged' || ability.range > 5
+    ? 'ranged'
+    : 'melee';
+  const attackType = ability.type === 'spell' || (ability.spell?.attackType !== undefined && ability.spell.attackType !== 'none')
+    ? 'spell'
+    : 'weapon';
+  const abilityScore = weaponType === 'ranged'
+    ? attacker.stats.dexterity
+    : attacker.stats.strength;
+  const statBonus = getAbilityModifierValue(abilityScore);
+  const proficiencyBonus = ability.isProficient === false
+    ? 0
+    : Math.max(2, Math.ceil((attacker.level ?? 1) / 4) + 1);
+  const attackBonus = ability.attackBonus ?? (statBonus + proficiencyBonus);
+  const total = d20 + attackBonus;
+  const targetAC = target.armorClass ?? target.stats.armorClass ?? 10;
+
+  return {
+    targetId: target.id,
+    isHit: d20 === 20 || total >= targetAC,
+    isCritical: d20 === 20,
+    attackType,
+    weaponType,
+    rollResult: d20,
+    total
+  };
+};
+
 // ============================================================================
 // Movement Legality Helpers
 // ============================================================================
@@ -361,6 +400,104 @@ export const useActionExecutor = ({
   // Singleton AreaEffectTracker — created once per hook mount, zones updated each use.
   // Avoids allocating a new object on every movement action (previously `new AreaEffectTracker(spellZones)`).
   const areaEffectTrackerRef = useRef<AreaEffectTracker>(new AreaEffectTracker([]));
+
+  // ============================================================================
+  // On-Target-Attack Reactive Resolver
+  // ============================================================================
+  // Reactive spells such as Armor of Agathys need one hit/miss-aware path that
+  // both normal attacks and opportunity attacks can call. Keeping this helper
+  // inside the hook preserves access to the current character roster and state
+  // callbacks while avoiding combat-log parsing or duplicated trigger filters.
+  // ============================================================================
+  const resolveOnTargetAttackReactiveEffects = useCallback((
+    action: CombatAction,
+    attackingCharacter: CombatCharacter,
+    targetId: string,
+    ability: Ability,
+    resolvedAttackResult?: NonNullable<CombatAction['attackResults']>[number]
+  ): void => {
+    const triggers = reactiveTriggers.filter(t =>
+      t.targetId === targetId &&
+      t.sourceEffect.trigger.type === 'on_target_attack'
+    );
+
+    for (const trigger of triggers) {
+      const effect = trigger.sourceEffect;
+      const attackFilter = effect.trigger.attackFilter;
+      const explicitAttackResult = resolvedAttackResult ?? action.attackResults?.find(result => result.targetId === targetId);
+
+      // Armor of Agathys stores its "melee attack only" rule in the trigger's
+      // attack filter. Prefer resolved attackResults because they describe the
+      // roll that actually happened; keep the ability range fallback for older
+      // producers that have not filled in attackResults yet.
+      const resolvedWeaponType = explicitAttackResult?.weaponType;
+      if (
+        attackFilter?.weaponType === 'melee'
+        && (resolvedWeaponType ? resolvedWeaponType !== 'melee' : ability.range > 2)
+      ) continue;
+      if (
+        attackFilter?.weaponType === 'ranged'
+        && (resolvedWeaponType ? resolvedWeaponType !== 'ranged' : ability.range <= 2)
+      ) continue;
+
+      // Spell data can also limit a reactive rider to weapon or spell attacks.
+      // Opportunity attacks call this helper with an explicit weapon result;
+      // command-backed attacks pass through the same payload after command
+      // execution records hit/miss facts.
+      const resolvedAttackType = explicitAttackResult?.attackType;
+      const isSpellAttack = resolvedAttackType
+        ? resolvedAttackType === 'spell'
+        : ability.type === 'spell' || (ability.spell?.attackType !== undefined && ability.spell.attackType !== 'none');
+      const isWeaponAttack = resolvedAttackType
+        ? resolvedAttackType === 'weapon'
+        : ability.type === 'attack';
+      if (attackFilter?.attackType === 'weapon' && !isWeaponAttack) continue;
+      if (attackFilter?.attackType === 'spell' && !isSpellAttack) continue;
+
+      // Source-owned temporary HP gates keep Armor of Agathys-style triggers
+      // from surviving after their own temp-HP pool is gone or replaced.
+      const endsWhenOwnTempHpIsGone = effect.conditionalEndings?.some(ending =>
+        ending.trigger === 'temporary_hit_points_depleted'
+      ) === true;
+      if (endsWhenOwnTempHpIsGone) {
+        const protectedTarget = characters.find(c => c.id === targetId);
+        const sourceMatchesCurrentTempHp = trigger.sourceSpellId !== undefined &&
+          protectedTarget?.temporaryHitPointSource?.spellId === trigger.sourceSpellId;
+        if (!protectedTarget?.tempHP || protectedTarget.tempHP <= 0 || !sourceMatchesCurrentTempHp) continue;
+      }
+
+      // Hit-only retaliation must not fire on explicit misses.
+      if (explicitAttackResult && !explicitAttackResult.isHit) continue;
+
+      if (effect.type === 'DAMAGE' && effect.damage) {
+        const damage = rollDice(effect.damage.dice);
+        onLogEntry({
+          id: generateId(), timestamp: Date.now(), type: 'damage',
+          message: `${attackingCharacter.name} takes ${damage} damage from reactive effect (on_target_attack)!`,
+          characterId: attackingCharacter.id,
+          data: { damage, trigger: 'on_target_attack' }
+        });
+        const updatedReactiveDamageRecipient = handleDamage(attackingCharacter, damage, 'reactive effect', effect.damage.type);
+        onCharacterUpdate(updatedReactiveDamageRecipient);
+        addDamageNumber(damage, attackingCharacter.position, 'damage');
+      }
+
+      const targetPositions = action.targetCharacterIds
+        ?.map(id => characters.find(c => c.id === id)?.position)
+        .filter(Boolean) as { x: number; y: number }[];
+
+      queueAnimation({
+        id: generateId(),
+        type: 'spell_effect',
+        characterId: action.characterId,
+        startPosition: attackingCharacter.position,
+        endPosition: action.targetPosition,
+        duration: 650,
+        startTime: Date.now(),
+        data: { targetPositions: targetPositions?.length ? targetPositions : action.targetPosition ? [action.targetPosition] : [] },
+      });
+    }
+  }, [characters, reactiveTriggers, handleDamage, onCharacterUpdate, onLogEntry, addDamageNumber, queueAnimation]);
 
   // ============================================================================
   // Opportunity Attack Resolution
@@ -488,6 +625,15 @@ export const useActionExecutor = ({
       const totalRoll = d20 + attackBonus;
       const isCrit = d20 === 20;
       const isHit = isCrit || (d20 !== 1 && totalRoll >= targetAC);
+      const opportunityAttackResult = {
+        targetId: updatedCharacter.id,
+        isHit,
+        isCritical: isCrit,
+        attackType: 'weapon' as const,
+        weaponType: 'melee' as const,
+        rollResult: d20,
+        total: totalRoll
+      };
 
       if (isHit) {
         combatEvents.emit({
@@ -495,7 +641,9 @@ export const useActionExecutor = ({
           attackerId: attacker.id,
           targetId: updatedCharacter.id,
           isHit: true,
-          isCrit: isCrit
+          isCrit: isCrit,
+          attackType: 'weapon',
+          weaponType: 'melee'
         });
 
         onLogEntry({
@@ -513,6 +661,18 @@ export const useActionExecutor = ({
             weaponAbility.effects.find(e => e.type === 'damage')?.damageType
           );
         }
+        resolveOnTargetAttackReactiveEffects({
+          id: `${generateId()}-opportunity-attack-reactive`,
+          characterId: attacker.id,
+          type: 'ability',
+          abilityId: weaponAbility.id,
+          targetCharacterIds: [updatedCharacter.id],
+          targetPosition: updatedCharacter.position,
+          cost: { type: 'free' },
+          timestamp: Date.now(),
+          attackResults: [opportunityAttackResult],
+          reactiveEventsOnly: true
+        }, attacker, updatedCharacter.id, weaponAbility, opportunityAttackResult);
 
         if (hasSentinelFeat(attacker)) {
           const sentinelStoppedCharacter = applySentinelStop(updatedCharacter);
@@ -534,7 +694,9 @@ export const useActionExecutor = ({
           attackerId: attacker.id,
           targetId: updatedCharacter.id,
           isHit: false,
-          isCrit: false
+          isCrit: false,
+          attackType: 'weapon',
+          weaponType: 'melee'
         });
 
         onLogEntry({
@@ -543,12 +705,24 @@ export const useActionExecutor = ({
           characterId: attacker.id, targetIds: [updatedCharacter.id],
           data: { isHit: false, isCrit: false, rollResult: d20 }
         });
+        resolveOnTargetAttackReactiveEffects({
+          id: `${generateId()}-opportunity-attack-reactive`,
+          characterId: attacker.id,
+          type: 'ability',
+          abilityId: weaponAbility.id,
+          targetCharacterIds: [updatedCharacter.id],
+          targetPosition: updatedCharacter.position,
+          cost: { type: 'free' },
+          timestamp: Date.now(),
+          attackResults: [opportunityAttackResult],
+          reactiveEventsOnly: true
+        }, attacker, updatedCharacter.id, weaponAbility, opportunityAttackResult);
         addDamageNumber(0, updatedCharacter.position, 'miss');
       }
     }
 
     return updatedCharacter;
-  }, [characters, mapData, handleDamage, onLogEntry, onCharacterUpdate, addDamageNumber, requestReaction, executeReactionSpell]);
+  }, [characters, mapData, handleDamage, onLogEntry, onCharacterUpdate, addDamageNumber, requestReaction, executeReactionSpell, resolveOnTargetAttackReactiveEffects]);
 
   // ============================================================================
   // Movement Execution
@@ -766,113 +940,34 @@ export const useActionExecutor = ({
 
     if (ability && (ability.type === 'attack' || (ability.spell?.attackType && ability.spell.attackType !== 'none'))) {
       action.targetCharacterIds?.forEach(targetId => {
+        // Command-backed attack actions can now carry the actual hit/miss
+        // result from the command layer. Publishing it here keeps all reactive
+        // spell listeners on the same event contract instead of forcing Armor
+        // of Agathys-style spells to infer hits from combat-log text.
+        const target = characters.find(character => character.id === targetId);
+        const resolvedAttackResult = action.attackResults?.find(result => result.targetId === targetId)
+          ?? (target ? buildLegacyAttackResult(updatedCharacter, target, ability) : undefined);
+
+        // Some legacy ability paths still announce an attack before a command
+        // reports the roll result. When that happens, the fallback above makes
+        // a small hit/miss payload so every on-target-attack listener sees the
+        // same event shape.
         combatEvents.emit({
           type: 'unit_attack',
           attackerId: updatedCharacter.id,
-          targetId
+          targetId,
+          isHit: resolvedAttackResult?.isHit,
+          isCrit: resolvedAttackResult?.isCritical,
+          attackType: resolvedAttackResult?.attackType
+            ?? (ability.type === 'attack' ? 'weapon' : 'spell'),
+          weaponType: resolvedAttackResult?.weaponType
+            ?? ((ability.range || 0) <= 5 ? 'melee' : 'ranged')
         });
 
-        const triggers = reactiveTriggers.filter(t =>
-          t.targetId === targetId &&
-          t.sourceEffect.trigger.type === 'on_target_attack'
-        );
-
-        for (const trigger of triggers) {
-          const effect = trigger.sourceEffect;
-          const attackFilter = effect.trigger.attackFilter;
-          const explicitAttackResult = action.attackResults?.find(result => result.targetId === targetId);
-
-          // Armor of Agathys stores its "melee attack only" rule in the
-          // trigger's attack filter. The executor already has the triggering
-          // ability in hand, but command-side attack results can now carry the
-          // resolved melee/ranged family directly. Prefer that explicit result
-          // because it reflects the attack that actually rolled; keep the range
-          // fallback for older callers that have not populated attackResults.
-          const resolvedWeaponType = explicitAttackResult?.weaponType;
-          if (
-            attackFilter?.weaponType === 'melee'
-            && (resolvedWeaponType ? resolvedWeaponType !== 'melee' : ability.range > 2)
-          ) continue;
-          if (
-            attackFilter?.weaponType === 'ranged'
-            && (resolvedWeaponType ? resolvedWeaponType !== 'ranged' : ability.range <= 2)
-          ) continue;
-
-          // Spell data can also say whether a reactive rider belongs to weapon
-          // attacks or spell attacks. The action executor's ability shape is
-          // coarse, so explicit attackResults win when present. Without that
-          // payload, keep the legacy interpretation: normal attack abilities
-          // are weapon-like, and spell abilities or spell attack metadata are
-          // spell-like.
-          const resolvedAttackType = explicitAttackResult?.attackType;
-          const isSpellAttack = resolvedAttackType
-            ? resolvedAttackType === 'spell'
-            : ability.type === 'spell' || (ability.spell?.attackType !== undefined && ability.spell.attackType !== 'none');
-          const isWeaponAttack = resolvedAttackType
-            ? resolvedAttackType === 'weapon'
-            : ability.type === 'attack';
-          if (attackFilter?.attackType === 'weapon' && !isWeaponAttack) continue;
-          if (attackFilter?.attackType === 'spell' && !isSpellAttack) continue;
-
-          // Some reactive defenses, most notably Armor of Agathys, say the
-          // spell ends when its own temporary HP is gone. A generic tempHP
-          // number is not enough here because another feature can grant temp HP
-          // after Armor has ended. Only keep the trigger alive when the
-          // protected target's current temp HP is still owned by this spell.
-          const endsWhenOwnTempHpIsGone = effect.conditionalEndings?.some(ending =>
-            ending.trigger === 'temporary_hit_points_depleted'
-          ) === true;
-          if (endsWhenOwnTempHpIsGone) {
-            const protectedTarget = characters.find(c => c.id === targetId);
-            const sourceMatchesCurrentTempHp = trigger.sourceSpellId !== undefined &&
-              protectedTarget?.temporaryHitPointSource?.spellId === trigger.sourceSpellId;
-            if (!protectedTarget?.tempHP || protectedTarget.tempHP <= 0 || !sourceMatchesCurrentTempHp) continue;
-          }
-
-          // If the attack resolver already knows this target was missed, do
-          // not let hit-only retaliation fire. Callers that do not yet provide
-          // attackResults keep the legacy behavior until the broader battle-map
-          // attack-result handoff is wired into every producer.
-          if (explicitAttackResult && !explicitAttackResult.isHit) continue;
-
-          if (effect.type === 'DAMAGE' && effect.damage) {
-            const damage = rollDice(effect.damage.dice);
-            onLogEntry({
-              id: generateId(), timestamp: Date.now(), type: 'damage',
-              message: `${updatedCharacter.name} takes ${damage} damage from reactive effect (on_target_attack)!`,
-              characterId: updatedCharacter.id,
-              data: { damage, trigger: 'on_target_attack' }
-            });
-            // On-target-attack retaliation belongs to the creature that made
-            // the attack, not the protected creature that was attacked. This
-            // keeps Armor of Agathys-style damage pointed at the aggressor
-            // while preserving the existing trigger binding on the protected
-            // target. Hit/miss, melee-only filtering, and temp-HP ownership are
-            // still separate gates for the broader reactive payload contract.
-            const reactiveDamageRecipient = updatedCharacter;
-            const updatedReactiveDamageRecipient = handleDamage(reactiveDamageRecipient, damage, 'reactive effect', effect.damage.type);
-            onCharacterUpdate(updatedReactiveDamageRecipient);
-            addDamageNumber(damage, reactiveDamageRecipient.position, 'damage');
-          }
-
-          const targetPositions = action.targetCharacterIds
-            ?.map(id => characters.find(c => c.id === id)?.position)
-            .filter(Boolean) as { x: number; y: number }[];
-
-          queueAnimation({
-            id: generateId(),
-            type: 'spell_effect',
-            characterId: action.characterId,
-            startPosition: updatedCharacter.position,
-            endPosition: action.targetPosition,
-            duration: 650,
-            startTime: Date.now(),
-            data: { targetPositions: targetPositions?.length ? targetPositions : action.targetPosition ? [action.targetPosition] : [] },
-          });
-        }
+        resolveOnTargetAttackReactiveEffects(action, updatedCharacter, targetId, ability);
       });
     }
-  }, [characters, reactiveTriggers, handleDamage, onCharacterUpdate, onLogEntry, addDamageNumber, queueAnimation]);
+  }, [characters, resolveOnTargetAttackReactiveEffects]);
 
   // ============================================================================
   // Main Action Coordinator

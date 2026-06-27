@@ -143,36 +143,14 @@ describe('CompassPane', () => {
     expect(screen.getByText(/The sun is high/)).toBeInTheDocument();
   });
 
-  it('shows all view toggles in the main exploration context', () => {
-    const onAction = vi.fn();
+  it('shows the surviving view toggles (World Map + 3D)', () => {
+    render(<CompassPane {...defaultProps} />);
 
-    render(<CompassPane {...defaultProps} onAction={onAction} />);
-
-    // Main exploration is the broad navigation context, so all map mode entry
-    // points must remain available from the Compass Pane.
+    // World Map and Enter-3D remain; the "Open Submap" (SM) button was retired
+    // with SubmapPane — its toggle_submap_visibility action has no handler.
     expect(screen.getByLabelText('Toggle World Map')).toBeInTheDocument();
-    expect(screen.getByLabelText('Toggle Submap')).toBeInTheDocument();
     expect(screen.getByLabelText('Enter 3D World')).toBeInTheDocument();
-
-    // The restored local-map entry must dispatch the existing UI action instead
-    // of becoming a decorative button.
-    fireEvent.click(screen.getByLabelText('Toggle Submap'));
-    expect(onAction).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'toggle_submap_visibility',
-        label: 'Toggle Submap',
-      })
-    );
-  });
-
-  it('keeps only the world-map toggle visible inside the submap context', () => {
-    render(<CompassPane {...defaultProps} isSubmapContext />);
-
-    // The Submap modal already is the local-map surface, so the Compass Pane
-    // should keep global map access while hiding redundant local/3D entries.
-    expect(screen.getByLabelText('Toggle World Map')).toBeInTheDocument();
     expect(screen.queryByLabelText('Toggle Submap')).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('Enter 3D World')).not.toBeInTheDocument();
   });
 
   it('dispatches move and look-around actions from the compass grid', () => {

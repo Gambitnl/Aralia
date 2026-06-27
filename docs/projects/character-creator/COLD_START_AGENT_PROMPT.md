@@ -20,7 +20,7 @@ gaps: docs/projects/character-creator/GAPS.md
 # Character Creator Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-25
+Last updated: 2026-06-27
 
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
@@ -43,7 +43,7 @@ Project entry point: docs/projects/character-creator/NORTH_STAR.md
 | 13 | Codex | application agent | certain | 2026-06-25 | Structurally implemented G16 shared spell summary component; class spell selection and Magic Initiate visuals captured; spellbook visual remains before closure |
 | 14 | Codex | application agent | certain | 2026-06-25 | Resolved G16 by capturing the Character Sheet spellbook list rendered through `SpellbookTab.tsx` with shared `SpellSummaryCard` rows |
 | 15 | Codex | application agent | certain | 2026-06-25 | Resolved G8 by centralizing `StepLockedPlaceholder` copy in typed sidebar step config and proving each message family renders |
-| 16 | Codex | application agent | certain | 2026-06-25 | Resolved G5 by hardening the Human Fighter Playwright flow with exact final-submit selection and visible/state gameplay assertions |
+| 16 | Codex | application agent | certain | 2026-06-27 | Resolved G5 by hardening the Human Fighter Playwright flow with exact final-submit selection, visible/state gameplay assertions, and selected start-town persistence |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Character Creator
@@ -55,7 +55,7 @@ Gaps: docs/projects/character-creator/GAPS.md
 
 ## Current Mission
 
-Redundant base-race validation checks are removed (G18), rest choices are fully resolved and typed (G19), the sidebar racial-feat visibility test now matches the live UI contract (G7), the Skillful raceId test mismatch is already resolved in the current checkout (G20), the sidebar progress counter no longer credits future default-complete steps (G14), background-granted class skills now remain visible with source badges (G15), the CharacterCreator flow test lint-intent cleanup is complete (G4), Weapon Mastery selection now hides legacy Rusty Sword while exposing details by focus/click (G17), G16 is resolved, G8 is resolved, and G5 is resolved. `tests/character-creator-flow.spec.ts` now proves the Human Fighter flow reaches visible gameplay and a `PLAYING` state with `Sir Testalot` in the party.
+Redundant base-race validation checks are removed (G18), rest choices are fully resolved and typed (G19), the sidebar racial-feat visibility test now matches the live UI contract (G7), the Skillful raceId test mismatch is already resolved in the current checkout (G20), the sidebar progress counter no longer credits future default-complete steps (G14), background-granted class skills now remain visible with source badges (G15), the CharacterCreator flow test lint-intent cleanup is complete (G4), Weapon Mastery selection now hides legacy Rusty Sword while exposing details by focus/click (G17), G16 is resolved, G8 is resolved, and G5 is resolved. `tests/character-creator-flow.spec.ts` now proves the Human Fighter flow reaches visible gameplay and a `PLAYING` state with `Sir Testalot` in the party, and that the selected starting village is persisted as `startTownName`.
 
 ## Required End State For This Iteration
 
@@ -84,7 +84,7 @@ Redundant base-race validation checks are removed (G18), rest choices are fully 
 
 ## agent_comments
 
-- Iteration 16 resolved G5. Proof screenshots are intentionally centralized under ignored `.agent/scratch/proof/character-creator/flow-assertions/`; `test-results/` remains transient Playwright output. The headed Playwright run still logs Vite `/tags` proxy ECONNREFUSED messages from the local dependency surface, but the focused Human Fighter final-state assertions pass.
+- Iteration 16 resolved G5. Proof screenshots are intentionally centralized under ignored `.agent/scratch/proof/character-creator/flow-assertions/`; `test-results/` remains transient Playwright output. The headed Playwright run still logs Vite `/tags` proxy ECONNREFUSED messages from the local dependency surface, but the focused Human Fighter final-state and selected start-town assertions pass.
 Required docs to account for before closeout:
 - NORTH_STAR.md
 - TRACKER.md

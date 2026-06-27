@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useGameState } from '../../state/GameContext';
 import { rootSeedPath } from '../../systems/worldforge/seedPath';
-import { generateTownPlan } from '../../systems/worldforge/town/generateTownPlan';
+import { buildDemoTownPlan, DEMO_BURG_ID } from '../../systems/worldforge/town/demoTownPlan';
 import { generateTownRoster } from '../../systems/worldforge/roster/generateTownRoster';
 import { scheduleClockFromGameTime } from '../../systems/worldforge/roster/gameClock';
 import TownAgentSnapshotView from '../Worldforge/TownAgentSnapshotView';
@@ -15,22 +15,6 @@ import TownAgentSnapshotView from '../Worldforge/TownAgentSnapshotView';
  * state written. Mounted behind `isDevModeEnabled`.
  */
 
-const DEMO_BURG_ID = 9001;
-
-function buildDemoSite(worldSeed: number) {
-  // A deterministic, sizeable burg envelope derived from the world seed.
-  const size = 1800;
-  const envelope = { x: 10_000, y: 20_000, width: size, height: size };
-  const cx = envelope.x + size / 2;
-  const cy = envelope.y + size / 2;
-  const gates: Array<[number, number]> = [];
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2 + (worldSeed % 7) * 0.1;
-    gates.push([cx + Math.cos(a) * (size / 2), cy + Math.sin(a) * (size / 2)]);
-  }
-  return { burgId: DEMO_BURG_ID, envelope, gates };
-}
-
 const SYLLABLES = ['ar', 'be', 'cor', 'dun', 'el', 'fen', 'gor', 'hal', 'kel', 'mor', 'tan', 'wyn'];
 
 const AgentSimDevOverlay: React.FC = () => {
@@ -42,7 +26,7 @@ const AgentSimDevOverlay: React.FC = () => {
   // Demo town + roster regenerate only when the seed changes.
   const { plan, roster } = useMemo(() => {
     const seedPath = rootSeedPath(worldSeed);
-    const p = generateTownPlan(buildDemoSite(worldSeed), seedPath);
+    const p = buildDemoTownPlan(worldSeed).plan;
     const nameFor = (rng: { next(): number }) => {
       const n = 2 + Math.floor(rng.next() * 2);
       let s = '';

@@ -44,7 +44,9 @@ const AGE_RANGE: Record<AgeBand, [number, number]> = {
 
 // Weighted townsfolk ancestries (names match `data/races/raceGroups.ts`): a town
 // skews human with a coherent spread of the common civilised folk + a few rarer.
-const TOWNSFOLK_RACES: readonly string[] = [
+// Exported so the SP-T lazy household generator (town/household.ts) draws ancestry
+// from the SAME distribution the whole-town roster + agent-sim use.
+export const TOWNSFOLK_RACES: readonly string[] = [
   'Human', 'Human', 'Human', 'Human', 'Human', 'Human', 'Human', 'Human',
   'Elf', 'Elf', 'Elf', 'Elf',
   'Dwarf', 'Dwarf', 'Dwarf', 'Dwarf',

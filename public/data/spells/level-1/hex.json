@@ -298,5 +298,99 @@
     "damage",
     "debuff",
     "concentration"
-  ]
+  ],
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 6,
+    "optionsSource": "controlOptions",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Strength",
+        "summary": "The target has Disadvantage on ability checks made with Strength.",
+        "effectIndices": [
+          1
+        ],
+        "controlOptionIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "while Hex remains on the target"
+      },
+      {
+        "label": "Dexterity",
+        "summary": "The target has Disadvantage on ability checks made with Dexterity.",
+        "effectIndices": [
+          1
+        ],
+        "controlOptionIndices": [
+          1
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "while Hex remains on the target"
+      },
+      {
+        "label": "Constitution",
+        "summary": "The target has Disadvantage on ability checks made with Constitution.",
+        "effectIndices": [
+          1
+        ],
+        "controlOptionIndices": [
+          2
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "while Hex remains on the target"
+      },
+      {
+        "label": "Intelligence",
+        "summary": "The target has Disadvantage on ability checks made with Intelligence.",
+        "effectIndices": [
+          1
+        ],
+        "controlOptionIndices": [
+          3
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "while Hex remains on the target"
+      },
+      {
+        "label": "Wisdom",
+        "summary": "The target has Disadvantage on ability checks made with Wisdom.",
+        "effectIndices": [
+          1
+        ],
+        "controlOptionIndices": [
+          4
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "while Hex remains on the target"
+      },
+      {
+        "label": "Charisma",
+        "summary": "The target has Disadvantage on ability checks made with Charisma.",
+        "effectIndices": [
+          1
+        ],
+        "controlOptionIndices": [
+          5
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "while Hex remains on the target"
+      }
+    ],
+    "notes": "The utility effect's controlOptions carry the ability-specific disadvantage payloads; this menu makes the required caster ability choice explicit for UI and command creation."
+  }
 }

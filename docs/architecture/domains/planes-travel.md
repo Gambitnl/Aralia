@@ -77,3 +77,5 @@ It also confirmed:
 
 Re-verified on 2026-03-11.
 Treat this domain as the planar plus travel lane: planar mechanics, portal and hazard systems, travel calculations and navigation, travel-event services, and the data and utility surfaces that support them.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/domains/planes-travel.md","sha256WithoutMarker":"8b697b3779e4cb34c78cd8c9810bf2aa9ae354fe25adfef39a9f17c940bce159","markedAtUtc":"2026-06-26T00:00:51.781Z"} -->

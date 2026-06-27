@@ -38,3 +38,5 @@ For actual current-state verification, use:
 ## Historical Note
 
 The older table remains useful as a migration-era picture of how the team once thought about spell maturity. It is no longer presented here as a reliable current map of level-2 behavior.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/spells/STATUS_LEVEL_2.md","sha256WithoutMarker":"a25d435941b7ca72fc2f2999e3f13f9ce1a56d29772eef98b9fc5ca342cfda07","markedAtUtc":"2026-06-26T00:26:22.326Z"} -->

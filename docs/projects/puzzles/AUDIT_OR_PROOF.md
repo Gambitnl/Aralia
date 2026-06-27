@@ -1,7 +1,7 @@
 # Puzzles System Audit and Proof
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-27
 
 ## Iteration 3: First Production Lockpicking Dispatch (T2/PZ-001)
 
@@ -83,3 +83,36 @@ Targeted source scan and dashboard/doc review only:
 ### Conclusion
 
 The helper is still preserved, but the next safe step is a human ownership decision on the first runtime hint caller before any key or map follow-up work.
+
+## Iteration 6: Puzzle Runtime Surface and First Hint Caller
+
+### Method
+
+Focused implementation, rendered proof, and assertion-based verification:
+
+- `src/systems/puzzles/puzzleRuntime.ts`
+- `src/components/puzzles/PuzzleRuntimeModal.tsx`
+- `src/components/ActionPane/useActionGeneration.ts`
+- `src/hooks/actions/actionHandlers.ts`
+- `src/state/actionTypes.ts`
+- `src/state/reducers/uiReducer.ts`
+- `src/data/world/locations.ts`
+- `src/systems/puzzles/__tests__/puzzleRuntime.test.ts`
+- `src/components/puzzles/PuzzleRuntimeModal.test.tsx`
+- `src/components/ActionPane/__tests__/ActionPane.test.tsx`
+
+### Results
+
+| Item | Result | Evidence |
+|---|---|---|
+| Puzzle-owned runtime surface exists | [Done] | `requestPuzzleHint` wraps the existing `getPuzzleHint` helper in a gameplay result envelope |
+| First source-backed gameplay caller exists | [Done] | `cave_chamber.interactableFeatures[].type === 'puzzle'` emits `OPEN_PUZZLE_RUNTIME` through `useActionGeneration` |
+| Rendered UI caller asks the runtime for a hint | [Done] | `PuzzleRuntimeModal` calls `requestPuzzleHint` from the `Ask for Hint` button |
+| Focused tests prove route and behavior | [Done] | `npm exec vitest run src/systems/puzzles/__tests__/puzzleRuntime.test.ts src/components/puzzles/PuzzleRuntimeModal.test.tsx src/components/ActionPane/__tests__/ActionPane.test.tsx` passed 2026-06-27 |
+| Visual proof captured | [Done] | Before: `.agent/scratch/proof/puzzles/runtime-surface/before/pre-runtime-surface-app.png`; after: `.agent/scratch/proof/puzzles/runtime-surface/after/puzzle-runtime-modal-after.png` |
+
+### Conclusion
+
+`PZ-007` is complete as a bounded slice. The project remains active, and the next
+documented step is `PZ-003`: decide and implement deterministic key-based lock
+progression without widening into full map integration or puzzle solving UI.

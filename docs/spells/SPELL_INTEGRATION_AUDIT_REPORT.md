@@ -29,3 +29,5 @@ Use these files for current spell-state orientation:
 Do not use the older numeric totals in this file as current spell counts or current implementation percentages.
 
 If you need present-day truth, verify against the manifest, validator, and current level-status docs instead.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/spells/SPELL_INTEGRATION_AUDIT_REPORT.md","sha256WithoutMarker":"a02210a79ca8d922e0edc277e60592bd7e729935f7b5600e3d2278411048334f","markedAtUtc":"2026-06-26T00:07:34.890Z"} -->

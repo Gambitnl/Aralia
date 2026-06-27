@@ -138,7 +138,25 @@
       },
       "damage": {
         "dice": "10d6+40",
-        "type": "Force"
+        "type": "Force",
+        "disintegration": {
+          "creatureAtZeroHp": true,
+          "includesNonmagicalWornAndCarried": true,
+          "revivalOnlyBy": [
+            "true-resurrection",
+            "wish"
+          ],
+          "automaticTargetTypes": [
+            "large_or_smaller_nonmagical_object",
+            "large_or_smaller_magical_force_creation",
+            "huge_or_larger_nonmagical_object_portion",
+            "huge_or_larger_magical_force_creation_portion"
+          ],
+          "maxAutomaticTargetSize": "Large",
+          "hugeOrLargerPortionCubeFeet": 10,
+          "residueName": "Fine Gray Dust",
+          "residueDescription": "A disintegrated creature, nonmagical worn/carried gear, object, or force-creation portion is reduced to fine gray dust."
+        }
       },
       "scaling": {
         "type": "slot_level",

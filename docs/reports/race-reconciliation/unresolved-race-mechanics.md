@@ -292,3 +292,4 @@ This report makes unsupported race details explicit instead of leaving them hidd
   - satyr / Reveler / trait_text_only
   - shadowveil_elf / Cunning Intuition / trait_text_only
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/reports/race-reconciliation/unresolved-race-mechanics.md","sha256WithoutMarker":"e03b119e33dd665b10a17a65e2904eee990400e3c44c5abd7f429c6d2976ff34","markedAtUtc":"2026-06-26T00:26:22.318Z"} -->

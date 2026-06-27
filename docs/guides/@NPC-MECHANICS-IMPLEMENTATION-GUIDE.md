@@ -66,3 +66,5 @@ When adding new NPC-social behavior, first decide which of these it actually is:
 5. a tuning change
 
 Then attach it to the existing lane rather than building a new social-memory subsystem beside it.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/guides/@NPC-MECHANICS-IMPLEMENTATION-GUIDE.md","sha256WithoutMarker":"2c2668ac4fd6e6461016120e38f034264c00532a2c0d83ad915d70459e385804","markedAtUtc":"2026-06-26T00:05:10.883Z"} -->

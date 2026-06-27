@@ -65,6 +65,22 @@ const BIOME_DANGER: Record<string, number> = {
 const DEFAULT_LAND_DANGER = 0.25;
 const FERRY_LANE_DANGER = 0.12;
 
+// ============================================================================
+// Sea danger tier constants (3A — ship open-water)
+// ============================================================================
+// Ferries are lane-bound and only ever see FERRY_LANE_DANGER. Ships can enter
+// coastal and open-ocean cells, which carry progressively higher danger.
+// SEA_DANGER_LANE intentionally mirrors FERRY_LANE_DANGER so both kinds agree
+// on lane danger; the tiering is only applied when opts.sea.kind === 'ship'.
+// ============================================================================
+
+/** Danger for a sea cell that sits on a generated ferry lane. */
+export const SEA_DANGER_LANE = FERRY_LANE_DANGER; // 0.12
+/** Danger for a ship in coastal water (≥1 land neighbor, not a lane). */
+export const SEA_DANGER_COASTAL = 0.3;
+/** Danger for a ship in open ocean (no land neighbors, not a lane). */
+export const SEA_DANGER_OPEN = 0.5;
+
 type Packish = {
   cells: {
     c?: number[][];
@@ -164,8 +180,11 @@ export function buildMultiModalAtlasGraph(
     return point ? [point[0], point[1]] : [0, 0];
   };
 
+  const seaKind = opts.sea?.kind;
+
   const isLand = (cell: number): boolean => (cells.h?.[cell] ?? 0) >= LAND_THRESHOLD;
   const isFerryWater = (cell: number): boolean => !isLand(cell) && ferryLaneCells.has(cell);
+  const hasLandNeighbor = (cell: number): boolean => (cells.c?.[cell] ?? []).some(isLand);
   const biomeName = (cell: number): string => names?.[cells.biome?.[cell] ?? -1] ?? '';
 
   const isPortTransfer = (from: number, to: number): boolean =>
@@ -178,7 +197,10 @@ export function buildMultiModalAtlasGraph(
   const canEnter = (cell: number): boolean => {
     if (!cells.p?.[cell]) return false;
     if (isLand(cell)) return true;
-    return Boolean(opts.sea) && isFerryWater(cell);
+    if (!opts.sea) return false;
+    // Ships can enter any sea cell; ferries are restricted to lane cells.
+    if (opts.sea.kind === 'ship') return true;
+    return isFerryWater(cell);
   };
 
   const terrain = (cell: number): TravelTerrain => {
@@ -202,7 +224,16 @@ export function buildMultiModalAtlasGraph(
     terrain,
     passable: canEnter,
     danger: (cell) => {
-      if (!isLand(cell)) return FERRY_LANE_DANGER;
+      if (!isLand(cell)) {
+        // Ships see three danger tiers based on cell type.
+        // Ferries are lane-bound — keep the flat legacy value so ferry behavior
+        // is byte-for-byte identical to before this change.
+        if (seaKind === 'ship') {
+          if (ferryLaneCells.has(cell)) return SEA_DANGER_LANE;
+          return hasLandNeighbor(cell) ? SEA_DANGER_COASTAL : SEA_DANGER_OPEN;
+        }
+        return FERRY_LANE_DANGER;
+      }
       const base = BIOME_DANGER[biomeName(cell)] ?? DEFAULT_LAND_DANGER;
       return roadCells.has(cell) ? base * 0.5 : base;
     },

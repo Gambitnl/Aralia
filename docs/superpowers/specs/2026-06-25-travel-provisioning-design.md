@@ -153,9 +153,78 @@ halt. (Non-party NPCs are out of scope — deferred.)
 - A `handleTileClick` reducer-level test: in-range travel spends the right rations;
   underprovisioned push-on halts at the sustainable cell and applies starvation.
 
+## Approved extensions (v1.1 — locked 2026-06-26)
+
+Four conceptual extensions were approved to fold into the v1 model, plus two
+refinements to the affordance and the forage option. These reshape the pure core
+*before* UI consumes it (cheaper than retrofitting), but keep the deferred phases
+below untouched.
+
+### E1 — Water as a second resource (highest-leverage)
+
+The provisioning core is generalised from "days of food" to **days of a consumable
+resource**, parameterised by item id and per-consumer daily need. **Food** (rations)
+and **water** (a canonical waterskin-day item) are two instances of the identical
+math. The trip is gated by the *binding* resource — `min(foodRangeDays,
+waterRangeDays)`. Water need can differ from food need (e.g. arid terrain raises
+water burn but not food burn — see E2). The readout shows whichever resource runs
+out first; the ring (below) is drawn at the binding horizon.
+
+### E2 — Terrain / transport burn multiplier
+
+Terrain already affects travel *time* (`TERRAIN_TRAVEL_MODIFIERS`), so it implicitly
+affects trip-days. E2 adds a separate **consumption multiplier**: harsh terrain
+(mountains, swamp, desert) burns more rations/water *per day* independent of speed,
+and favourable transport (mounts/wagons carrying supplies, river barges) can lower
+per-day burn. The multiplier is computed over the route's terrain sequence (mean of
+per-cell burn factors, weighted by time-in-cell) and applied to `dailyNeed`.
+Per-resource: desert raises water burn ~1.5×; mountains raise food burn.
+
+### E3 — Food weight ↔ encumbrance ↔ speed
+
+Rations and water have `weight` (already on `Item`). Total provision weight feeds the
+existing encumbrance model, which slows travel pace — creating the core tension:
+carrying enough supply for a long trip *itself* lengthens the trip. The loop is:
+more days of food → more weight → slower pace → more days of travel → more food
+needed. The core exposes `provisionWeight(inventory)`; the gate recomputes trip-days
+with the encumbrance speed penalty applied so the horizon reflects the real,
+weight-adjusted reach.
+
+### E4 — Resupply caches / depots
+
+The map gains a logistics layer: the player can **drop a food/water cache** at a
+discovered cell (transferring rations out of the party inventory into a positioned
+stash) and recover it later; **owned towns stock provisions** as a purchasable
+resupply point. Caches/depots are reachability anchors — the ring is re-seeded from
+any depot the route passes through, so a chain of caches extends effective range. v1.1
+ships the cache *data model + drop/recover* and town stock; auto-routing through
+depots is a follow-on.
+
+### R1 — Provisioning **ring** affordance (replaces per-cell amber overlay)
+
+Instead of shading each out-of-range cell amber, the atlas draws a single
+**provisioning-ring contour**: the boundary of the in-range set, derived directly
+from the `RouteField.dist` field the route preview already computes (a cell is
+in-range iff `tripDaysFromMinutes(dist[cell]) <= bindingRangeDays`). The ring reads
+instantly as "this is how far your supplies take you." Drawn at the *binding*
+resource horizon; depots (E4) re-seed it. (Per-cell tint may still appear on
+hover/selection for precise per-destination confirmation, but the ring is primary.)
+
+### R2 — Biome-yield forage loop (replaces flat +1-day offset)
+
+Foraging is a real survival sub-loop, not a fixed offset: a **Survival
+(Wisdom) skill check** against a **biome-yield DC** (forest/plains forgiving, desert/
+mountain harsh), yielding `0..N` resource-days on success scaled by margin, at a
+**time cost** (slows the day's progress) and a **bad-forage hazard** roll (spoiled/
+poisonous find → a minor condition, or wasted day). Water foraging keys off the same
+mechanic against biome water availability. Proficiency in Survival and party size
+both raise expected yield.
+
 ## Out of scope (explicit)
 
 Mounts, vendor-rapport resupply, and all non-party-NPC provisioning/consent — deferred
-to later phases per the table above.
+to later phases per the table above. Within the approved extensions, **depot
+auto-routing** (E4) and **multi-resource forage stacking edge cases** (R2) are the
+known follow-ons.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-25-travel-provisioning-design.md","sha256WithoutMarker":"218c2da52bb2ae81247c333f13856fcf9f9ea21c74623479d3ba8a073afd294b","markedAtUtc":"2026-06-25T22:43:27.471Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-25-travel-provisioning-design.md","sha256WithoutMarker":"34b35ed8cc19e2550ad700207fa61f5465e64a425b28fdd36625be8802be77bf","markedAtUtc":"2026-06-26T00:40:14.399Z"} -->

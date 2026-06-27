@@ -316,5 +316,39 @@
     "enchantment",
     "control",
     "concentration"
-  ]
+  ],
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 2,
+    "optionsSource": "effects",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Suppress Charmed and Frightened",
+        "summary": "A failed-save Humanoid gains immunity to Charmed and Frightened, suppressing either condition if already present.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DEFENSIVE"
+        ],
+        "duration": "1 minute with concentration",
+        "notes": "The spell text says the caster chooses the effect for each failed-save creature, so runtime should allow per-target mode assignment."
+      },
+      {
+        "label": "Make Hostile Creature Indifferent",
+        "summary": "A failed-save Humanoid becomes Indifferent about caster-chosen creatures it is Hostile toward.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 minute with concentration",
+        "notes": "This mode ends early for an affected target if it takes damage or witnesses allies taking damage."
+      }
+    ],
+    "notes": "Unlike most choose-one menus, Calm Emotions chooses the mode separately for each failed-save Humanoid in the area."
+  }
 }

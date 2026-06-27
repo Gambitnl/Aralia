@@ -176,8 +176,74 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose which curse option applies if the target fails the Wisdom saving throw.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_failed_save",
+    "optionCount": 5,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Ability Curse",
+        "summary": "Choose one ability score; the target has Disadvantage on ability checks and saving throws made with that ability.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "Concentration duration, extended by higher-level slot"
+      },
+      {
+        "label": "Attack Curse",
+        "summary": "The target has Disadvantage on attack rolls against the caster.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "Concentration duration, extended by higher-level slot"
+      },
+      {
+        "label": "Action-Wasting Curse",
+        "summary": "At the start of each of its turns, the target makes a Wisdom save; on a failure, it wastes its action doing nothing.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "Concentration duration, extended by higher-level slot"
+      },
+      {
+        "label": "Extra Necrotic Damage",
+        "summary": "The caster's attacks and spells deal an extra 1d8 Necrotic damage to the cursed target.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "Concentration duration, extended by higher-level slot"
+      },
+      {
+        "label": "Alternative Curse",
+        "summary": "Use a DM-approved alternative curse that is no stronger than the listed options.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "Concentration duration, extended by higher-level slot",
+        "notes": "This option requires adjudication before runtime can execute it mechanically."
+      }
+    ],
+    "notes": "The chosen curse only applies after the target fails the initial Wisdom saving throw; Remove Curse ends the effect."
   },
   "description": "You touch a creature, which must succeed on a Wisdom saving throw or become cursed for the duration. Until the curse ends, the target suffers one of the following effects of your choice:",
   "higherLevels": "Using a Higher-Level Spell Slot. If you cast this spell using a level 4 spell slot, you can maintain Concentration on it for up to 10 minutes. If you use a level 5+ spell slot, the spell doesn't require Concentration, and the duration becomes 8 hours (level 5-6 slot) or 24 hours (level 7-8 slot). If you use a level 9 spell slot, the spell lasts until dispelled.",

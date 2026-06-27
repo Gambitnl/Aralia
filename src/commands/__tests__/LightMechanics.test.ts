@@ -225,5 +225,39 @@ describe('LightMechanics', () => {
             expect(lightLog?.message).toContain('20 ft bright');
             expect(lightLog?.message).toContain('20 ft dim');
         });
+
+        it('records expiration round for timed light effects', async () => {
+            const caster = makeCharacter('caster', { x: 0, y: 0 });
+            const state = {
+                ...makeState([caster]),
+                turnState: {
+                    ...makeState([caster]).turnState,
+                    currentTurn: 4
+                }
+            };
+
+            const effect: UtilityEffect = {
+                type: 'UTILITY',
+                utilityType: 'light',
+                description: 'Timed glow.',
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' },
+                light: {
+                    brightRadius: 10,
+                    attachedTo: 'caster'
+                }
+            };
+
+            const command = new UtilityCommand(effect, {
+                ...makeContext(caster, []),
+                // Timed light metadata comes from the spell duration carried in
+                // command context. This makes the map artifact expire through
+                // the turn manager instead of becoming permanent.
+                effectDuration: { type: 'rounds', value: 2 }
+            });
+            const result = await command.execute(state);
+
+            expect(result.activeLightSources[0].expiresAtRound).toBe(6);
+        });
     });
 });

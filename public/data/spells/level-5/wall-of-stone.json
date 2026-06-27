@@ -190,7 +190,64 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
-        "description": "Create a nonmagical stone wall for up to 10 minutes with concentration as ten contiguous 10-foot-by-10-foot panels, or as thinner 10-foot-by-20-foot panels. The wall can form supported shapes such as bridges, ramps, battlements, or similar stonework; a creature enclosed by the wall can make a Dexterity save to use its Reaction and move up to its Speed to escape enclosure. Each panel is a damageable stone object with AC 15, 30 Hit Points per inch of thickness, and Immunity to Poison and Psychic damage; destroyed panels can cause connected sections to collapse at the DM discretion, and full-duration concentration makes the wall permanent and unable to be dispelled.",
+      "description": "Create a nonmagical stone wall for up to 10 minutes with concentration as ten contiguous 10-foot-by-10-foot panels, or as thinner 10-foot-by-20-foot panels. The wall can form supported shapes such as bridges, ramps, battlements, or similar stonework; a creature enclosed by the wall can make a Dexterity save to use its Reaction and move up to its Speed to escape enclosure. Each panel is a damageable stone object with AC 15, 30 Hit Points per inch of thickness, and Immunity to Poison and Psychic damage; destroyed panels can cause connected sections to collapse at the DM discretion, and full-duration concentration makes the wall permanent and unable to be dispelled.",
+      "createdObjects": [
+        {
+          "objectType": "structure",
+          "name": "Wall of Stone",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "materialOptions": [
+            "stone"
+          ],
+          "shapeOptions": [
+            "straight_wall",
+            "bridge",
+            "ramp",
+            "battlements",
+            "supported_stonework"
+          ],
+          "wallLengthFeet": 100,
+          "wallHeightFeet": 10,
+          "wallThickness": 6,
+          "wallThicknessUnit": "inches",
+          "panelCount": 10,
+          "panelWidthFeet": 10,
+          "panelHeightFeet": 10,
+          "panelContiguityRequired": true,
+          "orientationOptions": [
+            "horizontal",
+            "vertical",
+            "angled",
+            "caster_choice"
+          ],
+          "freeFloating": false,
+          "requiresAnchoring": true,
+          "anchoringOptions": [
+            "existing_stone",
+            "solid_support"
+          ],
+          "blocksPhysicalPassage": true,
+          "blocksLineOfSight": true,
+          "immuneToDamage": false,
+          "objectArmorClass": 15,
+          "hitPointsPerInchThickness": 30,
+          "damageImmunities": [
+            "Poison",
+            "Psychic"
+          ],
+          "pushesCreaturesToChosenSide": true,
+          "enclosureEscapeSaveType": "Dexterity",
+          "enclosureEscapeUsesReaction": true,
+          "enclosureEscapeMoveDistance": "speed",
+          "permanentAfterFullDuration": true,
+          "nonDispellableWhenPermanent": true,
+          "expiresWithSpell": true,
+          "shelfLife": "10 minutes unless concentration is maintained for the full duration",
+          "notes": "Ten contiguous stone panels. Standard panels are 10 by 10 feet and 6 inches thick; the caster can instead use 10-by-20-foot panels that are 3 inches thick. Each panel has AC 15 and 30 HP per inch of thickness, is immune to Poison and Psychic damage, can be breached, and may become permanent after full-duration concentration."
+        }
+      ],
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

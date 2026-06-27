@@ -154,6 +154,7 @@ export interface Item {
     costInGp?: number;
     isConsumed?: boolean;
     substitutable?: boolean;
+    acquiredAt?: number;
     shelfLife?: string;
     nutritionValue?: number;
     perishable?: boolean;

@@ -53,3 +53,5 @@ Do not treat them as replacements for the main project entry docs in `docs/`.
 - [`archive/reports/`](./archive/reports/): Cleanup reports, audits, and prior overview snapshots that should no longer read as living authority
 - [`CHANGELOG.md`](./CHANGELOG.md): Top-level historical changelog
 - [`generated/`](./generated/): Generated inventories and machine-produced doc outputs (e.g., `@ALL-MD-FILES.md`)
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/@README-INDEX.md","sha256WithoutMarker":"bcb1d104a443172af504b70d4e17f0bec14454556147fbe1eb86f908b731436d","markedAtUtc":"2026-06-26T00:07:34.896Z"} -->

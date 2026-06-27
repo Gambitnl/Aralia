@@ -14,10 +14,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import TownAgentSnapshotView from './TownAgentSnapshotView';
 import { rootSeedPath } from '../../systems/worldforge/seedPath';
-import { generateTownPlan } from '../../systems/worldforge/town/generateTownPlan';
-import { generateTownPlan as generateVoronoiTown, polygonCentroid } from '../../systems/worldforge/town/townEngine';
-import { voronoiTownToArtifactPlan } from '../../systems/worldforge/town/voronoiTownAdapter';
-import { generateSubmap, type Pt } from '../../systems/worldforge/submap/submapEngine';
+import { buildDemoTownPlan, DEMO_BURG_ID } from '../../systems/worldforge/town/demoTownPlan';
 import { generateTownRoster } from '../../systems/worldforge/roster/generateTownRoster';
 import { buildStreetGraph, routeAlongStreets, positionAlongPath, pathLength, type Point } from '../../systems/worldforge/roster/agentPath';
 import { townMotionSnapshotAt } from '../../systems/worldforge/roster/townSnapshot';
@@ -34,47 +31,7 @@ const ACTIVITY_VERB: Record<AgentActivity, string> = {
   sleep: 'Sleeping', eat: 'Eating', work: 'Working', socialize: 'Socialising', shop: 'Running errands', home: 'Resting',
 };
 
-const DEMO_BURG_ID = 9001;
 const SYLLABLES = ['ar', 'be', 'cor', 'dun', 'el', 'fen', 'gor', 'hal', 'kel', 'mor', 'tan', 'wyn'];
-
-function buildDemoSite(worldSeed: number) {
-  const size = 1800;
-  const envelope = { x: 10_000, y: 20_000, width: size, height: size };
-  const cx = envelope.x + size / 2;
-  const cy = envelope.y + size / 2;
-  const gates: Array<[number, number]> = [];
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2 + (worldSeed % 7) * 0.1;
-    gates.push([cx + Math.cos(a) * (size / 2), cy + Math.sin(a) * (size / 2)]);
-  }
-  return { burgId: DEMO_BURG_ID, envelope, gates };
-}
-
-/**
- * A real Voronoi cell to host the ward town: tessellate a square region, then take
- * the cell nearest its centre as the burg footprint (mirrors a world-map burg cell).
- */
-function buildVoronoiCellFootprint(worldSeed: number): Pt[] {
-  const span = 3600;
-  const square: Pt[] = [[0, 0], [span, 0], [span, span], [0, span]];
-  const region = generateSubmap({ polygon: square, seedPath: rootSeedPath(worldSeed) }, { count: 14 });
-  const centre: Pt = [span / 2, span / 2];
-  let best = region.cells[0]?.polygon ?? square;
-  let bestD = Infinity;
-  for (const c of region.cells) {
-    const ctr = polygonCentroid(c.polygon);
-    const d = Math.hypot(ctr[0] - centre[0], ctr[1] - centre[1]);
-    if (d < bestD) { bestD = d; best = c.polygon; }
-  }
-  return best;
-}
-
-/** Build the Voronoi-ward town plan (adapted to the roster/motion artifact plan). */
-function buildVoronoiTownPlan(worldSeed: number) {
-  const footprint = buildVoronoiCellFootprint(worldSeed);
-  const town = generateVoronoiTown(footprint, rootSeedPath(worldSeed), { population: 700 });
-  return voronoiTownToArtifactPlan(town, DEMO_BURG_ID);
-}
 
 const AgentSimPreview: React.FC = () => {
   const [seed, setSeed] = useState(42);
@@ -86,8 +43,6 @@ const AgentSimPreview: React.FC = () => {
   const [speed, setSpeed] = useState(0.5);
   // Behaviour sim (needs/decisions/interactions) vs the fixed schedule motion.
   const [simMode, setSimMode] = useState(false);
-  // Town layout source: a real Voronoi-ward town (default), or the radial demo burg.
-  const [townSource, setTownSource] = useState<'demo' | 'voronoi'>('voronoi');
   // The villager registry panel (census + family ties) beside the map.
   const [showRegistry, setShowRegistry] = useState(true);
   const rafRef = useRef<number | null>(null);
@@ -123,10 +78,8 @@ const AgentSimPreview: React.FC = () => {
 
   const { plan, roster, graph } = useMemo(() => {
     const seedPath = rootSeedPath(seed);
-    // The town layout: radial demo burg, or a real Voronoi-ward town (adapted).
-    const p = townSource === 'voronoi'
-      ? buildVoronoiTownPlan(seed)
-      : generateTownPlan(buildDemoSite(seed), seedPath);
+    // The town layout: a real Voronoi-ward town, synthesized from the seed.
+    const p = buildDemoTownPlan(seed).plan;
     const nameFor = (rng: { next(): number }) => {
       const n = 2 + Math.floor(rng.next() * 2);
       let s = '';
@@ -135,7 +88,7 @@ const AgentSimPreview: React.FC = () => {
     };
     const r = generateTownRoster(p, seedPath, { nameFor });
     return { plan: p, roster: r, graph: buildStreetGraph(p) };
-  }, [seed, townSource]);
+  }, [seed]);
 
   // Ages + family ties + races for the roster (deterministic): card + coordination.
   const families = useMemo(() => assignFamilies(roster.occupants, rootSeedPath(seed)), [roster, seed]);
@@ -410,18 +363,7 @@ const AgentSimPreview: React.FC = () => {
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12, color: '#94a3b8' }}>
-          <span>Town</span>
-          {([['demo', 'Demo burg'], ['voronoi', 'Voronoi town']] as const).map(([src, label]) => (
-            <button
-              key={src}
-              onClick={() => setTownSource(src)}
-              data-testid={`town-source-${src}`}
-              style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #334155', cursor: 'pointer', fontSize: 12, background: townSource === src ? '#6d28d9' : '#0f172a', color: 'white' }}
-            >
-              {label}
-            </button>
-          ))}
-          <span style={{ marginLeft: 4 }}>{plan.plots.length} buildings</span>
+          <span>{plan.plots.length} buildings</span>
           <button
             onClick={() => setShowRegistry((s) => !s)}
             data-testid="registry-toggle"

@@ -120,3 +120,5 @@ If a retired numbered work doc needs to become active again:
 2. Update this file.
 3. Update `@README-INDEX.md` if it should return to the current work-entry surface.
 4. Add a short note explaining why the retired state was reversed.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/@DOC-REGISTRY.md","sha256WithoutMarker":"bbaec158c383742c8c50d813497889375fb9f749e06bb7ec86490240bcc5714f","markedAtUtc":"2026-06-26T00:07:34.891Z"} -->

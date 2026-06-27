@@ -147,6 +147,37 @@
       },
       "grantedActions": [],
       "attackAugments": [],
+      "createdObjects": [
+        {
+          "objectType": "portal",
+          "name": "Passwall Passage",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "materialOptions": [
+            "wood",
+            "plaster",
+            "stone"
+          ],
+          "shapeOptions": [
+            "wall passage",
+            "ceiling passage",
+            "floor passage"
+          ],
+          "portalWidthFeet": 5,
+          "portalHeightFeet": 8,
+          "wallThickness": 20,
+          "wallThicknessUnit": "feet",
+          "blocksPhysicalPassage": false,
+          "blocksLineOfSight": false,
+          "contentsDropOutOnEnd": true,
+          "safelyEjectsContentsOnEnd": true,
+          "preservesStructuralStability": true,
+          "expiresWithSpell": true,
+          "shelfLife": "1 hour",
+          "notes": "The spell opens a temporary passage through a visible wooden, plaster, or stone wall, ceiling, or floor. The passage can be up to 5 feet wide, 8 feet tall, and 20 feet deep, creates no instability in the surrounding structure, and safely ejects creatures or objects still inside when it ends."
+        }
+      ],
       "controlOptions": [],
       "taunt": {
         "disadvantageAgainstOthers": false,

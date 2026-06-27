@@ -6,13 +6,13 @@ category: active project
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
 status: active
-last_updated: 2026-06-12
+last_updated: 2026-06-26
 iteration: 2
 confidence: unknown
 evidence: "docs/projects/ui-primitives/TRACKER.md; docs/projects/ui-primitives/GAPS.md"
-gap_signal: "0 open gaps; validation feedback, focus-trap, ARIA, and coin-display semantics gaps are marked done"
+gap_signal: "3 open adjacent gaps; G3 tracks remaining runtime z-index registry adoption after stale top-level migration notes were found"
 protocol: living-project
-next_step: "No open UI primitive gap remains after G12; run a fresh source-backed gap scan before assigning another forward pass."
+next_step: "Start from G3 if resuming layering work: replace or justify the four runtime hardcoded z-index classes, then refresh the stale top-level z-index notes."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -42,7 +42,7 @@ human_decision_required: "no"
 # UI Primitives North Star
 
 Status: active  
-Last updated: 2026-06-12
+Last updated: 2026-06-26
 
 ## Dashboard Card Schema
 
@@ -54,9 +54,9 @@ Last updated: 2026-06-12
 | Status | active |
 | Confidence | unknown |
 | Evidence | docs/projects/ui-primitives/TRACKER.md; docs/projects/ui-primitives/GAPS.md |
-| Gap signal | G5 validation feedback, G9 focus-trap manager coverage, G10/G11 ARIA labeling passes, and G12 coin-display semantics done |
+| Gap signal | 3 open adjacent gaps; G3 tracks remaining runtime z-index registry adoption after stale top-level migration notes were found |
 | Protocol | living-project |
-| Next step | No open UI primitive gap remains after G12; run a fresh source-backed gap scan before assigning another forward pass. |
+| Next step | Start from G3 if resuming layering work: replace or justify the four runtime hardcoded z-index classes, then refresh the stale top-level z-index notes. |
 | Required verification | docs consistency |
 | Completed verification | docs refresh, focused GameModals, Input, and coin-display tests |
 | Last proof | 2026-06-08 GameModals focus-trap tests, Input accessibility feedback tests, and CoinDisplay/CoinPurseDisplay tests |

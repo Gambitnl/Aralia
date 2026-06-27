@@ -23,3 +23,5 @@ The living project task protocol now lives as a small workflow package:
 Use the protocol README as the agent-facing instructions. Use the templates as
 copyable starting points when converting scope-creeping task work into a living
 project with a North Star as the main cold-start file.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/agent-workflows/LIVING_PROJECT_TASK_PROTOCOL.md","sha256WithoutMarker":"163adcf881467998b45377c881dd291d695e7845cf2a3a550776df02fd02e2aa","markedAtUtc":"2026-06-26T00:12:35.427Z"} -->

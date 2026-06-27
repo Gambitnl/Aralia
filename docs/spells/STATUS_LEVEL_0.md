@@ -49,3 +49,5 @@ If you need execution truth for a specific cantrip, use:
 
 Earlier versions of this file used a large per-spell Data Only table and implied that integration testing had not started at all.
 That wording is now too blunt for the current repo. It obscures the fact that some cross-cutting cantrip mechanics have been implemented and verified, while broad per-spell regression coverage still remains uneven.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/spells/STATUS_LEVEL_0.md","sha256WithoutMarker":"962da2f31b44ca296f5b6cc515076ae8bef75e8f11579a8b19285d99589b4cf9","markedAtUtc":"2026-06-26T00:26:22.324Z"} -->

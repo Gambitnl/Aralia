@@ -23,11 +23,28 @@ import { EXTERIOR } from '../interior/types';
 import { generateLocal } from '../local/generateLocal';
 import { generateRegion } from '../region/generateRegion';
 import { rootSeedPath } from '../seedPath';
-import { generateTownPlan } from '../town/generateTownPlan';
+import { generateTownPlan as generateEngineTown } from '../town/townEngine';
+import { toArtifactPlan } from '../town/townPlanAdapter';
 import { boundsCenter } from '../units';
 import { createWorld } from '../world/createWorld';
 import { WorldStore } from '../world/worldStore';
-import type { LocalArtifact, RegionArtifact } from '../artifacts';
+import type { LocalArtifact, RegionArtifact, RegionTownSite, TownPlan } from '../artifacts';
+
+// The artifact town plan for a region town site, via the owned Voronoi-ward
+// generator (`townEngine`) + `toArtifactPlan` — the same path the live 2D/3D
+// town pipeline uses (it replaced the retired rect `generateTownPlan.ts`). The
+// burg's envelope becomes the generation footprint; population is fixed so the
+// probe stays deterministic.
+function townPlanForSite(site: RegionTownSite, seedPath: string): TownPlan {
+  const e = site.envelope;
+  const footprint: Array<[number, number]> = [
+    [e.x, e.y],
+    [e.x + e.width, e.y],
+    [e.x + e.width, e.y + e.height],
+    [e.x, e.y + e.height],
+  ];
+  return toArtifactPlan(generateEngineTown(footprint, seedPath, { population: 4000 }), site.burgId).plan;
+}
 
 // ---------------------------------------------------------------------------
 // Fixed integration identity
@@ -448,7 +465,7 @@ describe('worldforge pipeline integration', () => {
 
     expect(site).toBeDefined();
 
-    const townPlan = generateTownPlan(site, townProbe.region.seedPath);
+    const townPlan = townPlanForSite(site, townProbe.region.seedPath);
     const localWithTownPlan: LocalArtifact = {
       ...townProbe.local,
       townPlan,
@@ -466,33 +483,31 @@ describe('worldforge pipeline integration', () => {
     const originalReplay = applyDeltas(localWithTownPlan, [townDelta]);
     const restoredReplay = applyDeltas(localWithTownPlan, restoredPayload.deltas);
 
+    // The byte-for-byte persistence contract: a serialized+restored replay equals
+    // the in-memory replay. This is generator-independent and is the real point.
     expect(restoredReplay).toEqual(originalReplay);
+    // A coarse golden over stable shape. Exact footprint floats are deliberately
+    // NOT pinned here — they're brittle and the round-trip above already proves
+    // the geometry survives. Plot 0's role/storeys come from the modify-plot
+    // delta (inn / 3), not the generator.
     expect({
       burgId: restoredReplay.artifact.townPlan?.burgId,
       plotCount: restoredReplay.artifact.townPlan?.plots.length,
-      firstPlot: restoredReplay.artifact.townPlan?.plots[0],
+      firstPlotId: restoredReplay.artifact.townPlan?.plots[0]?.id,
+      firstPlotRole: restoredReplay.artifact.townPlan?.plots[0]?.role,
+      firstPlotStoreys: restoredReplay.artifact.townPlan?.plots[0]?.storeys,
+      firstPlotCorners: restoredReplay.artifact.townPlan?.plots[0]?.footprint.length,
       townFeatureCount: restoredReplay.artifact.features.length,
     }).toEqual({
       burgId: 264,
-      // 2026-06-14: town gen added the `workshop` plot role (one extra RNG draw
-      // per eligible plot) — the hamlet probe then yielded 8 plots.
-      // 2026-06-25: re-frozen for the accepted, already-wired 2026-06-24 town-gen
-      // pass (typology street scaling + civic anatomy: temple/keep/administrative/
-      // barracks). The extra per-plot RNG draws and typology-scaled street growth
-      // reshuffle the deterministic stream — the probe now yields 15 plots and
-      // shifts plot 0's footprint. Matches the unit snapshot re-frozen the same day.
-      plotCount: 15,
-      firstPlot: {
-        id: 0,
-        footprint: [
-          [337216.04163570807, 106990.58918139627],
-          [337282.4797627084, 107012.63402842879],
-          [337298.2260820174, 106965.17822342855],
-          [337231.78795501706, 106943.13337639603],
-        ],
-        role: 'inn',
-        storeys: 3,
-      },
+      // 2026-06-27: re-pointed to the canonical Voronoi-ward generator
+      // (`townEngine` + `toArtifactPlan`) after the rect `generateTownPlan.ts`
+      // was retired. The probe burg now yields 216 plots.
+      plotCount: 216,
+      firstPlotId: 0,
+      firstPlotRole: 'inn',
+      firstPlotStoreys: 3,
+      firstPlotCorners: 4,
       townFeatureCount: 1395,
     });
   }, 60_000);
@@ -503,7 +518,7 @@ describe('worldforge pipeline integration', () => {
 
     expect(site).toBeDefined();
 
-    const townPlan = generateTownPlan(site, townProbe.region.seedPath);
+    const townPlan = townPlanForSite(site, townProbe.region.seedPath);
     const localWithTownPlan: LocalArtifact = {
       ...townProbe.local,
       townPlan,
@@ -564,9 +579,12 @@ describe('worldforge pipeline integration', () => {
       // building's room-packing → 9 rooms.
       // 2026-06-25: re-frozen for the 2026-06-24 typology + civic-anatomy town-gen
       // pass. More plots (15) shift max-plot-id, so newPlotId changes again,
-      // reseeding the added building's room-packing → 7 rooms. Role/delta logic
-      // is unchanged (still market → shopfloor); only the geometry seed moved.
-      addedInteriorRoomCount: 7,
+      // reseeding the added building's room-packing → 7 rooms.
+      // 2026-06-27: re-pointed to the canonical townEngine generator (rect
+      // generateTownPlan.ts retired). 216 plots → max-plot-id +100 reseeds the
+      // added building again → 1 room. Role/delta logic unchanged (market →
+      // shopfloor); only the geometry seed moved.
+      addedInteriorRoomCount: 1,
       hasAddedExteriorDoor: true,
       removedPlotPresent: false,
     });

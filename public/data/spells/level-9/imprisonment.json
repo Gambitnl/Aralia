@@ -195,6 +195,63 @@
           "effect": "Dispel Magic ends the spell only if cast with a level 9 spell slot and aimed at either the prison or the component used to create it."
         }
       ],
+      "createdObjects": [
+        {
+          "objectType": "structure",
+          "name": "Magical Prison",
+          "count": 1,
+          "countUnit": "prison",
+          "appearsIn": "target_space",
+          "shapeOptions": [
+            "burial hollow globe",
+            "rooted chains",
+            "caster-chosen demiplane",
+            "gemstone containment",
+            "slumbering restraint"
+          ],
+          "materialOptions": [
+            "magical force",
+            "rooted chains",
+            "demiplane ward",
+            "indestructible gemstone or similar object",
+            "magical sleep restraint"
+          ],
+          "prisonModeOptions": [
+            "burial",
+            "chaining",
+            "hedged_prison",
+            "minimus_containment",
+            "slumber"
+          ],
+          "demiplaneFormOptions": [
+            "labyrinth",
+            "cage",
+            "tower",
+            "caster choice"
+          ],
+          "blocksPhysicalPassage": true,
+          "blocksCrossBoundaryEffects": true,
+          "blocksSpellEffects": true,
+          "blocksTeleportation": true,
+          "blocksPlanarTravel": true,
+          "blocksDivinationSensorsInside": true,
+          "blocksDivinationTargetingInside": true,
+          "needsFoodOrAir": false,
+          "agesWhileSuspended": false,
+          "lightPassesThroughOnly": true,
+          "containedCreatureSizeInches": 1,
+          "immuneToDamage": true,
+          "observableEndingTriggerRequired": true,
+          "endingTriggerExpectedWithinYears": 10,
+          "dispelMagicMinimumSlotLevel": 9,
+          "dispelMagicTargetOptions": [
+            "prison",
+            "creation component"
+          ],
+          "expiresWithSpell": true,
+          "notes": "This single object records the five Imprisonment modes. Some fields apply only to specific modes: light-only passage and one-inch size apply to Minimus Containment, while demiplane forms apply to Hedged Prison."
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,

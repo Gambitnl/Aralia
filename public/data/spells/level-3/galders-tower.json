@@ -141,6 +141,38 @@
       },
       "grantedActions": [],
       "attackAugments": [],
+      "createdObjects": [
+        {
+          "objectType": "structure",
+          "name": "Galder's Tower",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "ground",
+          "shapeOptions": [
+            "round",
+            "square"
+          ],
+          "materialOptions": [
+            "stone",
+            "wood",
+            "similar sturdy building material"
+          ],
+          "levels": 2,
+          "levelScaling": {
+            "type": "slot_level",
+            "bonusPerLevel": 1
+          },
+          "levelHeightFeet": 10,
+          "areaPerLevelSquareFeet": 100,
+          "accessBetweenLevels": true,
+          "secureOpenings": true,
+          "furnished": true,
+          "weatherProtected": true,
+          "expiresWithSpell": true,
+          "shelfLife": "24 hours",
+          "notes": "The caster chooses a round or square tower made of stone, wood, or similar sturdy material. Each level is 10 feet tall and up to 100 square feet, with ladder-and-hatch access, barrable doors/windows, simple comfortable furnishings, warmth, and dryness."
+        }
+      ],
       "controlOptions": [],
       "taunt": {
         "disadvantageAgainstOthers": false,

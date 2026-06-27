@@ -270,5 +270,70 @@
     "elemental",
     "control",
     "concentration"
-  ]
+  ],
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 5,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Acid",
+        "summary": "The granted breath weapon deals Acid damage in a 15-foot Cone.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ],
+        "duration": "1 minute with concentration"
+      },
+      {
+        "label": "Cold",
+        "summary": "The granted breath weapon deals Cold damage in a 15-foot Cone.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ],
+        "duration": "1 minute with concentration"
+      },
+      {
+        "label": "Fire",
+        "summary": "The granted breath weapon deals Fire damage in a 15-foot Cone.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ],
+        "duration": "1 minute with concentration"
+      },
+      {
+        "label": "Lightning",
+        "summary": "The granted breath weapon deals Lightning damage in a 15-foot Cone.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ],
+        "duration": "1 minute with concentration"
+      },
+      {
+        "label": "Poison",
+        "summary": "The granted breath weapon deals Poison damage in a 15-foot Cone.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ],
+        "duration": "1 minute with concentration"
+      }
+    ],
+    "notes": "The damage packet already uses damage.damageTypeSource = chosen_damage_type; this menu supplies the five legal caster choices for the granted breath action."
+  }
 }

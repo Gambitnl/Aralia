@@ -50,3 +50,5 @@ npx tsx scripts/raceReconciliationInventory.ts
 - Discovery confirmed existing race sync tooling and the vendor corpus path.
 - The workflow generates all reports locally from current repo data.
 - Focused validation commands and any blockers should be recorded in `reconciliation-summary.md` by the agent running the workflow.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/reports/race-reconciliation/README.md","sha256WithoutMarker":"ad6d05490292b138f38e721d585476eaea8d02c85039f29efff6302671a984b2","markedAtUtc":"2026-06-26T00:26:22.314Z"} -->

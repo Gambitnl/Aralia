@@ -123,3 +123,5 @@ To avoid false rejects:
   - drawn weapons
   - weapon-forward posing
   - armor/gear where combat identity dominates the scene
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"scripts/audits/qa-batches/QA_RUBRIC.md","sha256WithoutMarker":"091ad78f5c8bc82d018a8e9f2a10cd0e6ac79563de3e634769c92f90b90c1378","markedAtUtc":"2026-06-26T00:53:11.789Z"} -->

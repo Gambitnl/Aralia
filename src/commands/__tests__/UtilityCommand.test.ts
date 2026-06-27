@@ -279,6 +279,45 @@ describe('UtilityCommand', () => {
             expect(newTarget?.position.x).toBeGreaterThan(6)
         })
 
+        it('should reject an invalid selected command option instead of falling back to the first option', async () => {
+            const closeState = {
+                ...mockState,
+                characters: [mockCaster, { ...mockTarget, position: { x: 6, y: 5 } }]
+            } as CombatState
+
+            const effect: UtilityEffect = {
+                type: 'UTILITY',
+                utilityType: 'control',
+                description: 'Choose a command option.',
+                controlOptions: [
+                    { name: 'Approach', effect: 'approach' },
+                    { name: 'Flee', effect: 'flee' }
+                ],
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }
+
+            const selectedContext: CommandContext & { playerInput: string } = {
+                ...mockContext,
+                playerInput: 'Dance'
+            }
+
+            const command = new UtilityCommand(effect, selectedContext)
+            const newState = await command.execute(closeState)
+
+            // A stale or invalid UI choice should not quietly execute Approach,
+            // which is first in the data. The target stays in place and the
+            // log carries the rejection reason plus the valid choices.
+            const newTarget = newState.characters.find(c => c.id === mockTarget.id)
+            const rejectionLog = newState.combatLog.find(entry => entry.data?.rejectedControlOption === 'Dance')
+            expect(newTarget?.position).toEqual({ x: 6, y: 5 })
+            expect(rejectionLog?.message).toContain('cannot resolve the selected command option')
+            expect(rejectionLog?.data).toMatchObject({
+                rejectedControlOption: 'Dance',
+                availableControlOptions: ['Approach', 'Flee']
+            })
+        })
+
         it('should leave a turn directive marker for selected "halt" command', async () => {
             const effect: UtilityEffect = {
                 type: 'UTILITY',

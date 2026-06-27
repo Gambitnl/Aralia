@@ -44,3 +44,5 @@ This pass confirmed:
 
 Re-verified on 2026-03-11.
 Treat this file as the live high-level spell addition workflow guide, but anchor it to npm run validate plus the existing spell scripts and current spell-reference surfaces rather than the older validate:spells-centered wording.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/guides/SPELL_ADDITION_WORKFLOW_GUIDE.md","sha256WithoutMarker":"3684ead608032d39af226c140b225e845a0661970b7f3a7c8b21538fcd1bcb8b","markedAtUtc":"2026-06-26T00:05:10.886Z"} -->

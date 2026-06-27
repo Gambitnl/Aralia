@@ -25,7 +25,21 @@ const AREA_ZONE_TRIGGER_TYPES = new Set([
 
 export const hasPersistentAreaTrigger = (effect: SpellEffect): boolean => {
   const triggerType = (effect as { trigger?: { type?: string } }).trigger?.type;
-  return typeof triggerType === 'string' && AREA_ZONE_TRIGGER_TYPES.has(triggerType);
+  if (typeof triggerType === 'string' && AREA_ZONE_TRIGGER_TYPES.has(triggerType)) {
+    return true;
+  }
+
+  // Some wall and hazard spells keep their initial save/damage effect as an
+  // immediate cast row, then describe later area behavior in recurringMechanics.
+  // Those spells still need a durable ActiveSpellZone so future turns and
+  // granted actions can find the spell-created area after casting.
+  const recurringMechanics = (effect as { recurringMechanics?: Array<{ timing?: string }> }).recurringMechanics;
+  return Array.isArray(recurringMechanics) && recurringMechanics.some(mechanic =>
+    mechanic.timing === 'turn_start' ||
+    mechanic.timing === 'turn_end' ||
+    mechanic.timing === 'on_move_in_area' ||
+    mechanic.timing === 'on_entity_proximity'
+  );
 };
 
 export const isTerrainEffect = (effect: SpellEffect): effect is TerrainEffect => effect.type === 'TERRAIN';

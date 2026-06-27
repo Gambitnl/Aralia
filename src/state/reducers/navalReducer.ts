@@ -21,6 +21,7 @@
 import { AppAction } from '../actionTypes';
 import { GameState } from '../../types';
 import type { WeatherState } from '../../types';
+import type { VoyageState } from '../../types/naval';
 import { VoyageManager } from '../../systems/naval/VoyageManager';
 import { CrewManager } from '../../systems/naval/CrewManager';
 import { createShip } from '../../utils/navalUtils';
@@ -63,7 +64,9 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
       const ship = state.naval.playerShips.find(s => s.id === shipId);
       if (!ship) return state;
 
-      const newVoyage = VoyageManager.startVoyage(ship, distance);
+      // Bridge: persist the destination port burg id on the voyage so arrival
+      // can dock the ship at the correct FMG burg (decision #10).
+      const newVoyage: VoyageState = { ...VoyageManager.startVoyage(ship, distance), destinationId };
 
       return {
         ...state,
@@ -110,6 +113,7 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
       );
 
       // Check for arrival
+      let arrivedShip = updatedShip;
       if (updatedVoyage.distanceTraveled >= updatedVoyage.distanceToDestination) {
          updatedVoyage.status = 'Docked';
          updatedVoyage.log.push({
@@ -117,6 +121,14 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
              event: 'Arrived at destination!',
              type: 'Info'
          });
+
+         // Bridge (decision #10): dock the active ship at the arrival port burg.
+         // FMG burg ids are positive integers (from 1). Reject undefined/null/''
+         // (Number('') === 0) and any non-positive or non-integer value.
+         const burgId = Number(updatedVoyage.destinationId);
+         if (Number.isInteger(burgId) && burgId > 0) {
+           arrivedShip = { ...arrivedShip, dockedPortBurgId: burgId };
+         }
       }
 
       return {
@@ -124,7 +136,7 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
         naval: {
           ...state.naval,
           currentVoyage: updatedVoyage,
-          playerShips: state.naval.playerShips.map(s => s.id === updatedShip.id ? updatedShip : s)
+          playerShips: state.naval.playerShips.map(s => s.id === arrivedShip.id ? arrivedShip : s)
         },
       };
     }
@@ -176,6 +188,16 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
                 activeShipId: action.payload.shipId
             }
         };
+    }
+
+    case 'NAVAL_SET_KNOWN_PORTS': {
+      return {
+        ...state,
+        naval: {
+          ...state.naval,
+          knownPorts: action.payload.ports,
+        },
+      };
     }
 
     default:

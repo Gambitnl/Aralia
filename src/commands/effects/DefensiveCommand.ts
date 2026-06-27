@@ -125,7 +125,15 @@ export class DefensiveCommand implements SpellCommand {
           const newTemp = effectValue;
 
           if (newTemp > currentTemp) {
+            const activeEffect = this.createActiveEffect(
+              updatedCharacter.id,
+              this.effect.defenseType,
+              newTemp,
+              state.turnState.currentTurn
+            );
+
             updatedCharacter.tempHP = newTemp;
+            updatedCharacter.activeEffects = [...(updatedCharacter.activeEffects || []), activeEffect];
             // Record the spell that owns this temporary HP pool. Reactive
             // spells such as Armor of Agathys must end when their own temp HP
             // is gone, and cannot safely treat another feature's temp HP as
@@ -138,6 +146,37 @@ export class DefensiveCommand implements SpellCommand {
             logMessage = `${this.context.spellName} grants ${newTemp} temporary HP`;
           } else {
             logMessage = `${this.context.spellName} grants ${newTemp} temporary HP (overlapped)`;
+          }
+          break;
+        }
+
+        case 'resistance':
+        case 'immunity': {
+          // Damage protection rows are long-lived defensive state, not an
+          // immediate AC number. Store them both on the character for damage
+          // resolution and on the active effect for cleanup/UI proof.
+          const damageTypes = this.effect.damageType || [];
+          const activeEffect = this.createActiveEffect(
+            updatedCharacter.id,
+            this.effect.defenseType,
+            effectValue,
+            state.turnState.currentTurn
+          );
+
+          updatedCharacter.activeEffects = [...(updatedCharacter.activeEffects || []), activeEffect];
+
+          if (this.effect.defenseType === 'resistance') {
+            updatedCharacter.resistances = Array.from(new Set([
+              ...(updatedCharacter.resistances || []),
+              ...damageTypes
+            ]));
+            logMessage = `${this.context.spellName} grants resistance to ${damageTypes.join(', ') || 'listed damage'}`;
+          } else {
+            updatedCharacter.immunities = Array.from(new Set([
+              ...(updatedCharacter.immunities || []),
+              ...damageTypes
+            ]));
+            logMessage = `${this.context.spellName} grants immunity to ${damageTypes.join(', ') || 'listed damage'}`;
           }
           break;
         }
@@ -191,6 +230,8 @@ export class DefensiveCommand implements SpellCommand {
         baseAC: type === 'set_base_ac' ? value : undefined,
         baseACFormula: type === 'set_base_ac' ? this.effect.baseACFormula : undefined,
         acMinimum: type === 'ac_minimum' ? value : undefined,
+        damageResistance: type === 'resistance' ? this.effect.damageType : undefined,
+        damageImmunity: type === 'immunity' ? this.effect.damageType : undefined,
       }
     };
   }

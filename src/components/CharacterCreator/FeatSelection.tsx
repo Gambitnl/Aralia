@@ -559,6 +559,31 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                           </div>
                         )}
 
+                        {/* Damage type selection */}
+                        {hasSelectableDamageType && (
+                          <div>
+                            <h4 className="text-sm font-bold text-gray-300 mb-2">Damage Type Affinity</h4>
+                            <p className="text-xs text-gray-500 mb-3">
+                              Choose the damage type this feat improves. The selected type is saved with the feat so combat can apply the matching rider later.
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {selectableDamageTypes.map(damageType => (
+                                <button
+                                  key={damageType}
+                                  onClick={() => onSetFeatChoice(selectedFeatId!, 'selectedDamageType', damageType)}
+                                  className={`px-3 py-2 rounded border text-sm transition-colors ${
+                                    selectedDamageType === damageType
+                                      ? 'bg-sky-700 border-sky-400 text-white'
+                                      : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                                  }`}
+                                >
+                                  {damageType}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         {/* Skill selection */}
                         {hasSelectableSkills && (
                           <div>

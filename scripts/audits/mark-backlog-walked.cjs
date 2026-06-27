@@ -55,6 +55,10 @@ function parseArgs(argv) {
       args.mode = 'missing';
     } else if (arg === '--candidates') {
       args.mode = 'candidates';
+    } else if (arg === '--keyword-hits') {
+      args.mode = 'keyword-hits';
+    } else if (arg === '--stale-markers') {
+      args.mode = 'stale-markers';
     } else if (arg === '--write') {
       args.write = true;
     } else if (arg === '--json') {
@@ -119,7 +123,7 @@ function stripMarker(content) {
 }
 
 function hashReviewContent(content) {
-  return crypto.createHash('sha256').update(stripMarker(content), 'utf8').digest('hex');
+  return crypto.createHash('sha256').update(stripMarker(content).trimEnd(), 'utf8').digest('hex');
 }
 
 function hasMarker(content) {
@@ -189,15 +193,51 @@ function addOrRefreshMarker(repoPath) {
 
 const ignoredDirectoryNames = new Set([
   '.git',
+  '.agent_tools',
+  '.antigravitycli',
+  '.claude',
+  '.chrome-gemini-profile',
+  '.codex',
+  '.cursor',
+  '.gemini',
+  '.jules',
+  '.local',
+  '.pi',
+  '.playwright-cli',
+  '.playwright-mcp',
+  '.superpowers',
+  '.symphony',
+  '.tmp',
+  '.understand-anything',
+  '.uplink',
+  '.vscode',
+  '.windsurf',
+  '.worktrees',
+  'artifacts',
   'node_modules',
   'dist',
+  'docs-site-dist',
   'build',
   '.vite',
   '.cache',
   'coverage',
+  'devtools',
+  'output',
+  'playwright-report',
+  'test-results',
+  'tmp',
+  'vendor',
+  'verification',
 ]);
 
 const ignoredRepoPrefixes = [
+  // These roots contain local agent state, orchestration control-plane records,
+  // backups, external workflow experiments, dependency snapshots, or generated
+  // proof. They are not Aralia-facing backlog queues for the default retirement
+  // scan, so keeping them out makes "what remains?" answerable instead of noisy.
+  '.agent/',
+  'conductor/',
+  'deprecated/uplink/',
   '.agent/scratch/',
   '.agent/roadmap-local/tooling_state',
 ];
@@ -248,10 +288,18 @@ const candidatePathPatterns = [
 ];
 
 const lowSignalPathPatterns = [
+  /^AGENTS(?:\.bak)?\.md$/i,
+  /^CONTRIBUTING\.md$/i,
+  /^README\.md$/i,
+  /^AntiGravityCeption\//i,
+  /^Claudeception\//i,
+  /^docs-site\//i,
   /^docs\/spells\/reference\//i,
   /^docs\/status-effects\//i,
   /^docs\/portraits\/race_profiles\//i,
   /^docs\/agent-workflows\/living-project-task-protocol\/templates\//i,
+  /^public\/agent-docs\//i,
+  /^skills\//i,
 ];
 
 const livingProjectPathPattern = /^docs\/projects\/.*\/(?:AUDIT_OR_PROOF|COLD_START_AGENT_PROMPT|DECISIONS|GAPS|NORTH_STAR|RUNBOOK|TRACKER|SUBPROJECTS)\.md$/i;
@@ -263,6 +311,21 @@ const candidateContentPatterns = [
   { pattern: /\[[ xX]\]/, weight: 3 },
   { pattern: /\b(TODO|backlog|gap|pending|not_started|stale|blocked|superseded|implementation plan|next action|acceptance criteria)\b/i, weight: 2 },
   { pattern: /\|\s*(Gap ID|Status|Next action|Owner|Evidence|Task)\s*\|/i, weight: 3 },
+];
+
+const auditKeywordPatterns = [
+  { label: 'checkbox', pattern: /\[[ xX]\]/ },
+  { label: 'status', pattern: /^Status:\s*(active|pending|not_started|in_progress|blocked|stale|proposed)/im },
+  { label: 'todo', pattern: /\bTODO\b/i },
+  { label: 'backlog', pattern: /\bbacklog\b/i },
+  { label: 'gap', pattern: /\bgap\b/i },
+  { label: 'pending', pattern: /\bpending\b/i },
+  { label: 'blocked', pattern: /\bblocked\b/i },
+  { label: 'stale', pattern: /\bstale\b/i },
+  { label: 'next action', pattern: /\bnext action\b/i },
+  { label: 'acceptance criteria', pattern: /\bacceptance criteria\b/i },
+  { label: 'future improvement', pattern: /\bfuture improvements?\b/i },
+  { label: 'not implemented', pattern: /\bnot implemented\b/i },
 ];
 
 function scoreBacklogCandidate(repoPath, content, options = {}) {
@@ -283,7 +346,7 @@ function scoreBacklogCandidate(repoPath, content, options = {}) {
 
   for (const pattern of lowSignalPathPatterns) {
     if (pattern.test(repoPath)) {
-      score -= 4;
+      score -= 8;
       reasons.push('low-signal-path');
       break;
     }
@@ -365,6 +428,101 @@ function reportBacklogCandidates(root, json, limit, options) {
   }
 }
 
+function reportKeywordHits(root, json, limit, options) {
+  const files = walkMarkdownFiles(root);
+
+  // This audit is intentionally broader than the candidate queue. It catches
+  // unmarked files that contain backlog-shaped words even when their path is a
+  // common reference path such as README.md. Future agents can use it as a
+  // false-negative review queue without turning every hit into mandatory work.
+  const hits = files
+    .map((repoPath) => {
+      const content = fs.readFileSync(toAbsolutePath(repoPath), 'utf8');
+      if (hasMarker(content)) {
+        return null;
+      }
+
+      if (!options.includeLivingProjects && (livingProjectPathPattern.test(repoPath) || activeControlPathPattern.test(repoPath))) {
+        return null;
+      }
+
+      const labels = auditKeywordPatterns
+        .filter(({ pattern }) => pattern.test(content))
+        .map(({ label }) => label);
+
+      if (labels.length === 0) {
+        return null;
+      }
+
+      const candidate = scoreBacklogCandidate(repoPath, content, options);
+      const lowSignal = lowSignalPathPatterns.some((pattern) => pattern.test(repoPath));
+
+      return {
+        path: repoPath,
+        score: candidate?.score ?? 0,
+        lowSignal,
+        labels,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => Number(a.lowSignal) - Number(b.lowSignal) || b.score - a.score || a.path.localeCompare(b.path));
+
+  const limited = Number.isFinite(limit) && limit > 0 ? hits.slice(0, limit) : hits;
+
+  if (json) {
+    console.log(JSON.stringify({ root, keywordHitCount: hits.length, limit, includeLivingProjects: options.includeLivingProjects, files: limited }, null, 2));
+    return;
+  }
+
+  console.log(`Unmarked markdown files with backlog-like keywords: ${hits.length}`);
+  for (const hit of limited) {
+    const marker = hit.lowSignal ? 'low-signal' : 'review';
+    console.log(`${hit.score.toString().padStart(2, ' ')}  ${marker.padEnd(10)}  ${hit.path}  [${hit.labels.join(', ')}]`);
+  }
+}
+
+function reportStaleMarkers(root, json, limit) {
+  const files = walkMarkdownFiles(root);
+
+  // A marker is stale when the file still says it was walked, but the reviewed
+  // content hash no longer matches the hash stored in the marker. Those files
+  // should be re-walked before we trust their ledger disposition.
+  const stale = files
+    .map((repoPath) => {
+      const content = fs.readFileSync(toAbsolutePath(repoPath), 'utf8');
+      const marker = readExistingMarker(content);
+      if (!marker) {
+        return null;
+      }
+
+      const currentHash = hashReviewContent(content);
+      if (marker.sha256WithoutMarker === currentHash) {
+        return null;
+      }
+
+      return {
+        path: repoPath,
+        markerHash: marker.sha256WithoutMarker ?? null,
+        currentHash,
+        markedAtUtc: marker.markedAtUtc ?? null,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.path.localeCompare(b.path));
+
+  const limited = Number.isFinite(limit) && limit > 0 ? stale.slice(0, limit) : stale;
+
+  if (json) {
+    console.log(JSON.stringify({ root, staleMarkerCount: stale.length, limit, files: limited }, null, 2));
+    return;
+  }
+
+  console.log(`Markdown files with stale backlog walked markers: ${stale.length}`);
+  for (const entry of limited) {
+    console.log(entry.path);
+  }
+}
+
 function main() {
   const args = parseArgs(process.argv.slice(2));
 
@@ -375,6 +533,16 @@ function main() {
 
   if (args.mode === 'candidates') {
     reportBacklogCandidates(args.root, args.json, args.limit, { includeLivingProjects: args.includeLivingProjects });
+    return;
+  }
+
+  if (args.mode === 'keyword-hits') {
+    reportKeywordHits(args.root, args.json, args.limit, { includeLivingProjects: args.includeLivingProjects });
+    return;
+  }
+
+  if (args.mode === 'stale-markers') {
+    reportStaleMarkers(args.root, args.json, args.limit);
     return;
   }
 

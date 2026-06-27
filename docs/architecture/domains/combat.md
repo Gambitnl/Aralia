@@ -56,21 +56,20 @@ This pass verified that the combat domain already has:
 
 ## Known Limitations
 
-Tracked gaps in the current implementation. See `docs/superpowers/plans/` for fix plans.
+Tracked gaps in the current implementation belong in `docs/projects/combat/GAPS.md` or in the owning child/system project.
 
 ### Player-to-Combat Bridge (`createPlayerCombatCharacter`)
 
-`src/utils/combat/combatUtils.ts` is the equivalent of the monster pipeline for player characters — it converts a `PlayerCharacter` into a `CombatCharacter`. Unlike the monster pipeline, it has no architecture doc and several gaps:
+`src/utils/combat/combatUtils.ts` is the player-character equivalent of the monster pipeline. Earlier versions of this document listed player armor class mapping, ranged weapon range, class feature generation, Rage resistance, Sneak Attack, and premade martial equipment as open gaps. Those notes are stale in the current repo:
 
-- **`armorClass` / `baseAC` not mapped.** The `PlayerCharacter.armorClass` field (baked into each character's JSON) is never assigned to `CombatCharacter.armorClass` or `baseAC` in the constructor (~line 738). Every player character enters combat with `armorClass: undefined`. Fix: two-line addition. See `docs/superpowers/plans/2026-05-12-equip-premade-characters.md` Task 1.
-- **Ranged weapon range not read.** `createWeaponAbility` sets `range: (reach) ? 2 : 1` with no path for ranged weapons. A longbow equipped in `MainHand` gets range 1 (melee). Fix: parse a `range:N` convention from `weapon.properties`. See same plan, Task 2.
-- **Class features not auto-generated (partial).** Only `fighter` (Second Wind) and `rogue` (Cunning Dash) have hardcoded class ability generation. Barbarian Rage, Monk Flurry of Blows, Bardic Inspiration, and Divine Smite are absent from the combat palette for their classes. See `docs/superpowers/plans/` for the class-abilities plan (Plan 2, forthcoming).
-- **Rage resistance never applied.** Even if Rage were added as a `StatusEffect` with `modifiers.resistance: ['bludgeoning','piercing','slashing']`, `ResistanceCalculator.applyResistances` (`src/utils/combat/resistanceUtils.ts:126`) only checks `CombatCharacter.resistances[]` — the direct field. It does not inspect `statusEffects[].modifiers.resistance[]`. Rage resistance would be stored but silently ignored.
-- **Sneak Attack absent.** No auto-trigger logic exists in `DamageCommand`, `AbilityCommandFactory`, or `useActionExecutor`. The only reference is a placeholder `isSneakAttack: false` in the combat log message factory.
+- `createPlayerCombatCharacter` now maps `armorClass` and `baseAC`.
+- weapon ability creation reads `range:N` weapon properties for ranged weapons.
+- the combat palette includes Barbarian Rage, Monk Flurry of Blows, Bardic Inspiration, Divine Smite, Pact Magic, Fighter Second Wind, and Rogue Cunning Dash.
+- `ResistanceCalculator` reads temporary resistance from `statusEffects[].modifiers.resistance`.
+- `AbilityCommandFactory` contains Sneak Attack trigger logic.
+- `docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md` records `docs/superpowers/plans/2026-05-12-equip-premade-characters.md` as retired/executed, with premade martial equipment proof.
 
-### Premade Character Data
-
-All 13 premade characters in `public/premade-characters/` have `"equippedItems": {}`. Every character falls back to Unarmed Strike (flat `1 + STR mod` bludgeoning, no dice) regardless of class. The three pure casters (Sorcerer, Warlock, Wizard) are intentionally weaponless and unaffected. Fix: JSON data only, no code changes. See `docs/superpowers/plans/2026-05-12-equip-premade-characters.md`.
+Treat the live combat project docs, tests, and source files as authoritative before reviving any of the older bridge-gap claims.
 
 ### Death Saving Throws
 
@@ -83,3 +82,5 @@ Death-saving throws, unconscious recovery, and concentration drop on 0 HP are im
 - Which combat utility duplicates should be documented as intentional layering versus technical debt?
 - Which combat docs should point to battle-map integration explicitly instead of implying combat owns all map rendering concerns?
 - Which combat rule surfaces need tighter current-state documentation for reactions, bonus actions, and sustained actions?
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/domains/combat.md","sha256WithoutMarker":"9cf3ca8155f893a9866b1311279c496223a821c699e28a43ee618a5ba283735a","markedAtUtc":"2026-06-26T00:12:35.432Z"} -->

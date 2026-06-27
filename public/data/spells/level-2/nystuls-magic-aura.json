@@ -262,8 +262,42 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose whether the target uses Mask for a willing creature or False Aura for an object, then record the chosen creature type, magical/nonmagical appearance, or school aura detail.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 2,
+    "optionsSource": "effects",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Mask",
+        "summary": "A willing creature is treated by spells and magical effects as if it had a chosen creature type other than its real type.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "24 hours, or until dispelled after 30 daily casts on the same target",
+        "notes": "The caster still needs a creature-type subchoice such as Aberration, Beast, Celestial, Construct, Dragon, Elemental, Fey, Fiend, Giant, Humanoid, Monstrosity, Ooze, Plant, or Undead."
+      },
+      {
+        "label": "False Aura",
+        "summary": "An object appears differently to magical aura detection: nonmagical as magical, magical as nonmagical, or magical as a chosen school.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "24 hours, or until dispelled after 30 daily casts on the same target",
+        "notes": "The caster still needs an aura subchoice for magical/nonmagical appearance or the chosen school of magic."
+      }
+    ],
+    "notes": "The target type determines which effect applies: willing creatures use Mask, while unattended objects use False Aura."
   },
   "description": "With a touch, you place an illusion on a willing creature or an object that isn't being worn or carried. A creature gains the Mask effect below, and an object gains the False Aura effect below. The effect lasts for the duration. If you cast the spell on the same target every day for 30 days, the illusion lasts until dispelled. Mask (Creature). Choose a creature type other than the target's actual type. Spells and other magical effects treat the target as if it were a creature of the chosen type. False Aura (Object). You change the way the target appears to spells and magical effects that detect magical auras, such as Detect Magic . You can make a nonmagical object appear magical, make a magic item appear nonmagical, or change the object's aura so that it appears to belong to a school of magic you choose.",
   "higherLevels": "",

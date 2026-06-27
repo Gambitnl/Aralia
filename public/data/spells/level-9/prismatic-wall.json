@@ -219,6 +219,60 @@
           "effect": "Antimagic Field has no effect on the wall, and Dispel Magic can affect only the violet layer."
         }
       ],
+      "createdObjects": [
+        {
+          "objectType": "structure",
+          "name": "Prismatic Wall",
+          "count": 1,
+          "countUnit": "wall or globe",
+          "appearsIn": "point",
+          "shapeOptions": [
+            "vertical wall",
+            "globe"
+          ],
+          "materialOptions": [
+            "multicolored magical light"
+          ],
+          "wallLengthFeet": 90,
+          "wallHeightFeet": 30,
+          "wallThickness": 1,
+          "wallThicknessUnit": "inches",
+          "diameterFeet": 30,
+          "orientationOptions": [
+            "vertical",
+            "caster_choice"
+          ],
+          "blocksPhysicalPassage": true,
+          "blocksLineOfSight": true,
+          "blocksSpellEffects": true,
+          "blocksEnergyEffects": true,
+          "objectArmorClass": 10,
+          "immuneToAntimagicField": true,
+          "dispelMagicAffectsOnlyLayer": "violet",
+          "failsIfPlacedInOccupiedSpace": true,
+          "safePassageAllowedFor": [
+            "caster",
+            "creatures designated when cast"
+          ],
+          "proximityTriggerRadiusFeet": 20,
+          "layerCount": 7,
+          "layerOrder": [
+            "red",
+            "orange",
+            "yellow",
+            "green",
+            "blue",
+            "indigo",
+            "violet"
+          ],
+          "layersDestroyedInOrder": true,
+          "destroyedLayersRemainGone": true,
+          "requiresLayerEffectTable": true,
+          "expiresWithSpell": true,
+          "shelfLife": "10 minutes",
+          "notes": "The wall sheds Bright Light within 100 feet and Dim Light for another 100 feet through the utility light payload. Layer-specific saves and destruction methods remain table-driven."
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,

@@ -430,6 +430,27 @@ export class SpellCommandFactory {
       }
     }
 
+    if (isUtilityEffect(effect) && effect.createdObjects?.length) {
+      // Creation spells can scale resources rather than dice. Scale those
+      // explicit created-object fields before UtilityCommand emits inventory so
+      // upcast water/food supplies reach the same runtime path as base casts.
+      return {
+        ...effect,
+        createdObjects: effect.createdObjects.map(createdObject => ({
+          ...createdObject,
+          count: createdObject.countScaling?.type === 'slot_level'
+            ? createdObject.count + (createdObject.countScaling.bonusPerLevel * levelsAbove)
+            : createdObject.count,
+          levels: createdObject.levelScaling?.type === 'slot_level'
+            ? (createdObject.levels ?? 0) + (createdObject.levelScaling.bonusPerLevel * levelsAbove)
+            : createdObject.levels,
+          inventoryQuantity: createdObject.inventoryQuantityScaling?.type === 'slot_level'
+            ? (createdObject.inventoryQuantity ?? createdObject.count) + (createdObject.inventoryQuantityScaling.bonusPerLevel * levelsAbove)
+            : createdObject.inventoryQuantity
+        }))
+      }
+    }
+
     return effect
   }
 

@@ -366,6 +366,45 @@
       },
       "utilityType": "creation",
       "description": "Create a straight wall of whirling magical blades up to 100 feet long, 20 feet high, and 5 feet thick, or a ringed wall up to 60 feet in diameter, 20 feet high, and 5 feet thick. The wall provides Three-Quarters Cover.",
+      "createdObjects": [
+        {
+          "objectType": "hazard",
+          "name": "Blade Barrier",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "shapeOptions": [
+            "straight_wall",
+            "ringed_wall"
+          ],
+          "wallLengthFeet": 100,
+          "wallHeightFeet": 20,
+          "wallThickness": 5,
+          "wallThicknessUnit": "feet",
+          "diameterFeet": 60,
+          "orientationOptions": [
+            "vertical",
+            "caster_choice"
+          ],
+          "freeFloating": false,
+          "blocksPhysicalPassage": false,
+          "blocksLineOfSight": false,
+          "providesCover": "three_quarters",
+          "spaceIsDifficultTerrain": true,
+          "hazardRadiusFeet": 0,
+          "lingeringHazardName": "Whirling Blades",
+          "lingeringHazardDamage": {
+            "dice": "6d10",
+            "type": "Force"
+          },
+          "lingeringHazardSaveType": "Dexterity",
+          "lingeringHazardSaveEffect": "half",
+          "lingeringHazardFrequency": "first_per_turn",
+          "expiresWithSpell": true,
+          "shelfLife": "10 minutes",
+          "notes": "A magical wall of whirling blades. It can be a straight wall up to 100 feet long or a ring up to 60 feet in diameter, is 20 feet high and 5 feet thick, provides three-quarters cover, makes its own space difficult terrain, and damages creatures that appear in, enter, or end their turn in the wall once per turn."
+        }
+      ],
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

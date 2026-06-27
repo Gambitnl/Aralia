@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/06/2026, 17:58:58
+ * Last Sync: 26/06/2026, 19:28:02
  * Dependents: utils/character/index.ts, utils/combat/combatUtils.ts
  * Imports: 4 files
  *
@@ -27,7 +27,7 @@
  * work in the BattleMap without writing manual code for every single spell.
  */
 import { Spell, AbilityScoreName, PlayerCharacter } from '../../types';
-import { Ability, AbilityCost, AbilityEffect, AreaOfEffect, TargetingType, ActionCostType } from '../../types/combat';
+import { Ability, AbilityCost, AbilityEffect, AbilityGrantedAction, AreaOfEffect, TargetingType, ActionCostType } from '../../types/combat';
 import { getAbilityModifierValue, getRacialSpellGrantForSpell, resolveRacialSpellCastingAbility } from './characterUtils';
 import { logger } from '../core/logger';
 
@@ -47,6 +47,46 @@ import { logger } from '../core/logger';
  * @returns 'area' for shapes, 'self' for buffs, or 'single_ally'/'single_enemy' otherwise.
  */
 const inferTargeting = (spell: Spell): TargetingType => {
+    // Prefer the structured spell-targeting contract when it exists. This keeps
+    // the battle-map ability picker aligned with the JSON data agents are
+    // wiring, instead of letting older description/tag guesses override explicit
+    // target rules.
+    if (spell.targeting?.type) {
+        const validTargets = Array.isArray(spell.targeting.validTargets)
+            ? spell.targeting.validTargets.map(target => String(target).toLowerCase())
+            : [];
+
+        // Self and area/point spells have dedicated combat targeting surfaces.
+        // Point spells use the area picker because the current combat Ability
+        // contract has no separate "choose ground point" enum yet.
+        if (spell.targeting.type === 'self' || validTargets.includes('self')) {
+            return 'self';
+        }
+
+        if (
+            spell.targeting.type === 'area' ||
+            spell.targeting.type === 'point' ||
+            spell.targeting.type === 'hybrid'
+        ) {
+            return 'area';
+        }
+
+        // Single and multi-target spells still need the same broad ally/enemy
+        // category the existing combat UI understands. Richer counts and target
+        // allocation stay available on `ability.spell` for later UI stages.
+        if (validTargets.includes('allies')) {
+            return 'single_ally';
+        }
+
+        if (validTargets.includes('enemies')) {
+            return 'single_enemy';
+        }
+
+        if (validTargets.includes('creatures') || validTargets.includes('objects')) {
+            return 'single_any';
+        }
+    }
+
     if (!spell.description) {
          return 'single_enemy'; // Default fallback
     }
@@ -221,6 +261,20 @@ const inferEffectsFromDescription = (description: string, modifier: number): Abi
     }
 
     return effects;
+};
+
+const extractGrantedActions = (spell: Spell): AbilityGrantedAction[] => {
+    // Granted actions are post-cast player buttons, not immediate damage or
+    // healing effects. Preserve them on the combat ability so later UI/runtime
+    // surfaces can expose them without re-walking every raw spell effect.
+    if (!Array.isArray(spell.effects)) {
+        return [];
+    }
+
+    return spell.effects.flatMap(effect => {
+        const grantedActions = (effect as { grantedActions?: AbilityGrantedAction[] }).grantedActions;
+        return Array.isArray(grantedActions) ? grantedActions : [];
+    });
 };
 
 /**
@@ -414,6 +468,8 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
             effects = inferEffectsFromDescription(desc, modifier);
         }
 
+        const grantedActions = extractGrantedActions(spell);
+
         const ability: Ability & { modeChoice?: Spell['modeChoice']; spell?: Spell } = {
             id: spell.id || 'unknown-spell-id',
             name: spell.name || 'Unknown Spell',
@@ -425,6 +481,7 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
             targeting: inferTargeting(spell),
             areaOfEffect: inferAoE(spell),
             effects: effects,
+            grantedActions,
             // Keep the original structured spell on the preview ability so
             // execution can still reach rich metadata that is not represented
             // by the lightweight AbilityEffect list.

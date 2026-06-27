@@ -12,6 +12,8 @@ import { GameState } from '../../../types';
 import { createMockCombatCharacter } from '../../../utils/factories';
 import { AbilityCommandFactory, WeaponAttackCommand } from '../AbilityCommandFactory';
 import { combatEvents } from '../../../systems/events/CombatEvents';
+import { DismissFamiliarToPocketCommand, RecallFamiliarFromPocketCommand } from '../../effects/FamiliarPocketCommands';
+import { CommandedSummonCommand } from '../../effects/CommandedSummonCommand';
 
 // ============================================================================
 // Ability Translation
@@ -84,6 +86,120 @@ describe('AbilityCommandFactory', () => {
 
     expect(commands).toHaveLength(1);
     expect(commands[0].metadata.effectType).toBe('HEALING');
+  });
+
+  it('uses the source spell id when creating familiar pocket commands', () => {
+    const actor = createMockCombatCharacter({ id: 'actor', name: 'Actor' });
+    const dismissFamiliar: Ability = {
+      id: 'familiar_dismiss_find-familiar',
+      sourceSpellId: 'find-familiar',
+      name: 'Dismiss Familiar',
+      description: 'Dismiss the familiar created by Find Familiar.',
+      type: 'utility',
+      cost: { type: 'action' },
+      targeting: 'self',
+      range: 0,
+      effects: [{ type: 'familiar_pocket', familiarPocketAction: 'dismiss' }]
+    };
+    const recallFamiliar: Ability = {
+      ...dismissFamiliar,
+      id: 'familiar_recall_find-familiar',
+      name: 'Recall Familiar',
+      effects: [{ type: 'familiar_pocket', familiarPocketAction: 'recall' }]
+    };
+
+    const dismissCommands = AbilityCommandFactory.createCommands(dismissFamiliar, actor, [actor], {} as any);
+    const recallCommands = AbilityCommandFactory.createCommands(recallFamiliar, actor, [actor], {} as any);
+
+    // The familiar pocket commands compare their context spell id against
+    // summonMetadata.spellId. The generated ability button has a different id,
+    // so the factory must preserve the source spell id or the runtime button
+    // cannot find its own familiar.
+    expect(dismissCommands[0]).toBeInstanceOf(DismissFamiliarToPocketCommand);
+    expect(dismissCommands[0].metadata.spellId).toBe('find-familiar');
+    expect(recallCommands[0]).toBeInstanceOf(RecallFamiliarFromPocketCommand);
+    expect(recallCommands[0].metadata.spellId).toBe('find-familiar');
+  });
+
+  it('places commanded-summon gates before summon attack commands', () => {
+    const summon = createMockCombatCharacter({
+      id: 'summon-beast',
+      name: 'Bestial Spirit',
+      isSummon: true,
+      summonMetadata: {
+        casterId: 'druid',
+        spellId: 'summon-beast',
+        sourceName: 'Summon Beast',
+        commandCost: 'bonus_action',
+        commandsPerTurn: 1,
+        commandsUsedThisTurn: 0,
+        dismissable: false
+      }
+    });
+    const target = createMockCombatCharacter({ id: 'target', name: 'Target' });
+    const rend: Ability = {
+      id: 'summon_beast_rend',
+      sourceSpellId: 'summon-beast',
+      name: 'Rend',
+      description: 'The spirit attacks after being commanded.',
+      type: 'attack',
+      cost: { type: 'bonus' },
+      targeting: 'single_enemy',
+      range: 1,
+      effects: [
+        { type: 'commanded_summon', commandedSummonAction: 'issue_command', summonCommandDescription: 'The spirit attacks after being commanded.' },
+        { type: 'damage', dice: '1d8', damageType: 'physical' }
+      ]
+    };
+
+    // Summon attacks are still attacks, but they must first spend the
+    // spell-authored command budget. This protects Summon Beast / Conjure Fey
+    // style actions from bypassing the controlled-entity cadence.
+    const commands = AbilityCommandFactory.createCommands(rend, summon, [target], {} as any);
+
+    expect(commands).toHaveLength(2);
+    expect(commands[0]).toBeInstanceOf(CommandedSummonCommand);
+    expect(commands[1]).toBeInstanceOf(WeaponAttackCommand);
+  });
+
+  it('blocks summon attack commands after the command budget is spent', () => {
+    const summon = createMockCombatCharacter({
+      id: 'summon-beast',
+      name: 'Bestial Spirit',
+      isSummon: true,
+      summonMetadata: {
+        casterId: 'druid',
+        spellId: 'summon-beast',
+        sourceName: 'Summon Beast',
+        commandCost: 'bonus_action',
+        commandsPerTurn: 1,
+        commandsUsedThisTurn: 1,
+        dismissable: false
+      }
+    });
+    const target = createMockCombatCharacter({ id: 'target', name: 'Target' });
+    const rend: Ability = {
+      id: 'summon_beast_rend',
+      sourceSpellId: 'summon-beast',
+      name: 'Rend',
+      description: 'The spirit attacks after being commanded.',
+      type: 'attack',
+      cost: { type: 'bonus' },
+      targeting: 'single_enemy',
+      range: 1,
+      effects: [
+        { type: 'commanded_summon', commandedSummonAction: 'issue_command', summonCommandDescription: 'The spirit attacks after being commanded.' },
+        { type: 'damage', dice: '1d8', damageType: 'physical' }
+      ]
+    };
+
+    // Once the summon has spent its allowed command, only the command gate is
+    // returned. The gate logs the rejection; damage/attack commands are not
+    // created, so over-budget summon actions cannot leak their later effects.
+    const commands = AbilityCommandFactory.createCommands(rend, summon, [target], {} as any);
+
+    expect(commands).toHaveLength(1);
+    expect(commands[0]).toBeInstanceOf(CommandedSummonCommand);
   });
 });
 

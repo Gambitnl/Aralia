@@ -16,7 +16,7 @@ import {
 import type { LocalArtifact, RegionArtifact } from '../../artifacts';
 import { rootSeedPath } from '../../seedPath';
 import type { GroundWorld } from '../groundChunkLoader';
-import { makeGroundWorld, sampleGroundChunk, extractLocalTerrainPatch, groundSurfaceY } from '../groundChunkLoader';
+import { makeGroundWorld, sampleGroundChunk, extractLocalTerrainPatch, groundSurfaceY, canonicalArtifactTownForSite } from '../groundChunkLoader';
 import { groundTownAgentsAt } from '../groundAgentMotion';
 import { GROUND_METERS_PER_CELL, localArtifactToWorldData } from '../groundWorldAdapter';
 
@@ -44,6 +44,7 @@ function makeGroundWorldFixture(overrides: Partial<GroundWorld> = {}): GroundWor
     hiddenSites: [],
     rivers: [],
     roads: [],
+    walls: [],
     towns: [],
     buildings: [],
     rosters: [],
@@ -465,6 +466,45 @@ describe('makeGroundWorld building terrain pads', () => {
     const occupant = ground.occupants.find((o) => o.occupantId === worker!.id);
     expect(occupant).toBeDefined();
     expect(occupant?.name).toBe('Olaf the Keeper');
+  });
+
+  it('binds businesses registered against canonicalArtifactTownForSite plot IDs (no rect-generator drift)', () => {
+    // World3DWrapper pre-registers a business per market/workshop plot, keyed by
+    // `biz_burg_<id>_plot_<plotId>`, and the renderer (makeGroundWorld) looks
+    // businesses up by the SAME key. Both must derive plots from ONE generator —
+    // the earlier bug registered against the retired rect generator while the
+    // renderer used the canonical one, so the IDs never matched and shops stayed
+    // unbound. This pins that both sides share `canonicalArtifactTownForSite`.
+    const local = makeLocalArtifact();
+    const region = makeRegionArtifact();
+    const site = region.townSites[0];
+    const burgId = site.burgId;
+
+    // Registration source: the SHARED helper World3DWrapper now calls.
+    const { plan } = canonicalArtifactTownForSite(42, site);
+    const shopPlots = plan.plots.filter((p) => p.role === 'market' || p.role === 'workshop');
+    expect(shopPlots.length).toBeGreaterThan(0);
+
+    const worldBusinesses: Record<string, any> = {};
+    for (const p of shopPlots) {
+      const bizId = `biz_burg_${burgId}_plot_${p.id}`;
+      worldBusinesses[bizId] = { id: bizId, name: `Shop ${p.id}`, ownerId: `npc_${p.id}` };
+    }
+
+    // Render source: makeGroundWorld derives its plots from the same helper and
+    // looks each business up by plot id.
+    const ground = makeGroundWorld(local, 42, region, { hour: 12, worldBusinesses });
+
+    // Every shop building that the renderer kept must carry its registered name —
+    // i.e. the registration IDs and the rendered plot IDs are the same space.
+    let bound = 0;
+    for (const p of shopPlots) {
+      const building = ground.buildings.find((b) => b.id === `wf-plot-${burgId}-${p.id}`);
+      if (!building) continue; // culled (covers no ground tile) — not a binding failure
+      expect(building.name).toBe(`Shop ${p.id}`);
+      bound++;
+    }
+    expect(bound).toBeGreaterThan(0);
   });
 });
 

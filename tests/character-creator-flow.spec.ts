@@ -24,6 +24,8 @@ type AraliaStateProbe = {
     phase?: string;
     partySize?: number;
     partyNames?: string[];
+    startTownName?: string | null;
+    startTownRegion?: string | null;
     error?: string | null;
     isLoading?: boolean;
 };
@@ -50,21 +52,24 @@ const clearBrowserRunStateAfterFirstLoad = async (page: Page) => {
     await page.reload({ waitUntil: 'networkidle' });
 };
 
-const waitForCompletedGameplayState = async (page: Page) => {
+const waitForCompletedGameplayState = async (page: Page, selectedTownName: string) => {
     // Wait for App.tsx's read-only audit probe to report the game phase and
-    // party roster created by the final Character Creator submit.
+    // party roster created by the final Character Creator submit. The selected
+    // starting town must also survive into game state so the handoff proves the
+    // player started from the village they chose, not a default fallback.
     const stateHandle = await page.waitForFunction(
-        (characterName) => {
+        ({ characterName, selectedTownName }) => {
             const state = (window as Window & { __araliaState?: AraliaStateProbe }).__araliaState;
             const hasCreatedCharacter = state?.partyNames?.includes(characterName) ?? false;
+            const hasSelectedStartTown = state?.startTownName === selectedTownName;
 
-            if (state?.phase === 'PLAYING' && state.partySize === 1 && hasCreatedCharacter && !state.isLoading && !state.error) {
+            if (state?.phase === 'PLAYING' && state.partySize === 1 && hasCreatedCharacter && hasSelectedStartTown && !state.isLoading && !state.error) {
                 return state;
             }
 
             return null;
         },
-        TEST_CHARACTER_NAME,
+        { characterName: TEST_CHARACTER_NAME, selectedTownName },
         { timeout: 15000 },
     );
 
@@ -75,14 +80,16 @@ const waitForCompletedGameplayState = async (page: Page) => {
     expect(finalState).toMatchObject({
         phase: 'PLAYING',
         partySize: 1,
+        startTownName: selectedTownName,
         error: null,
         isLoading: false,
     });
     expect(finalState.partyNames).toContain(TEST_CHARACTER_NAME);
+    expect(finalState.startTownRegion).toEqual(expect.any(String));
 };
 
 test.describe('Character Creator Visual E2E', () => {
-    test.setTimeout(90000); // Give the full visible E2E flow enough room to finish.
+    test.setTimeout(180000); // The headed proof path performs real selections across the full wizard.
     test.beforeEach(async ({ page }) => {
         await clearBrowserRunStateBeforeAppBoot(page);
 
@@ -362,16 +369,36 @@ test.describe('Character Creator Visual E2E', () => {
         await expect(createButton).toBeVisible({ timeout: 3000 });
         await createButton.click();
 
+        // Character creation now hands off through the starting-town chooser
+        // before live exploration appears. Prove the named character reached
+        // that post-creator gate, then accept the selected town to enter play.
+        await expect(page.getByRole('heading', { name: /Choose your starting town/i })).toBeVisible({ timeout: 15000 });
+        await expect(page.getByText(new RegExp(`Where will ${TEST_CHARACTER_NAME}'s journey begin\\?`))).toBeVisible();
+        const beginInTownButton = page.getByRole('button', { name: /^Begin in /i }).first();
+        await expect(beginInTownButton).toBeEnabled({ timeout: 5000 });
+        // The button includes a decorative arrow after the town name; remove it
+        // before comparing against the plain settlement name stored in game state.
+        const selectedTownName = (await beginInTownButton.innerText())
+            .replace(/^Begin in\s+/i, '')
+            .replace(/\s*(?:→|â†’)\s*$/i, '')
+            .trim();
+        expect(selectedTownName.length).toBeGreaterThan(0);
+        await beginInTownButton.click();
+
         // The final submit must leave the creator and render the live
         // exploration UI. This visible check catches regressions where the
         // reducer state changes but the player never sees the adventure screen.
         await expect(page.getByTestId('game-layout')).toBeVisible({ timeout: 15000 });
         await expect(page.getByTestId('action-pane')).toBeVisible();
         await expect(page.getByTestId('world-pane')).toBeVisible();
-        await waitForCompletedGameplayState(page);
+        await waitForCompletedGameplayState(page, selectedTownName);
 
         // Final screenshot - should be in the game now
         await page.screenshot({ path: 'test-results/screenshots/18-character-complete.png', fullPage: true });
+        await page.screenshot({
+            path: '.agent/scratch/proof/character-creator/flow-assertions/after/human-fighter-verified-final-game-state.png',
+            fullPage: true,
+        });
     });
 
     test('Changeling Wizard creation flow (race with sub-selection)', async ({ page }) => {

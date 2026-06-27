@@ -76,3 +76,5 @@ It also suggested clarifying:
 - whether the user wanted a full redesign or a polish pass
 - which aesthetic direction they wanted
 - whether the target was desktop or mobile
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/Prompts/Google Stitch Prompting.md","sha256WithoutMarker":"21e58832adae4562ec47132ef8e234b893ad15eecae1c091088b839dca755e26","markedAtUtc":"2026-06-26T00:07:34.884Z"} -->

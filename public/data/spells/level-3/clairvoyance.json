@@ -179,8 +179,42 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose whether the sensor starts with seeing or hearing; the caster can switch between those senses later as a Bonus Action.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast_or_later_bonus_action",
+    "optionCount": 2,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Seeing",
+        "summary": "Use sight through the invisible sensor as if standing in its space.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "10 minutes with concentration",
+        "notes": "The caster can switch from seeing to hearing with a Bonus Action while the spell persists."
+      },
+      {
+        "label": "Hearing",
+        "summary": "Use hearing through the invisible sensor as if standing in its space.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "10 minutes with concentration",
+        "notes": "The caster can switch from hearing to seeing with a Bonus Action while the spell persists."
+      }
+    ],
+    "notes": "The mode choice controls which sense is active through the sensor; the sensor placement remains ordinary point targeting."
   },
   "description": "You create an Invisible sensor within range in a location familiar to you (a place you have visited or seen before) or in an obvious location that is unfamiliar to you (such as behind a door, around a corner, or in a grove of trees). The intangible, invulnerable sensor remains in place for the duration. When you cast the spell, choose seeing or hearing. You can use the chosen sense through the sensor as if you were in its space. As a Bonus Action, you can switch between seeing and hearing. A creature that sees the sensor (such as a creature benefiting from See Invisibility or Truesight) sees a luminous orb about the size of your fist.",
   "higherLevels": "",

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 25/06/2026, 01:10:56
+ * Last Sync: 27/06/2026, 01:55:23
  * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/ConversationPanel/ConversationPanel.tsx, components/gameEntry/OpeningSituationGate.tsx, components/layout/GameModals.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleMovement.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDialogueSystem.ts, hooks/useGameActions.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useOllamaCheck.ts, hooks/useOllamaLogBridge.ts, hooks/useOpeningSituation.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/gameEntryReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, types/index.ts, utils/context/entityIntegrationUtils.ts
  * Imports: None
  *
@@ -30,6 +30,7 @@
  * @file src/state/actionTypes.ts
  */
 import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices, PlayerWorldPosition, PlayerGroundPosition, DiscoveredHiddenSite, WorldViewMode, MapSurface, WorldHistory } from '../types/index.js';
+import type { Puzzle } from '../systems/puzzles/types.js';
 import { RitualState } from '../types/rituals.js';
 // TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
@@ -137,6 +138,7 @@ export type AppAction =
   | { type: 'ADD_GENERATED_CHARACTER'; payload: PlayerCharacter }
   // Resource Management Actions
   | { type: 'ADD_ITEM'; payload: { itemId: string; count?: number } }
+  | { type: 'ADD_SPELL_CREATED_ITEMS'; payload: { items: Item[] } }
   | { type: 'REMOVE_ITEM'; payload: { itemId: string; count?: number } }
   | { type: 'MODIFY_GOLD'; payload: { amount: number } }
   | { type: 'GRANT_EXPERIENCE'; payload: { amount: number } }
@@ -284,6 +286,7 @@ export type AppAction =
   | { type: 'NAVAL_RECRUIT_CREW'; payload: { role: CrewRole } }
   | { type: 'NAVAL_REPAIR_SHIP'; payload: { amount: number; cost: number } }
   | { type: 'NAVAL_SET_ACTIVE_SHIP'; payload: { shipId: string } }
+  | { type: 'NAVAL_SET_KNOWN_PORTS'; payload: { ports: string[] } }
   | { type: 'TOGGLE_NAVAL_DASHBOARD' }
   | { type: 'TOGGLE_TRADE_ROUTE_DASHBOARD' }
   | { type: 'TOGGLE_INVESTMENT_BOARD' }
@@ -338,6 +341,9 @@ export type AppAction =
   | { type: 'TOGGLE_LOCKPICKING_MODAL' }
   | { type: 'OPEN_LOCKPICKING_MODAL'; payload: import('../systems/puzzles/types.js').Lock }
   | { type: 'CLOSE_LOCKPICKING_MODAL' }
+  // Puzzle Runtime Modal Actions
+  | { type: 'OPEN_PUZZLE_RUNTIME'; payload: Puzzle }
+  | { type: 'CLOSE_PUZZLE_RUNTIME' }
   // Dice Roller Actions
   | { type: 'TOGGLE_DICE_ROLLER' }
   | { type: 'SET_VISUAL_DICE_ENABLED'; payload: boolean }

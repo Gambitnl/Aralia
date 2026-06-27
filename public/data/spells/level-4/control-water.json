@@ -149,6 +149,91 @@
       },
       "grantedActions": [],
       "attackAugments": [],
+      "createdObjects": [
+        {
+          "objectType": "water",
+          "name": "Controlled Flood Water",
+          "count": 1,
+          "countUnit": "not_applicable",
+          "appearsIn": "spell_area",
+          "affectedVolumeShape": "Cube",
+          "affectedVolumeSizeFeet": 100,
+          "manipulationOptions": [
+            "flood",
+            "raise_water_level",
+            "create_traveling_wave"
+          ],
+          "waterLevelChangeFeet": 20,
+          "waveHeightFeet": 20,
+          "maxAffectedVehicleSize": "Huge",
+          "vehicleCapsizeChancePercent": 25,
+          "repeatsOnCasterTurn": true,
+          "expiresWithSpell": true,
+          "shelfLife": "10 minutes concentration or until another Control Water option is chosen",
+          "notes": "Flood raises standing water by up to 20 feet. In a large body of water it creates a 20-foot-tall wave that travels across the area, carries Huge-or-smaller vehicles, gives struck Huge-or-smaller vehicles a 25 percent capsize chance, and repeats at the start of the caster's next turn while Flood remains active."
+        },
+        {
+          "objectType": "water",
+          "name": "Parted Water Trench",
+          "count": 1,
+          "countUnit": "not_applicable",
+          "appearsIn": "spell_area",
+          "affectedVolumeShape": "Cube",
+          "affectedVolumeSizeFeet": 100,
+          "manipulationOptions": [
+            "part_water",
+            "create_trench",
+            "create_water_walls"
+          ],
+          "wallLengthFeet": 100,
+          "blocksPhysicalPassage": false,
+          "expiresWithSpell": true,
+          "shelfLife": "10 minutes concentration or until another Control Water option is chosen",
+          "notes": "Part Water creates a trench through the spell area and leaves separated water as walls to either side. When the mode ends, water slowly fills the trench over the next round."
+        },
+        {
+          "objectType": "water",
+          "name": "Redirected Flow",
+          "count": 1,
+          "countUnit": "not_applicable",
+          "appearsIn": "spell_area",
+          "affectedVolumeShape": "Cube",
+          "affectedVolumeSizeFeet": 100,
+          "manipulationOptions": [
+            "redirect_flow",
+            "flow_over_obstacles",
+            "flow_up_walls"
+          ],
+          "expiresWithSpell": true,
+          "shelfLife": "10 minutes concentration or until another Control Water option is chosen",
+          "notes": "Redirect Flow makes flowing water inside the spell area move in a caster-chosen direction, including over obstacles or up walls. Water resumes terrain-based flow after leaving the spell area."
+        },
+        {
+          "objectType": "hazard",
+          "name": "Control Water Whirlpool",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "affectedVolumeShape": "Cube",
+          "affectedVolumeSizeFeet": 100,
+          "diameterFeet": 50,
+          "depthFeet": 25,
+          "hazardRadiusFeet": 25,
+          "pullDistanceFeet": 10,
+          "hazardTriggers": [
+            "enter",
+            "end_turn_inside"
+          ],
+          "burnDamage": {
+            "dice": "2d8",
+            "type": "Bludgeoning"
+          },
+          "escapeCheck": "Strength (Athletics) against spell save DC",
+          "expiresWithSpell": true,
+          "shelfLife": "10 minutes concentration or until another Control Water option is chosen",
+          "notes": "Whirlpool requires water at least 50 feet square and 25 feet deep. It forms in the center of the area, is 5 feet wide at the base, up to 50 feet wide at the top, and 25 feet tall. Creatures in water within 25 feet are pulled 10 feet toward it; entering or ending a turn there calls for a Strength save against 2d8 Bludgeoning damage, and swimming away requires an action plus a Strength (Athletics) check against the spell save DC."
+        }
+      ],
       "controlOptions": [],
       "taunt": {
         "disadvantageAgainstOthers": false,

@@ -63,6 +63,8 @@ export interface Ship {
   modifications: ShipModification[];
   weapons: ShipWeapon[];
   flags: Record<string, boolean>; // e.g., { 'isPirate': true }
+  /** FMG burg id of the port where this ship is currently docked (its embarkation point); undefined if never docked. */
+  dockedPortBurgId?: number;
 }
 
 export type ModifierOperation = 'add' | 'multiply';

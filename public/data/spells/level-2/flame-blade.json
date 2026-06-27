@@ -213,7 +213,52 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "grantedActions": [],
+      "createdObjects": [
+        {
+          "objectType": "weapon",
+          "name": "Fiery Blade",
+          "count": 1,
+          "countUnit": "item",
+          "appearsIn": "caster_hand",
+          "expiresWithSpell": true,
+          "notes": "A scimitar-shaped flame appears in the caster's free hand, disappears if released, and can be re-evoked as a Bonus Action while the spell lasts."
+        }
+      ],
+      "grantedActions": [
+        {
+          "type": "action",
+          "action": "Attack with Fiery Blade",
+          "frequency": "each_turn",
+          "actor": "caster",
+          "actionKind": "magic_action",
+          "effectIndices": [
+            0
+          ],
+          "prerequisites": [
+            "target_within_spell_range"
+          ],
+          "rangeLimit": 5,
+          "attackType": "melee_spell_attack",
+          "damage": {
+            "dice": "3d6",
+            "type": "Fire"
+          },
+          "damageAbilityModifier": "spellcasting_ability",
+          "notes": "As a Magic action, make a melee spell attack with the fiery blade; on a hit, deal 3d6 Fire damage plus the caster's spellcasting ability modifier."
+        },
+        {
+          "type": "bonus_action",
+          "action": "Re-evoke Fiery Blade",
+          "frequency": "while_active",
+          "actor": "caster",
+          "actionKind": "bonus_action",
+          "prerequisites": [
+            "not_applicable"
+          ],
+          "attackType": "not_applicable",
+          "notes": "If the caster lets go of the blade, it disappears; while the spell lasts, the caster can evoke it again as a Bonus Action."
+        }
+      ],
       "attackAugments": [],
       "controlOptions": [],
       "taunt": {

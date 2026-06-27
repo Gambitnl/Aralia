@@ -134,7 +134,7 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
+      "utilityType": "creation",
       "description": "Create 45 pounds of bland nourishing food and 30 gallons of clean fresh water on the ground or in containers within 30 feet; the supplies sustain up to fifteen Humanoids or five steeds for 24 hours, the food spoils if uneaten after 24 hours, and the water does not spoil.",
       "scaling": {
         "type": "slot_level",
@@ -143,6 +143,34 @@
       },
       "grantedActions": [],
       "attackAugments": [],
+      "createdObjects": [
+        {
+          "objectType": "food",
+          "name": "Created Rations",
+          "count": 45,
+          "countUnit": "pound",
+          "appearsIn": "ground",
+          "consumeAction": "not_applicable",
+          "nourishmentDaysPerItem": 1,
+          "inventoryItemId": "rations",
+          "inventoryQuantity": 15,
+          "perishable": true,
+          "shelfLife": "24 hours",
+          "notes": "Bland nourishing food equal to fifteen one-day ration supplies; it spoils after 24 hours if uneaten."
+        },
+        {
+          "objectType": "water",
+          "name": "Created Water",
+          "count": 30,
+          "countUnit": "gallon",
+          "appearsIn": "ground",
+          "consumeAction": "not_applicable",
+          "inventoryItemId": "water-day",
+          "inventoryQuantity": 15,
+          "perishable": false,
+          "notes": "Clean fresh water equal to fifteen one-day water supplies; unlike the food, the water does not spoil."
+        }
+      ],
       "controlOptions": [],
       "taunt": {
         "disadvantageAgainstOthers": false,

@@ -427,6 +427,16 @@ export interface DamageEffect extends BaseEffect {
 export interface DamageData {
     dice: string;
     type: DamageType;
+    disintegration?: {
+        creatureAtZeroHp: boolean;
+        includesNonmagicalWornAndCarried: boolean;
+        revivalOnlyBy: string[];
+        automaticTargetTypes: string[];
+        maxAutomaticTargetSize: string;
+        hugeOrLargerPortionCubeFeet: number;
+        residueName: string;
+        residueDescription: string;
+    };
 }
 /** An effect that restores hit points. */
 export interface HealingEffect extends BaseEffect {
@@ -514,13 +524,23 @@ export interface SummoningEffect extends BaseEffect {
 /** Structured terrain manipulation for spells like Mold Earth */
 export interface TerrainManipulation {
     /** Type of manipulation: excavate/fill dirt, toggle difficult terrain, or cosmetic changes */
-    type: "excavate" | "fill" | "difficult" | "normal" | "cosmetic";
+    type: "excavate" | "fill" | "difficult" | "normal" | "cosmetic" | "reshape";
     /** Volume of terrain affected */
     volume?: {
-        shape: "Cube";
+        shape: "Cube" | "Square";
         size: number;
         depth?: number;
     };
+    materialOptions?: string[];
+    excludedMaterials?: string[];
+    formOptions?: ("elevation" | "trench" | "wall" | "pillar" | "not_applicable")[];
+    maxChangeFeet?: number;
+    completionTimeMinutes?: number;
+    canChooseNewAreaAfterCompletion?: boolean;
+    slowTransformationPreventsTrappingOrInjury?: boolean;
+    rocksAndStructuresShift?: boolean;
+    unstableStructuresMayCollapse?: boolean;
+    carriesPlantsWithoutAffectingGrowth?: boolean;
     /** How long the manipulation lasts (for difficult/cosmetic) */
     duration?: EffectDuration;
     /** Distance excavated material can be deposited, in feet */
@@ -548,6 +568,8 @@ export interface UtilityEffect extends BaseEffect {
     description: string;
     grantedActions?: GrantedAction[];
     attackAugments?: AttackAugment[];
+    createdObjects?: CreatedObject[];
+    objectAccessChange?: ObjectAccessChange;
     controlOptions?: ControlOption[];
     taunt?: TauntEffect;
     /** Structured light source configuration for utilityType: "light" */
@@ -559,6 +581,272 @@ export interface UtilityEffect extends BaseEffect {
     };
     /** Structured save penalty for debuff effects like Mind Sliver */
     savePenalty?: SavePenalty;
+}
+/** Machine-readable changes to doors, chests, locks, bars, seals, and similar access-blocking objects. */
+export interface ObjectAccessChange {
+    eligibleObjectTypes: string[];
+    mundaneStateChanges: ("unlock" | "unstick" | "unbar")[];
+    maxLocksAffected: number;
+    suppressesMagicalClosure?: string;
+    suppressionDuration?: EffectDuration;
+    targetOperableDuringSuppression?: boolean;
+    soundEmission?: {
+        audibleRadius: number;
+        radiusUnit: "feet" | "miles";
+        source: "target_object" | "caster" | "point";
+        trigger: "on_cast" | "on_change";
+        description: string;
+    };
+}
+/** Machine-readable object stacks created by utility spells such as Goodberry. */
+export interface CreatedObject {
+    objectType: "food" | "water" | "ammunition" | "weapon" | "portal" | "structure" | "hazard" | "other";
+    name: string;
+    count: number;
+    countScaling?: {
+        type: "slot_level";
+        bonusPerLevel: number;
+    };
+    countUnit: "item" | "pound" | "gallon" | "cubic_foot" | "square_foot" | "structure" | "not_applicable";
+    appearsIn: "caster_hand" | "target_container" | "ground" | "unoccupied_space" | "spell_area" | "not_applicable";
+    shapeOptions?: string[];
+    materialOptions?: string[];
+    nonlivingObjectOnly?: boolean;
+    requiresSeenFormAndMaterial?: boolean;
+    materialSource?: string;
+    maxCreatedObjectCubeFeet?: number;
+    maxCreatedObjectCubeScaling?: {
+        type: "slot_level";
+        bonusPerLevel: number;
+    };
+    durationByMaterial?: Record<string, string>;
+    mixedMaterialsUseShortestDuration?: boolean;
+    cannotServeAsMaterialComponent?: boolean;
+    requiresVisibleRawMaterials?: boolean;
+    consumesSourceMaterials?: boolean;
+    outputSameMaterialAsSource?: boolean;
+    maxFabricatedObjectCubeFeet?: number;
+    maxConnectedFiveFootCubes?: number;
+    maxMineralObjectCubeFeet?: number;
+    qualityLimitedByMaterials?: boolean;
+    cannotCreateCreatures?: boolean;
+    cannotCreateMagicItems?: boolean;
+    skilledGoodsRequireToolProficiency?: boolean;
+    maxStoneDimensionFeet?: number;
+    maxHinges?: number;
+    canIncludeLatch?: boolean;
+    canCreateFineMechanicalDetail?: boolean;
+    levels?: number;
+    levelScaling?: {
+        type: "slot_level";
+        bonusPerLevel: number;
+    };
+    levelHeightFeet?: number;
+    areaPerLevelSquareFeet?: number;
+    accessBetweenLevels?: boolean;
+    secureOpenings?: boolean;
+    furnished?: boolean;
+    weatherProtected?: boolean;
+    dedicationSource?: string;
+    appearanceChosenByCaster?: boolean;
+    interiorFeatures?: string[];
+    doorCount?: number;
+    doorControlledByCasterAndDesignates?: boolean;
+    windowsCasterChoice?: boolean;
+    illuminationOptions?: ("bright" | "dim" | "unlit" | "not_applicable")[];
+    ambientScent?: string;
+    ambientTemperature?: "mild" | "normal" | "not_applicable";
+    portalWidthFeet?: number;
+    portalHeightFeet?: number;
+    extradimensionalSpace?: boolean;
+    capacityCreatures?: number;
+    capacityCreatureMaxSize?: string;
+    blocksCrossBoundaryEffects?: boolean;
+    occupantsCanSeeOut?: boolean;
+    contentsDropOutOnEnd?: boolean;
+    safelyEjectsContentsOnEnd?: boolean;
+    preservesStructuralStability?: boolean;
+    requiresAnchoring?: boolean;
+    anchoringOptions?: string[];
+    collapsesIfUnsupported?: boolean;
+    collapseTiming?: string;
+    obscuresArea?: "lightly" | "heavily" | "not_applicable";
+    providesCover?: "half" | "three_quarters" | "total" | "not_applicable";
+    spaceIsDifficultTerrain?: boolean;
+    rangedWeaponAttacksThroughHaveDisadvantage?: boolean;
+    reducesPassingDamageType?: DamageType;
+    passingDamageMultiplier?: number;
+    canFreezeFromDamageType?: DamageType;
+    frozenSectionSizeFeet?: number;
+    frozenSectionArmorClass?: number;
+    frozenSectionHitPoints?: number;
+    destroyedFrozenSectionsDoNotRefill?: boolean;
+    wallLengthFeet?: number;
+    wallHeightFeet?: number;
+    wallThickness?: number;
+    wallThicknessUnit?: "feet" | "inches" | "not_applicable";
+    panelCount?: number;
+    panelWidthFeet?: number;
+    panelHeightFeet?: number;
+    panelContiguityRequired?: boolean;
+    orientationOptions?: ("horizontal" | "vertical" | "diagonal" | "angled" | "caster_choice" | "not_applicable")[];
+    freeFloating?: boolean;
+    blocksPhysicalPassage?: boolean;
+    blocksLineOfSight?: boolean;
+    blocksEtherealTravel?: boolean;
+    blocksSpellEffects?: boolean;
+    blocksEnergyEffects?: boolean;
+    breathableInside?: boolean;
+    immuneToDamage?: boolean;
+    objectArmorClass?: number;
+    hitPointsPerInchThickness?: number;
+    sectionHitPoints?: number;
+    damageImmunities?: DamageType[];
+    damageVulnerabilities?: DamageType[];
+    immuneToDispelMagic?: boolean;
+    immuneToAntimagicField?: boolean;
+    blocksDivinationSensorsInside?: boolean;
+    blocksDivinationTargetingInside?: boolean;
+    opposedCreatureTypeOptions?: string[];
+    opposedCreatureEntrySaveType?: SavingThrowAbility;
+    opposedCreatureEntryBlockedDurationHours?: number;
+    opposedCreaturePenaltyDice?: string;
+    healingBonusAbilityModifier?: "Wisdom" | "spellcasting_ability" | "not_applicable";
+    healingBonusMinimum?: number;
+    healingBonusTrigger?: string;
+    permanenceRequiresDailyCasts?: number;
+    permanenceSameLocationRequired?: boolean;
+    createdEntityKind?: "clone_body" | "inert_duplicate" | "suspended_body" | "astral_form" | "other";
+    growthDurationDays?: number;
+    maturesInVessel?: boolean;
+    vesselRequired?: boolean;
+    vesselMinimumValueGp?: number;
+    vesselMustRemainUndisturbed?: boolean;
+    inertUntilTrigger?: boolean;
+    activationTrigger?: string;
+    soulMustBeFreeAndWilling?: boolean;
+    soulTransferConsumesOriginalRevival?: boolean;
+    duplicateRetainsPersonalityMemoriesAbilities?: boolean;
+    duplicateHasOriginalEquipment?: boolean;
+    casterChoosesFinalAge?: boolean;
+    enduresIndefinitelyAfterMature?: boolean;
+    needsFoodOrAir?: boolean;
+    agesWhileSuspended?: boolean;
+    linkedToCounterpartForm?: boolean;
+    silverCordLink?: boolean;
+    silverCordVisibleDistanceFeet?: number;
+    silverCordCutEffect?: string;
+    damageSharedWithCounterpart?: boolean;
+    effectsSharedWithCounterpart?: boolean;
+    planarExitTransfersBodyAndPossessions?: boolean;
+    endsWhenBodyOrFormDropsToZeroHp?: boolean;
+    returnsToBodyOnEndIfAlive?: boolean;
+    permanentAfterFullDuration?: boolean;
+    nonDispellableWhenPermanent?: boolean;
+    destroyedBySpells?: string[];
+    pushesCreaturesToChosenSide?: boolean;
+    enclosureEscapeSaveType?: SavingThrowAbility;
+    enclosureEscapeUsesReaction?: boolean;
+    enclosureEscapeMoveDistance?: "speed" | "not_applicable";
+    leavesHazardOnSectionDestroyed?: boolean;
+    lingeringHazardName?: string;
+    lingeringHazardDamage?: DamageData;
+    lingeringHazardSaveType?: SavingThrowAbility;
+    lingeringHazardSaveEffect?: "none" | "half" | "negates_condition";
+    lingeringHazardFrequency?: "first_per_turn" | "every_time" | "once_per_creature";
+    diameterFeet?: number;
+    objectLengthFeet?: number;
+    moveDistanceFeet?: number;
+    attackReachFeet?: number;
+    attacksPerActivation?: number;
+    criticalHitThreshold?: number;
+    passesHarmlesslyThroughBarriers?: boolean;
+    canTargetLooseObjects?: boolean;
+    canTargetStructures?: boolean;
+    prisonModeOptions?: ("burial" | "chaining" | "hedged_prison" | "minimus_containment" | "slumber" | "not_applicable")[];
+    demiplaneFormOptions?: string[];
+    blocksTeleportation?: boolean;
+    blocksPlanarTravel?: boolean;
+    lightPassesThroughOnly?: boolean;
+    containedCreatureSizeInches?: number;
+    observableEndingTriggerRequired?: boolean;
+    endingTriggerExpectedWithinYears?: number;
+    dispelMagicMinimumSlotLevel?: number;
+    dispelMagicTargetOptions?: string[];
+    failsIfPlacedInOccupiedSpace?: boolean;
+    safePassageAllowedFor?: string[];
+    proximityTriggerRadiusFeet?: number;
+    layerCount?: number;
+    layerOrder?: string[];
+    layersDestroyedInOrder?: boolean;
+    destroyedLayersRemainGone?: boolean;
+    dispelMagicAffectsOnlyLayer?: string;
+    requiresLayerEffectTable?: boolean;
+    movableByOccupants?: boolean;
+    movableByExternalCreatures?: boolean;
+    occupantRollSpeedMultiplier?: number;
+    hoverMaxHeightFeet?: number;
+    safelyDescendsOverDrops?: boolean;
+    barrierHeightFeet?: number;
+    pitJumpWidthFeet?: number;
+    hazardRadiusFeet?: number;
+    hazardSide?: "caster_choice" | "all_sides" | "inside" | "outside" | "not_applicable";
+    hazardTriggers?: ("enter" | "end_turn_inside" | "end_turn_within_radius" | "first_per_turn")[];
+    affectedVolumeShape?: "Cube" | "Sphere" | "Line" | "Wall" | "not_applicable";
+    affectedVolumeSizeFeet?: number;
+    maxManipulationDistanceFeet?: number;
+    manipulationOptions?: string[];
+    waterLevelChangeFeet?: number;
+    vehicleCapsizeChancePercent?: number;
+    maxAffectedVehicleSize?: string;
+    repeatsOnCasterTurn?: boolean;
+    pullDistanceFeet?: number;
+    escapeCheck?: string;
+    canAnimateSimpleShapes?: boolean;
+    canChangeColorOrOpacity?: boolean;
+    canFreeze?: boolean;
+    freezeRequiresNoCreatures?: boolean;
+    waveLengthFeet?: number;
+    waveWidthFeet?: number;
+    waveHeightFeet?: number;
+    extinguishesUnprotectedFlamesRadiusFeet?: number;
+    vanishesAfterEffect?: boolean;
+    capacityMediumOrSmallerCreatures?: number;
+    capacityLargeCreatures?: number;
+    occupantsMoveWithObject?: boolean;
+    overflowEjectionRule?: "random_existing_occupant" | "newest_creature" | "not_applicable";
+    successfulSaveEjectsCreature?: boolean;
+    ejectionDistanceFeet?: number;
+    occupantsProneOnEnd?: boolean;
+    trapsCreaturesOnSurface?: boolean;
+    trappedCondition?: string;
+    ignitesTouchedObjects?: boolean;
+    depthFeet?: number;
+    flammable?: boolean;
+    burnUnitSizeFeet?: number;
+    burnDurationRounds?: number;
+    burnDamage?: DamageData;
+    orbitsCaster?: boolean;
+    expendable?: boolean;
+    maxExpendedPerAction?: number;
+    consumeAction?: "action" | "bonus_action" | "reaction" | "free" | "not_applicable";
+    healingPerItem?: number;
+    nourishmentDaysPerItem?: number;
+    harvestYieldMultiplier?: number;
+    harvestYieldRadiusFeet?: number;
+    harvestYieldDurationDays?: number;
+    harvestYieldAppliesTo?: "plants" | "food_plants" | "not_applicable";
+    harvestBenefitLimit?: string;
+    inventoryItemId?: string;
+    inventoryQuantity?: number;
+    inventoryQuantityScaling?: {
+        type: "slot_level";
+        bonusPerLevel: number;
+    };
+    perishable?: boolean;
+    expiresWithSpell?: boolean;
+    shelfLife?: string;
+    notes?: string;
 }
 /** Defines a penalty applied to future saving throws (e.g., Mind Sliver's -1d4). */
 export interface SavePenalty {
@@ -611,6 +899,13 @@ export interface GrantedAction {
     action: string;
     frequency: "once" | "each_turn" | "while_active";
     rangeLimit?: number;
+    attackType?: "ranged_spell_attack" | "melee_spell_attack" | "not_applicable";
+    damage?: DamageData;
+    saveType?: SavingThrowAbility;
+    saveEffect?: "none" | "half" | "negates_condition";
+    damageAbilityModifier?: "spellcasting_ability" | "not_applicable";
+    wallLengthReduction?: number;
+    endsWhenLengthZero?: boolean;
     notes?: string;
 }
 /** Adds structured rider effects to weapon attacks (e.g., extra radiant damage). */

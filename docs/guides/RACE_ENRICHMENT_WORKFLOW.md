@@ -55,3 +55,5 @@ Do not treat:
 - race image paths stored in only one lane
 
 as the active source of truth without checking the current sync scripts first.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/guides/RACE_ENRICHMENT_WORKFLOW.md","sha256WithoutMarker":"35f66dec2f21a4ed1c811cfb7f24d421718711cf7ab9143ee3f8b98383f6f8bd","markedAtUtc":"2026-06-26T00:05:10.885Z"} -->

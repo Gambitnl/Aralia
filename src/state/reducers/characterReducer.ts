@@ -87,6 +87,14 @@ const stampItemAcquiredAt = (item: Item, acquiredAt = Date.now()): Item => ({
     acquiredAt: item.acquiredAt ?? acquiredAt,
 });
 
+/**
+ * Items whose canonical id is preserved on ADD_ITEM (instead of a fresh unique
+ * id) so they stack and can be counted/removed by template id. Coins already
+ * relied on this; travel provisions (rations, water) need it for the
+ * provisioning math (daysOfFood) and ration spend (REMOVE_ITEM) to find them.
+ */
+const STABLE_STACKABLE_ITEM_IDS = new Set(['gold_piece', 'rations', 'water-day']);
+
 // ============================================================================
 // Main Reducer Logic
 // ============================================================================
@@ -133,7 +141,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             // Create independent item instances and stamp when they entered
             // inventory so perishable food can expire from durable item data.
             const acquiredAt = Date.now();
-            const newItems = Array.from({ length: count }, () => stampItemAcquiredAt({ ...item, id: item.id === 'gold_piece' ? item.id : generateId() }, acquiredAt));
+            const newItems = Array.from({ length: count }, () => stampItemAcquiredAt({ ...item, id: STABLE_STACKABLE_ITEM_IDS.has(item.id) ? item.id : generateId() }, acquiredAt));
 
             // For stackable items (like gold), we might want to just add them as is, but current inventory is a flat list.
             // If the item is generic (like gold_piece), we keep the ID. If it's a unique gear item, we give it a unique ID.
@@ -763,6 +771,15 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 };
             }
             return {};
+        }
+
+        case 'ADD_SPELL_CREATED_ITEMS': {
+            return {
+                inventory: [
+                    ...state.inventory,
+                    ...action.payload.items.map(item => stampItemAcquiredAt(item))
+                ]
+            };
         }
 
         case 'SELL_ITEM': {

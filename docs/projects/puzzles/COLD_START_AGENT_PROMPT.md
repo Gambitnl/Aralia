@@ -4,11 +4,11 @@ handoff_type: agent_to_agent
 project: Puzzles System
 slug: puzzles
 status: active
-last_updated: 2026-06-10
-iteration: 6
-source_agent: Schrodinger / gpt-5.4-mini high
+last_updated: 2026-06-27
+iteration: 7
+source_agent: Codex app lane / coordinator
 target_agent: next cold-start agent
-runtime_surface: MCP-subagent
+runtime_surface: Codex app thread
 certainty: certain
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
@@ -20,7 +20,7 @@ gaps: docs/projects/puzzles/GAPS.md
 # Puzzles System Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-27
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -39,7 +39,7 @@ docs/projects/puzzles/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Puzzles System
 Project folder: docs/projects/puzzles
-iteration: 6
+iteration: 7
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -54,6 +54,7 @@ Gaps: docs/projects/puzzles/GAPS.md
 | 3 | Codex / gpt-5.3-codex-spark high | MCP-subagent | certain | 2026-06-09 | Sub-agent final receipt |
 | 4 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-09 | Sub-agent final receipt |
 | 5 | Schrodinger / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-09 | Subagent completion notification `019eaa3b-2e4b-77e3-90a6-38842e8af280` |
+| 6 | Codex / GPT-5 | application agent | certain | 2026-06-27 | PZ-007 runtime surface implementation in local lane |
 
 ## Previous Agent Handoff
 
@@ -66,10 +67,10 @@ Iteration 2 completed `T2`: first production lockpicking dispatch from a real wo
 ## Current Mission
 
 Active task:
-`T3` is done. The remaining caller gap in `TRACKER.md`, currently `PZ-007` (`getPuzzleHint` runtime caller), is now review-required because no runtime `Puzzle` owner exists yet.
+`T4` / `PZ-007` is done. The active next task is `T5` / `PZ-003`: resolve key-based lock progression ownership and implement a deterministic key unlock path without widening into map integration.
 
 Acceptance criteria:
-Use `docs/projects/puzzles/TRACKER.md`, `NORTH_STAR.md`, and `GAPS.md` as your live queue, then either wire one gameplay caller to `getPuzzleHint` or keep the blocker documented with a Required Review Brief if ownership sits elsewhere.
+Use `docs/projects/puzzles/TRACKER.md`, `NORTH_STAR.md`, and `GAPS.md` as your live queue. For PZ-003, decide whether key matching is puzzle-system owned or inventory-system owned, then prove both pick and key paths with focused production-oriented tests.
 
 Key files to touch:
 - docs/projects/puzzles/NORTH_STAR.md
@@ -80,12 +81,15 @@ Key files to touch:
 - docs/projects/puzzles/RUNBOOK.md
 - docs/projects/PROJECT_CARD_SCHEMA.md
 - docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- src/systems/puzzles/puzzleSystem.ts
-- src/systems/puzzles/__tests__/puzzleSystem.test.ts
+- src/systems/puzzles/types.ts
+- src/systems/puzzles/lockSystem.ts
+- src/components/puzzles/LockpickingModal.tsx
+- src/components/ActionPane/__tests__/ActionPane.test.tsx
 
 Scoped verification:
 Use the scoped verification named by the active tracker row plus these proofs:
-- `src/systems/puzzles/__tests__/puzzleSystem.test.ts`
+- Key-path tests added by the PZ-003 slice
+- Existing PZ-007 tests if the runtime surface is touched: `src/systems/puzzles/__tests__/puzzleRuntime.test.ts`, `src/components/puzzles/PuzzleRuntimeModal.test.tsx`, `src/components/ActionPane/__tests__/ActionPane.test.tsx`
 - `docs/projects/puzzles/NORTH_STAR.md`
 - `docs/projects/puzzles/TRACKER.md`
 - `docs/projects/puzzles/GAPS.md`
@@ -96,7 +100,8 @@ Stay inside this project's scope boundaries. Route sibling-project blockers inst
 
 Recent progress:
 - `T3` completed; `getPuzzleHint` now resolves a live Intelligence check.
-- `PZ-002` is resolved at the helper layer; `PZ-007` is now review-required while the caller owner is undecided.
+- `PZ-002` is resolved at the helper layer.
+- `PZ-007` is resolved: `PuzzleRuntimeModal` owns a live `Puzzle`, `requestPuzzleHint` wraps `getPuzzleHint`, and `cave_chamber.interactableFeatures[].type === 'puzzle'` routes into `OPEN_PUZZLE_RUNTIME`.
 - `docs/projects/puzzles/NORTH_STAR.md`, `docs/projects/puzzles/TRACKER.md`, `docs/projects/puzzles/GAPS.md`, `docs/projects/puzzles/AUDIT_OR_PROOF.md`, and `docs/projects/puzzles/RUNBOOK.md` have been kept aligned.
 
 ## Required End State For This Iteration
@@ -114,7 +119,7 @@ Update needed: none for this iteration.
 
 ## Next Safe Resume Action
 
-Continue with `PZ-007` in `docs/projects/puzzles/GAPS.md` after the Required Review Brief is resolved, then verify a source-backed runtime caller proof before considering map/key follow-ups.
+Continue with `PZ-003` in `docs/projects/puzzles/GAPS.md`: clarify key ownership and add deterministic unlock behavior with focused tests before considering map integration follow-ups.
 
 ## agent_comments
 

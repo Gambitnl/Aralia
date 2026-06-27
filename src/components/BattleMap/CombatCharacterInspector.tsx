@@ -390,6 +390,20 @@ export const CombatCharacterInspector: React.FC<Props> = ({ character, onClose }
                       )}
                     </div>
                     <p className="text-gray-400 text-xs leading-relaxed">{ability.description}</p>
+                    {ability.grantedActions?.length ? (
+                      <div className="mt-2 rounded border border-cyan-500/30 bg-cyan-950/30 p-2">
+                        <span className="text-[10px] text-cyan-300 font-semibold uppercase tracking-wide block mb-1">Granted follow-up actions</span>
+                        <div className="space-y-1">
+                          {ability.grantedActions.map((action, actionIndex) => (
+                            <div key={`${ability.id}-granted-${actionIndex}`} className="text-[11px] text-cyan-100">
+                              <span className="font-semibold">{action.type === 'bonus_action' ? 'Bonus Action' : action.type}:</span> {action.action}
+                              {action.frequency ? <span className="text-cyan-300"> ({action.frequency.replace('_', ' ')})</span> : null}
+                              {action.notes ? <p className="text-cyan-200/80 leading-relaxed">{action.notes}</p> : null}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 );
               })}

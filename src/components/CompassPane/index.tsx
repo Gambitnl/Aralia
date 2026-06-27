@@ -2,12 +2,12 @@
 /**
  * @file index.tsx
  * CompassPane: 8-directional compass for movement, central "Look Around" button,
- * position display, and navigation toggles (world map, submap, 3D view).
+ * position display, and navigation toggles (world map, 3D view).
  * Movement buttons are dynamically enabled/disabled based on submap bounds,
  * world map boundaries, and biome passability.
  * Integrates PassTimeModal for time advancement via a `wait` action.
- * The `isSubmapContext` prop hides redundant submap/3D toggles when rendered
- * inside the SubmapPane modal.
+ * (The old "Open Submap" toggle + `isSubmapContext` prop were retired with
+ * SubmapPane — the world map is now the sole local-map surface.)
  */
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -28,7 +28,6 @@ interface CompassPaneProps {
   disabled: boolean;
   mapData: MapData | null;
   gameTime: Date;
-  isSubmapContext?: boolean; // New prop
 }
 
 type CompassPoint = {
@@ -60,7 +59,6 @@ const CompassPane: React.FC<CompassPaneProps> = ({
   disabled,
   mapData,
   gameTime,
-  isSubmapContext = false, // Default to false
 }) => {
   const [isPassTimeModalOpen, setIsPassTimeModalOpen] = useState(false); // State for the modal
 
@@ -179,34 +177,20 @@ const CompassPane: React.FC<CompassPaneProps> = ({
                 🌍
               </motion.button>
             </Tooltip>
-            {!isSubmapContext && (
-              <Tooltip content="Open Submap">
-                <motion.button
-                  onClick={() => onAction({ type: 'toggle_submap_visibility', label: 'Toggle Submap' })}
-                  disabled={disabled}
-                  whileTap={!disabled ? { scale: 0.9 } : undefined}
-                  whileHover={!disabled ? { scale: 1.1 } : undefined}
-                  className="p-2 rounded-full bg-emerald-700 hover:bg-emerald-600 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors text-xl"
-                  aria-label="Toggle Submap"
-                >
-                  SM
-                </motion.button>
-              </Tooltip>
-            )}
-            {!isSubmapContext && (
-              <Tooltip content="Enter 3D World">
-                <motion.button
-                  onClick={() => onAction({ type: 'toggle_three_d', label: 'Enter 3D' })}
-                  disabled={disabled}
-                  whileTap={!disabled ? { scale: 0.9 } : undefined}
-                  whileHover={!disabled ? { scale: 1.1 } : undefined}
-                  className="p-2 rounded-full bg-sky-700 hover:bg-sky-600 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 transition-colors text-xl"
-                  aria-label="Enter 3D World"
-                >
-                  🎥
-                </motion.button>
-              </Tooltip>
-            )}
+            {/* The old "Open Submap" (SM) button was retired with SubmapPane —
+                its `toggle_submap_visibility` action has no handler. */}
+            <Tooltip content="Enter 3D World">
+              <motion.button
+                onClick={() => onAction({ type: 'toggle_three_d', label: 'Enter 3D' })}
+                disabled={disabled}
+                whileTap={!disabled ? { scale: 0.9 } : undefined}
+                whileHover={!disabled ? { scale: 1.1 } : undefined}
+                className="p-2 rounded-full bg-sky-700 hover:bg-sky-600 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 transition-colors text-xl"
+                aria-label="Enter 3D World"
+              >
+                🎥
+              </motion.button>
+            </Tooltip>
           </div>
         </div>
       </div>

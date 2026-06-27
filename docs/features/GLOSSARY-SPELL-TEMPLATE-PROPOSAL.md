@@ -30,3 +30,5 @@ A template-driven spell rendering approach is still a coherent architectural dir
 
 Re-verified on 2026-03-11.
 Treat this file as a preserved proposal note for a partly superseded direction: still useful for understanding the original duplication problem, but no longer accurate as a description of the repo's current spell-glossary architecture.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/features/GLOSSARY-SPELL-TEMPLATE-PROPOSAL.md","sha256WithoutMarker":"2c7f534c9e177376a69a85791d7482c4a85f0b67d06cca89f7e16f9141fe3051","markedAtUtc":"2026-06-26T00:12:35.442Z"} -->

@@ -72,3 +72,5 @@ Visibility should not replace this domain, but it is clearly part of the same en
 
 Re-verified on 2026-03-11.
 Treat this domain as the environment plus terrain plus weather plus elemental-interaction lane, with visibility called out as an adjacent integration surface and with the heavier physics utility helpers now anchored under the combat utility subtree.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/domains/environment-physics.md","sha256WithoutMarker":"019ff5dddf61f173c2c70970f74a064e90af62e4a027525654a7bbca7ea8c142","markedAtUtc":"2026-06-26T00:12:35.435Z"} -->

@@ -359,6 +359,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
     onMapUpdate: setMapData,
     onAddSpellZone: turnManager.addSpellZone,
     spellZones: turnManager.spellZones,
+    onSpellZonesUpdate: turnManager.setSpellZones,
     onAddScheduledSpellEffect: turnManager.addScheduledSpellEffect,
     onAddMovementDebuff: turnManager.addMovementDebuff,
     onAddSpellMovementVisual: turnManager.addSpellMovementVisual

@@ -435,6 +435,67 @@
           "effect": "A Disintegrate spell destroys the temple instantly; casting this spell on the same spot every day for a year makes the effect permanent."
         }
       ],
+      "createdObjects": [
+        {
+          "objectType": "structure",
+          "name": "Temple of the Gods",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "ground",
+          "shapeOptions": [
+            "caster_chosen_temple_appearance"
+          ],
+          "materialOptions": [
+            "opaque magical force"
+          ],
+          "maxCreatedObjectCubeFeet": 120,
+          "dedicationSource": "holy_symbol_used_in_casting",
+          "appearanceChosenByCaster": true,
+          "doorCount": 1,
+          "doorControlledByCasterAndDesignates": true,
+          "windowsCasterChoice": true,
+          "interiorFeatures": [
+            "floor",
+            "walls",
+            "roof",
+            "open interior",
+            "idol or altar"
+          ],
+          "illuminationOptions": [
+            "bright",
+            "dim"
+          ],
+          "ambientScent": "burning incense",
+          "ambientTemperature": "mild",
+          "blocksPhysicalPassage": true,
+          "blocksLineOfSight": true,
+          "blocksEtherealTravel": true,
+          "blocksDivinationSensorsInside": true,
+          "blocksDivinationTargetingInside": true,
+          "immuneToDispelMagic": true,
+          "immuneToAntimagicField": true,
+          "destroyedBySpells": [
+            "disintegrate"
+          ],
+          "opposedCreatureTypeOptions": [
+            "celestial",
+            "elemental",
+            "fey",
+            "fiend",
+            "undead"
+          ],
+          "opposedCreatureEntrySaveType": "Charisma",
+          "opposedCreatureEntryBlockedDurationHours": 24,
+          "opposedCreaturePenaltyDice": "1d4",
+          "healingBonusAbilityModifier": "Wisdom",
+          "healingBonusMinimum": 1,
+          "healingBonusTrigger": "spell_healing_level_1_or_higher",
+          "expiresWithSpell": true,
+          "shelfLife": "24 hours",
+          "permanenceRequiresDailyCasts": 365,
+          "permanenceSameLocationRequired": true
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,

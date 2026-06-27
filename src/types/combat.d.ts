@@ -6,7 +6,7 @@
 import type { AbilityScoreName, CharacterStats } from './core.js';
 import type { Class, SpellbookData, SpellSlots, FeatChoice, HitPointDicePool } from './character.js';
 import type { Item } from './items.js';
-import type { Spell, DamageType, ConditionName, EffectDuration, SpellEffect } from './spells.js';
+import type { Spell, DamageType, ConditionName, EffectDuration, SpellEffect, TargetFilter } from './spells.js';
 import { StateTag } from './elemental.js';
 import { Plane } from './planes.js';
 import { RitualState } from './ritual.js';
@@ -183,6 +183,20 @@ export interface CombatCharacter {
     summonMetadata?: {
         casterId: string;
         spellId: string;
+        entityType?: string;
+        formName?: string;
+        sourceName?: string;
+        persistent?: boolean;
+        dismissAction?: 'action' | 'bonus_action' | 'free' | 'none';
+        commandCost?: 'action' | 'bonus_action' | 'free' | 'none';
+        commandsPerTurn?: number;
+        commandsUsedThisTurn?: number;
+        initiativePolicy?: 'immediate' | 'rolled' | 'shared';
+        followDistance?: number;
+        hoverHeight?: number;
+        telepathyRange?: number;
+        sharedSenses?: boolean;
+        sharedSensesCost?: 'action' | 'bonus_action' | 'free' | 'none';
         durationRemaining?: number;
         dismissable: boolean;
     };
@@ -222,12 +236,60 @@ export interface AreaOfEffect {
     angle?: number;
 }
 export interface AbilityEffect {
-    type: 'damage' | 'heal' | 'status' | 'movement' | 'teleport';
+    type: 'damage' | 'heal' | 'status' | 'movement' | 'teleport' | 'familiar_pocket' | 'familiar_shared_senses' | 'commanded_summon' | 'granted_action';
     value?: number;
     dice?: string;
     damageType?: 'physical' | 'magical' | 'fire' | 'ice' | 'lightning' | 'acid' | 'poison' | 'necrotic' | 'radiant' | 'force' | 'psychic' | 'thunder';
     statusEffect?: StatusEffect;
     duration?: number;
+    familiarPocketAction?: 'dismiss' | 'recall';
+    familiarId?: string;
+    sharedSensesAction?: 'activate';
+    commandedSummonAction?: 'issue_command';
+    summonCommandDescription?: string;
+    grantedActionLabel?: string;
+    grantedActionCost?: 'action' | 'bonus_action' | 'reaction';
+    grantedActionFrequency?: 'once' | 'each_turn' | 'while_active';
+    grantedActionRangeLimit?: number;
+    grantedActionPrerequisites?: ('target_object_within_spell_range' | 'target_within_spell_range' | 'not_applicable')[];
+    grantedActionAttackType?: 'ranged_spell_attack' | 'melee_spell_attack' | 'not_applicable';
+    grantedActionAreaShape?: 'Cone' | 'Line' | 'Sphere' | 'Cube' | 'Cylinder' | 'not_applicable';
+    grantedActionAreaSize?: number | 'not_applicable';
+    grantedActionAreaSizeUnit?: 'feet' | 'miles' | 'not_applicable';
+    grantedActionDamageDice?: string;
+    grantedActionDamageType?: 'physical' | 'bludgeoning' | 'piercing' | 'slashing' | 'magical' | 'fire' | 'ice' | 'lightning' | 'acid' | 'poison' | 'necrotic' | 'radiant' | 'force' | 'psychic' | 'thunder';
+    grantedActionSaveType?: 'Strength' | 'Dexterity' | 'Constitution' | 'Intelligence' | 'Wisdom' | 'Charisma';
+    grantedActionSaveEffect?: 'none' | 'half' | 'negates_condition';
+    grantedActionDamageAbilityModifier?: 'spellcasting_ability' | 'not_applicable';
+    grantedActionWallLengthReduction?: number;
+    grantedActionEndsWhenLengthZero?: boolean;
+    grantedActionNotes?: string;
+}
+export interface AbilityGrantedAction {
+    type: 'action' | 'bonus_action' | 'reaction';
+    action: string;
+    frequency: 'once' | 'each_turn' | 'while_active';
+    actor?: 'caster' | 'target' | 'summoned_entity' | 'affected_creature';
+    actionKind?: 'magic_action' | 'standard_action' | 'bonus_action' | 'reaction' | 'not_applicable';
+    areaShape?: 'Cone' | 'Line' | 'Sphere' | 'Cube' | 'Cylinder' | 'not_applicable';
+    areaSize?: number | 'not_applicable';
+    areaSizeUnit?: 'feet' | 'miles' | 'not_applicable';
+    effectIndices?: number[];
+    prerequisites?: ('target_object_within_spell_range' | 'target_within_spell_range' | 'not_applicable')[];
+    rangeLimit?: number;
+    attackType?: 'ranged_spell_attack' | 'melee_spell_attack' | 'not_applicable';
+    saveType?: 'Strength' | 'Dexterity' | 'Constitution' | 'Intelligence' | 'Wisdom' | 'Charisma';
+    saveEffect?: 'none' | 'half' | 'negates_condition';
+    damageDice?: string;
+    damageType?: 'physical' | 'bludgeoning' | 'piercing' | 'slashing' | 'magical' | 'fire' | 'ice' | 'lightning' | 'acid' | 'poison' | 'necrotic' | 'radiant' | 'force' | 'psychic' | 'thunder';
+    damage?: {
+        dice: string;
+        type: string;
+    };
+    damageAbilityModifier?: 'spellcasting_ability' | 'not_applicable';
+    wallLengthReduction?: number;
+    endsWhenLengthZero?: boolean;
+    notes?: string;
 }
 export interface Ability {
     id: string;
@@ -244,6 +306,8 @@ export interface Ability {
     movementType?: 'before' | 'after' | 'integrated';
     interruptsMovement?: boolean;
     tags?: string[];
+    /** Original spell id that created this runtime ability, when different from the button id. */
+    sourceSpellId?: string;
     targeting: TargetingType;
     range: number;
     /**
@@ -256,8 +320,16 @@ export interface Ability {
     areaSize?: number;
     areaOfEffect?: AreaOfEffect;
     effects: AbilityEffect[];
+    grantedActions?: AbilityGrantedAction[];
     cooldown?: number;
     currentCooldown?: number;
+    maxUses?: number;
+    usesRemaining?: number;
+    createdObjectExpiresAtRound?: number;
+    createdObjectDuration?: {
+        type: 'rounds' | 'minutes' | 'hours' | 'days' | 'special';
+        value?: number;
+    };
     icon?: string;
     spell?: Spell;
     weapon?: Item;
@@ -399,6 +471,22 @@ export interface BattleMapData {
 export interface CombatState {
     isActive: boolean;
     characters: CombatCharacter[];
+    spellZones?: Array<{
+        id: string;
+        spellId: string;
+        casterId: string;
+        position: Position;
+        areaOfEffect?: {
+            shape: string;
+            size: number;
+        };
+        direction?: Position;
+        remainingWallLength?: number;
+        originalWallLength?: number;
+        endsWhenLengthZero?: boolean;
+        effects: SpellEffect[];
+        targetingValidTargets?: TargetFilter[];
+    }>;
     turnState: TurnState;
     selectedCharacterId: string | null;
     selectedAbilityId: string | null;
@@ -413,6 +501,7 @@ export interface CombatState {
     combatLog: CombatLogEntry[];
     reactiveTriggers: ReactiveTrigger[];
     activeLightSources: LightSource[];
+    spellCreatedInventoryItems?: Item[];
     mapData?: BattleMapData;
     currentPlane?: Plane;
 }

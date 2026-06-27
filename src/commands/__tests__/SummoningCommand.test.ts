@@ -233,6 +233,70 @@ describe('SummoningCommand', () => {
         expect(summoned?.stats.speed).toBe(100)
     })
 
+    it('should expose structured summon special actions as commanded abilities', async () => {
+        const effect: SummoningEffect = {
+            type: 'SUMMONING',
+            summon: {
+                entityType: 'construct',
+                persistent: true,
+                dismissAction: 'bonus_action',
+                commandCost: 'bonus_action',
+                commandsPerTurn: 1,
+                initiative: 'shared',
+                followDistance: 60,
+                hoverHeight: 5,
+                statBlock: {
+                    name: 'Clockwork Guardian',
+                    hp: 22,
+                    speed: 30,
+                    abilities: { str: 14, dex: 12, con: 12, int: 3, wis: 10, cha: 6 }
+                },
+                specialActions: [{
+                    name: 'Force Slam',
+                    description: 'The guardian slams a nearby enemy when commanded by its caster.',
+                    cost: 'bonus_action',
+                    damage: {
+                        dice: '1d8',
+                        type: 'force'
+                    }
+                }]
+            },
+            duration: { type: 'minutes', value: 1 },
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' },
+            count: 1
+        }
+
+        const command = new SummoningCommand(effect, mockContext)
+        const newState = await command.execute(initialState)
+
+        const summoned = newState.characters.find(c => c.name.startsWith('Clockwork Guardian'))
+        const forceSlam = summoned?.abilities.find(ability => ability.name === 'Force Slam')
+
+        expect(forceSlam).toBeDefined()
+        expect(forceSlam?.cost.type).toBe('bonus')
+        expect(forceSlam?.effects[0]).toMatchObject({
+            type: 'commanded_summon',
+            commandedSummonAction: 'issue_command',
+            summonCommandDescription: 'The guardian slams a nearby enemy when commanded by its caster.'
+        })
+        expect(forceSlam?.effects[1]).toMatchObject({
+            type: 'damage',
+            dice: '1d8',
+            damageType: 'force'
+        })
+        expect(forceSlam?.tags).toContain('controlled-entity')
+        expect(summoned?.summonMetadata).toMatchObject({
+            persistent: true,
+            dismissAction: 'bonus_action',
+            commandCost: 'bonus_action',
+            commandsPerTurn: 1,
+            initiativePolicy: 'shared',
+            followDistance: 60,
+            hoverHeight: 5
+        })
+    })
+
     it('should preserve explicit zero values from modern nested summon.statBlock', async () => {
         // This guards the Package 15 bridge against treating stored zero values
         // as missing data. Future summon schemas may use zero to mean immobile,

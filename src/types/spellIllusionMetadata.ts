@@ -111,6 +111,55 @@ export interface IllusionMetadata {
   revealRules: IllusionRevealRule[];
   /** State applied only to creatures that have discerned the illusion. */
   discernedState: "faint_to_discerning_creature" | "transparent_to_discerning_creature" | "not_applicable";
+  /** Rules for illusions that one target treats as a physically real object, creature, or phenomenon. */
+  phantasmalInteraction?: {
+    /** Whether the manifestation exists only inside the affected target's perception. */
+    perceivedOnlyByTarget: boolean;
+    /** Whether the affected target behaves as if the phantasm is real. */
+    targetTreatsAsReal: boolean;
+    /** Whether the target invents explanations for contradictions such as falling through a phantasmal bridge. */
+    rationalizesIllogicalOutcomes: boolean;
+    /** Broad form choices the caster can represent with the phantasm. */
+    phenomenonOptions: string[];
+    /** Hazard rules for phantasms that can hurt the affected target. */
+    hazardousPhantasm?: {
+      damageDice: string;
+      damageType: string;
+      perceivedDamageTypeSource: "appropriate_to_illusion" | "fixed";
+      damageTiming: "each_caster_turn" | "not_applicable";
+      damageAreaCondition: "in_area_or_within_proximity" | "not_applicable";
+      proximityFeet: number;
+    };
+  };
+  /** Rules for area-scale illusions that replace how terrain and structures appear and feel. */
+  terrainIllusion?: {
+    /** Shape of the maximum affected ground area. */
+    areaShape: "Square" | "Circle" | "not_applicable";
+    /** Numeric area size, such as 1 for a one-mile square. */
+    areaSize: number | "not_applicable";
+    /** Unit paired with the area size. */
+    areaUnit: "feet" | "miles" | "not_applicable";
+    /** Sensory channels the illusion can produce across the terrain. */
+    sensoryElements: SensoryChannel[];
+    /** Terrain examples the spell can make the area resemble. */
+    terrainAppearanceOptions: string[];
+    /** Whether the illusion can alter the appearance of existing structures. */
+    canAlterStructures: boolean;
+    /** Whether the illusion can add apparent structures where none exist. */
+    canAddStructures: boolean;
+    /** Whether the illusion is barred from disguising, concealing, or adding creatures. */
+    cannotDisguiseConcealOrAddCreatures: boolean;
+    /** Whether the illusion can turn clear ground into Difficult Terrain or the reverse. */
+    canChangeDifficultTerrain: boolean;
+    /** Whether it can otherwise impede movement through tactile illusion elements. */
+    canOtherwiseImpedeMovement: boolean;
+    /** Whether removed illusory terrain pieces disappear immediately outside the spell area. */
+    removedPiecesDisappearImmediately: boolean;
+    /** Whether Truesight reveals the terrain's true form. */
+    truesightRevealsTrueTerrain: boolean;
+    /** Whether creatures with Truesight still physically interact with the remaining illusion elements. */
+    truesightStillPhysicallyInteracts: boolean;
+  };
   /** Short review note for illusion behavior that is not its own field yet. */
   notes?: string;
 }

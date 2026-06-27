@@ -167,6 +167,7 @@
         "telepathyRange": 100,
         "sharedSenses": true,
         "sharedSensesCost": "bonus_action",
+        "dismissAction": "action",
         "specialActions": [
           {
             "name": "Touch Delivery",

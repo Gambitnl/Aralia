@@ -161,3 +161,5 @@ Use this exact order to avoid thrashing:
 - docs/spells/SPELL_JSON_EXAMPLES.md
 - docs/spells/SPELL_INTEGRATION_CHECKLIST.md
 - docs/SPELL_INTEGRATION_STATUS.md
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/guides/SPELL_TROUBLESHOOTING_GUIDE.md","sha256WithoutMarker":"23694f2e8a82e725f295fdf3b0886c221a162b8e2d726b2b5f7efc8c9ab8a68f","markedAtUtc":"2026-06-26T00:12:35.444Z"} -->

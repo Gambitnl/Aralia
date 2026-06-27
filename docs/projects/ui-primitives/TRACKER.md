@@ -1,7 +1,7 @@
 ﻿# Ui Primitives Living Tracker
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-26
 
 ## Status Vocabulary
 
@@ -17,6 +17,7 @@ Last updated: 2026-06-08
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
+| T1 | not_started | Finish z-index registry adoption for remaining runtime hardcoded classes | Codex | 2026-06-26 | `docs/projects/ui-primitives/GAPS.md` G3; `z-index-migration-progress.md`; `z-index-analysis-report.md`; current `rg -n "z-\[\d+\]" src -g "*.tsx" -g "*.ts"` output | Replace or justify the four runtime hardcoded z-index classes, then refresh the stale top-level z-index notes | Source scan has no unowned runtime `z-[number]` classes; focused visual check for touched overlay/popover surfaces |
 
 ## Gap Log
 

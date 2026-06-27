@@ -181,6 +181,50 @@
       },
       "utilityType": "creation",
       "description": "Creates a straight or ringed water wall whose space is Difficult Terrain, imposes Disadvantage on ranged weapon attacks crossing it, halves Fire damage crossing it, and can freeze into destructible 5-foot sections when Cold spells pass through.",
+      "createdObjects": [
+        {
+          "objectType": "hazard",
+          "name": "Wall of Water",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "materialOptions": [
+            "water"
+          ],
+          "shapeOptions": [
+            "straight_wall",
+            "ringed_wall"
+          ],
+          "wallLengthFeet": 30,
+          "wallHeightFeet": 10,
+          "wallThickness": 1,
+          "wallThicknessUnit": "feet",
+          "diameterFeet": 20,
+          "orientationOptions": [
+            "vertical",
+            "caster_choice"
+          ],
+          "freeFloating": false,
+          "requiresAnchoring": true,
+          "anchoringOptions": [
+            "ground"
+          ],
+          "blocksPhysicalPassage": false,
+          "blocksLineOfSight": false,
+          "spaceIsDifficultTerrain": true,
+          "rangedWeaponAttacksThroughHaveDisadvantage": true,
+          "reducesPassingDamageType": "Fire",
+          "passingDamageMultiplier": 0.5,
+          "canFreezeFromDamageType": "Cold",
+          "frozenSectionSizeFeet": 5,
+          "frozenSectionArmorClass": 5,
+          "frozenSectionHitPoints": 15,
+          "destroyedFrozenSectionsDoNotRefill": true,
+          "expiresWithSpell": true,
+          "shelfLife": "10 minutes",
+          "notes": "A wall of water on the ground. It can be a straight wall up to 30 feet long, 10 feet high, and 1 foot thick, or a ring up to 20 feet in diameter, 20 feet high, and 1 foot thick. Its space is difficult terrain, ranged weapon attacks through it have disadvantage, Fire damage through it is halved, and Cold damage through it freezes at least one 5-foot square section with AC 5 and 15 HP."
+        }
+      ],
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

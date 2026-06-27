@@ -6,13 +6,13 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-12
+last_updated: 2026-06-26
 iteration: 10
 confidence: high
 evidence: docs/projects/character-sheet
-gap_signal: "5 open gaps; G5, G7, G8, G9, and G10 remain open; G3 resolved; G4 README drift closed; G6 intentional placeholder verified and closed"
+gap_signal: "6 open gaps; G5, G9, G10, G12, G13, and G14 remain open; G7, G8, and G11 are resolved"
 protocol: living project doc set
-next_step: "Implement G7 per D16 (Option A): add durable acquiredAt acquisition-timestamp semantics to the item model, backfill/migrate inventory data, then implement food expiration from that source with a focused InventoryList render test."
+next_step: "Continue from the current open gap rows in GAPS.md. G7 food freshness is implemented and proof-backed; likely next owner decisions are G5 sheet-consumer contract, G9/G10 inventory handling, or G12-G14 level-up/container lanes."
 agent_comments: "README drift audit closed; journal payload omission is intentional and render-tested; the Skills expertise column remains visible but intentionally zero until the character model exposes expertise state; food freshness timestamp decision recorded 2026-06-10 (D16, Option A) â€” acquiredAt semantics approved."
 required_docs:
   - NORTH_STAR.md
@@ -30,7 +30,7 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-08
+last_proof: 2026-06-19
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: needed
 lifecycle_status: active
@@ -41,8 +41,8 @@ human_decision_required: "no"
 ---
 # Character Sheet North Star
 
-Status: active (decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-12
+Status: active (G7 food freshness implemented 2026-06-19; remaining gaps open)
+Last updated: 2026-06-26
 
 ## Why This Project Exists
 
@@ -56,6 +56,11 @@ Character Sheet is an implemented UI feature with modal and tabbed character dat
 
 ## Active Task Acceptance Criteria
 
+Current correction (2026-06-26): any G7 text in this section that still says
+the food freshness timestamp work is pending is historical. G7 was implemented
+on 2026-06-19 with `acquiredAt` semantics and focused InventoryList proof. Use
+`GAPS.md` and `TRACKER.md` for the current open rows.
+
 - Verify the README-described tab and component surfaces against the runtime implementation in `src/components/CharacterSheet`.
 - Record any real mismatch in `docs/projects/character-sheet/GAPS.md` with source-backed evidence.
 - Keep `TRACKER.md` and this handoff aligned on the current open slice; G3 and G6 are resolved, and G7 is now review-required pending a timestamp decision. (Update 2026-06-10: G7 decided â€” D16, Option A; implementation lane open.)
@@ -65,15 +70,15 @@ Character Sheet is an implemented UI feature with modal and tabbed character dat
 Project: Character Sheet  
 Slug: character-sheet  
 Category: Feature/UI Projects  
-Status: active (decision recorded 2026-06-10; implementation lane open)
+Status: active (G7 implemented 2026-06-19; remaining gaps open)
 Confidence: high
 Evidence: docs/projects/character-sheet
-Gap signal: 5 open gaps; G5, G7, G8, G9, and G10 remain open; G3 resolved; G4 README drift closed; G6 intentional placeholder verified and closed
+Gap signal: 6 open gaps; G5, G9, G10, G12, G13, and G14 remain open; G7, G8, and G11 are resolved
 Protocol: living project doc set  
-Next step: Implement G7 per D16 (Option A): add durable `acquiredAt` acquisition-timestamp semantics, backfill/migrate inventory data, then implement food expiration from that source with a focused InventoryList render test.
+Next step: Continue from current open `GAPS.md` rows. Do not reopen G7 unless food freshness invariants change.
 Required verification: docs_consistency
 Completed verification: docs_consistency
-Last proof: 2026-06-08
+Last proof: 2026-06-19
 Workflow gaps reviewed: 2026-06-08
 Agent comments: README drift audit closed; journal payload omission is intentional and render-tested; Skills expertise remains a visible placeholder until the character model exposes expertise state; food freshness timestamp decision recorded 2026-06-10 (D16, Option A).
 Human decision required: no (G7 decision recorded 2026-06-10)
@@ -102,7 +107,7 @@ Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D16
 - Proof remains as written above: a focused InventoryList render test covering fresh and
   expired food plus the source-backed data model / migration update.
 
-Status: decision recorded 2026-06-10; implementation lane open.
+Status: implemented 2026-06-19; see `GAPS.md` G7, `TRACKER.md` G7, and `AUDIT_OR_PROOF.md` for proof.
 
 ## Concrete File Map (Owner Surface)
 

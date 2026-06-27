@@ -134,8 +134,37 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
-    "description": "Choose one visible object within 60 feet that blocks access, such as a door, box, chest, manacles, padlock, or similar mundane or magical closure; one mundane lock, stuck state, or barred state becomes unlocked, unstuck, or unbarred, only one lock opens if there are multiple, Arcane Lock is suppressed for 10 minutes instead, and a loud knock is audible from up to 300 feet from the target.",
+      "utilityType": "control",
+      "description": "Choose one visible object within 60 feet that blocks access, such as a door, box, chest, manacles, padlock, or similar mundane or magical closure; one mundane lock, stuck state, or barred state becomes unlocked, unstuck, or unbarred, only one lock opens if there are multiple, Arcane Lock is suppressed for 10 minutes instead, and a loud knock is audible from up to 300 feet from the target.",
+      "objectAccessChange": {
+        "eligibleObjectTypes": [
+          "door",
+          "box",
+          "chest",
+          "manacles",
+          "padlock",
+          "object_with_mundane_or_magical_access_blocker"
+        ],
+        "mundaneStateChanges": [
+          "unlock",
+          "unstick",
+          "unbar"
+        ],
+        "maxLocksAffected": 1,
+        "suppressesMagicalClosure": "arcane-lock",
+        "suppressionDuration": {
+          "type": "minutes",
+          "value": 10
+        },
+        "targetOperableDuringSuppression": true,
+        "soundEmission": {
+          "audibleRadius": 300,
+          "radiusUnit": "feet",
+          "source": "target_object",
+          "trigger": "on_cast",
+          "description": "A loud knock audible up to 300 feet away emanates from the target object."
+        }
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

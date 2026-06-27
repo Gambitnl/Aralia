@@ -97,5 +97,42 @@ export const IllusionMetadata = z.object({
     "transparent_to_discerning_creature",
     "not_applicable",
   ]),
+  // Phantasmal Force is target-private: the target treats the false object,
+  // creature, or phenomenon as real and can even suffer psychic harm from a
+  // dangerous phantasm. This nested block keeps those belief and hazard rules
+  // reusable for future phantasm-style illusions.
+  phantasmalInteraction: z.object({
+    perceivedOnlyByTarget: z.boolean(),
+    targetTreatsAsReal: z.boolean(),
+    rationalizesIllogicalOutcomes: z.boolean(),
+    phenomenonOptions: z.array(z.string()),
+    hazardousPhantasm: z.object({
+      damageDice: z.string(),
+      damageType: z.string(),
+      perceivedDamageTypeSource: z.enum(["appropriate_to_illusion", "fixed"]),
+      damageTiming: z.enum(["each_caster_turn", "not_applicable"]),
+      damageAreaCondition: z.enum(["in_area_or_within_proximity", "not_applicable"]),
+      proximityFeet: z.number(),
+    }).optional(),
+  }).optional(),
+  // Mirage Arcane is an area-scale illusion that can change how terrain and
+  // structures look, sound, smell, and feel while still interacting physically.
+  // This block lets terrain/UI systems distinguish that from a small image or
+  // a target-private phantasm.
+  terrainIllusion: z.object({
+    areaShape: z.enum(["Square", "Circle", "not_applicable"]),
+    areaSize: z.union([z.number(), z.literal("not_applicable")]),
+    areaUnit: z.enum(["feet", "miles", "not_applicable"]),
+    sensoryElements: z.array(SensoryChannel),
+    terrainAppearanceOptions: z.array(z.string()),
+    canAlterStructures: z.boolean(),
+    canAddStructures: z.boolean(),
+    cannotDisguiseConcealOrAddCreatures: z.boolean(),
+    canChangeDifficultTerrain: z.boolean(),
+    canOtherwiseImpedeMovement: z.boolean(),
+    removedPiecesDisappearImmediately: z.boolean(),
+    truesightRevealsTrueTerrain: z.boolean(),
+    truesightStillPhysicallyInteracts: z.boolean(),
+  }).optional(),
   notes: z.string().optional(),
 });

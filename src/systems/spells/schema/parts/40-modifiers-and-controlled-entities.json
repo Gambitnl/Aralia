@@ -241,7 +241,8 @@
         "entityType": {
           "type": "string",
           "enum": [
-            "spectral_hand"
+            "spectral_hand",
+            "unseen_servant"
           ]
         },
         "count": {
@@ -263,7 +264,8 @@
           "type": "string",
           "enum": [
             "magic_action",
-            "action"
+            "action",
+            "bonus_action"
           ]
         },
         "initialUseOnCast": {
@@ -318,7 +320,8 @@
             "type": "string",
             "enum": [
               "caster_recasts",
-              "beyond_max_distance"
+              "beyond_max_distance",
+              "drops_to_0_hp"
             ]
           }
         },

@@ -69,6 +69,25 @@ const holySmiteLikeAbility: Ability & { excludeCreatureTypes?: string[] } = {
     range: 2
 };
 
+const structuredEnemySpellAbility: Ability = {
+    id: 'structured-enemy-spell',
+    name: 'Structured Enemy Spell',
+    description: 'A spell ability that keeps the source spell targeting contract attached.',
+    type: 'spell',
+    cost: { type: 'action' },
+    targeting: 'single_any',
+    range: 2,
+    effects: [{ type: 'damage', value: 1, damageType: 'force' }],
+    spell: {
+        targeting: {
+            type: 'single',
+            range: 60,
+            validTargets: ['enemies'],
+            lineOfSight: false
+        }
+    }
+};
+
 describe('useTargetValidator', () => {
     it('keeps existing boolean validation while explaining out-of-range enemies', () => {
         const caster = createMockCombatCharacter({
@@ -211,6 +230,31 @@ describe('useTargetValidator', () => {
         });
         expect(result.current.getTargetValidation(holySmiteLikeAbility, caster, feyTarget.position)).toEqual({
             isValid: true
+        });
+    });
+
+    it('uses structured spell targeting rejection reasons before generic single-any targeting', () => {
+        const caster = createMockCombatCharacter({
+            id: 'kaelen',
+            name: 'Kaelen',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        });
+        const ally = createMockCombatCharacter({
+            id: 'ally-1',
+            name: 'Ally 1',
+            team: 'player',
+            position: { x: 1, y: 0 }
+        });
+
+        const { result } = renderHook(() => useTargetValidator({
+            characters: [caster, ally],
+            mapData: createMap(3, 3)
+        }));
+
+        expect(result.current.getTargetValidation(structuredEnemySpellAbility, caster, ally.position)).toEqual({
+            isValid: false,
+            reason: 'This spell can only target enemies.'
         });
     });
 });

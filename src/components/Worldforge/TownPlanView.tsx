@@ -70,6 +70,11 @@ const TYPES_INTERIOR = ['Cottage', 'Storehouse', 'Stable', 'Workshop', 'Granary'
 // Building-type colours + labels live in the shared `buildingStyle` module so the
 // 2D map and the 3D town agree (see BUILDING_FILL / BUILDING_LABEL imports).
 
+// Ward social-class label for the inspector.
+const DISTRICT_LABEL: Record<'wealthy' | 'common' | 'poor', string> = {
+  wealthy: 'Wealthy quarter', common: 'Common ward', poor: 'Poor district',
+};
+
 interface HoverInfo {
   poly: Pt[];
   title: string;
@@ -113,28 +118,49 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
     return { centre, span, median };
   }, [plan, bounds]);
 
+  // homeId → plot, so a home can name the workplace it works at (and vice-versa).
+  const homeById = useMemo(() => {
+    const m = new Map<string, BuildingPlot>();
+    for (const p of plan.plots ?? plan.wards.flatMap((w) => w.plots)) if (p.homeId) m.set(p.homeId, p);
+    return m;
+  }, [plan]);
+
   const describeBuilding = (pl: BuildingPlot, wardCivic?: CivicKind): { title: string; lines: string[] } => {
     const c = centroidOf(pl.polygon);
     const area = areaOf(pl.polygon);
     const size = area < stats.median * 0.6 ? 'Small' : area > stats.median * 1.6 ? 'Large' : 'Average';
 
     // Engine-backed path: the population pass tagged this plot with a concrete type,
-    // occupancy, and a stable home id → show WHO lives here (lazy named household).
+    // occupancy, district and economy role → show WHO lives/works here.
     if (pl.buildingType) {
       const title = BUILDING_LABEL[pl.buildingType];
       const lines: string[] = [];
+      const districtLabel = pl.district ? DISTRICT_LABEL[pl.district] : undefined;
       if (pl.residential) {
         const occ = pl.occupants ?? 0;
-        lines.push(`Home · ${occ} resident${occ === 1 ? '' : 's'}`);
+        lines.push(`Home · ${occ} resident${occ === 1 ? '' : 's'}${districtLabel ? ` · ${districtLabel}` : ''}`);
         if (seedPath && pl.homeId && occ > 0) {
-          const hh = generateHousehold(seedPath, pl.homeId, occ, pl.buildingType);
+          const workplaceType = pl.workplaceId ? homeById.get(pl.workplaceId)?.buildingType : undefined;
+          const hh = generateHousehold(seedPath, pl.homeId, occ, pl.buildingType, { role: pl.workRole, workplaceType });
           lines.push(hh.summary);
-          for (const m of hh.members.slice(0, 3)) lines.push(`• ${m.name}, ${m.age} (${m.role})`);
+          // Where the breadwinners work.
+          if (pl.workRole === 'proprietor' && workplaceType) lines.push(`Runs the local ${BUILDING_LABEL[workplaceType].toLowerCase()}`);
+          else if (pl.workRole === 'staff' && workplaceType) lines.push(`Works at the ${BUILDING_LABEL[workplaceType].toLowerCase()}`);
+          else if (pl.workRole === 'labourer') lines.push('Unskilled day-labour');
+          for (const m of hh.members.slice(0, 3)) lines.push(`• ${m.name}, ${m.age}${m.occupation ? ` — ${m.occupation}` : ` (${m.role})`}`);
           if (hh.members.length > 3) lines.push(`…and ${hh.members.length - 3} more`);
         }
       } else {
-        lines.push('Workplace · no permanent residents');
-        lines.push(`${size} footprint · ${pl.shape === 'L' ? 'L-shaped' : 'rectangular'}`);
+        lines.push(`Workplace · no residents${districtLabel ? ` · ${districtLabel}` : ''}`);
+        // Who runs it + how many it employs.
+        if (seedPath && pl.proprietorHomeId) {
+          const prop = homeById.get(pl.proprietorHomeId);
+          if (prop?.occupants) {
+            const owner = generateHousehold(seedPath, prop.homeId!, prop.occupants, prop.buildingType ?? 'cottage', { role: 'proprietor', workplaceType: pl.buildingType });
+            lines.push(`Run by the ${owner.surname}s`);
+          }
+        }
+        lines.push(`Employs ${pl.staffCount ?? 0} ${(pl.staffCount ?? 0) === 1 ? 'hand' : 'hands'}`);
       }
       if (wardCivic) lines.push(`In the ${CIVIC_LABEL[wardCivic].toLowerCase()} ward`);
       return { title, lines };
@@ -226,7 +252,7 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({ plan, width = 900, height =
         if (seedPath) {
           const hh = generateHousehold(seedPath, f.id, f.occupants, 'farmstead');
           lines.push(hh.summary);
-          for (const m of hh.members.slice(0, 3)) lines.push(`• ${m.name}, ${m.age} (${m.role})`);
+          for (const m of hh.members.slice(0, 3)) lines.push(`• ${m.name}, ${m.age}${m.occupation ? ` — ${m.occupation}` : ` (${m.role})`}`);
           if (hh.members.length > 3) lines.push(`…and ${hh.members.length - 3} more`);
         }
         return { poly: box, title: 'Farmstead', lines, px: f.x, py: f.y };

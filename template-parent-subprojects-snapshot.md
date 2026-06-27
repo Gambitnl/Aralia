@@ -536,3 +536,5 @@
         - link "Open raw" [ref=e905] [cursor=pointer]:
           - /url: "#subprojects-template"
       - generic "SUBPROJECTS.md" [ref=e906]
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"template-parent-subprojects-snapshot.md","sha256WithoutMarker":"5149b433f5419b666a097618ceb459c184e76931b20eab114c3913dac97d6128","markedAtUtc":"2026-06-26T00:53:11.794Z"} -->

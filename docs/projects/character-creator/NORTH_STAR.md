@@ -6,13 +6,13 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-25
+last_updated: 2026-06-26
 iteration: 15
 confidence: high
 evidence: docs/projects/character-creator
-gap_signal: "5 open gaps; G5 flow assertions are resolved with headed Playwright final-state proof"
+gap_signal: "5 open gaps; G23 now owns the retired race-image TODO's named missing image IDs"
 protocol: living project doc set
-next_step: Pick the next unresolved Character Creator gap from TRACKER.md / GAPS.md; G5 is closed with focused headed Playwright proof.
+next_step: Pick the next unresolved Character Creator gap from TRACKER.md / GAPS.md; race portrait work should use G23/T9 instead of `misc/RACE_IMAGES_TODO.md`.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -49,7 +49,7 @@ human_decision_required: "no"
 # Character Creator North Star
 
 Status: active (G2 resolved 2026-06-08; no pending review hold)
-Last updated: 2026-06-25
+Last updated: 2026-06-26
 
 ## Dashboard Card Schema
 
@@ -59,12 +59,12 @@ Category: Feature/UI Projects
 Status: active (G2 resolved 2026-06-08; no pending review hold)
 Confidence: high
 Evidence: docs/projects/character-creator
-Gap signal: 5 open gaps; G5 flow assertions are resolved with headed Playwright final-state proof
+Gap signal: 5 open gaps; G23 now owns the retired race-image TODO's named missing image IDs
 Protocol: living project doc set
-Next step: Pick the next unresolved Character Creator gap from TRACKER.md / GAPS.md; G5 is closed with focused headed Playwright proof.
+Next step: Pick the next unresolved Character Creator gap from TRACKER.md / GAPS.md; race portrait work should use G23/T9 instead of `misc/RACE_IMAGES_TODO.md`.
 Required verification: docs_consistency
-Completed verification: docs_consistency, CreationSidebar racial feat visibility test (2026-06-24), skillSelectionUtils raceId-constrained Skillful test (2026-06-24), CreationSidebar progress counter default-step test (2026-06-25), SkillSelection background-granted class skill badge test (2026-06-25), CharacterCreator flow test lint-intent cleanup (2026-06-25), WeaponMasterySelection canonical weapon and click/focus details test (2026-06-25), Shared SpellSummaryCard structural tests across creator/sheet spell surfaces (2026-06-25), G16 class spell selection and Magic Initiate rendered captures (2026-06-25), G16 Character Sheet spellbook rendered capture (2026-06-25), G8 centralized locked-step message render coverage (2026-06-25), G5 Human Fighter headed Playwright final-state assertions (2026-06-25)
-Last proof: 2026-06-25
+Completed verification: docs_consistency, CreationSidebar racial feat visibility test (2026-06-24), skillSelectionUtils raceId-constrained Skillful test (2026-06-24), CreationSidebar progress counter default-step test (2026-06-25), SkillSelection background-granted class skill badge test (2026-06-25), CharacterCreator flow test lint-intent cleanup (2026-06-25), WeaponMasterySelection canonical weapon and click/focus details test (2026-06-25), Shared SpellSummaryCard structural tests across creator/sheet spell surfaces (2026-06-25), G16 class spell selection and Magic Initiate rendered captures (2026-06-25), G16 Character Sheet spellbook rendered capture (2026-06-25), G8 centralized locked-step message render coverage (2026-06-25), G5 Human Fighter headed Playwright final-state and selected start-town assertions (2026-06-27)
+Last proof: 2026-06-27
 Workflow gaps reviewed: 2026-06-14
 
 Dashboard lifecycle: reviewed (G2 resolved)

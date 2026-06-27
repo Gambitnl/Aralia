@@ -521,11 +521,44 @@ const DamageData = z.object({
   // the bypass list on the damage packet lets the runtime skip only the named
   // mitigation families instead of hard-coding spell names.
   mitigationBypass: z.array(z.enum(["resistance", "immunity", "damage_reduction", "damage_prevention"])).optional(),
+  // Disintegrate-style damage has consequences beyond HP loss: some targets
+  // vanish completely and leave only residue. This keeps that destruction rule
+  // on the damage packet so combat and map systems can later enforce it after
+  // saves and damage resolution.
+  disintegration: z.object({
+    creatureAtZeroHp: z.boolean(),
+    includesNonmagicalWornAndCarried: z.boolean(),
+    revivalOnlyBy: z.array(z.string()),
+    automaticTargetTypes: z.array(z.string()),
+    maxAutomaticTargetSize: z.string(),
+    hugeOrLargerPortionCubeFeet: z.number(),
+    residueName: z.string(),
+    residueDescription: z.string()
+  }).optional(),
 });
 
 const DamageEffect = BaseEffect.extend({
   type: z.literal("DAMAGE"),
   damage: DamageData,
+});
+
+// Knock-style utility spells change the state of doors, boxes, locks, bars,
+// and magical seals. Keeping that as structured object access data lets future
+// map and inventory systems open the right thing without parsing spell prose.
+const ObjectAccessChange = z.object({
+  eligibleObjectTypes: z.array(z.string()),
+  mundaneStateChanges: z.array(z.enum(["unlock", "unstick", "unbar"])),
+  maxLocksAffected: z.number(),
+  suppressesMagicalClosure: z.string().optional(),
+  suppressionDuration: EffectDuration.optional(),
+  targetOperableDuringSuppression: z.boolean().optional(),
+  soundEmission: z.object({
+    audibleRadius: z.number(),
+    radiusUnit: z.enum(["feet", "miles"]),
+    source: z.enum(["target_object", "caster", "point"]),
+    trigger: z.enum(["on_cast", "on_change"]),
+    description: z.string(),
+  }).optional(),
 });
 
 const HealingData = z.object({
@@ -608,6 +641,19 @@ const GrantedAction = z.object({
   effectIndices: z.array(z.number()).optional(),
   prerequisites: z.array(z.enum(["target_object_within_spell_range", "target_within_spell_range", "not_applicable"])).optional(),
   rangeLimit: z.number().optional(),
+  attackType: z.enum(["ranged_spell_attack", "melee_spell_attack", "not_applicable"]).optional(),
+  damage: DamageData.optional(),
+  // Area follow-up actions can resolve through saving throws instead of attack
+  // rolls. Melf's Minute Meteors and Flaming Sphere both use Dexterity-half
+  // payloads, so the validator must accept the same contract the runtime logs.
+  saveType: SavingThrowAbility.optional(),
+  saveEffect: z.enum(["none", "half", "negates_condition"]).optional(),
+  // Flame Blade-style conjured attacks add the caster's spellcasting ability
+  // modifier to later granted-action damage. Keep it opt-in so generic beams
+  // and illusion actions do not inherit modifiers by implication.
+  damageAbilityModifier: z.enum(["spellcasting_ability", "not_applicable"]).optional(),
+  wallLengthReduction: z.number().optional(),
+  endsWhenLengthZero: z.boolean().optional(),
   notes: z.string().optional(),
 });
 
@@ -691,7 +737,10 @@ const SummoningEffect = BaseEffect.extend({
     // Special Integrations
     telepathyRange: z.number().optional(),
     sharedSenses: z.boolean().optional(),
-    sharedSensesCost: z.enum(["action", "bonus_action"]).optional(),
+    // Runtime summon abilities already support free/no-action shared senses
+    // costs. Keep the validator aligned so spell JSON can express those rules
+    // without being rejected before SummoningCommand sees the metadata.
+    sharedSensesCost: z.enum(["action", "bonus_action", "free", "none"]).optional(),
     specialActions: z.array(SummonSpecialAction).optional()
   })
 });
@@ -703,12 +752,25 @@ const AreaOfEffect = z.object({
 });
 
 const TerrainManipulation = z.object({
-  type: z.enum(["excavate", "fill", "difficult", "normal", "cosmetic"]),
+  type: z.enum(["excavate", "fill", "difficult", "normal", "cosmetic", "reshape"]),
   volume: z.object({
-    shape: z.literal("Cube"),
+    shape: z.enum(["Cube", "Square"]),
     size: z.number(),
     depth: z.number().optional()
   }).optional(),
+  // Move Earth reshapes a large terrain patch over time rather than instantly
+  // creating a wall object. These fields keep the allowed materials, output
+  // forms, slow completion cadence, and structure/plant side effects readable.
+  materialOptions: z.array(z.string()).optional(),
+  excludedMaterials: z.array(z.string()).optional(),
+  formOptions: z.array(z.enum(["elevation", "trench", "wall", "pillar", "not_applicable"])).optional(),
+  maxChangeFeet: z.number().optional(),
+  completionTimeMinutes: z.number().optional(),
+  canChooseNewAreaAfterCompletion: z.boolean().optional(),
+  slowTransformationPreventsTrappingOrInjury: z.boolean().optional(),
+  rocksAndStructuresShift: z.boolean().optional(),
+  unstableStructuresMayCollapse: z.boolean().optional(),
+  carriesPlantsWithoutAffectingGrowth: z.boolean().optional(),
   duration: EffectDuration.optional(),
   depositDistance: z.number().optional()
 });
@@ -739,6 +801,307 @@ const SavePenaltyData = z.object({
   duration: EffectDuration.optional() // Falls back to spell duration if not specified
 });
 
+const CreatedObject = z.object({
+  // Utility creation effects can now preserve object stacks without forcing
+  // every created thing into summons or terrain. Goodberry is the first compact
+  // consumable pilot: ten discrete food items with healing and nourishment.
+  objectType: z.enum(["food", "water", "ammunition", "weapon", "portal", "structure", "hazard", "other"]),
+  name: z.string(),
+  count: z.number(),
+  countScaling: z.object({
+    type: z.literal("slot_level"),
+    bonusPerLevel: z.number()
+  }).optional(),
+  countUnit: z.enum(["item", "pound", "gallon", "cubic_foot", "square_foot", "structure", "not_applicable"]),
+  appearsIn: z.enum(["caster_hand", "target_container", "ground", "unoccupied_space", "spell_area", "not_applicable"]),
+  shapeOptions: z.array(z.string()).optional(),
+  materialOptions: z.array(z.string()).optional(),
+  // Creation pulls temporary nonliving matter from the Shadowfell. These fields
+  // keep its player-choice limits, upcast size scaling, material-based expiry,
+  // and material-component failure rule machine-readable instead of prose-only.
+  nonlivingObjectOnly: z.boolean().optional(),
+  requiresSeenFormAndMaterial: z.boolean().optional(),
+  materialSource: z.string().optional(),
+  maxCreatedObjectCubeFeet: z.number().optional(),
+  maxCreatedObjectCubeScaling: z.object({
+    type: z.literal("slot_level"),
+    bonusPerLevel: z.number()
+  }).optional(),
+  durationByMaterial: z.record(z.string()).optional(),
+  mixedMaterialsUseShortestDuration: z.boolean().optional(),
+  cannotServeAsMaterialComponent: z.boolean().optional(),
+  // Fabricate transforms visible raw materials into finished products. These
+  // fields keep the material, size, quality, forbidden-output, and tool-gate
+  // limits machine-readable for future crafting and inventory systems.
+  requiresVisibleRawMaterials: z.boolean().optional(),
+  consumesSourceMaterials: z.boolean().optional(),
+  outputSameMaterialAsSource: z.boolean().optional(),
+  maxFabricatedObjectCubeFeet: z.number().optional(),
+  maxConnectedFiveFootCubes: z.number().optional(),
+  maxMineralObjectCubeFeet: z.number().optional(),
+  qualityLimitedByMaterials: z.boolean().optional(),
+  cannotCreateCreatures: z.boolean().optional(),
+  cannotCreateMagicItems: z.boolean().optional(),
+  skilledGoodsRequireToolProficiency: z.boolean().optional(),
+  // Stone Shape can create useful stone forms, but it has hard limits on the
+  // size of the affected stone and on fine mechanical detail. Keeping those
+  // limits here lets map/object systems distinguish a shaped passage or latch
+  // from an unrestricted fabrication tool.
+  maxStoneDimensionFeet: z.number().optional(),
+  maxHinges: z.number().optional(),
+  canIncludeLatch: z.boolean().optional(),
+  canCreateFineMechanicalDetail: z.boolean().optional(),
+  levels: z.number().optional(),
+  levelScaling: z.object({
+    type: z.literal("slot_level"),
+    bonusPerLevel: z.number()
+  }).optional(),
+  levelHeightFeet: z.number().optional(),
+  areaPerLevelSquareFeet: z.number().optional(),
+  accessBetweenLevels: z.boolean().optional(),
+  secureOpenings: z.boolean().optional(),
+  furnished: z.boolean().optional(),
+  weatherProtected: z.boolean().optional(),
+  dedicationSource: z.string().optional(),
+  appearanceChosenByCaster: z.boolean().optional(),
+  interiorFeatures: z.array(z.string()).optional(),
+  doorCount: z.number().optional(),
+  doorControlledByCasterAndDesignates: z.boolean().optional(),
+  windowsCasterChoice: z.boolean().optional(),
+  illuminationOptions: z.array(z.enum(["bright", "dim", "unlit", "not_applicable"])).optional(),
+  ambientScent: z.string().optional(),
+  ambientTemperature: z.enum(["mild", "normal", "not_applicable"]).optional(),
+  portalWidthFeet: z.number().optional(),
+  portalHeightFeet: z.number().optional(),
+  extradimensionalSpace: z.boolean().optional(),
+  capacityCreatures: z.number().optional(),
+  capacityCreatureMaxSize: z.string().optional(),
+  blocksCrossBoundaryEffects: z.boolean().optional(),
+  occupantsCanSeeOut: z.boolean().optional(),
+  contentsDropOutOnEnd: z.boolean().optional(),
+  safelyEjectsContentsOnEnd: z.boolean().optional(),
+  preservesStructuralStability: z.boolean().optional(),
+  requiresAnchoring: z.boolean().optional(),
+  anchoringOptions: z.array(z.string()).optional(),
+  collapsesIfUnsupported: z.boolean().optional(),
+  collapseTiming: z.string().optional(),
+  obscuresArea: z.enum(["lightly", "heavily", "not_applicable"]).optional(),
+  // Blade Barrier-style walls are not solid barriers, but they do provide
+  // cover and make their own space hard to cross. Keep those battlefield facts
+  // on the created object so map systems can consume them later.
+  providesCover: z.enum(["half", "three_quarters", "total", "not_applicable"]).optional(),
+  spaceIsDifficultTerrain: z.boolean().optional(),
+  // Wall of Water-style barriers alter attacks and elemental damage that pass
+  // through them. Keep these pass-through rules on the created object so combat
+  // can later enforce them without parsing spell descriptions.
+  rangedWeaponAttacksThroughHaveDisadvantage: z.boolean().optional(),
+  reducesPassingDamageType: z.string().optional(),
+  passingDamageMultiplier: z.number().optional(),
+  canFreezeFromDamageType: z.string().optional(),
+  frozenSectionSizeFeet: z.number().optional(),
+  frozenSectionArmorClass: z.number().optional(),
+  frozenSectionHitPoints: z.number().optional(),
+  destroyedFrozenSectionsDoNotRefill: z.boolean().optional(),
+  // Wall/barrier objects need blocking and destruction rules in data so future
+  // map targeting can enforce them without reparsing prose. Wall of Force is
+  // the first force-barrier pilot for this contract.
+  wallLengthFeet: z.number().optional(),
+  wallHeightFeet: z.number().optional(),
+  wallThickness: z.number().optional(),
+  wallThicknessUnit: z.enum(["feet", "inches", "not_applicable"]).optional(),
+  panelCount: z.number().optional(),
+  panelWidthFeet: z.number().optional(),
+  panelHeightFeet: z.number().optional(),
+  panelContiguityRequired: z.boolean().optional(),
+  orientationOptions: z.array(z.enum(["horizontal", "vertical", "diagonal", "angled", "caster_choice", "not_applicable"])).optional(),
+  freeFloating: z.boolean().optional(),
+  blocksPhysicalPassage: z.boolean().optional(),
+  blocksLineOfSight: z.boolean().optional(),
+  blocksEtherealTravel: z.boolean().optional(),
+  blocksSpellEffects: z.boolean().optional(),
+  blocksEnergyEffects: z.boolean().optional(),
+  breathableInside: z.boolean().optional(),
+  immuneToDamage: z.boolean().optional(),
+  objectArmorClass: z.number().optional(),
+  hitPointsPerInchThickness: z.number().optional(),
+  sectionHitPoints: z.number().optional(),
+  damageImmunities: z.array(z.string()).optional(),
+  damageVulnerabilities: z.array(z.string()).optional(),
+  immuneToDispelMagic: z.boolean().optional(),
+  immuneToAntimagicField: z.boolean().optional(),
+  blocksDivinationSensorsInside: z.boolean().optional(),
+  blocksDivinationTargetingInside: z.boolean().optional(),
+  opposedCreatureTypeOptions: z.array(z.string()).optional(),
+  opposedCreatureEntrySaveType: SavingThrowAbility.optional(),
+  opposedCreatureEntryBlockedDurationHours: z.number().optional(),
+  opposedCreaturePenaltyDice: z.string().optional(),
+  healingBonusAbilityModifier: z.enum(["Wisdom", "spellcasting_ability", "not_applicable"]).optional(),
+  healingBonusMinimum: z.number().optional(),
+  healingBonusTrigger: z.string().optional(),
+  permanenceRequiresDailyCasts: z.number().optional(),
+  permanenceSameLocationRequired: z.boolean().optional(),
+  createdEntityKind: z.enum(["clone_body", "inert_duplicate", "suspended_body", "astral_form", "other"]).optional(),
+  growthDurationDays: z.number().optional(),
+  maturesInVessel: z.boolean().optional(),
+  vesselRequired: z.boolean().optional(),
+  vesselMinimumValueGp: z.number().optional(),
+  vesselMustRemainUndisturbed: z.boolean().optional(),
+  inertUntilTrigger: z.boolean().optional(),
+  activationTrigger: z.string().optional(),
+  soulMustBeFreeAndWilling: z.boolean().optional(),
+  soulTransferConsumesOriginalRevival: z.boolean().optional(),
+  duplicateRetainsPersonalityMemoriesAbilities: z.boolean().optional(),
+  duplicateHasOriginalEquipment: z.boolean().optional(),
+  casterChoosesFinalAge: z.boolean().optional(),
+  enduresIndefinitelyAfterMature: z.boolean().optional(),
+  needsFoodOrAir: z.boolean().optional(),
+  agesWhileSuspended: z.boolean().optional(),
+  linkedToCounterpartForm: z.boolean().optional(),
+  silverCordLink: z.boolean().optional(),
+  silverCordVisibleDistanceFeet: z.number().optional(),
+  silverCordCutEffect: z.string().optional(),
+  damageSharedWithCounterpart: z.boolean().optional(),
+  effectsSharedWithCounterpart: z.boolean().optional(),
+  planarExitTransfersBodyAndPossessions: z.boolean().optional(),
+  endsWhenBodyOrFormDropsToZeroHp: z.boolean().optional(),
+  returnsToBodyOnEndIfAlive: z.boolean().optional(),
+  permanentAfterFullDuration: z.boolean().optional(),
+  nonDispellableWhenPermanent: z.boolean().optional(),
+  destroyedBySpells: z.array(z.string()).optional(),
+  pushesCreaturesToChosenSide: z.boolean().optional(),
+  enclosureEscapeSaveType: SavingThrowAbility.optional(),
+  enclosureEscapeUsesReaction: z.boolean().optional(),
+  enclosureEscapeMoveDistance: z.enum(["speed", "not_applicable"]).optional(),
+  leavesHazardOnSectionDestroyed: z.boolean().optional(),
+  lingeringHazardName: z.string().optional(),
+  lingeringHazardDamage: DamageData.optional(),
+  lingeringHazardSaveType: SavingThrowAbility.optional(),
+  lingeringHazardSaveEffect: z.enum(["none", "half", "negates_condition"]).optional(),
+  lingeringHazardFrequency: z.enum(["first_per_turn", "every_time", "once_per_creature"]).optional(),
+  // Movable hazards, such as Flaming Sphere, need enough geometry and motion
+  // data for later map enforcement without being promoted to summoned actors.
+  diameterFeet: z.number().optional(),
+  objectLengthFeet: z.number().optional(),
+  moveDistanceFeet: z.number().optional(),
+  attackReachFeet: z.number().optional(),
+  attacksPerActivation: z.number().optional(),
+  criticalHitThreshold: z.number().optional(),
+  passesHarmlesslyThroughBarriers: z.boolean().optional(),
+  canTargetLooseObjects: z.boolean().optional(),
+  canTargetStructures: z.boolean().optional(),
+  prisonModeOptions: z.array(z.enum(["burial", "chaining", "hedged_prison", "minimus_containment", "slumber", "not_applicable"])).optional(),
+  demiplaneFormOptions: z.array(z.string()).optional(),
+  blocksTeleportation: z.boolean().optional(),
+  blocksPlanarTravel: z.boolean().optional(),
+  lightPassesThroughOnly: z.boolean().optional(),
+  containedCreatureSizeInches: z.number().optional(),
+  observableEndingTriggerRequired: z.boolean().optional(),
+  endingTriggerExpectedWithinYears: z.number().optional(),
+  dispelMagicMinimumSlotLevel: z.number().optional(),
+  dispelMagicTargetOptions: z.array(z.string()).optional(),
+  failsIfPlacedInOccupiedSpace: z.boolean().optional(),
+  safePassageAllowedFor: z.array(z.string()).optional(),
+  proximityTriggerRadiusFeet: z.number().optional(),
+  layerCount: z.number().optional(),
+  layerOrder: z.array(z.string()).optional(),
+  layersDestroyedInOrder: z.boolean().optional(),
+  destroyedLayersRemainGone: z.boolean().optional(),
+  dispelMagicAffectsOnlyLayer: z.string().optional(),
+  requiresLayerEffectTable: z.boolean().optional(),
+  movableByOccupants: z.boolean().optional(),
+  movableByExternalCreatures: z.boolean().optional(),
+  occupantRollSpeedMultiplier: z.number().optional(),
+  hoverMaxHeightFeet: z.number().optional(),
+  safelyDescendsOverDrops: z.boolean().optional(),
+  barrierHeightFeet: z.number().optional(),
+  pitJumpWidthFeet: z.number().optional(),
+  hazardRadiusFeet: z.number().optional(),
+  // Fire-wall hazards can damage only a chosen side while still damaging
+  // creatures inside the wall. These fields preserve the side and timing
+  // contract for later map enforcement.
+  hazardSide: z.enum(["caster_choice", "all_sides", "inside", "outside", "not_applicable"]).optional(),
+  hazardTriggers: z.array(z.enum(["enter", "end_turn_inside", "end_turn_within_radius", "first_per_turn"])).optional(),
+  // Shape Water-style utility spells alter a bounded volume of existing
+  // material. These fields keep the legal volume, movement, visual, animation,
+  // and freezing modes available to UI/runtime systems without interpreting prose.
+  affectedVolumeShape: z.enum(["Cube", "Sphere", "Line", "Wall", "not_applicable"]).optional(),
+  affectedVolumeSizeFeet: z.number().optional(),
+  maxManipulationDistanceFeet: z.number().optional(),
+  manipulationOptions: z.array(z.string()).optional(),
+  // Large environmental water-control spells need mode metadata for flood,
+  // part-water, redirect-flow, and whirlpool behavior without creating a new
+  // effect type for every natural-water shape.
+  waterLevelChangeFeet: z.number().optional(),
+  vehicleCapsizeChancePercent: z.number().optional(),
+  maxAffectedVehicleSize: z.string().optional(),
+  repeatsOnCasterTurn: z.boolean().optional(),
+  pullDistanceFeet: z.number().optional(),
+  escapeCheck: z.string().optional(),
+  canAnimateSimpleShapes: z.boolean().optional(),
+  canChangeColorOrOpacity: z.boolean().optional(),
+  canFreeze: z.boolean().optional(),
+  freezeRequiresNoCreatures: z.boolean().optional(),
+  // Transient conjured water effects, such as Tidal Wave, need dimensions and
+  // cleanup behavior even though they disappear immediately instead of staying
+  // on the map as a wall or terrain zone.
+  waveLengthFeet: z.number().optional(),
+  waveWidthFeet: z.number().optional(),
+  waveHeightFeet: z.number().optional(),
+  extinguishesUnprotectedFlamesRadiusFeet: z.number().optional(),
+  vanishesAfterEffect: z.boolean().optional(),
+  // Watery Sphere-style objects restrain and carry occupants, so the sphere's
+  // capacity and ejection rules need to travel with the created object rather
+  // than living only in the status-condition prose.
+  capacityMediumOrSmallerCreatures: z.number().optional(),
+  capacityLargeCreatures: z.number().optional(),
+  occupantsMoveWithObject: z.boolean().optional(),
+  overflowEjectionRule: z.enum(["random_existing_occupant", "newest_creature", "not_applicable"]).optional(),
+  successfulSaveEjectsCreature: z.boolean().optional(),
+  ejectionDistanceFeet: z.number().optional(),
+  occupantsProneOnEnd: z.boolean().optional(),
+  trapsCreaturesOnSurface: z.boolean().optional(),
+  trappedCondition: z.string().optional(),
+  ignitesTouchedObjects: z.boolean().optional(),
+  depthFeet: z.number().optional(),
+  flammable: z.boolean().optional(),
+  burnUnitSizeFeet: z.number().optional(),
+  burnDurationRounds: z.number().optional(),
+  burnDamage: z.object({
+    dice: z.string(),
+    type: z.string(),
+    mitigationBypass: z.array(z.enum(["resistance", "immunity", "damage_reduction", "damage_prevention"])).optional(),
+  }).optional(),
+  // Orbiting expendables cover spells such as Melf's Minute Meteors without
+  // pretending each small charge is an independent summon or terrain zone.
+  orbitsCaster: z.boolean().optional(),
+  expendable: z.boolean().optional(),
+  maxExpendedPerAction: z.number().optional(),
+  consumeAction: z.enum(["action", "bonus_action", "reaction", "free", "not_applicable"]).optional(),
+  healingPerItem: z.number().optional(),
+  nourishmentDaysPerItem: z.number().optional(),
+  // Long-running enrichment spells alter a future harvest instead of creating
+  // immediate inventory. These fields let travel/provision systems recognize
+  // the yield rule without scraping prose from the spell description.
+  harvestYieldMultiplier: z.number().optional(),
+  harvestYieldRadiusFeet: z.number().optional(),
+  harvestYieldDurationDays: z.number().optional(),
+  harvestYieldAppliesTo: z.enum(["plants", "food_plants", "not_applicable"]).optional(),
+  harvestBenefitLimit: z.string().optional(),
+  // Some created supplies are measured as pounds or gallons in spell text but
+  // need canonical inventory ids/stack quantities so travel provisioning can
+  // count them without learning spell-specific names.
+  inventoryItemId: z.string().optional(),
+  inventoryQuantity: z.number().optional(),
+  inventoryQuantityScaling: z.object({
+    type: z.literal("slot_level"),
+    bonusPerLevel: z.number()
+  }).optional(),
+  perishable: z.boolean().optional(),
+  expiresWithSpell: z.boolean().optional(),
+  shelfLife: z.string().optional(),
+  notes: z.string().optional(),
+});
+
 const UtilityEffect = BaseEffect.extend({
   type: z.literal("UTILITY"),
   utilityType: z.enum(["light", "communication", "creation", "information", "control", "sensory", "other"]),
@@ -746,6 +1109,8 @@ const UtilityEffect = BaseEffect.extend({
   attackAugments: z.array(AttackAugment).optional(),
   abilityCheckModifier: AbilityCheckModifier.optional(),
   controlledEntity: ControlledEntity.optional(),
+  createdObjects: z.array(CreatedObject).optional(),
+  objectAccessChange: ObjectAccessChange.optional(),
   controlOptions: z.array(ControlOption).optional(),
   taunt: TauntEffect.optional(),
   savePenalty: SavePenaltyData.optional(), // For effects like Mind Sliver that impose save penalties

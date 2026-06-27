@@ -16,7 +16,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
-import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, type CellTraits, type BurgTier, type AtlasLegendEntry } from './atlasSvg';
+import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, buildProvisionRingPath, type CellTraits, type BurgTier, type AtlasLegendEntry } from './atlasSvg';
 import AtlasLayers from './AtlasLayers';
 import type { RoutePlan } from '../../systems/travel/routePlanning';
 import type { MultiModalRoute } from '../../systems/travel/multiModalRoute';
@@ -49,6 +49,19 @@ export interface AtlasSvgViewProps {
   planMultiModalRoute?: (toCell: number) => MultiModalRoute | null;
   /** Transport label for the travel readout (e.g. "on foot", "by horse"). */
   transportLabel?: string;
+  /**
+   * Provisioning rings (travel logistics): one glowing contour per resource
+   * horizon. MapPane passes the in-range cell set for each binding resource
+   * (food, water) so the player sees how far current supplies reach BEFORE
+   * clicking. Two rings appear only when the food and water horizons differ.
+   */
+  provisionRings?: Array<{ cellIds: number[]; color: string; label?: string }>;
+  /**
+   * Provisions readout for the hovered route's duration (minutes): the line of
+   * supply the trip would cost ("Food: 6 days" / "Water: 2 days · short 1 day").
+   * MapPane owns the provisioning math; this just renders the returned string.
+   */
+  provisionLineForMinutes?: (minutes: number) => { text: string; color: string } | null;
   /**
    * Scope for persisted layer prefs (map coloring + feature toggles). Pass a
    * stable per-world/per-save id (e.g. the world seed) so different campaigns
@@ -108,7 +121,7 @@ const AREA_MODES: AreaModeDef[] = [
 
 // ── Feature layers (independent toggles, drawn on top of the coloring) ─────────
 type FeatureLayerId =
-  | 'rivers' | 'routes' | 'borders' | 'coast' | 'ice' | 'zones' | 'military'
+  | 'rivers' | 'routes' | 'borders' | 'coast' | 'ice' | 'zones' | 'danger' | 'military'
   | 'burgs' | 'markers' | 'labels' | 'cells' | 'grid' | 'vignette';
 interface FeatureLayerDef {
   id: FeatureLayerId;
@@ -125,6 +138,7 @@ const FEATURE_LAYERS: FeatureLayerDef[] = [
   { id: 'coast', label: 'Coastline', group: 'Features', desc: 'Inked shore between land and sea' },
   { id: 'ice', label: 'Ice', group: 'Features', desc: 'Glaciers and frozen sea', dataKey: 'iceCells' },
   { id: 'zones', label: 'Zones', group: 'Features', desc: 'Event/danger areas: wars, plagues, disasters', dataKey: 'zoneCells' },
+  { id: 'danger', label: 'Danger', group: 'Features', desc: 'Where is it risky to travel? Threat from wars, plagues and hostile terrain (blends over any coloring)', dataKey: 'dangerCells' },
   { id: 'military', label: 'Military', group: 'Features', desc: 'State regiments and fleets', dataKey: 'regiments' },
   { id: 'burgs', label: 'Burgs', group: 'Places', desc: 'Towns and cities (★ = capital)' },
   { id: 'markers', label: 'Markers', group: 'Places', desc: 'Points of interest', dataKey: 'poiMarkers' },
@@ -136,7 +150,7 @@ const FEATURE_LAYERS: FeatureLayerDef[] = [
 const FEATURE_GROUPS: Array<FeatureLayerDef['group']> = ['Features', 'Places', 'Reference'];
 
 const DEFAULT_FEATURES: Record<FeatureLayerId, boolean> = {
-  rivers: true, routes: true, borders: true, coast: true, ice: false, zones: false, military: false,
+  rivers: true, routes: true, borders: true, coast: true, ice: false, zones: false, danger: false, military: false,
   burgs: true, markers: false, labels: true, cells: false, grid: false, vignette: false,
 };
 const DEFAULT_AREA_MODE: AreaModeId = 'biomes';
@@ -219,7 +233,7 @@ const SECTION_HEADER: React.CSSProperties = {
   letterSpacing: 0.5, marginBottom: 3,
 };
 
-const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], onPickCell, travelActive = false, planRoute, planMultiModalRoute, transportLabel = 'on foot', prefsScope }) => {
+const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], onPickCell, travelActive = false, planRoute, planMultiModalRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope }) => {
   const model = useMemo(() => buildAtlasSvgModel(atlas), [atlas]);
 
   // Map coloring is a single exclusive choice; feature layers are independent
@@ -303,6 +317,9 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   // Index into model.burgs when the cursor is over a settlement glyph — its info
   // panel takes over from the generic cell readout while hovered.
   const [hoveredBurg, setHoveredBurg] = useState<number | null>(null);
+  // Index into model.burgs when a settlement glyph has been CLICKED — opens a
+  // pinned town detail card (deeper than the transient hover readout).
+  const [selectedBurg, setSelectedBurg] = useState<number | null>(null);
   const [infoVerbosity, setInfoVerbosity] = useState<InfoVerbosity>('standard');
   const fitView = useCallback(() => {
     const k = Math.min(width / model.width, height / model.height);
@@ -369,6 +386,24 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     return { gx: (sx - view.x) / view.k, gy: (sy - view.y) / view.k };
   };
   const DRAG_SLOP = 4; // px of movement before a press is treated as a pan
+  // The visible burg under a graph-space point (within a ~16px screen radius), or
+  // null. Shared by hover (info takeover) and click (open detail panel).
+  const findBurgAt = (gx: number, gy: number): number | null => {
+    if (!visible.burgs) return null;
+    const rGraph = 16 / view.k;
+    let best = rGraph * rGraph;
+    let hit: number | null = null;
+    const burgs = model.burgs ?? [];
+    for (let bi = 0; bi < burgs.length; bi++) {
+      const b = burgs[bi];
+      if (view.k < BURG_MIN_K[b.tier]) continue; // hidden at this zoom → not pickable
+      const dx = b.x - gx;
+      const dy = b.y - gy;
+      const dd = dx * dx + dy * dy;
+      if (dd < best) { best = dd; hit = bi; }
+    }
+    return hit;
+  };
   const onMove = (e: React.MouseEvent) => {
     const d = drag.current;
     if (d) {
@@ -389,26 +424,11 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     setHoveredCell(i >= 0 ? i : null);
     // Prefer a settlement under the cursor: if a visible burg glyph is within a
     // small screen-space radius, the town info panel takes over from the cell one.
-    let hb: number | null = null;
-    if (visible.burgs) {
-      const rGraph = 16 / view.k; // ~16px hit radius, converted to graph units
-      let best = rGraph * rGraph;
-      const burgs = model.burgs ?? [];
-      for (let bi = 0; bi < burgs.length; bi++) {
-        const b = burgs[bi];
-        if (view.k < BURG_MIN_K[b.tier]) continue; // hidden at this zoom → not hoverable
-        const dx = b.x - p.gx;
-        const dy = b.y - p.gy;
-        const dd = dx * dx + dy * dy;
-        if (dd < best) { best = dd; hb = bi; }
-      }
-    }
-    setHoveredBurg(hb);
+    setHoveredBurg(findBurgAt(p.gx, p.gy));
   };
   const onUp = () => { drag.current = null; };
   const onLeave = () => { drag.current = null; setHoveredCell(null); setHoveredBurg(null); };
   const onClick = (e: React.MouseEvent) => {
-    if (!onPickCell) return;
     // Suppress the pick when the gesture was a pan — either the press moved during
     // the drag (draggedRef), or net down→up displacement exceeds the slop. This
     // stops a grab-and-pan from being read as a cell click (which travels + closes
@@ -418,6 +438,12 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     if (dp && Math.hypot(e.clientX - dp.x, e.clientY - dp.y) > DRAG_SLOP) return;
     const p = pointerToGraph(e.clientX, e.clientY);
     if (!p) return;
+    // A click on a settlement glyph opens its pinned detail card instead of
+    // picking the underlying cell (towns are inspected before you commit travel).
+    const b = findBurgAt(p.gx, p.gy);
+    if (b != null) { setSelectedBurg(b); return; }
+    setSelectedBurg(null);
+    if (!onPickCell) return;
     const i = findCellAtPoint(atlas, p.gx, p.gy);
     if (i >= 0) onPickCell(cellTraits(atlas, i));
   };
@@ -439,6 +465,15 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     const traits = cell >= 0 ? cellTraits(atlas, cell) : null;
     return { tier: b.tier, capital: b.capital, name: b.name, traits };
   }, [hoveredBurg, model.burgs, atlas]);
+  // The clicked settlement's full readout + its cell traits, for the pinned card.
+  const selectedBurgInfo = useMemo(() => {
+    if (selectedBurg == null) return null;
+    const b = (model.burgs ?? [])[selectedBurg];
+    if (!b) return null;
+    const cell = b.cell != null && b.cell >= 0 ? b.cell : findCellAtPoint(atlas, b.x, b.y);
+    const traits = cell >= 0 ? cellTraits(atlas, cell) : null;
+    return { tier: b.tier, capital: b.capital, name: b.name, traits };
+  }, [selectedBurg, model.burgs, atlas]);
   const hoveredOutline = hoveredCell != null ? cellPolygonPoints(atlas, hoveredCell) : '';
 
   // Travel preview: the fastest route from the player to the hovered cell. null
@@ -452,6 +487,16 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     [travelActive, planMultiModalRoute, hoveredCell],
   );
   const displayedRoute = multiModalRoute ?? travelRoute;
+
+  // Provisioning rings: precompute the contour path per resource horizon. Memoized
+  // on (atlas, provisionRings) so panning/hover/zoom never re-extract the boundary
+  // (a per-edge sweep over the in-range set, not free at thousands of cells).
+  const provisionRingPaths = useMemo(
+    () => provisionRings
+      .map((r) => ({ d: buildProvisionRingPath(atlas, r.cellIds), color: r.color, label: r.label }))
+      .filter((r) => r.d.length > 0),
+    [atlas, provisionRings],
+  );
 
   // "Find Me": zoom in on the player's marker and surface their current cell in
   // the info panel (the red outline + readout answer "which cell am I at?").
@@ -498,6 +543,13 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           <stop offset="55%" stopColor="#000000" stopOpacity={0} />
           <stop offset="100%" stopColor="#000000" stopOpacity={0.55} />
         </radialGradient>
+        {/* PROTOTYPE: diagonal red hatch for the derived danger overlay. A pattern
+            (not a flat tint) so threat reads as a warning texture layered OVER the
+            base coloring. userSpaceOnUse keeps the hatch pitch constant in map units. */}
+        <pattern id="danger-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width="6" height="6" fill="none" />
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#b91c1c" strokeWidth="2" />
+        </pattern>
       </defs>
       <g transform={`translate(${view.x},${view.y}) scale(${view.k})`}>
         {/* Deep base ocean; shallow depth bands (T3b) layer on top near coasts. */}
@@ -505,6 +557,16 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
         {/* Heavy static layers, memoized so hover/pan/zoom don't reconcile the
             whole (4k–18k node) subtree — the World Map freeze fix. */}
         <AtlasLayers model={model} visible={visible} />
+        {/* Provisioning rings — glowing contour of how far current supplies reach.
+            Wide soft underlay + crisp colored line per resource horizon (food /
+            water). Drawn above the base coloring but below routes + hover so the
+            travel line and cursor outline stay legible on top. */}
+        {provisionRingPaths.map((ring, idx) => (
+          <g key={`prov-ring-${idx}`} data-testid="atlas-provision-ring" data-ring-label={ring.label ?? ''} style={{ pointerEvents: 'none' }}>
+            <path d={ring.d} fill="none" stroke={ring.color} strokeOpacity={0.22} strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+            <path d={ring.d} fill="none" stroke={ring.color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+          </g>
+        ))}
         {/* Hover highlight — reddish outline on the cell under the cursor. Cheap
             sibling: re-renders on hover without touching AtlasLayers. */}
         {hoveredOutline ? (
@@ -583,7 +645,9 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
             data-testid="atlas-burg"
             data-tier={b.tier}
           >
-            {hoveredBurg === i ? (
+            {selectedBurg === i ? (
+              <circle r={15} fill="none" stroke="#f5c542" strokeWidth={2.5} opacity={0.95} />
+            ) : hoveredBurg === i ? (
               <circle r={13} fill="none" stroke="#f5c542" strokeWidth={1.5} opacity={0.9} />
             ) : null}
             {burgGlyph(b.tier)}
@@ -669,6 +733,27 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
         ⌖ Find Me
       </button>
     ) : null}
+    {/* Provisioning ring legend — labels each resource horizon (food / water) so
+        the contours read as "how far my supplies reach", not abstract lines.
+        Only shown when rings are drawn (travel mode + a finite supply horizon). */}
+    {provisionRingPaths.length > 0 ? (
+      <div
+        data-testid="atlas-provision-ring-legend"
+        style={{
+          position: 'absolute', top: marker ? 40 : 8, left: 8, fontFamily: 'sans-serif',
+          background: 'rgba(15,30,45,0.85)', border: '1px solid #475569', borderRadius: 4,
+          padding: '4px 8px', fontSize: 11, color: '#e2e8f0', pointerEvents: 'none',
+          display: 'flex', flexDirection: 'column', gap: 3,
+        }}
+      >
+        {provisionRingPaths.map((ring, idx) => (
+          <span key={`prov-legend-${idx}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+            <span style={{ width: 14, height: 0, borderTop: `2px solid ${ring.color}`, flex: '0 0 auto' }} />
+            <span>{ring.label ?? 'Supply reach'}</span>
+          </span>
+        ))}
+      </div>
+    ) : null}
     {/* Travel readout — shows the previewed route's time/distance/danger (bottom-center). */}
     {travelActive && hoveredCell != null ? (
       <div
@@ -685,6 +770,16 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           : travelRoute
           ? formatRouteSummary(travelRoute, transportLabel)
           : <span style={{ color: '#f87171' }}>No route to here</span>}
+        {/* Provisions line: how much food/water the trip would cost vs what's
+            carried (binding resource labeled). Only when a route is previewed. */}
+        {displayedRoute && provisionLineForMinutes ? (() => {
+          const prov = provisionLineForMinutes(displayedRoute.minutes);
+          return prov ? (
+            <div data-testid="atlas-provision-line" style={{ marginTop: 3, color: prov.color, fontWeight: 600 }}>
+              {prov.text}
+            </div>
+          ) : null;
+        })() : null}
       </div>
     ) : null}
     {/* Layers panel — owned atlas's equivalent of Azgaar's Layers toggle menu. */}
@@ -840,6 +935,49 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
         data-testid="atlas-cell-info"
       >
         {renderCellInfo(hoveredTraits, infoVerbosity)}
+      </div>
+    ) : null}
+    {/* Pinned town detail card — opens on CLICKING a settlement glyph. Deeper than
+        the hover readout and actionable (go here / close). */}
+    {selectedBurgInfo ? (
+      <div
+        style={{
+          position: 'absolute', top: 8, right: 8, width: 210,
+          background: 'rgba(28,20,12,0.96)', border: '1px solid #b3892f', borderRadius: 5,
+          padding: '8px 10px', fontFamily: 'sans-serif', fontSize: 12, color: '#f5ecd8',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.45)', pointerEvents: 'auto',
+        }}
+        data-testid="atlas-town-card"
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+          <strong style={{ fontSize: 14, color: '#fbf3e0' }}>
+            {selectedBurgInfo.name ?? selectedBurgInfo.traits?.burg?.name ?? 'Settlement'}
+          </strong>
+          <button
+            type="button"
+            onClick={() => setSelectedBurg(null)}
+            aria-label="Close town details"
+            style={{
+              background: 'transparent', border: 'none', color: '#cdb588', cursor: 'pointer',
+              fontSize: 16, lineHeight: 1, padding: 0,
+            }}
+          >×</button>
+        </div>
+        {renderTownInfo(selectedBurgInfo, 'full')}
+        {onPickCell && selectedBurgInfo.traits ? (
+          <button
+            type="button"
+            onClick={() => {
+              if (selectedBurgInfo.traits) onPickCell(selectedBurgInfo.traits);
+              setSelectedBurg(null);
+            }}
+            style={{
+              marginTop: 8, width: '100%', padding: '5px 0', cursor: 'pointer',
+              background: '#b3892f', border: 'none', borderRadius: 4,
+              color: '#1c1409', fontWeight: 700, fontSize: 12,
+            }}
+          >{travelActive ? 'Travel here →' : 'Go here →'}</button>
+        ) : null}
       </div>
     ) : null}
     </div>

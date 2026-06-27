@@ -72,3 +72,5 @@ It also confirmed that the older doc's test inventory had drifted and included s
 
 Re-verified on 2026-03-11.
 Treat this domain as the app shell and shared foundation lane, not as a catch-all owner of every reusable hook, component, or utility in the repository.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/domains/core-systems.md","sha256WithoutMarker":"d6a3f0cc9d6693700ddb4b171d4152a217f375b5cbfae5eb289a4378ca2f7c1c","markedAtUtc":"2026-06-26T00:12:35.434Z"} -->

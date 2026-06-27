@@ -564,6 +564,106 @@ describe('useActionExecutor', () => {
         expect(mockAddDamageNumber).not.toHaveBeenCalled();
     });
 
+    it('should synthesize hit metadata before resolving legacy ability attack reactions', async () => {
+        // Older attack actions do not always arrive from the command system
+        // with attackResults already filled in. This case proves the executor
+        // still resolves a hit/miss fact before Armor-style reactions can fire,
+        // instead of treating any attack-shaped action as a confirmed hit.
+        const meleeAttack: Ability = {
+            id: 'legacy_claw',
+            name: 'Legacy Claw',
+            description: 'A melee attack without command-provided hit metadata.',
+            type: 'attack',
+            cost: { type: 'action' },
+            targeting: 'single_enemy',
+            range: 1,
+            effects: [{ type: 'damage', value: 1, damageType: 'physical', dice: '1' }]
+        };
+        const attacker: CombatCharacter = {
+            ...mockCharacter,
+            id: 'legacy_attacker',
+            name: 'Legacy Attacker',
+            position: { x: 1, y: 0 },
+            abilities: [meleeAttack]
+        };
+        const protectedCaster: CombatCharacter = {
+            ...mockCharacter,
+            id: 'protected_caster',
+            name: 'Protected Caster',
+            position: { x: 0, y: 0 },
+            armorClass: 30,
+            tempHP: 5,
+            temporaryHitPointSource: {
+                spellId: 'armor-of-agathys',
+                spellName: 'Armor of Agathys',
+                casterId: 'protected_caster'
+            },
+            abilities: []
+        };
+        const armorRetaliation: SpellEffect = {
+            type: 'DAMAGE',
+            trigger: {
+                type: 'on_target_attack',
+                frequency: 'every_time',
+                consumption: 'unlimited',
+                attackFilter: {
+                    weaponType: 'melee',
+                    attackType: 'weapon'
+                }
+            },
+            condition: { type: 'always' },
+            conditionalEndings: [{
+                trigger: 'temporary_hit_points_depleted',
+                scope: 'spell',
+                description: 'The spell ends when its own temporary hit points are gone.'
+            }],
+            damage: { dice: '5', type: 'Cold' },
+            description: 'The armor retaliates only after a melee weapon hit.'
+        };
+
+        mockConsumeAction.mockReturnValue(attacker);
+        const missRoll = vi.spyOn(Math, 'random').mockReturnValue(0);
+
+        try {
+            const { result } = renderHook(() => useActionExecutor({
+                ...defaultProps,
+                characters: [attacker, protectedCaster],
+                reactiveTriggers: [{
+                    id: 'armor-retaliation-legacy-miss',
+                    sourceEffect: armorRetaliation,
+                    sourceSpellId: 'armor-of-agathys',
+                    sourceSpellName: 'Armor of Agathys',
+                    casterId: protectedCaster.id,
+                    targetId: protectedCaster.id,
+                    createdTurn: 1
+                }]
+            }));
+
+            const action: CombatAction = {
+                id: 'legacy-claw-protected-caster',
+                characterId: attacker.id,
+                type: 'ability',
+                abilityId: meleeAttack.id,
+                targetCharacterIds: [protectedCaster.id],
+                targetPosition: protectedCaster.position,
+                cost: { type: 'action' },
+                timestamp: Date.now()
+            };
+
+            const success = await result.current.executeAction(action);
+
+            expect(success).toBe(true);
+            expect(mockHandleDamage).not.toHaveBeenCalledWith(
+                expect.objectContaining({ id: attacker.id }),
+                5,
+                'reactive effect',
+                'Cold'
+            );
+        } finally {
+            missRoll.mockRestore();
+        }
+    });
+
     it('should use attackResults weaponType before fallback ability range for reactive filters', async () => {
         // The command pipeline can now preserve the actual attack family on
         // attackResults after the roll resolves. If that payload says the hit
@@ -948,6 +1048,125 @@ describe('useActionExecutor', () => {
         expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
             message: expect.stringContaining('Opportunity Attack')
         }));
+    });
+
+    it('should trigger Armor-style retaliation from a hit Opportunity Attack and suppress it on a miss', async () => {
+        // Armor of Agathys-style effects are on-target-attack reactions, not
+        // normal attack commands. This protects the movement/OA producer so it
+        // sends the same explicit hit/miss payload that command-backed attacks
+        // now replay through CombatAction.attackResults.
+        const scimitar: Ability = {
+            id: 'scimitar',
+            name: 'Scimitar',
+            description: 'A close melee attack.',
+            type: 'attack' as const,
+            cost: { type: 'action' as const },
+            targeting: 'single_enemy' as const,
+            weapon: { id: 'scimitar_item', name: 'Scimitar', description: 'A scimitar', type: 'weapon', properties: ['finesse'] },
+            range: 1,
+            effects: [{ type: 'damage' as const, value: 4, damageType: 'physical' as const, dice: '1d6' }]
+        };
+        const armorRetaliation: SpellEffect = {
+            type: 'DAMAGE',
+            trigger: {
+                type: 'on_target_attack',
+                frequency: 'every_time',
+                consumption: 'unlimited',
+                attackFilter: {
+                    weaponType: 'melee',
+                    attackType: 'weapon'
+                }
+            },
+            condition: { type: 'always' },
+            conditionalEndings: [{
+                trigger: 'temporary_hit_points_depleted',
+                scope: 'spell',
+                description: 'The spell ends when its own temporary hit points are gone.'
+            }],
+            damage: { dice: '5', type: 'Cold' },
+            description: 'The armor retaliates only after a melee weapon hit.'
+        };
+        const protectedMover = {
+            ...mockCharacter,
+            id: 'protected_mover',
+            name: 'Protected Mover',
+            position: { x: 0, y: 1 },
+            tempHP: 5,
+            temporaryHitPointSource: {
+                spellId: 'armor-of-agathys',
+                spellName: 'Armor of Agathys',
+                casterId: 'protected_mover'
+            }
+        };
+        const attacker: CombatCharacter = {
+            ...mockEnemy,
+            id: 'oa_attacker',
+            name: 'Opportunity Attacker',
+            position: { x: 0, y: 0 },
+            abilities: [scimitar]
+        };
+        const moveAction: CombatAction = {
+            id: 'protected-mover-leaves-reach',
+            characterId: protectedMover.id,
+            type: 'move',
+            targetPosition: { x: 0, y: 3 },
+            cost: { type: 'movement-only', movementCost: 10 },
+            timestamp: Date.now()
+        };
+
+        const hitRoll = vi.spyOn(Math, 'random').mockReturnValue(0.95);
+        const hitHarness = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [protectedMover, attacker],
+            reactiveTriggers: [{
+                id: 'armor-retaliation-opportunity-hit',
+                sourceEffect: armorRetaliation,
+                sourceSpellId: 'armor-of-agathys',
+                sourceSpellName: 'Armor of Agathys',
+                casterId: protectedMover.id,
+                targetId: protectedMover.id,
+                createdTurn: 1
+            }]
+        }));
+
+        expect(await hitHarness.result.current.executeAction(moveAction)).toBe(true);
+        expect(mockHandleDamage).toHaveBeenCalledWith(
+            expect.objectContaining({ id: attacker.id }),
+            5,
+            'reactive effect',
+            'Cold'
+        );
+        hitRoll.mockRestore();
+
+        vi.clearAllMocks();
+        mockCanAfford.mockReturnValue(true);
+        mockConsumeAction.mockImplementation((character) => character);
+        mockProcessTileEffects.mockImplementation((character) => character);
+        mockProcessRepeatSaves.mockReturnValue(mockCharacter);
+
+        const missRoll = vi.spyOn(Math, 'random').mockReturnValue(0);
+        const missHarness = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [protectedMover, attacker],
+            reactiveTriggers: [{
+                id: 'armor-retaliation-opportunity-miss',
+                sourceEffect: armorRetaliation,
+                sourceSpellId: 'armor-of-agathys',
+                sourceSpellName: 'Armor of Agathys',
+                casterId: protectedMover.id,
+                targetId: protectedMover.id,
+                createdTurn: 1
+            }]
+        }));
+
+        expect(await missHarness.result.current.executeAction(moveAction)).toBe(true);
+        expect(mockHandleDamage).not.toHaveBeenCalledWith(
+            expect.objectContaining({ id: attacker.id }),
+            5,
+            'reactive effect',
+            'Cold'
+        );
+        missRoll.mockRestore();
     });
 
     it('should omit proficiency bonus from opportunity attacks with non-proficient weapons', async () => {

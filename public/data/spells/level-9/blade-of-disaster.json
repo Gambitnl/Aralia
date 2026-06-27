@@ -323,6 +323,33 @@
           "effect": "The blade harmlessly passes through barriers, including Wall of Force."
         }
       ],
+      "createdObjects": [
+        {
+          "objectType": "weapon",
+          "name": "Planar Blade",
+          "count": 1,
+          "countUnit": "rift",
+          "appearsIn": "unoccupied visible space",
+          "shapeOptions": [
+            "blade-shaped planar rift"
+          ],
+          "materialOptions": [
+            "planar rift"
+          ],
+          "objectLengthFeet": 3,
+          "moveDistanceFeet": 30,
+          "attackReachFeet": 5,
+          "attacksPerActivation": 2,
+          "criticalHitThreshold": 18,
+          "passesHarmlesslyThroughBarriers": true,
+          "blocksPhysicalPassage": false,
+          "blocksCrossBoundaryEffects": false,
+          "canTargetLooseObjects": true,
+          "canTargetStructures": true,
+          "expiresWithSpell": true,
+          "notes": "The blade appears in an unoccupied visible space, attacks creatures, loose objects, or structures within 5 feet, can be moved 30 feet as a Bonus Action, and passes harmlessly through barriers including Wall of Force."
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,

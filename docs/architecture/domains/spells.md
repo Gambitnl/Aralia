@@ -56,3 +56,5 @@ This pass verified that the following are materially present:
 - Which spell execution paths still rely on silver-standard description parsing instead of fully structured effect handling?
 - Which spell gap documents remain live inputs versus purely historical migration records?
 - Which spell-facing docs should remain active reference surfaces versus preserved migration history?
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/domains/spells.md","sha256WithoutMarker":"fd7903f1011c0347d4a18e6165f8545170124e20a74b2ac8e5429c0ce91c4ecd","markedAtUtc":"2026-06-26T00:12:35.436Z"} -->

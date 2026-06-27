@@ -37,6 +37,51 @@
                 "triggering_damage_type",
                 "chosen_damage_type"
               ]
+            },
+            "disintegration": {
+              "type": "object",
+              "properties": {
+                "creatureAtZeroHp": {
+                  "type": "boolean"
+                },
+                "includesNonmagicalWornAndCarried": {
+                  "type": "boolean"
+                },
+                "revivalOnlyBy": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "automaticTargetTypes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "maxAutomaticTargetSize": {
+                  "type": "string"
+                },
+                "hugeOrLargerPortionCubeFeet": {
+                  "type": "number"
+                },
+                "residueName": {
+                  "type": "string"
+                },
+                "residueDescription": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "creatureAtZeroHp",
+                "includesNonmagicalWornAndCarried",
+                "revivalOnlyBy",
+                "automaticTargetTypes",
+                "maxAutomaticTargetSize",
+                "hugeOrLargerPortionCubeFeet",
+                "residueName",
+                "residueDescription"
+              ]
             }
           },
           "required": [
@@ -55,6 +100,99 @@
         },
         "trigger": {
           "$ref": "#/definitions/EffectTrigger"
+        },
+        "manipulation": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "excavate",
+                "fill",
+                "difficult",
+                "normal",
+                "cosmetic",
+                "reshape"
+              ]
+            },
+            "volume": {
+              "type": "object",
+              "properties": {
+                "shape": {
+                  "type": "string",
+                  "enum": [
+                    "Cube",
+                    "Square"
+                  ]
+                },
+                "size": {
+                  "type": "number"
+                },
+                "depth": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "shape",
+                "size"
+              ]
+            },
+            "materialOptions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "excludedMaterials": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "formOptions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "elevation",
+                  "trench",
+                  "wall",
+                  "pillar",
+                  "not_applicable"
+                ]
+              }
+            },
+            "maxChangeFeet": {
+              "type": "number"
+            },
+            "completionTimeMinutes": {
+              "type": "number"
+            },
+            "canChooseNewAreaAfterCompletion": {
+              "type": "boolean"
+            },
+            "slowTransformationPreventsTrappingOrInjury": {
+              "type": "boolean"
+            },
+            "rocksAndStructuresShift": {
+              "type": "boolean"
+            },
+            "unstableStructuresMayCollapse": {
+              "type": "boolean"
+            },
+            "carriesPlantsWithoutAffectingGrowth": {
+              "type": "boolean"
+            },
+            "duration": {
+              "$ref": "#/definitions/EffectDuration"
+            },
+            "depositDistance": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type"
+          ]
         }
       },
       "required": [
@@ -433,6 +571,974 @@
         "duration"
       ]
     },
+    "CreatedObject": {
+      "type": "object",
+      "properties": {
+        "objectType": {
+          "type": "string",
+          "enum": [
+            "food",
+            "water",
+            "ammunition",
+            "weapon",
+            "portal",
+            "structure",
+            "hazard",
+            "other"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "count": {
+          "type": "number"
+        },
+        "countScaling": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "slot_level"
+            },
+            "bonusPerLevel": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "bonusPerLevel"
+          ]
+        },
+        "countUnit": {
+          "type": "string",
+          "enum": [
+            "item",
+            "pound",
+            "gallon",
+            "cubic_foot",
+            "square_foot",
+            "structure",
+            "not_applicable"
+          ]
+        },
+        "appearsIn": {
+          "type": "string",
+          "enum": [
+            "caster_hand",
+            "target_container",
+            "ground",
+            "unoccupied_space",
+            "spell_area",
+            "not_applicable"
+          ]
+        },
+        "shapeOptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "materialOptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "nonlivingObjectOnly": {
+          "type": "boolean"
+        },
+        "requiresSeenFormAndMaterial": {
+          "type": "boolean"
+        },
+        "materialSource": {
+          "type": "string"
+        },
+        "maxCreatedObjectCubeFeet": {
+          "type": "number"
+        },
+        "maxCreatedObjectCubeScaling": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "slot_level"
+            },
+            "bonusPerLevel": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "bonusPerLevel"
+          ]
+        },
+        "durationByMaterial": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "mixedMaterialsUseShortestDuration": {
+          "type": "boolean"
+        },
+        "cannotServeAsMaterialComponent": {
+          "type": "boolean"
+        },
+        "requiresVisibleRawMaterials": {
+          "type": "boolean"
+        },
+        "consumesSourceMaterials": {
+          "type": "boolean"
+        },
+        "outputSameMaterialAsSource": {
+          "type": "boolean"
+        },
+        "maxFabricatedObjectCubeFeet": {
+          "type": "number"
+        },
+        "maxConnectedFiveFootCubes": {
+          "type": "number"
+        },
+        "maxMineralObjectCubeFeet": {
+          "type": "number"
+        },
+        "qualityLimitedByMaterials": {
+          "type": "boolean"
+        },
+        "cannotCreateCreatures": {
+          "type": "boolean"
+        },
+        "cannotCreateMagicItems": {
+          "type": "boolean"
+        },
+        "skilledGoodsRequireToolProficiency": {
+          "type": "boolean"
+        },
+        "maxStoneDimensionFeet": {
+          "type": "number"
+        },
+        "maxHinges": {
+          "type": "number"
+        },
+        "canIncludeLatch": {
+          "type": "boolean"
+        },
+        "canCreateFineMechanicalDetail": {
+          "type": "boolean"
+        },
+        "levels": {
+          "type": "number"
+        },
+        "levelScaling": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "slot_level"
+            },
+            "bonusPerLevel": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "bonusPerLevel"
+          ]
+        },
+        "levelHeightFeet": {
+          "type": "number"
+        },
+        "areaPerLevelSquareFeet": {
+          "type": "number"
+        },
+        "accessBetweenLevels": {
+          "type": "boolean"
+        },
+        "secureOpenings": {
+          "type": "boolean"
+        },
+        "furnished": {
+          "type": "boolean"
+        },
+        "weatherProtected": {
+          "type": "boolean"
+        },
+        "dedicationSource": {
+          "type": "string"
+        },
+        "appearanceChosenByCaster": {
+          "type": "boolean"
+        },
+        "interiorFeatures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "doorCount": {
+          "type": "number"
+        },
+        "doorControlledByCasterAndDesignates": {
+          "type": "boolean"
+        },
+        "windowsCasterChoice": {
+          "type": "boolean"
+        },
+        "illuminationOptions": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "bright",
+              "dim",
+              "unlit",
+              "not_applicable"
+            ],
+            "type": "string"
+          }
+        },
+        "ambientScent": {
+          "type": "string"
+        },
+        "ambientTemperature": {
+          "enum": [
+            "mild",
+            "normal",
+            "not_applicable"
+          ],
+          "type": "string"
+        },
+        "portalWidthFeet": {
+          "type": "number"
+        },
+        "portalHeightFeet": {
+          "type": "number"
+        },
+        "extradimensionalSpace": {
+          "type": "boolean"
+        },
+        "capacityCreatures": {
+          "type": "number"
+        },
+        "capacityCreatureMaxSize": {
+          "type": "string"
+        },
+        "blocksCrossBoundaryEffects": {
+          "type": "boolean"
+        },
+        "occupantsCanSeeOut": {
+          "type": "boolean"
+        },
+        "contentsDropOutOnEnd": {
+          "type": "boolean"
+        },
+        "safelyEjectsContentsOnEnd": {
+          "type": "boolean"
+        },
+        "preservesStructuralStability": {
+          "type": "boolean"
+        },
+        "requiresAnchoring": {
+          "type": "boolean"
+        },
+        "anchoringOptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "collapsesIfUnsupported": {
+          "type": "boolean"
+        },
+        "collapseTiming": {
+          "type": "string"
+        },
+        "obscuresArea": {
+          "type": "string",
+          "enum": [
+            "lightly",
+            "heavily",
+            "not_applicable"
+          ]
+        },
+        "providesCover": {
+          "type": "string",
+          "enum": [
+            "half",
+            "three_quarters",
+            "total",
+            "not_applicable"
+          ]
+        },
+        "spaceIsDifficultTerrain": {
+          "type": "boolean"
+        },
+        "rangedWeaponAttacksThroughHaveDisadvantage": {
+          "type": "boolean"
+        },
+        "reducesPassingDamageType": {
+          "type": "string"
+        },
+        "passingDamageMultiplier": {
+          "type": "number"
+        },
+        "canFreezeFromDamageType": {
+          "type": "string"
+        },
+        "frozenSectionSizeFeet": {
+          "type": "number"
+        },
+        "frozenSectionArmorClass": {
+          "type": "number"
+        },
+        "frozenSectionHitPoints": {
+          "type": "number"
+        },
+        "destroyedFrozenSectionsDoNotRefill": {
+          "type": "boolean"
+        },
+        "wallLengthFeet": {
+          "type": "number"
+        },
+        "wallHeightFeet": {
+          "type": "number"
+        },
+        "wallThickness": {
+          "type": "number"
+        },
+        "wallThicknessUnit": {
+          "type": "string",
+          "enum": [
+            "feet",
+            "inches",
+            "not_applicable"
+          ]
+        },
+        "panelCount": {
+          "type": "number"
+        },
+        "panelWidthFeet": {
+          "type": "number"
+        },
+        "panelHeightFeet": {
+          "type": "number"
+        },
+        "panelContiguityRequired": {
+          "type": "boolean"
+        },
+        "orientationOptions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "horizontal",
+              "vertical",
+              "diagonal",
+              "angled",
+              "caster_choice",
+              "not_applicable"
+            ]
+          }
+        },
+        "freeFloating": {
+          "type": "boolean"
+        },
+        "blocksPhysicalPassage": {
+          "type": "boolean"
+        },
+        "blocksLineOfSight": {
+          "type": "boolean"
+        },
+        "blocksEtherealTravel": {
+          "type": "boolean"
+        },
+        "blocksSpellEffects": {
+          "type": "boolean"
+        },
+        "blocksEnergyEffects": {
+          "type": "boolean"
+        },
+        "breathableInside": {
+          "type": "boolean"
+        },
+        "immuneToDamage": {
+          "type": "boolean"
+        },
+        "objectArmorClass": {
+          "type": "number"
+        },
+        "hitPointsPerInchThickness": {
+          "type": "number"
+        },
+        "sectionHitPoints": {
+          "type": "number"
+        },
+        "damageImmunities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "damageVulnerabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "immuneToDispelMagic": {
+          "type": "boolean"
+        },
+        "immuneToAntimagicField": {
+          "type": "boolean"
+        },
+        "blocksDivinationSensorsInside": {
+          "type": "boolean"
+        },
+        "blocksDivinationTargetingInside": {
+          "type": "boolean"
+        },
+        "opposedCreatureTypeOptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "opposedCreatureEntrySaveType": {
+          "$ref": "#/$defs/SavingThrowAbility"
+        },
+        "opposedCreatureEntryBlockedDurationHours": {
+          "type": "number"
+        },
+        "opposedCreaturePenaltyDice": {
+          "type": "string"
+        },
+        "healingBonusAbilityModifier": {
+          "enum": [
+            "Wisdom",
+            "spellcasting_ability",
+            "not_applicable"
+          ],
+          "type": "string"
+        },
+        "healingBonusMinimum": {
+          "type": "number"
+        },
+        "healingBonusTrigger": {
+          "type": "string"
+        },
+        "permanenceRequiresDailyCasts": {
+          "type": "number"
+        },
+        "permanenceSameLocationRequired": {
+          "type": "boolean"
+        },
+        "createdEntityKind": {
+          "enum": [
+            "clone_body",
+            "inert_duplicate",
+            "suspended_body",
+            "astral_form",
+            "other"
+          ],
+          "type": "string"
+        },
+        "growthDurationDays": {
+          "type": "number"
+        },
+        "maturesInVessel": {
+          "type": "boolean"
+        },
+        "vesselRequired": {
+          "type": "boolean"
+        },
+        "vesselMinimumValueGp": {
+          "type": "number"
+        },
+        "vesselMustRemainUndisturbed": {
+          "type": "boolean"
+        },
+        "inertUntilTrigger": {
+          "type": "boolean"
+        },
+        "activationTrigger": {
+          "type": "string"
+        },
+        "soulMustBeFreeAndWilling": {
+          "type": "boolean"
+        },
+        "soulTransferConsumesOriginalRevival": {
+          "type": "boolean"
+        },
+        "duplicateRetainsPersonalityMemoriesAbilities": {
+          "type": "boolean"
+        },
+        "duplicateHasOriginalEquipment": {
+          "type": "boolean"
+        },
+        "casterChoosesFinalAge": {
+          "type": "boolean"
+        },
+        "enduresIndefinitelyAfterMature": {
+          "type": "boolean"
+        },
+        "needsFoodOrAir": {
+          "type": "boolean"
+        },
+        "agesWhileSuspended": {
+          "type": "boolean"
+        },
+        "linkedToCounterpartForm": {
+          "type": "boolean"
+        },
+        "silverCordLink": {
+          "type": "boolean"
+        },
+        "silverCordVisibleDistanceFeet": {
+          "type": "number"
+        },
+        "silverCordCutEffect": {
+          "type": "string"
+        },
+        "damageSharedWithCounterpart": {
+          "type": "boolean"
+        },
+        "effectsSharedWithCounterpart": {
+          "type": "boolean"
+        },
+        "planarExitTransfersBodyAndPossessions": {
+          "type": "boolean"
+        },
+        "endsWhenBodyOrFormDropsToZeroHp": {
+          "type": "boolean"
+        },
+        "returnsToBodyOnEndIfAlive": {
+          "type": "boolean"
+        },
+        "permanentAfterFullDuration": {
+          "type": "boolean"
+        },
+        "nonDispellableWhenPermanent": {
+          "type": "boolean"
+        },
+        "destroyedBySpells": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pushesCreaturesToChosenSide": {
+          "type": "boolean"
+        },
+        "enclosureEscapeSaveType": {
+          "type": "string",
+          "enum": [
+            "Strength",
+            "Dexterity",
+            "Constitution",
+            "Intelligence",
+            "Wisdom",
+            "Charisma"
+          ]
+        },
+        "enclosureEscapeUsesReaction": {
+          "type": "boolean"
+        },
+        "enclosureEscapeMoveDistance": {
+          "type": "string",
+          "enum": [
+            "speed",
+            "not_applicable"
+          ]
+        },
+        "leavesHazardOnSectionDestroyed": {
+          "type": "boolean"
+        },
+        "lingeringHazardName": {
+          "type": "string"
+        },
+        "lingeringHazardDamage": {
+          "$ref": "#/definitions/DamageData"
+        },
+        "lingeringHazardSaveType": {
+          "type": "string",
+          "enum": [
+            "Strength",
+            "Dexterity",
+            "Constitution",
+            "Intelligence",
+            "Wisdom",
+            "Charisma"
+          ]
+        },
+        "lingeringHazardSaveEffect": {
+          "type": "string",
+          "enum": [
+            "none",
+            "half",
+            "negates_condition"
+          ]
+        },
+        "lingeringHazardFrequency": {
+          "type": "string",
+          "enum": [
+            "first_per_turn",
+            "every_time",
+            "once_per_creature"
+          ]
+        },
+        "diameterFeet": {
+          "type": "number"
+        },
+        "objectLengthFeet": {
+          "type": "number"
+        },
+        "moveDistanceFeet": {
+          "type": "number"
+        },
+        "attackReachFeet": {
+          "type": "number"
+        },
+        "attacksPerActivation": {
+          "type": "number"
+        },
+        "criticalHitThreshold": {
+          "type": "number"
+        },
+        "passesHarmlesslyThroughBarriers": {
+          "type": "boolean"
+        },
+        "canTargetLooseObjects": {
+          "type": "boolean"
+        },
+        "canTargetStructures": {
+          "type": "boolean"
+        },
+        "prisonModeOptions": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "burial",
+              "chaining",
+              "hedged_prison",
+              "minimus_containment",
+              "slumber",
+              "not_applicable"
+            ],
+            "type": "string"
+          }
+        },
+        "demiplaneFormOptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "blocksTeleportation": {
+          "type": "boolean"
+        },
+        "blocksPlanarTravel": {
+          "type": "boolean"
+        },
+        "lightPassesThroughOnly": {
+          "type": "boolean"
+        },
+        "containedCreatureSizeInches": {
+          "type": "number"
+        },
+        "observableEndingTriggerRequired": {
+          "type": "boolean"
+        },
+        "endingTriggerExpectedWithinYears": {
+          "type": "number"
+        },
+        "dispelMagicMinimumSlotLevel": {
+          "type": "number"
+        },
+        "dispelMagicTargetOptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "failsIfPlacedInOccupiedSpace": {
+          "type": "boolean"
+        },
+        "safePassageAllowedFor": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "proximityTriggerRadiusFeet": {
+          "type": "number"
+        },
+        "layerCount": {
+          "type": "number"
+        },
+        "layerOrder": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "layersDestroyedInOrder": {
+          "type": "boolean"
+        },
+        "destroyedLayersRemainGone": {
+          "type": "boolean"
+        },
+        "dispelMagicAffectsOnlyLayer": {
+          "type": "string"
+        },
+        "requiresLayerEffectTable": {
+          "type": "boolean"
+        },
+        "movableByOccupants": {
+          "type": "boolean"
+        },
+        "movableByExternalCreatures": {
+          "type": "boolean"
+        },
+        "occupantRollSpeedMultiplier": {
+          "type": "number"
+        },
+        "hoverMaxHeightFeet": {
+          "type": "number"
+        },
+        "safelyDescendsOverDrops": {
+          "type": "boolean"
+        },
+        "barrierHeightFeet": {
+          "type": "number"
+        },
+        "pitJumpWidthFeet": {
+          "type": "number"
+        },
+        "hazardRadiusFeet": {
+          "type": "number"
+        },
+        "hazardSide": {
+          "type": "string",
+          "enum": [
+            "caster_choice",
+            "all_sides",
+            "inside",
+            "outside",
+            "not_applicable"
+          ]
+        },
+        "hazardTriggers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "enter",
+              "end_turn_inside",
+              "end_turn_within_radius",
+              "first_per_turn"
+            ]
+          }
+        },
+        "affectedVolumeShape": {
+          "type": "string",
+          "enum": [
+            "Cube",
+            "Sphere",
+            "Line",
+            "Wall",
+            "not_applicable"
+          ]
+        },
+        "affectedVolumeSizeFeet": {
+          "type": "number"
+        },
+        "maxManipulationDistanceFeet": {
+          "type": "number"
+        },
+        "manipulationOptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "waterLevelChangeFeet": {
+          "type": "number"
+        },
+        "vehicleCapsizeChancePercent": {
+          "type": "number"
+        },
+        "maxAffectedVehicleSize": {
+          "type": "string"
+        },
+        "repeatsOnCasterTurn": {
+          "type": "boolean"
+        },
+        "pullDistanceFeet": {
+          "type": "number"
+        },
+        "escapeCheck": {
+          "type": "string"
+        },
+        "canAnimateSimpleShapes": {
+          "type": "boolean"
+        },
+        "canChangeColorOrOpacity": {
+          "type": "boolean"
+        },
+        "canFreeze": {
+          "type": "boolean"
+        },
+        "freezeRequiresNoCreatures": {
+          "type": "boolean"
+        },
+        "waveLengthFeet": {
+          "type": "number"
+        },
+        "waveWidthFeet": {
+          "type": "number"
+        },
+        "waveHeightFeet": {
+          "type": "number"
+        },
+        "extinguishesUnprotectedFlamesRadiusFeet": {
+          "type": "number"
+        },
+        "vanishesAfterEffect": {
+          "type": "boolean"
+        },
+        "capacityMediumOrSmallerCreatures": {
+          "type": "number"
+        },
+        "capacityLargeCreatures": {
+          "type": "number"
+        },
+        "occupantsMoveWithObject": {
+          "type": "boolean"
+        },
+        "overflowEjectionRule": {
+          "type": "string",
+          "enum": [
+            "random_existing_occupant",
+            "newest_creature",
+            "not_applicable"
+          ]
+        },
+        "successfulSaveEjectsCreature": {
+          "type": "boolean"
+        },
+        "ejectionDistanceFeet": {
+          "type": "number"
+        },
+        "occupantsProneOnEnd": {
+          "type": "boolean"
+        },
+        "trapsCreaturesOnSurface": {
+          "type": "boolean"
+        },
+        "trappedCondition": {
+          "type": "string"
+        },
+        "ignitesTouchedObjects": {
+          "type": "boolean"
+        },
+        "depthFeet": {
+          "type": "number"
+        },
+        "flammable": {
+          "type": "boolean"
+        },
+        "burnUnitSizeFeet": {
+          "type": "number"
+        },
+        "burnDurationRounds": {
+          "type": "number"
+        },
+        "burnDamage": {
+          "$ref": "#/definitions/DamageData"
+        },
+        "orbitsCaster": {
+          "type": "boolean"
+        },
+        "expendable": {
+          "type": "boolean"
+        },
+        "maxExpendedPerAction": {
+          "type": "number"
+        },
+        "consumeAction": {
+          "type": "string",
+          "enum": [
+            "action",
+            "bonus_action",
+            "reaction",
+            "free",
+            "not_applicable"
+          ]
+        },
+        "healingPerItem": {
+          "type": "number"
+        },
+        "nourishmentDaysPerItem": {
+          "type": "number"
+        },
+        "harvestYieldMultiplier": {
+          "type": "number"
+        },
+        "harvestYieldRadiusFeet": {
+          "type": "number"
+        },
+        "harvestYieldDurationDays": {
+          "type": "number"
+        },
+        "harvestYieldAppliesTo": {
+          "type": "string",
+          "enum": [
+            "plants",
+            "food_plants",
+            "not_applicable"
+          ]
+        },
+        "harvestBenefitLimit": {
+          "type": "string"
+        },
+        "inventoryItemId": {
+          "type": "string"
+        },
+        "inventoryQuantity": {
+          "type": "number"
+        },
+        "inventoryQuantityScaling": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "slot_level"
+            },
+            "bonusPerLevel": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "bonusPerLevel"
+          ]
+        },
+        "perishable": {
+          "type": "boolean"
+        },
+        "expiresWithSpell": {
+          "type": "boolean"
+        },
+        "shelfLife": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "objectType",
+        "name",
+        "count",
+        "countUnit",
+        "appearsIn"
+      ]
+    },
     "UtilityEffect": {
       "type": "object",
       "properties": {
@@ -466,6 +1572,85 @@
             "type": "string"
           }
         },
+        "objectAccessChange": {
+          "type": "object",
+          "properties": {
+            "eligibleObjectTypes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "mundaneStateChanges": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "unlock",
+                  "unstick",
+                  "unbar"
+                ]
+              }
+            },
+            "maxLocksAffected": {
+              "type": "number"
+            },
+            "suppressesMagicalClosure": {
+              "type": "string"
+            },
+            "suppressionDuration": {
+              "$ref": "#/definitions/EffectDuration"
+            },
+            "targetOperableDuringSuppression": {
+              "type": "boolean"
+            },
+            "soundEmission": {
+              "type": "object",
+              "properties": {
+                "audibleRadius": {
+                  "type": "number"
+                },
+                "radiusUnit": {
+                  "type": "string",
+                  "enum": [
+                    "feet",
+                    "miles"
+                  ]
+                },
+                "source": {
+                  "type": "string",
+                  "enum": [
+                    "target_object",
+                    "caster",
+                    "point"
+                  ]
+                },
+                "trigger": {
+                  "type": "string",
+                  "enum": [
+                    "on_cast",
+                    "on_change"
+                  ]
+                },
+                "description": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "audibleRadius",
+                "radiusUnit",
+                "source",
+                "trigger",
+                "description"
+              ]
+            }
+          },
+          "required": [
+            "eligibleObjectTypes",
+            "mundaneStateChanges",
+            "maxLocksAffected"
+          ]
+        },
         "attackAugments": {
           "type": "array",
           "items": {
@@ -483,6 +1668,12 @@
         },
         "controlledEntity": {
           "$ref": "#/definitions/ControlledEntity"
+        },
+        "createdObjects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CreatedObject"
+          }
         },
         "sensoryManifestation": {
           "$ref": "#/definitions/SensoryManifestation"

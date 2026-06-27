@@ -178,9 +178,10 @@ export interface FmgWorldOptions extends FmgAtlasOptions {
   /** Military unit roster (upstream `options.military`); defaults to FMG's. */
   militaryUnits?: MilitaryUnit[];
   /**
-   * Opt-in maritime reachability pass. Default is false to preserve the frozen
-   * FMG golden worlds until the owner explicitly approves changing generated
-   * save-world topology by default.
+   * Maritime reachability pass. Default is true (owner-approved 2026-06-26):
+   * significant islands without a port receive one after the FMG pipeline so
+   * every landmass is reachable by sea in real games. Pass false to reproduce
+   * pre-approval golden worlds or to isolate RNG-order tests.
    */
   ensureIslandHarbors?: boolean;
 }
@@ -228,7 +229,7 @@ export function generateFmgWorld(
     populationRate = 1000,
     urbanization = 1,
     militaryUnits,
-    ensureIslandHarbors: shouldEnsureIslandHarbors = false,
+    ensureIslandHarbors: shouldEnsureIslandHarbors = true,
   } = options;
 
   // Slices 1+2 (manage their own Math.random override and restore it).

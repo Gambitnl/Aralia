@@ -53,6 +53,8 @@ export interface ChunkData {
   rivers: ClippedPolyline[];
   /** Road polylines clipped to this chunk (grid space). */
   roads: ClippedPolyline[];
+  /** Town wall rings clipped to this chunk (grid space), rendered as extruded barriers. */
+  walls?: ClippedPolyline[];
   /**
    * Lake polygons clipped to this chunk (grid space) with a shared flat water surface.
    * Lakes are filled meshes, not ribbons, so the builder can triangulate them directly.
@@ -219,6 +221,8 @@ export interface ChunkMeshBundle {
   terrain: TerrainMesh;
   water?: ChunkGeometryArrays;
   roads?: ChunkGeometryArrays;
+  /** Extruded town wall-ring barriers (Worldforge Option B). */
+  walls?: ChunkGeometryArrays;
   sites: ChunkSite[];
   vegetation?: VegetationScatter;
   /** Second vegetation layer (ground mode): bushes, rendered as their own

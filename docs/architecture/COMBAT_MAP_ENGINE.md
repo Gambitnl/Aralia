@@ -220,7 +220,7 @@ Recorded so future readers don't trip on the same things:
 - **Battle-map domain doc.** `docs/architecture/domains/battle-map.md` previously described only the 2D map. It now points at this document for the 3D engine.
 - **In-component README link.** `BattleMap.README.md` previously linked to a non-existent `docs/changelogs/BATTLEMAP_CHANGELOG.md`. It now points at the colocated `./CHANGELOG.md`.
 - **`useBattleMapGeneration.ts` naming.** Exports stateless setup logic despite the hook-shaped filename. Tracked in the battle-map domain doc.
-- **`ensureConnectivity()` in the generator.** Currently a stub. Cave/dungeon biomes are not guaranteed to produce a fully connected playable area — relevant if you change density numbers.
+- **`ensureConnectivity()` in the generator.** This is no longer a known stub gap. `docs/projects/battle-map/NORTH_STAR.md` and `docs/projects/battle-map/GAPS.md` record the G2 proof that cave/dungeon maps now repair disconnected walkable regions with focused seed coverage. Re-check that project proof if generation density or pathability rules change.
 
 ---
 
@@ -230,3 +230,5 @@ Recorded so future readers don't trip on the same things:
 - **Rendering is a thin layer.** Game logic lives in hooks. If a behaviour is only correct in one renderer, that is a bug — fix it in the hook, not in the renderer.
 - **Asset locality.** 3D assets (glTF models, KTX2 textures) are loaded from `/models/` and `/textures/`. Keep them out of the JS bundle.
 - **Performance target.** 60fps on GTX 1060+. Prefer `InstancedMesh` for any repeated geometry. Profile before optimising.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/COMBAT_MAP_ENGINE.md","sha256WithoutMarker":"783cccdbca2b3a984f7740ea3f28941db9034624962f283deff774f34bc5eeee","markedAtUtc":"2026-06-26T00:12:35.430Z"} -->

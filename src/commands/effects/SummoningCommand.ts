@@ -1,7 +1,7 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { SummoningEffect } from '@/types/spells'
-import { CombatState, CombatCharacter, Position, CharacterStats, Ability } from '@/types/combat'
+import { CombatState, CombatCharacter, Position, CharacterStats, Ability, AbilityEffect } from '@/types/combat'
 import { CLASSES_DATA } from '@/constants'
 import { MONSTERS_DATA } from '../../data/monsters'
 import { generateId } from '../../utils/combatUtils'
@@ -212,6 +212,7 @@ export class SummoningCommand extends BaseEffectCommand {
                 description: 'Temporarily dismisses your familiar into its pocket dimension without destroying the bond.',
                 type: 'utility',
                 cost: { type: 'action' },
+                sourceSpellId: this.context.spellId,
                 targeting: 'self',
                 range: 0,
                 effects: [{
@@ -226,6 +227,7 @@ export class SummoningCommand extends BaseEffectCommand {
                 description: 'Returns your pocketed familiar to the battlefield near its last known position.',
                 type: 'utility',
                 cost: { type: 'action' },
+                sourceSpellId: this.context.spellId,
                 targeting: 'self',
                 range: 0,
                 effects: [{
@@ -264,6 +266,7 @@ export class SummoningCommand extends BaseEffectCommand {
             description: 'Use your familiar as the observer for sight and hearing until the start of your next turn.',
             type: 'utility',
             cost: { type: this.getSharedSensesActionCost(effect) },
+            sourceSpellId: this.context.spellId,
             targeting: 'self',
             range: 0,
             effects: [{
@@ -364,6 +367,9 @@ export class SummoningCommand extends BaseEffectCommand {
             name = effect.summon?.objectDescription ?? effect.objectDescription ?? effect.summon?.entityType ?? effect.summonType ?? 'Object'
         }
 
+        const summonSpecialActions = this.createSummonSpecialActionAbilities(effect, creatureId)
+        const summonCommandAbility = this.createSummonCommandAbility(effect, creatureId)
+
         return {
             id: uniqueId,
             name: `${name} ${index + 1}`,
@@ -371,7 +377,15 @@ export class SummoningCommand extends BaseEffectCommand {
             class: CLASSES_DATA['fighter'], // Placeholder class
             position: position,
             stats: stats,
-            abilities: abilities,
+            // Keep any abilities supplied by the creature/template and append
+            // spell-authored summon commands. This is what lets structured
+            // summon data create an actor the player can actually command,
+            // rather than a passive token with hidden JSON-only actions.
+            abilities: [
+                ...abilities,
+                ...summonSpecialActions,
+                ...summonCommandAbility
+            ],
             team: caster.team, // Summons join the caster's team
             currentHP: maxHP,
             maxHP: maxHP,
@@ -399,6 +413,18 @@ export class SummoningCommand extends BaseEffectCommand {
                 entityType: effect.summon?.entityType ?? effect.summonType,
                 formName: chosenFormName ?? effect.summon?.statBlock?.name ?? effect.summon?.objectDescription ?? effect.objectDescription,
                 sourceName: this.context.spellName,
+                // Preserve structured control and lifecycle policy on the
+                // actor itself. Later UI, AI, turn-order, and cleanup systems
+                // should not have to rediscover these spell rules from raw
+                // JSON after the summon has entered combat state.
+                persistent: effect.summon?.persistent,
+                dismissAction: effect.summon?.dismissAction,
+                commandCost: effect.summon?.commandCost,
+                commandsPerTurn: effect.summon?.commandsPerTurn,
+                commandsUsedThisTurn: 0,
+                initiativePolicy: effect.summon?.initiative,
+                followDistance: effect.summon?.followDistance,
+                hoverHeight: effect.summon?.hoverHeight,
                 telepathyRange: effect.summon?.telepathyRange,
                 sharedSenses: effect.summon?.sharedSenses,
                 sharedSensesCost: effect.summon?.sharedSensesCost,
@@ -406,6 +432,99 @@ export class SummoningCommand extends BaseEffectCommand {
                 dismissable: effect.summon?.dismissAction !== undefined || effect.summon?.entityType === 'familiar'
             },
             activeEffects: []
+        }
+    }
+
+    private createSummonSpecialActionAbilities(effect: SummoningEffect, creatureId: string): Ability[] {
+        const specialActions = effect.summon?.specialActions ?? []
+
+        if (specialActions.length === 0) {
+            return []
+        }
+
+        // Convert each structured summon action into a normal combat ability.
+        // The ability system already knows how to display and spend these
+        // costs, so this bridge makes summon command data visible without
+        // inventing a parallel controlled-entity UI.
+        return specialActions.map((specialAction, index): Ability => {
+            const commandGateEffect: AbilityEffect[] = effect.summon?.commandsPerTurn && effect.summon.commandsPerTurn > 0
+                ? [{
+                    type: 'commanded_summon',
+                    commandedSummonAction: 'issue_command',
+                    summonCommandDescription: specialAction.description
+                }]
+                : []
+            const damageEffect: AbilityEffect[] = specialAction.damage ? [{
+                type: 'damage',
+                dice: specialAction.damage.dice,
+                damageType: specialAction.damage.type as AbilityEffect['damageType']
+            }] : []
+
+            return {
+                id: `summon_${creatureId}_special_${index}_${specialAction.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+                name: specialAction.name,
+                description: specialAction.description,
+                type: specialAction.damage ? 'attack' : 'utility',
+                cost: { type: this.toAbilityCostType(specialAction.cost) },
+                targeting: specialAction.damage ? 'single_enemy' : 'single_any',
+                range: 1,
+                // Carry the spell-authored command cadence into the generated
+                // actor ability. AbilityCommandFactory uses this gate before
+                // attack commands, and normal utility actions execute it before
+                // their other effects.
+                effects: [
+                    ...commandGateEffect,
+                    ...damageEffect
+                ],
+                tags: ['summon', 'controlled-entity', 'special-action', this.context.spellId]
+            }
+        })
+    }
+
+    private createSummonCommandAbility(effect: SummoningEffect, creatureId: string): Ability[] {
+        const commandCost = effect.summon?.commandCost
+        const commandsPerTurn = effect.summon?.commandsPerTurn ?? 0
+        const specialActions = effect.summon?.specialActions ?? []
+
+        if (!commandCost || commandCost === 'none' || commandsPerTurn <= 0 || specialActions.length > 0) {
+            return []
+        }
+
+        // Some spell-created helpers, such as unseen servants and mansion
+        // servants, are commandable without having a spell-specific attack or
+        // damage action. Give those actors a visible command surface so the UI
+        // does not hide the fact that the summon can be directed. The command
+        // itself remains intentionally generic: specific object interaction,
+        // structure service, and exploration task resolution are still owned by
+        // later servant/structure runtime slices.
+        return [{
+            id: `summon_${creatureId}_command_${this.context.spellId}`,
+            name: 'Follow Command',
+            description: effect.summon?.objectDescription ?? 'Follow the caster\'s command for this summoned entity.',
+            type: 'utility',
+            cost: { type: this.toAbilityCostType(commandCost) },
+            targeting: 'self',
+            range: 0,
+            effects: [{
+                type: 'commanded_summon',
+                commandedSummonAction: 'issue_command',
+                summonCommandDescription: effect.summon?.objectDescription ?? 'Follow the caster\'s command for this summoned entity.'
+            }],
+            tags: ['summon', 'controlled-entity', 'command-surface', this.context.spellId]
+        }]
+    }
+
+    private toAbilityCostType(cost: 'action' | 'bonus_action' | 'reaction' | 'free'): Ability['cost']['type'] {
+        switch (cost) {
+            case 'bonus_action':
+                return 'bonus'
+            case 'reaction':
+                return 'reaction'
+            case 'free':
+                return 'free'
+            case 'action':
+            default:
+                return 'action'
         }
     }
 

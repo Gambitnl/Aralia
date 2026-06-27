@@ -176,6 +176,57 @@
           "effect": "The caster can take a Magic action to dismiss the spell for all targets; a target also returns when the spell ends for it while it is not dead."
         }
       ],
+      "createdObjects": [
+        {
+          "objectType": "other",
+          "name": "Suspended Original Body",
+          "count": 1,
+          "countUnit": "per target body",
+          "appearsIn": "target_space",
+          "shapeOptions": [
+            "target_original_body"
+          ],
+          "materialOptions": [
+            "target body"
+          ],
+          "createdEntityKind": "suspended_body",
+          "needsFoodOrAir": false,
+          "agesWhileSuspended": false,
+          "linkedToCounterpartForm": true,
+          "silverCordLink": true,
+          "damageSharedWithCounterpart": false,
+          "effectsSharedWithCounterpart": false,
+          "endsWhenBodyOrFormDropsToZeroHp": true,
+          "returnsToBodyOnEndIfAlive": true,
+          "expiresWithSpell": true,
+          "notes": "The body is left behind Unconscious in suspended animation until the spell ends for that target, unless the target dies."
+        },
+        {
+          "objectType": "other",
+          "name": "Astral Form",
+          "count": 1,
+          "countUnit": "per target form",
+          "appearsIn": "Astral Plane",
+          "shapeOptions": [
+            "astral duplicate of target"
+          ],
+          "materialOptions": [
+            "astral body"
+          ],
+          "createdEntityKind": "astral_form",
+          "linkedToCounterpartForm": true,
+          "silverCordLink": true,
+          "silverCordVisibleDistanceFeet": 1,
+          "silverCordCutEffect": "body_and_astral_form_die",
+          "damageSharedWithCounterpart": false,
+          "effectsSharedWithCounterpart": false,
+          "planarExitTransfersBodyAndPossessions": true,
+          "endsWhenBodyOrFormDropsToZeroHp": true,
+          "returnsToBodyOnEndIfAlive": true,
+          "expiresWithSpell": true,
+          "notes": "The astral form replicates the target's statistics and possessions, travels through the Astral Plane, and pulls the body and possessions along the silver cord when leaving that plane."
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,

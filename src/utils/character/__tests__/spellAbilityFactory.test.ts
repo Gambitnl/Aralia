@@ -110,6 +110,46 @@ describe('spellAbilityFactory', () => {
             expect((ability as any).modeChoice).toEqual(modeChoiceSpell.modeChoice);
         });
 
+        it('uses structured targeting before description or tag fallbacks', () => {
+            const structuredAreaSpell = {
+                ...baseSpell,
+                id: 'structured-point-area',
+                name: 'Structured Point Area',
+                description: 'Choose a point and fill a sphere with force.',
+                range: { type: 'ranged', distance: 120 },
+                tags: ['healing'],
+                targeting: {
+                    type: 'point',
+                    range: 120,
+                    validTargets: ['point'],
+                    areaOfEffect: { shape: 'Sphere', size: 20 }
+                }
+            } as unknown as Spell;
+
+            const structuredEnemySpell = {
+                ...baseSpell,
+                id: 'structured-enemy-ray',
+                name: 'Structured Enemy Ray',
+                description: 'A creature of your choice receives a helpful glow.',
+                tags: ['buff'],
+                targeting: {
+                    type: 'single',
+                    range: 60,
+                    validTargets: ['enemies']
+                }
+            } as unknown as Spell;
+
+            const structuredAreaAbility = createAbilityFromSpell(structuredAreaSpell, baseCaster);
+            const structuredEnemyAbility = createAbilityFromSpell(structuredEnemySpell, baseCaster);
+
+            // These checks protect the JSON-to-UI bridge. The first spell would
+            // previously fall through to a single-target guess, while the second
+            // could be misread as an ally buff from tags/prose even though the
+            // structured targeting says it chooses enemies.
+            expect(structuredAreaAbility.targeting).toBe('area');
+            expect(structuredEnemyAbility.targeting).toBe('single_enemy');
+        });
+
         it('translates UTILITY effects (light and savePenalty) correctly', () => {
             const utilitySpell = {
                 ...baseSpell,
@@ -141,6 +181,50 @@ describe('spellAbilityFactory', () => {
                 flat: undefined,
                 applies: 'next_save'
             });
+        });
+
+        it('preserves granted post-cast actions on generated combat abilities', () => {
+            const grantedActionSpell = {
+                ...baseSpell,
+                id: 'minor-illusion-style-action',
+                name: 'Minor Illusion Style Action',
+                description: 'Creates an illusion that can be manipulated after casting.',
+                effects: [
+                    {
+                        type: 'UTILITY',
+                        utilityType: 'illusion',
+                        trigger: { type: 'immediate' },
+                        condition: { type: 'always' },
+                        grantedActions: [
+                            {
+                                type: 'action',
+                                action: 'Move Illusion',
+                                frequency: 'each_turn',
+                                actor: 'caster',
+                                actionKind: 'magic_action',
+                                notes: 'The caster can use a later action to manipulate the illusion.'
+                            }
+                        ]
+                    }
+                ]
+            } as unknown as Spell;
+
+            const ability = createAbilityFromSpell(grantedActionSpell, baseCaster);
+
+            // Granted actions are not immediate damage/status effects. They are
+            // future player options created by the spell, so the generated
+            // combat ability must keep them in a direct UI-readable field
+            // instead of burying them inside raw spell JSON.
+            expect(ability.grantedActions).toEqual([
+                {
+                    type: 'action',
+                    action: 'Move Illusion',
+                    frequency: 'each_turn',
+                    actor: 'caster',
+                    actionKind: 'magic_action',
+                    notes: 'The caster can use a later action to manipulate the illusion.'
+                }
+            ]);
         });
     });
 });

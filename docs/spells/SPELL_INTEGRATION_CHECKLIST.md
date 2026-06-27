@@ -105,3 +105,5 @@ This checklist is intentionally honest about uncertainty.
 ## How To Use This File During The Remaining Overhaul
 
 Treat this checklist as the live control surface for spell verification. Use level-specific status docs only as supporting context, and prefer current repo anchors over any older component map that implies a cleaner or more centralized architecture than the repo actually has.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/spells/SPELL_INTEGRATION_CHECKLIST.md","sha256WithoutMarker":"ea505b4a53c1080906d28248cd2f7524264125b6779b568eb44670a781487826","markedAtUtc":"2026-06-26T00:26:22.322Z"} -->

@@ -201,14 +201,24 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
         }
 
         // 4. Remove Summons
-        // Summons are characters in the characters array.
-        // We identify them by ID if tracked, or by checking summon metadata if available (not robustly implemented yet)
-        // or by activeEffects source.
-        const charsToRemove = updatedState.characters.filter(c => trackedEffectIds.has(c.id));
+        // Summons are full combat actors, so ending the concentration spell
+        // must remove the token from the roster. Prefer tracked effect IDs,
+        // but also trust summon metadata because older concentration scans can
+        // miss the summon log while the actor itself still records its owning
+        // caster and spell.
+        const charsToRemove = updatedState.characters.filter(c =>
+            trackedEffectIds.has(c.id) ||
+            (
+                c.isSummon === true &&
+                c.summonMetadata?.spellId === previousSpellId &&
+                c.summonMetadata?.casterId === caster.id
+            )
+        );
         if (charsToRemove.length > 0) {
+            const charIdsToRemove = new Set(charsToRemove.map(char => char.id));
             updatedState = {
                 ...updatedState,
-                characters: updatedState.characters.filter(c => !trackedEffectIds.has(c.id))
+                characters: updatedState.characters.filter(c => !charIdsToRemove.has(c.id))
             };
 
             // Log unsummoning
@@ -218,6 +228,20 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
                     message: `${char.name} disappears`,
                     characterId: char.id
                 })
+            }
+        }
+
+        // Pocketed familiars are spell-created actors that have temporarily
+        // left the map, so they will not appear in `characters` above. Remove
+        // any off-map summon state owned by the same caster and concentration
+        // spell; otherwise ending Find Familiar-style concentration could leave
+        // a recallable ghost actor behind.
+        if (updatedState.pocketedSummons) {
+            updatedState = {
+                ...updatedState,
+                pocketedSummons: updatedState.pocketedSummons.filter(entry =>
+                    entry.casterId !== caster.id || entry.spellId !== previousSpellId
+                )
             }
         }
 

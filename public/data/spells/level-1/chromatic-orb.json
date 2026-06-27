@@ -179,5 +179,75 @@
     "damage",
     "evocation",
     "elemental"
-  ]
+  ],
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 6,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": "not_applicable",
+    "options": [
+      {
+        "label": "Acid",
+        "summary": "The orb deals Acid damage on a hit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ]
+      },
+      {
+        "label": "Cold",
+        "summary": "The orb deals Cold damage on a hit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ]
+      },
+      {
+        "label": "Fire",
+        "summary": "The orb deals Fire damage on a hit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ]
+      },
+      {
+        "label": "Lightning",
+        "summary": "The orb deals Lightning damage on a hit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ]
+      },
+      {
+        "label": "Poison",
+        "summary": "The orb deals Poison damage on a hit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ]
+      },
+      {
+        "label": "Thunder",
+        "summary": "The orb deals Thunder damage on a hit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ]
+      }
+    ],
+    "notes": "The damage packet already uses damage.damageTypeSource = chosen_damage_type; this menu supplies the six legal caster choices."
+  }
 }

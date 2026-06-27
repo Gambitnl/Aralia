@@ -332,6 +332,24 @@ export class SpellIntegrityValidator {
       }
     }
 
+    // Choice-bearing utility effects need the same top-level input signal that
+    // combat UI and AI arbitration use to ask the caster for a selected option.
+    // Limit this rule to actual mode-choice menus that point at controlOptions:
+    // many older rows carry non-empty controlOptions as structured summaries,
+    // and those should not be forced into a player-input flow until the owning
+    // lane converts them into real choose-one menus.
+    const modeChoiceUsesControlOptions = modeChoice !== undefined && (
+      modeChoice.optionsSource === 'controlOptions' ||
+      modeChoice.optionsSource === 'mixed' ||
+      (modeChoice.options ?? []).some(option =>
+        Array.isArray(option.controlOptionIndices) && option.controlOptionIndices.length > 0
+      )
+    );
+
+    if (modeChoiceUsesControlOptions && spell.aiContext?.playerInputRequired !== true) {
+      errors.push('Mode Choice Invalid: controlOptions-backed modeChoice requires aiContext.playerInputRequired true');
+    }
+
     // =========================================================================
     // Rule 5: Action Cost Metadata Integrity
     // =========================================================================
@@ -394,7 +412,56 @@ export class SpellIntegrityValidator {
     });
 
     // =========================================================================
-    // Rule 6: Enchantment Targeting
+    // Rule 6: Light Metadata Integrity
+    // =========================================================================
+    // Light spells create map-visible artifacts through UtilityCommand. The
+    // renderer and turn lifecycle need concrete radius and attachment data, so
+    // a real `utilityType: light` row cannot rely on the zeroed placeholder
+    // light blocks that still exist on many non-light utility rows.
+    const knownLightAttachments = ['caster', 'target', 'point'];
+
+    (spell.effects ?? []).forEach((effect, effectIndex) => {
+      const utilityEffect = effect as {
+        utilityType?: unknown;
+        light?: {
+          brightRadius?: unknown;
+          dimRadius?: unknown;
+          attachedTo?: unknown;
+        };
+      };
+
+      if (utilityEffect.utilityType !== 'light') {
+        return;
+      }
+
+      const light = utilityEffect.light;
+      if (!light || typeof light !== 'object') {
+        errors.push(`Light Metadata Invalid: effect ${effectIndex} utilityType light must include a light payload`);
+        return;
+      }
+
+      const brightRadius = light.brightRadius;
+      const dimRadius = light.dimRadius;
+
+      if (typeof brightRadius !== 'number' || brightRadius < 0) {
+        errors.push(`Light Metadata Invalid: effect ${effectIndex} brightRadius must be a nonnegative number`);
+      }
+
+      if (typeof dimRadius !== 'number' || dimRadius < 0) {
+        errors.push(`Light Metadata Invalid: effect ${effectIndex} dimRadius must be a nonnegative number`);
+      }
+
+      if (typeof brightRadius === 'number' && typeof dimRadius === 'number' && brightRadius === 0 && dimRadius === 0) {
+        errors.push(`Light Metadata Invalid: effect ${effectIndex} utilityType light must emit bright or dim light`);
+      }
+
+      if (!knownLightAttachments.includes(String(light.attachedTo))) {
+        errors.push(`Light Metadata Invalid: effect ${effectIndex} attachedTo must be caster, target, or point`);
+      }
+    });
+
+    // =========================================================================
+    // Rule 7: Enchantment Targeting
     // =========================================================================
     // Enchantment spells (mind-affecting magic like Charm Person or Hold Person)
     // in D&D 2024 only work on specific creature types — usually Humanoids,

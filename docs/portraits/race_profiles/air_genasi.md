@@ -26,3 +26,5 @@ Use these files for current state instead:
 - scripts/audits/slice-of-life-settings.json
 - docs/portraits/race_profiles/research-status.json
 - docs/portraits/race_portrait_regen_handoff.md
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/portraits/race_profiles/air_genasi.md","sha256WithoutMarker":"88088f07a89ec3113ed17845528c470b9e10964233c7c5e0f6b226a0894707fc","markedAtUtc":"2026-06-26T00:26:22.334Z"} -->

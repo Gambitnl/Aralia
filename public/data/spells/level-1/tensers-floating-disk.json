@@ -186,7 +186,9 @@
         "persistent": false,
         "count": 1,
         "objectDescription": "A 3-foot-wide floating disk of force that carries up to 500 lbs, follows within 20 ft, hovers 3 ft above ground, cannot ascend more than 10 ft vertically.",
-        "commandCost": "free"
+        "commandCost": "free",
+        "followDistance": 20,
+        "hoverHeight": 3
       },
       "scaling": {
         "type": "slot_level",

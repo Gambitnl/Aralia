@@ -133,6 +133,40 @@
         "hp": 0,
         "ac": 0
       },
+      "manipulation": {
+        "type": "reshape",
+        "volume": {
+          "shape": "Square",
+          "size": 40,
+          "depth": 20
+        },
+        "materialOptions": [
+          "dirt",
+          "sand",
+          "clay"
+        ],
+        "excludedMaterials": [
+          "natural stone",
+          "stone construction"
+        ],
+        "formOptions": [
+          "elevation",
+          "trench",
+          "wall",
+          "pillar"
+        ],
+        "maxChangeFeet": 20,
+        "completionTimeMinutes": 10,
+        "canChooseNewAreaAfterCompletion": true,
+        "slowTransformationPreventsTrappingOrInjury": true,
+        "rocksAndStructuresShift": true,
+        "unstableStructuresMayCollapse": true,
+        "carriesPlantsWithoutAffectingGrowth": true,
+        "duration": {
+          "type": "minutes",
+          "value": 120
+        }
+      },
       "description": "Reshape dirt, sand, or clay in a 40-foot-square area within 120 feet into elevation changes, trenches, walls, or pillars up to half the area's largest dimension; each change takes 10 minutes, usually cannot trap or injure creatures because it is slow, and cannot manipulate natural stone or stone construction.",
       "conditionalEndings": []
     },
@@ -186,7 +220,7 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
+      "utilityType": "control",
       "description": "For up to 2 hours with concentration, each terrain transformation takes 10 minutes to complete and usually cannot trap or injure creatures because it happens slowly. At the end of every 10 minutes, the caster can choose a new area within range; natural stone and stone construction are not manipulated, rocks and structures shift to accommodate the terrain, unstable structures might collapse, and plants are carried with the moved earth.",
       "scaling": {
         "type": "slot_level",

@@ -39,3 +39,5 @@ This file still has historical value because it explains:
 Do not treat this file as proof that these gaps are still open.
 
 If a modern spell still fails, verify the current validator and runtime consumer surfaces directly instead of using this file as a live blocker list.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/spells/CRITICAL_TYPE_GAPS_SUMMARY.md","sha256WithoutMarker":"f0b9e89fcdfdc16f5f08c546e521cc203ea9e477dbe4d2ff1e71f03e06628b49","markedAtUtc":"2026-06-26T00:07:34.887Z"} -->

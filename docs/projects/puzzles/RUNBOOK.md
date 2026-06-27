@@ -1,7 +1,7 @@
 # Puzzles System Runbook
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-27
 
 ## Purpose
 
@@ -28,10 +28,10 @@ Read the following first:
 - If a blocker is found, document it in `GAPS.md` with next action and proof target before widening scope.
 - After each pass, update `COLD_START_AGENT_PROMPT.md` with a single current handoff block.
 
-## Current Iteration (Iteration 4) Flow
+## Current Iteration (Iteration 7) Flow
 
-1. Confirm `T3` is marked done in `TRACKER.md`, `PZ-002` is marked done in `GAPS.md`, and `PZ-007` is review-required.
-2. Keep evidence in this pass to puzzle helper -> deterministic hint test -> caller-gap split, then stop if no runtime `Puzzle` owner exists.
+1. Confirm `T4` is marked done in `TRACKER.md`, `PZ-007` is resolved in `GAPS.md`, and `PZ-003` is the active next task.
+2. Keep the next pass focused on key-based lock progression ownership and deterministic unlock behavior.
 3. Update required docs:
    - `NORTH_STAR.md`
    - `TRACKER.md`
@@ -42,22 +42,23 @@ Read the following first:
    - `RUNBOOK.md`
    - `DECISIONS.md` only if a new decision is introduced.
 5. Run scoped verification:
-   - `npm test -- --run src/systems/puzzles/__tests__/puzzleSystem.test.ts`
-   - `node scripts/audit-living-project-docs.cjs`
+   - focused puzzle/key tests added or updated by the slice
+   - `npm run projects:audit`
    - `git diff --check` before finish.
 
 ## Verification
 
 A pass is considered settled when:
 
-- Production lockpicking dispatch route is validated in test or equivalent proof.
+- Production lockpicking and first puzzle hint dispatch routes are validated in focused tests or equivalent proof.
 - Dashboard files reflect aligned status/proof.
 - No review-required decision has surfaced requiring cross-team/blocking handoff.
 
-## Review-Required Branch
+## Completed Runtime Caller Branch
 
-If the source scan finds no runtime caller that can own a real `Puzzle` object, stop the implementation slice there and record the ownership question in the Required Review Brief.
+`PZ-007` is closed. Do not re-open the ownership question unless new evidence
+contradicts the implementation.
 
 - Keep `PZ-002` as resolved helper work.
-- Mark `PZ-007` review-required until a human owner chooses the first gameplay surface.
-- Do not widen into PZ-003 key unlock work or BattleMap/Submap integration from this branch.
+- Keep `PZ-007` as resolved runtime-caller work.
+- Continue with `PZ-003` next, and do not widen into BattleMap/Submap integration from that branch.

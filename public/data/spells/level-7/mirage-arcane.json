@@ -205,8 +205,51 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
+      "utilityType": "sensory",
       "description": "Transform up to 1 square mile of visible terrain for 10 days with audible, visual, tactile, and olfactory illusion elements; the illusion can make terrain resemble other terrain, alter or add structures, but cannot disguise, conceal, or add creatures, removed illusion pieces disappear immediately, and Truesight reveals the true terrain while leaving other illusion elements physically interactive.",
+      "illusion": {
+        "revealScope": "per_creature",
+        "revealRules": [
+          {
+            "method": "physical_interaction",
+            "appliesTo": [
+              "Mirage Arcane terrain"
+            ],
+            "notes": "Creatures with Truesight can see through the illusion to the terrain's true form."
+          }
+        ],
+        "discernedState": "not_applicable",
+        "terrainIllusion": {
+          "areaShape": "Square",
+          "areaSize": 1,
+          "areaUnit": "miles",
+          "sensoryElements": [
+            "sight",
+            "sound",
+            "smell",
+            "other_sensory_effect"
+          ],
+          "terrainAppearanceOptions": [
+            "swamp",
+            "hill",
+            "crevasse",
+            "rough terrain",
+            "impassable terrain",
+            "grassy meadow",
+            "gentle slope",
+            "wide smooth road"
+          ],
+          "canAlterStructures": true,
+          "canAddStructures": true,
+          "cannotDisguiseConcealOrAddCreatures": true,
+          "canChangeDifficultTerrain": true,
+          "canOtherwiseImpedeMovement": true,
+          "removedPiecesDisappearImmediately": true,
+          "truesightRevealsTrueTerrain": true,
+          "truesightStillPhysicallyInteracts": true
+        },
+        "notes": "Truesight reveals the true terrain, but the remaining illusion elements still physically interact with the creature."
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

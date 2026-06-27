@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 17:18:57
+ * Last Sync: 26/06/2026, 20:16:29
  * Dependents: hooks/useAbilitySystem.ts
- * Imports: 4 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -20,10 +20,12 @@
  * Decoupled from the main AbilitySystem to provide stable references and reduce re-renders.
  */
 import { useCallback } from 'react';
-import { CombatCharacter, Ability, Position, BattleMapData } from '../../types/combat';
+import { CombatCharacter, Ability, Position, BattleMapData, CombatState } from '../../types/combat';
+import type { SpellTargeting } from '../../types/spells';
 import { getDistance, getCharacterDistance, getOccupiedTiles } from '../../utils/combatUtils';
 import { hasLineOfSight } from '../../utils/lineOfSight';
 import { CreatureTaxonomy } from '../../systems/creatures/CreatureTaxonomy';
+import { TargetResolver } from '../../systems/spells/targeting/TargetResolver';
 
 interface UseTargetValidatorProps {
     characters: CombatCharacter[];
@@ -49,6 +51,17 @@ const formatTileDistance = (distance: number): string => {
 // generic label for empty-ground clicks and malformed map state.
 const getTargetLabel = (targetCharacter: CombatCharacter | null): string => {
     return targetCharacter?.name ?? 'That target';
+};
+
+// Spell-created abilities can carry the original structured spell data. When
+// it is present, prefer the shared spell resolver for legality messages so the
+// battle-map UI, runtime spell resolver, and AI can speak the same rejection
+// language instead of each rephrasing restricted-target failures.
+const getStructuredSpellTargeting = (ability: Ability): SpellTargeting | null => {
+    const spellTargeting = ability.spell?.targeting;
+    return spellTargeting && typeof spellTargeting === 'object'
+        ? spellTargeting as SpellTargeting
+        : null;
 };
 
 const isTouchSpell = (ability: Ability): boolean => {
@@ -206,6 +219,49 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
         }
 
         // 5. Logic by Targeting Type
+        const structuredSpellTargeting = targetCharacter
+            ? getStructuredSpellTargeting(ability)
+            : null;
+
+        if (structuredSpellTargeting && targetCharacter) {
+            // Build the narrow combat-state envelope the shared spell resolver
+            // needs. This keeps the hook connected to canonical spell targeting
+            // without expanding its public props or duplicating combat state.
+            const resolverState: CombatState = {
+                characters,
+                isActive: true,
+                turnState: {
+                    currentTurn: 0,
+                    turnOrder: characters.map(character => character.id),
+                    currentCharacterId: caster.id,
+                    phase: 'action',
+                    actionsThisTurn: []
+                },
+                selectedCharacterId: null,
+                selectedAbilityId: null,
+                actionMode: 'select',
+                validTargets: [],
+                validMoves: [],
+                mapData,
+                combatLog: [],
+                reactiveTriggers: [],
+                activeLightSources: []
+            };
+            const spellTargetReason = TargetResolver.getTargetRejectionReason(
+                structuredSpellTargeting,
+                caster,
+                targetCharacter,
+                resolverState
+            );
+
+            if (spellTargetReason) {
+                return {
+                    isValid: false,
+                    reason: spellTargetReason.message
+                };
+            }
+        }
+
         switch (ability.targeting) {
             case 'single_enemy':
                 if (!targetCharacter) {

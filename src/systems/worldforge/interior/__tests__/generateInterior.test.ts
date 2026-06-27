@@ -241,3 +241,86 @@ it('furnishings stay inside their room', () => {
 it('matches the frozen golden for the fixed house plot', () => {
   expect(generateInterior(housePlot(), SEED_PATH)).toMatchSnapshot('house-interior-golden');
 });
+
+describe('multi-storey buildings', () => {
+  const townhouse = (storeys: number): InteriorPlotInput => ({
+    id: 9,
+    footprint: [[0, 0], [55, 0], [55, 40], [0, 40]],
+    role: 'house',
+    storeys,
+  });
+
+  const roomContaining = (rooms: InteriorPlan['rooms'], x: number, y: number): number => {
+    const r = rooms.find((rm) => x >= rm.x && x < rm.x + rm.w && y >= rm.y && y < rm.y + rm.d);
+    return r ? r.id : -1;
+  };
+
+  /** BFS the floor's doorway graph from a start room; every room must be reached. */
+  function assertFloorConnectedFrom(rooms: InteriorPlan['rooms'], doorways: InteriorPlan['doorways'], startId: number): void {
+    const adj = new Map<number, number[]>();
+    for (const d of doorways) {
+      adj.set(d.a, [...(adj.get(d.a) ?? []), d.b]);
+      adj.set(d.b, [...(adj.get(d.b) ?? []), d.a]);
+    }
+    const seen = new Set<number>([startId]);
+    const queue = [startId];
+    while (queue.length) {
+      const n = queue.shift()!;
+      for (const m of adj.get(n) ?? []) if (!seen.has(m)) { seen.add(m); queue.push(m); }
+    }
+    expect(rooms.filter((r) => !seen.has(r.id))).toEqual([]);
+  }
+
+  it('single-storey buildings have no upper floors or stairs', () => {
+    const plan = generateInterior(townhouse(1), SEED_PATH);
+    expect(plan.upperFloors).toEqual([]);
+    expect(plan.stairs).toEqual([]);
+  });
+
+  it('generates one upper floor and one stair per storey gap', () => {
+    for (const storeys of [2, 3, 4]) {
+      const plan = generateInterior(townhouse(storeys), SEED_PATH);
+      expect(plan.storeys).toBe(storeys);
+      expect(plan.upperFloors).toHaveLength(storeys - 1);
+      expect(plan.stairs).toHaveLength(storeys - 1);
+      expect(plan.upperFloors.map((f) => f.level)).toEqual(
+        Array.from({ length: storeys - 1 }, (_, i) => i + 1),
+      );
+    }
+  });
+
+  it('stairs form one vertical shaft inside a room on every floor', () => {
+    const plan = generateInterior(townhouse(3), SEED_PATH);
+    // All stairs share one (x, y) column.
+    const xs = new Set(plan.stairs.map((s) => `${s.x},${s.y}`));
+    expect(xs.size).toBe(1);
+    const { x, y } = plan.stairs[0];
+    // The stair point lands inside a room on the ground floor AND each upper floor.
+    expect(roomContaining(plan.rooms, x, y)).toBeGreaterThanOrEqual(0);
+    for (const floor of plan.upperFloors) {
+      expect(roomContaining(floor.rooms, x, y)).toBeGreaterThanOrEqual(0);
+    }
+    expect(plan.stairs.map((s) => s.fromFloor)).toEqual([0, 1]);
+  });
+
+  it('each upper floor tiles the envelope, doors on shared walls, all rooms reachable from the stair', () => {
+    for (const storeys of [2, 3]) {
+      const plan = generateInterior(townhouse(storeys), SEED_PATH);
+      const stair = plan.stairs[0];
+      for (const floor of plan.upperFloors) {
+        const asPlan = { widthFt: plan.widthFt, depthFt: plan.depthFt, rooms: floor.rooms, doorways: floor.doorways } as InteriorPlan;
+        assertTilesExactly(asPlan);
+        assertDoorwaysOnSharedWalls(asPlan);
+        const landing = roomContaining(floor.rooms, stair.x, stair.y);
+        expect(landing).toBeGreaterThanOrEqual(0);
+        assertFloorConnectedFrom(floor.rooms, floor.doorways, landing);
+        // Upper floors have no street entry.
+        expect(floor.doorways.some((d) => d.a === EXTERIOR)).toBe(false);
+      }
+    }
+  });
+
+  it('is deterministic across all floors', () => {
+    expect(generateInterior(townhouse(4), SEED_PATH)).toEqual(generateInterior(townhouse(4), SEED_PATH));
+  });
+});

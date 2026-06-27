@@ -109,6 +109,17 @@ function AtlasLayersImpl({ model, visible }: AtlasLayersProps): React.ReactEleme
           ))}
         </g>
       ) : null}
+      {/* PROTOTYPE danger overlay — red hatch whose per-cell opacity tracks the
+          threat scalar. A PATTERN fill (not a solid tint) so it BLENDS over the
+          active coloring instead of replacing it (controlled-blending branch). */}
+      {visible.danger ? (
+        <g>
+          {(model.dangerCells ?? []).map((c, i) => (
+            <polygon key={`dgr${i}`} points={c.points} fill="url(#danger-hatch)"
+              fillOpacity={0.25 + 0.65 * c.danger} />
+          ))}
+        </g>
+      ) : null}
       {visible.cells ? (
         <g>
           {(model.cellOutlines ?? []).map((pts, i) => (

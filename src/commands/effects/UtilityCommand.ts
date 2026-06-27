@@ -17,7 +17,8 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { UtilityEffect } from '@/types/spells'
-import { CombatState, CombatCharacter, StatusEffect, LightSource } from '@/types/combat'
+import { Item } from '@/types/items'
+import { CombatState, CombatCharacter, StatusEffect, LightSource, Ability } from '@/types/combat'
 import { generateId } from '../../utils/idGenerator'
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem'
 import { applyCommandAreaMovementEffects } from './commandAreaMovementEffects'
@@ -67,7 +68,6 @@ export class UtilityCommand extends BaseEffectCommand {
             const lightConfig = effect.light
             const targets = this.getTargets(newState)
 
-            // TODO: Remove/expire light sources when duration ends or concentration breaks, and trigger renderer/vision updates so light affects the map.
             // Determine attachment target
             let attachedToCharacterId: string | undefined
             let position: { x: number; y: number } | undefined
@@ -81,6 +81,15 @@ export class UtilityCommand extends BaseEffectCommand {
                 position = targets.length > 0 ? targets[0].position : this.context.caster.position
             }
 
+            // Timed non-concentration light spells still need a map cleanup
+            // boundary. Store the round where the light expires so the turn
+            // coordinator can remove it without knowing which command created
+            // the visual artifact.
+            const expiresAtRound = this.context.effectDuration?.type === 'rounds' &&
+                typeof this.context.effectDuration.value === 'number'
+                ? state.turnState.currentTurn + this.context.effectDuration.value
+                : undefined
+
             const lightSource: LightSource = {
                 id: generateId(),
                 sourceSpellId: this.context.spellId || 'unknown',
@@ -92,7 +101,10 @@ export class UtilityCommand extends BaseEffectCommand {
                 position,
                 color: lightConfig.color,
                 createdTurn: state.turnState.currentTurn,
-                // If spell requires concentration, it will be removed when concentration breaks
+                // Concentration lights are also removed when concentration
+                // breaks; this optional round value covers ordinary timed
+                // light spells that are not concentration-bound.
+                expiresAtRound
             }
 
             newState = {
@@ -106,6 +118,52 @@ export class UtilityCommand extends BaseEffectCommand {
                 characterId: this.context.caster.id,
                 data: { lightSource }
             })
+        }
+
+        // Preserve utility-created object stacks as structured runtime evidence.
+        // This does not turn Goodberry-style objects into inventory yet; it gives
+        // the next consumption slice concrete count, action, healing, and expiry
+        // data instead of asking it to parse prose from the spell description.
+        if (effect.utilityType === 'creation' && effect.createdObjects?.length) {
+            newState = this.addLogEntry(newState, {
+                type: 'status',
+                message: `${this.context.spellName || 'The spell'} creates ${effect.createdObjects.map(object => `${object.count} ${object.name}`).join(', ')}.`,
+                characterId: this.context.caster.id,
+                data: {
+                    sourceSpellId: this.context.spellId,
+                    createdObjects: effect.createdObjects
+                }
+            })
+
+            const createdObjectAbilities = effect.createdObjects
+                .map((createdObject, index) => this.createConsumableCreatedObjectAbility(createdObject, index, newState.turnState.currentTurn))
+                .filter((ability): ability is Ability => ability !== null)
+
+            if (createdObjectAbilities.length > 0) {
+                const caster = this.getCaster(newState)
+                const existingCreatedObjectAbilityIds = new Set(createdObjectAbilities.map(ability => ability.id))
+
+                newState = this.updateCharacter(newState, caster.id, {
+                    abilities: [
+                        ...caster.abilities.filter(ability => !existingCreatedObjectAbilityIds.has(ability.id)),
+                        ...createdObjectAbilities
+                    ]
+                })
+            }
+
+            const inventoryItems = effect.createdObjects.flatMap(createdObject =>
+                this.createSpellCreatedInventoryItems(createdObject)
+            )
+
+            if (inventoryItems.length > 0) {
+                newState = {
+                    ...newState,
+                    spellCreatedInventoryItems: [
+                        ...(newState.spellCreatedInventoryItems || []),
+                        ...inventoryItems
+                    ]
+                }
+            }
         }
 
         // Apply control options metadata for downstream enforcement.
@@ -122,6 +180,17 @@ export class UtilityCommand extends BaseEffectCommand {
             // Command menu entry. If no choice was provided, keep the old first
             // option fallback so unfinished data remains playable.
             const chosen = this.resolveControlOption(controlOptions)
+            if (!chosen) {
+                return this.addLogEntry(newState, {
+                    type: 'action',
+                    message: `${this.context.spellName || 'The spell'} cannot resolve the selected command option "${this.context.playerInput}".`,
+                    characterId: this.context.caster.id,
+                    data: {
+                        rejectedControlOption: this.context.playerInput,
+                        availableControlOptions: controlOptions.map(option => option.name)
+                    }
+                })
+            }
             const targets = this.getTargets(newState)
             for (const target of targets) {
                 newState = this.applyControlOption(newState, target, chosen)
@@ -163,6 +232,159 @@ export class UtilityCommand extends BaseEffectCommand {
     get description(): string {
         const effect = this.effect as UtilityEffect
         return `${this.context.caster.name} uses ${effect.utilityType} utility`
+    }
+
+    private createConsumableCreatedObjectAbility(
+        createdObject: NonNullable<UtilityEffect['createdObjects']>[number],
+        index: number,
+        currentTurn: number
+    ): Ability | null {
+        // Only objects with explicit healing and a real consume action become
+        // combat buttons. This keeps provision stacks, towers, portals, hazards,
+        // and other non-combat objects from accidentally turning into fake
+        // healing buttons just because they are also "created objects."
+        if (!createdObject.healingPerItem || createdObject.consumeAction === 'not_applicable') {
+            return null
+        }
+
+        const actionCost = this.toAbilityCost(createdObject.consumeAction)
+        if (!actionCost) {
+            return null
+        }
+
+        const abilityId = `${this.context.spellId || 'created-object'}-${createdObject.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}`
+
+        return {
+            id: abilityId,
+            sourceSpellId: this.context.spellId,
+            name: `Eat ${createdObject.name}`,
+            description: createdObject.notes ?? `Consume one ${createdObject.name}.`,
+            type: 'utility',
+            cost: { type: actionCost },
+            targeting: 'single_ally',
+            range: 1,
+            effects: [{
+                type: 'heal',
+                value: createdObject.healingPerItem
+            }],
+            tags: ['spell-created-object', this.context.spellId || 'unknown-spell', createdObject.objectType],
+            maxUses: createdObject.count,
+            usesRemaining: createdObject.count,
+            createdObjectExpiresAtRound: this.getCreatedObjectExpiresAtRound(currentTurn),
+            createdObjectDuration: this.getCreatedObjectDuration(),
+            icon: '*'
+        }
+    }
+
+    private getCreatedObjectExpiresAtRound(currentTurn: number): number | undefined {
+        // Combat can only clean up objects that expire on the round clock.
+        // Goodberry lasts for hours, so it preserves duration metadata instead
+        // of pretending twenty-four hours can be counted with encounter turns.
+        return this.context.effectDuration?.type === 'rounds' &&
+            typeof this.context.effectDuration.value === 'number'
+            ? currentTurn + this.context.effectDuration.value
+            : undefined
+    }
+
+    private getCreatedObjectDuration(): Ability['createdObjectDuration'] {
+        const duration = this.context.effectDuration
+        if (!duration) {
+            return undefined
+        }
+
+        switch (duration.type) {
+            case 'rounds':
+            case 'minutes':
+            case 'special':
+                return { type: duration.type, value: duration.value }
+            default:
+                return { type: 'special', value: duration.value }
+        }
+    }
+
+    private toAbilityCost(
+        consumeAction: NonNullable<UtilityEffect['createdObjects']>[number]['consumeAction']
+    ): Ability['cost']['type'] | null {
+        // Spell JSON uses rules-text action names, while battle-map abilities
+        // use compact action-economy tokens. Keeping the translation here lets
+        // Goodberry spend the normal bonus-action resource without changing the
+        // source data spelling.
+        switch (consumeAction) {
+            case 'action':
+                return 'action'
+            case 'bonus_action':
+                return 'bonus'
+            case 'reaction':
+                return 'reaction'
+            case 'free':
+                return 'free'
+            default:
+                return null
+        }
+    }
+
+    private createSpellCreatedInventoryItems(
+        createdObject: NonNullable<UtilityEffect['createdObjects']>[number]
+    ): Item[] {
+        if (createdObject.inventoryItemId) {
+            // Provisioning counts canonical inventory ids such as "rations" and
+            // "water-day". Emit one stack with the requested resource-day
+            // quantity so travel math can consume the spell-created supplies
+            // without parsing the spell name or prose.
+            return [{
+                id: createdObject.inventoryItemId,
+                name: createdObject.name,
+                description: createdObject.notes ?? `Created by ${this.context.spellName}.`,
+                type: 'food_drink',
+                quantity: createdObject.inventoryQuantity ?? createdObject.count,
+                isConsumed: true,
+                perishable: createdObject.perishable ?? createdObject.expiresWithSpell,
+                shelfLife: createdObject.shelfLife ?? this.describeCreatedObjectShelfLife(),
+                nutritionValue: createdObject.nourishmentDaysPerItem,
+                acquiredAt: Date.now()
+            }]
+        }
+
+        // Shared inventory currently consumes one item entry at a time rather
+        // than decrementing stack quantity. Emit one Goodberry-like item per
+        // created object so using a berry removes exactly one berry.
+        if (!createdObject.healingPerItem || createdObject.consumeAction === 'not_applicable') {
+            return []
+        }
+
+        return Array.from({ length: Math.max(0, createdObject.count) }, (_, index): Item => ({
+            id: `${this.context.spellId || 'spell'}-${createdObject.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${generateId()}-${index}`,
+            name: createdObject.name,
+            description: createdObject.notes ?? `Created by ${this.context.spellName}.`,
+            type: 'consumable',
+            quantity: 1,
+            effect: {
+                type: 'heal',
+                value: createdObject.healingPerItem
+            },
+            isConsumed: true,
+            perishable: createdObject.perishable ?? createdObject.expiresWithSpell,
+            shelfLife: createdObject.shelfLife ?? this.describeCreatedObjectShelfLife(),
+            nutritionValue: createdObject.nourishmentDaysPerItem,
+            acquiredAt: Date.now()
+        }))
+    }
+
+    private describeCreatedObjectShelfLife(): string | undefined {
+        const duration = this.context.effectDuration
+        if (!duration?.value) {
+            return undefined
+        }
+
+        switch (duration.type) {
+            case 'rounds':
+            case 'minutes':
+                return `${duration.value} ${duration.type}`
+            case 'special':
+                return 'special spell duration'
+            default:
+                return undefined
+        }
     }
 
     private applyControlOption(
@@ -217,7 +439,7 @@ export class UtilityCommand extends BaseEffectCommand {
 
     private resolveControlOption(
         controlOptions: NonNullable<UtilityEffect['controlOptions']>
-    ): NonNullable<UtilityEffect['controlOptions']>[number] {
+    ): NonNullable<UtilityEffect['controlOptions']>[number] | null {
         // Player input is stored as a menu label or effect key by the caller.
         // Match either form so UI labels like "Flee" and compact keys like
         // "flee" both resolve to the same command behavior.
@@ -231,6 +453,12 @@ export class UtilityCommand extends BaseEffectCommand {
             if (matchingOption) {
                 return matchingOption
             }
+
+            // A supplied choice means the player, AI, or UI already selected a
+            // specific command word. If that selected word is stale or invalid,
+            // reject it instead of silently executing the first option and
+            // making the creature obey the wrong command.
+            return null
         }
 
         // Keep the old data-order fallback for AI-generated, scripted, or

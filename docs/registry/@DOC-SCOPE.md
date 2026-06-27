@@ -65,3 +65,5 @@ These are excluded because they are local-only, generated, dependency-managed, o
 Previous inventories and doc passes mixed living project docs with local agent state, dependency docs, generated tooling output, and excluded roadmap surfaces.
 
 This scope snapshot is the boundary control that prevents the documentation system from drifting back into that state while the longer migration is still in progress.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/registry/@DOC-SCOPE.md","sha256WithoutMarker":"577a5cbce1550a6fcc56087e9227a3c7b34ba2fe0cd0e5a2acdd6cd3c56043ee","markedAtUtc":"2026-06-26T00:26:22.313Z"} -->

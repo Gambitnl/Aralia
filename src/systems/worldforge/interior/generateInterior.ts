@@ -29,9 +29,11 @@ import type { Feet } from '../units';
 import {
   EXTERIOR,
   type InteriorDoorway,
+  type InteriorFloor,
   type InteriorFurnishing,
   type InteriorPlan,
   type InteriorRoom,
+  type InteriorStair,
   type RoomRole,
 } from './types';
 
@@ -58,21 +60,40 @@ interface Rect {
 const snapDown = (v: number): number => Math.floor(v / CELL_FT) * CELL_FT;
 const snap = (v: number): number => Math.round(v / CELL_FT) * CELL_FT;
 
-export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): InteriorPlan {
-  const interiorPath = childSeedPath(seedPath, `interior:${plot.id}`);
+interface FloorLayout {
+  rooms: InteriorRoom[];
+  doorways: InteriorDoorway[];
+  furnishings: InteriorFurnishing[];
+  /** Index of the anchor room: the street-entry room (ground) or the stair landing (upper). */
+  anchorRoomId: number;
+}
 
-  // Local envelope from the footprint's edge lengths (rotation-free frame).
-  const [c0, c1, , c3] = plot.footprint;
-  const widthFt = Math.max(MIN_ROOM_FT, snapDown(Math.hypot(c1[0] - c0[0], c1[1] - c0[1])));
-  const depthFt = Math.max(MIN_ROOM_FT, snapDown(Math.hypot(c3[0] - c0[0], c3[1] - c0[1])));
+/** The room rect index containing a plot-local point (half-open, clamped). */
+function rectAtPoint(rects: Rect[], x: number, y: number): number {
+  for (let i = 0; i < rects.length; i++) {
+    const r = rects[i];
+    if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.d) return i;
+  }
+  return 0;
+}
 
-  // ── Rooms: BSP split with one doorway per split (spanning tree) ──────
-  const roomRng = rngFromPath(streamPath(interiorPath, 'rooms'));
-  // Room budget by role and floor area: a 60×45 house wants ~4 rooms, not a
-  // 16-cell warren (first render proved the old fixed 260 sq ft target wrong).
-  // targetArea is what a leaf must EXCEED to keep splitting, so it sits a
-  // little above area/budget; ±15% per-plot jitter varies the packing.
-  const isMarket = plot.role === 'market';
+/**
+ * BSP-pack one floor of `widthFt × depthFt` into rooms + a doorway spanning tree,
+ * assign roles, furnish, and keep doorways (and the stair, if any) clear. The
+ * ground floor (`opts.ground`) gets a street entry door and role flavor from the
+ * plot; an upper floor has no street door — its anchor is the room the stair
+ * lands in, and its rooms are sleeping quarters. `basePath` seeds the floor, so
+ * passing the building's interior path reproduces the original ground floor
+ * byte-for-byte while each upper floor draws from its own stream.
+ */
+function buildFloor(
+  basePath: SeedPath,
+  widthFt: number,
+  depthFt: number,
+  isMarket: boolean,
+  opts: { ground: boolean; stair?: { x: number; y: number } },
+): FloorLayout {
+  const roomRng = rngFromPath(streamPath(basePath, 'rooms'));
   const floorArea = widthFt * depthFt;
   const roomBudget = Math.min(isMarket ? 8 : 6, Math.max(2, Math.round(floorArea / 700)));
   const targetArea = (floorArea / roomBudget) * 1.15 * (0.85 + roomRng.next() * 0.3);
@@ -81,8 +102,6 @@ export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): I
   const doorways: InteriorDoorway[] = [];
 
   const split = (r: Rect): number[] => {
-    // Corridor guard: rooms over 2.5:1 keep splitting even under the area
-    // target (the first render produced 10×60 "bedrooms" without this).
     const aspect = Math.max(r.w, r.d) / Math.min(r.w, r.d);
     const splittable =
       (r.w * r.d > targetArea || aspect > 2.5) &&
@@ -91,25 +110,18 @@ export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): I
       rects.push(r);
       return [rects.length - 1];
     }
-
-    // Split the longer axis at a 5 ft aligned position keeping MIN on both sides.
     const alongW = r.w >= r.d ? r.w >= MIN_ROOM_FT * 2 : !(r.d >= MIN_ROOM_FT * 2);
     const len = alongW ? r.w : r.d;
     const lo = MIN_ROOM_FT;
     const hi = len - MIN_ROOM_FT;
     const pos = snap(lo + roomRng.next() * (hi - lo));
     const cut = Math.min(hi, Math.max(lo, pos));
-
     const a: Rect = alongW ? { ...r, w: cut } : { ...r, d: cut };
     const b: Rect = alongW
       ? { x: r.x + cut, y: r.y, w: r.w - cut, d: r.d }
       : { x: r.x, y: r.y + cut, w: r.w, d: r.d - cut };
-
     const idsA = split(a);
     const idsB = split(b);
-
-    // Doorway across the cut line: pick the A/B leaf pair with the longest
-    // shared wall, put the door at the snapped center of the overlap.
     const line = alongW ? r.x + cut : r.y + cut;
     let best: { ia: number; ib: number; lo: number; hi: number } | null = null;
     for (const ia of idsA) {
@@ -143,73 +155,105 @@ export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): I
 
   split({ x: 0, y: 0, w: widthFt, d: depthFt });
 
-  // ── Entry door: street wall (y=0), frontage center — matches the 3D shell ──
-  const frontX = widthFt / 2;
-  let entryIdx = 0;
-  for (let i = 0; i < rects.length; i++) {
-    const r = rects[i];
-    if (r.y === 0 && r.x <= frontX && frontX <= r.x + r.w) {
-      entryIdx = i;
-      break;
+  // Anchor room: ground = the street-entry room; upper = the room the stair lands in.
+  let anchorRoomId = 0;
+  if (opts.ground) {
+    const frontX = widthFt / 2;
+    for (let i = 0; i < rects.length; i++) {
+      const r = rects[i];
+      if (r.y === 0 && r.x <= frontX && frontX <= r.x + r.w) { anchorRoomId = i; break; }
     }
+    const entry = rects[anchorRoomId];
+    const entryDoorX = Math.min(
+      entry.x + entry.w - CELL_FT / 2,
+      Math.max(entry.x + CELL_FT / 2, snap(entry.x + entry.w / 2)),
+    );
+    doorways.unshift({ a: EXTERIOR, b: anchorRoomId, x: entryDoorX, y: 0, axis: 'x' });
+  } else if (opts.stair) {
+    anchorRoomId = rectAtPoint(rects, opts.stair.x, opts.stair.y);
   }
-  const entry = rects[entryIdx];
-  const entryDoorX = Math.min(
-    entry.x + entry.w - CELL_FT / 2,
-    Math.max(entry.x + CELL_FT / 2, snap(entry.x + entry.w / 2)),
-  );
-  doorways.unshift({ a: EXTERIOR, b: entryIdx, x: entryDoorX, y: 0, axis: 'x' });
 
-  // ── Roles: entry room from plot role, rest by size order ──────────────
+  // Roles: anchor leads (shopfloor on a ground market, else hall/landing); the
+  // rest follow a per-context sequence (upper floors are sleeping quarters).
   const roles: RoomRole[] = new Array(rects.length);
-  roles[entryIdx] = isMarket ? 'shopfloor' : 'hall';
+  roles[anchorRoomId] = isMarket && opts.ground ? 'shopfloor' : 'hall';
   const rest = rects
     .map((r, i) => ({ i, area: r.w * r.d }))
-    .filter(({ i }) => i !== entryIdx)
+    .filter(({ i }) => i !== anchorRoomId)
     .sort((p, q) => q.area - p.area || p.i - q.i);
-  const sequence: RoomRole[] = isMarket
-    ? ['storage', 'workshop', 'bedroom', 'storage', 'bedroom']
-    : ['kitchen', 'bedroom', 'storage', 'bedroom', 'bedroom'];
+  const sequence: RoomRole[] = !opts.ground
+    ? ['bedroom', 'bedroom', 'storage', 'bedroom', 'bedroom']
+    : isMarket
+      ? ['storage', 'workshop', 'bedroom', 'storage', 'bedroom']
+      : ['kitchen', 'bedroom', 'storage', 'bedroom', 'bedroom'];
   rest.forEach(({ i }, k) => {
     roles[i] = sequence[Math.min(k, sequence.length - 1)];
   });
 
   const rooms: InteriorRoom[] = rects.map((r, i) => ({
-    id: i,
-    role: roles[i],
-    x: r.x,
-    y: r.y,
-    w: r.w,
-    d: r.d,
+    id: i, role: roles[i], x: r.x, y: r.y, w: r.w, d: r.d,
   }));
 
-  // ── Furnishings: per-role table, placed against deterministic walls ───
-  const furnishRng = rngFromPath(streamPath(interiorPath, 'furnish'));
+  // Furnishings, then keep doorways AND the stair cell clear (props placed blind
+  // to door/stair positions would otherwise block a threshold or the landing).
+  const furnishRng = rngFromPath(streamPath(basePath, 'furnish'));
   const furnishings: InteriorFurnishing[] = [];
-  for (const room of rooms) {
-    furnishings.push(...furnishRoom(room, furnishRng));
-  }
-
-  // Keep doorways passable: the per-role furnishing tables place props against
-  // fixed walls, blind to where the doors landed, so ~1 in 6 doors ended up with
-  // a hearth/shelf/bed on its threshold. Drop any prop sitting on a doorway it
-  // shares a room with (door cell + the approach cell), so an agent can walk
-  // through and the 3D renderer never buries a door behind furniture.
-  const clearFurnishings = furnishings.filter((f) =>
-    !doorways.some((dr) =>
+  for (const room of rooms) furnishings.push(...furnishRoom(room, furnishRng));
+  const clearFurnishings = furnishings.filter((f) => {
+    const onDoor = doorways.some((dr) =>
       (dr.a === f.roomId || dr.b === f.roomId) &&
-      Math.abs(f.x - dr.x) < CELL_FT && Math.abs(f.y - dr.y) < CELL_FT,
-    ),
-  );
+      Math.abs(f.x - dr.x) < CELL_FT && Math.abs(f.y - dr.y) < CELL_FT);
+    const onStair = !!opts.stair &&
+      Math.abs(f.x - opts.stair.x) < CELL_FT && Math.abs(f.y - opts.stair.y) < CELL_FT;
+    return !onDoor && !onStair;
+  });
+
+  return { rooms, doorways, furnishings: clearFurnishings, anchorRoomId };
+}
+
+export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): InteriorPlan {
+  const interiorPath = childSeedPath(seedPath, `interior:${plot.id}`);
+
+  // Local envelope from the footprint's edge lengths (rotation-free frame).
+  const [c0, c1, , c3] = plot.footprint;
+  const widthFt = Math.max(MIN_ROOM_FT, snapDown(Math.hypot(c1[0] - c0[0], c1[1] - c0[1])));
+  const depthFt = Math.max(MIN_ROOM_FT, snapDown(Math.hypot(c3[0] - c0[0], c3[1] - c0[1])));
+  const isMarket = plot.role === 'market';
+
+  // Ground floor — seeded by the interior path, so it reproduces byte-for-byte.
+  const ground = buildFloor(interiorPath, widthFt, depthFt, isMarket, { ground: true });
+
+  // Multi-storey: a single vertical stair shaft at the ground entry room's
+  // centroid (interior, clear of the wall doorways), repeated up each gap. Each
+  // upper floor packs the same envelope (sleeping quarters), reached at the stair.
+  const storeys = Math.max(1, Math.floor(plot.storeys || 1));
+  const upperFloors: InteriorFloor[] = [];
+  const stairs: InteriorStair[] = [];
+  if (storeys > 1) {
+    const entry = ground.rooms[ground.anchorRoomId];
+    const stair = { x: snap(entry.x + entry.w / 2), y: snap(entry.y + entry.d / 2) };
+    // Clear ground furniture off the stair landing too.
+    ground.furnishings = ground.furnishings.filter(
+      (f) => !(Math.abs(f.x - stair.x) < CELL_FT && Math.abs(f.y - stair.y) < CELL_FT),
+    );
+    for (let level = 1; level < storeys; level++) {
+      stairs.push({ fromFloor: level - 1, x: stair.x, y: stair.y });
+      const floorPath = childSeedPath(interiorPath, `floor:${level}`);
+      const floor = buildFloor(floorPath, widthFt, depthFt, isMarket, { ground: false, stair });
+      upperFloors.push({ level, rooms: floor.rooms, doorways: floor.doorways, furnishings: floor.furnishings });
+    }
+  }
 
   return {
     plotId: plot.id,
     widthFt,
     depthFt,
-    storeys: plot.storeys,
-    rooms,
-    doorways,
-    furnishings: clearFurnishings,
+    storeys,
+    rooms: ground.rooms,
+    doorways: ground.doorways,
+    furnishings: ground.furnishings,
+    upperFloors,
+    stairs,
   };
 }
 

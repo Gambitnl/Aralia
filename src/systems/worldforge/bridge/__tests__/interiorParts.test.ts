@@ -257,3 +257,79 @@ it('interior doorway gaps are open through coincident duplicate walls', () => {
   }
   expect(blocked).toBe(0);
 });
+
+describe('multi-storey parts', () => {
+  const STAIR_COLOR = '#7a5a36';
+  const tall = (storeys: number): InteriorPlotInput => ({
+    id: 7,
+    footprint: [[1000, 2000], [1055, 2000], [1055, 2040], [1000, 2040]],
+    role: 'house',
+    storeys,
+  });
+
+  it('a single-storey building emits no elevated parts', () => {
+    // No occupants → nothing has baseY (heads are the only other baseY user).
+    const parts = buildInteriorParts(plot(), SEED_PATH, 6);
+    expect(parts.every((p) => (p.baseY ?? 0) === 0)).toBe(true);
+    expect(parts.some((p) => p.colorHex === STAIR_COLOR)).toBe(false);
+  });
+
+  it('emits stacked upper floors at rising elevations + a stair flight per gap', () => {
+    const storeys = 3;
+    const shellH = 9;
+    const parts = buildInteriorParts(tall(storeys), SEED_PATH, shellH);
+    const storeyH = shellH / storeys;
+
+    // A floor slab at each upper level's elevation.
+    const slabYs = parts.filter((p) => p.colorHex === FLOOR_COLOR && (p.baseY ?? 0) > 0).map((p) => p.baseY);
+    expect(slabYs.sort()).toEqual([storeyH, 2 * storeyH]);
+
+    // One stair flight per gap, each rising a storey from its floor.
+    const stairs = parts.filter((p) => p.colorHex === STAIR_COLOR);
+    expect(stairs).toHaveLength(storeys - 1);
+    for (const s of stairs) expect(s.h).toBeCloseTo(storeyH, 5);
+    expect(stairs.map((s) => s.baseY ?? 0).sort()).toEqual([0, storeyH]);
+
+    // Upper floors contribute interior walls + furniture above the ground.
+    const elevatedWalls = parts.filter((p) => p.colorHex === INTERIOR_WALL_COLOR && (p.baseY ?? 0) > 0);
+    expect(elevatedWalls.length).toBeGreaterThan(0);
+  });
+
+  it('keeps every elevated part within the interior envelope (x/z bounds)', () => {
+    const plan = generateInterior(tall(3), SEED_PATH);
+    const halfW = (plan.widthFt / 2) * FT + WALL_THICKNESS_M;
+    const halfD = (plan.depthFt / 2) * FT + WALL_THICKNESS_M;
+    for (const p of buildInteriorParts(tall(3), SEED_PATH, 9)) {
+      if ((p.baseY ?? 0) === 0) continue;
+      expect(Math.abs(p.x) - p.w / 2).toBeLessThanOrEqual(halfW + 0.01);
+      expect(Math.abs(p.z) - p.d / 2).toBeLessThanOrEqual(halfD + 0.01);
+    }
+  });
+
+  it('is deterministic for a multi-storey building', () => {
+    expect(buildInteriorParts(tall(4), SEED_PATH, 12)).toEqual(buildInteriorParts(tall(4), SEED_PATH, 12));
+  });
+
+  it('houses resident occupants on the upper floors, not just the ground', () => {
+    // Enough residents that the room cycle spills upstairs.
+    const residents = Array.from({ length: 14 }, (_, i) => fig(i + 1, 'adult', false));
+    const shellH = 9;
+    const parts = buildInteriorParts(tall(3), SEED_PATH, shellH);
+    const clothing = body().clothingHex;
+    const bodies = parts.filter((p) => p.colorHex === clothing);
+    expect(bodies).toHaveLength(0); // sanity: no occupants passed yet → no bodies
+
+    const peopled = buildInteriorParts(tall(3), SEED_PATH, shellH, residents);
+    const occupantBodies = peopled.filter((p) => p.colorHex === clothing);
+    expect(occupantBodies).toHaveLength(residents.length);
+    // At least one resident stands on an upper storey (baseY at a floor elevation).
+    const storeyH = shellH / 3;
+    const upstairs = occupantBodies.filter((p) => (p.baseY ?? 0) > 0);
+    expect(upstairs.length).toBeGreaterThan(0);
+    for (const p of upstairs) {
+      const level = Math.round((p.baseY ?? 0) / storeyH);
+      expect(p.baseY).toBeCloseTo(level * storeyH, 5); // lands exactly on a storey
+      expect(level).toBeGreaterThanOrEqual(1);
+    }
+  });
+});

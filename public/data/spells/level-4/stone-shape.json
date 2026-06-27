@@ -142,6 +142,38 @@
       },
       "grantedActions": [],
       "attackAugments": [],
+      "createdObjects": [
+        {
+          "objectType": "structure",
+          "name": "Shaped Stone",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "materialOptions": [
+            "stone"
+          ],
+          "shapeOptions": [
+            "weapon",
+            "statue",
+            "coffer",
+            "small passage",
+            "sealed stone door",
+            "sealed stone door frame",
+            "caster-chosen stone shape"
+          ],
+          "affectedVolumeShape": "not_applicable",
+          "maxStoneDimensionFeet": 5,
+          "wallThickness": 5,
+          "wallThicknessUnit": "feet",
+          "maxHinges": 2,
+          "canIncludeLatch": true,
+          "canCreateFineMechanicalDetail": false,
+          "blocksPhysicalPassage": false,
+          "expiresWithSpell": false,
+          "shelfLife": "instantaneous permanent reshaping",
+          "notes": "The spell reshapes one touched Medium-or-smaller stone object or stone section no more than 5 feet in any dimension. It can create forms such as a weapon, statue, coffer, passage through 5-foot-thick stone, or sealed stone door/frame, with up to two hinges and one latch but no fine mechanical detail."
+        }
+      ],
       "controlOptions": [],
       "taunt": {
         "disadvantageAgainstOthers": false,

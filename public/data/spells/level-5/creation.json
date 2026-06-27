@@ -141,6 +141,47 @@
       },
       "utilityType": "other",
       "description": "Create one nonliving object of seen vegetable or mineral material in a visible point within 30 feet, no larger than a 5-foot Cube at base level. The object duration depends on its material, mixed-material objects use the shortest duration, created objects cannot serve as another spell Material component, and higher slots increase the Cube by 5 feet per slot level above 5.",
+      "createdObjects": [
+        {
+          "objectType": "other",
+          "name": "Created Shadow Object",
+          "count": 1,
+          "countUnit": "item",
+          "appearsIn": "unoccupied_space",
+          "shapeOptions": [
+            "caster_seen_form"
+          ],
+          "materialOptions": [
+            "vegetable matter",
+            "soft goods",
+            "rope",
+            "wood",
+            "mineral matter",
+            "stone",
+            "crystal",
+            "metal"
+          ],
+          "nonlivingObjectOnly": true,
+          "requiresSeenFormAndMaterial": true,
+          "materialSource": "Shadowfell",
+          "maxCreatedObjectCubeFeet": 5,
+          "maxCreatedObjectCubeScaling": {
+            "type": "slot_level",
+            "bonusPerLevel": 5
+          },
+          "durationByMaterial": {
+            "vegetable matter": "24 hours",
+            "stone or crystal": "12 hours",
+            "precious metals": "1 hour",
+            "gems": "10 minutes",
+            "adamantine or mithral": "1 minute"
+          },
+          "mixedMaterialsUseShortestDuration": true,
+          "cannotServeAsMaterialComponent": true,
+          "expiresWithSpell": true,
+          "expiryTiming": "material_duration"
+        }
+      ],
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

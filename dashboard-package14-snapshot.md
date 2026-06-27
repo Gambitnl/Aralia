@@ -468,3 +468,5 @@
           - strong [ref=e632]: Retrying Issues
           - generic [ref=e633]: No issues in retry queue.
   - region "Worker activity"
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"dashboard-package14-snapshot.md","sha256WithoutMarker":"322aab2ff7e57bcbbd45a83d22632acba00c0c29982ee1b5bfe27c687b7dff57","markedAtUtc":"2026-06-26T00:41:38.960Z"} -->

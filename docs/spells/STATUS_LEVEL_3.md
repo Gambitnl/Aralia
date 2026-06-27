@@ -34,3 +34,5 @@ For any level-3 spell that matters right now, verify through:
 ## Historical Note
 
 The older per-spell maturity table was preserved because it captured one migration-era view of readiness. This rewrite keeps the verified inventory fact while removing the false impression that the old labels are still a current operational dashboard.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/spells/STATUS_LEVEL_3.md","sha256WithoutMarker":"717dfe6ecc7c37a77c8e01c3293b98d105eeecfb85af0cf33803306aa921d369","markedAtUtc":"2026-06-26T00:26:22.327Z"} -->

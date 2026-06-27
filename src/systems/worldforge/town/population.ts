@@ -54,6 +54,15 @@ export const RESIDENTIAL_TYPES: ReadonlySet<BuildingType> = new Set<BuildingType
 ]);
 export const isResidential = (t: BuildingType): boolean => RESIDENTIAL_TYPES.has(t);
 
+/** Social class of a ward — wealthy quarter near the keep/market, poor at the rim. */
+export type WardWealth = 'wealthy' | 'common' | 'poor';
+
+/** Non-residential building types that employ people (a workplace, not just a store). */
+export const WORKPLACE_TYPES: ReadonlySet<BuildingType> = new Set<BuildingType>([
+  'inn', 'tavern', 'shop', 'smithy', 'workshop', 'civic',
+]);
+export const isWorkplace = (t: BuildingType): boolean => WORKPLACE_TYPES.has(t);
+
 /** A rural dwelling in the outskirts (carries rural population). */
 export interface Farmstead {
   id: string;
@@ -78,6 +87,8 @@ export interface TownDemographics {
   homes: number;
   /** Residential buildings actually drawn on the map (homes + farmsteads). */
   renderedHomes: number;
+  /** Workplaces drawn on the map (inn/tavern/shop/smithy/workshop/civic). */
+  workplaces: number;
   /** Building counts by type (residential + non-residential) — the rendered sample. */
   byType: Partial<Record<BuildingType, number>>;
   /** Mean household size across the true dwelling count (population / homes). */
@@ -119,6 +130,43 @@ function ruralFracFor(profile: TownScaleProfile | null): number {
 }
 
 /**
+ * Assign each ward a social class from its distance to the town's prestige anchors
+ * (keep/citadel/temple/market). Wards hugging power are wealthy; the rim is poor;
+ * the rest common. A little deterministic jitter keeps districts from being a clean
+ * bullseye. Returns wealth per ward index.
+ */
+export function assignWardWealth(
+  wardCentroids: Pt[],
+  anchors: Pt[],
+  span: number,
+  seedPath: SeedPath,
+): WardWealth[] {
+  const rng = rngFromPath(streamPath(seedPath, 'wealth'));
+  const pts = anchors.length > 0 ? anchors : wardCentroids.length > 0 ? [avgPt(wardCentroids)] : [];
+  return wardCentroids.map((c) => {
+    let d = Infinity;
+    for (const a of pts) d = Math.min(d, Math.hypot(c[0] - a[0], c[1] - a[1]));
+    if (!isFinite(d)) d = 0;
+    const score = d / (span || 1) + (rng.next() - 0.5) * 0.18;
+    if (score < 0.2) return 'wealthy';
+    if (score > 0.46) return 'poor';
+    return 'common';
+  });
+}
+
+function avgPt(pts: Pt[]): Pt {
+  const n = pts.length || 1;
+  return [pts.reduce((s, p) => s + p[0], 0) / n, pts.reduce((s, p) => s + p[1], 0) / n];
+}
+
+/** Width/height of a polygon's bounding box (for jittering points within a parcel). */
+function bounds(pts: Pt[]): { w: number; h: number } {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const [x, y] of pts) { minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); }
+  return { w: maxX - minX, h: maxY - minY };
+}
+
+/**
  * Classify a building by position/kind into a concrete type. Central street-fronts
  * read commercial (inn/shop/smithy); other fronts residential; ward interiors as
  * utility outbuildings. Tenements (dense housing) appear only in cities/capitals.
@@ -130,27 +178,41 @@ export function classifyBuilding(
   townSpan: number,
   typology: TownScaleProfile['typology'] | null,
   hash: (x: number, y: number) => number,
+  district?: WardWealth,
 ): BuildingType {
   const c = polygonCentroid(plot.polygon);
   const dist = Math.hypot(c[0] - townCenter[0], c[1] - townCenter[1]) / (townSpan || 1); // 0=centre
   const h = hash(c[0], c[1]);
+  const wealthy = district === 'wealthy';
+  const poor = district === 'poor';
   if (plot.kind === 'interior') {
     // Ward-interior outbuildings: mostly storehouses/workshops, some cottages.
+    // Wealthy quarters keep tidy gardens (more cottages/none); poor yards cram workshops.
+    if (wealthy) return (h % 2 === 0) ? 'cottage' : 'storehouse';
     return (h % 3 === 0) ? 'cottage' : (h % 3 === 1) ? 'workshop' : 'storehouse';
   }
   const central = dist < 0.22;
   const dense = typology === 'city' || typology === 'capital';
+  // Better wards lean to refined residences + fine shops; poor wards to tenements,
+  // workshops and taverns. The home fallback for a front shifts by class too.
+  const homeFront: BuildingType = wealthy ? 'townhouse' : poor ? (dense ? 'tenement' : 'cottage') : (dense ? 'townhouse' : 'cottage');
   if (central) {
-    // Commercial heart: inns/taverns/shops/smithies, with some dense tenements in cities.
-    if (dense && h % 5 === 0) return 'tenement';
-    const commercial: BuildingType[] = ['inn', 'tavern', 'shop', 'smithy', 'shop'];
+    // Commercial heart: tenements crowd the poor centre; the rich centre stays low.
+    if (dense && !wealthy && h % (poor ? 4 : 5) === 0) return 'tenement';
+    const commercial: BuildingType[] = wealthy
+      ? ['shop', 'inn', 'shop', 'inn', 'tavern']           // fine goods + reputable inns
+      : poor
+        ? ['tavern', 'workshop', 'smithy', 'shop', 'tavern'] // grog + trades
+        : ['inn', 'tavern', 'shop', 'smithy', 'shop'];
     if (h % 3 !== 0) return commercial[h % commercial.length];
-    return dense ? 'townhouse' : 'cottage';
+    return homeFront;
   }
-  // Outer ring: homes. Cities mix in townhouses + occasional tenements.
-  if (dense && h % 7 === 0) return 'tenement';
+  // Outer ring: homes, class-shaded.
+  if (dense && poor && h % 5 === 0) return 'tenement';
+  if (dense && !wealthy && h % 7 === 0) return 'tenement';
+  if (wealthy && h % 2 === 0) return 'townhouse';
   if ((typology === 'walled town' || dense) && h % 3 === 0) return 'townhouse';
-  return 'cottage';
+  return poor ? 'cottage' : homeFront === 'tenement' ? 'cottage' : (h % 4 === 0 ? homeFront : 'cottage');
 }
 
 /** FNV-1a hash of a rounded point — deterministic building flavour. */
@@ -159,6 +221,69 @@ export function hashPoint(x: number, y: number): number {
   const s = `${Math.round(x)},${Math.round(y)}`;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
   return h >>> 0;
+}
+
+/** Employee homes (excluding the proprietor's) a workplace of each type supports. */
+const STAFF_CAPACITY: Partial<Record<BuildingType, number>> = {
+  smithy: 3, shop: 3, workshop: 4, inn: 6, tavern: 4, civic: 8,
+};
+
+/**
+ * Wire the local economy: link homes to workplaces. Each workplace (inn/shop/smithy/
+ * …) is RUN by the nearest home (its proprietor family); remaining homes are staff at
+ * the nearest workplace with room, or unskilled labourers (fields, docks, day-work)
+ * when the town has more hands than jobs. Mutates plots' `workplaceId`/`workRole`/
+ * `proprietorHomeId`/`staffCount`. Pure + deterministic. Returns the workplace count.
+ */
+export function assignWorkplaces(plots: BuildingPlot[]): number {
+  const centroid = (p: BuildingPlot): Pt => polygonCentroid(p.polygon);
+  const workplaces = plots.filter((p) => isWorkplace(p.buildingType as BuildingType));
+  const homes = plots.filter((p) => p.residential && (p.occupants ?? 0) > 0);
+  if (homes.length === 0) return workplaces.length;
+  const claimed = new Set<BuildingPlot>();
+
+  // Proprietors: each workplace claims its nearest unclaimed home.
+  for (const wp of [...workplaces].sort((a, b) => (a.homeId! < b.homeId! ? -1 : 1))) {
+    const wc = centroid(wp);
+    let best: BuildingPlot | null = null, bestD = Infinity;
+    for (const h of homes) {
+      if (claimed.has(h)) continue;
+      const c = centroid(h);
+      const d = (c[0] - wc[0]) ** 2 + (c[1] - wc[1]) ** 2;
+      if (d < bestD) { bestD = d; best = h; }
+    }
+    if (best) {
+      claimed.add(best);
+      best.workplaceId = wp.homeId;
+      best.workRole = 'proprietor';
+      wp.proprietorHomeId = best.homeId;
+      wp.staffCount = 0;
+    }
+  }
+
+  // Staff: every other home works at the nearest workplace that still has room.
+  const load = new Map<BuildingPlot, number>();
+  for (const h of homes) {
+    if (claimed.has(h)) continue;
+    const c = centroid(h);
+    let best: BuildingPlot | null = null, bestD = Infinity;
+    for (const wp of workplaces) {
+      const cap = STAFF_CAPACITY[wp.buildingType as BuildingType] ?? 2;
+      if ((load.get(wp) ?? 0) >= cap) continue;
+      const wc = centroid(wp);
+      const d = (c[0] - wc[0]) ** 2 + (c[1] - wc[1]) ** 2;
+      if (d < bestD) { bestD = d; best = wp; }
+    }
+    if (best) {
+      load.set(best, (load.get(best) ?? 0) + 1);
+      best.staffCount = (best.staffCount ?? 0) + 1;
+      h.workplaceId = best.homeId;
+      h.workRole = 'staff';
+    } else {
+      h.workRole = 'labourer'; // more hands than jobs — fields, docks, day-labour
+    }
+  }
+  return workplaces.length;
 }
 
 export interface AssignPopulationInput {
@@ -185,10 +310,10 @@ export function assignTownPopulation(input: AssignPopulationInput): TownPopulati
   const { plots, farmParcels, population, profile, townCenter, townSpan, seedPath } = input;
   const typology = profile?.typology ?? null;
 
-  // 1. Classify every building + tag a stable home id.
+  // 1. Classify every building (class-shaded by its ward district) + tag a home id.
   const byType: Partial<Record<BuildingType, number>> = {};
   plots.forEach((p, i) => {
-    const t = classifyBuilding(p, townCenter, townSpan, typology, hashPoint);
+    const t = classifyBuilding(p, townCenter, townSpan, typology, hashPoint, p.district);
     p.buildingType = t;
     p.residential = isResidential(t);
     p.homeId = `b${i}`;
@@ -214,20 +339,35 @@ export function assignTownPopulation(input: AssignPopulationInput): TownPopulati
     p.occupants = Math.max(1, Math.round(cap * (0.7 + occRng.next() * 0.55)));
   }
 
-  // 3. Rural: farmsteads on farm parcels, each a believable rural household (~7). They
-  // are a sample too — the true rural dwelling count is derived from ruralPop below.
+  // 3. Rural: scatter farmsteads across the farm parcels. We aim for the TRUE rural
+  // dwelling count (ruralPop / ~5) — "drawn tracks true" — capped for legibility, and
+  // place SEVERAL per parcel (jittered around its centroid) when there are more rural
+  // homes than parcels, so the fields read as dotted with cottages, not one-per-field.
   const farmsteads: Farmstead[] = [];
   if (ruralPop > 0 && farmParcels.length > 0) {
     const rng = rngFromPath(streamPath(seedPath, 'rural'));
-    const nFarms = Math.max(1, Math.min(farmParcels.length, Math.ceil(ruralPop / 8)));
+    const trueRural = Math.max(1, Math.round(ruralPop / 5));
+    const nFarms = Math.min(trueRural, Math.max(farmParcels.length, 1) * 4, 64); // legibility cap
+    const per = Math.floor(ruralPop / nFarms);
+    let rem = ruralPop - per * nFarms;
     for (let i = 0; i < nFarms; i++) {
-      const c = polygonCentroid(farmParcels[i].polygon);
-      farmsteads.push({ id: `f${i}`, x: c[0], y: c[1], occupants: Math.max(1, Math.round(CAPACITY.farmstead * (0.7 + rng.next() * 0.6))) });
+      const parcel = farmParcels[i % farmParcels.length].polygon;
+      const c = polygonCentroid(parcel);
+      const b = bounds(parcel);
+      const r = Math.min(b.w, b.h) * 0.28;
+      // First farmstead per parcel sits at the centroid; extras jitter within it.
+      const first = i < farmParcels.length;
+      const x = first ? c[0] : c[0] + (rng.next() - 0.5) * r * 2;
+      const y = first ? c[1] : c[1] + (rng.next() - 0.5) * r * 2;
+      farmsteads.push({ id: `f${i}`, x, y, occupants: Math.max(1, per + (rem-- > 0 ? 1 : 0)) });
     }
     byType.farmstead = (byType.farmstead ?? 0) + farmsteads.length;
   }
 
-  // 4. TRUE dwelling count: everyone lives somewhere. Urban dwellings = urbanPop split
+  // 4. Local economy: link homes ⇄ workplaces (proprietors, staff, labourers).
+  const workplaces = assignWorkplaces(plots);
+
+  // 5. TRUE dwelling count: everyone lives somewhere. Urban dwellings = urbanPop split
   // into target-sized households; rural dwellings likewise. Never fewer than what the
   // map actually renders (a small town renders ALL its homes → the two counts agree).
   const targetHH = targetHouseholdFor(profile);
@@ -244,6 +384,7 @@ export function assignTownPopulation(input: AssignPopulationInput): TownPopulati
       rural: ruralPop,
       homes: homeCount,
       renderedHomes,
+      workplaces,
       byType,
       avgHousehold: homeCount > 0 ? Math.round((population / homeCount) * 10) / 10 : 0,
     },

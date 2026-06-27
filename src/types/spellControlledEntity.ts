@@ -33,13 +33,13 @@
 // with it while the spell remains active.
 //==============================================================================
 
-/** Describes a persistent spell-created utility helper such as Mage Hand. */
+/** Describes a persistent spell-created utility helper such as Mage Hand or Unseen Servant. */
 export interface ControlledEntity {
-  entityType: "spectral_hand";
+  entityType: "spectral_hand" | "unseen_servant";
   count: number;
   appearsAt: "chosen_point";
   durationScope: "spell_duration";
-  controlActionType: "magic_action" | "action";
+  controlActionType: "magic_action" | "action" | "bonus_action";
   initialUseOnCast: boolean;
   laterControlTiming: "later_turns";
   movementDistance: number;
@@ -49,6 +49,6 @@ export interface ControlledEntity {
   canActivateMagicItems: boolean;
   carryCapacityPounds: number | "not_applicable";
   allowedInteractions: string[];
-  endingTriggers: ("caster_recasts" | "beyond_max_distance")[];
+  endingTriggers: ("caster_recasts" | "beyond_max_distance" | "drops_to_0_hp")[];
   notes?: string;
 }

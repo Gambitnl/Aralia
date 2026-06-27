@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { SpellIntegrityValidator } from '../SpellIntegrityValidator';
+import { SpellValidator } from '../spellValidator';
 import { Spell } from '../../../../types/spells';
 
 /**
@@ -374,11 +375,52 @@ describe('SpellIntegrityValidator', () => {
             { label: 'Effect Branch', summary: 'The option routes to an effect.', effectIndices: [1] },
             { label: 'Control Branch', summary: 'The option routes to a control option.', controlOptionIndices: [0] }
           ]
+        },
+        aiContext: {
+          playerInputRequired: true
         }
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
       } as unknown as Spell;
 
       expect(SpellIntegrityValidator.validate(goodSpell)).toHaveLength(0);
+    });
+
+    it('fails if controlOptions-backed mode choices do not require player input', () => {
+      const badSpell = {
+        id: 'control-options-mode-choice-missing-player-input',
+        duration: { concentration: false },
+        tags: [],
+        effects: [{
+          type: 'UTILITY',
+          description: 'A command-style control branch.',
+          controlOptions: [{
+            name: 'Approach',
+            effect: 'approach'
+          }]
+        }],
+        modeChoice: {
+          type: 'choose_one',
+          timing: 'on_cast',
+          optionCount: 1,
+          optionsSource: 'controlOptions',
+          options: [{
+            label: 'Approach',
+            summary: 'The target approaches.',
+            controlOptionIndices: [0]
+          }]
+        },
+        aiContext: {
+          playerInputRequired: false
+        }
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      // Command-style spells can have structurally valid controlOptions but
+      // still fail at runtime if the top-level spell metadata says no player
+      // input is needed. The integrity rule keeps the UI/input path aligned
+      // with the command execution contract.
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Mode Choice Invalid: controlOptions-backed modeChoice requires aiContext.playerInputRequired true');
     });
   });
 
@@ -523,7 +565,89 @@ describe('SpellIntegrityValidator', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Unit tests: Effect Description Completeness rule
+  // -------------------------------------------------------------------------
+  // Unit tests: Light Metadata Integrity rule
+  // -------------------------------------------------------------------------
+  // Light effects create map artifacts that the turn manager can now expire.
+  // These tests keep the data contract tight enough for runtime and UI surfaces
+  // to know where the light attaches and how much light it actually emits.
+  describe('Rule: Light Metadata Integrity', () => {
+
+    it('fails if a light utility effect has no light payload', () => {
+      const badSpell = {
+        id: 'light-without-payload',
+        duration: { concentration: false },
+        tags: [],
+        effects: [
+          {
+            type: 'UTILITY',
+            utilityType: 'light',
+            description: 'Creates light but omits the map-light payload.',
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' }
+          }
+        ]
+        // TODO(lint-intent): Replace unknown cast with a minimal test spell builder once this validator suite is decomposed.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Light Metadata Invalid: effect 0 utilityType light must include a light payload');
+    });
+
+    it('fails if a light utility effect emits no light or uses an unknown attachment', () => {
+      const badSpell = {
+        id: 'light-without-radius',
+        duration: { concentration: false },
+        tags: [],
+        effects: [
+          {
+            type: 'UTILITY',
+            utilityType: 'light',
+            description: 'Claims to create light but has no emitted radius.',
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' },
+            light: {
+              brightRadius: 0,
+              dimRadius: 0,
+              attachedTo: 'somewhere_else'
+            }
+          }
+        ]
+        // TODO(lint-intent): Replace unknown cast with a minimal test spell builder once this validator suite is decomposed.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Light Metadata Invalid: effect 0 utilityType light must emit bright or dim light');
+      expect(errors).toContain('Light Metadata Invalid: effect 0 attachedTo must be caster, target, or point');
+    });
+
+    it('passes valid bright or dim light utility payloads', () => {
+      const goodSpell = {
+        id: 'valid-light-metadata',
+        duration: { concentration: false },
+        tags: [],
+        effects: [
+          {
+            type: 'UTILITY',
+            utilityType: 'light',
+            description: 'Creates dim light at a chosen point.',
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' },
+            light: {
+              brightRadius: 0,
+              dimRadius: 10,
+              attachedTo: 'point'
+            }
+          }
+        ]
+        // TODO(lint-intent): Replace unknown cast with a minimal test spell builder once this validator suite is decomposed.
+      } as unknown as Spell;
+
+      expect(SpellIntegrityValidator.validate(goodSpell)).toHaveLength(0);
+    });
+  });
+
+  // -------------------------------------------------------------------------  // Unit tests: Effect Description Completeness rule
   // -------------------------------------------------------------------------
   // These tests lock G8/G9's cleanup into the validator itself. A spell effect
   // with valid structured mechanics but an empty or placeholder description is
@@ -877,6 +1001,37 @@ describe('SpellIntegrityValidator', () => {
     // telepathy, shared senses, and touch-spell delivery. The row should expose
     // those play facts instead of saying no slot-scaling changes are modeled.
     expect(summoningEffect?.description).toBe('Summon one persistent familiar spirit in an animal form at an unoccupied space within range. The familiar acts independently, obeys your commands, and stays until dismissed or reduced to 0 Hit Points. While it is within 100 feet, you can communicate telepathically with it, use a Bonus Action to perceive through its senses until the start of your next turn, and have it deliver your touch spells using its Reaction; you can have only one familiar at a time.');
+  });
+
+  it('allows summon shared-senses costs that the runtime command bridge supports', () => {
+    const findFamiliar = getSpells(1).find(spell => spell.id === 'find-familiar');
+    const summoningEffectIndex = findFamiliar?.effects.findIndex(effect => effect.type === 'SUMMONING') ?? -1;
+
+    expect(findFamiliar).toBeDefined();
+    expect(summoningEffectIndex).toBeGreaterThanOrEqual(0);
+
+    const sharedSensesFreeCostSpell = {
+      ...findFamiliar!,
+      effects: findFamiliar!.effects.map((effect, index) => {
+        if (index !== summoningEffectIndex || effect.type !== 'SUMMONING') {
+          return effect;
+        }
+
+        // SummoningCommand maps `free` and `none` to executable ability costs.
+        // The validator should therefore accept the same contract instead of
+        // forcing all shared-senses summon spells into action/bonus-action only.
+        return {
+          ...effect,
+          summon: {
+            ...effect.summon,
+            sharedSenses: true,
+            sharedSensesCost: 'free'
+          }
+        };
+      })
+    };
+
+    expect(SpellValidator.safeParse(sharedSensesFreeCostSpell).success).toBe(true);
   });
 
   it('keeps Unseen Servant summoning description focused on servant limits and command facts', () => {
@@ -5098,6 +5253,27 @@ describe('SpellIntegrityValidator', () => {
       expect(actionCostFailures).toHaveLength(0);
     });
 
+    it('hard-fails malformed light metadata across all spells', () => {
+      const lightMetadataFailures: string[] = [];
+
+      allSpells.forEach(spell => {
+        const errors = SpellIntegrityValidator.validate(spell);
+        const relevantErrors = errors.filter(error => error.includes('Light Metadata'));
+
+        if (relevantErrors.length > 0) {
+          lightMetadataFailures.push(`${spell.id || spell.name}: ${relevantErrors.join(', ')}`);
+        }
+      });
+
+      // Light utility rows create visible map artifacts, so their radius and
+      // attachment data must be executable before the renderer or turn cleanup
+      // can treat them as real spell behavior.
+      if (lightMetadataFailures.length > 0) {
+        console.warn(`Light Metadata Failures (${lightMetadataFailures.length}):\n${lightMetadataFailures.join('\n')}`);
+      }
+
+      expect(lightMetadataFailures).toHaveLength(0);
+    });
     it('hard-fails monolithic spell effects across all spells', () => {
       const monolithicFailures: string[] = [];
 
@@ -5162,6 +5338,8 @@ describe('SpellIntegrityValidator', () => {
     });
   });
 });
+
+
 
 
 

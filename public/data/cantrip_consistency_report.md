@@ -109,3 +109,5 @@ Acid Splash, Blade Ward, Booming Blade, Chill Touch, Create Bonfire, Green-Flame
 2. **Add "cantrip" to tags** for 12 spells missing it
 3. **Add `targeting.range`** to 6 spells missing it (using `range.distance` or defaults)
 4. **Consider adding `attackType`** to all attack-roll spells for consistency
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"public/data/cantrip_consistency_report.md","sha256WithoutMarker":"8dc75828358cf047f17e10d853a894c2a48cc4c3570f29a7f5fd2537ba153308","markedAtUtc":"2026-06-26T00:41:38.957Z"} -->

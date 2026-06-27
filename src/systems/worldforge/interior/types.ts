@@ -61,14 +61,40 @@ export interface InteriorFurnishing {
   rotation: 0 | 90 | 180 | 270;
 }
 
+/**
+ * A staircase linking two consecutive floors. Plot-local feet; the SAME (x, y)
+ * lands inside a room on both `fromFloor` and `fromFloor + 1`, so the two floors
+ * connect at one footprint (the 3D renderer draws the flight between them).
+ */
+export interface InteriorStair {
+  /** Floor the stair ascends FROM (0 = ground). */
+  fromFloor: number;
+  x: Feet;
+  y: Feet;
+}
+
+/** One upper storey (level ≥ 1). Same envelope as the ground floor; no street
+ *  door — reached via the stair landing in one of its rooms. */
+export interface InteriorFloor {
+  level: number;
+  rooms: InteriorRoom[];
+  doorways: InteriorDoorway[];
+  furnishings: InteriorFurnishing[];
+}
+
 export interface InteriorPlan {
   plotId: number;
   /** Interior envelope dims in feet (5 ft aligned, derived from footprint). */
   widthFt: Feet;
   depthFt: Feet;
-  /** Echoed from the plot — upper storeys are a later slice. */
+  /** Echoed from the plot — total floor count (ground + upper). */
   storeys: number;
+  /** Ground floor. */
   rooms: InteriorRoom[];
   doorways: InteriorDoorway[];
   furnishings: InteriorFurnishing[];
+  /** Upper storeys (levels 1..storeys-1). Empty for single-storey buildings. */
+  upperFloors: InteriorFloor[];
+  /** Stairs linking consecutive floors (one per floor gap). Empty if single-storey. */
+  stairs: InteriorStair[];
 }

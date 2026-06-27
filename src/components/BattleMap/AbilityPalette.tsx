@@ -22,9 +22,105 @@ const AbilityPalette: React.FC<AbilityPaletteProps> = ({ character, onSelectAbil
     return <div className="p-2 text-center text-gray-400 italic">Select a character to see abilities.</div>;
   }
 
+  const toGrantedActionCost = (type: string): AbilityCost['type'] => {
+    if (type === 'bonus_action') return 'bonus';
+    return type as AbilityCost['type'];
+  };
+
+  const toGrantedActionDamageType = (damageType?: string): Ability['effects'][number]['damageType'] | undefined => {
+    // Spell JSON keeps rules-text damage names in title case, while battle-map
+    // abilities use lowercase tokens. Normalize only the runtime bridge so the
+    // durable source data keeps its existing spelling style.
+    return damageType?.toLowerCase() as Ability['effects'][number]['damageType'] | undefined;
+  };
+
+  const toGrantedActionAreaOfEffect = (grantedAction: NonNullable<Ability['grantedActions']>[number]): Ability['areaOfEffect'] | undefined => {
+    // Granted follow-up actions can carry their own area template even when the
+    // original cast is not an area button. Convert canonical spell shapes into
+    // the existing battle-map preview shapes instead of inventing a second AoE
+    // model for secondary spell actions.
+    if (!grantedAction.areaShape || grantedAction.areaShape === 'not_applicable' || grantedAction.areaSize === 'not_applicable' || grantedAction.areaSizeUnit !== 'feet') {
+      return undefined;
+    }
+
+    const shapeMap: Record<string, NonNullable<Ability['areaOfEffect']>['shape'] | undefined> = {
+      Cone: 'cone',
+      Line: 'line',
+      Sphere: 'circle',
+      Cube: 'square',
+      Cylinder: 'circle'
+    };
+    const shape = shapeMap[grantedAction.areaShape];
+    if (!shape) {
+      return undefined;
+    }
+
+    return {
+      shape,
+      size: Math.max(1, Math.floor(grantedAction.areaSize / 5))
+    };
+  };
+
+  const abilitiesWithGrantedActions = character.abilities.flatMap(ability => {
+    const grantedActionAbilities = (ability.grantedActions ?? []).map((grantedAction, index): Ability => {
+      const areaOfEffect = toGrantedActionAreaOfEffect(grantedAction);
+
+      return {
+        id: `${ability.id}_granted_${index}_${grantedAction.action.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+        sourceSpellId: ability.sourceSpellId ?? ability.spell?.id ?? ability.id,
+        name: grantedAction.action,
+        description: grantedAction.notes ?? `Follow-up action granted by ${ability.name}.`,
+        type: 'utility',
+        icon: '+',
+        cost: { type: toGrantedActionCost(grantedAction.type) },
+        // Granted actions with a range limit, such as Wall of Light's beam,
+        // should enter the normal target-selection flow instead of logging as a
+        // self-only utility. Area follow-ups, such as Melf's meteors, route to
+        // the normal area picker so their later point/area payload is visible.
+        targeting: areaOfEffect
+          ? 'area'
+          : grantedAction.rangeLimit
+            ? (grantedAction.prerequisites?.includes('target_object_within_spell_range') ? 'single_any' : 'single_enemy')
+            : 'self',
+        range: grantedAction.rangeLimit ? Math.floor(grantedAction.rangeLimit / 5) : 0,
+        areaShape: areaOfEffect?.shape,
+        areaSize: areaOfEffect?.size,
+        areaOfEffect,
+        effects: [{
+          type: 'granted_action',
+          grantedActionLabel: grantedAction.action,
+          grantedActionCost: grantedAction.type,
+          grantedActionFrequency: grantedAction.frequency,
+          grantedActionRangeLimit: grantedAction.rangeLimit,
+          grantedActionPrerequisites: grantedAction.prerequisites,
+          grantedActionAttackType: grantedAction.attackType,
+          grantedActionAreaShape: grantedAction.areaShape,
+          grantedActionAreaSize: grantedAction.areaSize,
+          grantedActionAreaSizeUnit: grantedAction.areaSizeUnit,
+          grantedActionDamageDice: grantedAction.damage?.dice,
+          grantedActionDamageType: toGrantedActionDamageType(grantedAction.damage?.type),
+          grantedActionSaveType: grantedAction.saveType,
+          grantedActionSaveEffect: grantedAction.saveEffect,
+          grantedActionDamageAbilityModifier: grantedAction.damageAbilityModifier,
+          grantedActionWallLengthReduction: grantedAction.wallLengthReduction,
+          grantedActionEndsWhenLengthZero: grantedAction.endsWhenLengthZero,
+          grantedActionNotes: grantedAction.notes
+        }],
+        tags: ['spell-granted-action', ability.id],
+        spell: ability.spell
+      };
+    });
+
+    // Show the original spell button and then the follow-up actions it grants.
+    // This makes the secondary actions selectable without mutating the
+    // character's canonical ability list or pretending every spell-specific
+    // payload is already implemented.
+    return [ability, ...grantedActionAbilities];
+  });
+
   const abilityButtons = (
     <div className="flex justify-center flex-wrap gap-2 p-3">
-      {character.abilities.map(ability => {
+      {abilitiesWithGrantedActions.map(ability => {
         const isAffordable = canAffordAction(ability.cost);
         const isOnCooldown = (ability.currentCooldown || 0) > 0;
         const isExhausted = ability.maxUses !== undefined && (ability.usesRemaining ?? ability.maxUses) <= 0;

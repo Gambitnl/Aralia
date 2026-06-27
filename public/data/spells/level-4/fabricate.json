@@ -142,6 +142,46 @@
       },
       "grantedActions": [],
       "attackAugments": [],
+      "createdObjects": [
+        {
+          "objectType": "other",
+          "name": "Fabricated Product",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "shapeOptions": [
+            "wooden bridge",
+            "rope",
+            "clothing",
+            "Large or smaller non-mineral object",
+            "Medium or smaller mineral object",
+            "tool-proficiency-gated skilled good"
+          ],
+          "materialOptions": [
+            "wood",
+            "hemp",
+            "flax",
+            "wool",
+            "metal",
+            "stone",
+            "mineral",
+            "same material as visible raw source"
+          ],
+          "requiresVisibleRawMaterials": true,
+          "consumesSourceMaterials": true,
+          "outputSameMaterialAsSource": true,
+          "maxFabricatedObjectCubeFeet": 10,
+          "maxConnectedFiveFootCubes": 8,
+          "maxMineralObjectCubeFeet": 5,
+          "qualityLimitedByMaterials": true,
+          "cannotCreateCreatures": true,
+          "cannotCreateMagicItems": true,
+          "skilledGoodsRequireToolProficiency": true,
+          "expiresWithSpell": false,
+          "shelfLife": "instantaneous permanent fabrication",
+          "notes": "The spell converts visible raw materials into a finished product of the same material. Non-mineral outputs can be Large or smaller, contained in a 10-foot Cube or eight connected 5-foot Cubes. Metal, stone, and mineral outputs can be no larger than Medium, contained in a 5-foot Cube. Output quality depends on source quality, creatures and magic items cannot be created, and skilled goods such as weapons or armor require matching Artisan's Tools proficiency."
+        }
+      ],
       "controlOptions": [],
       "taunt": {
         "disadvantageAgainstOthers": false,

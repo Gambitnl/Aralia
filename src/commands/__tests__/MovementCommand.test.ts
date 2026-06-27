@@ -6,6 +6,15 @@ import type { CombatCharacter, CombatState, Position } from '@/types/combat'
 import type { MovementEffect, TerrainEffect } from '@/types/spells'
 import { createMockCombatCharacter, createMockGameState } from '../../utils/factories'
 
+/**
+ * This file checks movement-style spell commands.
+ *
+ * Movement spells are shared by teleport effects, forced movement, and terrain
+ * manipulation. These tests keep those runtime contracts visible so spell data
+ * can rely on the command layer instead of each spell inventing its own move
+ * behavior.
+ */
+
 const baseStats = {
   strength: 10,
   dexterity: 10,
@@ -72,6 +81,18 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
   caster,
   targets,
   gameState: createMockGameState()
+})
+
+const makeMaplessContext = (caster: CombatCharacter, targets: CombatCharacter[]): CommandContext => ({
+  spellId: 'mapless-teleport',
+  spellName: 'Mapless Teleport',
+  castAtLevel: 2,
+  caster,
+  targets,
+  // Mapless spell execution should not inherit campaign-map dimensions. This
+  // keeps the command focused on range and occupied-space rules when no battle
+  // map is attached to the combat state.
+  gameState: { ...createMockGameState(), mapData: undefined } as ReturnType<typeof createMockGameState>
 })
 
 describe('MovementCommand', () => {
@@ -144,17 +165,93 @@ describe('MovementCommand', () => {
     // Expectation: Should stay at 0,0 because distance is 0
     expect(updated?.position).toEqual({ x: 0, y: 0 })
 
-    // Check logs to confirm it failed to teleport or teleported 0 distance
-    // The current implementation might allow it to teleport to (10, 10) if it ignores the missing distance
-    const _log = result.combatLog.at(-1)
-
-    // If it moved, this test demonstrates the bug
-    if (updated?.position.x === 10) {
-      console.log('BUG CONFIRMED: Teleported to (10,10) despite 0 distance')
-    }
-
     // We expect it NOT to have moved to 10,10
     expect(updated?.position).not.toEqual({ x: 10, y: 10 })
+  })
+
+  // Mapless teleport policy: when no battle map or campaign map is present, the
+  // command does not guess battlefield edges. It still enforces the spell's
+  // range budget and still rejects occupied landing spaces.
+  it('allows an in-range mapless teleport without clamping the coordinates', () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 })
+    const target = makeCharacter('target', { x: 1, y: 1 })
+    const state = makeState([caster, target])
+
+    const effect: MovementEffect = {
+      type: 'MOVEMENT',
+      movementType: 'teleport',
+      distance: 30,
+      destination: { x: 7, y: 1 },
+      duration: { type: 'rounds', value: 1 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' }
+    }
+
+    const result = new MovementCommand(effect, makeMaplessContext(caster, [target])).execute(state)
+    const updated = result.characters.find(c => c.id === 'target')
+    const teleportLog = result.combatLog.at(-1)
+
+    expect(updated?.position).toEqual({ x: 7, y: 1 })
+    expect(teleportLog?.data).toMatchObject({
+      requestedDestination: { x: 7, y: 1 },
+      actualDistanceTiles: 6,
+      actualDistanceFeet: 30,
+      clampedByBounds: false,
+      usedFallbackDestination: false,
+      maplessBoundsPolicy: 'range_bounded_unclamped'
+    })
+  })
+
+  it('uses an in-range fallback tile when a mapless teleport destination is occupied', () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 })
+    const target = makeCharacter('target', { x: 1, y: 1 })
+    const blocker = makeCharacter('blocker', { x: 3, y: 1 })
+    const state = makeState([caster, target, blocker], [{ x: 3, y: 2 }, { x: 10, y: 10 }])
+
+    const effect: MovementEffect = {
+      type: 'MOVEMENT',
+      movementType: 'teleport',
+      distance: 15,
+      destination: { x: 3, y: 1 },
+      duration: { type: 'rounds', value: 1 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' }
+    }
+
+    const result = new MovementCommand(effect, makeMaplessContext(caster, [target])).execute(state)
+    const updated = result.characters.find(c => c.id === 'target')
+    const teleportLog = result.combatLog.at(-1)
+
+    expect(updated?.position).toEqual({ x: 3, y: 2 })
+    expect(teleportLog?.data).toMatchObject({
+      requestedDestination: { x: 3, y: 1 },
+      usedFallbackDestination: true,
+      maplessBoundsPolicy: 'range_bounded_unclamped'
+    })
+  })
+
+  it('rejects mapless teleport fallback candidates outside the spell range', () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 })
+    const target = makeCharacter('target', { x: 1, y: 1 })
+    const blocker = makeCharacter('blocker', { x: 2, y: 1 })
+    const state = makeState([caster, target, blocker], [{ x: 10, y: 10 }])
+
+    const effect: MovementEffect = {
+      type: 'MOVEMENT',
+      movementType: 'teleport',
+      distance: 5,
+      destination: { x: 2, y: 1 },
+      duration: { type: 'rounds', value: 1 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' }
+    }
+
+    const result = new MovementCommand(effect, makeMaplessContext(caster, [target])).execute(state)
+    const updated = result.characters.find(c => c.id === 'target')
+    const teleportLog = result.combatLog.at(-1)
+
+    expect(updated?.position).toEqual({ x: 1, y: 1 })
+    expect(teleportLog?.message).toContain('cannot teleport to a valid space')
   })
 })
 

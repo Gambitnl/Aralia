@@ -2,7 +2,7 @@
 import { renderHook, act, waitFor as _waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAbilitySystem } from '../useAbilitySystem';
-import { CombatCharacter, Ability, BattleMapData, LightSource } from '../../types/combat';
+import { CombatCharacter, Ability, BattleMapData, LightSource, SelectedSpellTarget } from '../../types/combat';
 import { Spell } from '../../types/spells';
 import { Item } from '../../types';
 import * as savingThrowUtils from '../../utils/savingThrowUtils';
@@ -860,6 +860,16 @@ describe('useAbilitySystem - immediate forced-movement repeat saves', () => {
             position: { x: 1, y: 0 },
             actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
             spellSlots: {},
+            savePenaltyRiders: [{
+                id: 'mind-sliver-rider',
+                spellId: 'mind-sliver',
+                casterId: caster.id,
+                sourceName: 'Mind Sliver',
+                dice: '1d4',
+                applies: 'next_save',
+                duration: { type: 'rounds', value: 1 },
+                appliedTurn: 1
+            }],
             statusEffects: [{
                 id: 'compelled',
                 name: 'Charmed',
@@ -954,11 +964,18 @@ describe('useAbilitySystem - immediate forced-movement repeat saves', () => {
         });
 
         await _waitFor(() => expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalled());
+        expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalledWith(
+            expect.objectContaining({ id: target.id }),
+            'Wisdom',
+            expect.any(Number),
+            [expect.objectContaining({ dice: '-1d4', source: 'Mind Sliver' })]
+        );
         expect(onCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
             id: target.id,
             position: { x: 3, y: 0 },
             statusEffects: [],
-            conditions: []
+            conditions: [],
+            savePenaltyRiders: []
         }));
     });
 });
@@ -1871,5 +1888,93 @@ describe('useAbilitySystem - active light source live-state bridge', () => {
             activeLightSources: [existingLight]
         }));
         expect(onActiveLightSourcesUpdate).toHaveBeenCalledWith([]);
+    });
+});
+
+// ============================================================================
+// Free-Form Input Target Metadata Bridge
+// ============================================================================
+// Some spells ask the player for text after the map/object target has already
+// been selected. This guard proves the follow-up input callback resumes the
+// same command path with the selected target metadata still attached.
+// ============================================================================
+
+describe('useAbilitySystem - free-form player input target bridge', () => {
+    it('preserves selected spell targets when generic AI input is collected', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+        const freeformSpell: Spell = {
+            id: 'minor-illusion',
+            name: 'Minor Illusion',
+            level: 0,
+            school: 'Illusion',
+            classes: ['Wizard'],
+            description: 'Create a described image or sound at the selected place.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'distance', distance: 30 },
+            components: { verbal: false, somatic: true, material: true },
+            duration: { type: 'timed', value: 1, unit: 'minute', concentration: false },
+            targeting: { type: 'point', validTargets: ['point'], range: 30 },
+            arbitrationType: 'ai_dm',
+            aiContext: {
+                prompt: 'Describe the image or sound.',
+                playerInputRequired: true
+            },
+            effects: [{
+                type: 'UTILITY',
+                utilityType: 'sensory',
+                description: 'Creates a harmless illusion.',
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once compact illusion spell test fixtures expose the full migrated union shape.
+        } as unknown as Spell;
+        const selectedSpellTargets: SelectedSpellTarget[] = [{
+            kind: 'point',
+            position: { x: 3, y: 3 },
+            purpose: 'ground_target'
+        // TODO(lint-intent): Replace this cast once selected-target fixtures cover point targeting metadata.
+        } as unknown as SelectedSpellTarget];
+        let confirmInput: ((input: string) => void) | null = null;
+        const onRequestInput = vi.fn((_spell: Spell, onConfirm: (input: string) => void) => {
+            // Capture the modal callback instead of auto-confirming so the
+            // assertion can prove command creation waits for the player's text.
+            confirmInput = onConfirm;
+        });
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [attacker, defender],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn(),
+            onRequestInput
+        }));
+
+        await act(async () => {
+            await result.current.executeSpell(
+                freeformSpell,
+                attacker,
+                [defender],
+                0,
+                undefined,
+                undefined,
+                undefined,
+                selectedSpellTargets
+            );
+        });
+
+        expect(onRequestInput).toHaveBeenCalledWith(freeformSpell, expect.any(Function));
+        expect(SpellCommandFactory.createCommands).not.toHaveBeenCalled();
+
+        await act(async () => {
+            confirmInput?.('A faint bell rings from the marked square.');
+        });
+
+        await _waitFor(() => expect(SpellCommandFactory.createCommands).toHaveBeenCalled());
+
+        // SpellCommandFactory receives selectedSpellTargets as its final
+        // argument. Keeping the exact array proves the input callback did not
+        // drop object/point target context while waiting for the modal.
+        expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[8]).toBe(selectedSpellTargets);
     });
 });

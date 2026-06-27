@@ -210,4 +210,38 @@ describe('DefensiveCommand', () => {
     expect(updated?.activeEffects?.[0]?.type).toBe('buff');
     expect(updated?.activeEffects?.[0]?.sourceName).toBe('Defensive Spell');
   });
+
+  it('applies Shield-style force immunity as combat state and active-effect mechanics', async () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 });
+    const target = makeCharacter('target', { x: 1, y: 0 });
+    const state = makeState([caster, target]);
+
+    const effect: DefensiveEffect = {
+      type: 'DEFENSIVE',
+      defenseType: 'immunity',
+      damageType: ['force'],
+      value: 0,
+      duration: { type: 'rounds', value: 1 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      reactionTrigger: {
+        event: 'when_targeted',
+        includesSpells: ['magic-missile']
+      }
+    };
+
+    const command = new DefensiveCommand(effect, {
+      ...makeContext(caster, [target]),
+      spellId: 'shield',
+      spellName: 'Shield'
+    });
+    const result = await command.execute(state);
+
+    const updated = result.characters.find(c => c.id === 'target');
+    // Shield has a second structured row for Magic Missile. This proves that
+    // row becomes real force immunity in combat state, not just dormant JSON.
+    expect(updated?.immunities).toContain('force');
+    expect(updated?.activeEffects?.[0]?.mechanics?.damageImmunity).toEqual(['force']);
+    expect(result.combatLog.at(-1)?.message).toContain('immunity');
+  });
 });

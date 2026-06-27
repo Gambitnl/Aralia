@@ -208,3 +208,4 @@ This report separates race mechanics by the capability-backed status Aralia can 
 
 Blocked buckets need the engine/system family named in their records before race data should be migrated into structured runtime mechanics.
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/reports/race-reconciliation/mechanic-buckets.md","sha256WithoutMarker":"2804b49af64b08e7265f0a9fe4cc1d8547dd11b026743793c5cb7cfd316426c6","markedAtUtc":"2026-06-26T00:26:22.316Z"} -->

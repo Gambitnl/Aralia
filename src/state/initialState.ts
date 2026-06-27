@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 22/06/2026, 00:45:16
+ * Last Sync: 27/06/2026, 01:55:54
  * Dependents: App.tsx, state/appState.ts
  * Imports: 15 files
  *
@@ -305,6 +305,9 @@ export const initialGameState: GameState = {
     // Lockpicking Modal State
     isLockpickingModalVisible: false,
     activeLock: null,
+    // Puzzle Runtime Modal State
+    isPuzzleRuntimeVisible: false,
+    activePuzzle: null,
 
     // Dice Roller Modal State
     isDiceRollerVisible: false,

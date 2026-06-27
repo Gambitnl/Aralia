@@ -234,6 +234,27 @@
           }
         ],
         "discernedState": "not_applicable",
+        "phantasmalInteraction": {
+          "perceivedOnlyByTarget": true,
+          "targetTreatsAsReal": true,
+          "rationalizesIllogicalOutcomes": true,
+          "phenomenonOptions": [
+            "object",
+            "creature",
+            "phenomenon",
+            "bridge",
+            "dangerous creature",
+            "hazard"
+          ],
+          "hazardousPhantasm": {
+            "damageDice": "2d8",
+            "damageType": "Psychic",
+            "perceivedDamageTypeSource": "appropriate_to_illusion",
+            "damageTiming": "each_caster_turn",
+            "damageAreaCondition": "in_area_or_within_proximity",
+            "proximityFeet": 5
+          }
+        },
         "notes": "If the check succeeds, the target realizes that the phantasm is an illusion, and the spell ends."
       }
     },

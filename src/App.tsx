@@ -461,6 +461,11 @@ const App: React.FC = () => {
       currentLocationId: gameState.currentLocationId,
       subMapCoordinates: gameState.subMapCoordinates,
       playerWorldPos: gameState.playerWorldPos ?? null,
+      // Keep the chosen starting settlement visible to browser proof tests so
+      // the post-creator flow can prove the selected village became live game
+      // state, not just that play started somewhere.
+      startTownName: gameState.startTownName ?? null,
+      startTownRegion: gameState.startTownRegion ?? null,
       partySize: gameState.party.length,
       partyNames: gameState.party.map(p => p.name),
       gold: gameState.gold,
@@ -474,7 +479,11 @@ const App: React.FC = () => {
       error: gameState.error ?? null,
       isLoading: gameState.isLoading,
     };
-  }, [gameState]);
+    // Dev-only action dispatch handle, for headless visual-verification rigs to
+    // set up scenarios (e.g. add provisions before screenshotting the travel
+    // map). Dev-gated; absent in production builds.
+    (window as unknown as { __araliaDispatch?: unknown }).__araliaDispatch = dispatch;
+  }, [gameState, dispatch]);
 
   // Dev dummy auto-start: only fire when there's no URL phase override.
   // This prevents the legacy auto-start from hijacking deep links like ?phase=world3d

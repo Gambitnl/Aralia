@@ -210,6 +210,27 @@
         "customFormula": ""
       },
       "description": "When the 60-foot-long, 10-foot-high, 5-foot-thick wall appears at a point within 120 feet, each creature in the wall makes a Constitution save, taking 4d8 Radiant damage on a failure or half as much on a success; each slot level above 5 adds +1d8 damage.",
+      "grantedActions": [
+        {
+          "type": "action",
+          "action": "Launch Radiant Beam",
+          "frequency": "each_turn",
+          "actor": "caster",
+          "actionKind": "magic_action",
+          "attackType": "ranged_spell_attack",
+          "rangeLimit": 60,
+          "damage": {
+            "dice": "4d8",
+            "type": "Radiant"
+          },
+          "wallLengthReduction": 10,
+          "endsWhenLengthZero": true,
+          "prerequisites": [
+            "target_within_spell_range"
+          ],
+          "notes": "Until the spell ends, the caster can use an action to launch a beam of radiance from the wall at one visible creature within 60 feet of it. On hit, the target takes 4d8 Radiant damage; hit or miss, the wall length is reduced by 10 feet."
+        }
+      ],
       "conditionalEndings": []
     },
     {
@@ -288,6 +309,126 @@
         "customFormula": ""
       },
       "description": "A creature that fails the wall's initial Constitution save is Blinded for 1 minute and can repeat the Constitution save at the end of each turn, ending the Blinded effect on a success.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "creation",
+      "description": "Creates a shimmering wall of bright light that blocks line of sight while allowing creatures and objects to pass through it.",
+      "createdObjects": [
+        {
+          "objectType": "hazard",
+          "name": "Wall of Light",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "wallLengthFeet": 60,
+          "wallHeightFeet": 10,
+          "wallThickness": 5,
+          "wallThicknessUnit": "feet",
+          "orientationOptions": [
+            "horizontal",
+            "vertical",
+            "diagonal",
+            "caster_choice"
+          ],
+          "freeFloating": true,
+          "blocksPhysicalPassage": false,
+          "blocksLineOfSight": true,
+          "blocksCrossBoundaryEffects": false,
+          "hazardRadiusFeet": 0,
+          "burnDamage": {
+            "dice": "4d8",
+            "type": "Radiant"
+          },
+          "expiresWithSpell": true,
+          "shelfLife": "10 minutes",
+          "notes": "A 60-foot-long, 10-foot-high, 5-foot-thick shimmering light wall. It blocks line of sight, does not block passage, emits bright and dim light, damages creatures that end their turn in its area, and can shrink by 10 feet whenever the caster launches a radiant beam."
+        }
+      ],
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 120,
+        "dimRadius": 120,
+        "attachedTo": "point",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
       "conditionalEndings": []
     }
   ],

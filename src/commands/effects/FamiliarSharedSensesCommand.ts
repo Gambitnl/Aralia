@@ -148,6 +148,7 @@ export class FamiliarSharedSensesCommand extends BaseEffectCommand {
     return state.characters.find(character =>
       character.isSummon &&
       character.summonMetadata?.casterId === caster.id &&
+      character.summonMetadata?.spellId === this.context.spellId &&
       character.summonMetadata?.sharedSenses &&
       (this.options.familiarId ? character.id === this.options.familiarId : this.isFamiliar(character))
     )

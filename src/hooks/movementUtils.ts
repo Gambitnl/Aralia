@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 18:57:07
+ * Last Sync: 26/06/2026, 19:35:31
  * Dependents: hooks/useAbilitySystem.ts
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -19,6 +19,7 @@ import { MovementEffect } from '../types/spells';
 import { rollSavingThrow } from '../utils/savingThrowUtils';
 import { generateId } from '../utils/combatUtils';
 import { findPath } from '../utils/spatial/pathfinding';
+import { SavePenaltySystem } from '../systems/combat/SavePenaltySystem';
 
 export interface SpellMovementVisualInput {
   spellId: string;
@@ -115,7 +116,19 @@ export const resolveImmediateAfterForcedMovementRepeatSaves = (
         return;
       }
 
-      const saveResult = rollSavingThrow(movedTarget, repeatSave.saveType as Parameters<typeof rollSavingThrow>[1], getRepeatSaveRuntimeDc(repeatSave));
+      // Immediate forced-movement repeat saves are real saving throws, so they
+      // must see the same Mind Sliver/Bane-style modifiers as damage and status
+      // commands. Without this bridge, a spell could move a target and grant an
+      // after-movement save while silently ignoring a pending next-save rider.
+      const savePenaltySystem = new SavePenaltySystem();
+      const saveModifiers = savePenaltySystem.getActivePenalties(movedTarget);
+      const saveResult = rollSavingThrow(
+        movedTarget,
+        repeatSave.saveType as Parameters<typeof rollSavingThrow>[1],
+        getRepeatSaveRuntimeDc(repeatSave),
+        saveModifiers
+      );
+      nextState = savePenaltySystem.consumeNextSavePenalties(nextState, movedTarget.id);
       nextState = appendImmediateRepeatSaveLog(nextState, {
         type: 'status',
         message: saveResult.success

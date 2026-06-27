@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 25/06/2026, 13:13:23
+ * Last Sync: 27/06/2026, 01:55:23
  * Dependents: hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, types/index.ts
  * Imports: None
  *
@@ -20,7 +20,7 @@ import { Quest } from './quests.js';
 import { TempPartyMember, PlayerCharacter, HitPointDiceSpendMap } from './character.js';
 import { Faction } from './factions.js';
 import { DialogueSession } from './dialogue.js';
-import type { Lock } from '../systems/puzzles/types.js';
+import type { Lock, Puzzle } from '../systems/puzzles/types.js';
 import type { CombatCharacter, BattleMapData } from './combat.js';
 
 // -----------------------------------------------------------------------------
@@ -103,6 +103,7 @@ export type ActionType =
   | 'CLOSE_TEMPLE' // New
   | 'USE_TEMPLE_SERVICE' // New
   | 'OPEN_LOCKPICKING_MODAL'
+  | 'OPEN_PUZZLE_RUNTIME'
   | 'HARVEST_RESOURCE' // New
   | 'BARTER_ITEMS' // New
   | 'HAGGLE_ITEM' // New
@@ -165,6 +166,7 @@ export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   TOGGLE_QUEST_LOG: { isUiToggle: true },
   SET_DEV_MODE_ENABLED: { isUiToggle: true },
   OPEN_LOCKPICKING_MODAL: { isUiToggle: true },
+  OPEN_PUZZLE_RUNTIME: { isUiToggle: true },
   UPDATE_QUEST_OBJECTIVE: { isUiToggle: true },
   UPDATE_NPC_GOAL_STATUS: { isUiToggle: true },
   UPDATE_CHARACTER_CHOICE: { isUiToggle: true },
@@ -374,6 +376,7 @@ export type Action =
   | { type: 'CLOSE_TEMPLE'; payload?: never; label?: string }
   | { type: 'USE_TEMPLE_SERVICE'; payload: { templeId: string; deityId: string; cost: number; effect: unknown }; label?: string }
   | { type: 'OPEN_LOCKPICKING_MODAL'; payload: Lock; label?: string }
+  | { type: 'OPEN_PUZZLE_RUNTIME'; payload: Puzzle; label?: string }
   | { type: 'HARVEST_RESOURCE'; payload: { harvestContext?: string; skillCheck?: { skill: string; dc: number } }; label?: string }
   | { type: 'ANALYZE_SITUATION'; payload?: never; label?: string }
   | { type: 'wait'; payload?: { seconds?: number }; label?: string }

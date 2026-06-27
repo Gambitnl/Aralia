@@ -267,8 +267,70 @@ describe('Concentration System', () => {
                 id: 'linked-summon',
                 name: 'Linked Summon'
             });
+            const metadataLinkedSummon = createMockCombatCharacter({
+                id: 'metadata-linked-summon',
+                name: 'Metadata Linked Summon',
+                isSummon: true,
+                summonMetadata: {
+                    casterId: mockCaster.id,
+                    spellId: 'summon-light-spell',
+                    entityType: 'familiar',
+                    dismissable: true
+                }
+            });
+            const unrelatedSummon = createMockCombatCharacter({
+                id: 'unrelated-summon',
+                name: 'Unrelated Summon',
+                isSummon: true,
+                summonMetadata: {
+                    casterId: 'other-caster',
+                    spellId: 'other-spell',
+                    entityType: 'beast',
+                    dismissable: true
+                }
+            });
+            const pocketedFamiliar = createMockCombatCharacter({
+                id: 'pocketed-familiar',
+                name: 'Pocketed Familiar',
+                isSummon: true,
+                summonMetadata: {
+                    casterId: mockCaster.id,
+                    spellId: 'summon-light-spell',
+                    entityType: 'familiar',
+                    dismissable: true
+                }
+            });
+            const unrelatedPocketedFamiliar = createMockCombatCharacter({
+                id: 'unrelated-pocketed-familiar',
+                name: 'Unrelated Pocketed Familiar',
+                isSummon: true,
+                summonMetadata: {
+                    casterId: 'other-caster',
+                    spellId: 'other-spell',
+                    entityType: 'familiar',
+                    dismissable: true
+                }
+            });
             const mockState = createMockCombatState({
-                characters: [mockCaster, affectedTarget, linkedSummon],
+                characters: [mockCaster, affectedTarget, linkedSummon, metadataLinkedSummon, unrelatedSummon],
+                pocketedSummons: [
+                    {
+                        summon: pocketedFamiliar,
+                        casterId: mockCaster.id,
+                        spellId: 'summon-light-spell',
+                        dismissedTurn: 4,
+                        lastKnownPosition: { x: 2, y: 2 },
+                        reason: 'familiar_pocket'
+                    },
+                    {
+                        summon: unrelatedPocketedFamiliar,
+                        casterId: 'other-caster',
+                        spellId: 'other-spell',
+                        dismissedTurn: 4,
+                        lastKnownPosition: { x: 4, y: 4 },
+                        reason: 'familiar_pocket'
+                    }
+                ],
                 activeLightSources: [
                     {
                         id: 'linked-light',
@@ -305,13 +367,19 @@ describe('Concentration System', () => {
             const updatedTarget = newState.characters.find(character => character.id === affectedTarget.id)!;
 
             // Ending concentration must clear the caster pointer and remove only
-            // artifacts linked to that spell. Unrelated statuses/lights remain.
+            // artifacts linked to that spell. Summons can be linked by the
+            // original tracked effect ID or by summonMetadata when the startup
+            // scan did not capture the actor ID.
             expect(updatedCaster.concentratingOn).toBeUndefined();
             expect(updatedTarget.statusEffects.map(effect => effect.id)).toEqual(['unrelated-status']);
             expect(updatedTarget.conditions?.map(condition => condition.name)).toEqual(['Blessed']);
             expect(newState.activeLightSources.map(source => source.id)).toEqual(['unrelated-light']);
             expect(newState.characters.some(character => character.id === linkedSummon.id)).toBe(false);
+            expect(newState.characters.some(character => character.id === metadataLinkedSummon.id)).toBe(false);
+            expect(newState.characters.some(character => character.id === unrelatedSummon.id)).toBe(true);
+            expect(newState.pocketedSummons?.map(entry => entry.summon.id)).toEqual([unrelatedPocketedFamiliar.id]);
             expect(newState.combatLog.map(entry => entry.message)).toContain('Linked Summon disappears');
+            expect(newState.combatLog.map(entry => entry.message)).toContain('Metadata Linked Summon disappears');
         })
 
         it('BreakConcentrationCommand removes linked riders from the concentrating caster', async () => {

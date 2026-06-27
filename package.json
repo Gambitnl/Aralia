@@ -41,6 +41,8 @@
     "backlog:mark-walked": "node scripts/audits/mark-backlog-walked.cjs --mark-ledger",
     "backlog:missing-markers": "node scripts/audits/mark-backlog-walked.cjs --missing",
     "backlog:candidates": "node scripts/audits/mark-backlog-walked.cjs --candidates",
+    "backlog:keyword-hits": "node scripts/audits/mark-backlog-walked.cjs --keyword-hits",
+    "backlog:stale-markers": "node scripts/audits/mark-backlog-walked.cjs --stale-markers",
     "projects:audit": "node scripts/audit-living-project-docs.cjs",
     "hooks:install": "node scripts/git/install-pre-push-hook.cjs",
     "mcp": "tsx scripts/mcp-util.ts",

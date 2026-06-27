@@ -17,7 +17,7 @@
  */
 import { rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import { generateSubmap, polygonBounds, pointInPolygon, clipPolylineToPolygon, type Pt } from '../submap/submapEngine';
-import { assignTownPopulation } from './population';
+import { assignTownPopulation, assignWardWealth } from './population';
 
 export interface BuildingPlot {
   /** Plot footprint polygon (graph coords, the town's frame). */
@@ -36,6 +36,16 @@ export interface BuildingPlot {
   occupants?: number;
   /** Stable per-town building id (`b<index>`) — keys the lazy named household. */
   homeId?: string;
+  /** Social class of the ward this plot sits in (set before classification). */
+  district?: import('./population').WardWealth;
+  /** For a HOME: the `homeId` of the workplace its breadwinners work at (undefined = unskilled labour). */
+  workplaceId?: string;
+  /** For a HOME: how its workers relate to their workplace. */
+  workRole?: 'proprietor' | 'staff' | 'labourer';
+  /** For a WORKPLACE: the `homeId` of the home whose family runs it. */
+  proprietorHomeId?: string;
+  /** For a WORKPLACE: number of employee homes assigned to it (excludes the proprietor). */
+  staffCount?: number;
 }
 
 export type CivicKind = 'plaza' | 'temple' | 'keep' | 'citadel' | 'dock' | 'bridge';
@@ -80,6 +90,8 @@ export interface TownWard {
   plots: BuildingPlot[];
   /** Civic role of this ward, if any (plaza wards carry no plots). */
   civic?: CivicKind;
+  /** Social class of this ward (wealthy near the keep/market, poor at the rim). */
+  wealth?: import('./population').WardWealth;
 }
 
 /** Land use of the ring between the built town core and the cell boundary. */
@@ -780,6 +792,17 @@ export function generateTownPlan(
   // Population accounting (who lives where): classify every building, distribute the
   // population across homes (occupancy rising with density) + rural farmsteads, and
   // emit demographics. Only when a population was supplied. Mutates plot occupancy.
+  // Social districts: rank wards by closeness to the prestige anchors (keep/citadel/
+  // temple/market), then tag every plot with its ward's class so the population pass
+  // can class-shade building types (wealthy quarter vs poor rim).
+  const prestige = civic.filter((c) => c.kind === 'keep' || c.kind === 'citadel' || c.kind === 'temple' || c.kind === 'plaza');
+  const anchors = prestige.map((c) => polygonCentroid(c.polygon));
+  const wealth = assignWardWealth(wardCentroids, anchors, coreSpan, seedPath);
+  wards.forEach((w, i) => {
+    w.wealth = wealth[i];
+    for (const p of w.plots) p.district = wealth[i];
+  });
+
   const allPlots = wards.flatMap((w) => w.plots);
   let farmsteads: import('./population').Farmstead[] = [];
   let demographics: import('./population').TownDemographics | undefined;

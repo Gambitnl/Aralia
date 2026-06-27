@@ -185,6 +185,49 @@
       },
       "utilityType": "creation",
       "description": "Create an invisible magical-force barrier for up to 10 minutes with concentration as a 10-foot-radius dome or globe, or as up to ten contiguous 10-foot panels. If the wall cuts through a creature space when it appears, the caster chooses which side the creature is pushed to; nothing physically passes through the wall, it is immune to damage and Dispel Magic, Disintegrate destroys it, and it blocks Ethereal travel.",
+      "createdObjects": [
+        {
+          "objectType": "hazard",
+          "name": "Wall of Force",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "shapeOptions": [
+            "hemispherical_dome",
+            "globe",
+            "flat_contiguous_panels"
+          ],
+          "wallLengthFeet": 100,
+          "wallHeightFeet": 10,
+          "wallThickness": 0.25,
+          "wallThicknessUnit": "inches",
+          "panelCount": 10,
+          "panelWidthFeet": 10,
+          "panelHeightFeet": 10,
+          "panelContiguityRequired": true,
+          "diameterFeet": 20,
+          "orientationOptions": [
+            "horizontal",
+            "vertical",
+            "diagonal",
+            "angled",
+            "caster_choice"
+          ],
+          "freeFloating": true,
+          "blocksPhysicalPassage": true,
+          "blocksEtherealTravel": true,
+          "blocksCrossBoundaryEffects": false,
+          "immuneToDamage": true,
+          "immuneToDispelMagic": true,
+          "destroyedBySpells": [
+            "disintegrate"
+          ],
+          "pushesCreaturesToChosenSide": true,
+          "expiresWithSpell": true,
+          "shelfLife": "10 minutes",
+          "notes": "Invisible magical force barrier. It may be a 10-foot-radius dome or globe, or up to ten contiguous 10-by-10-foot panels; nothing physically passes through it, it blocks Ethereal travel, ignores damage and Dispel Magic, and Disintegrate destroys it."
+        }
+      ],
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

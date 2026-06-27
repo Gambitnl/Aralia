@@ -95,6 +95,7 @@ export class DismissFamiliarToPocketCommand extends BaseEffectCommand {
     return state.characters.find(character =>
       character.isSummon &&
       character.summonMetadata?.casterId === caster.id &&
+      character.summonMetadata?.spellId === this.context.spellId &&
       character.summonMetadata?.dismissable &&
       (this.options.familiarId ? character.id === this.options.familiarId : this.isFamiliar(character))
     )
@@ -130,10 +131,8 @@ export class RecallFamiliarFromPocketCommand extends BaseEffectCommand {
       })
     }
 
-    // TODO(next-agent): Add placement validation before UI wiring lets players
-    // choose arbitrary recall tiles. For this runtime foothold, recall uses the
-    // provided position, then the last known familiar position, then the caster.
-    const recallPosition = this.options.position ?? pocketed.lastKnownPosition ?? caster.position
+    const requestedPosition = this.options.position ?? pocketed.lastKnownPosition ?? caster.position
+    const recallPosition = this.findRecallPosition(state, requestedPosition, caster.position, pocketed.summon.id)
     const recalledFamiliar: CombatCharacter = {
       ...pocketed.summon,
       position: recallPosition
@@ -167,6 +166,7 @@ export class RecallFamiliarFromPocketCommand extends BaseEffectCommand {
   private findPocketedFamiliar(state: CombatState, caster: CombatCharacter): PocketedSummon | undefined {
     return (state.pocketedSummons || []).find(entry =>
       entry.casterId === caster.id &&
+      entry.spellId === this.context.spellId &&
       (this.options.familiarId ? entry.summon.id === this.options.familiarId : this.isFamiliar(entry.summon))
     )
   }
@@ -174,5 +174,63 @@ export class RecallFamiliarFromPocketCommand extends BaseEffectCommand {
   private isFamiliar(character: CombatCharacter): boolean {
     return character.summonMetadata?.entityType === 'familiar' ||
       character.summonMetadata?.sourceName === 'Find Familiar'
+  }
+
+  private findRecallPosition(
+    state: CombatState,
+    requestedPosition: Position,
+    casterPosition: Position,
+    familiarId: string
+  ): Position {
+    // A recalled familiar is a real combat token. If its last known square or
+    // requested square is occupied, choose a nearby open tile instead of
+    // stacking actors on one position and breaking target selection.
+    if (!this.isOccupied(state, requestedPosition, familiarId)) {
+      return requestedPosition
+    }
+
+    const searchOrigins = [requestedPosition, casterPosition]
+    for (const origin of searchOrigins) {
+      for (let radius = 1; radius <= 3; radius += 1) {
+        for (let x = origin.x - radius; x <= origin.x + radius; x += 1) {
+          for (let y = origin.y - radius; y <= origin.y + radius; y += 1) {
+            if (Math.abs(x - origin.x) !== radius && Math.abs(y - origin.y) !== radius) {
+              continue
+            }
+
+            const candidate = { x, y }
+            if (this.isWithinBounds(state, candidate) && !this.isOccupied(state, candidate, familiarId)) {
+              return candidate
+            }
+          }
+        }
+      }
+    }
+
+    // If no local tile is available, keep the requested position so the command
+    // still makes progress rather than destroying the pocketed familiar. Map
+    // validation can surface a tighter error once recall has a player-facing
+    // placement picker.
+    return requestedPosition
+  }
+
+  private isOccupied(state: CombatState, position: Position, familiarId: string): boolean {
+    return state.characters.some(character =>
+      character.id !== familiarId &&
+      character.currentHP > 0 &&
+      character.position.x === position.x &&
+      character.position.y === position.y
+    )
+  }
+
+  private isWithinBounds(state: CombatState, position: Position): boolean {
+    if (!state.mapData) {
+      return true
+    }
+
+    return position.x >= 0 &&
+      position.y >= 0 &&
+      position.x < state.mapData.dimensions.width &&
+      position.y < state.mapData.dimensions.height
   }
 }

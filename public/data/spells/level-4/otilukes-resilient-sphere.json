@@ -161,6 +161,34 @@
       },
       "grantedActions": [],
       "attackAugments": [],
+      "createdObjects": [
+        {
+          "objectType": "structure",
+          "name": "Resilient Sphere",
+          "count": 1,
+          "countUnit": "structure",
+          "appearsIn": "spell_area",
+          "affectedVolumeShape": "Sphere",
+          "affectedVolumeSizeFeet": 5,
+          "diameterFeet": 10,
+          "capacityLargeCreatures": 1,
+          "blocksPhysicalPassage": true,
+          "blocksLineOfSight": false,
+          "blocksSpellEffects": true,
+          "blocksEnergyEffects": true,
+          "breathableInside": true,
+          "immuneToDamage": true,
+          "destroyedBySpells": [
+            "disintegrate"
+          ],
+          "movableByOccupants": true,
+          "movableByExternalCreatures": true,
+          "occupantRollSpeedMultiplier": 0.5,
+          "expiresWithSpell": true,
+          "shelfLife": "1 minute concentration",
+          "notes": "The sphere is weightless and just large enough to contain one Large-or-smaller creature or object. Nothing physical, energetic, or magical passes through it in either direction, but a creature inside can breathe. An enclosed creature can use an action to roll it up to half its Speed, outside creatures can pick it up and move it, and Disintegrate destroys the globe without harming the contents."
+        }
+      ],
       "controlOptions": [],
       "taunt": {
         "disadvantageAgainstOthers": false,

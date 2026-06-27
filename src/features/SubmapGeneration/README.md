@@ -72,3 +72,5 @@ For environments requiring logical structure or specific adjacency rules, a simp
 1.  Integrate the PixiJS library.
 2.  Create a dedicated React component (`SubmapRendererPixi.tsx`) to encapsulate all PixiJS logic.
 3.  Refactor `SubmapPane.tsx` to act as a container that manages data and renders the new PixiJS component instead of the DOM-based grid.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"src/features/SubmapGeneration/README.md","sha256WithoutMarker":"cee0973de824deb8cf3114e72f9d7a066ac93f9a37755bd70a837ca46ad04662","markedAtUtc":"2026-06-26T00:53:11.791Z"} -->

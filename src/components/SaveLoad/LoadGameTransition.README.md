@@ -141,3 +141,5 @@ This plan will introduce a brief, full-screen "Welcome Back" or "Loading Complet
     -   Verify that after the spinner, the new `LoadGameTransition` screen appears for approximately 2 seconds, displaying the correct character name.
     -   Verify that after the transition screen, the main game UI renders correctly.
     -   Verify that this transition does *not* appear when starting a new game.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"src/components/SaveLoad/LoadGameTransition.README.md","sha256WithoutMarker":"389d3a338f04be29a7cd56fd721cd251a256ea1a9a060c18d0b3c5b3c0688638","markedAtUtc":"2026-06-26T00:41:38.955Z"} -->

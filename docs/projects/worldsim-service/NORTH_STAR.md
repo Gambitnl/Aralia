@@ -6,14 +6,14 @@ category: active project
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
 status: active
-last_updated: 2026-06-12
+last_updated: 2026-06-26
 iteration: 4
 confidence: unknown
 evidence: "docs/projects/worldsim-service/TRACKER.md; docs/projects/worldsim-service/GAPS.md"
 gap_signal: "5 open gaps; WSS-001, WSS-002, WSS-003, WSS-005, and WSS-005a remain open after WSS-006 through WSS-008 remediation"
 protocol: living-project
-next_step: "Implement the WSS-005 decided contract: consume Azgaar feature hints into WorldData (Azgaar canonical), starting with the WSS-005a bridge spec + fixed-seed acceptance check."
-agent_comments: "WSS-005 Required Review Brief resolved 2026-06-10 in the June 2026 proc-gen campaign context. See docs/projects/DECISION_BLITZ_2026-06-10.md D1."
+next_step: "Continue WSS-005/WSS-005a from the post-bridge owner rows: add legacy migration/backfill when migration files are clean, then grow Azgaar-derived site/road hints and consumer preference tests."
+agent_comments: "WSS-005 Required Review Brief resolved 2026-06-10 in the June 2026 proc-gen campaign context. First WSS-005a bridge step landed 2026-06-19 with WorldData.featureHints rivers and fixed-seed acceptance proof."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -28,7 +28,7 @@ required_verification:
 completed_verification:
   - docs refresh
   - focused worldSim + migration test runs
-last_proof: 2026-06-08
+last_proof: 2026-06-19
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: needed
 lifecycle_status: active
@@ -39,8 +39,8 @@ human_decision_required: "no"
 ---
 # NORTH_STAR: WorldSim Service
 
-Status: active (WSS-005 decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-12
+Status: active (WSS-005 decision recorded 2026-06-10; first WSS-005a bridge proof landed 2026-06-19)
+Last updated: 2026-06-26
 
 > One of three distinct surfaces in the **Azgaar-driven streamed 3D world** initiative
 > (not consolidated):
@@ -57,15 +57,15 @@ Last updated: 2026-06-12
 | Project | Worldsim Service |
 | Slug | worldsim-service |
 | Category | active project |
-| Status | active (WSS-005 decision recorded 2026-06-10; implementation lane open) |
+| Status | active (WSS-005 decision recorded 2026-06-10; first WSS-005a bridge proof landed 2026-06-19) |
 | Confidence | unknown |
 | Evidence | docs/projects/worldsim-service/TRACKER.md; docs/projects/worldsim-service/GAPS.md |
 | Gap signal | 5 open gaps; WSS-001, WSS-002, WSS-003, WSS-005, and WSS-005a remain open after WSS-006 through WSS-008 remediation |
 | Protocol | living-project |
-| Next step | Implement the WSS-005 decided contract (Azgaar feature hints into WorldData), starting with the WSS-005a bridge spec + fixed-seed acceptance check; future birth-entry points reuse the WSS-008 bridge. |
+| Next step | Continue from the post-bridge WSS-005/WSS-005a rows: migration/backfill when migration files are clean, then richer site/road hints and consumer preference tests. |
 | Required verification | docs consistency |
 | Completed verification | docs refresh, focused worldSim + migration test runs |
-| Last proof | 2026-06-08 first-build history, bootstrap/save bridge, climate fallback, and WSS-007 smoothing tests |
+| Last proof | 2026-06-19 WSS-005a first safe bridge acceptance |
 | Workflow gaps reviewed | 2026-06-08 |
 
 ## Required Review Brief

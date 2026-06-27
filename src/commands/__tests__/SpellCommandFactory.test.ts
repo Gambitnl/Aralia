@@ -1,6 +1,16 @@
-﻿import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { SpellCommandFactory } from '../factory/SpellCommandFactory'
 import { DamageCommand } from '../effects/DamageCommand'
+import { HealingCommand } from '../effects/HealingCommand'
+import { StatusConditionCommand } from '../effects/StatusConditionCommand'
+import { MovementCommand } from '../effects/MovementCommand'
+import { SummoningCommand } from '../effects/SummoningCommand'
+import { TerrainCommand } from '../effects/TerrainCommand'
+import { UtilityCommand } from '../effects/UtilityCommand'
+import { DefensiveCommand } from '../effects/DefensiveCommand'
+import { AttackRollModifierCommand } from '../effects/AttackRollModifierCommand'
+import { ReactiveEffectCommand } from '../effects/ReactiveEffectCommand'
+import { RegisterRiderCommand } from '../effects/RegisterRiderCommand'
 import { DamageEffect, Spell, SpellSchool } from '@/types/spells'
 import type { CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import { combatEvents } from '@/systems/events/CombatEvents'
@@ -63,6 +73,60 @@ describe('SpellCommandFactory', () => {
       expect(commands[0]).toBeInstanceOf(DamageCommand)
     })
 
+    it('routes representative structured effect families to their runtime command classes', async () => {
+      // This matrix is intentionally about command creation, not command
+      // execution. It catches spell JSON families that validate but would
+      // silently fail to get a runtime command when the factory route drifts.
+      const matrixEffects: Spell['effects'] = [
+        { type: 'DAMAGE', damage: { dice: '1d6', type: 'Fire' }, trigger: { type: 'immediate' }, condition: { type: 'hit' } },
+        { type: 'HEALING', healing: { dice: '1d4' }, trigger: { type: 'immediate' }, condition: { type: 'always' } },
+        { type: 'STATUS_CONDITION', statusCondition: { name: 'Prone', duration: { type: 'rounds', value: 1 } }, trigger: { type: 'immediate' }, condition: { type: 'always' } },
+        {
+          type: 'ATTACK_ROLL_MODIFIER',
+          trigger: { type: 'immediate' },
+          condition: { type: 'always' },
+          attackRollModifier: {
+            modifier: 'penalty',
+            direction: 'incoming',
+            attackKind: 'weapon',
+            consumption: 'while_active',
+            duration: { type: 'rounds', value: 1 },
+            dice: '1d4'
+          }
+        },
+        { type: 'MOVEMENT', movementType: 'teleport', distance: 30, duration: { type: 'rounds', value: 1 }, trigger: { type: 'immediate' }, condition: { type: 'always' } },
+        { type: 'SUMMONING', summonType: 'object', objectDescription: 'a harmless test object', count: 1, duration: { type: 'rounds', value: 1 }, trigger: { type: 'immediate' }, condition: { type: 'always' } },
+        { type: 'TERRAIN', terrainType: 'difficult', areaOfEffect: { shape: 'Cube', size: 5 }, duration: { type: 'rounds', value: 1 }, trigger: { type: 'immediate' }, condition: { type: 'always' } },
+        { type: 'UTILITY', utilityType: 'information', description: 'reveals a test clue', trigger: { type: 'immediate' }, condition: { type: 'always' } },
+        { type: 'DEFENSIVE', defenseType: 'ac_bonus', acBonus: 2, duration: { type: 'rounds', value: 1 }, trigger: { type: 'immediate' }, condition: { type: 'always' } },
+        { type: 'REACTIVE', trigger: { type: 'on_target_attack' }, condition: { type: 'always' }, description: 'reacts to a target attack' },
+        { type: 'DAMAGE', damage: { dice: '1d8', type: 'Radiant' }, trigger: { type: 'on_attack_hit' }, condition: { type: 'hit' } }
+      ]
+      const spell = createMockSpell('factory-command-family-matrix', {
+        effects: matrixEffects
+      })
+
+      const commands = await SpellCommandFactory.createCommands(
+        spell,
+        mockCaster,
+        [mockTarget],
+        1,
+        createMockGameState()
+      )
+
+      expect(commands).toHaveLength(matrixEffects.length)
+      expect(commands[0]).toBeInstanceOf(DamageCommand)
+      expect(commands[1]).toBeInstanceOf(HealingCommand)
+      expect(commands[2]).toBeInstanceOf(StatusConditionCommand)
+      expect(commands[3]).toBeInstanceOf(AttackRollModifierCommand)
+      expect(commands[4]).toBeInstanceOf(MovementCommand)
+      expect(commands[5]).toBeInstanceOf(SummoningCommand)
+      expect(commands[6]).toBeInstanceOf(TerrainCommand)
+      expect(commands[7]).toBeInstanceOf(UtilityCommand)
+      expect(commands[8]).toBeInstanceOf(DefensiveCommand)
+      expect(commands[9]).toBeInstanceOf(ReactiveEffectCommand)
+      expect(commands[10]).toBeInstanceOf(RegisterRiderCommand)
+    })
     it('emits structured spell attack hit events when hit-conditioned spell damage resolves', async () => {
       // Armor-style reactive effects need the same machine-readable attack
       // facts for spell attacks that weapon attacks already publish. This
@@ -431,4 +495,7 @@ describe('SpellCommandFactory', () => {
     })
   })
 })
+
+
+
 

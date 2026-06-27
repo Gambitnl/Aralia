@@ -208,3 +208,5 @@ test('pre-attack listeners can cancel attacks', () => {
 2. **Issue 4 (Singleton testability)** - 2-3 hrs, enables proper unit testing
 3. **Issue 3 (Filter strategy pattern)** - 1-2 hrs, improves maintainability
 4. **Issue 2 (Type coupling)** - Deferred until type changes become painful
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"src/systems/combat/Combat_Ralph.md","sha256WithoutMarker":"47796bda0fa1c47d4024b6f479c9a51a2e672a6b13ef999a87151e7dd63cdb3f","markedAtUtc":"2026-06-26T00:53:11.792Z"} -->

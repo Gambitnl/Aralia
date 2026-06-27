@@ -70,6 +70,18 @@ export const WEAPONS_DATA: Record<string, Item> = {
 };
 
 export const ITEMS: Record<string, Item> = {
+  // --- Provisions (travel logistics; stable-id stackables — see provisioning.ts) ---
+  'rations': {
+    id: 'rations', name: 'Rations (1 day)', icon: '🥖',
+    description: "A day of trail food for one traveler — dried meat, hardtack, and nuts. The currency of long journeys.",
+    type: 'food_drink', weight: 2, cost: '5 SP', costInGp: 0.5, quantity: 1, nutritionValue: 1, perishable: true,
+  },
+  'water-day': {
+    id: 'water-day', name: 'Waterskin (1 day)', icon: '🧴',
+    description: "A full day's drinking water for one traveler. Heavy to carry, deadly to run out of in the wastes.",
+    type: 'food_drink', weight: 5, cost: '1 CP', costInGp: 0.01, quantity: 1, perishable: false,
+  },
+
   // --- Consumables & Other Items ---
   'healing_potion': {
     id: 'healing_potion', name: 'Healing Potion', icon: '🧪', description: 'A vial of glowing red liquid. Looks restorative.', type: 'consumable', effect: { type: 'heal', value: 25, dice: '4d4+4' }, weight: 0.5, cost: "50 GP"

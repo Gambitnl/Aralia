@@ -74,3 +74,5 @@ The `NameAndReview.tsx` component is the final step in character creation. It al
 *   The name input field has an associated `label` and `aria-required="true"`.
 *   Buttons have clear `aria-label` attributes.
 *   The "Begin Adventure!" button's disabled state is visually indicated.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"src/components/CharacterCreator/NameAndReview.README.md","sha256WithoutMarker":"8c2c7fa29c0470398b0a59222e0ef029dae698d30ed7a8c170bdb2ffdbd6bd8e","markedAtUtc":"2026-06-26T00:41:38.959Z"} -->

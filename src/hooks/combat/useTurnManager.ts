@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/06/2026, 06:46:55
+ * Last Sync: 26/06/2026, 19:54:20
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
- * Imports: 11 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -40,6 +40,7 @@ import { useCombatEngine } from './engine/useCombatEngine';
 import { useActionExecutor } from './useActionExecutor';
 import { ROUND_DURATION_SECONDS } from '../../utils/core/spellTimeUtils';
 import { evaluateCombatTurn } from '../../utils/combat/combatAI';
+import { getAbilityModifierValue } from '../../utils/characterUtils';
 
 interface UseTurnManagerProps {
   difficulty?: keyof typeof AI_THINKING_DELAY_MS;
@@ -208,6 +209,7 @@ export const useTurnManager = ({
     reactiveTriggers,
     addSpellZone,
     removeSpellZone,
+    setSpellZones,
     addScheduledSpellEffect,
     removeScheduledSpellEffect,
     addMovementDebuff,
@@ -243,6 +245,17 @@ export const useTurnManager = ({
 
   const startTurnFor = useCallback((character: CombatCharacter) => {
     let updatedChar = resetEconomy(character);
+
+    // Light sources are map-level spell artifacts, so they do not get ticked
+    // through a character's `activeEffects` list. Remove timed lights at the
+    // next turn boundary once their stored expiration round has arrived, while
+    // leaving concentration-owned light cleanup to the concentration drop path.
+    setActiveLightSources(previousLightSources =>
+      previousLightSources.filter(lightSource =>
+        typeof lightSource.expiresAtRound !== 'number' ||
+        lightSource.expiresAtRound > turnState.currentTurn
+      )
+    );
 
     // Roll Death Saving Throw for downed player character at start of turn
     if (character.currentHP === 0 && character.team === 'player' && character.deathSaves && !character.deathSaves.isStable) {
@@ -306,7 +319,10 @@ export const useTurnManager = ({
       }
     }
     
-    // Tick down round-based activeEffects
+    // Tick down round-based activeEffects. Keep the expired effects so
+    // defensive cleanup can remove state that was also written onto the
+    // character, such as resistances, immunities, and source-owned temp HP.
+    const expiredActiveEffects = new Set<string>();
     const tickedActiveEffects = (updatedChar.activeEffects || [])
       .map(effect => {
         if (effect.duration && effect.duration.type === 'rounds' && typeof effect.duration.value === 'number') {
@@ -320,9 +336,38 @@ export const useTurnManager = ({
         }
         return effect;
       })
-      .filter(effect => !effect.duration || effect.duration.type !== 'rounds' || (typeof effect.duration.value === 'number' && effect.duration.value > 0));
+      .filter(effect => {
+        const keepEffect = !effect.duration || effect.duration.type !== 'rounds' || (typeof effect.duration.value === 'number' && effect.duration.value > 0);
+        if (!keepEffect) {
+          expiredActiveEffects.add(effect.id);
+        }
+        return keepEffect;
+      });
+    const expiredDefensiveEffects = (updatedChar.activeEffects || []).filter(effect => expiredActiveEffects.has(effect.id));
+    const expiredResistanceTypes = new Set(expiredDefensiveEffects.flatMap(effect => effect.mechanics?.damageResistance || []));
+    const expiredImmunityTypes = new Set(expiredDefensiveEffects.flatMap(effect => effect.mechanics?.damageImmunity || []));
+    const shouldClearSourceTempHp = expiredDefensiveEffects.some(effect =>
+      updatedChar.temporaryHitPointSource?.spellId === effect.spellId
+    );
 
-    // Tick down round-based conditions
+    // Tick down legacy status effects first, but keep track of what expires.
+    // Spell conditions are mirrored in both `statusEffects` and `conditions`;
+    // if one mirror expires without the other, the map label and the gameplay
+    // rules can disagree about whether the spell is still active.
+    const expiredStatusNames = new Set<string>();
+    const tickedStatusEffects = updatedChar.statusEffects
+      .map(effect => ({ ...effect, duration: effect.duration - 1 }))
+      .filter(effect => {
+        const keepEffect = effect.duration > 0;
+        if (!keepEffect) {
+          expiredStatusNames.add(String(effect.name));
+        }
+        return keepEffect;
+      });
+
+    // Tick down round-based structured conditions and collect their expired
+    // names so the legacy status mirror is removed at the same boundary.
+    const expiredConditionNames = new Set<string>();
     const tickedConditions = (updatedChar.conditions || [])
       .map(cond => {
         if (cond.duration && cond.duration.type === 'rounds' && typeof cond.duration.value === 'number') {
@@ -336,40 +381,108 @@ export const useTurnManager = ({
         }
         return cond;
       })
-      .filter(cond => !cond.duration || cond.duration.type !== 'rounds' || (typeof cond.duration.value === 'number' && cond.duration.value > 0));
+      .filter(cond => {
+        const keepCondition = !cond.duration || cond.duration.type !== 'rounds' || (typeof cond.duration.value === 'number' && cond.duration.value > 0);
+        if (!keepCondition) {
+          expiredConditionNames.add(String(cond.name));
+        }
+        return keepCondition;
+      });
 
-    // Dynamic AC recalculation to keep defensive stats in sync with active effects.
-    let baseAC = updatedChar.baseAC ?? 10;
+    const mirroredExpiredConditionNames = new Set([
+      ...expiredStatusNames,
+      ...expiredConditionNames
+    ]);
+    const synchronizedStatusEffects = mirroredExpiredConditionNames.size > 0
+      ? tickedStatusEffects.filter(effect => !mirroredExpiredConditionNames.has(String(effect.name)))
+      : tickedStatusEffects;
+    const synchronizedConditions = mirroredExpiredConditionNames.size > 0
+      ? tickedConditions.filter(condition => !mirroredExpiredConditionNames.has(String(condition.name)))
+      : tickedConditions;
+
+    mirroredExpiredConditionNames.forEach(conditionName => {
+      onLogEntry({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'status',
+        message: `${updatedChar.name}'s ${conditionName} condition ends.`,
+        characterId: updatedChar.id,
+        targetIds: [updatedChar.id],
+        data: { conditionName, cleanup: 'mirrored_condition_expiry' }
+      });
+    });
+
+    // Dynamic AC recalculation to keep defensive stats in sync with active
+    // effects. First recover the AC that existed before temporary bonuses, so
+    // a Shield-style bonus can expire without dragging the character down to
+    // an arbitrary default AC.
+    const currentActiveEffects = updatedChar.activeEffects || [];
+    const currentTrackedAcBonus = currentActiveEffects.reduce((sum, effect) => (
+      sum + (effect.mechanics?.acBonus ?? 0)
+    ), 0);
+    let baseAC = updatedChar.baseAC ?? Math.max(0, (updatedChar.armorClass ?? 10) - currentTrackedAcBonus);
     let acBonusSum = 0;
+    let acMinimum = 0;
     tickedActiveEffects.forEach(effect => {
       if (effect.mechanics?.acBonus !== undefined) {
         acBonusSum += effect.mechanics.acBonus;
       }
       if (effect.mechanics?.baseAC !== undefined) {
-        baseAC = effect.mechanics.baseAC;
+        // Mage Armor stores the readable formula on the active effect. Preserve
+        // that 13 + Dexterity behavior during turn ticks instead of collapsing
+        // it to a flat base-13 armor class.
+        const dexterityModifier = effect.mechanics.baseACFormula?.includes('dex')
+          ? getAbilityModifierValue(updatedChar.stats.dexterity)
+          : 0;
+        baseAC = effect.mechanics.baseAC + dexterityModifier;
+      }
+      if (effect.mechanics?.acMinimum !== undefined) {
+        acMinimum = Math.max(acMinimum, effect.mechanics.acMinimum);
       }
     });
-    const finalAC = baseAC + acBonusSum;
+    const finalAC = Math.max(baseAC + acBonusSum, acMinimum);
 
     updatedChar = {
       ...updatedChar,
-      statusEffects: updatedChar.statusEffects.map(effect => ({ ...effect, duration: effect.duration - 1 })).filter(effect => effect.duration > 0),
-      activeEffects: tickedActiveEffects,
-      conditions: tickedConditions,
-      armorClass: finalAC,
-      abilities: updatedChar.abilities.map(ability => {
-        if (ability.recharge?.threshold && ability.isRecharging) {
-          const roll = Math.floor(Math.random() * 6) + 1;
-          if (roll >= ability.recharge.threshold) {
-            return { ...ability, isRecharging: false, currentCooldown: 0 };
-          }
-          return { ...ability };
+      summonMetadata: updatedChar.summonMetadata
+        ? {
+          ...updatedChar.summonMetadata,
+          // Commandable summons get a fresh command budget at the start of
+          // their turn. This keeps servant-style spell helpers from carrying a
+          // spent command counter forever after the first order.
+          commandsUsedThisTurn: 0
         }
-        return {
-          ...ability,
-          currentCooldown: Math.max(0, (ability.currentCooldown || 0) - 1)
-        };
-      }),
+        : updatedChar.summonMetadata,
+      statusEffects: synchronizedStatusEffects,
+      activeEffects: tickedActiveEffects,
+      conditions: synchronizedConditions,
+      armorClass: finalAC,
+      resistances: expiredResistanceTypes.size > 0
+        ? (updatedChar.resistances || []).filter(damageType => !expiredResistanceTypes.has(damageType))
+        : updatedChar.resistances,
+      immunities: expiredImmunityTypes.size > 0
+        ? (updatedChar.immunities || []).filter(damageType => !expiredImmunityTypes.has(damageType))
+        : updatedChar.immunities,
+      tempHP: shouldClearSourceTempHp ? 0 : updatedChar.tempHP,
+      temporaryHitPointSource: shouldClearSourceTempHp ? undefined : updatedChar.temporaryHitPointSource,
+      abilities: updatedChar.abilities
+        .filter(ability =>
+          typeof ability.createdObjectExpiresAtRound !== 'number' ||
+          ability.createdObjectExpiresAtRound > turnState.currentTurn
+        )
+        .map(ability => {
+          if (ability.recharge?.threshold && ability.isRecharging) {
+            const roll = Math.floor(Math.random() * 6) + 1;
+            if (roll >= ability.recharge.threshold) {
+              return { ...ability, isRecharging: false, currentCooldown: 0 };
+            }
+            return { ...ability };
+          }
+          return {
+            ...ability,
+            currentCooldown: Math.max(0, (ability.currentCooldown || 0) - 1)
+          };
+        }),
       concentratingOn: updatedChar.concentratingOn ? {
         ...updatedChar.concentratingOn,
         sustainedThisTurn: false
@@ -603,6 +716,7 @@ export const useTurnManager = ({
     addSpellZone,
     addMovementDebuff,
     removeSpellZone,
+    setSpellZones,
     addReactiveTrigger,
     setReactiveTriggers,
     spellZones,

@@ -89,3 +89,5 @@ If a tool listed here becomes adopted:
 - move it out of the hypothetical section
 - update the wording so the file no longer presents it as future-tense speculation
 - if the adoption materially changes development workflow, document that in a canonical workflow or development guide instead of leaving it only here
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/@POTENTIAL-TOOL-INTEGRATIONS.README.md","sha256WithoutMarker":"9fbcae4f0d9aac1d248df7640107bc9e98d61ffd033188dee710b9b7b6728325","markedAtUtc":"2026-06-26T00:07:34.894Z"} -->

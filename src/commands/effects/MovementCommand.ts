@@ -291,6 +291,10 @@ export class MovementCommand extends BaseEffectCommand {
             budgetRemainingFeet: Math.max(0, requestedDistanceFeet - actualDistanceFeet),
             clampedByBounds,
             usedFallbackDestination,
+            // Mapless combats do not have a reliable battlefield rectangle.
+            // In that case the command uses spell range and occupied-space
+            // checks as the safety rails instead of inventing fake bounds.
+            maplessBoundsPolicy: this.hasMapBounds(state) ? 'map_bounds' : 'range_bounded_unclamped',
             maxDistance: effect.distance ?? undefined
         }
 
@@ -530,7 +534,9 @@ export class MovementCommand extends BaseEffectCommand {
             height = this.context.gameState.mapData.gridSize.rows
         }
 
-        // TODO: Derive fallback bounds from combat context (e.g., character extents) when no map data is present so teleports cannot clamp out of map implicitly.
+        // Mapless combat has no authoritative edge to clamp against. Keep the
+        // coordinate unmodified here and let the teleport range check plus
+        // occupied-space validation decide whether the spell can land there.
         if (width === undefined || height === undefined) {
             return position
         }
@@ -539,6 +545,17 @@ export class MovementCommand extends BaseEffectCommand {
             x: Math.min(Math.max(0, position.x), width - 1),
             y: Math.min(Math.max(0, position.y), height - 1)
         }
+    }
+
+    /**
+     * Reports whether this command has real battlefield dimensions available.
+     *
+     * This exists so teleport logs can explain why a destination was not
+     * clamped. Mapless spell execution is intentionally range-bounded and
+     * coordinate-unclamped rather than using guessed board edges.
+     */
+    private hasMapBounds(state: CombatState): boolean {
+        return Boolean(state.mapData || this.context.gameState?.mapData)
     }
 
     /**
@@ -583,7 +600,7 @@ export class MovementCommand extends BaseEffectCommand {
         requested: Position,
         maxTiles: number
     ): Position | null {
-        const inRange = (pos: Position) => maxTiles === 0 || getDistance(origin, pos) <= maxTiles
+        const inRange = (pos: Position) => getDistance(origin, pos) <= maxTiles
 
         if (inRange(requested) && this.validatePosition(state, requested, targetId)) {
             return requested

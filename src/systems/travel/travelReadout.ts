@@ -23,7 +23,7 @@
  */
 import type { RoutePlan } from './routePlanning';
 import type { MultiModalRoute } from './multiModalRoute';
-import type { ProvisionStatus } from './provisioning';
+import type { ProvisionStatus, ProvisionResource } from './provisioning';
 
 /** Human travel duration: "15 min", "6h 20m", "2d 4h". */
 export function formatTravelTime(minutes: number): string {
@@ -89,9 +89,17 @@ export interface ProvisionLine {
   color: string;
 }
 
-/** One-line provisions readout: "Food: 6 days" or "Food: 3 days · short 2 days". */
-export function formatProvisionLine(status: ProvisionStatus): ProvisionLine {
-  const base = `Food: ${status.foodRangeDays} day${status.foodRangeDays === 1 ? '' : 's'}`;
+/** Display label for the binding consumable resource (E1). */
+const RESOURCE_LABEL: Record<ProvisionResource, string> = { food: 'Food', water: 'Water' };
+
+/**
+ * One-line provisions readout: "Food: 6 days" or "Water: 3 days · short 2 days".
+ * When the status names a binding resource (water vs food), the line labels the
+ * resource that actually runs out first; otherwise it reads "Food".
+ */
+export function formatProvisionLine(status: ProvisionStatus & { binding?: ProvisionResource | null }): ProvisionLine {
+  const label = status.binding ? RESOURCE_LABEL[status.binding] : 'Food';
+  const base = `${label}: ${status.foodRangeDays} day${status.foodRangeDays === 1 ? '' : 's'}`;
   if (status.inRange) return { text: base, ok: true, color: '#22c55e' };
   const color = status.severity === 'major' ? '#ef4444' : '#eab308';
   return {

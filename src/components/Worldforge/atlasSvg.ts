@@ -12,6 +12,7 @@
  * marker and cell-pick are later SP0 tasks (T3+).
  */
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
+import { computeDangerField, dangerCellsAbove } from '../../systems/worldforge/overlays/dangerField';
 
 /** SVG "x,y x,y ..." points string for a cell's Voronoi polygon (graph coords). */
 export function cellPolygonPoints(atlas: FmgAtlasResult, i: number): string {
@@ -86,6 +87,12 @@ export interface AtlasSvgModel {
   iceCells?: AtlasSvgPolygon[];
   /** Event/danger zone cell fills (Azgaar "zones" overlay; toggle layer). */
   zoneCells?: AtlasSvgPolygon[];
+  /**
+   * PROTOTYPE: per-cell threat scalar (0..1) for cells above the safe threshold,
+   * derived from zones + terrain. Rendered as a danger HATCH that blends over the
+   * active coloring (not a replacement fill). See dangerField.ts.
+   */
+  dangerCells?: Array<{ points: string; danger: number }>;
   /** Military regiments as markers (Azgaar "military" overlay; toggle layer). */
   regiments?: AtlasSvgMarker[];
   labels?: AtlasSvgLabel[];
@@ -345,6 +352,47 @@ export function buildStateBorders(atlas: FmgAtlasResult): string {
         const pb = verts[v2];
         if (pa && pb) parts.push(`M${+pa[0].toFixed(1)},${+pa[1].toFixed(1)}L${+pb[0].toFixed(1)},${+pb[1].toFixed(1)}`);
       }
+    }
+  }
+  return parts.join('');
+}
+
+/**
+ * Provisioning ring (travel logistics): the boundary contour of the in-range
+ * cell set — the cells the party can reach before its binding resource (food or
+ * water) runs out. Extracted exactly like state borders: an edge is on the ring
+ * iff the cell across it is NOT in range (or there is no cell across it — the map
+ * edge). Edges shared by two in-range cells are interior and excluded, so the
+ * result is one clean outline rather than a mesh of every cell perimeter.
+ *
+ * Returned as a path of disconnected `M…L` segments for a stroked (glowing)
+ * contour. Each ring edge is single-sided (its other cell is out of range), so
+ * no per-edge dedup is needed.
+ */
+export function buildProvisionRingPath(atlas: FmgAtlasResult, inRangeCellIds: Iterable<number>): string {
+  const cells = atlas.pack.cells;
+  const verts = atlas.pack.vertices.p;
+  const inRange = inRangeCellIds instanceof Set ? inRangeCellIds : new Set<number>(inRangeCellIds);
+  if (inRange.size === 0) return '';
+  const parts: string[] = [];
+  for (const i of inRange) {
+    const vIds = cells.v[i];
+    if (!vIds) continue;
+    const nb = cells.c?.[i];
+    for (let e = 0; e < vIds.length; e++) {
+      const v1 = vIds[e];
+      const v2 = vIds[(e + 1) % vIds.length];
+      // The cell across this edge shares both its endpoints.
+      let j = -1;
+      for (const cand of nb ?? []) {
+        const cv = cells.v[cand];
+        if (cv && cv.includes(v1) && cv.includes(v2)) { j = cand; break; }
+      }
+      // On the ring when there is no cell across (map edge) or it is out of range.
+      if (j >= 0 && inRange.has(j)) continue;
+      const pa = verts[v1];
+      const pb = verts[v2];
+      if (pa && pb) parts.push(`M${+pa[0].toFixed(1)},${+pa[1].toFixed(1)}L${+pb[0].toFixed(1)},${+pb[1].toFixed(1)}`);
     }
   }
   return parts.join('');
@@ -673,6 +721,21 @@ export function buildZoneCells(atlas: FmgAtlasResult): AtlasSvgPolygon[] {
 }
 
 /**
+ * PROTOTYPE danger overlay: per-cell threat polygons (above the safe threshold)
+ * with their 0..1 scalar, for the hatch renderer. Derived from world state via
+ * `computeDangerField` (zones + terrain), not a static generator layer.
+ */
+export function buildDangerCells(atlas: FmgAtlasResult): Array<{ points: string; danger: number }> {
+  const field = computeDangerField(atlas);
+  const out: Array<{ points: string; danger: number }> = [];
+  for (const { i, danger } of dangerCellsAbove(field)) {
+    const points = cellPolygonPoints(atlas, i);
+    if (points) out.push({ points, danger });
+  }
+  return out;
+}
+
+/**
  * Build the ordered SVG layer model. Ocean = graduated shallow-water depth
  * bands (SP0 T3b) over the view's deep base rect; land = merged per-biome
  * regions (no facets — SP0 T2); rivers = tapered ribbons (T4); routes + burg
@@ -806,6 +869,7 @@ export function buildAtlasSvgModel(atlas: FmgAtlasResult): AtlasSvgModel {
     poiMarkers: buildPoiMarkers(atlas),
     iceCells: buildIceCells(atlas),
     zoneCells: buildZoneCells(atlas),
+    dangerCells: buildDangerCells(atlas),
     regiments: buildRegiments(atlas),
     labels: buildLabels(atlas),
     layers: [

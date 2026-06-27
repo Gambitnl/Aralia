@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 18/06/2026, 03:18:58
+ * Last Sync: 27/06/2026, 01:55:55
  * Dependents: components/CharacterSheet/Family/FamilyTreeTab.tsx, components/World3D/DebugHUD.tsx, components/World3D/InWorldHUD.tsx, services/strongholdService.ts, state/migrations/worldDataMigration.ts, systems/economy/TradeRouteSystem.ts, systems/gameEntry/situationNpcToRichNpc.ts, systems/spells/ai/AISpellArbitrator.ts, systems/worldforge/bridge/groundChunkLoader.ts, types/index.ts, utils/mapDataToWorldData.ts, utils/world/worldGeographyAdapter.ts
  * Imports: 2 files
  *
@@ -22,7 +22,7 @@ import type { AbilityScores } from './character.js';
 import type { EquipmentSlotType, Item } from './items.js';
 import type { WorldData } from '../services/worldSim/types';
 import type { WorldGeographySnapshot } from '../utils/world/worldGeographyAdapter';
-import type { Lock } from '../systems/puzzles/types.js';
+import type { Lock, Puzzle } from '../systems/puzzles/types.js';
 
 export type Position = CombatPosition;
 
@@ -77,6 +77,13 @@ export interface InteractableFeature {
   lock: Lock;
 }
 
+export interface InteractablePuzzleFeature {
+  id: string;
+  type: 'puzzle';
+  label: string;
+  puzzle: Puzzle;
+}
+
 export interface Exit {
   direction: string;
   targetId: string;
@@ -93,7 +100,7 @@ export interface Location {
   itemIds?: string[];
   npcIds?: string[];
   dynamicNpcConfig?: LocationDynamicNpcConfig;
-  interactableFeatures?: InteractableFeature[];
+  interactableFeatures?: Array<InteractableFeature | InteractablePuzzleFeature>;
   mapCoordinates: { x: number; y: number };
   biomeId: string;
   gossipLinks?: string[];

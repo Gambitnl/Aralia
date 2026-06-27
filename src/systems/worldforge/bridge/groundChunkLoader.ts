@@ -35,11 +35,12 @@ import type { ChunkData, ChunkMeshBundle, VegetationScatter, LodTier } from "../
 import { buildChunkBundle } from "../../world3d/chunkBundle";
 import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from "../../world3d/config";
 import { biomeColor } from "../../world3d/terrainColor";
-import type { LocalArtifact, RegionArtifact } from "../artifacts";
+import type { LocalArtifact, RegionArtifact, RegionTownSite } from "../artifacts";
 import { localArtifactToWorldData, GROUND_METERS_PER_CELL } from "./groundWorldAdapter";
-import { generateTownPlan } from "../town/generateTownPlan";
+import { getCanonicalTownPlan, transformTownPlan, townSpanFtForBurg, CANON_TOWN_SPAN } from "../town/canonicalTown";
+import { toArtifactPlan, type AdaptedTownPlan } from "../town/townPlanAdapter";
 import type { TownPlan } from "../artifacts";
-import { buildInteriorParts, interiorEnvelopeM, type SitePart, type OccupantBody } from "./interiorParts";
+import { buildInterior, type SitePart, type OccupantBody } from "./interiorParts";
 import { generateTownRoster } from "../roster/generateTownRoster";
 import { occupantLocationAt, type ActivityKind } from "../roster/occupantSchedule";
 import type { TownRoster, Occupant } from "../roster/types";
@@ -50,7 +51,7 @@ import { generateHiddenPlaces, type HiddenPlaceKind } from "../discovery/hiddenP
 import type { Pt } from "../submap/submapEngine";
 import { localWithDeltas } from "./groundDeltas";
 import type { WorldDelta } from "../delta/types";
-import { getBurgNamer } from "./legacySubmapBridge";
+import { getBurgNamer, getBridgeAtlas } from "./legacySubmapBridge";
 import { SeededRandom } from "../../../utils/random/seededRandom";
 import { generateBusinessName } from "../../economy/NpcBusinessManager";
 import type { BusinessType, WorldBusiness } from "../../../types/business";
@@ -136,6 +137,8 @@ export interface GroundWorld {
   /** River/road centerlines crossing the artifact, ground meters. */
   rivers: GroundPolyline[];
   roads: GroundPolyline[];
+  /** Town defensive wall rings (closed polylines), ground meters. */
+  walls: GroundPolyline[];
   /** Town sites overlapping the artifact, center in ground meters. */
   towns: Array<{ burgId: number; xM: number; zM: number; halfM: number }>;
   /** Town-plan building plots (C3 generateTownPlan), centers in meters. */
@@ -220,7 +223,7 @@ export function makeGroundWorld(
   opts: MakeGroundWorldOptions = {},
 ): GroundWorld {
   const wd = localArtifactToWorldData(local, seed);
-  const townContent = groundTowns(local, region, opts.hour ?? 12, opts.deltas ?? [], seed, opts);
+  const townContent = groundTowns(local, region, opts.hour ?? 12, opts.deltas ?? [], seed, opts, wd.gridSize.cols, wd.gridSize.rows);
 
   // Each makeGroundWorld call receives a freshly allocated height array from
   // localArtifactToWorldData. Flattening mutates only that per-call array, so
@@ -296,6 +299,7 @@ export function makeGroundWorld(
       ...(region ? regionPolylinesToGround(region.roads, local) : []),
       ...townContent.planStreets,
     ],
+    walls: townContent.planWalls,
     towns: townContent.towns,
     buildings: townContent.buildings,
     rosters: townContent.rosters,
@@ -478,6 +482,32 @@ function getBusinessTypeForPlot(role: string, plotId: number): BusinessType {
 }
 
 /**
+ * The canonical artifact town (plots + streets + walls) for a burg's
+ * RegionTownSite — the SINGLE place the live pipeline derives a town's plot IDs.
+ *
+ * Generated once in the normalized frame (`getCanonicalTownPlan`, shared with
+ * the 2D map drill), then scaled by population and placed at the burg's region
+ * envelope. `groundTowns` (geometry + roster) AND `World3DWrapper`
+ * (business/NPC pre-registration) both call THIS, so the plot IDs they key off
+ * (`biz_burg_<id>_plot_<plotId>`) always refer to the same buildings — the
+ * earlier divergence (registration ran the retired rect generator while the
+ * renderer ran the canonical one) produced mismatched IDs and unbound shops.
+ */
+export function canonicalArtifactTownForSite(
+  worldSeed: number,
+  site: RegionTownSite,
+): AdaptedTownPlan {
+  const townAtlas = getBridgeAtlas(worldSeed);
+  const enginePlan = getCanonicalTownPlan(townAtlas, worldSeed, site.burgId);
+  const spanFt = townSpanFtForBurg(townAtlas, site.burgId);
+  const placeScale = spanFt / CANON_TOWN_SPAN;
+  const placeDx = site.envelope.x + site.envelope.width / 2;
+  const placeDy = site.envelope.y + site.envelope.height / 2;
+  const feetPlan = transformTownPlan(enginePlan, placeScale, placeDx, placeDy);
+  return toArtifactPlan(feetPlan, site.burgId);
+}
+
+/**
  * Town content for the ground window: the site marker (label + keep box),
  * and — the C3 payoff — the town's GENERATED plan: streets become road
  * ribbons, plots become building boxes. Deterministic via the region's
@@ -490,10 +520,13 @@ function groundTowns(
   deltas: WorldDelta[],
   worldSeed: number,
   opts: MakeGroundWorldOptions = {},
+  gridCols = 0,
+  gridRows = 0,
 ): {
   towns: GroundWorld["towns"];
   buildings: GroundWorld["buildings"];
   planStreets: GroundPolyline[];
+  planWalls: GroundPolyline[];
   rosters: TownRoster[];
   occupants: GroundOccupantSite[];
   townPlans: Array<{ burgId: number; plan: TownPlan }>;
@@ -504,6 +537,7 @@ function groundTowns(
   const towns: GroundWorld["towns"] = [];
   const buildings: GroundWorld["buildings"] = [];
   const planStreets: GroundPolyline[] = [];
+  const planWalls: GroundPolyline[] = [];
   const rosters: TownRoster[] = [];
   const occupants: GroundOccupantSite[] = [];
   const townPlans: Array<{ burgId: number; plan: TownPlan }> = [];
@@ -516,10 +550,16 @@ function groundTowns(
 
     towns.push({ burgId: t.burgId, xM, zM, halfM });
 
+    // CANONICAL town (Worldforge Option B): the SAME (atlas, burgId) plan the
+    // 2D map drill renders — generated once in the normalized frame, then
+    // scaled by population and placed into THIS town's envelope so the 3D town
+    // is the same place. Shared with World3DWrapper's business/NPC registration
+    // via `canonicalArtifactTownForSite`, so plot IDs never diverge.
+    const adapted = canonicalArtifactTownForSite(worldSeed, t);
     // Player edits replay over the regenerated plan (GROUND-DELTA-1): a
     // modified plot changes its interior, a removed one vanishes, an added
     // building appears — deterministic base + delta layer (decision #14).
-    const basePlan = generateTownPlan(t, region!.seedPath);
+    const basePlan = adapted.plan;
     const plan = deltas.length
       ? (localWithDeltas(local, basePlan, deltas).townPlan ?? basePlan)
       : basePlan;
@@ -534,6 +574,16 @@ function groundTowns(
         // scale (Remy shot-1 review) — a village lane reads at ~8 ft.
         widthM: Math.max(2.5, s.widthFt * FEET_TO_METERS),
       });
+    }
+    // Defensive wall ring → a closed ground polyline (3D renders it as an
+    // extruded barrier). The ring is in region feet after the transform.
+    if (adapted.walls.ring.length >= 3) {
+      const ringM = adapted.walls.ring.map(([fx, fy]) => ({
+        x: (fx - local.bounds.x) * FEET_TO_METERS,
+        z: (fy - local.bounds.y) * FEET_TO_METERS,
+      }));
+      ringM.push(ringM[0]); // close the ring
+      planWalls.push({ points: ringM, widthM: 1.2 });
     }
     // Occupants live where the floor plans say they can (ROSTER-1), and
     // stand at work during business hours (time-of-day v0).
@@ -587,6 +637,14 @@ function groundTowns(
       const cy = p.footprint.reduce((a, q) => a + q[1], 0) / p.footprint.length;
       const xM = (cx - local.bounds.x) * FEET_TO_METERS;
       const zM = (cy - local.bounds.y) * FEET_TO_METERS;
+      const cornersM = p.footprint.map(([fx, fy]) => ({
+        x: (fx - local.bounds.x) * FEET_TO_METERS,
+        z: (fy - local.bounds.y) * FEET_TO_METERS,
+      }));
+      // Skip plots that cover no ground tile (sub-5ft slivers): they can't get a
+      // level pad, so they'd render as ungrounded boxes. Every kept building is
+      // guaranteed a pad (invariant the terrain-pad pass relies on).
+      if (gridCols > 0 && gridRows > 0 && buildingFootprintCells(gridCols, gridRows, cornersM).length === 0) continue;
       const heightM = Math.max(1, (p.storeys ?? 1)) * 3;
 
       const isBiz = p.role === 'market' || p.role === 'workshop';
@@ -620,46 +678,40 @@ function groundTowns(
       }
 
       const plotInput = { id: p.id, footprint: p.footprint, role: p.role ?? 'house', storeys: p.storeys ?? 1 };
-      // Wall envelope (≤ plot footprint): roofs/floors must fit THESE dims,
-      // not the plot, or eaves float past the walls (construction v2).
-      const envelope = interiorEnvelopeM(plotInput, region!.seedPath);
+      // Each occupant gets a parametric body (BODY-1) from its own seed path, so
+      // villagers vary in height/build/palette deterministically.
+      const occFigures = (byPlot.get(p.id) ?? []).map((o) => ({
+        id: o.id,
+        ageBand: o.ageBand,
+        atWork: o.atWork,
+        body: bodyPlanToOccupantBody(
+          generateBody(o, childSeedPath(region!.seedPath, `occ:${o.id}`)),
+        ),
+      }));
+      // Wall envelope (≤ plot footprint) AND seamless interior parts (L4) from ONE
+      // interior generation — the envelope sizes roofs/floors so eaves don't float
+      // past the walls (construction v2); the parts use the same seed path as the
+      // town plan so plan, shell, rooms AND household all agree. (Was two
+      // generateInterior calls per plot — wasteful for large capitals.)
+      const interior = buildInterior(plotInput, region!.seedPath, heightM, occFigures);
       buildings.push({
         id: `wf-plot-${t.burgId}-${p.id}`,
         xM,
         zM,
-        cornersM: p.footprint.map(([fx, fy]) => ({
-          x: (fx - local.bounds.x) * FEET_TO_METERS,
-          z: (fy - local.bounds.y) * FEET_TO_METERS,
-        })),
+        cornersM,
         heightM,
         role: p.role ?? 'house',
-        wallWidthM: envelope.wallWidthM,
-        wallDepthM: envelope.wallDepthM,
+        wallWidthM: interior.envelope.wallWidthM,
+        wallDepthM: interior.envelope.wallDepthM,
         name: bizName,
         unlabeled: !isBiz,
         labelRangeM: 20,
-        // Seamless interior (L4): same seed path the town plan used, so the
-        // plan, the shell, the rooms AND the household all agree.
-        parts: buildInteriorParts(
-          plotInput,
-          region!.seedPath,
-          heightM,
-          // Each occupant gets a parametric body (BODY-1) from its own seed
-          // path, so villagers vary in height/build/palette deterministically.
-          (byPlot.get(p.id) ?? []).map((o) => ({
-            id: o.id,
-            ageBand: o.ageBand,
-            atWork: o.atWork,
-            body: bodyPlanToOccupantBody(
-              generateBody(o, childSeedPath(region!.seedPath, `occ:${o.id}`)),
-            ),
-          })),
-        ),
+        parts: interior.parts,
       });
     }
   }
 
-  return { towns, buildings, planStreets, rosters, occupants, townPlans };
+  return { towns, buildings, planStreets, planWalls, rosters, occupants, townPlans };
 }
 
 /** Encoded-height bilinear sample at world meters → true meters via heightToMeters. */
@@ -868,6 +920,7 @@ export function sampleGroundChunk(
     biomeColors,
     rivers: ground.rivers.flatMap((r) => clipGroundPolylineToChunk(r, cx, cy)),
     roads: ground.roads.flatMap((r) => clipGroundPolylineToChunk(r, cx, cy)),
+    walls: ground.walls.flatMap((w) => clipGroundPolylineToChunk(w, cx, cy)),
     lakes: [],
     // Sites whose center falls in this chunk (sampler convention):
     // town markers (label + keep box) and the town plan's building plots

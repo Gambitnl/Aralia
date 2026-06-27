@@ -222,6 +222,8 @@ export interface GameState {
     isDialogueInterfaceOpen: boolean;
     isLockpickingModalVisible: boolean;
     activeLock: import('../systems/puzzles/types.js').Lock | null;
+    isPuzzleRuntimeVisible: boolean;
+    activePuzzle: import('../systems/puzzles/types.js').Puzzle | null;
     isDiceRollerVisible: boolean;
     visualDiceEnabled: boolean;
     isOllamaDependencyModalVisible: boolean;

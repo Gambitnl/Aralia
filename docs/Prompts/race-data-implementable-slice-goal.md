@@ -218,3 +218,5 @@ Stop only when:
 
 Do not stop at "reports were generated" if the classifications are still not useful for implementation. The point is to get everything currently implementable implemented, and to make the rest unmistakably visible.
 ```
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/Prompts/race-data-implementable-slice-goal.md","sha256WithoutMarker":"33aeb032f2ed417294fc4b3006d1b615ba54ca4f9aa5c3748635610cde3efe54","markedAtUtc":"2026-06-26T00:26:22.309Z"} -->

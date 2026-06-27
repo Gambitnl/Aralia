@@ -1,7 +1,7 @@
 // [Captain] New component to visualize the player's ship state
-import React, { useState } from 'react';
-import { Ship } from '../../types/naval';
-import { Anchor, Users, Package } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Ship, VoyageState, VoyageLogEntry } from '../../types/naval';
+import { Anchor, Users, Package, Navigation } from 'lucide-react';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
@@ -9,10 +9,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 interface ShipPaneProps {
   ship: Ship;
   onClose: () => void;
+  voyage?: VoyageState | null;
+  onAdvanceDay?: () => void;
 }
 
-export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'crew' | 'cargo'>('overview');
+type ActiveTab = 'overview' | 'crew' | 'cargo' | 'voyage';
+
+export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose, voyage, onAdvanceDay }) => {
+  const hasVoyage = voyage != null;
+  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
+
+  // If the voyage clears (e.g. on arrival, 3C-4) while the Voyage tab is active,
+  // fall back to a valid tab so the content area never goes blank.
+  useEffect(() => {
+    if (!hasVoyage && activeTab === 'voyage') setActiveTab('overview');
+  }, [hasVoyage, activeTab]);
 
   return (
     <WindowFrame
@@ -41,6 +52,14 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose }) => {
             icon={<Package className="w-4 h-4" />}
             label="Cargo"
           />
+          {hasVoyage && (
+            <NavButton
+              active={activeTab === 'voyage'}
+              onClick={() => setActiveTab('voyage')}
+              icon={<Navigation className="w-4 h-4" />}
+              label="Voyage"
+            />
+          )}
         </div>
 
         {/* Content */}
@@ -146,11 +165,113 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose }) => {
               </Table>
             </div>
           )}
+
+          {activeTab === 'voyage' && hasVoyage && (
+            <VoyageTab voyage={voyage!} onAdvanceDay={onAdvanceDay} />
+          )}
         </div>
       </div>
     </WindowFrame>
   );
 };
+
+// ── Voyage Tab ────────────────────────────────────────────────────────────────
+
+interface VoyageTabProps {
+  voyage: VoyageState;
+  onAdvanceDay?: () => void;
+}
+
+const VoyageTab: React.FC<VoyageTabProps> = ({ voyage, onAdvanceDay }) => {
+  const isDocked = voyage.status === 'Docked';
+  const progressPct = voyage.distanceToDestination > 0
+    ? Math.min(100, Math.round((voyage.distanceTraveled / voyage.distanceToDestination) * 100))
+    : 100;
+
+  // Most-recent entries first
+  const logEntries = [...voyage.log].reverse();
+
+  return (
+    <div className="space-y-4">
+      {/* Status row */}
+      <div className="grid grid-cols-2 gap-3">
+        <StatCard label="Status" value={voyage.status} subtext="Current" colorClass={isDocked ? 'text-green-400' : 'text-blue-300'} />
+        <StatCard label="Days at Sea" value={voyage.daysAtSea.toString()} subtext="Elapsed" />
+        <StatCard label="Weather" value={voyage.currentWeather} subtext="Conditions" />
+        <StatCard label="Distance" value={`${voyage.distanceTraveled} / ${voyage.distanceToDestination}`} subtext="Miles" />
+      </div>
+
+      {/* Progress bar */}
+      <div className="bg-gray-800/30 p-3 rounded-lg border border-gray-700/50">
+        <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <span>Progress</span>
+          <span>{progressPct}%</span>
+        </div>
+        <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-blue-500 rounded-full transition-all"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Supplies consumed */}
+      <div className="bg-gray-800/30 p-3 rounded-lg border border-gray-700/50">
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Supplies Consumed</h3>
+        <div className="flex gap-6">
+          <span className="text-sm text-gray-300">Food: {voyage.suppliesConsumed.food} days</span>
+          <span className="text-sm text-gray-300">Water: {voyage.suppliesConsumed.water} days</span>
+        </div>
+      </div>
+
+      {/* Advance / Docked action */}
+      {isDocked ? (
+        <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-4 text-center">
+          <p className="text-green-300 font-semibold">Arrived — docked at destination.</p>
+          <p className="text-gray-400 text-sm mt-1">Close this pane to return to the world.</p>
+        </div>
+      ) : (
+        <button
+          onClick={onAdvanceDay}
+          disabled={!onAdvanceDay}
+          className="w-full py-3 bg-blue-700 hover:bg-blue-600 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold rounded-lg transition-colors"
+        >
+          Advance a day at sea
+        </button>
+      )}
+
+      {/* Voyage log */}
+      <div className="bg-gray-800/30 p-3 rounded-lg border border-gray-700/50">
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Voyage Log</h3>
+        {logEntries.length === 0 ? (
+          <p className="text-gray-600 text-sm italic">No entries yet.</p>
+        ) : (
+          <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
+            {logEntries.map((entry, i) => (
+              <div key={i} className="flex gap-2 text-sm">
+                <span className="text-gray-600 font-mono w-12 shrink-0">Day {entry.day}</span>
+                <span className={logEntryColor(entry.type)}>{entry.event}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const logEntryColor = (type: VoyageLogEntry['type']): string => {
+  switch (type) {
+    case 'Info': return 'text-gray-300';
+    case 'Warning': return 'text-yellow-300';
+    case 'Combat': return 'text-red-400';
+    case 'Discovery': return 'text-purple-300';
+    case 'Fluff': return 'text-gray-400';
+    default: return 'text-gray-300';
+  }
+};
+
+// ── Shared sub-components ─────────────────────────────────────────────────────
 
 const NavButton = ({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) => (
   <button

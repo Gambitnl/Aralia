@@ -76,3 +76,5 @@ For actual spell implementation or verification work, continue into:
 This file is intentionally conservative.
 It summarizes verified inventory facts and current supporting surfaces, but it does not collapse those facts into a claim that every spell is fully integrated across every system.
 When a specific spell matters, verify that spell directly against the current repo.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/SPELL_INTEGRATION_STATUS.md","sha256WithoutMarker":"e556f030d13e88fef91ad9cff1c4189fa4314c537039d06c7220cb53d293cb39","markedAtUtc":"2026-06-26T00:26:22.320Z"} -->

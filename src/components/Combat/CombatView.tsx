@@ -346,10 +346,14 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     onMapUpdate: setMapData,
     onAddSpellZone: turnManager.addSpellZone,
     spellZones: turnManager.spellZones,
+    onSpellZonesUpdate: turnManager.setSpellZones,
     onAddScheduledSpellEffect: turnManager.addScheduledSpellEffect,
     onAddMovementDebuff: turnManager.addMovementDebuff,
     onAddSpellMovementVisual: turnManager.addSpellMovementVisual,
     onAddSpellDeliveryVisual: turnManager.addSpellDeliveryVisual,
+    onSpellCreatedInventoryItems: (items) => {
+      dispatch({ type: 'ADD_SPELL_CREATED_ITEMS', payload: { items } });
+    },
     currentPlane
   });
 

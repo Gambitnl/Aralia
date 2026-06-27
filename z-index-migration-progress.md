@@ -1,5 +1,11 @@
 # Z-Index Registry Migration Progress
 
+## Current Correction (2026-06-26)
+
+Backlog retirement rechecked the current tree and found this progress note is stale. Runtime source still contains four hardcoded `z-[number]` classes in `src/components/World3D/AtlasPlayerMarker.tsx`, `src/components/MapPane.tsx`, `src/components/DesignPreview/steps/PreviewComponents.tsx`, and `src/components/CharacterCreator/Race/RaceDetailPane.tsx`.
+
+The remaining work is now owned by `docs/projects/ui-primitives/GAPS.md` G3 and `docs/projects/ui-primitives/TRACKER.md` T1. Treat the older "100%" sections below as historical migration context, not current completion evidence.
+
 ## Completed Migrations ✅
 
 ### High Priority Components
@@ -56,3 +62,5 @@
 - ✅ Consistent layering across all UI components
 - ✅ Improved developer experience with named constants
 - ✅ No visual regressions in production
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"z-index-migration-progress.md","sha256WithoutMarker":"e918e4bb3cde81c9c746138c5b54ef66f3bcd5fe91a1299ebe48c34f5269fe47","markedAtUtc":"2026-06-26T00:40:14.570Z"} -->

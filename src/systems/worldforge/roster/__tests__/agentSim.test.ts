@@ -179,4 +179,35 @@ describe('day-to-day variation (persisted needs change behaviour)', () => {
       expect(v).toBeLessThanOrEqual(100);
     }
   });
+
+  it('over a full week no SURVIVAL need collapses (recovery keeps the town alive)', () => {
+    // Varied roster: an earner, a jobless adult, an elder, and a child. Run 7
+    // days and prove (a) every need stays in [0,100] the whole time, and (b) no
+    // survival need (energy/satiety/social) is pinned at 0 for a full day — the
+    // sleep/eat/socialize loop must always pull an agent back. Wealth is exempt:
+    // non-earners legitimately sit broke at 0 (no income; eating still works).
+    const occ = [
+      worker(1),
+      worker(2, { workPlotId: undefined, occupation: 'resident' }),
+      worker(3, { ageBand: 'elder', workPlotId: undefined, occupation: 'resident' }),
+      worker(4, { ageBand: 'child', workPlotId: undefined, occupation: 'resident' }),
+    ];
+    const survival = ['energy', 'satiety', 'social'] as const;
+    const zeroStreak: Record<string, number> = {};
+    let minds = initAgentMinds(occ);
+    for (let h = 0; h < 24 * 7; h++) {
+      minds = step(minds, occ, h % 24);
+      for (const m of minds) {
+        for (const v of Object.values(m.needs)) {
+          expect(v).toBeGreaterThanOrEqual(0);
+          expect(v).toBeLessThanOrEqual(100);
+        }
+        for (const k of survival) {
+          const key = `${m.occupantId}:${k}`;
+          zeroStreak[key] = m.needs[k] <= 0.001 ? (zeroStreak[key] ?? 0) + 1 : 0;
+          expect(zeroStreak[key], `${key} stuck at 0 for a full day`).toBeLessThan(24);
+        }
+      }
+    }
+  });
 });

@@ -133,6 +133,21 @@
       },
       "utilityType": "creation",
       "description": "Create ten berries that each restore 1 HP and provide a day of nourishment when eaten as a bonus action within 24 hours.",
+      "createdObjects": [
+        {
+          "objectType": "food",
+          "name": "Goodberry",
+          "count": 10,
+          "countUnit": "item",
+          "appearsIn": "caster_hand",
+          "consumeAction": "bonus_action",
+          "healingPerItem": 1,
+          "nourishmentDaysPerItem": 1,
+          "expiresWithSpell": true,
+          "shelfLife": "24 hours",
+          "notes": "Each berry restores 1 HP and provides one day of nourishment when eaten before the spell duration ends."
+        }
+      ],
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",

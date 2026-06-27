@@ -30,17 +30,17 @@ import { z } from 'zod';
 // ============================================================================
 // Controlled Entity Schema
 // ============================================================================
-// This schema intentionally starts with Mage Hand's narrow helper model. Future
-// controllable entities can add enum values here without changing unrelated
-// utility effect validation.
+// This schema started with Mage Hand's narrow helper model. Unseen Servant uses
+// the same controlled-helper lane, but needs bonus-action commands and a
+// hit-point ending trigger because it is a fragile invisible force.
 // ============================================================================
 
 export const ControlledEntity = z.object({
-  entityType: z.enum(["spectral_hand"]),
+  entityType: z.enum(["spectral_hand", "unseen_servant"]),
   count: z.number(),
   appearsAt: z.enum(["chosen_point"]),
   durationScope: z.enum(["spell_duration"]),
-  controlActionType: z.enum(["magic_action", "action"]),
+  controlActionType: z.enum(["magic_action", "action", "bonus_action"]),
   initialUseOnCast: z.boolean(),
   laterControlTiming: z.enum(["later_turns"]),
   movementDistance: z.number(),
@@ -50,6 +50,6 @@ export const ControlledEntity = z.object({
   canActivateMagicItems: z.boolean(),
   carryCapacityPounds: z.union([z.number(), z.literal("not_applicable")]),
   allowedInteractions: z.array(z.string()),
-  endingTriggers: z.array(z.enum(["caster_recasts", "beyond_max_distance"])),
+  endingTriggers: z.array(z.enum(["caster_recasts", "beyond_max_distance", "drops_to_0_hp"])),
   notes: z.string().optional(),
 });

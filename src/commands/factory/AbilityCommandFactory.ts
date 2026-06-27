@@ -46,6 +46,8 @@ import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSy
 import { VisibilitySystem } from '@/systems/visibility';
 import { DismissFamiliarToPocketCommand, RecallFamiliarFromPocketCommand } from '../effects/FamiliarPocketCommands';
 import { FamiliarSharedSensesCommand } from '../effects/FamiliarSharedSensesCommand';
+import { CommandedSummonCommand } from '../effects/CommandedSummonCommand';
+import { GrantedActionCommand } from '../effects/GrantedActionCommand';
 import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidationUtils';
 import { combatEvents } from '@/systems/events/CombatEvents';
 
@@ -559,6 +561,42 @@ export class AbilityCommandFactory {
       });
     }
 
+    // Commandable summons without bespoke attacks still need a real executable
+    // path. Route their generated utility ability into a lightweight command so
+    // using the button creates combat-log proof instead of silently producing no
+    // command from an empty effect list.
+    if (effect.type === 'commanded_summon') {
+      return new CommandedSummonCommand(context, {
+        description: effect.summonCommandDescription
+      });
+    }
+
+    // Post-cast granted actions, such as illusion manipulation or sustained
+    // spell beams, are real player choices even before their spell-specific
+    // payloads are fully wired. Keep them executable and logged through the
+    // command pipeline instead of leaving the generated button inert.
+    if (effect.type === 'granted_action') {
+      return new GrantedActionCommand(context, {
+        actionLabel: effect.grantedActionLabel,
+        actionCost: effect.grantedActionCost,
+        frequency: effect.grantedActionFrequency,
+        rangeLimit: effect.grantedActionRangeLimit,
+        prerequisites: effect.grantedActionPrerequisites,
+        attackType: effect.grantedActionAttackType,
+        areaShape: effect.grantedActionAreaShape,
+        areaSize: effect.grantedActionAreaSize,
+        areaSizeUnit: effect.grantedActionAreaSizeUnit,
+        damageDice: effect.grantedActionDamageDice,
+        damageType: effect.grantedActionDamageType,
+        saveType: effect.grantedActionSaveType,
+        saveEffect: effect.grantedActionSaveEffect,
+        damageAbilityModifier: effect.grantedActionDamageAbilityModifier,
+        wallLengthReduction: effect.grantedActionWallLengthReduction,
+        endsWhenLengthZero: effect.grantedActionEndsWhenLengthZero,
+        notes: effect.grantedActionNotes
+      });
+    }
+
     return null;
   }
 
@@ -578,7 +616,11 @@ export class AbilityCommandFactory {
     requestReaction?: (attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_take_damage', options: any[]) => Promise<string | null>
   ): SpellCommand[] {
     const context: CommandContext = {
-      spellId: ability.id,
+      // Spell-created utility buttons, such as familiar dismiss/recall, have
+      // their own button ids but still need the original spell id for ownership
+      // checks and cleanup. Fall back to the ability id for ordinary class,
+      // monster, and weapon abilities.
+      spellId: ability.sourceSpellId ?? ability.spell?.id ?? ability.id,
       spellName: ability.name,
       castAtLevel: 0,
       caster,
@@ -586,8 +628,29 @@ export class AbilityCommandFactory {
       gameState
     };
 
+    // Spell-created summons can have both a normal action cost and a
+    // spell-authored "commands per turn" budget. Build that command gate
+    // before attack commands so bespoke summon attacks, such as spirit attacks,
+    // cannot bypass the controlled-entity command cadence.
+    const commandedSummonGate = ability.effects.find(effect => effect.type === 'commanded_summon');
+    const commandedSummonGateCommand = commandedSummonGate
+      ? AbilityCommandFactory.createDirectAbilityCommand(commandedSummonGate, context)
+      : null;
+
+    if (
+      commandedSummonGateCommand &&
+      caster.isSummon &&
+      caster.summonMetadata &&
+      (caster.summonMetadata.commandsUsedThisTurn ?? 0) >= (caster.summonMetadata.commandsPerTurn ?? 1)
+    ) {
+      return [commandedSummonGateCommand];
+    }
+
     if (ability.type === 'attack') {
-      return [new WeaponAttackCommand(ability, caster, targets, context)];
+      const attackCommand = new WeaponAttackCommand(ability, caster, targets, context);
+      return commandedSummonGateCommand
+        ? [commandedSummonGateCommand, attackCommand]
+        : [attackCommand];
     }
 
     return ability.effects

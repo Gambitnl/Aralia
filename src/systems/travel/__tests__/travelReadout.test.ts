@@ -86,4 +86,17 @@ describe('formatProvisionLine', () => {
     );
     expect(line.text).toBe('Food: 1 day · short 1 day');
   });
+
+  it('labels the binding resource when water runs out first (E1)', () => {
+    const line = formatProvisionLine({
+      inRange: false,
+      shortfallDays: 2,
+      severity: 'major',
+      foodRangeDays: 2,
+      tripDays: 4,
+      binding: 'water',
+    });
+    expect(line.text).toContain('Water: 2 days');
+    expect(line.text).toContain('short 2 days');
+  });
 });

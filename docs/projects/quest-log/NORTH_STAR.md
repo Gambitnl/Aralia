@@ -6,13 +6,13 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-12
+last_updated: 2026-06-26
 iteration: 7
 confidence: medium
 evidence: docs/projects/quest-log/AUDIT_OR_PROOF.md
-gap_signal: "3 open gaps; G2, G3, and G5 remain open after G3 decision"
+gap_signal: "2 adjacent quest-system follow-ups remain; G3/T7 NPC quest handoff implemented 2026-06-19"
 protocol: living project doc set
-next_step: "Implement the quest-giver bridge in handleNpcInteraction.ts (Option A): define a minimal quest-offer payload as part of the work and cover the handoff with focused source-backed tests."
+next_step: "Do not reopen T7/G3. Future Quest Log work should start from adjacent G2/G5 routing in GAPS.md and the broader Quests project before changing quest trigger architecture."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -32,7 +32,7 @@ required_verification:
 completed_verification:
   - docs_consistency
   - scoped_tests
-last_proof: 2026-06-09
+last_proof: 2026-06-19
 workflow_gaps_reviewed: 2026-06-09
 compaction_status: not_needed
 lifecycle_status: active
@@ -43,8 +43,8 @@ human_decision_required: "no"
 ---
 # Quest Log North Star
 
-Status: active (decision recorded 2026-06-10; implementation lane open)
-Last updated: 2026-06-12
+Status: active (T7/G3 NPC quest handoff implemented 2026-06-19; adjacent quest-system follow-ups remain)
+Last updated: 2026-06-26
 
 ## Purpose and Scope
 
@@ -72,15 +72,15 @@ What is out of scope:
 Project: Quest Log
 Slug: quest-log
 Category: Feature/UI Projects
-Status: active (decision recorded 2026-06-10; implementation lane open)
+Status: active (T7/G3 implemented 2026-06-19; adjacent quest-system follow-ups remain)
 Confidence: medium
 Evidence: docs/projects/quest-log/AUDIT_OR_PROOF.md
-Gap signal: G3 decided 2026-06-10 (D14, Option A); implementation lane open
+Gap signal: G3/T7 implemented 2026-06-19; adjacent G2/G5 quest-system follow-ups remain
 Protocol: living project doc set
-Next step: Implement the quest-giver bridge in `handleNpcInteraction.ts` (Option A): define a minimal quest-offer payload as part of the work and cover the handoff with focused source-backed tests.
+Next step: Do not reopen the completed NPC quest-handoff packet. Route future trigger/schema work through adjacent G2/G5 and `docs/projects/quests`.
 Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency, scoped_tests
-Last proof: 2026-06-09
+Last proof: 2026-06-19
 Workflow gaps reviewed: 2026-06-09
 Agent comments:
 Required docs: NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md, DECISIONS.md, AUDIT_OR_PROOF.md, RUNBOOK.md
@@ -166,7 +166,7 @@ Compaction status: not_needed
 - Quest transitions now queue journal events, and the journal reducer flushes that queue into visible entries when `ADD_JOURNAL_ENTRY` is dispatched.
 - `handleResourceActions.ts` is the current gameplay producer for `ADD_JOURNAL_ENTRY`; long rest owns the visible journal-page boundary.
 - `fail_with_note` deadline misses now surface their note in the Quest Log history row; `log_only` stays system-message only.
-- NPC dialogue-based quest starts are incomplete and still marked as TODO in handler code.
+- NPC dialogue-based quest starts have a minimal completed handoff path: `talk` actions can carry `questOffer: { questId }`, and `handleNpcInteraction.ts` resolves the full quest before dispatching `ACCEPT_QUEST`. Broader data-driven trigger architecture remains in adjacent quest-system follow-ups.
 - Some TODOs still point at richer typing cleanup and dead imports across touched files.
 
 ## Required Review Brief
@@ -194,7 +194,7 @@ Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D14
   implementation should **define a minimal quest-offer payload as it goes** rather than
   waiting on the broader quests/dialogue schema lane.
 
-Status: decision recorded 2026-06-10; implementation lane open.
+Status: implemented 2026-06-19; see `TRACKER.md` T7, `GAPS.md` G3, and `AUDIT_OR_PROOF.md`.
 
 ## Next Checks
 

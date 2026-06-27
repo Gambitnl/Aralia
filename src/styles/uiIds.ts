@@ -128,6 +128,7 @@ export const WINDOW_KEYS = {
   PARTY_EDITOR: 'party-editor-window',
   SHIP_PANE: 'ship-pane-window',
   LOCKPICKING_MODAL: 'lockpicking-window',
+  PUZZLE_RUNTIME_MODAL: 'puzzle-runtime-window',
   DICE_ROLLER: 'dice-roller-window',
   THIEVES_GUILD_SAFEHOUSE: 'thieves-guild-window',
   CHARACTER_CREATOR: 'character-creator-window',

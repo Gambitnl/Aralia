@@ -80,6 +80,7 @@ const ThievesGuildSafehouse = lazy(() => import('../Crime/ThievesGuild/ThievesGu
 const HeistPlanningModal = lazy(() => import('../Crime/ThievesGuild/HeistPlanningModal').then(module => ({ default: module.HeistPlanningModal })));
 const ShipPane = lazy(() => import('../Naval/ShipPane').then(module => ({ default: module.ShipPane })));
 const LockpickingModal = lazy(() => import('../puzzles/LockpickingModal'));
+const PuzzleRuntimeModal = lazy(() => import('../puzzles/PuzzleRuntimeModal'));
 const DiceRollerModal = lazy(() => import('../dice/DiceRollerModal'));
 const LongRestModal = lazy(() => import('../ui/LongRestModal'));
 const RestModal = lazy(() => import('../ui/RestModal'));
@@ -178,6 +179,7 @@ const GameModals: React.FC<GameModalsProps> = ({
         if (gameState.isOllamaDependencyModalVisible) { dispatch({ type: 'HIDE_OLLAMA_DEPENDENCY_MODAL' }); return; }
         if (gameState.isEncounterModalVisible) { dispatch({ type: 'HIDE_ENCOUNTER_MODAL' }); return; }
         if (gameState.isLockpickingModalVisible) { dispatch({ type: 'CLOSE_LOCKPICKING_MODAL' }); return; }
+        if (gameState.isPuzzleRuntimeVisible) { dispatch({ type: 'CLOSE_PUZZLE_RUNTIME' }); return; }
         if (gameState.isDiceRollerVisible) { dispatch({ type: 'TOGGLE_DICE_ROLLER' }); return; }
         if (gameState.isGlossaryVisible) { handleOpenGlossary(); return; }
         if (gameState.isQuestLogVisible) { dispatch({ type: 'TOGGLE_QUEST_LOG' }); return; }
@@ -244,6 +246,8 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 canRegenerateWorld={canRegenerateWorldMap}
                                 generationLockedReason={worldGenerationLockedReason}
                                 onRegenerateWorld={onRegenerateWorldMap}
+                                provisionInventory={gameState.inventory}
+                                partySize={gameState.party.length}
                             />
                         </ErrorBoundary>
                     </Suspense>
@@ -662,13 +666,25 @@ const GameModals: React.FC<GameModalsProps> = ({
             )}
 
             {/* Naval Dashboard */}
-            {gameState.isNavalDashboardVisible && (
-                gameState.ship ? (
+            {gameState.isNavalDashboardVisible && (() => {
+                // The naval system (playerShips + activeShipId) is the sole source of truth.
+                const displayShip = gameState.naval.playerShips.find(
+                    s => s.id === gameState.naval.activeShipId
+                ) ?? null;
+                return displayShip ? (
                     <Suspense key="naval" fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error in Captain's Dashboard.">
                             <ShipPane
-                                ship={gameState.ship}
+                                ship={displayShip}
                                 onClose={() => dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' })}
+                                voyage={gameState.naval.currentVoyage}
+                                onAdvanceDay={() => {
+                                    const SECONDS_PER_SEA_DAY = 86400; // one sea-day = 24h
+                                    // Advance voyage first, then tick the world daily loop by one sea-day
+                                    // (cosmetic order; both are separate reducer slices).
+                                    dispatch({ type: 'NAVAL_ADVANCE_VOYAGE' });
+                                    dispatch({ type: 'ADVANCE_TIME', payload: { seconds: SECONDS_PER_SEA_DAY } });
+                                }}
                             />
                         </ErrorBoundary>
                     </Suspense>
@@ -687,8 +703,8 @@ const GameModals: React.FC<GameModalsProps> = ({
                             </button>
                         </div>
                     </div>
-                )
-            )}
+                );
+            })()}
 
             {/* Lockpicking Modal (Dev Tool / Puzzle System) */}
             {gameState.isLockpickingModalVisible && gameState.activeLock && gameState.party[0] && (
@@ -700,6 +716,20 @@ const GameModals: React.FC<GameModalsProps> = ({
                             lock={gameState.activeLock}
                             character={gameState.party[0]}
                             inventory={gameState.inventory}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Puzzle Runtime Modal (Puzzles-owned gameplay surface) */}
+            {gameState.isPuzzleRuntimeVisible && gameState.activePuzzle && gameState.party[0] && (
+                <Suspense key="puzzle-runtime" fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Puzzle Interface.">
+                        <PuzzleRuntimeModal
+                            isOpen={gameState.isPuzzleRuntimeVisible}
+                            onClose={() => dispatch({ type: 'CLOSE_PUZZLE_RUNTIME' })}
+                            puzzle={gameState.activePuzzle}
+                            character={gameState.party[0]}
                         />
                     </ErrorBoundary>
                 </Suspense>

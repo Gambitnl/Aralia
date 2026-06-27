@@ -19,6 +19,7 @@
  * .tmp/azgaar-src) produces for the same seed/options. See ../ATTRIBUTION.md.
  */
 import { generateFmgWorld, type FmgWorldResult } from '../generateWorld';
+import type { Burg } from '../burgs-generator';
 
 const GOLDEN_SEED = 'aralia-fmg-golden-1';
 const GOLDEN_OPTIONS = { width: 320, height: 180, cellsDesired: 1000 };
@@ -252,7 +253,8 @@ describe('fmg world — golden snapshot (FROZEN)', () => {
       roads: pack.routes!.filter((r) => r.group === 'roads').length,
       trails: pack.routes!.filter((r) => r.group === 'trails').length,
       searoutes: pack.routes!.filter((r) => r.group === 'searoutes').length,
-    }).toEqual({ roads: 11, trails: 456, searoutes: 104 });
+    // searoutes: 104→108 (world-break D3 2026-06-26: ensureIslandHarbors default-ON promotes 4 ports)
+    }).toEqual({ roads: 11, trails: 456, searoutes: 108 });
 
     expect(pack.religions!.length).toBe(19);
     expect(pack.provinces!.length).toBe(209);
@@ -408,18 +410,66 @@ describe('fmg world — sanity invariants', () => {
     expect(pack.religions!.length).toBe(9);
   });
 
-  it('keeps island-harbor generation opt-in so frozen worlds do not silently change', () => {
+  it('runs island-harbor pass by default and can be disabled explicitly', () => {
+    // Default (ensureIslandHarbors: true since 2026-06-26 owner approval) — report always present.
     const defaultResult = generateFmgWorld(GOLDEN_SEED, GOLDEN_OPTIONS);
-    const optInResult = generateFmgWorld(GOLDEN_SEED, {
-      ...GOLDEN_OPTIONS,
-      ensureIslandHarbors: true,
-    });
-
-    expect(defaultResult.islandHarborReport).toBeUndefined();
-    expect(optInResult.islandHarborReport).toMatchObject({
+    expect(defaultResult.islandHarborReport).toBeDefined();
+    expect(defaultResult.islandHarborReport).toMatchObject({
       promotedBurgIds: [],
       spawnedBurgIds: [],
     });
-    expect(optInResult.islandHarborReport?.skippedComponentCells.length).toBeGreaterThan(0);
+    expect(defaultResult.islandHarborReport?.skippedComponentCells.length).toBeGreaterThan(0);
+
+    // Explicit opt-out — no report.
+    const optOutResult = generateFmgWorld(GOLDEN_SEED, {
+      ...GOLDEN_OPTIONS,
+      ensureIslandHarbors: false,
+    });
+    expect(optOutResult.islandHarborReport).toBeUndefined();
+  });
+});
+
+describe('fmg world — maritime reachability integration (default ON)', () => {
+  /**
+   * Integration proof that ensureIslandHarbors fires as the default in real game
+   * worlds. The 960x540/10000-cell world on 'test-seed-1' promotes coastal burgs
+   * to ports (see docs/projects/worldforge/DECISIONS.md §D3 for the durable
+   * record of the world-break and the promoted-burg evidence).
+   *
+   * For each promoted burg we assert:
+   *   1. The burg's .port field is now truthy.
+   *   2. At least one searoutes route exists whose cells include the burg's
+   *      water-cell (burg.cell's haven cell), proving the travel graph can
+   *      reach the island by sea.
+   *
+   * No explicit flag is passed — the test relies on the new default (true).
+   */
+  it('promoted burgs have a port and a linked sea route (default world, no flag)', () => {
+    // Use the cached large world — no flag means ensureIslandHarbors: true by default.
+    const { pack, islandHarborReport } = defaultWorld();
+
+    // The harbor pass must have fired and promoted some burgs.
+    expect(islandHarborReport).toBeDefined();
+    const { promotedBurgIds } = islandHarborReport!;
+    expect(promotedBurgIds.length).toBeGreaterThan(0);
+
+    const seaRouteSet = new Set(
+      pack.routes!
+        .filter((r) => r.group === 'searoutes')
+        .flatMap((r) => r.cells ?? r.points.map((p) => p[2])),
+    );
+
+    for (const burgId of promotedBurgIds) {
+      const burg = pack.burgs!.find((b): b is Burg => !!b && b.i === burgId);
+
+      // Promoted burg must exist and have a port assigned.
+      expect(burg).toBeDefined();
+      expect(burg!.port).toBeTruthy();
+
+      // The burg's haven (water cell adjacent to it) must appear in at least one
+      // searoutes route — proving the island is reachable via the travel graph.
+      const waterCell = pack.cells.haven![burg!.cell];
+      expect(seaRouteSet.has(waterCell)).toBe(true);
+    }
   });
 });

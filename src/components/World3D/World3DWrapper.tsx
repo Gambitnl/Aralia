@@ -81,7 +81,6 @@ import type { WorldDelta } from '../../systems/worldforge/delta/types';
 import type { GroundWorld } from '../../systems/worldforge/bridge/groundChunkLoader';
 import { LOCATIONS } from '../../data/world/locations';
 import { getBurgNamer } from '../../systems/worldforge/bridge/legacySubmapBridge';
-import { generateTownPlan } from '../../systems/worldforge/town/generateTownPlan';
 import { generateTownRoster } from '../../systems/worldforge/roster/generateTownRoster';
 import { SeededRandom } from '../../utils/random/seededRandom';
 import { generateNPC } from '../../services/npcGenerator';
@@ -261,7 +260,11 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           };
 
           for (const t of bridged.region?.townSites ?? []) {
-            const plan = generateTownPlan(t, bridged.region.seedPath);
+            // CANONICAL plan (shared with the 3D renderer below via
+            // groundChunkLoader): business/NPC IDs are keyed by plot id, so this
+            // MUST be the same plan createGroundChunkLoader bakes — otherwise the
+            // registered shops bind to plot IDs the rendered town doesn't have.
+            const plan = loaderMod.canonicalArtifactTownForSite(wfSeed, t).plan;
             // No-fallback directive (2026-06-15): getBurgNamer throws if the
             // culture can't resolve — no syllable substitute.
             const nameFor = getBurgNamer(wfSeed, t.burgId);

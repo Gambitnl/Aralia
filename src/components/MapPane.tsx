@@ -25,6 +25,15 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapData, MapTile as MapTileType } from '../types';
+import type { Item } from '@/types/items';
+import {
+  daysOfFood,
+  daysOfWater,
+  foodRangeDays,
+  tripDaysFromMinutes,
+  provisionStatusMulti,
+} from '@/systems/travel/provisioning';
+import { formatProvisionLine } from '@/systems/travel/travelReadout';
 import { BIOMES } from '../constants';
 import { WindowFrame } from './ui/WindowFrame';
 import { WINDOW_KEYS } from '../styles/uiIds';
@@ -43,10 +52,11 @@ import NeighbourhoodSvgView from './Worldforge/NeighbourhoodSvgView';
 import { atlasCellToSubmapContext } from '@/systems/worldforge/submap/l0Adapter';
 import { buildAtlasNeighbourhood, type AtlasNeighbourhood } from '@/systems/worldforge/submap/neighbourhood';
 import { generateSubmap, submapCellToChildContext, polygonBounds, pointInPolygon, type SubmapModel, type SubmapParentContext, type Pt } from '@/systems/worldforge/submap/submapEngine';
-import { generateTownPlan, type TownPlan } from '@/systems/worldforge/town/townEngine';
-import { rootSeedPath, streamPath } from '@/systems/worldforge/seedPath';
+import { type TownPlan } from '@/systems/worldforge/town/townEngine';
+import { getCanonicalTownPlan } from '@/systems/worldforge/town/canonicalTown';
+import { rootSeedPath } from '@/systems/worldforge/seedPath';
 import { legacyGridToAtlasCell, gridCellToAtlasSite, spreadColocatedPoints } from '@/systems/worldforge/local/gridAtlasBridge';
-import { getTownTilesForGrid } from '@/systems/worldforge/bridge/legacySubmapBridge';
+import { getTownTilesForGrid, getBridgeAtlas } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { buildAtlasTravelGraph, atlasMilesPerUnit, nearestLandCell, transportMobility } from '@/systems/worldforge/travel/atlasTravelGraph';
 import { buildMultiModalAtlasGraph } from '@/systems/worldforge/travel/multiModalAtlasGraph';
 import { buildSubmapTravelGraph } from '@/systems/worldforge/travel/submapTravelGraph';
@@ -81,6 +91,13 @@ interface MapPaneProps {
    * harbor reachability without changing normal gameplay saves yet.
    */
   enableIslandHarbors?: boolean;
+  /**
+   * Shared party inventory — feeds the travel-mode provisioning rings + readout
+   * (how far current rations/water reach). Omit to hide the provisioning UI.
+   */
+  provisionInventory?: Item[];
+  /** Number of party members consuming rations/water (provisioning consumers). */
+  partySize?: number;
 }
 
 type WorldMapInteractionMode = 'pan' | 'travel' | 'enter3d';
@@ -209,6 +226,8 @@ const MapPane: React.FC<MapPaneProps> = ({
   generationLockedReason = null,
   onRegenerateWorld,
   enableIslandHarbors = false,
+  provisionInventory = [],
+  partySize = 0,
 }) => {
   const { gridSize } = mapData;
   const geographySnapshot = useMemo(() => fromMapData(mapData), [mapData]);
@@ -224,13 +243,15 @@ const MapPane: React.FC<MapPaneProps> = ({
 
   const worldforgeSeed = useMemo(() => worldSeed ?? deriveWorldSeed(mapData), [mapData, worldSeed]);
 
-  // Native Worldforge SVG render-port (SP0). Generated from the world seed.
-  // A throw here surfaces honestly via the surrounding ErrorBoundary (no silent fallback).
-  // Full world (civilization layer: burgs/routes/states/labels), not atlas-only.
-  // Island harbors are explicit opt-in until saved-world topology changes are approved.
+  // Native Worldforge SVG render-port (SP0). The 2D map and the 3D ground bake
+  // MUST share ONE atlas, or a burgId means a different burg in each view and
+  // towns can't be identical (Worldforge Option B). `getBridgeAtlas` is the
+  // shared, cached canonical world — the same one the 3D pipeline + town tiles
+  // already use — so the map you see is the world you walk. (Island harbors are
+  // off in the live app; folding them into the canonical world is a follow-up.)
   const worldforgeAtlas = useMemo(
-    () => generateFmgWorld(String(worldforgeSeed), { ensureIslandHarbors: enableIslandHarbors }),
-    [enableIslandHarbors, worldforgeSeed],
+    () => getBridgeAtlas(worldforgeSeed),
+    [worldforgeSeed],
   );
 
   useEffect(() => {
@@ -342,6 +363,63 @@ const MapPane: React.FC<MapPaneProps> = ({
     });
   }, [interactionMode, worldforgeAtlas, playerAtlasCell, selectedTransport]);
   const planAtlasRoute = useCallback((toCell: number) => travelField?.to(toCell) ?? null, [travelField]);
+
+  // Provisioning rings (R1): the contour of cells reachable before the binding
+  // resource runs out. The travel field already holds minutes-from-player to every
+  // cell, so a horizon is just the cell set whose trip-days fit a resource's range.
+  // Food and water draw as separate labeled rings only when their horizons differ
+  // (E1: two resources); otherwise one binding "supply reach" ring.
+  const FOOD_RING_COLOR = '#eab308';
+  const WATER_RING_COLOR = '#38bdf8';
+  const provisionRings = useMemo<Array<{ cellIds: number[]; color: string; label?: string }>>(() => {
+    if (interactionMode !== 'travel' || !travelField || partySize <= 0) return [];
+    const foodRange = foodRangeDays(daysOfFood(provisionInventory), partySize, 'full');
+    const waterRange = foodRangeDays(daysOfWater(provisionInventory), partySize, 'full');
+    // Cells within a given travel-day range, read off the single-source field.
+    const cellsWithin = (range: number): number[] => {
+      if (!Number.isFinite(range)) return [];
+      const out: number[] = [];
+      for (const [cell, minutes] of travelField.dist) {
+        if (tripDaysFromMinutes(minutes) <= range) out.push(cell);
+      }
+      return out;
+    };
+    const haveFood = Number.isFinite(foodRange);
+    const haveWater = Number.isFinite(waterRange);
+    // Both resources tracked and their horizons differ → two labeled rings.
+    if (haveFood && haveWater && foodRange !== waterRange) {
+      return [
+        { cellIds: cellsWithin(foodRange), color: FOOD_RING_COLOR, label: `Food reach (${foodRange}d)` },
+        { cellIds: cellsWithin(waterRange), color: WATER_RING_COLOR, label: `Water reach (${waterRange}d)` },
+      ];
+    }
+    // Otherwise one ring at the binding (smaller) horizon, colored by what binds.
+    const binding = Math.min(haveFood ? foodRange : Infinity, haveWater ? waterRange : Infinity);
+    if (!Number.isFinite(binding)) return [];
+    const waterBinds = haveWater && waterRange <= (haveFood ? foodRange : Infinity);
+    return [{
+      cellIds: cellsWithin(binding),
+      color: waterBinds ? WATER_RING_COLOR : FOOD_RING_COLOR,
+      label: `Supply reach (${binding}d)`,
+    }];
+  }, [interactionMode, travelField, partySize, provisionInventory]);
+
+  // Provisions readout line for the hovered route: "Food: 6 days" / "Water: 2
+  // days · short 1 day", colored by severity, with the binding resource labeled.
+  const provisionLineForMinutes = useCallback((minutes: number): { text: string; color: string } | null => {
+    if (partySize <= 0) return null;
+    const status = provisionStatusMulti({
+      tripDays: tripDaysFromMinutes(minutes),
+      consumers: partySize,
+      mode: 'full',
+      supplies: [
+        { resource: 'food', days: daysOfFood(provisionInventory) },
+        { resource: 'water', days: daysOfWater(provisionInventory) },
+      ],
+    });
+    const line = formatProvisionLine(status);
+    return { text: line.text, color: line.color };
+  }, [partySize, provisionInventory]);
 
   // Maritime travel mode: when the player hires a ferry, build one mixed graph
   // that can walk to a port, cross a generated sea lane, and walk away from the
@@ -544,19 +622,18 @@ const MapPane: React.FC<MapPaneProps> = ({
       // geometry (a sub-cell is tiny → sliver wards/cells otherwise). Fit-to-view
       // means absolute scale is irrelevant to display.
       const childCtx = normalizeCtxScale(childRaw);
-      // Settled (burg) cell → bottom out into a generated SP-T town plan.
-      if (cell.feature?.kind === 'burg') {
-        const water = (childCtx.polylines ?? []).filter((p) => p.kind === 'river').map((p) => p.points as Pt[]);
-        const roads = (childCtx.polylines ?? []).filter((p) => p.kind === 'road').map((p) => p.points as Pt[]);
-        const town = generateTownPlan(childCtx.polygon, streamPath(childCtx.seedPath, 'town'), {
-          population: 4000, water, roads,
-        });
+      // Settled (burg) cell → bottom out into the CANONICAL town plan, keyed by
+      // (atlas, burgId), so the 2D town is byte-identical to the 3D ground town
+      // for the same burg (Worldforge Option B). The burgId rides on the leaf
+      // feature (l0Adapter sets it from the FMG burg).
+      if (cell.feature?.kind === 'burg' && cell.feature.id != null) {
+        const town = getCanonicalTownPlan(worldforgeAtlas, worldforgeSeed, cell.feature.id);
         return [...stack, { ctx: childCtx, town, playerCellIndex: onPlayerPath ? 0 : null }];
       }
       const childModel = generateSubmap(childCtx, { count: SUBMAP_COUNT });
       return [...stack, { model: childModel, ctx: childCtx, playerCellIndex: onPlayerPath ? playerSubCellIndex(childModel) : null }];
     });
-  }, []);
+  }, [worldforgeAtlas, worldforgeSeed]);
 
   const handleAscend = useCallback(() => setSubmapStack((stack) => stack.slice(0, -1)), []);
   // Pop the drill stack to a given depth (0 = back to the atlas / World tier).
@@ -829,6 +906,8 @@ const MapPane: React.FC<MapPaneProps> = ({
                 planRoute={planAtlasRoute}
                 planMultiModalRoute={planAtlasMultiModal}
                 transportLabel={selectedTransport.readoutLabel}
+                provisionRings={provisionRings}
+                provisionLineForMinutes={provisionLineForMinutes}
                 prefsScope={worldforgeSeed}
               />
             )}

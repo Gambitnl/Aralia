@@ -6,11 +6,11 @@ category: Feature Domains and Runtime Support
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-12
+last_updated: 2026-06-26
 iteration: 5
 confidence: high
 evidence: docs/projects/command-effects-runtime; docs/projects/DECISION_BLITZ_2026-06-10.md (D9)
-gap_signal: "3 open gaps; G1, G3, and G5 remain open after G2/G4 resolution"
+gap_signal: "2 parked gaps; G1 resolved for T2, G3/G5 remain parked after G2/G4 resolution"
 protocol: living project doc set
 next_step: Implement the G1 decision Ã¢â‚¬â€ expose a safe delegated-payload source-of-truth in the command context and let ReactiveEffectCommand rehydrate sibling effect commands on trigger; resume T2 with focused trigger-path tests.
 agent_comments: "G1 cannot safely synthesize delegated payloads from the current command context; the missing source-of-truth needs a decision. Decided 2026-06-10: command context owns the delegated payload (DECISION_BLITZ D9)."
@@ -31,7 +31,7 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-09
+last_proof: 2026-06-19
 workflow_gaps_reviewed: 2026-06-09
 compaction_status: needed
 lifecycle_status: active
@@ -43,7 +43,13 @@ human_decision_required: "no"
 # NORTH_STAR: Command Effects Runtime
 
 Status: active Ã¢â‚¬â€ G1 decision recorded 2026-06-10; implementation lane open
-Last updated: 2026-06-12
+Last updated: 2026-06-26
+
+Current correction (2026-06-26): the old GLM-era next-step text that says to
+implement T2/G1 is stale. T2/G1 delegated reactive payload execution was
+implemented on 2026-06-19; use `GAPS.md`, `TRACKER.md`, and `AUDIT_OR_PROOF.md`
+as the current source of truth. Resume only from parked G3/G5 or a new
+owner-approved reactive follow-up.
 
 ## Why This Project Exists
 

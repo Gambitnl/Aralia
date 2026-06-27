@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { execFileSync } from 'child_process';
+import { execFile, execFileSync } from 'child_process';
 
 /**
  * Local Vite API for the Aralia Atlas explorer.
@@ -41,6 +41,12 @@ interface BacklogSnapshot {
   entries?: BacklogSnapshotEntry[];
 }
 
+interface AtlasCommandResult {
+  command: string;
+  stdout: string;
+  stderr: string;
+}
+
 function sendJson(res: any, status: number, data: unknown): void {
   res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
   res.end(JSON.stringify(data));
@@ -48,6 +54,43 @@ function sendJson(res: any, status: number, data: unknown): void {
 
 function readJsonFile(filePath: string): unknown {
   return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+}
+
+function runAtlasReconcile(): Promise<AtlasCommandResult> {
+  const npmExecutable = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  const args = ['run', 'atlas', '--', 'reconcile', '--target', 'F:\\Repos\\Aralia'];
+
+  // The browser can only ask for this work; the local Vite server owns the
+  // shell command. Keeping the exact command here makes the Atlas button match
+  // the documented manual workflow without exposing a general command runner.
+  return new Promise((resolve, reject) => {
+    execFile(
+      npmExecutable,
+      args,
+      {
+        cwd: process.cwd(),
+        encoding: 'utf-8',
+        shell: process.platform === 'win32',
+        timeout: 120_000,
+        windowsHide: true,
+        maxBuffer: 10 * 1024 * 1024,
+      },
+      (error, stdout, stderr) => {
+        const result = {
+          command: 'npm run atlas -- reconcile --target F:\\Repos\\Aralia',
+          stdout: stdout || '',
+          stderr: stderr || '',
+        };
+
+        if (error) {
+          reject(Object.assign(error, result));
+          return;
+        }
+
+        resolve(result);
+      },
+    );
+  });
 }
 
 function toRepoPath(absolutePath: string): string {
@@ -163,8 +206,34 @@ function latestReportPath(): string | null {
 export const atlasApiManager = () => ({
   name: 'atlas-api-manager',
   configureServer(server: any) {
-    server.middlewares.use((req: any, res: any, next: any) => {
+    server.middlewares.use(async (req: any, res: any, next: any) => {
       const urlPath = (req.url || '').split('?')[0];
+
+      if (urlPath === '/api/atlas/reconcile') {
+        if (req.method !== 'POST') {
+          sendJson(res, 405, { error: 'Use POST to run Atlas reconciliation.' });
+          return;
+        }
+
+        try {
+          const result = await runAtlasReconcile();
+          sendJson(res, 200, {
+            ok: true,
+            ...result,
+            generatedAt: new Date().toISOString(),
+          });
+        } catch (error) {
+          sendJson(res, 500, {
+            ok: false,
+            error: 'Atlas reconciliation failed',
+            message: error instanceof Error ? error.message : String(error),
+            command: (error as Partial<AtlasCommandResult>)?.command ?? 'npm run atlas -- reconcile --target F:\\Repos\\Aralia',
+            stdout: (error as Partial<AtlasCommandResult>)?.stdout ?? '',
+            stderr: (error as Partial<AtlasCommandResult>)?.stderr ?? '',
+          });
+        }
+        return;
+      }
 
       if (urlPath === '/api/atlas/knowledge-tree') {
         if (!fs.existsSync(KNOWLEDGE_TREE_PATH)) {

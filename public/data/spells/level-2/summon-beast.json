@@ -151,7 +151,9 @@
         "persistent": false,
         "count": 1,
         "commandCost": "none",
+        "commandsPerTurn": 1,
         "initiative": "shared",
+        "objectDescription": "Bestial Spirit ally that shares the caster's initiative, acts immediately after the caster, obeys verbal commands with no caster action, and uses Rend as its combat action.",
         "statBlock": {
           "name": "Bestial Spirit",
           "type": "Beast",
@@ -197,12 +199,60 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose the Bestial Spirit environment form: Air, Land, or Water.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 3,
+    "optionsSource": "summon.formOptions",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Air",
+        "summary": "Summon an Air Bestial Spirit with 20 base hit points, 60-foot fly speed, and Flyby.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature still uses the Bestial Spirit stat block and slot-level scaling."
+      },
+      {
+        "label": "Land",
+        "summary": "Summon a Land Bestial Spirit with 30 base hit points, 30-foot climb speed, and Pack Tactics.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature still uses the Bestial Spirit stat block and slot-level scaling."
+      },
+      {
+        "label": "Water",
+        "summary": "Summon a Water Bestial Spirit with 30 base hit points, 30-foot swim speed, Pack Tactics, and underwater breathing.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature still uses the Bestial Spirit stat block and slot-level scaling."
+      }
+    ],
+    "notes": "The freeform animal resemblance is cosmetic; this mode choice captures the mechanical Air, Land, or Water form."
   },
   "description": "You call forth a bestial spirit. It manifests in an unoccupied space that you can see within range and uses the Bestial Spirit stat block. When you cast the spell, choose an environment: Air, Land, or Water. The creature resembles an animal of your choice that is native to the chosen environment, which determines certain details in its stat block. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
   "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. Small Beast, Neutral AC 11 + the spell's level HP 20 (Air only) or 30 (Land and Water only) + 5 for each spell level above 2 Speed 30 ft.; Climb 30 ft. (Land only); Fly 60 ft. (Air only); Swim 30 ft. (Water only) Senses Darkvision 60 ft.; Passive Perception 12 Languages Understands the languages you know CR None (XP 0; PB equals your Proficiency Bonus) Flyby (Air Only). The spirit doesn't provoke Opportunity Attacks when it flies out of an enemy's reach. Pack Tactics (Land and Water Only). The spirit has Advantage on an attack roll against a creature if at least one of the spirit's allies is within 5 feet of the creature and the ally doesn't have the Incapacitated condition. Water Breathing (Water Only). The spirit can breathe only underwater. Multiattack. The spirit makes a number of Rend attacks equal to half this spell's level (round down). Rend. Melee Attack Roll: Bonus equals your spell attack modifier, reach 5 ft. Hit: 1d8 + 4 + the spell's level Piercing damage. Small Beast, Neutral AC 11 + the spell's level HP 20 (Air only) or 30 (Land and Water only) + 5 for each spell level above 2 Speed 30 ft.; Climb 30 ft. (Land only); Fly 60 ft. (Air only); Swim 30 ft. (Water only) Senses Darkvision 60 ft.; Passive Perception 12 Languages Understands the languages you know CR None (XP 0; PB equals your Proficiency Bonus) Flyby (Air Only). The spirit doesn't provoke Opportunity Attacks when it flies out of an enemy's reach. Pack Tactics (Land and Water Only). The spirit has Advantage on an attack roll against a creature if at least one of the spirit's allies is within 5 feet of the creature and the ally doesn't have the Incapacitated condition. Water Breathing (Water Only). The spirit can breathe only underwater. Multiattack. The spirit makes a number of Rend attacks equal to half this spell's level (round down). Rend. Melee Attack Roll: Bonus equals your spell attack modifier, reach 5 ft. Hit: 1d8 + 4 + the spell's level Piercing damage. Small Beast, Neutral AC 11 + the spell's level HP 20 (Air only) or 30 (Land and Water only) + 5 for each spell level above 2 Speed 30 ft.; Climb 30 ft. (Land only); Fly 60 ft. (Air only); Swim 30 ft. (Water only) Senses Darkvision 60 ft.; Passive Perception 12 Languages Understands the languages you know CR None (XP 0; PB equals your Proficiency Bonus) Flyby (Air Only). The spirit doesn't provoke Opportunity Attacks when it flies out of an enemy's reach. Pack Tactics (Land and Water Only). The spirit has Advantage on an attack roll against a creature if at least one of the spirit's allies is within 5 feet of the creature and the ally doesn't have the Incapacitated condition. Water Breathing (Water Only). The spirit can breathe only underwater. Multiattack. The spirit makes a number of Rend attacks equal to half this spell's level (round down). Rend. Melee Attack Roll: Bonus equals your spell attack modifier, reach 5 ft. Hit: 1d8 + 4 + the spell's level Piercing damage.",
   "tags": [
+    "summoning",
+    "controlled-entity",
     "concentration"
   ]
 }

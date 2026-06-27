@@ -12,7 +12,7 @@
 import React, { useMemo, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { rootSeedPath } from '../../systems/worldforge/seedPath';
-import { generateTownPlan } from '../../systems/worldforge/town/generateTownPlan';
+import { buildDemoTownPlan, DEMO_BURG_ID } from '../../systems/worldforge/town/demoTownPlan';
 import { generateTownRoster } from '../../systems/worldforge/roster/generateTownRoster';
 import { groundSurfaceY, type GroundWorld } from '../../systems/worldforge/bridge/groundChunkLoader';
 import GroundAgents from '../World3D/GroundAgents';
@@ -20,23 +20,9 @@ import GroundAgents from '../World3D/GroundAgents';
 const FT = 0.3048;
 const SYLL = ['ar', 'be', 'cor', 'dun', 'el', 'fen', 'gor', 'hal', 'kel', 'mor', 'tan', 'wyn'];
 
-function buildDemoSite(seed: number) {
-  const size = 1800;
-  const envelope = { x: 10_000, y: 20_000, width: size, height: size };
-  const cx = envelope.x + size / 2;
-  const cy = envelope.y + size / 2;
-  const gates: Array<[number, number]> = [];
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2 + (seed % 7) * 0.1;
-    gates.push([cx + Math.cos(a) * (size / 2), cy + Math.sin(a) * (size / 2)]);
-  }
-  return { burgId: 9001, envelope, gates };
-}
-
 function buildDemoGround(seed: number) {
   const seedPath = rootSeedPath(seed);
-  const site = buildDemoSite(seed);
-  const plan = generateTownPlan(site, seedPath);
+  const { plan, bounds } = buildDemoTownPlan(seed);
   const nameFor = (rng: { next(): number }) => {
     let s = '';
     const n = 2 + Math.floor(rng.next() * 2);
@@ -44,7 +30,7 @@ function buildDemoGround(seed: number) {
     return s.charAt(0).toUpperCase() + s.slice(1);
   };
   const roster = generateTownRoster(plan, seedPath, { nameFor });
-  const boundsFeet = { x: site.envelope.x, y: site.envelope.y };
+  const boundsFeet = { x: bounds.x, y: bounds.y };
   const cols = 64;
   const rows = 64;
   // Minimal GroundWorld: only the fields groundAgentScenePositions reads. Flat
@@ -55,15 +41,15 @@ function buildDemoGround(seed: number) {
     // exaggeration lifting the whole scene ~900 m up, off-camera).
     heights: new Array(cols * rows).fill(0),
     biomeIds: [],
-    extentMetersX: site.envelope.width * FT,
-    extentMetersZ: site.envelope.height * FT,
+    extentMetersX: bounds.width * FT,
+    extentMetersZ: bounds.height * FT,
     features: [], hostiles: [], hiddenSites: [], rivers: [], roads: [], towns: [], buildings: [],
     rosters: [roster],
     occupants: [],
-    townPlans: [{ burgId: site.burgId, plan }],
+    townPlans: [{ burgId: DEMO_BURG_ID, plan }],
     boundsFeet,
   } as unknown as GroundWorld;
-  return { ground, plan, boundsFeet, size: site.envelope.width };
+  return { ground, plan, boundsFeet, width: bounds.width, height: bounds.height };
 }
 
 const AgentSim3DPreview: React.FC = () => {
@@ -71,11 +57,12 @@ const AgentSim3DPreview: React.FC = () => {
   const [clock, setClock] = useState(7.5);
   const [figureScale, setFigureScale] = useState(6);
 
-  const { ground, plan, boundsFeet, size } = useMemo(() => buildDemoGround(seed), [seed]);
+  const { ground, plan, boundsFeet, width, height } = useMemo(() => buildDemoGround(seed), [seed]);
 
   // Center the town at the scene origin so the camera framing is simple.
-  const centerXm = (size / 2) * FT;
-  const centerZm = (size / 2) * FT;
+  const size = Math.max(width, height);
+  const centerXm = (width / 2) * FT;
+  const centerZm = (height / 2) * FT;
   const sceneOrigin = { x: centerXm, z: centerZm };
   const surfaceY = useMemo(() => groundSurfaceY(ground, centerXm, centerZm), [ground, centerXm, centerZm]);
 

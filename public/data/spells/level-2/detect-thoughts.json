@@ -317,5 +317,39 @@
     "divination",
     "information",
     "concentration"
-  ]
+  ],
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast_or_later_action",
+    "optionCount": 2,
+    "optionsSource": "effects",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Sense Thoughts",
+        "summary": "Sense the presence of thoughts within 30 feet from creatures that know languages or are telepathic, without reading those thoughts.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 minute with concentration",
+        "notes": "This option is blocked by 1 foot of stone, dirt, or wood, 1 inch of metal, or a thin sheet of lead."
+      },
+      {
+        "label": "Read Thoughts",
+        "summary": "Target a visible or previously sensed creature within 30 feet to learn what is most on its mind, then optionally probe deeper on a later Magic action.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 minute with concentration",
+        "notes": "The deeper probe uses the same effect packet and can end the spell on a successful Wisdom save."
+      }
+    ],
+    "notes": "The spell lets the caster activate either option when cast and again as a Magic action on later turns."
+  }
 }

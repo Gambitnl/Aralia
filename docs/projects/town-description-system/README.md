@@ -47,3 +47,5 @@ If this feature is resumed, the target remains:
 - richer town-specific identity than the current canvas/layout view provides
 - persistence strong enough to avoid world drift across save/load
 - one shared town metadata and description path rather than multiple ad hoc implementations
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/projects/town-description-system/README.md","sha256WithoutMarker":"99423da2ac65554345514097ddd85690cef04d8687b9454f542fb168af8713bd","markedAtUtc":"2026-06-26T00:24:25.867Z"} -->

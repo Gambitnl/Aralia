@@ -38,6 +38,11 @@ const formatAbilityRange = (range: number): string => {
     return `${range} ${tileLabel} (${range * 5} ft)`;
 };
 
+const formatGrantedActionCost = (type: string): string => {
+    if (type === 'bonus_action') return 'Bonus Action';
+    return type.charAt(0).toUpperCase() + type.slice(1);
+};
+
 const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisabled }) => {
     const shouldReduceMotion = useReducedMotion();
     const isOnCooldown = (ability.currentCooldown || 0) > 0;
@@ -49,6 +54,7 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
     const rangeText = formatAbilityRange(ability.range);
     const hasWeaponProficiencyWarning = Boolean(ability.weapon && ability.isProficient === false);
     const weaponProficiencyWarning = 'No proficiency bonus or weapon mastery on this attack.';
+    const grantedActions = ability.grantedActions ?? [];
 
     const costColors: Record<string, string> = {
         action: 'bg-red-600',
@@ -99,6 +105,19 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                     {weaponProficiencyWarning}
                 </div>
             ) : null}
+            {grantedActions.length > 0 ? (
+                <div className="rounded border border-cyan-500/50 bg-cyan-950/50 px-2 py-1 text-[10px] leading-tight text-cyan-100">
+                    <div className="font-semibold text-cyan-200">Grants later action:</div>
+                    <ul className="mt-1 space-y-0.5">
+                        {grantedActions.map((action, index) => (
+                            <li key={`${action.action}-${index}`}>
+                                {formatGrantedActionCost(action.type)}: {action.action}
+                                {action.frequency ? ` (${action.frequency.replace('_', ' ')})` : ''}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ) : null}
             <div className="pt-1 mt-1 border-t border-gray-700/50 flex flex-col gap-0.5">
                 <div className="flex justify-between text-[10px]">
                     <span className="text-gray-400">Range:</span>
@@ -132,7 +151,10 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
         </div>
     );
 
-    const accessibleLabel = `${visual.label}, ${costText} cost, range ${rangeText}${hasWeaponProficiencyWarning ? `, warning: ${weaponProficiencyWarning}` : ''}${isOnCooldown ? `, ${ability.currentCooldown} turn cooldown` : ''}${isExhausted ? ', depleted' : usesLabel ? `, ${usesLabel} uses` : ''}`;
+    const grantedActionLabel = grantedActions.length > 0
+        ? `, grants ${grantedActions.map(action => `${formatGrantedActionCost(action.type)} ${action.action}`).join(', ')}`
+        : '';
+    const accessibleLabel = `${visual.label}, ${costText} cost, range ${rangeText}${grantedActionLabel}${hasWeaponProficiencyWarning ? `, warning: ${weaponProficiencyWarning}` : ''}${isOnCooldown ? `, ${ability.currentCooldown} turn cooldown` : ''}${isExhausted ? ', depleted' : usesLabel ? `, ${usesLabel} uses` : ''}`;
 
     return (
         <Tooltip content={tooltipContent}>
@@ -161,6 +183,20 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                 <div className={`absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full shadow-md ${costBadgeColor}`}>
                     {costText}
                 </div>
+
+                {/* Spells like Minor Illusion and Wall of Light grant later
+                    actions after the initial cast. Mark those abilities in the
+                    palette so players can see that the spell creates follow-up
+                    choices even before the dedicated secondary-action buttons
+                    are wired. */}
+                {grantedActions.length > 0 ? (
+                    <div
+                        aria-hidden="true"
+                        className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-cyan-200 bg-cyan-500 text-[10px] font-black text-black shadow-md"
+                    >
+                        +
+                    </div>
+                ) : null}
 
                 {/* Non-proficient weapon attacks are usable, but players need a visible combat warning before selecting them. */}
                 {hasWeaponProficiencyWarning ? (

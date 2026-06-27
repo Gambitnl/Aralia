@@ -324,8 +324,31 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "utilityType": "control",
+      "utilityType": "creation",
       "description": "You can move the sphere up to 30 feet, rolling it along the ground.",
+      "createdObjects": [
+        {
+          "objectType": "hazard",
+          "name": "Flaming Sphere",
+          "count": 1,
+          "countUnit": "item",
+          "appearsIn": "unoccupied_space",
+          "diameterFeet": 5,
+          "moveDistanceFeet": 30,
+          "barrierHeightFeet": 5,
+          "pitJumpWidthFeet": 10,
+          "hazardRadiusFeet": 5,
+          "flammable": false,
+          "ignitesTouchedObjects": true,
+          "expiresWithSpell": true,
+          "shelfLife": "1 minute",
+          "burnDamage": {
+            "dice": "2d6",
+            "type": "Fire"
+          },
+          "notes": "A 5-foot-diameter sphere of fire appears in an unoccupied ground space, can be moved 30 feet as a bonus action, crosses 5-foot barriers, jumps 10-foot pits, damages creatures near it, and ignites unattended flammable objects it touches."
+        }
+      ],
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -337,9 +360,18 @@
           "action": "Move Sphere",
           "frequency": "each_turn",
           "actor": "caster",
-          "actionKind": "standard_action",
+          "actionKind": "bonus_action",
+          "areaShape": "Sphere",
+          "areaSize": 5,
+          "areaSizeUnit": "feet",
           "rangeLimit": 30,
-          "notes": "Move the sphere up to 30 feet, rolling it along the ground."
+          "damage": {
+            "dice": "2d6",
+            "type": "Fire"
+          },
+          "saveType": "Dexterity",
+          "saveEffect": "half",
+          "notes": "Move the sphere up to 30 feet, rolling it along the ground. If it enters a creature's space, that creature makes a Dexterity save against the sphere's Fire damage and the sphere stops moving for the turn."
         }
       ],
       "attackAugments": [],
@@ -359,14 +391,14 @@
         }
       },
       "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
+        "brightRadius": 20,
+        "dimRadius": 20,
+        "attachedTo": "point",
         "color": "",
         "colorChoice": "not_applicable",
         "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
+        "emitsHeat": true,
+        "ignitesObjects": true,
         "consumesFuel": "not_applicable",
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"

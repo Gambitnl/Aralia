@@ -155,6 +155,36 @@
           "effect": "The clone has the same personality, memories, and abilities but none of the original equipment; original remains become inert and cannot be revived."
         }
       ],
+      "createdObjects": [
+        {
+          "objectType": "other",
+          "name": "Inert Clone Body",
+          "count": 1,
+          "countUnit": "body",
+          "appearsIn": "object",
+          "shapeOptions": [
+            "physically_identical_duplicate_body"
+          ],
+          "materialOptions": [
+            "creature flesh duplicate"
+          ],
+          "createdEntityKind": "clone_body",
+          "growthDurationDays": 120,
+          "maturesInVessel": true,
+          "vesselRequired": true,
+          "vesselMinimumValueGp": 2000,
+          "vesselMustRemainUndisturbed": true,
+          "inertUntilTrigger": true,
+          "activationTrigger": "original_creature_dies_after_clone_matures",
+          "soulMustBeFreeAndWilling": true,
+          "soulTransferConsumesOriginalRevival": true,
+          "duplicateRetainsPersonalityMemoriesAbilities": true,
+          "duplicateHasOriginalEquipment": false,
+          "casterChoosesFinalAge": true,
+          "enduresIndefinitelyAfterMature": true,
+          "notes": "The clone remains inert indefinitely while its vessel is undisturbed, then receives the original creature's soul if the original dies after maturity and the soul is free and willing."
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,

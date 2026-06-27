@@ -170,7 +170,9 @@ exports[`matches the frozen golden for the fixed house plot > house-interior-gol
       "y": 25,
     },
   ],
+  "stairs": [],
   "storeys": 1,
+  "upperFloors": [],
   "widthFt": 60,
 }
 `;

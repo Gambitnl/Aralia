@@ -156,6 +156,19 @@ const RoadPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   );
 };
 
+const WallPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
+  const walls = chunk.bundle.walls;
+  const geometry = useDisposableGeometry(
+    walls ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
+  );
+  if (!walls) return null;
+  return (
+    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
+      <meshStandardMaterial color="#9a9387" roughness={0.95} side={THREE.DoubleSide} /> {/* weathered stone rampart */}
+    </mesh>
+  );
+};
+
 // Roof rise scales with the building's narrow span (classic pitched-roof
 // proportion) but stays within walkable-scale bounds.
 const roofHeight = (w: number, d: number): number =>
@@ -374,6 +387,7 @@ const ChunkPieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ ch
     <TerrainPiece chunk={chunk} origin={origin} />
     <WaterPiece chunk={chunk} origin={origin} />
     <RoadPiece chunk={chunk} origin={origin} />
+    <WallPiece chunk={chunk} origin={origin} />
     <SitePieces chunk={chunk} origin={origin} />
     <VegetationPiece chunk={chunk} origin={origin} />
   </>

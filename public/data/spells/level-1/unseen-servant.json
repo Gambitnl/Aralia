@@ -90,6 +90,130 @@
   },
   "effects": [
     {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable",
+          "placementEligibility": {
+            "unoccupied": "required",
+            "surface": "ground",
+            "destination": "not_applicable"
+          }
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "control",
+      "description": "Expose the invisible force as a controlled utility helper: the caster can command it once per turn with a Bonus Action to move and interact with objects, but it cannot attack and the spell ends if it is destroyed or sent too far away.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlledEntity": {
+        "entityType": "unseen_servant",
+        "count": 1,
+        "appearsAt": "chosen_point",
+        "durationScope": "spell_duration",
+        "controlActionType": "bonus_action",
+        "initialUseOnCast": false,
+        "laterControlTiming": "later_turns",
+        "movementDistance": 15,
+        "movementUnit": "feet",
+        "maxDistanceFromCaster": 60,
+        "canAttack": false,
+        "canActivateMagicItems": false,
+        "carryCapacityPounds": "not_applicable",
+        "allowedInteractions": [
+          "fetch_objects",
+          "clean",
+          "mend",
+          "fold_clothes",
+          "light_fires",
+          "serve_food",
+          "pour_drinks",
+          "interact_with_object"
+        ],
+        "endingTriggers": [
+          "beyond_max_distance",
+          "drops_to_0_hp"
+        ],
+        "notes": "The servant is an invisible, mindless, shapeless Medium force. Its AC, HP, Strength, size, and speed remain on the SUMMONING stat block; this utility row makes the command economy and allowed simple tasks machine-readable."
+      },
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
+    },
+    {
       "type": "SUMMONING",
       "trigger": {
         "type": "immediate",
@@ -149,7 +273,31 @@
         "persistent": false,
         "count": 1,
         "objectDescription": "Invisible servant (AC 10, 1 hp, Str 2, speed 15 ft) that performs simple tasks; cannot attack.",
-        "commandCost": "bonus_action"
+        "commandCost": "bonus_action",
+        "commandsPerTurn": 1,
+        "statBlock": {
+          "name": "Unseen Servant",
+          "type": "Force",
+          "size": "Medium",
+          "ac": 10,
+          "hp": 1,
+          "speed": 15,
+          "abilities": {
+            "str": 2,
+            "dex": 10,
+            "con": 10,
+            "int": 1,
+            "wis": 10,
+            "cha": 1
+          }
+        },
+        "specialActions": [
+          {
+            "name": "Move and Interact",
+            "description": "Move up to 15 feet and interact with an object to perform a simple task such as fetching, cleaning, mending, lighting, serving, or pouring.",
+            "cost": "bonus_action"
+          }
+        ]
       },
       "scaling": {
         "type": "slot_level",

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/06/2026, 18:12:19
+ * Last Sync: 27/06/2026, 01:55:25
  * Dependents: hooks/useGameActions.ts
  * Imports: 17 files
  *
@@ -55,7 +55,7 @@ import type { AppAction } from '../../state/actionTypes';
 import type { CastSpellPayload } from '../../types/actions';
 import { ITEMS, WEAPONS_DATA } from '../../constants';
 import { formatDuration } from '../../utils/core';
-import type { Lock } from '../../systems/puzzles/types.js';
+import type { Lock, Puzzle } from '../../systems/puzzles/types.js';
 import type {
   AddGeminiLogFn,
   AddMessageFn,
@@ -393,6 +393,9 @@ export function buildActionHandlers({
     },
     OPEN_LOCKPICKING_MODAL: (action) => {
       dispatch({ type: 'OPEN_LOCKPICKING_MODAL', payload: action.payload as Lock });
+    },
+    OPEN_PUZZLE_RUNTIME: (action) => {
+      dispatch({ type: 'OPEN_PUZZLE_RUNTIME', payload: action.payload as Puzzle });
     },
 
     // Village-specific actions (migrated from label-based custom actions).

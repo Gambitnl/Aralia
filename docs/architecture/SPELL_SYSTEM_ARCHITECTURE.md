@@ -72,3 +72,5 @@ When this note is updated in the future:
 - separate architecture shape from migration-status reporting
 - treat package.json scripts as the authority for command names
 - keep this note focused on stable system lanes, not temporary percent-complete dashboards
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/SPELL_SYSTEM_ARCHITECTURE.md","sha256WithoutMarker":"9c9f29e8470b09ffb750fbfdf507d6fe7eff3f9e5500c4c3afe04e206bb41d7e","markedAtUtc":"2026-06-26T00:12:35.439Z"} -->

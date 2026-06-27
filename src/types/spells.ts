@@ -636,6 +636,25 @@ export interface DamageData {
   damageTypeSource?: "listed" | "triggering_damage_type" | "chosen_damage_type";
   /** Mitigation rules the damage explicitly ignores, for self-cost damage that cannot be reduced or prevented. */
   mitigationBypass?: ("resistance" | "immunity" | "damage_reduction" | "damage_prevention")[];
+  /** Optional destruction rule for damage that can remove a target from the world instead of only lowering HP. */
+  disintegration?: {
+    /** Whether a creature is turned to residue when this damage leaves it at 0 Hit Points. */
+    creatureAtZeroHp: boolean;
+    /** Whether nonmagical worn and carried items are destroyed with the creature. */
+    includesNonmagicalWornAndCarried: boolean;
+    /** Which magic can restore the target after this special destruction. */
+    revivalOnlyBy: string[];
+    /** Target categories that are destroyed automatically rather than damaged normally. */
+    automaticTargetTypes: string[];
+    /** Largest complete object size the spell destroys automatically. */
+    maxAutomaticTargetSize: string;
+    /** Portion removed from larger objects or force creations. */
+    hugeOrLargerPortionCubeFeet: number;
+    /** Name of the visible residue left behind after destruction. */
+    residueName: string;
+    /** Human-readable description of what remains for inventory, map, or narration systems. */
+    residueDescription: string;
+  };
 }
 
 /** An effect that restores hit points. */
@@ -867,13 +886,33 @@ export interface SummoningEffect extends BaseEffect {
 /** Structured terrain manipulation for spells like Mold Earth */
 export interface TerrainManipulation {
   /** Type of manipulation: excavate/fill dirt, toggle difficult terrain, or cosmetic changes */
-  type: "excavate" | "fill" | "difficult" | "normal" | "cosmetic";
+  type: "excavate" | "fill" | "difficult" | "normal" | "cosmetic" | "reshape";
   /** Volume of terrain affected */
   volume?: {
-    shape: "Cube";
+    shape: "Cube" | "Square";
     size: number;  // in feet
     depth?: number; // in feet, for excavation
   };
+  /** Materials the spell can reshape, such as dirt, sand, or clay. */
+  materialOptions?: string[];
+  /** Materials or construction types the spell cannot directly manipulate. */
+  excludedMaterials?: string[];
+  /** Terrain forms the caster can create or remove. */
+  formOptions?: ("elevation" | "trench" | "wall" | "pillar" | "not_applicable")[];
+  /** Maximum vertical change for elevation, trench depth, wall height, or pillar height. */
+  maxChangeFeet?: number;
+  /** Time required before one terrain transformation is complete. */
+  completionTimeMinutes?: number;
+  /** Whether the caster can choose another area after each completed interval while concentrating. */
+  canChooseNewAreaAfterCompletion?: boolean;
+  /** Whether the slow movement normally prevents trapping or injuring creatures directly. */
+  slowTransformationPreventsTrappingOrInjury?: boolean;
+  /** Whether nearby rocks and structures shift to accommodate the new terrain. */
+  rocksAndStructuresShift?: boolean;
+  /** Whether unstable structures can collapse because of the new terrain shape. */
+  unstableStructuresMayCollapse?: boolean;
+  /** Whether plants are carried with the moved earth without changing their growth directly. */
+  carriesPlantsWithoutAffectingGrowth?: boolean;
   /** How long the manipulation lasts (for difficult/cosmetic) */
   duration?: EffectDuration;
   /** Distance excavated material can be deposited, in feet */
@@ -911,6 +950,8 @@ export interface UtilityEffect extends BaseEffect {
   attackAugments?: AttackAugment[];
   abilityCheckModifier?: AbilityCheckModifier;
   controlledEntity?: ControlledEntity;
+  createdObjects?: CreatedObject[];
+  objectAccessChange?: ObjectAccessChange;
   controlOptions?: ControlOption[];
   taunt?: TauntEffect;
   /** Structured light source configuration for utilityType: "light" */
@@ -922,6 +963,515 @@ export interface UtilityEffect extends BaseEffect {
   };
   /** Structured save penalty for debuff effects like Mind Sliver */
   savePenalty?: SavePenalty;
+}
+
+/** Machine-readable changes to doors, chests, locks, bars, seals, and similar access-blocking objects. */
+export interface ObjectAccessChange {
+  /** Object families the spell can affect, kept as player-facing labels because map object taxonomies are still expanding. */
+  eligibleObjectTypes: string[];
+  /** Mundane object states the spell can remove or change. */
+  mundaneStateChanges: ("unlock" | "unstick" | "unbar")[];
+  /** Maximum number of mundane locks the spell opens on a multiply locked object. */
+  maxLocksAffected: number;
+  /** Magical closure that is suppressed instead of permanently removed. */
+  suppressesMagicalClosure?: string;
+  /** How long the named magical closure is suppressed. */
+  suppressionDuration?: EffectDuration;
+  /** Whether the target can still be opened and closed while the magical closure is suppressed. */
+  targetOperableDuringSuppression?: boolean;
+  /** Audible cue produced by the access change, when the spell broadcasts its use. */
+  soundEmission?: {
+    audibleRadius: number;
+    radiusUnit: "feet" | "miles";
+    source: "target_object" | "caster" | "point";
+    trigger: "on_cast" | "on_change";
+    description: string;
+  };
+}
+
+/** Machine-readable object stacks created by utility spells such as Goodberry. */
+export interface CreatedObject {
+  /** The gameplay family of object created by the spell. */
+  objectType: "food" | "water" | "ammunition" | "weapon" | "portal" | "structure" | "hazard" | "other";
+  /** Player-facing object name, for example "Goodberry". */
+  name: string;
+  /** How many instances or units are created. */
+  count: number;
+  /** Optional slot-level scaling for the created-object count, such as +10 gallons per slot. */
+  countScaling?: {
+    type: "slot_level";
+    bonusPerLevel: number;
+  };
+  /** Unit used by the count so pounds, gallons, and discrete objects stay distinct. */
+  countUnit: "item" | "pound" | "gallon" | "cubic_foot" | "square_foot" | "structure" | "not_applicable";
+  /** Where the object appears relative to the cast. */
+  appearsIn: "caster_hand" | "target_container" | "ground" | "unoccupied_space" | "spell_area" | "not_applicable";
+  /** Allowed shapes for created structures or objects, such as round or square towers. */
+  shapeOptions?: string[];
+  /** Allowed material choices for created structures or objects. */
+  materialOptions?: string[];
+  /** Whether the spell creates only nonliving objects rather than creatures or animated beings. */
+  nonlivingObjectOnly?: boolean;
+  /** Whether the caster must already have seen the object's form and material. */
+  requiresSeenFormAndMaterial?: boolean;
+  /** Planar or magical source of the created object's substance, when the spell specifies one. */
+  materialSource?: string;
+  /** Maximum cube edge or equivalent bounding size for a freely chosen created object. */
+  maxCreatedObjectCubeFeet?: number;
+  /** Slot-level scaling for a created object's maximum cube edge. */
+  maxCreatedObjectCubeScaling?: {
+    type: "slot_level";
+    bonusPerLevel: number;
+  };
+  /** Duration lookup keyed by material choice for objects whose lifetime depends on material. */
+  durationByMaterial?: Record<string, string>;
+  /** Whether mixed-material objects use the shortest material duration in the table. */
+  mixedMaterialsUseShortestDuration?: boolean;
+  /** Whether using the created object as another spell's Material component makes that spell fail. */
+  cannotServeAsMaterialComponent?: boolean;
+  /** Whether the created object must be made from visible raw materials. */
+  requiresVisibleRawMaterials?: boolean;
+  /** Whether the source raw materials are consumed or transformed into the output. */
+  consumesSourceMaterials?: boolean;
+  /** Whether the created object must be made from the same material as the source. */
+  outputSameMaterialAsSource?: boolean;
+  /** Maximum non-mineral object size as a cube edge or equivalent connected cube volume. */
+  maxFabricatedObjectCubeFeet?: number;
+  /** Maximum number of connected 5-foot cubes allowed for non-mineral fabrication. */
+  maxConnectedFiveFootCubes?: number;
+  /** Maximum size for metal, stone, or mineral fabrication. */
+  maxMineralObjectCubeFeet?: number;
+  /** Whether output quality is limited by the source material quality. */
+  qualityLimitedByMaterials?: boolean;
+  /** Whether the spell is forbidden from creating creatures. */
+  cannotCreateCreatures?: boolean;
+  /** Whether the spell is forbidden from creating magic items. */
+  cannotCreateMagicItems?: boolean;
+  /** Whether skilled goods require matching artisan-tool proficiency. */
+  skilledGoodsRequireToolProficiency?: boolean;
+  /** Maximum stone thickness or dimension the spell can reshape. */
+  maxStoneDimensionFeet?: number;
+  /** Maximum number of hinges the shaped object can include. */
+  maxHinges?: number;
+  /** Whether the shaped object can include a latch. */
+  canIncludeLatch?: boolean;
+  /** Whether the spell can create fine mechanical detail. */
+  canCreateFineMechanicalDetail?: boolean;
+  /** Number of levels/stories/segments in a created structure. */
+  levels?: number;
+  /** Optional slot-level scaling for structure levels, such as +1 story per slot. */
+  levelScaling?: {
+    type: "slot_level";
+    bonusPerLevel: number;
+  };
+  /** Height of each created structure level. */
+  levelHeightFeet?: number;
+  /** Maximum area per created structure level. */
+  areaPerLevelSquareFeet?: number;
+  /** Whether the created structure includes access between levels. */
+  accessBetweenLevels?: boolean;
+  /** Whether doors/windows can be secured from inside. */
+  secureOpenings?: boolean;
+  /** Whether the structure provides simple furnishings. */
+  furnished?: boolean;
+  /** Whether the structure is warm and dry regardless of outside weather. */
+  weatherProtected?: boolean;
+  /** Source that defines a sacred or themed created structure's dedication. */
+  dedicationSource?: string;
+  /** Whether the caster chooses the created structure's outward appearance. */
+  appearanceChosenByCaster?: boolean;
+  /** Required interior fixtures or sacred features inside the structure. */
+  interiorFeatures?: string[];
+  /** Number of required doors in the created structure. */
+  doorCount?: number;
+  /** Whether only the caster and casting-time designates can operate the door. */
+  doorControlledByCasterAndDesignates?: boolean;
+  /** Whether the caster chooses how many windows the structure has. */
+  windowsCasterChoice?: boolean;
+  /** Lighting states the caster can choose for the created structure. */
+  illuminationOptions?: ("bright" | "dim" | "unlit" | "not_applicable")[];
+  /** Ambient scent or atmosphere created inside the structure. */
+  ambientScent?: string;
+  /** Temperature state maintained inside the created structure. */
+  ambientTemperature?: "mild" | "normal" | "not_applicable";
+  /** Width of a created doorway, portal, or aperture. */
+  portalWidthFeet?: number;
+  /** Height of a created doorway, portal, or aperture. */
+  portalHeightFeet?: number;
+  /** Whether the created object opens into extradimensional space. */
+  extradimensionalSpace?: boolean;
+  /** Creature capacity for a created space or container-like object. */
+  capacityCreatures?: number;
+  /** Maximum creature size allowed by the created space, when specified. */
+  capacityCreatureMaxSize?: string;
+  /** Whether attacks, spells, or other effects are blocked across the created boundary. */
+  blocksCrossBoundaryEffects?: boolean;
+  /** Whether occupants inside the created space can see out through the boundary. */
+  occupantsCanSeeOut?: boolean;
+  /** Whether remaining contents are expelled when the spell or object ends. */
+  contentsDropOutOnEnd?: boolean;
+  /** Whether expulsion places occupants safely in the nearest open space. */
+  safelyEjectsContentsOnEnd?: boolean;
+  /** Whether creating the passage avoids destabilizing the surrounding structure. */
+  preservesStructuralStability?: boolean;
+  /** Whether the created object must be anchored to solid supports or surfaces. */
+  requiresAnchoring?: boolean;
+  /** What supports satisfy the anchoring requirement. */
+  anchoringOptions?: string[];
+  /** Whether unsupported created matter collapses or ends early. */
+  collapsesIfUnsupported?: boolean;
+  /** Timing for unsupported collapse, such as "start_of_caster_next_turn". */
+  collapseTiming?: string;
+  /** Whether the created object makes its area obscured. */
+  obscuresArea?: "lightly" | "heavily" | "not_applicable";
+  /** Cover level the created object provides to creatures using or standing behind it. */
+  providesCover?: "half" | "three_quarters" | "total" | "not_applicable";
+  /** Whether the created object's own space is difficult terrain. */
+  spaceIsDifficultTerrain?: boolean;
+  /** Whether ranged weapon attacks that pass through this object have disadvantage. */
+  rangedWeaponAttacksThroughHaveDisadvantage?: boolean;
+  /** Damage type reduced when an effect passes through this object. */
+  reducesPassingDamageType?: DamageType;
+  /** Multiplier applied to the reduced passing damage type. */
+  passingDamageMultiplier?: number;
+  /** Whether a damage type can transform part of this object into frozen sections. */
+  canFreezeFromDamageType?: DamageType;
+  /** Minimum section size created when part of the object freezes. */
+  frozenSectionSizeFeet?: number;
+  /** Armor Class of a frozen section created from this object. */
+  frozenSectionArmorClass?: number;
+  /** Hit points of a frozen section created from this object. */
+  frozenSectionHitPoints?: number;
+  /** Whether destroyed frozen sections remain empty instead of refilling. */
+  destroyedFrozenSectionsDoNotRefill?: boolean;
+  /** Maximum created wall length when the object is a wall or barrier. */
+  wallLengthFeet?: number;
+  /** Created wall height when the object is a wall or barrier. */
+  wallHeightFeet?: number;
+  /** Wall or barrier thickness measurement. */
+  wallThickness?: number;
+  /** Unit used by the wall thickness measurement. */
+  wallThicknessUnit?: "feet" | "inches" | "not_applicable";
+  /** Number of wall panels or sections created by the spell. */
+  panelCount?: number;
+  /** Width of one wall panel or section. */
+  panelWidthFeet?: number;
+  /** Height of one wall panel or section. */
+  panelHeightFeet?: number;
+  /** Whether wall panels or sections must connect to one another. */
+  panelContiguityRequired?: boolean;
+  /** Legal orientation choices for the created wall or barrier. */
+  orientationOptions?: ("horizontal" | "vertical" | "diagonal" | "angled" | "caster_choice" | "not_applicable")[];
+  /** Whether the barrier can float without a supporting surface. */
+  freeFloating?: boolean;
+  /** Whether creatures and objects are physically blocked by the barrier. */
+  blocksPhysicalPassage?: boolean;
+  /** Whether the created object blocks line of sight without necessarily blocking movement. */
+  blocksLineOfSight?: boolean;
+  /** Whether the barrier blocks travel through the Ethereal Plane. */
+  blocksEtherealTravel?: boolean;
+  /** Whether spell effects are blocked from crossing the created object. */
+  blocksSpellEffects?: boolean;
+  /** Whether energy effects are blocked from crossing the created object. */
+  blocksEnergyEffects?: boolean;
+  /** Whether contained creatures can breathe while enclosed by the object. */
+  breathableInside?: boolean;
+  /** Whether the barrier can be damaged by ordinary damage resolution. */
+  immuneToDamage?: boolean;
+  /** Armor Class for a created object that can be attacked and breached. */
+  objectArmorClass?: number;
+  /** Hit points per inch of thickness for panel-style created objects. */
+  hitPointsPerInchThickness?: number;
+  /** Fixed hit points for each section or panel when HP is not thickness-based. */
+  sectionHitPoints?: number;
+  /** Damage types that cannot damage this created object. */
+  damageImmunities?: DamageType[];
+  /** Damage types that deal extra damage to this created object. */
+  damageVulnerabilities?: DamageType[];
+  /** Whether Dispel Magic can end the created object. */
+  immuneToDispelMagic?: boolean;
+  /** Whether Antimagic Field fails to suppress or remove the created object. */
+  immuneToAntimagicField?: boolean;
+  /** Whether divination sensors are blocked from appearing inside the object. */
+  blocksDivinationSensorsInside?: boolean;
+  /** Whether divination spells cannot target creatures inside the object. */
+  blocksDivinationTargetingInside?: boolean;
+  /** Creature types the structure can be configured to oppose. */
+  opposedCreatureTypeOptions?: string[];
+  /** Save required when an opposed creature tries to enter. */
+  opposedCreatureEntrySaveType?: SavingThrowAbility;
+  /** Hours an opposed creature is barred after failing the entry save. */
+  opposedCreatureEntryBlockedDurationHours?: number;
+  /** Penalty die opposed creatures subtract while affected inside the structure. */
+  opposedCreaturePenaltyDice?: string;
+  /** Ability modifier used by the structure's healing bonus. */
+  healingBonusAbilityModifier?: "Wisdom" | "spellcasting_ability" | "not_applicable";
+  /** Minimum extra hit points restored by the healing bonus. */
+  healingBonusMinimum?: number;
+  /** Trigger that makes the structure's healing bonus apply. */
+  healingBonusTrigger?: string;
+  /** Number of daily casts needed before the structure becomes permanent. */
+  permanenceRequiresDailyCasts?: number;
+  /** Whether the permanence cadence requires the same map location each day. */
+  permanenceSameLocationRequired?: boolean;
+  /** Kind of inert or delayed entity represented by a created body. */
+  createdEntityKind?: "clone_body" | "inert_duplicate" | "suspended_body" | "astral_form" | "other";
+  /** Number of days before a created entity finishes growing or maturing. */
+  growthDurationDays?: number;
+  /** Whether the created entity forms inside a required vessel. */
+  maturesInVessel?: boolean;
+  /** Whether the spell requires a vessel to preserve the created entity. */
+  vesselRequired?: boolean;
+  /** Minimum value of the required vessel in gold pieces. */
+  vesselMinimumValueGp?: number;
+  /** Whether disturbing the vessel ends or invalidates the lifecycle. */
+  vesselMustRemainUndisturbed?: boolean;
+  /** Whether the created entity stays inert until a later trigger occurs. */
+  inertUntilTrigger?: boolean;
+  /** Event that activates the delayed created entity. */
+  activationTrigger?: string;
+  /** Whether activation requires a free and willing soul. */
+  soulMustBeFreeAndWilling?: boolean;
+  /** Whether activation moves the soul away from the original remains. */
+  soulTransferConsumesOriginalRevival?: boolean;
+  /** Whether the created body keeps the original creature's personality, memories, and abilities. */
+  duplicateRetainsPersonalityMemoriesAbilities?: boolean;
+  /** Whether the created body includes the original creature's equipment. */
+  duplicateHasOriginalEquipment?: boolean;
+  /** Whether the caster chooses the duplicate body's finished age. */
+  casterChoosesFinalAge?: boolean;
+  /** Whether the matured created entity endures indefinitely after growth completes. */
+  enduresIndefinitelyAfterMature?: boolean;
+  /** Whether a suspended or projected body still needs food or air. */
+  needsFoodOrAir?: boolean;
+  /** Whether a suspended or projected body continues aging. */
+  agesWhileSuspended?: boolean;
+  /** Whether this entity is linked to an astral form or original body. */
+  linkedToCounterpartForm?: boolean;
+  /** Whether the link is represented by a silver cord. */
+  silverCordLink?: boolean;
+  /** Distance the silver cord remains visible before fading from view. */
+  silverCordVisibleDistanceFeet?: number;
+  /** Outcome when an explicit effect cuts the silver cord. */
+  silverCordCutEffect?: string;
+  /** Whether damage on this entity is shared with its linked counterpart. */
+  damageSharedWithCounterpart?: boolean;
+  /** Whether non-damage effects on this entity are shared with its linked counterpart. */
+  effectsSharedWithCounterpart?: boolean;
+  /** Whether leaving the Astral Plane pulls the body and possessions to the new plane. */
+  planarExitTransfersBodyAndPossessions?: boolean;
+  /** Whether the spell ends for this target when either linked form reaches 0 hit points. */
+  endsWhenBodyOrFormDropsToZeroHp?: boolean;
+  /** Whether a living target returns to the body when the spell ends for that target. */
+  returnsToBodyOnEndIfAlive?: boolean;
+  /** Whether maintaining the spell for its full duration makes the object permanent. */
+  permanentAfterFullDuration?: boolean;
+  /** Whether the permanent result can no longer be dispelled. */
+  nonDispellableWhenPermanent?: boolean;
+  /** Spell ids or names that explicitly destroy the object despite normal immunity. */
+  destroyedBySpells?: string[];
+  /** Whether creatures cut by initial placement are moved to a caster-chosen side. */
+  pushesCreaturesToChosenSide?: boolean;
+  /** Saving throw available when a wall would trap a creature on all sides. */
+  enclosureEscapeSaveType?: SavingThrowAbility;
+  /** Whether a successful enclosure escape consumes the creature's Reaction. */
+  enclosureEscapeUsesReaction?: boolean;
+  /** How far a creature can move on a successful enclosure escape. */
+  enclosureEscapeMoveDistance?: "speed" | "not_applicable";
+  /** Whether destroying a section leaves another hazard in the same space. */
+  leavesHazardOnSectionDestroyed?: boolean;
+  /** Name of the lingering hazard left after a section is destroyed. */
+  lingeringHazardName?: string;
+  /** Damage caused by the lingering hazard left after destruction. */
+  lingeringHazardDamage?: DamageData;
+  /** Saving throw used by the lingering hazard, if any. */
+  lingeringHazardSaveType?: SavingThrowAbility;
+  /** What a successful save does against the lingering hazard. */
+  lingeringHazardSaveEffect?: "none" | "half" | "negates_condition";
+  /** How often the lingering hazard can affect the same creature. */
+  lingeringHazardFrequency?: "first_per_turn" | "every_time" | "once_per_creature";
+  /** Diameter of a created hazard or object with a round footprint. */
+  diameterFeet?: number;
+  /** Length of a narrow created object such as a blade-shaped rift. */
+  objectLengthFeet?: number;
+  /** Distance a spell-created movable object can travel when commanded. */
+  moveDistanceFeet?: number;
+  /** Reach from the created object to targets it can attack or affect. */
+  attackReachFeet?: number;
+  /** Number of attacks the created object can make when created or commanded. */
+  attacksPerActivation?: number;
+  /** Lowest natural d20 roll that counts as a critical hit for this object. */
+  criticalHitThreshold?: number;
+  /** Whether the created object can pass through barriers without interacting with them. */
+  passesHarmlesslyThroughBarriers?: boolean;
+  /** Whether the created object can attack loose objects. */
+  canTargetLooseObjects?: boolean;
+  /** Whether the created object can attack structures. */
+  canTargetStructures?: boolean;
+  /** Imprisonment-style prison modes available for the created restraint. */
+  prisonModeOptions?: ("burial" | "chaining" | "hedged_prison" | "minimus_containment" | "slumber" | "not_applicable")[];
+  /** Caster-chosen demiplane forms for a created prison. */
+  demiplaneFormOptions?: string[];
+  /** Whether the created prison prevents teleportation. */
+  blocksTeleportation?: boolean;
+  /** Whether the created prison prevents planar travel. */
+  blocksPlanarTravel?: boolean;
+  /** Whether light can pass through the prison boundary while matter cannot. */
+  lightPassesThroughOnly?: boolean;
+  /** Size, in inches, for a creature reduced by containment magic. */
+  containedCreatureSizeInches?: number;
+  /** Whether an observable caster-defined trigger can end the created prison. */
+  observableEndingTriggerRequired?: boolean;
+  /** Time window in years used to judge whether the ending trigger is likely. */
+  endingTriggerExpectedWithinYears?: number;
+  /** Minimum spell slot level needed for Dispel Magic to affect this object. */
+  dispelMagicMinimumSlotLevel?: number;
+  /** Valid things Dispel Magic can target to end the created object. */
+  dispelMagicTargetOptions?: string[];
+  /** Whether the object fails if placed in an occupied creature space. */
+  failsIfPlacedInOccupiedSpace?: boolean;
+  /** Creature groups allowed to ignore this object's harmful effects. */
+  safePassageAllowedFor?: string[];
+  /** Distance at which nearby creatures trigger this object's aura or hazard. */
+  proximityTriggerRadiusFeet?: number;
+  /** Number of ordered magical layers in the object. */
+  layerCount?: number;
+  /** Ordered layer names or colors for a multi-layer magical object. */
+  layerOrder?: string[];
+  /** Whether layers must be destroyed in order. */
+  layersDestroyedInOrder?: boolean;
+  /** Whether removed layers stay gone until the spell ends. */
+  destroyedLayersRemainGone?: boolean;
+  /** Whether Dispel Magic can affect only a named layer. */
+  dispelMagicAffectsOnlyLayer?: string;
+  /** Whether layer-specific table rules are needed for full effect execution. */
+  requiresLayerEffectTable?: boolean;
+  /** Whether an occupant can roll or push the object from inside. */
+  movableByOccupants?: boolean;
+  /** Whether outside creatures can pick up or move the object. */
+  movableByExternalCreatures?: boolean;
+  /** Multiplier applied to an occupant's Speed when rolling the object. */
+  occupantRollSpeedMultiplier?: number;
+  /** Maximum hover height above the ground for floating created objects. */
+  hoverMaxHeightFeet?: number;
+  /** Whether the created object safely descends when moved over a drop-off. */
+  safelyDescendsOverDrops?: boolean;
+  /** Maximum barrier height a movable created object can cross. */
+  barrierHeightFeet?: number;
+  /** Maximum pit width a movable created object can jump or cross. */
+  pitJumpWidthFeet?: number;
+  /** Radius around the object that applies adjacency or end-turn hazard effects. */
+  hazardRadiusFeet?: number;
+  /** Which side or region of a created object projects its hazard damage. */
+  hazardSide?: "caster_choice" | "all_sides" | "inside" | "outside" | "not_applicable";
+  /** Runtime events that can cause the created object's hazard damage. */
+  hazardTriggers?: ("enter" | "end_turn_inside" | "end_turn_within_radius" | "first_per_turn")[];
+  /** Shape of a manipulated fluid or loose-material volume, such as Shape Water's cube. */
+  affectedVolumeShape?: "Cube" | "Sphere" | "Line" | "Wall" | "not_applicable";
+  /** Size of the manipulated volume in feet, usually the cube edge or radius. */
+  affectedVolumeSizeFeet?: number;
+  /** Distance the affected material can be moved or redirected by the spell. */
+  maxManipulationDistanceFeet?: number;
+  /** Player-facing manipulation modes that can be applied to the affected object. */
+  manipulationOptions?: string[];
+  /** Maximum standing-water level change created by the spell. */
+  waterLevelChangeFeet?: number;
+  /** Chance that a vehicle affected by the water object capsizes. */
+  vehicleCapsizeChancePercent?: number;
+  /** Maximum vehicle size category affected by the water movement. */
+  maxAffectedVehicleSize?: string;
+  /** Whether a water-control mode can be repeated while it remains active. */
+  repeatsOnCasterTurn?: boolean;
+  /** Distance creatures are pulled by a water-control hazard. */
+  pullDistanceFeet?: number;
+  /** Ability check required to escape or swim away from the water-control hazard. */
+  escapeCheck?: string;
+  /** Whether the spell can animate the object into simple directed shapes. */
+  canAnimateSimpleShapes?: boolean;
+  /** Whether the spell can change the object's visible color or opacity. */
+  canChangeColorOrOpacity?: boolean;
+  /** Whether the spell can freeze the affected object or volume. */
+  canFreeze?: boolean;
+  /** Whether freezing is legal only when no creatures occupy the affected volume. */
+  freezeRequiresNoCreatures?: boolean;
+  /** Length of a transient wave or similar moving volume. */
+  waveLengthFeet?: number;
+  /** Width of a transient wave or similar moving volume. */
+  waveWidthFeet?: number;
+  /** Height of a transient wave or similar moving volume. */
+  waveHeightFeet?: number;
+  /** Radius within which unprotected flames are extinguished by the created water. */
+  extinguishesUnprotectedFlamesRadiusFeet?: number;
+  /** Whether the created water or wave disappears immediately after resolving. */
+  vanishesAfterEffect?: boolean;
+  /** Maximum number of Medium-or-smaller creatures the object can contain. */
+  capacityMediumOrSmallerCreatures?: number;
+  /** Maximum number of Large creatures the object can contain. */
+  capacityLargeCreatures?: number;
+  /** Whether creatures trapped inside move with the object. */
+  occupantsMoveWithObject?: boolean;
+  /** What happens when the object exceeds its creature capacity. */
+  overflowEjectionRule?: "random_existing_occupant" | "newest_creature" | "not_applicable";
+  /** Whether creatures that save successfully are ejected from the object. */
+  successfulSaveEjectsCreature?: boolean;
+  /** Distance from the object where ejected occupants can land. */
+  ejectionDistanceFeet?: number;
+  /** Whether occupants fall prone when the object ends or drops. */
+  occupantsProneOnEnd?: boolean;
+  /** Whether creatures on or in the created object become trapped by it. */
+  trapsCreaturesOnSurface?: boolean;
+  /** Condition applied to creatures trapped by the created object. */
+  trappedCondition?: string;
+  /** Whether touching the object ignites unattended flammable objects. */
+  ignitesTouchedObjects?: boolean;
+  /** Depth of layered created material, when specified. */
+  depthFeet?: number;
+  /** Whether the created material can be ignited. */
+  flammable?: boolean;
+  /** Size of one burnable section, such as a 5-foot cube of web. */
+  burnUnitSizeFeet?: number;
+  /** How many rounds one ignited section burns before destruction. */
+  burnDurationRounds?: number;
+  /** Damage caused by burning created material. */
+  burnDamage?: DamageData;
+  /** Whether created objects orbit the caster instead of occupying a board square. */
+  orbitsCaster?: boolean;
+  /** Whether each created object can be spent by a later granted action. */
+  expendable?: boolean;
+  /** Maximum number of created objects one follow-up action can spend. */
+  maxExpendedPerAction?: number;
+  /** Action needed to consume or use one created item, if it is consumable. */
+  consumeAction?: "action" | "bonus_action" | "reaction" | "free" | "not_applicable";
+  /** Hit points restored by consuming one item, such as one Goodberry. */
+  healingPerItem?: number;
+  /** Days of nourishment supplied by one item. */
+  nourishmentDaysPerItem?: number;
+  /** Multiplier applied when this created or altered food source is harvested. */
+  harvestYieldMultiplier?: number;
+  /** Radius covered by the harvest-yield change, measured from the spell point. */
+  harvestYieldRadiusFeet?: number;
+  /** Number of days the harvest-yield change remains active in the world. */
+  harvestYieldDurationDays?: number;
+  /** What kind of plants or food source can receive the harvest-yield change. */
+  harvestYieldAppliesTo?: "plants" | "food_plants" | "not_applicable";
+  /** How often a target area can benefit from the harvest-yield change. */
+  harvestBenefitLimit?: string;
+  /** Canonical inventory id to emit when the created object should feed existing systems. */
+  inventoryItemId?: string;
+  /** Stack quantity to emit for inventory systems when it differs from the created-object count. */
+  inventoryQuantity?: number;
+  /** Optional slot-level scaling for the emitted inventory stack quantity. */
+  inventoryQuantityScaling?: {
+    type: "slot_level";
+    bonusPerLevel: number;
+  };
+  /** Whether the created object can spoil or otherwise expire by shelf-life timing. */
+  perishable?: boolean;
+  /** Whether unconsumed objects disappear when the spell duration ends. */
+  expiresWithSpell?: boolean;
+  /** Readable shelf-life for inventory/world-clock cleanup, such as "24 hours". */
+  shelfLife?: string;
+  notes?: string;
 }
 
 /** Defines a penalty applied to future saving throws (e.g., Mind Sliver's -1d4). */
@@ -1028,6 +1578,20 @@ export interface GrantedAction {
   /** Conditions that must be true before the granted action can be used. */
   prerequisites?: ("target_object_within_spell_range" | "target_within_spell_range" | "not_applicable")[];
   rangeLimit?: number;
+  /** Attack roll model for granted actions that make their own later attack. */
+  attackType?: "ranged_spell_attack" | "melee_spell_attack" | "not_applicable";
+  /** Damage dealt by the granted action after its own hit/save gate succeeds. */
+  damage?: DamageData;
+  /** Saving throw used by the granted action when it resolves later. */
+  saveType?: SavingThrowAbility;
+  /** What a successful save does for the granted action payload. */
+  saveEffect?: "none" | "half" | "negates_condition";
+  /** Optional ability modifier added to the granted action's damage roll. */
+  damageAbilityModifier?: "spellcasting_ability" | "not_applicable";
+  /** Wall length removed after this granted action is used, hit or miss. */
+  wallLengthReduction?: number;
+  /** Whether the parent spell ends once the tracked wall length reaches zero. */
+  endsWhenLengthZero?: boolean;
   notes?: string;
 }
 

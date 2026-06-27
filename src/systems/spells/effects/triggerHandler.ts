@@ -49,6 +49,12 @@ export interface ActiveSpellZone {
     triggeredThisTurn: Set<string>;
     /** Track entities that should only ever trigger once (per creature) for this zone */
     triggeredEver: Set<string>;
+    /** Remaining wall length for wall-shaped spells that shrink over time. */
+    remainingWallLength?: number;
+    /** Original wall length so UI/log consumers can compare current and starting size. */
+    originalWallLength?: number;
+    /** Whether this zone should disappear when its remaining wall length reaches zero. */
+    endsWhenLengthZero?: boolean;
     expiresAtRound?: number;
 }
 
@@ -426,16 +432,18 @@ function countMovementTilesInsideZone(
     if (movementPath && movementPath.length >= 2) {
         let traveledInsideTiles = 0;
 
-        // A supplied path is authoritative. Count only complete segments whose
-        // start and end points are already inside the zone so outside crossing
-        // movement does not invent partial-tile damage without explicit steps.
+        // A supplied path is authoritative. Count every explicit step that
+        // touches the zone, including the first step into it and the last step
+        // out of it. Spike Growth-style spells punish moving into or through
+        // the area, so requiring both endpoints to already be inside silently
+        // misses the entry step.
         for (let i = 1; i < movementPath.length; i++) {
             const from = movementPath[i - 1];
             const to = movementPath[i];
             const startsInside = isPositionInArea(from, zone.position, zone.areaOfEffect!, zone.direction);
             const endsInside = isPositionInArea(to, zone.position, zone.areaOfEffect!, zone.direction);
 
-            if (!startsInside || !endsInside) {
+            if (!startsInside && !endsInside) {
                 continue;
             }
 
@@ -448,7 +456,7 @@ function countMovementTilesInsideZone(
     const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect!, zone.direction);
     const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect!, zone.direction);
 
-    if (!wasInZone || !isNowInZone) {
+    if (!wasInZone && !isNowInZone) {
         return 0;
     }
 
@@ -740,16 +748,29 @@ export function createSpellZone(
         effects: effects.filter(e => {
             // DEBT: Cast trigger to any to probe optional type property without complex typing in this zone factory.
             const t = e.trigger as any;
+            const hasAreaRecurringMechanic = Array.isArray(e.recurringMechanics) &&
+                e.recurringMechanics.some(mechanic =>
+                    mechanic.timing === 'turn_start' ||
+                    mechanic.timing === 'turn_end' ||
+                    mechanic.timing === 'on_move_in_area' ||
+                    mechanic.timing === 'on_entity_proximity'
+                );
             return t?.type === 'on_enter_area' ||
                 t?.type === 'on_exit_area' ||
                 t?.type === 'on_end_turn_in_area' ||
                 t?.type === 'on_move_in_area' ||
                 t?.type === 'turn_end' ||
                 t?.type === 'turn_start' ||
+                hasAreaRecurringMechanic ||
                 (e.type === 'DEFENSIVE' && (e.defenseType === 'resistance' || e.defenseType === 'immunity'));
         }),
         triggeredThisTurn: new Set(),
         triggeredEver: new Set(),
+        // Wall-shaped zones such as Wall of Light need a durable length value
+        // because later granted actions can shrink the wall after the original
+        // cast. Non-wall zones leave this undefined and keep their old behavior.
+        remainingWallLength: areaOfEffect.shape.toLowerCase() === 'wall' ? areaOfEffect.size : undefined,
+        originalWallLength: areaOfEffect.shape.toLowerCase() === 'wall' ? areaOfEffect.size : undefined,
         expiresAtRound: durationRounds ? currentRound + durationRounds : undefined
     };
 }

@@ -7,6 +7,7 @@ import type { ChunkData, ChunkMeshBundle } from './types';
 import { buildTerrainMesh } from './chunkGeometry';
 import { buildWaterMesh } from './waterGeometry';
 import { buildRoadMesh } from './roadGeometry';
+import { buildWallMesh } from './wallGeometry';
 import { buildSiteMeshes } from './siteGeometry';
 import { buildVegetationScatter } from './vegetationScatter';
 
@@ -14,6 +15,7 @@ export function buildChunkBundle(data: ChunkData): ChunkMeshBundle {
   const terrain = buildTerrainMesh(data);
   const water = buildWaterMesh(data);
   const roads = buildRoadMesh(data);
+  const walls = buildWallMesh(data);
   const sites = buildSiteMeshes(data);
   const vegetation = buildVegetationScatter(data);
 
@@ -23,6 +25,7 @@ export function buildChunkBundle(data: ChunkData): ChunkMeshBundle {
     terrain,
     water: water.positions.length > 0 ? water : undefined,
     roads: roads.positions.length > 0 ? roads : undefined,
+    walls: walls.positions.length > 0 ? walls : undefined,
     sites,
     vegetation: vegetation.positions.length > 0 ? vegetation : undefined,
   };

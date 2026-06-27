@@ -258,3 +258,5 @@ At each checkpoint, note:
 
 Do not expand into implementing all unsupported race mechanics during this goal. The goal is the reconciliation and bucketing pipeline, not the full race mechanics engine.
 ```
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/Prompts/race-data-reconciliation-goal.md","sha256WithoutMarker":"d4203046c5f4596e534635315baa41a22cd55c86ead7199cdb72339ce2e0d22f","markedAtUtc":"2026-06-26T00:26:22.311Z"} -->

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 13/06/2026, 10:45:48
+ * Last Sync: 26/06/2026, 20:31:26
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 24 files
  *
@@ -30,6 +30,7 @@ import { CombatCharacter, Position, CombatAction, BattleMapData, CombatState, Co
 import { SpellMovementVisualInput } from './movementUtils';
 export type { SpellMovementVisualInput };
 import { GameState } from '../types';
+import type { Item } from '../types/items';
 import type { Spell, SpellEffect, MovementEffect, TerrainEffect, UtilityEffect } from '../types/spells';
 import { resolveScalableNumber } from '../types/spells';
 import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
@@ -144,6 +145,10 @@ interface UseAbilitySystemProps {
   onAddSpellZone?: (zone: ActiveSpellZone) => void;
   /** Live spell-zone state so command damage can respect active area defenses. */
   spellZones?: ActiveSpellZone[];
+  /** Publishes command-mutated spell zones, such as Wall of Light shrinking after a beam. */
+  onSpellZonesUpdate?: (zones: ActiveSpellZone[]) => void;
+  /** Publishes spell-created inventory items, such as Goodberries, to shared inventory owners. */
+  onSpellCreatedInventoryItems?: (items: Item[]) => void;
   /** Registers target-bound scheduled spell effects that resolve on future turns. */
   onAddScheduledSpellEffect?: (effect: ScheduledSpellEffect) => void;
   /** Registers target movement debuffs such as Booming Blade-style delayed triggers. */
@@ -192,6 +197,8 @@ export const useAbilitySystem = ({
   onMapUpdate,
   onAddSpellZone,
   spellZones,
+  onSpellZonesUpdate,
+  onSpellCreatedInventoryItems,
   onAddScheduledSpellEffect,
   onAddMovementDebuff,
   onAddSpellMovementVisual,
@@ -403,8 +410,11 @@ export const useAbilitySystem = ({
       if (spell.arbitrationType === 'ai_dm' && spell.aiContext?.playerInputRequired && !playerInput) {
         if (onRequestInput) {
           onRequestInput(spell, (input) => {
-            // Re-trigger execution with the collected input
-            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot, zoneRegistration);
+            // Free-form spell prompts can happen after the player has already
+            // clicked a map tile or object. Preserve that selected-target
+            // payload when execution resumes so command creation still knows
+            // what the text choice was meant to affect.
+            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot, zoneRegistration, selectedSpellTargets);
           });
           return; // Halt execution until input is provided
         } else {
@@ -512,6 +522,18 @@ export const useAbilitySystem = ({
           // 2D map visuals, and 3D VFX all observe the same light state.
           if (onActiveLightSourcesUpdate && finalState.activeLightSources !== currentState.activeLightSources) {
             onActiveLightSourcesUpdate(finalState.activeLightSources || []);
+          }
+
+          // Spell commands can mutate existing persistent zones, not only add
+          // new ones. Publish the updated zone list so shrinking walls and
+          // removed zero-length zones survive beyond this temporary command
+          // state.
+          if (onSpellZonesUpdate && finalState.spellZones !== currentState.spellZones) {
+            onSpellZonesUpdate((finalState.spellZones || []) as ActiveSpellZone[]);
+          }
+
+          if (onSpellCreatedInventoryItems && finalState.spellCreatedInventoryItems?.length) {
+            onSpellCreatedInventoryItems(finalState.spellCreatedInventoryItems);
           }
 
           // 7. Propagate Map Changes
@@ -650,7 +672,7 @@ export const useAbilitySystem = ({
         }
       }
     },
-    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onActiveLightSourcesUpdate, onMapUpdate, onAddSpellZone, onAddScheduledSpellEffect, onAddMovementDebuff, onAddSpellMovementVisual, activeLightSources, spellZones]
+    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onActiveLightSourcesUpdate, onMapUpdate, onAddSpellZone, onSpellZonesUpdate, onSpellCreatedInventoryItems, onAddScheduledSpellEffect, onAddMovementDebuff, onAddSpellMovementVisual, activeLightSources, spellZones]
   );
 
 
@@ -934,6 +956,17 @@ export const useAbilitySystem = ({
         onPocketedSummonsUpdate(result.finalState.pocketedSummons || []);
       }
 
+      // Granted actions, including Wall of Light's later beam button, execute
+      // through the ability-command path. Feed spell-zone mutations back to the
+      // live encounter here so the next beam sees the shortened wall.
+      if (onSpellZonesUpdate && result.finalState.spellZones !== currentState.spellZones) {
+        onSpellZonesUpdate((result.finalState.spellZones || []) as ActiveSpellZone[]);
+      }
+
+      if (onSpellCreatedInventoryItems && result.finalState.spellCreatedInventoryItems?.length) {
+        onSpellCreatedInventoryItems(result.finalState.spellCreatedInventoryItems);
+      }
+
       // Propagate State Changes
       if (commands.length > 0 && !rosterChanged) {
         finalCharacters.forEach(finalChar => {
@@ -958,6 +991,58 @@ export const useAbilitySystem = ({
       // the final command-state light array just like the spell-backed path.
       if (onActiveLightSourcesUpdate && result.finalState.activeLightSources !== currentState.activeLightSources) {
         onActiveLightSourcesUpdate(result.finalState.activeLightSources || []);
+      }
+
+      if (attackResults.length > 0) {
+        // Shield-style spells are reactions to being hit, but the command-backed
+        // weapon attack path no longer had a bridge from structured hit events
+        // into the reaction prompt. This pass restores that player-facing hook
+        // for defensive reaction spells while leaving true pre-damage attack
+        // cancellation as a later command-level timing improvement.
+        const hitResults = attackResults.filter(attackResult => attackResult.isHit);
+
+        for (const attackResult of hitResults) {
+          const hitTarget = finalCharacters.find(character => character.id === attackResult.targetId);
+
+          if (!hitTarget || hitTarget.actionEconomy?.reaction?.used || hitTarget.actionEconomy?.reaction?.remaining === 0) {
+            continue;
+          }
+
+          // Only offer spells whose JSON says they are reaction-cast defensive
+          // answers to a hit. This keeps the prompt focused on Shield-like
+          // effects instead of exposing every reaction spell through this path.
+          const hitReactionSpells = (hitTarget.abilities || [])
+            .map(abilityOption => abilityOption.spell)
+            .filter((spellOption): spellOption is Spell =>
+              Boolean(spellOption) &&
+              String(spellOption.castingTime?.unit ?? '').toLowerCase().includes('reaction') &&
+              spellOption.effects.some(effect =>
+                effect.type === 'DEFENSIVE' &&
+                effect.reactionTrigger?.event === 'when_hit'
+              )
+            );
+
+          if (hitReactionSpells.length === 0) {
+            continue;
+          }
+
+          const selectedReactionId = await requestReaction(
+            liveCaster.id,
+            hitTarget.id,
+            'on_hit',
+            hitReactionSpells
+          );
+          const selectedReactionSpell = hitReactionSpells.find(spellOption => spellOption.id === selectedReactionId);
+
+          if (selectedReactionSpell) {
+            await executeSpell(
+              selectedReactionSpell,
+              hitTarget,
+              [hitTarget],
+              Math.max(selectedReactionSpell.level, 1)
+            );
+          }
+        }
       }
 
       // Handle Cooldowns (Manually for now, could be a command)
@@ -1002,7 +1087,7 @@ export const useAbilitySystem = ({
 
     cancelTargeting();
   // TODO(lint-intent): Wire the ability-effect callback into the execution path if VFX hooks are needed.
-  }, [onExecuteAction, onCharacterUpdate, onCharactersReplace, onPocketedSummonsUpdate, cancelTargeting, executeSpell, onLogEntry, onNotification, onActiveLightSourcesUpdate, onAddSpellDeliveryVisual, activeLightSources]); // Refs are stable, omitted
+  }, [onExecuteAction, onCharacterUpdate, onCharactersReplace, onPocketedSummonsUpdate, cancelTargeting, executeSpell, requestReaction, onLogEntry, onNotification, onActiveLightSourcesUpdate, onSpellZonesUpdate, onSpellCreatedInventoryItems, onAddSpellDeliveryVisual, activeLightSources]); // Refs are stable, omitted
 
   const executeAbility = useCallback((...args: Parameters<typeof executeAbilityInternal>) => {
     return executeAbilityInternal(...args);

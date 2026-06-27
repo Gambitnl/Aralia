@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/06/2026, 22:07:45
- * Dependents: hooks/useAbilitySystem.ts, systems/spells/targeting/index.ts
+ * Last Sync: 26/06/2026, 20:14:07
+ * Dependents: hooks/useAbilitySystem.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/spells/targeting/index.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -52,6 +52,11 @@ export interface TargetResolutionResult extends AllocationResult {
   allocationApplied: boolean
 }
 
+export interface TargetRejectionReason {
+  code: string
+  message: string
+}
+
 const OBJECT_SIZE_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan']
 
 /**
@@ -81,9 +86,29 @@ export class TargetResolver {
     target: CombatCharacter,
     gameState: CombatState
   ): boolean {
+    return this.getTargetRejectionReason(targeting, caster, target, gameState) === null
+  }
+
+  /**
+   * Explain why a creature target cannot be selected.
+   *
+   * The older API only returned true or false, which meant spell data could be
+   * correct while the player, AI, and combat log had no shared language for an
+   * illegal target. This method keeps the boolean API stable and adds a narrow
+   * reason bridge for UI and runtime callers that need visible feedback.
+   */
+  static getTargetRejectionReason(
+    targeting: SpellTargeting,
+    caster: CombatCharacter,
+    target: CombatCharacter,
+    gameState: CombatState
+  ): TargetRejectionReason | null {
     // Self-targeting
     if (targeting.type === 'self') {
-      return target.id === caster.id
+      return target.id === caster.id ? null : {
+        code: 'requires_self',
+        message: 'This spell can only target the caster.'
+      }
     }
 
     // Single/Multi/Area targeting
@@ -94,36 +119,55 @@ export class TargetResolver {
     ) {
       // Check range
       const distance = this.getDistance(caster.position, target.position)
-      if (distance > targeting.range) return false
+      if (distance > targeting.range) {
+        return {
+          code: 'out_of_range',
+          message: `Target is ${Math.round(distance)} feet away, beyond this spell's ${targeting.range}-foot range.`
+        }
+      }
 
       // Check planar interaction (e.g. Blink / Etherealness)
       if (!canInteract(caster, target, gameState)) {
-        return false
+        return {
+          code: 'planar_blocked',
+          message: 'The target cannot be affected from the caster\'s current plane or phase.'
+        }
       }
 
       // Check line of sight (now including planar visibility)
       if (targeting.lineOfSight) {
         if (!canSeeTarget(caster, target, gameState)) {
-          return false
+          return {
+            code: 'not_visible',
+            message: 'The caster cannot see this target.'
+          }
         }
         if (!this.hasLineOfSight(caster.position, target.position, gameState)) {
-          return false
+          return {
+            code: 'line_of_sight_blocked',
+            message: 'Line of sight to this target is blocked or unavailable.'
+          }
         }
       }
 
       // Check detailed target filter (e.g. creature type constraints)
       if (targeting.filter) {
-        // TODO(UI-INTEGRATION): Connect this validation failure to UI feedback (reason: "Target must be Humanoid")
         if (!TargetValidationUtils.matchesFilter(target, targeting.filter)) {
-          return false
+          return {
+            code: 'target_filter_failed',
+            message: 'This target does not match the spell\'s required creature restrictions.'
+          }
         }
       }
 
       // Check target filter
-      return this.matchesTargetFilters(targeting.validTargets, caster, target)
+      return this.getTargetFilterRejectionReason(targeting.validTargets, caster, target)
     }
 
-    return false
+    return {
+      code: 'unsupported_targeting_type',
+      message: `Targeting type "${targeting.type}" cannot select a creature target here.`
+    }
   }
 
   /**
@@ -239,30 +283,56 @@ export class TargetResolver {
     targetObject: TargetableObject,
     gameState: CombatState
   ): boolean {
+    return this.getObjectTargetRejectionReason(targeting, caster, targetObject, gameState) === null
+  }
+
+  /**
+   * Explain why a non-creature object candidate cannot be selected.
+   *
+   * Object-targeting spells often fail because of weight, size, ownership, or
+   * map-sight rules. Returning a reason here gives the combat UI and AI a
+   * shared rejection contract while preserving the existing boolean validator.
+   */
+  static getObjectTargetRejectionReason(
+    targeting: SpellTargeting,
+    caster: CombatCharacter,
+    targetObject: TargetableObject,
+    gameState: CombatState
+  ): TargetRejectionReason | null {
     if (
       targeting.type !== 'single' &&
       targeting.type !== 'multi' &&
       targeting.type !== 'area'
     ) {
-      return false
+      return {
+        code: 'unsupported_targeting_type',
+        message: `Targeting type "${targeting.type}" cannot select an object target here.`
+      }
     }
 
     if (!targeting.validTargets.includes('objects')) {
-      return false
+      return {
+        code: 'objects_not_allowed',
+        message: 'This spell does not allow object targets.'
+      }
     }
 
     const distance = this.getDistance(caster.position, targetObject.position)
-    if (distance > targeting.range) return false
+    if (distance > targeting.range) {
+      return {
+        code: 'out_of_range',
+        message: `Object is ${Math.round(distance)} feet away, beyond this spell's ${targeting.range}-foot range.`
+      }
+    }
 
     if (targeting.lineOfSight && !this.hasLineOfSight(caster.position, targetObject.position, gameState)) {
-      return false
+      return {
+        code: 'line_of_sight_blocked',
+        message: 'Line of sight to this object is blocked or unavailable.'
+      }
     }
 
-    if (!this.matchesObjectEligibility(targeting.filter?.objectEligibility, targetObject)) {
-      return false
-    }
-
-    return true
+    return this.getObjectEligibilityRejectionReason(targeting.filter?.objectEligibility, targetObject)
   }
 
   /**
@@ -318,6 +388,14 @@ export class TargetResolver {
     caster: CombatCharacter,
     target: CombatCharacter
   ): boolean {
+    return this.getTargetFilterRejectionReason(filters, caster, target) === null
+  }
+
+  private static getTargetFilterRejectionReason(
+    filters: TargetFilter[],
+    caster: CombatCharacter,
+    target: CombatCharacter
+  ): TargetRejectionReason | null {
     // If any filter matches, return true (OR logic)
     // Or is it AND? Usually "creatures" AND "enemies".
     // But 'validTargets' in spells.ts is TargetFilter[]
@@ -360,7 +438,10 @@ export class TargetResolver {
     // that one runtime target must all satisfy. A CombatCharacter can satisfy
     // `creatures` even when the same spell also allows `objects`.
     if (categoryFilters.length > 0 && !categoryFilters.includes('creatures')) {
-      return false
+      return {
+        code: 'creatures_not_allowed',
+        message: 'This spell does not allow creature targets.'
+      }
     }
 
     for (const filter of filters) {
@@ -373,13 +454,28 @@ export class TargetResolver {
           // targets merely because this spell also permits objects.
           break;
         case 'allies':
-          if (!this.isAlly(caster, target)) return false;
+          if (!this.isAlly(caster, target)) {
+            return {
+              code: 'requires_ally',
+              message: 'This spell can only target allies.'
+            }
+          }
           break;
         case 'enemies':
-          if (this.isAlly(caster, target)) return false;
+          if (this.isAlly(caster, target)) {
+            return {
+              code: 'requires_enemy',
+              message: 'This spell can only target enemies.'
+            }
+          }
           break;
         case 'self':
-          if (target.id !== caster.id) return false;
+          if (target.id !== caster.id) {
+            return {
+              code: 'requires_self',
+              message: 'This spell can only target the caster.'
+            }
+          }
           break;
         case 'point':
            // Points are handled by area/position targeting, not by this
@@ -388,7 +484,7 @@ export class TargetResolver {
            break;
       }
     }
-    return true;
+    return null;
   }
 
   /**
@@ -402,40 +498,84 @@ export class TargetResolver {
     eligibility: TargetConditionFilter['objectEligibility'],
     targetObject: TargetableObject
   ): boolean {
+    return this.getObjectEligibilityRejectionReason(eligibility, targetObject) === null
+  }
+
+  private static getObjectEligibilityRejectionReason(
+    eligibility: TargetConditionFilter['objectEligibility'],
+    targetObject: TargetableObject
+  ): TargetRejectionReason | null {
     if (!eligibility) {
-      return true
+      return null
     }
 
     if (eligibility.wornOrCarried === 'excluded' && targetObject.isWornOrCarried) {
-      return false
+      return {
+        code: 'object_worn_or_carried',
+        message: 'This spell cannot target an object that is worn or carried.'
+      }
     }
 
     if (eligibility.magicalStatus === 'nonmagical' && targetObject.isMagical) {
-      return false
+      return {
+        code: 'object_must_be_nonmagical',
+        message: 'This spell can only target nonmagical objects.'
+      }
     }
 
     if (eligibility.fixedToSurface === 'excluded' && targetObject.isFixedToSurface) {
-      return false
+      return {
+        code: 'object_fixed_to_surface',
+        message: 'This spell cannot target an object fixed to a surface.'
+      }
     }
 
+    // Object targeting data exists in both an older flat shape and a newer
+    // grouped shape. Read both so spells such as Catapult-style object picks
+    // keep their weight gate even when the JSON uses `weightLimit`.
+    const groupedEligibility = eligibility as typeof eligibility & {
+      sizeLimit?: { maxSize?: unknown }
+      weightLimit?: { maxWeightPounds?: unknown }
+    }
+    const maxWeightPounds = typeof groupedEligibility.maxWeightPounds === 'number'
+      ? groupedEligibility.maxWeightPounds
+      : typeof groupedEligibility.weightLimit?.maxWeightPounds === 'number'
+        ? groupedEligibility.weightLimit.maxWeightPounds
+        : undefined
+
     if (
-      typeof eligibility.maxWeightPounds === 'number' &&
+      typeof maxWeightPounds === 'number' &&
       typeof targetObject.weightPounds === 'number' &&
-      targetObject.weightPounds > eligibility.maxWeightPounds
+      targetObject.weightPounds > maxWeightPounds
     ) {
-      return false
+      return {
+        code: 'object_too_heavy',
+        message: `Object weighs ${targetObject.weightPounds} pounds, above this spell's ${maxWeightPounds}-pound limit.`
+      }
     }
+
+    // Size limits went through the same migration as weight limits. Accept the
+    // grouped `sizeLimit.maxSize` form and the older direct `maxSize` form so
+    // object-targeting spells do not accidentally allow oversized objects.
+    const maxSize = typeof groupedEligibility.maxSize === 'string'
+      ? groupedEligibility.maxSize
+      : typeof groupedEligibility.sizeLimit?.maxSize === 'string'
+        ? groupedEligibility.sizeLimit.maxSize
+        : undefined
 
     if (
-      eligibility.maxSize &&
-      eligibility.maxSize !== 'not_applicable' &&
+      maxSize &&
+      maxSize !== 'not_applicable' &&
       targetObject.size &&
-      !this.isObjectSizeAllowed(targetObject.size, eligibility.maxSize)
+      !this.isObjectSizeAllowed(targetObject.size, maxSize)
     ) {
-      return false
+      return {
+        code: 'object_too_large',
+        message: `Object size ${targetObject.size} is larger than this spell's ${maxSize} limit.`
+      }
     }
 
-    return true
+    return null
   }
 
   private static isObjectSizeAllowed(size: string, maxSize: string): boolean {

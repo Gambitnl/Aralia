@@ -139,6 +139,14 @@ export const useActionGeneration = ({
           payload: feature.lock,
         });
       }
+
+      if (feature.type === 'puzzle') {
+        actions.push({
+          type: 'OPEN_PUZZLE_RUNTIME',
+          label: feature.label,
+          payload: feature.puzzle,
+        });
+      }
     });
 
     return actions;
