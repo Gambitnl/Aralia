@@ -4,6 +4,11 @@ import type { EntityVerdict } from './types';
 
 /** Terrain: the biome the submap used must equal the cell's biome fact. */
 export function classifyTerrainBiome(facts: CellFacts, biomeIdUsed: number): EntityVerdict {
+  // NOTE (slice assumption): biomeIdUsed is the biome the submap pipeline used
+  // (bridge anchor cell); facts.biomeId is the burg cell's biome. We assume these
+  // resolve to the same cell. At tile boundaries the bridge anchor could differ
+  // from the burg cell, which would make this signal unreliable — harden by
+  // asserting anchor==burg-cell alignment in a later slice.
   const ok = biomeIdUsed === facts.biomeId;
   return {
     kind: 'terrain-biome',
@@ -23,6 +28,10 @@ export function classifyTownsAndBuildings(cellBurgId: number, ground: GroundWorl
   const anchoredTown = ground.towns.find((t) => t.burgId === cellBurgId);
 
   for (const town of ground.towns) {
+    // NOTE (slice limitation): we accept any positively-anchored burg, not strictly
+    // cellBurgId. Today a ground chunk's towns come from this cell's burg, so this is
+    // safe; if makeGroundWorld ever emits towns from neighbouring burgs, this would
+    // mask a cross-cell drift. Harden to require === cellBurgId (or 'warn') later.
     const inherited = town.burgId === cellBurgId || town.burgId > 0;
     verdicts.push({
       kind: 'town',
