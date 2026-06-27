@@ -384,3 +384,39 @@ describe('organic town core + outskirts (lives inside the cell, not its exact sh
     expect(inCore).toBeGreaterThan(plan.wards.length * 0.6);
   });
 });
+
+describe('generateTownPlan — dock capping (#4 quality)', () => {
+  // A large footprint with water along a full edge + a river up the middle makes
+  // many wards "waterfront"; without a cap every one would seat a dock.
+  const bigFp: Pt[] = [[0, 0], [1000, 0], [1000, 1000], [0, 1000]];
+  const heavyWater: Pt[][] = [
+    [[0, 20], [1000, 20]],      // coast along the whole bottom edge
+    [[500, 0], [500, 1000]],    // a river straight up the middle
+  ];
+  const dockCount = (plan: ReturnType<typeof generateTownPlan>): number =>
+    plan.civic.filter((c) => c.kind === 'dock').length;
+
+  it('caps docks to a few principal quays for a city (not one per waterfront ward)', () => {
+    const plan = generateTownPlan(bigFp, rootSeedPath(7), { population: 6000, water: heavyWater });
+    const docks = dockCount(plan);
+    expect(docks).toBeGreaterThan(0);
+    expect(docks).toBeLessThanOrEqual(4); // city cap
+  });
+
+  it('a small town gets fewer docks than a city', () => {
+    const town = dockCount(generateTownPlan(bigFp, rootSeedPath(7), { population: 3000, water: heavyWater }));
+    const city = dockCount(generateTownPlan(bigFp, rootSeedPath(7), { population: 20000, water: heavyWater }));
+    expect(town).toBeLessThanOrEqual(2); // walled-town cap
+    expect(city).toBeGreaterThanOrEqual(town);
+  });
+
+  it('leaves no orphan dock-flagged ward (every dock ward has a kept pier)', () => {
+    const plan = generateTownPlan(bigFp, rootSeedPath(7), { population: 6000, water: heavyWater });
+    const dockWardIdx = new Set(
+      plan.civic.filter((c) => c.kind === 'dock').map((c) => c.wardIndex),
+    );
+    plan.wards.forEach((w, i) => {
+      if (w.civic === 'dock') expect(dockWardIdx.has(i)).toBe(true);
+    });
+  });
+});

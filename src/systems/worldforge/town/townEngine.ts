@@ -611,6 +611,23 @@ export function buildOutskirts(
 }
 
 /**
+ * Max docks by settlement size (#4 quality). `wardWaterEdge` seats a dock on
+ * EVERY waterfront ward, which over-densifies a river+coast town (a 5k port grew
+ * 11 piers); a town has a few principal quays, not one per block. Scales with
+ * trade weight (size). No profile (raw wardCount call) → a modest default.
+ */
+function dockCapForTypology(t: TownTypology | undefined): number {
+  switch (t) {
+    case 'hamlet':
+    case 'village': return 1;
+    case 'walled town': return 2;
+    case 'city': return 4;
+    case 'capital': return 6;
+    default: return 3;
+  }
+}
+
+/**
  * SP-T: parent cell → organic town CORE inside it → Voronoi wards (via the SP1
  * engine) → party-wall frontage plots + civic anatomy + walls; the ring between
  * the core and the cell edge becomes farmland/pasture/scrub outskirts. The town
@@ -730,6 +747,30 @@ export function generateTownPlan(
     return { polygon, block, plots, civic: waterEdge != null ? 'dock' : undefined };
   });
 
+  // Cap docks to the principal quays: keep the K nearest actual water (the truest
+  // waterfront), K by typology. The other waterfront wards keep their frontage as
+  // ordinary buildings. Ward 'dock' flags are reconciled with the survivors after
+  // the de-overlap pass below (which may drop a few more docks).
+  const dockCap = dockCapForTypology(profile?.typology);
+  const dockCivics = civic.filter((c) => c.kind === 'dock');
+  if (dockCivics.length > dockCap) {
+    const keep = new Set(
+      dockCivics
+        .map((c) => {
+          const ctr = polygonCentroid(c.polygon);
+          let d = Infinity;
+          for (const line of water) d = Math.min(d, polylineDist2(ctr, line));
+          return { c, d };
+        })
+        .sort((a, b) => a.d - b.d)
+        .slice(0, dockCap)
+        .map((s) => s.c),
+    );
+    for (let idx = civic.length - 1; idx >= 0; idx--) {
+      if (civic[idx].kind === 'dock' && !keep.has(civic[idx])) civic.splice(idx, 1);
+    }
+  }
+
   // Bridges where a river crosses between wards (#4).
   for (const bp of findBridges(water, wardPolys, fpSpan / 140)) {
     civic.push({ kind: 'bridge', polygon: squareAt(bp, fpSpan * 0.02), wardIndex: -1 });
@@ -751,6 +792,13 @@ export function generateTownPlan(
   // Rebuild the civic list (kept solids + plazas/bridges).
   civic.length = 0;
   civic.push(...passthrough, ...solidCivic);
+
+  // Reconcile ward 'dock' flags with the surviving dock civics — the dock cap and
+  // the de-overlap pass both drop docks, so a ward must not claim a pier it lost.
+  const dockWardIdx = new Set(civic.filter((c) => c.kind === 'dock').map((c) => c.wardIndex));
+  for (let i = 0; i < wards.length; i++) {
+    if (wards[i].civic === 'dock' && !dockWardIdx.has(i)) wards[i].civic = undefined;
+  }
 
   // Clear building plots out from under the kept solid civic structures — including
   // any that spill across a ward boundary. Fixes civic-on-house overlap.
