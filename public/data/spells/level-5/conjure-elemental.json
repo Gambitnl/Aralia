@@ -1,176 +1,296 @@
 {
-  "id": "conjure-elemental",
-  "name": "Conjure Elemental",
-  "aliases": [],
-  "level": 5,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "point",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Dexterity",
-        "saveEffect": "none",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "8d8",
-        "type": "variable"
-      },
-      "recurringMechanics": [
-        {
-          "timing": "turn_start",
-          "frequency": "every_time",
-          "saveType": "Dexterity",
-          "saveEffect": "negates_condition",
-          "damage": {
-            "dice": "4d8",
-            "type": "variable"
-          },
-          "successOutcome": "target_not_restrained_by_spirit",
-          "failureOutcome": "repeat_damage_and_remains_restrained",
-          "notes": "A target Restrained by the spirit repeats the Dexterity save at the start of each of its turns; failure deals 4d8 damage of the spirit's type and success ends that target's Restrained state."
-        }
-      ],
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+1d8",
-        "customFormula": ""
-      },
-      "description": "A creature forced to save against the elemental spirit makes a Dexterity save, taking 8d8 damage of the chosen element on a failed save or no damage on a success; each slot level above 5th adds 1d8 to this initial damage.",
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You conjure a Large, intangible spirit from the Elemental Planes that appears in an unoccupied space within range. Choose the spirit's element, which determines its damage type: air (Lightning), earth (Thunder), fire (Fire), or water (Cold). The spirit lasts for the duration. Whenever a creature you can see enters the spirit's space or starts its turn within 5 feet of the spirit, you can force that creature to make a Dexterity saving throw if the spirit has no creature Restrained. On failed save, the target takes 8d8 damage of the spirit's type, and the target has the Restrained condition until the spell ends. At the start of each of its turns, the Restrained target repeats the save. On a failed save, the target takes 4d8 damage of the spirit's type. On a successful save, the target isn't Restrained by the spirit.",
-  "higherLevels": "The damage increases by 1d8 for each spell slot level above 5.",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "conjure-elemental",
+    "name":  "Conjure Elemental",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "requiresUnoccupiedSpace":  true,
+                                                                  "spaceSize":  "Large",
+                                                                  "rangeAnchor":  "within_spell_range",
+                                                                  "chosenBy":  "caster",
+                                                                  "notes":  "The Large elemental spirit appears in an unoccupied space within 60 feet."
+                                                              }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "area_entry_or_turn_start",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "areaTiming":  [
+                                                           "visible_creature_enters_spirit_space",
+                                                           "visible_creature_starts_turn_within_5_feet"
+                                                       ],
+                                        "onlyIf":  "spirit_has_no_creature_restrained",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Dexterity",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "8d8",
+                                       "type":  "variable"
+                                   },
+                        "statusCondition":  {
+                                                "name":  "Restrained",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  10
+                                                             },
+                                                "level":  0
+                                            },
+                        "recurringMechanics":  [
+                                                   {
+                                                       "timing":  "turn_start",
+                                                       "frequency":  "every_time",
+                                                       "saveType":  "Dexterity",
+                                                       "saveEffect":  "negates_condition",
+                                                       "damage":  {
+                                                                      "dice":  "4d8",
+                                                                      "type":  "variable"
+                                                                  },
+                                                       "successOutcome":  "target_not_restrained_by_spirit",
+                                                       "failureOutcome":  "repeat_damage_and_remains_restrained",
+                                                       "notes":  "A target Restrained by the spirit repeats the Dexterity save at the start of each of its turns; failure deals 4d8 damage of the spirit\u0027s type and success ends that target\u0027s Restrained state."
+                                                   }
+                                               ],
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+1d8",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "A creature forced to save against the elemental spirit makes a Dexterity save, taking 8d8 damage of the chosen element on a failed save or no damage on a success; each slot level above 5th adds 1d8 to this initial damage.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "controlledEntity":  {
+                                                 "entityType":  "elemental_spirit_eruption",
+                                                 "combatEntity":  false,
+                                                 "origin":  "Elemental Planes",
+                                                 "elementChoice":  [
+                                                                       "air",
+                                                                       "earth",
+                                                                       "fire",
+                                                                       "water"
+                                                                   ],
+                                                 "mechanicalRole":  "one-time elemental spirit damage at chosen point",
+                                                 "control":  "caster chooses element and point; no persistent creature remains in this data model",
+                                                 "notes":  "This row is represented as a conjured elemental spirit effect rather than a controllable summoned stat block."
+                                             }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the elemental spirit\u0027s element when casting: Air for Lightning damage, Earth for Thunder damage, Fire for Fire damage, or Water for Cold damage. If the spirit has no creature Restrained, force the Dexterity save when a visible creature enters its space or starts within 5 feet.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  4,
+                       "optionsSource":  "modeChoice.options",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Air",
+                                           "summary":  "The elemental spirit deals Lightning damage.",
+                                           "damageType":  "Lightning",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ]
+                                       },
+                                       {
+                                           "label":  "Earth",
+                                           "summary":  "The elemental spirit deals Thunder damage.",
+                                           "damageType":  "Thunder",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ]
+                                       },
+                                       {
+                                           "label":  "Fire",
+                                           "summary":  "The elemental spirit deals Fire damage.",
+                                           "damageType":  "Fire",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ]
+                                       },
+                                       {
+                                           "label":  "Water",
+                                           "summary":  "The elemental spirit deals Cold damage.",
+                                           "damageType":  "Cold",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ]
+                                       }
+                                   ],
+                       "notes":  "The selected element resolves the variable damage type for both the initial 8d8 damage and the recurring 4d8 start-turn damage."
+                   },
+    "description":  "You conjure a Large, intangible spirit from the Elemental Planes that appears in an unoccupied space within range. Choose the spirit\u0027s element, which determines its damage type: air (Lightning), earth (Thunder), fire (Fire), or water (Cold). The spirit lasts for the duration. Whenever a creature you can see enters the spirit\u0027s space or starts its turn within 5 feet of the spirit, you can force that creature to make a Dexterity saving throw if the spirit has no creature Restrained. On failed save, the target takes 8d8 damage of the spirit\u0027s type, and the target has the Restrained condition until the spell ends. At the start of each of its turns, the Restrained target repeats the save. On a failed save, the target takes 4d8 damage of the spirit\u0027s type. On a successful save, the target isn\u0027t Restrained by the spirit.",
+    "higherLevels":  "The damage increases by 1d8 for each spell slot level above 5.",
+    "tags":  [
+                 "concentration"
+             ]
 }

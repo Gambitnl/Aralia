@@ -1,403 +1,502 @@
-{
-  "id": "conjure-fey",
-  "name": "Conjure Fey",
-  "aliases": [],
-  "level": 6,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Druid"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "point",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "SUMMONING",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "summon": {
-        "entityType": "creature",
-        "persistent": false,
-        "count": 1,
-        "formOptions": [
-          "Fey creature appearance chosen by the caster"
-        ],
-        "objectDescription": "Medium Feywild spirit that serves as the origin for the caster's repeatable teleport-and-melee-spell-attack loop.",
-        "statBlock": {
-          "name": "Fey Spirit",
-          "type": "Fey",
-          "size": "Medium"
-        },
-        "commandCost": "bonus_action",
-        "commandsPerTurn": 1,
-        "initiative": "shared",
-        "specialActions": [
-          {
-            "name": "Fey Spirit Attack",
-            "description": "The caster makes one melee spell attack against a creature within 5 feet of the spirit.",
-            "cost": "bonus_action",
-            "damage": {
-              "dice": "3d12 + spellcasting ability modifier",
-              "type": "Psychic"
-            }
-          }
-        ]
-      },
-      "description": "Summon one Medium Feywild spirit in a visible unoccupied space within 60 feet for up to 10 minutes with concentration; it looks like a Fey creature you choose and serves as the origin for the spell attack and later teleport loop.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "spell"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "hit",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "3d12 + spellcasting ability modifier",
-        "type": "Psychic"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+1d12",
-        "customFormula": ""
-      },
-      "description": "When the spirit appears, and on later turns after you teleport it with a Bonus Action, you can make one melee spell attack from the spirit against a creature within 5 feet of it; on a hit, the target takes 3d12 plus your spellcasting ability modifier Psychic damage, increasing by 1d12 per slot level above 6.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "spell"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "hit",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Frightened",
-        "duration": {
-          "type": "rounds",
-          "value": 1
-        },
-        "level": 0
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "A target hit by the Fey spirit attack has the Frightened condition until the start of your next turn, with both you and the spirit as the source of the fear.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "MOVEMENT",
-      "trigger": {
-        "type": "on_caster_action",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "bonus_action",
-          "optional": true
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "movementType": "teleport",
-      "distance": 30,
-      "duration": {
-        "type": "minutes",
-        "value": 10
-      },
-      "description": "On later turns, you can use a Bonus Action to teleport the Fey spirit to a visible unoccupied space within 30 feet of the space it left before making the spirit attack.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Conjure Fey is a repeatable teleport-attack loop: summon the Medium spirit, attack when it appears, then on later turns use a Bonus Action to teleport it up to 30 feet and make the same melee spell attack; a hit deals Psychic damage and Frightens the target until the start of your next turn.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [
-        {
-          "type": "bonus_action",
-          "action": "teleport_fey_spirit_and_make_melee_spell_attack",
-          "frequency": "each_turn",
-          "rangeLimit": 30,
-          "notes": "On later turns, the caster can teleport the spirit to an unoccupied visible space within 30 feet of the space it left and make the attack against a creature within 5 feet of it."
-        }
-      ],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You conjure a Medium spirit from the Feywild in an unoccupied space you can see within range. The spirit lasts for the duration, and it looks like a Fey creature of your choice. When the spirit appears, you can make one melee spell attack against a creature within 5 feet of it. On a hit, the target takes Psychic damage equal to 3d12 plus your spellcasting ability modifier, and the target has the Frightened condition until the start of your next turn, with both you and the spirit as the source of the fear. As a Bonus Action on your later turns, you can teleport the spirit to an unoccupied space you can see within 30 feet of the space it left and make the attack against a creature within 5 feet of it.",
-  "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d12 for each spell slot level above 6.",
-  "tags": [
-    "summoning",
-    "controlled-entity",
-    "concentration"
-  ]
+﻿{
+    "id":  "conjure-fey",
+    "name":  "Conjure Fey",
+    "aliases":  [
+
+                ],
+    "level":  6,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Druid"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "requiresUnoccupiedSpace":  true,
+                                                                  "lineOfSightRequired":  true,
+                                                                  "spaceSize":  "Medium",
+                                                                  "rangeAnchor":  "within_spell_range",
+                                                                  "chosenBy":  "caster",
+                                                                  "summonedCreatureOrigin":  "Feywild",
+                                                                  "notes":  "The Medium Fey spirit appears in an unoccupied visible space within 60 feet."
+                                                              }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "SUMMONING",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "summon":  {
+                                       "entityType":  "creature",
+                                       "persistent":  false,
+                                       "count":  1,
+                                       "formOptions":  [
+                                                           "Fey creature appearance chosen by the caster"
+                                                       ],
+                                       "objectDescription":  "Medium Feywild spirit that serves as the origin for the caster\u0027s repeatable teleport-and-melee-spell-attack loop.",
+                                       "statBlock":  {
+                                                         "name":  "Fey Spirit",
+                                                         "type":  "Fey",
+                                                         "size":  "Medium"
+                                                     },
+                                       "commandCost":  "bonus_action",
+                                       "commandsPerTurn":  1,
+                                       "initiative":  "shared",
+                                       "specialActions":  [
+                                                              {
+                                                                  "name":  "Fey Spirit Attack",
+                                                                  "description":  "The caster makes one melee spell attack against a creature within 5 feet of the spirit.",
+                                                                  "cost":  "bonus_action",
+                                                                  "damage":  {
+                                                                                 "dice":  "3d12 + spellcasting ability modifier",
+                                                                                 "type":  "Psychic"
+                                                                             }
+                                                              }
+                                                          ]
+                                   },
+                        "description":  "Summon one Medium Feywild spirit in a visible unoccupied space within 60 feet for up to 10 minutes with concentration; it looks like a Fey creature you choose and serves as the origin for the spell attack and later teleport loop.",
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "spell"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "hit",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "3d12 + spellcasting ability modifier",
+                                       "type":  "Psychic"
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+1d12",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "When the spirit appears, and on later turns after you teleport it with a Bonus Action, you can make one melee spell attack from the spirit against a creature within 5 feet of it; on a hit, the target takes 3d12 plus your spellcasting ability modifier Psychic damage, increasing by 1d12 per slot level above 6.",
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "spell"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "hit",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Frightened",
+                                                "duration":  {
+                                                                 "type":  "rounds",
+                                                                 "value":  1
+                                                             },
+                                                "level":  0
+                                            },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "A target hit by the Fey spirit attack has the Frightened condition until the start of your next turn, with both you and the spirit as the source of the fear.",
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "MOVEMENT",
+                        "trigger":  {
+                                        "type":  "on_caster_action",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "bonus_action",
+                                                            "optional":  true
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "movementType":  "teleport",
+                        "distance":  30,
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  10
+                                     },
+                        "description":  "On later turns, you can use a Bonus Action to teleport the Fey spirit to a visible unoccupied space within 30 feet of the space it left before making the spirit attack.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "teleportDestinationEligibility":  {
+                                                               "requiresUnoccupiedSpace":  true,
+                                                               "destinationMustBeVisible":  true,
+                                                               "maxDistanceFromSpiritFeet":  30,
+                                                               "timing":  "later_bonus_action",
+                                                               "notes":  "Later bonus-action teleports move the Fey spirit to an unoccupied visible space within 30 feet of the space it left."
+                                                           }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Conjure Fey is a repeatable teleport-attack loop: summon the Medium spirit, attack when it appears, then on later turns use a Bonus Action to teleport it up to 30 feet and make the same melee spell attack; a hit deals Psychic damage and Frightens the target until the start of your next turn.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "bonus_action",
+                                                   "action":  "teleport_fey_spirit_and_make_melee_spell_attack",
+                                                   "frequency":  "each_turn",
+                                                   "rangeLimit":  30,
+                                                   "notes":  "On later turns, the caster can teleport the spirit to an unoccupied visible space within 30 feet of the space it left and make the attack against a creature within 5 feet of it."
+                                               }
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You conjure a Medium spirit from the Feywild in an unoccupied space you can see within range. The spirit lasts for the duration, and it looks like a Fey creature of your choice. When the spirit appears, you can make one melee spell attack against a creature within 5 feet of it. On a hit, the target takes Psychic damage equal to 3d12 plus your spellcasting ability modifier, and the target has the Frightened condition until the start of your next turn, with both you and the spirit as the source of the fear. As a Bonus Action on your later turns, you can teleport the spirit to an unoccupied space you can see within 30 feet of the space it left and make the attack against a creature within 5 feet of it.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. The damage increases by 1d12 for each spell slot level above 6.",
+    "tags":  [
+                 "summoning",
+                 "controlled-entity",
+                 "concentration"
+             ]
 }
+

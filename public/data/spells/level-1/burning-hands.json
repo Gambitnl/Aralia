@@ -1,176 +1,225 @@
-{
-  "id": "burning-hands",
-  "name": "Burning Hands",
-  "aliases": [],
-  "level": 1,
-  "school": "Evocation",
-  "legacy": false,
-  "classes": [
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [
-    "Cleric - Light Domain",
-    "Warlock - Fiend Patron"
-  ],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "area",
-    "validTargets": [
-      "creatures"
-    ],
-    "areaOfEffect": {
-      "shape": "Cone",
-      "size": 15,
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "lineOfSight": false,
-    "range": 0,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Dexterity",
-        "saveEffect": "half",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "3d6",
-        "type": "Fire"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+1d6",
-        "customFormula": ""
-      },
-      "description": "Creatures in the 15-foot Cone make a Dexterity save against 3d6 Fire damage, taking half damage on a success; flammable objects in the Cone that are not worn or carried start burning, and damage increases by 1d6 per slot level above 1st.",
-      "conditionalEndings": [],
-      "tags": [
-        "fire-damage",
-        "dexterity-save",
-        "cone",
-        "slot-scaling"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "A thin sheet of flames shoots forth from you. Each creature in a 15-foot Cone makes a Dexterity saving throw, taking 3d6 Fire damage on a failed save or half as much damage on a successful one. Flammable objects in the Cone that aren't being worn or carried start burning .",
-  "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 1.",
-  "tags": [
-    "damage",
-    "fire",
-    "aoe"
-  ]
+﻿{
+    "id":  "burning-hands",
+    "name":  "Burning Hands",
+    "aliases":  [
+
+                ],
+    "level":  1,
+    "school":  "Evocation",
+    "legacy":  false,
+    "classes":  [
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+                       "Cleric - Light Domain",
+                       "Warlock - Fiend Patron"
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "instantaneous",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "areaOfEffect":  {
+                                           "shape":  "Cone",
+                                           "size":  15,
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "lineOfSight":  false,
+                      "range":  0,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Dexterity",
+                                          "saveEffect":  "half",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "3d6",
+                                       "type":  "Fire"
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+1d6",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Creatures in the 15-foot Cone make a Dexterity save against 3d6 Fire damage, taking half damage on a success; flammable objects in the Cone that are not worn or carried start burning, and damage increases by 1d6 per slot level above 1st.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "tags":  [
+                                     "fire-damage",
+                                     "dexterity-save",
+                                     "cone",
+                                     "slot-scaling"
+                                 ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "fire_state_change",
+                                                   "name":  "Ignited Flammable Objects In Cone",
+                                                   "count":  1,
+                                                   "countUnit":  "area",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Cone",
+                                                   "affectedVolumeSizeFeet":  15,
+                                                   "manipulationOptions":  [
+                                                                               "start_burning_unattended_flammable_objects"
+                                                                           ],
+                                                   "ignitesTouchedObjects":  true,
+                                                   "excludesWornOrCarriedObjects":  true,
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "until extinguished or consumed",
+                                                   "notes":  "Burning Hands starts flammable objects in the Cone burning when they are not worn or carried."
+                                               }
+                                           ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "A thin sheet of flames shoots forth from you. Each creature in a 15-foot Cone makes a Dexterity saving throw, taking 3d6 Fire damage on a failed save or half as much damage on a successful one. Flammable objects in the Cone that aren\u0027t being worn or carried start burning .",
+    "higherLevels":  "Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 1.",
+    "tags":  [
+                 "damage",
+                 "fire",
+                 "aoe"
+             ]
 }

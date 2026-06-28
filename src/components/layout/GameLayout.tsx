@@ -103,7 +103,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
             <VersionDisplay position="game-screen" />
 
             {/* Left Column: Navigation and Actions */}
-            <div id={UI_ID.LEFT_COLUMN} data-testid={UI_ID.LEFT_COLUMN} className="md:w-2/5 lg:w-1/3 flex flex-col gap-2 sm:gap-4 min-h-0">
+            <div id={UI_ID.LEFT_COLUMN} data-testid={UI_ID.LEFT_COLUMN} className="md:w-2/5 lg:w-1/3 flex flex-col gap-2 sm:gap-4 min-h-0 md:overflow-y-auto md:overflow-x-hidden md:pr-1">
                 <ErrorBoundary fallbackMessage="Error in Compass Pane.">
                     <CompassPane
                         currentLocation={currentLocation}

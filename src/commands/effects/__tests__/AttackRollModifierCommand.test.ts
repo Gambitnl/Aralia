@@ -3,6 +3,15 @@ import { createMockCombatCharacter, createMockCombatState } from '../../../utils
 import { AttackRollModifierCommand } from '../AttackRollModifierCommand';
 import { AttackRollModifierEffect } from '../../../types/spells';
 
+/**
+ * This test file proves the shared attack-roll rider command can carry more
+ * than a simple attack penalty.
+ *
+ * Shining Smite, Bane, and similar spells use this command when a spell needs
+ * to leave behind a live combat rule after the initial hit or save resolves.
+ * The tests keep that behavior executable so future agents do not have to read
+ * spell prose to know which runtime payloads are supposed to travel together.
+ */
 describe('AttackRollModifierCommand', () => {
   it('bundles status condition logic so targets only roll one save', async () => {
     const caster = createMockCombatCharacter({ id: 'caster', name: 'Caster' });
@@ -76,5 +85,102 @@ describe('AttackRollModifierCommand', () => {
     // They should have the Status Condition
     const hasCondition = affectedTarget?.conditions?.some(c => c.name === 'Bane');
     expect(hasCondition).toBe(true);
+  });
+
+  it('materializes Shining Smite rider advantage, Invisible suppression, and target light together', async () => {
+    const caster = createMockCombatCharacter({ id: 'paladin', name: 'Paladin' });
+    const target = createMockCombatCharacter({
+      id: 'glowing-target',
+      name: 'Glowing Target',
+      position: { x: 4, y: 2 }
+    });
+
+    const state = createMockCombatState();
+    state.characters = [caster, target];
+    state.activeLightSources = [{
+      id: 'stale-shining-light',
+      sourceSpellId: 'shining-smite',
+      casterId: caster.id,
+      brightRadius: 1,
+      dimRadius: 0,
+      attachedTo: 'target',
+      attachedToCharacterId: target.id,
+      createdTurn: 0
+    }];
+
+    const effect: AttackRollModifierEffect = {
+      type: 'ATTACK_ROLL_MODIFIER',
+      trigger: {
+        type: 'on_attack_hit',
+        frequency: 'every_time',
+        consumption: 'first_hit',
+        attackFilter: { weaponType: 'any', attackType: 'weapon' },
+        movementType: 'any',
+        sustainCost: { actionType: 'action', optional: false }
+      },
+      condition: { type: 'hit' },
+      attackRollModifier: {
+        modifier: 'advantage',
+        direction: 'incoming',
+        attackKind: 'any',
+        consumption: 'while_active',
+        duration: { type: 'minutes', value: 1 }
+      },
+      light: {
+        brightRadius: 5,
+        dimRadius: 0,
+        attachedTo: 'target',
+        colorChoice: 'not_applicable',
+        opaqueCoverBlocks: 'not_applicable',
+        emitsHeat: 'not_applicable',
+        ignitesObjects: 'not_applicable',
+        consumesFuel: 'not_applicable',
+        canBeCoveredOrHidden: 'not_applicable',
+        canBeSmotheredOrQuenched: 'not_applicable'
+      },
+      invisibilitySuppression: {
+        suppressesConditionBenefit: 'Invisible',
+        scope: 'target',
+        duration: 'while_spell_active',
+        description: 'The shining target cannot benefit from Invisible while the rider remains active.'
+      }
+    };
+
+    const command = new AttackRollModifierCommand(effect, {
+      spellId: 'shining-smite',
+      spellName: 'Shining Smite',
+      castAtLevel: 2,
+      caster,
+      targets: [target],
+      gameState: null as unknown as any
+    });
+
+    const newState = await command.execute(state);
+    const affectedTarget = newState.characters.find(character => character.id === target.id);
+    const smiteRider = affectedTarget?.activeEffects?.find(activeEffect => activeEffect.spellId === 'shining-smite');
+    const smiteLights = newState.activeLightSources.filter(light => light.sourceSpellId === 'shining-smite');
+
+    // The attack rider is the mechanical half of Shining Smite: attacks
+    // against the shining creature have Advantage while the spell remains up.
+    expect(smiteRider?.sourceName).toBe('Shining Smite');
+    expect(smiteRider?.mechanics?.attackRollModifier).toBe('advantage');
+    expect(smiteRider?.mechanics?.attackRollDirection).toBe('incoming');
+
+    // Invisible suppression stays on the same active effect so the attack
+    // factory can ignore Invisible-target disadvantage without deleting the
+    // target's actual Invisible condition record.
+    expect(smiteRider?.mechanics?.suppressedConditionBenefit).toBe('Invisible');
+
+    // The light payload becomes one target-attached map light, replacing the
+    // stale light from the same caster/spell/target instead of duplicating it.
+    expect(smiteLights).toHaveLength(1);
+    expect(smiteLights[0]).toMatchObject({
+      sourceSpellId: 'shining-smite',
+      casterId: caster.id,
+      brightRadius: 5,
+      dimRadius: 0,
+      attachedTo: 'target',
+      attachedToCharacterId: target.id
+    });
   });
 });

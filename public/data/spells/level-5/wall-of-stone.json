@@ -1,325 +1,401 @@
 {
-  "id": "wall-of-stone",
-  "name": "Wall of Stone",
-  "aliases": [],
-  "level": 5,
-  "school": "Evocation",
-  "legacy": false,
-  "classes": [
-    "Artificer",
-    "Druid",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a cube of granite",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "range": 120,
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Wall",
-      "size": 100,
-      "height": 10,
-      "sizeType": "length",
-      "sizeUnit": "feet",
-      "heightUnit": "feet",
-      "thickness": 6,
-      "thicknessUnit": "inches"
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Standard Panel Wall",
-          "shape": "Wall",
-          "size": 100,
-          "sizeType": "length",
-          "sizeUnit": "feet",
-          "height": 10,
-          "heightUnit": "feet",
-          "thickness": 6,
-          "thicknessUnit": "inches",
-          "segmentCount": 10,
-          "segmentWidth": 10,
-          "segmentWidthUnit": "feet",
-          "segmentHeight": 10,
-          "segmentHeightUnit": "feet"
-        },
-        {
-          "label": "Tall Panel Wall",
-          "shape": "Wall",
-          "size": 100,
-          "sizeType": "length",
-          "sizeUnit": "feet",
-          "height": 20,
-          "heightUnit": "feet",
-          "thickness": 3,
-          "thicknessUnit": "inches",
-          "segmentCount": 10,
-          "segmentWidth": 10,
-          "segmentWidthUnit": "feet",
-          "segmentHeight": 20,
-          "segmentHeightUnit": "feet"
-        }
-      ],
-      "measuredDetails": [
-        {
-          "label": "Unsupported Span Threshold",
-          "kind": "distance",
-          "value": 20,
-          "unit": "feet"
-        }
-      ]
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "creation",
-      "description": "Create a nonmagical stone wall for up to 10 minutes with concentration as ten contiguous 10-foot-by-10-foot panels, or as thinner 10-foot-by-20-foot panels. The wall can form supported shapes such as bridges, ramps, battlements, or similar stonework; a creature enclosed by the wall can make a Dexterity save to use its Reaction and move up to its Speed to escape enclosure. Each panel is a damageable stone object with AC 15, 30 Hit Points per inch of thickness, and Immunity to Poison and Psychic damage; destroyed panels can cause connected sections to collapse at the DM discretion, and full-duration concentration makes the wall permanent and unable to be dispelled.",
-      "createdObjects": [
-        {
-          "objectType": "structure",
-          "name": "Wall of Stone",
-          "count": 1,
-          "countUnit": "structure",
-          "appearsIn": "spell_area",
-          "materialOptions": [
-            "stone"
-          ],
-          "shapeOptions": [
-            "straight_wall",
-            "bridge",
-            "ramp",
-            "battlements",
-            "supported_stonework"
-          ],
-          "wallLengthFeet": 100,
-          "wallHeightFeet": 10,
-          "wallThickness": 6,
-          "wallThicknessUnit": "inches",
-          "panelCount": 10,
-          "panelWidthFeet": 10,
-          "panelHeightFeet": 10,
-          "panelContiguityRequired": true,
-          "orientationOptions": [
-            "horizontal",
-            "vertical",
-            "angled",
-            "caster_choice"
-          ],
-          "freeFloating": false,
-          "requiresAnchoring": true,
-          "anchoringOptions": [
-            "existing_stone",
-            "solid_support"
-          ],
-          "blocksPhysicalPassage": true,
-          "blocksLineOfSight": true,
-          "immuneToDamage": false,
-          "objectArmorClass": 15,
-          "hitPointsPerInchThickness": 30,
-          "damageImmunities": [
-            "Poison",
-            "Psychic"
-          ],
-          "pushesCreaturesToChosenSide": true,
-          "enclosureEscapeSaveType": "Dexterity",
-          "enclosureEscapeUsesReaction": true,
-          "enclosureEscapeMoveDistance": "speed",
-          "permanentAfterFullDuration": true,
-          "nonDispellableWhenPermanent": true,
-          "expiresWithSpell": true,
-          "shelfLife": "10 minutes unless concentration is maintained for the full duration",
-          "notes": "Ten contiguous stone panels. Standard panels are 10 by 10 feet and 6 inches thick; the caster can instead use 10-by-20-foot panels that are 3 inches thick. Each panel has AC 15 and 30 HP per inch of thickness, is immune to Poison and Psychic damage, can be breached, and may become permanent after full-duration concentration."
-        }
-      ],
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "tags": [
-        "barrier",
-        "stone",
-        "wall",
-        "dexterity-save",
-        "can-become-permanent"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "A nonmagical wall of solid stone springs into existence at a point you choose within range. The wall is 6 inches thick and is composed of ten 10-foot-by-10-foot panels. Each panel must be contiguous with another panel. Alternatively, you can create 10-foot-by-20-foot panels that are only 3 inches thick. If the wall cuts through a creature's space when it appears, the creature is pushed to one side of the wall (you choose which side). If a creature would be surrounded on all sides by the wall (or the wall and another solid surface), that creature can make a Dexterity saving throw. On a success, it can use its Reaction to move up to its Speed so that it is no longer enclosed by the wall. The wall can have any shape you desire, though it can't occupy the same space as a creature or object. The wall doesn't need to be vertical or rest on a firm foundation. It must, however, merge with and be solidly supported by existing stone. Thus, you can use this spell to bridge a chasm or create a ramp. If you create a span greater than 20 feet in length, you must halve the size of each panel to create supports. You can crudely shape the wall to create battlements and the like. The wall is an object made of stone that can be damaged and thus breached. Each panel has AC 15 and 30 Hit Points per inch of thickness, and it has Immunity to Poison and Psychic damage. Reducing a panel to 0 Hit Points destroys it and might cause connected panels to collapse at the DM's discretion. If you maintain your Concentration on this spell for its full duration, the wall becomes permanent and can't be dispelled. Otherwise, the wall disappears when the spell ends.",
-  "higherLevels": "",
-  "durationProgression": [
-    {
-      "trigger": "full_duration_concentration",
-      "requiredCasts": "not_applicable",
-      "cadence": "not_applicable",
-      "sameTargetRequired": "not_applicable",
-      "sameLocationRequired": "not_applicable",
-      "sameConfigurationRequired": "not_applicable",
-      "requiresFullConcentration": true,
-      "outcomeDuration": "non_dispellable_permanent",
-      "dispellable": false,
-      "notes": "Maintaining concentration on Wall of Stone for its full duration makes the wall permanent and unable to be dispelled."
-    }
-  ],
-  "tags": [
-    "evocation",
-    "creation",
-    "barrier",
-    "wall",
-    "stone",
-    "concentration"
-  ]
+    "id":  "wall-of-stone",
+    "name":  "Wall of Stone",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Evocation",
+    "legacy":  false,
+    "classes":  [
+                    "Artificer",
+                    "Druid",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a cube of granite",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  120,
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Wall",
+                                           "size":  100,
+                                           "height":  10,
+                                           "sizeType":  "length",
+                                           "sizeUnit":  "feet",
+                                           "heightUnit":  "feet",
+                                           "thickness":  6,
+                                           "thicknessUnit":  "inches"
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet",
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Standard Panel Wall",
+                                                               "shape":  "Wall",
+                                                               "size":  100,
+                                                               "sizeType":  "length",
+                                                               "sizeUnit":  "feet",
+                                                               "height":  10,
+                                                               "heightUnit":  "feet",
+                                                               "thickness":  6,
+                                                               "thicknessUnit":  "inches",
+                                                               "segmentCount":  10,
+                                                               "segmentWidth":  10,
+                                                               "segmentWidthUnit":  "feet",
+                                                               "segmentHeight":  10,
+                                                               "segmentHeightUnit":  "feet"
+                                                           },
+                                                           {
+                                                               "label":  "Tall Panel Wall",
+                                                               "shape":  "Wall",
+                                                               "size":  100,
+                                                               "sizeType":  "length",
+                                                               "sizeUnit":  "feet",
+                                                               "height":  20,
+                                                               "heightUnit":  "feet",
+                                                               "thickness":  3,
+                                                               "thicknessUnit":  "inches",
+                                                               "segmentCount":  10,
+                                                               "segmentWidth":  10,
+                                                               "segmentWidthUnit":  "feet",
+                                                               "segmentHeight":  20,
+                                                               "segmentHeightUnit":  "feet"
+                                                           }
+                                                       ],
+                                             "measuredDetails":  [
+                                                                     {
+                                                                         "label":  "Unsupported Span Threshold",
+                                                                         "kind":  "distance",
+                                                                         "value":  20,
+                                                                         "unit":  "feet"
+                                                                     }
+                                                                 ]
+                                         }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+                                                                       {
+                                                                           "outcome":  "enclosure_escape_success",
+                                                                           "effect":  "The creature can use its Reaction to move up to its Speed so it is no longer enclosed."
+                                                                       }
+                                                                   ]
+                                      },
+                        "utilityType":  "creation",
+                        "description":  "Create a nonmagical stone wall for up to 10 minutes with concentration as ten contiguous 10-foot-by-10-foot panels, or as thinner 10-foot-by-20-foot panels. The wall can form supported shapes such as bridges, ramps, battlements, or similar stonework; a creature enclosed by the wall can make a Dexterity save to use its Reaction and move up to its Speed to escape enclosure. Each panel is a damageable stone object with AC 15, 30 Hit Points per inch of thickness, and Immunity to Poison and Psychic damage; destroyed panels can cause connected sections to collapse at the DM discretion, and full-duration concentration makes the wall permanent and unable to be dispelled.",
+                        "enclosureEscapeSave":  {
+                                                    "saveType":  "Dexterity",
+                                                    "trigger":  "creature_would_be_surrounded_on_all_sides_by_wall_or_wall_and_solid_surface",
+                                                    "success":  "Creature can use its Reaction to move up to its Speed so it is no longer enclosed.",
+                                                    "reactionRequired":  true
+                                                },
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "structure",
+                                                   "name":  "Wall of Stone",
+                                                   "count":  1,
+                                                   "countUnit":  "structure",
+                                                   "appearsIn":  "spell_area",
+                                                   "materialOptions":  [
+                                                                           "stone"
+                                                                       ],
+                                                   "shapeOptions":  [
+                                                                        "straight_wall",
+                                                                        "bridge",
+                                                                        "ramp",
+                                                                        "battlements",
+                                                                        "supported_stonework"
+                                                                    ],
+                                                   "wallLengthFeet":  100,
+                                                   "wallHeightFeet":  10,
+                                                   "wallThickness":  6,
+                                                   "wallThicknessUnit":  "inches",
+                                                   "panelCount":  10,
+                                                   "panelWidthFeet":  10,
+                                                   "panelHeightFeet":  10,
+                                                   "panelContiguityRequired":  true,
+                                                   "orientationOptions":  [
+                                                                              "horizontal",
+                                                                              "vertical",
+                                                                              "angled",
+                                                                              "caster_choice"
+                                                                          ],
+                                                   "freeFloating":  false,
+                                                   "requiresAnchoring":  true,
+                                                   "anchoringOptions":  [
+                                                                            "existing_stone",
+                                                                            "solid_support"
+                                                                        ],
+                                                   "blocksPhysicalPassage":  true,
+                                                   "blocksLineOfSight":  true,
+                                                   "immuneToDamage":  false,
+                                                   "objectArmorClass":  15,
+                                                   "hitPointsPerInchThickness":  30,
+                                                   "damageImmunities":  [
+                                                                            "Poison",
+                                                                            "Psychic"
+                                                                        ],
+                                                   "pushesCreaturesToChosenSide":  true,
+                                                   "enclosureEscapeSaveType":  "Dexterity",
+                                                   "enclosureEscapeUsesReaction":  true,
+                                                   "enclosureEscapeMoveDistance":  "speed",
+                                                   "permanentAfterFullDuration":  true,
+                                                   "nonDispellableWhenPermanent":  true,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "10 minutes unless concentration is maintained for the full duration",
+                                                   "notes":  "Ten contiguous stone panels. Standard panels are 10 by 10 feet and 6 inches thick; the caster can instead use 10-by-20-foot panels that are 3 inches thick. Each panel has AC 15 and 30 HP per inch of thickness, is immune to Poison and Psychic damage, can be breached, and may become permanent after full-duration concentration."
+                                               }
+                                           ],
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "tags":  [
+                                     "barrier",
+                                     "stone",
+                                     "wall",
+                                     "dexterity-save",
+                                     "can-become-permanent"
+                                 ],
+                        "aftermathState":  {
+                                               "kind":  "temporary_wall_cleanup_or_permanence",
+                                               "when":  "spell_ends",
+                                               "consequence":  "wall_disappears_unless_made_permanent_by_maintaining_concentration_for_full_duration",
+                                               "permanence":  "becomes_nonmagical_stone_wall_if_maintained_full_10_minutes"
+                                           },
+                        "reactionState":  {
+                                              "kind":  "escape_enclosure_reaction",
+                                              "trigger":  "creature_would_be_surrounded_on_all_sides_by_new_wall_or_wall_and_solid_surface",
+                                              "save":  "Dexterity",
+                                              "onSuccess":  "creature_can_use_Reaction_to_move_up_to_its_Speed_so_it_is_no_longer_enclosed",
+                                              "onFailure":  "creature_remains_enclosed_by_wall_placement"
+                                          },
+                        "forcedMovementState":  {
+                                                    "kind":  "wall_placement_push_and_escape",
+                                                    "trigger":  "wall_cuts_through_creature_space_when_appearing",
+                                                    "push":  "creature_pushed_to_one_side_caster_choice",
+                                                    "enclosureEscape":  "if_surrounded_creature_can_Dexterity_save_and_on_success_use_Reaction_to_move_up_to_Speed_out_of_enclosure",
+                                                    "permanence":  "full_duration_concentration_makes_wall_permanent"
+                                                },
+                        "movementState":  {
+                                              "kind":  "reaction_escape_movement",
+                                              "trigger":  "creature_would_be_enclosed_by_wall_or_wall_and_solid_surface",
+                                              "save":  "Dexterity",
+                                              "onSuccess":  "can_use_Reaction_to_move_up_to_its_Speed_to_no_longer_be_enclosed",
+                                              "pairsWith":  "forcedMovementState_wall_placement_push"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose panel layout, height/thickness option, support/anchoring, and pushed side for creatures in spaces the wall cuts through. If any creature would be fully enclosed, resolve its Dexterity save and Reaction movement before finalizing enclosure.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "A nonmagical wall of solid stone springs into existence at a point you choose within range. The wall is 6 inches thick and is composed of ten 10-foot-by-10-foot panels. Each panel must be contiguous with another panel. Alternatively, you can create 10-foot-by-20-foot panels that are only 3 inches thick. If the wall cuts through a creature\u0027s space when it appears, the creature is pushed to one side of the wall (you choose which side). If a creature would be surrounded on all sides by the wall (or the wall and another solid surface), that creature can make a Dexterity saving throw. On a success, it can use its Reaction to move up to its Speed so that it is no longer enclosed by the wall. The wall can have any shape you desire, though it can\u0027t occupy the same space as a creature or object. The wall doesn\u0027t need to be vertical or rest on a firm foundation. It must, however, merge with and be solidly supported by existing stone. Thus, you can use this spell to bridge a chasm or create a ramp. If you create a span greater than 20 feet in length, you must halve the size of each panel to create supports. You can crudely shape the wall to create battlements and the like. The wall is an object made of stone that can be damaged and thus breached. Each panel has AC 15 and 30 Hit Points per inch of thickness, and it has Immunity to Poison and Psychic damage. Reducing a panel to 0 Hit Points destroys it and might cause connected panels to collapse at the DM\u0027s discretion. If you maintain your Concentration on this spell for its full duration, the wall becomes permanent and can\u0027t be dispelled. Otherwise, the wall disappears when the spell ends.",
+    "higherLevels":  "",
+    "durationProgression":  [
+                                {
+                                    "trigger":  "full_duration_concentration",
+                                    "requiredCasts":  "not_applicable",
+                                    "cadence":  "not_applicable",
+                                    "sameTargetRequired":  "not_applicable",
+                                    "sameLocationRequired":  "not_applicable",
+                                    "sameConfigurationRequired":  "not_applicable",
+                                    "requiresFullConcentration":  true,
+                                    "outcomeDuration":  "non_dispellable_permanent",
+                                    "dispellable":  false,
+                                    "notes":  "Maintaining concentration on Wall of Stone for its full duration makes the wall permanent and unable to be dispelled."
+                                }
+                            ],
+    "tags":  [
+                 "evocation",
+                 "creation",
+                 "barrier",
+                 "wall",
+                 "stone",
+                 "concentration"
+             ]
 }

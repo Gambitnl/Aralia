@@ -55,6 +55,51 @@ interface MainMenuProps {
 }
 
 /**
+ * Semantic button color system for the main menu (M1/X2).
+ * One primary CTA (amber, matches the title accent) — "Begin Legend".
+ * Everything else is a neutral secondary, except genuinely destructive
+ * actions (red) which keep their own meaning. This replaces the previous
+ * rainbow of unrelated hues where every button competed for attention.
+ */
+const BTN_BASE =
+  'w-full font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform focus:outline-none focus:ring-2 focus:ring-opacity-75';
+
+/** The single primary call-to-action. */
+const BTN_PRIMARY =
+  `${BTN_BASE} bg-amber-500 hover:bg-amber-400 text-gray-900 hover:scale-105 focus:ring-amber-300`;
+
+/** Neutral secondary action — the default for most menu entries. */
+const BTN_SECONDARY =
+  `${BTN_BASE} bg-slate-700 hover:bg-slate-600 text-gray-100 hover:scale-105 focus:ring-slate-400`;
+
+/** Destructive action (abandon / wipe). */
+const BTN_DANGER =
+  `${BTN_BASE} bg-red-800 hover:bg-red-700 text-red-50 hover:scale-105 focus:ring-red-400`;
+
+/**
+ * Disabled styling (M2): genuinely reads as unavailable — desaturated,
+ * dimmed, no hover lift, not-allowed cursor. Append to a base style and
+ * gate the hover/scale classes off via the variant constants below.
+ */
+const BTN_DISABLED = 'opacity-40 saturate-0 cursor-not-allowed hover:scale-100';
+
+/**
+ * True only in a shipped production bundle. `import.meta.env.PROD` is false in
+ * both local dev and the test runner, so dev/test still see developer surfaces
+ * while a production build hides them. Guarded for non-Vite/SSR contexts.
+ */
+const IS_PRODUCTION_BUILD: boolean =
+  typeof import.meta !== 'undefined' && (import.meta as ImportMeta).env
+    ? Boolean((import.meta as ImportMeta).env.PROD)
+    : false;
+
+/** Secondary action that may be disabled — drops the hover affordances when off. */
+const btnSecondary = (disabled: boolean): string =>
+  disabled
+    ? `${BTN_BASE} bg-slate-700 text-gray-100 ${BTN_DISABLED} focus:ring-slate-400`
+    : BTN_SECONDARY;
+
+/**
  * MainMenu component.
  * Displays the main title and navigation buttons for the game.
  * @param {MainMenuProps} props - Props for the component, including callbacks for menu actions.
@@ -157,7 +202,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
         {canGoBack && onGoBack && (
           <button
             onClick={onGoBack}
-            className="w-full mb-4 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow-md text-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 flex items-center justify-center gap-2"
+            className="w-full mb-4 bg-slate-700 hover:bg-slate-600 text-gray-100 font-bold py-2 px-4 rounded-lg shadow-md text-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-opacity-75 flex items-center justify-center gap-2"
             aria-label={t('main_menu.back_aria')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -170,11 +215,11 @@ const MainMenu: React.FC<MainMenuProps> = ({
           {(hasSaveGame || !!latestSlot) && (
             <button
               onClick={() => handleLoadSlot(latestSlot?.slotId)}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75"
+              className={BTN_SECONDARY}
             >
               {t('main_menu.continue')}
               {(latestSlot?.lastSaved || latestSaveTimestamp) && (
-                <span className="block text-xs text-gray-950 mt-1">
+                <span className="block text-xs text-gray-400 mt-1">
                   {formatTimestamp(latestSlot?.lastSaved || latestSaveTimestamp)}
                 </span>
               )}
@@ -182,7 +227,9 @@ const MainMenu: React.FC<MainMenuProps> = ({
           )}
           <button
             onClick={onNewGame}
-            className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
+            className={BTN_PRIMARY}
+            aria-label={t('main_menu.new_game_aria')}
+            title={t('main_menu.new_game_title')}
           >
             {t('main_menu.new_game')}
           </button>
@@ -190,7 +237,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
             <>
               <button
                 onClick={onOpenWorldGeneration}
-                className={`w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75 ${isWorldGenerationLocked ? 'opacity-80' : ''}`}
+                className={btnSecondary(isWorldGenerationLocked)}
                 title={isWorldGenerationLocked && worldGenerationLockedReason ? worldGenerationLockedReason : 'Open world generation setup'}
               >
                 World Generation
@@ -205,18 +252,24 @@ const MainMenu: React.FC<MainMenuProps> = ({
           <button
             onClick={() => setIsSaveModalOpen(true)}
             disabled={!onSaveGame}
-            className={`w-full bg-amber-600 hover:bg-amber-500 text-gray-900 font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-opacity-75 ${!onSaveGame ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={btnSecondary(!onSaveGame)}
           >
             {t('main_menu.save_to_slot')}
           </button>
-          {canUseDevTools() && (
+          {/* M5: the "Dev Menu" button is a developer affordance and must NOT appear on the
+              shipped player landing screen. canUseDevTools() is currently hardcoded-true
+              ("Force enable for testing"), so it alone is not a real gate. We additionally
+              require that this is NOT a production build — in the shipped player bundle
+              import.meta.env.PROD is true, so players never see this button, while dev and
+              the test runner (both PROD=false) keep it. */}
+          {!IS_PRODUCTION_BUILD && canUseDevTools() && (
             <>
               {/* The dev-only quick-start path now lives inside Dev Menu so this main-menu
                   surface only shows one developer entry point instead of two disjoint ones. */}
               {onOpenDevMenu && (
                 <button
                   onClick={onOpenDevMenu}
-                  className="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
+                  className={BTN_SECONDARY}
                 >
                   Dev Menu
                 </button>
@@ -226,7 +279,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
           <button
             onClick={() => setIsLoadModalOpen(true)}
             disabled={!hasSaveGame && saveSlots.length === 0}
-            className={`w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 ${(!hasSaveGame && saveSlots.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={btnSecondary(!hasSaveGame && saveSlots.length === 0)}
             title={hasSaveGame || saveSlots.length > 0 ? t('main_menu.load_game') : t('main_menu.load_game_empty_title')}
           >
             {t('main_menu.load_game')}
@@ -236,14 +289,14 @@ const MainMenu: React.FC<MainMenuProps> = ({
               <div className="w-full bg-gray-700 rounded-lg p-3 space-y-2">
                 <p className="text-sm text-amber-300 text-center">{t('main_menu.abandon_run_confirm')}</p>
                 <div className="flex gap-2">
-                  <button onClick={handleConfirm} className="flex-1 bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors">Confirm</button>
-                  <button onClick={() => setPendingConfirm(null)} className="flex-1 bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors">Cancel</button>
+                  <button onClick={handleConfirm} className="flex-1 bg-red-700 hover:bg-red-600 text-red-50 font-bold py-2 px-3 rounded-lg text-sm transition-colors">Confirm</button>
+                  <button onClick={() => setPendingConfirm(null)} className="flex-1 bg-slate-600 hover:bg-slate-500 text-gray-100 font-bold py-2 px-3 rounded-lg text-sm transition-colors">Cancel</button>
                 </div>
               </div>
             ) : (
               <button
                 onClick={() => setPendingConfirm('abandon')}
-                className="w-full bg-orange-700 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-75"
+                className={BTN_DANGER}
               >
                 {t('main_menu.abandon_run')}
               </button>
@@ -254,14 +307,14 @@ const MainMenu: React.FC<MainMenuProps> = ({
               <div className="w-full bg-gray-700 rounded-lg p-3 space-y-2">
                 <p className="text-sm text-red-300 text-center">{t('main_menu.clear_save_confirm')}</p>
                 <div className="flex gap-2">
-                  <button onClick={handleConfirm} className="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors">Confirm</button>
-                  <button onClick={() => setPendingConfirm(null)} className="flex-1 bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors">Cancel</button>
+                  <button onClick={handleConfirm} className="flex-1 bg-red-700 hover:bg-red-600 text-red-50 font-bold py-2 px-3 rounded-lg text-sm transition-colors">Confirm</button>
+                  <button onClick={() => setPendingConfirm(null)} className="flex-1 bg-slate-600 hover:bg-slate-500 text-gray-100 font-bold py-2 px-3 rounded-lg text-sm transition-colors">Cancel</button>
                 </div>
               </div>
             ) : (
               <button
                 onClick={() => setPendingConfirm('wipe')}
-                className="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75"
+                className={BTN_DANGER}
               >
                 {t('main_menu.clear_save')}
               </button>
@@ -269,13 +322,15 @@ const MainMenu: React.FC<MainMenuProps> = ({
           )}
           <button
             onClick={onShowCompendium} // This prop now correctly opens the Glossary
-            className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-75"
+            className={BTN_SECONDARY}
             title={t('main_menu.glossary_title')}
+            aria-label={t('main_menu.glossary_aria')}
           >
             {t('main_menu.glossary')}
           </button>
         </div>
-        <p className="text-sm text-gray-400 mt-12">{t('main_menu.powered_by')}</p>
+        {/* M4: removed the player-facing "Powered by Gemini" branding line — an
+            engineering/vendor detail that should not leak into the shipped menu. */}
       </div>
 
       {isSaveModalOpen && (

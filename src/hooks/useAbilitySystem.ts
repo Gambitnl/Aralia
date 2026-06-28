@@ -37,17 +37,14 @@ import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
 import { getDistance, generateId } from '../utils/combatUtils';
 import { calculateSpellDC, rollSavingThrow } from '../utils/savingThrowUtils';
-// TODO(lint-intent): 'hasLineOfSight' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { hasLineOfSight as _hasLineOfSight } from '../utils/lineOfSight';
+import { hasLineOfSight } from '../utils/lineOfSight';
 import { calculateAffectedTiles, type AoEParams } from '../utils/combat/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/spatial/targetingUtils';
 import { findPath } from '../utils/spatial/pathfinding';
 import { Plane } from '../types/planes';
-import { findFamiliarTouchDelivery, useTargetValidator } from './combat/useTargetValidator';
-import { consumeActionCost } from '../utils/combat/actionEconomyUtils';
+import { findTouchDeliveryActor, getTouchDeliveryActionCost, useTargetValidator } from './combat/useTargetValidator';
+import { canAffordActionCost, consumeActionCost } from '../utils/combat/actionEconomyUtils';
 import {
   createMovementDebuff,
   createScheduledSpellEffect,
@@ -117,6 +114,181 @@ const getSpellControlOptions = (spell: Spell): NonNullable<UtilityEffect['contro
 
     return (effect as UtilityEffect).controlOptions ?? [];
   });
+};
+
+
+export const materializeAfterHitReactionSpell = (spell: Spell): Spell => {
+  // After-hit smites are cast after the weapon hit already exists. Their data
+  // still marks the payload as hit-bound so validators and rider code know the
+  // timing contract, but the reaction bridge must apply those payloads to this
+  // triggering hit instead of registering them for a future attack.
+  if (spell.castingTrigger?.type !== 'after_attack_hit') {
+    return spell;
+  }
+
+  return {
+    ...spell,
+    effects: spell.effects.map(effect => {
+      // Only the payloads that explicitly wait for an attack hit are rewritten.
+      // Other rows, such as ordinary utility setup, stay untouched so future
+      // after-hit reaction spells can mix immediate and hit-bound effects.
+      if (effect.trigger?.type !== 'on_attack_hit') {
+        return effect;
+      }
+
+      return {
+        ...effect,
+        trigger: {
+          ...effect.trigger,
+          type: 'immediate',
+          consumption: 'unlimited'
+        }
+      } as SpellEffect;
+    })
+  };
+};
+
+const normalizeAfterHitWeaponType = (
+  weaponType?: string
+): 'melee' | 'ranged' | 'unarmed' | 'any' | undefined => {
+  // Older spell packets and migration fixtures used weapon-object labels such
+  // as `melee_weapon`, while command-backed attack events publish the compact
+  // attack context labels used by the live combat event bus. The after-hit
+  // prompt bridge accepts both so legacy metadata does not strand a smite-like
+  // spell after the qualifying hit already happened.
+  if (weaponType === 'melee_weapon') {
+    return 'melee';
+  }
+
+  if (weaponType === 'ranged_weapon') {
+    return 'ranged';
+  }
+
+  // Current spell data should already arrive in this compact form. Unknown
+  // values intentionally fall through to `undefined` so the matcher rejects the
+  // spell instead of widening it to any weapon by accident.
+  if (weaponType === 'melee' || weaponType === 'ranged' || weaponType === 'unarmed' || weaponType === 'any') {
+    return weaponType;
+  }
+
+  return undefined;
+};
+
+const getCastingTriggerActionCost = (spell: Spell) => {
+  // Casting-trigger spells pay the cost declared by their own trigger
+  // metadata. Shining/Blinding Smite and Counterspell all use a Reaction today,
+  // but sharing this translator keeps after-hit and interruption spells on the
+  // same runtime contract instead of rebuilding spell-specific payment objects.
+  const requiredCost = spell.castingTrigger?.requiredCost ?? 'reaction';
+  const actionType = requiredCost === 'bonus_action' ? 'bonus' : requiredCost;
+
+  return {
+    type: actionType,
+    spellSlotLevel: Math.max(spell.level ?? 0, 1)
+  } as const;
+};
+
+
+
+export const hasSpellInterruptionLineOfSight = (
+  reactor: CombatCharacter,
+  caster: CombatCharacter,
+  mapData: BattleMapData | null
+): boolean => {
+  // Counterspell's trigger requires the reacting creature to see the caster.
+  // When a battle map is present, use the same grid line-of-sight helper that
+  // targeting uses instead of treating range alone as visibility.
+  if (mapData) {
+    const reactorTile = mapData.tiles.get(`${reactor.position.x}-${reactor.position.y}`);
+    const casterTile = mapData.tiles.get(`${caster.position.x}-${caster.position.y}`);
+
+    // Some encounters or test harnesses carry positions without a populated
+    // tile map. Preserve the older range-only behavior for those incomplete
+    // states rather than silently disabling every interruption reaction.
+    if (!reactorTile || !casterTile) {
+      return true;
+    }
+
+    return hasLineOfSight(reactorTile, casterTile, mapData);
+  }
+
+  // Mapless encounters have no obstacle authority, so visibility remains a
+  // range-and-trigger decision until a richer theater-of-mind visibility model
+  // exists.
+  return true;
+};
+
+export const hasSpellInterruptionVisibility = (
+  reactor: CombatCharacter,
+  caster: CombatCharacter,
+  mapData: BattleMapData | null
+): boolean => {
+  // Counterspell says the reactor must see the spell being cast. The map line
+  // can be clear while the caster is still magically Invisible or explicitly
+  // Hidden, so check the shared status-effect surface before asking the grid
+  // about obstacles.
+  const casterVisibilityStates = [
+    ...(caster.statusEffects || []),
+    ...(caster.conditions || [])
+  ];
+  const casterIsUnseen = casterVisibilityStates.some(effect => {
+    // Status IDs are usually lower-case while names are display-case. The newer
+    // structured condition mirror may not have an ID at all, so normalize both
+    // available labels and make either runtime surface block Counterspell.
+    const statusId = 'id' in effect ? effect.id?.toLowerCase?.() : undefined;
+    const statusName = effect.name?.toLowerCase?.();
+
+    return statusId === 'invisible' ||
+      statusName === 'invisible' ||
+      statusId === 'hidden' ||
+      statusName === 'hidden';
+  }) ?? false;
+
+  if (casterIsUnseen) {
+    return false;
+  }
+
+  return hasSpellInterruptionLineOfSight(reactor, caster, mapData);
+};
+
+const restoreInterruptedSpellSlot = (
+  caster: CombatCharacter,
+  spell: Spell,
+  castAtLevel: number
+): CombatCharacter => {
+  // Counterspell wastes the action used to cast the interrupted spell, but the
+  // rules preserve the interrupted spell slot. The ability path has already
+  // spent both before this helper runs, so only the slot is restored here and
+  // the action/bonus/reaction economy is left exactly as paid.
+  const slotLevel = Math.max(castAtLevel || spell.level || 0, spell.level || 0);
+
+  if (slotLevel <= 0 || !caster.spellSlots) {
+    return caster;
+  }
+
+  const slotKey = `level_${slotLevel}` as keyof NonNullable<CombatCharacter['spellSlots']>;
+  const currentSlot = caster.spellSlots[slotKey];
+
+  if (!currentSlot) {
+    return caster;
+  }
+
+  const restoredCurrent = Math.min(currentSlot.max, currentSlot.current + 1);
+
+  if (restoredCurrent === currentSlot.current) {
+    return caster;
+  }
+
+  return {
+    ...caster,
+    spellSlots: {
+      ...caster.spellSlots,
+      [slotKey]: {
+        ...currentSlot,
+        current: restoredCurrent
+      }
+    }
+  };
 };
 
 interface UseAbilitySystemProps {
@@ -334,7 +506,8 @@ export const useAbilitySystem = ({
       playerInput?: string,
       resourceSnapshot?: CombatCharacter,
       zoneRegistration?: { areaOfEffect: { shape: string }; aoeParams: AoEParams },
-      selectedSpellTargets?: SelectedSpellTarget[]
+      selectedSpellTargets?: SelectedSpellTarget[],
+      interruptionDepth = 0
     ) {
       // RALPH: Stability Pattern.
       // We access `charactersRef.current` instead of `characters` from props to avoid re-creating this function on every render.
@@ -356,7 +529,7 @@ export const useAbilitySystem = ({
             // creation, because SpellCommandFactory uses that label to keep
             // only the chosen effect branch. Re-enter the same execution path
             // after the UI supplies the choice.
-            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot, zoneRegistration, selectedSpellTargets);
+            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot, zoneRegistration, selectedSpellTargets, interruptionDepth);
           });
           return;
         }
@@ -385,7 +558,7 @@ export const useAbilitySystem = ({
             // Command-control spells store their menu inside the utility
             // effect, but the selected word should travel through the same
             // playerInput bridge that mode-choice spells already use.
-            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot, zoneRegistration, selectedSpellTargets);
+            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot, zoneRegistration, selectedSpellTargets, interruptionDepth);
           });
           return;
         }
@@ -414,7 +587,7 @@ export const useAbilitySystem = ({
             // clicked a map tile or object. Preserve that selected-target
             // payload when execution resumes so command creation still knows
             // what the text choice was meant to affect.
-            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot, zoneRegistration, selectedSpellTargets);
+            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot, zoneRegistration, selectedSpellTargets, interruptionDepth);
           });
           return; // Halt execution until input is provided
         } else {
@@ -445,6 +618,138 @@ export const useAbilitySystem = ({
         currentPlane: activePlane,
         mapData: currentMapData ?? undefined // Add mapData to context if needed by commands
       };
+
+      // Spell-interruption reactions need to happen before command creation
+      // applies the original spell effects. This shared gate looks for any
+      // available reaction spell whose structured trigger says it can answer a
+      // visible creature casting a spell, then lets the existing reaction prompt
+      // choose it. The depth limit explicitly allows the first Counterspell to
+      // be counterspelled while preventing an unbounded prompt loop. Depth 0 is
+      // the original spell, depth 1 is the first interruption spell, and depth 2
+      // is where prompts stop so the chain cannot recurse forever.
+      if (interruptionDepth < 2) {
+        for (const possibleReactor of commandCharacters) {
+          const isSameCreature = possibleReactor.id === caster.id;
+
+          if (isSameCreature) {
+            continue;
+          }
+
+          const interruptionSpells = (possibleReactor.abilities || [])
+            .map(abilityOption => abilityOption.spell)
+            .filter((spellOption): spellOption is Spell => {
+              const trigger = spellOption?.castingTrigger;
+              const maxRange = spellOption?.interruptionState?.rangeFeet ?? trigger?.maxRangeFeet ?? spellOption?.range?.distance ?? 0;
+              const visibilityRequired = spellOption?.interruptionState?.visibilityRequired ?? true;
+              const interruptionCost = spellOption ? getCastingTriggerActionCost(spellOption) : null;
+
+              // Interruption eligibility is driven by the spell's declared
+              // trigger cost, not by a hardcoded reaction pre-check. Current
+              // Counterspell data still declares a Reaction, but this keeps the
+              // shared interruption gate aligned with any future action,
+              // bonus-action, or free interruptor that uses the same metadata.
+              return Boolean(spellOption) &&
+                trigger?.type === 'when_visible_creature_casts_spell' &&
+                trigger.requiredCost === spellOption.castingTime?.unit &&
+                getDistance(possibleReactor.position, caster.position) <= maxRange &&
+                (!visibilityRequired || hasSpellInterruptionVisibility(possibleReactor, caster, currentMapData)) &&
+                Boolean(interruptionCost) &&
+                canAffordActionCost(possibleReactor, interruptionCost);
+            });
+
+          if (interruptionSpells.length === 0) {
+            continue;
+          }
+
+          const selectedReactionId = await requestReaction(
+            caster.id,
+            possibleReactor.id,
+            'on_cast',
+            interruptionSpells
+          );
+          const selectedInterruptionSpell = interruptionSpells.find(spellOption => spellOption.id === selectedReactionId);
+
+          if (!selectedInterruptionSpell) {
+            continue;
+          }
+
+          // Resolve the interruption save before the original spell commands
+          // run. A failed save means the original spell has no effect and its
+          // action is wasted; this hook stops command execution so damage,
+          // status, summons, and created objects from the interrupted spell do
+          // not appear.
+          const interruptionState = selectedInterruptionSpell.interruptionState;
+          const saveDC = calculateSpellDC(possibleReactor);
+          const saveResult = rollSavingThrow(caster, interruptionState?.saveType ?? 'Constitution', saveDC);
+          const interruptionCost = getCastingTriggerActionCost(selectedInterruptionSpell);
+          const reactorAfterCost = consumeActionCost(possibleReactor, interruptionCost);
+          charactersRef.current = charactersRef.current.map(character =>
+            character.id === reactorAfterCost.id ? reactorAfterCost : character
+          );
+          onCharacterUpdate(reactorAfterCost);
+
+          const interruptionSpellResolved = await executeSpell(
+            selectedInterruptionSpell,
+            reactorAfterCost,
+            [caster],
+            Math.max(selectedInterruptionSpell.level, 1),
+            undefined,
+            reactorAfterCost,
+            undefined,
+            undefined,
+            interruptionDepth + 1
+          );
+
+          // Counterspell can itself be counterspelled once. If that nested
+          // interruption stops this selected reaction spell, do not let this
+          // outer gate keep using a pre-rolled save to cancel the original
+          // spell anyway. The reaction spell's own resource state is handled
+          // inside the nested execution path; this branch only decides whether
+          // it reached the point where it can affect the original caster.
+          if (interruptionSpellResolved === false) {
+            continue;
+          }
+
+          if (onLogEntry) {
+            onLogEntry({
+              id: generateId(),
+              timestamp: Date.now(),
+              type: 'action',
+              message: `${possibleReactor.name} tries to interrupt ${caster.name}'s ${spell.name}; ${caster.name} ${saveResult.success ? 'keeps the spell' : 'loses the spell'} with a ${interruptionState?.saveType ?? 'Constitution'} save (${saveResult.total} vs DC ${saveDC}).`,
+              characterId: possibleReactor.id,
+              targetIds: [caster.id],
+              data: {
+                spellId: selectedInterruptionSpell.id,
+                interruptedSpellId: spell.id,
+                saveSucceeded: saveResult.success
+              }
+            });
+          }
+
+          if (!saveResult.success && (interruptionState?.failureOutcome ?? 'spell_has_no_effect') === 'spell_has_no_effect') {
+            const shouldPreserveInterruptedSlot = interruptionState?.preservesInterruptedSlot ??
+              interruptionState?.slotPolicy === 'interrupted_spell_slot_is_not_expended';
+
+            // Counterspell preserves the interrupted caster's spell slot while
+            // still wasting the action, bonus action, or reaction used to cast
+            // the stopped spell. Read that rule from interruption metadata so
+            // future interruption spells can choose a different slot policy
+            // without creating another hardcoded Counterspell branch here.
+            if (shouldPreserveInterruptedSlot) {
+              const casterWithSlotRestored = restoreInterruptedSpellSlot(caster, spell, castAtLevel);
+              charactersRef.current = charactersRef.current.map(character =>
+                character.id === casterWithSlotRestored.id ? casterWithSlotRestored : character
+              );
+              onCharacterUpdate(casterWithSlotRestored);
+            }
+
+            if (onNotification) {
+              onNotification(`${spell.name} was interrupted by ${selectedInterruptionSpell.name}.`, 'warning');
+            }
+            return false;
+          }
+        }
+      }
 
       const commandGameState = buildCommandGameState(commandCharacters, currentMapData, activePlane);
       const targetResolution = TargetResolver.resolveTargetCandidates(
@@ -671,6 +976,7 @@ export const useAbilitySystem = ({
           });
         }
       }
+      return true;
     },
     [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onActiveLightSourcesUpdate, onMapUpdate, onAddSpellZone, onSpellZonesUpdate, onSpellCreatedInventoryItems, onAddScheduledSpellEffect, onAddMovementDebuff, onAddSpellMovementVisual, activeLightSources, spellZones]
   );
@@ -809,7 +1115,7 @@ export const useAbilitySystem = ({
         : spellWithPerTargetChoices;
 
       const touchDelivery = targetCharacterIds.length === 1
-        ? findFamiliarTouchDelivery(
+        ? findTouchDeliveryActor(
             ability,
             liveCaster,
             currentCharacters.find(character => character.id === targetCharacterIds[0]) ?? null,
@@ -818,25 +1124,38 @@ export const useAbilitySystem = ({
         : null;
 
       if (touchDelivery) {
-        // Find Familiar delivery uses the familiar's reaction. Spend it at the
-        // same boundary as the caster's spell cost so the action economy cannot
-        // deliver multiple touch spells through one familiar turn. The spell
-        // still resolves as the caster's spell; this only updates the familiar
-        // actor that provided the delivery origin.
-        const updatedFamiliar = consumeActionCost(touchDelivery.familiar, { type: 'reaction' });
-        charactersRef.current = charactersRef.current.map(character =>
-          character.id === updatedFamiliar.id ? updatedFamiliar : character
-        );
-        onCharacterUpdate(updatedFamiliar);
+        const touchDeliveryCost = touchDelivery.deliveryActor.summonMetadata?.actionPermissions?.touchDeliveryCost ?? 'reaction';
+        const touchDeliveryActionCost = getTouchDeliveryActionCost(touchDeliveryCost);
+        const updatedDeliveryActor = touchDeliveryActionCost
+          ? consumeActionCost(touchDelivery.deliveryActor, touchDeliveryActionCost)
+          : touchDelivery.deliveryActor;
+
+        // Find Familiar delivery spends the cost declared by the summoned
+        // actor's permission metadata. The 2024 familiar uses its Reaction, but
+        // this shared translator also supports action, bonus action, free, and
+        // no-cost delivery without creating one-off spell exceptions.
+        // Keeping this tied to `touchDeliveryCost` prevents the shared
+        // controlled-entity bridge from becoming a hidden Find Familiar-only
+        // exception if later summons expose a different touch-delivery cost.
+        if (updatedDeliveryActor !== touchDelivery.deliveryActor) {
+          charactersRef.current = charactersRef.current.map(character =>
+            character.id === updatedDeliveryActor.id ? updatedDeliveryActor : character
+          );
+          onCharacterUpdate(updatedDeliveryActor);
+        }
         onAddSpellDeliveryVisual?.({
           spellId: spellForExecution.id,
           spellName: spellForExecution.name,
           casterId: liveCaster.id,
-          familiarId: updatedFamiliar.id,
+          deliveryActorId: updatedDeliveryActor.id,
+          // Keep the legacy field populated while visual consumers migrate.
+          // The shared permission path now supports any owned delivery actor,
+          // but existing Find Familiar overlays may still read familiarId.
+          familiarId: updatedDeliveryActor.id,
           targetId: targetCharacterIds[0],
-          from: updatedFamiliar.position,
+          from: updatedDeliveryActor.position,
           to: targetPosition,
-          label: 'FAMILIAR TOUCH'
+          label: 'TOUCH DELIVERY'
         });
       }
 
@@ -1000,6 +1319,85 @@ export const useAbilitySystem = ({
         // for defensive reaction spells while leaving true pre-damage attack
         // cancellation as a later command-level timing improvement.
         const hitResults = attackResults.filter(attackResult => attackResult.isHit);
+
+        for (const attackResult of hitResults) {
+          const hitTarget = finalCharacters.find(character => character.id === attackResult.targetId);
+          const currentAttacker = charactersRef.current.find(character => character.id === liveCaster.id) ||
+            finalCharacters.find(character => character.id === liveCaster.id) ||
+            casterAfterCost;
+
+          if (!hitTarget) {
+            continue;
+          }
+
+          const afterHitReactionSpells = (currentAttacker.abilities || [])
+            .map(abilityOption => abilityOption.spell)
+            .filter((spellOption): spellOption is Spell => {
+              const trigger = spellOption?.castingTrigger;
+              const attackFilter = trigger?.attackFilter;
+              const expectedAttackType = attackFilter?.attackType ?? 'any';
+              const expectedWeaponType = normalizeAfterHitWeaponType(attackFilter?.weaponType) ?? 'any';
+              const actualAttackType = attackResult.attackType ?? 'weapon';
+              const actualWeaponType = attackResult.weaponType ?? 'any';
+              const unarmedStrikeAllowed = attackFilter?.includesUnarmedStrike === true;
+              const isUnarmedStrike = actualAttackType === 'unarmed' || actualWeaponType === 'unarmed';
+              const attackTypeMatches = expectedAttackType === 'any' ||
+                expectedAttackType === actualAttackType ||
+                (unarmedStrikeAllowed && isUnarmedStrike);
+              const weaponTypeMatches = expectedWeaponType === 'any' ||
+                expectedWeaponType === actualWeaponType ||
+                (unarmedStrikeAllowed && isUnarmedStrike && expectedWeaponType === 'melee');
+              const triggerCost = spellOption ? getCastingTriggerActionCost(spellOption) : null;
+
+              // This is the attacker-side counterpart to Shield-style hit
+              // reactions below. It is driven by spell metadata so every
+              // after-hit spell can share the same prompt and payment path.
+              return Boolean(spellOption) &&
+                trigger?.type === 'after_attack_hit' &&
+                trigger.targetBinding === 'triggering_attack_target' &&
+                trigger.requiredCost === spellOption.castingTime?.unit &&
+                // Unarmed strikes are not ordinary weapon objects, but the
+                // modern smite texts explicitly allow them. Keep that opt-in
+                // on the spell metadata so unrelated weapon-only riders do
+                // not accidentally wake up from every punch.
+                attackTypeMatches &&
+                weaponTypeMatches &&
+                Boolean(triggerCost) &&
+                canAffordActionCost(currentAttacker, triggerCost);
+            });
+
+          if (afterHitReactionSpells.length === 0) {
+            continue;
+          }
+
+          const selectedAfterHitReactionId = await requestReaction(
+            liveCaster.id,
+            hitTarget.id,
+            'on_hit',
+            afterHitReactionSpells
+          );
+          const selectedAfterHitReactionSpell = afterHitReactionSpells.find(spellOption => spellOption.id === selectedAfterHitReactionId);
+
+          if (!selectedAfterHitReactionSpell) {
+            continue;
+          }
+
+          const triggerCost = getCastingTriggerActionCost(selectedAfterHitReactionSpell);
+          const attackerAfterReactionCost = consumeActionCost(currentAttacker, triggerCost);
+          charactersRef.current = charactersRef.current.map(character =>
+            character.id === attackerAfterReactionCost.id ? attackerAfterReactionCost : character
+          );
+          onCharacterUpdate(attackerAfterReactionCost);
+
+          await executeSpell(
+            materializeAfterHitReactionSpell(selectedAfterHitReactionSpell),
+            attackerAfterReactionCost,
+            [hitTarget],
+            Math.max(selectedAfterHitReactionSpell.level, 1),
+            undefined,
+            attackerAfterReactionCost
+          );
+        }
 
         for (const attackResult of hitResults) {
           const hitTarget = finalCharacters.find(character => character.id === attackResult.targetId);
@@ -1466,3 +1864,4 @@ export const useAbilitySystem = ({
 };
 
 export type AbilitySystem = ReturnType<typeof useAbilitySystem>;
+

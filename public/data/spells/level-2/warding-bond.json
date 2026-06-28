@@ -1,422 +1,556 @@
 {
-  "id": "warding-bond",
-  "name": "Warding Bond",
-  "aliases": [],
-  "level": 2,
-  "school": "Abjuration",
-  "legacy": false,
-  "classes": [
-    "Cleric",
-    "Paladin"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a pair of platinum rings worth 50+ GP each, which you and the target must wear for the duration",
-    "materialCost": 100,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "single",
-    "range": 0,
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "required",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "must_be_other"
-    }
-  },
-  "effects": [
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "defenseType": "ac_bonus",
-      "value": 1,
-      "duration": {
-        "type": "minutes",
-        "value": 60
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "baseACFormula": "",
-      "acMinimum": 0,
-      "damageType": [],
-      "savingThrow": [],
-      "attackerFilter": {
-        "creatureTypes": [],
-        "excludeCreatureTypes": [],
-        "sizes": [],
-        "alignments": [],
-        "hasCondition": [],
-        "isNativeToPlane": false,
-        "willing": "not_applicable",
-        "objectEligibility": {
-          "wornOrCarried": "not_applicable",
-          "magicalStatus": "not_applicable",
-          "fixedToSurface": "not_applicable",
-          "maxSize": "not_applicable",
-          "maxWeightPounds": "not_applicable",
-          "maxWeightScaling": "not_applicable"
-        },
-        "communicationPrerequisites": {
-          "canHearCaster": "not_applicable",
-          "canUnderstandCaster": "not_applicable",
-          "canSeeCaster": "not_applicable"
-        },
-        "abilityThreshold": {
-          "ability": "not_applicable",
-          "operator": "not_applicable",
-          "value": "not_applicable"
-        },
-        "selfRelation": "not_applicable"
-      },
-      "reactionTrigger": {
-        "event": "when_hit",
-        "includesSpells": []
-      },
-      "restrictions": {
-        "noArmor": false,
-        "noShield": false,
-        "targetSelf": false
-      },
-      "description": "The willing touched target gains a +1 bonus to AC for 1 hour while the Warding Bond link persists.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "defenseType": "resistance",
-      "damageType": [
-        "All"
-      ],
-      "duration": {
-        "type": "minutes",
-        "value": 60
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "value": 0,
-      "baseACFormula": "",
-      "acMinimum": 0,
-      "savingThrow": [],
-      "attackerFilter": {
-        "creatureTypes": [],
-        "excludeCreatureTypes": [],
-        "sizes": [],
-        "alignments": [],
-        "hasCondition": [],
-        "isNativeToPlane": false,
-        "willing": "not_applicable",
-        "objectEligibility": {
-          "wornOrCarried": "not_applicable",
-          "magicalStatus": "not_applicable",
-          "fixedToSurface": "not_applicable",
-          "maxSize": "not_applicable",
-          "maxWeightPounds": "not_applicable",
-          "maxWeightScaling": "not_applicable"
-        },
-        "communicationPrerequisites": {
-          "canHearCaster": "not_applicable",
-          "canUnderstandCaster": "not_applicable",
-          "canSeeCaster": "not_applicable"
-        },
-        "abilityThreshold": {
-          "ability": "not_applicable",
-          "operator": "not_applicable",
-          "value": "not_applicable"
-        },
-        "selfRelation": "not_applicable"
-      },
-      "reactionTrigger": {
-        "event": "when_hit",
-        "includesSpells": []
-      },
-      "restrictions": {
-        "noArmor": false,
-        "noShield": false,
-        "targetSelf": false
-      },
-      "description": "The willing touched target has Resistance to all damage for 1 hour while it remains within 60 feet of the caster.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "While the link persists (within 60 ft), you take the same amount of damage the target takes. Ends if either drops to 0 HP or you exceed 60 ft separation.",
-      "linkedDamage": {
-        "trigger": "target_takes_damage",
-        "recipient": "caster",
-        "amount": "same_amount",
-        "amountBasis": "post_target_mitigation",
-        "damageTypeSource": "triggering_damage_type",
-        "recipientMitigation": "not_reapplied"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "caster_drops_to_0_hp",
-          "scope": "spell",
-          "description": "The spell ends if the caster drops to 0 Hit Points."
-        },
-        {
-          "trigger": "linked_creatures_separated_beyond_distance",
-          "scope": "spell",
-          "description": "The spell ends if the caster and target become separated by more than 60 feet."
-        },
-        {
-          "trigger": "spell_cast_again_on_connected_creature",
-          "scope": "spell",
-          "description": "The spell ends if Warding Bond is cast again on either connected creature."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You touch another creature that is willing and create a mystic connection between you and the target until the spell ends. While the target is within 60 feet of you, it gains a +1 bonus to AC and saving throws, and it has Resistance to all damage. Also, each time it takes damage, you take the same amount of damage. The spell ends if you drop to 0 Hit Points or if you and the target become separated by more than 60 feet. It also ends if the spell is cast again on either of the connected creatures.",
-  "higherLevels": "",
-  "tags": [
-    "abjuration",
-    "defense",
-    "link"
-  ]
+    "id":  "warding-bond",
+    "name":  "Warding Bond",
+    "aliases":  [
+
+                ],
+    "level":  2,
+    "school":  "Abjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Cleric",
+                    "Paladin"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a pair of platinum rings worth 50+ GP each, which you and the target must wear for the duration",
+                       "materialCost":  100,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  0,
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "required",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "must_be_other"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "defenseType":  "ac_bonus",
+                        "value":  1,
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  60
+                                     },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "baseACFormula":  "",
+                        "acMinimum":  0,
+                        "damageType":  [
+
+                                       ],
+                        "savingThrow":  [
+                                            {
+                                                "modifier":  "bonus",
+                                                "flat":  1,
+                                                "appliesTo":  "all_saving_throws",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  60
+                                                             },
+                                                "notes":  "While the Warding Bond target remains within 60 feet of the caster, it gains +1 to saving throws."
+                                            }
+                                        ],
+                        "attackerFilter":  {
+                                               "creatureTypes":  [
+
+                                                                 ],
+                                               "excludeCreatureTypes":  [
+
+                                                                        ],
+                                               "sizes":  [
+
+                                                         ],
+                                               "alignments":  [
+
+                                                              ],
+                                               "hasCondition":  [
+
+                                                                ],
+                                               "isNativeToPlane":  false,
+                                               "willing":  "not_applicable",
+                                               "objectEligibility":  {
+                                                                         "wornOrCarried":  "not_applicable",
+                                                                         "magicalStatus":  "not_applicable",
+                                                                         "fixedToSurface":  "not_applicable",
+                                                                         "maxSize":  "not_applicable",
+                                                                         "maxWeightPounds":  "not_applicable",
+                                                                         "maxWeightScaling":  "not_applicable"
+                                                                     },
+                                               "communicationPrerequisites":  {
+                                                                                  "canHearCaster":  "not_applicable",
+                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                  "canSeeCaster":  "not_applicable"
+                                                                              },
+                                               "abilityThreshold":  {
+                                                                        "ability":  "not_applicable",
+                                                                        "operator":  "not_applicable",
+                                                                        "value":  "not_applicable"
+                                                                    },
+                                               "selfRelation":  "not_applicable"
+                                           },
+                        "reactionTrigger":  {
+                                                "event":  "when_hit",
+                                                "includesSpells":  [
+
+                                                                   ]
+                                            },
+                        "restrictions":  {
+                                             "noArmor":  false,
+                                             "noShield":  false,
+                                             "targetSelf":  false
+                                         },
+                        "description":  "The willing touched target gains a +1 bonus to AC for 1 hour while the Warding Bond link persists.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "componentRequirement":  {
+                                                     "material":  "pair_of_platinum_rings",
+                                                     "minimumValueGpEach":  50,
+                                                     "totalMaterialCostGp":  100,
+                                                     "consumed":  false,
+                                                     "wornRequirement":  "caster_and_target_must_each_wear_one_ring_for_duration"
+                                                 }
+                    },
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "defenseType":  "resistance",
+                        "damageType":  [
+                                           "All"
+                                       ],
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  60
+                                     },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "value":  0,
+                        "baseACFormula":  "",
+                        "acMinimum":  0,
+                        "savingThrow":  [
+
+                                        ],
+                        "attackerFilter":  {
+                                               "creatureTypes":  [
+
+                                                                 ],
+                                               "excludeCreatureTypes":  [
+
+                                                                        ],
+                                               "sizes":  [
+
+                                                         ],
+                                               "alignments":  [
+
+                                                              ],
+                                               "hasCondition":  [
+
+                                                                ],
+                                               "isNativeToPlane":  false,
+                                               "willing":  "not_applicable",
+                                               "objectEligibility":  {
+                                                                         "wornOrCarried":  "not_applicable",
+                                                                         "magicalStatus":  "not_applicable",
+                                                                         "fixedToSurface":  "not_applicable",
+                                                                         "maxSize":  "not_applicable",
+                                                                         "maxWeightPounds":  "not_applicable",
+                                                                         "maxWeightScaling":  "not_applicable"
+                                                                     },
+                                               "communicationPrerequisites":  {
+                                                                                  "canHearCaster":  "not_applicable",
+                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                  "canSeeCaster":  "not_applicable"
+                                                                              },
+                                               "abilityThreshold":  {
+                                                                        "ability":  "not_applicable",
+                                                                        "operator":  "not_applicable",
+                                                                        "value":  "not_applicable"
+                                                                    },
+                                               "selfRelation":  "not_applicable"
+                                           },
+                        "reactionTrigger":  {
+                                                "event":  "when_hit",
+                                                "includesSpells":  [
+
+                                                                   ]
+                                            },
+                        "restrictions":  {
+                                             "noArmor":  false,
+                                             "noShield":  false,
+                                             "targetSelf":  false
+                                         },
+                        "description":  "The willing touched target has Resistance to all damage for 1 hour while it remains within 60 feet of the caster.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "componentRequirement":  {
+                                                     "material":  "pair_of_platinum_rings",
+                                                     "minimumValueGpEach":  50,
+                                                     "totalMaterialCostGp":  100,
+                                                     "consumed":  false,
+                                                     "wornRequirement":  "caster_and_target_must_each_wear_one_ring_for_duration"
+                                                 }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "While the link persists (within 60 ft), you take the same amount of damage the target takes. Ends if either drops to 0 HP or you exceed 60 ft separation.",
+                        "linkedDamage":  {
+                                             "trigger":  "target_takes_damage",
+                                             "recipient":  "caster",
+                                             "amount":  "same_amount",
+                                             "amountBasis":  "post_target_mitigation",
+                                             "damageTypeSource":  "triggering_damage_type",
+                                             "recipientMitigation":  "not_reapplied"
+                                         },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "caster_drops_to_0_hp",
+                                                       "scope":  "spell",
+                                                       "description":  "The spell ends if the caster drops to 0 Hit Points."
+                                                   },
+                                                   {
+                                                       "trigger":  "linked_creatures_separated_beyond_distance",
+                                                       "scope":  "spell",
+                                                       "description":  "The spell ends if the caster and target become separated by more than 60 feet."
+                                                   },
+                                                   {
+                                                       "trigger":  "spell_cast_again_on_connected_creature",
+                                                       "scope":  "spell",
+                                                       "description":  "The spell ends if Warding Bond is cast again on either connected creature."
+                                                   }
+                                               ],
+                        "componentRequirement":  {
+                                                     "material":  "pair_of_platinum_rings",
+                                                     "minimumValueGpEach":  50,
+                                                     "totalMaterialCostGp":  100,
+                                                     "consumed":  false,
+                                                     "wornRequirement":  "caster_and_target_must_each_wear_one_ring_for_duration"
+                                                 }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Ask the caster to choose a willing other creature wearing the paired ring; while within 60 feet, apply +1 AC, +1 saving throws, all-damage Resistance, and mirrored damage to the caster.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You touch another creature that is willing and create a mystic connection between you and the target until the spell ends. While the target is within 60 feet of you, it gains a +1 bonus to AC and saving throws, and it has Resistance to all damage. Also, each time it takes damage, you take the same amount of damage. The spell ends if you drop to 0 Hit Points or if you and the target become separated by more than 60 feet. It also ends if the spell is cast again on either of the connected creatures.",
+    "higherLevels":  "",
+    "tags":  [
+                 "abjuration",
+                 "defense",
+                 "link"
+             ]
 }

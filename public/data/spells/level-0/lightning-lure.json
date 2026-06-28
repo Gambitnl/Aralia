@@ -1,247 +1,305 @@
 {
-  "id": "lightning-lure",
-  "name": "Lightning Lure",
-  "aliases": [],
-  "level": 0,
-  "school": "Evocation",
-  "legacy": false,
-  "classes": [
-    "Artificer",
-    "Sorcerer",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": false,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "ranged",
-    "range": 15,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures",
-      "enemies"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "MOVEMENT",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Strength",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "movementType": "pull",
-      "duration": {
-        "type": "rounds",
-        "value": 0
-      },
-      "forcedMovement": {
-        "direction": "toward_caster",
-        "maxDistance": "10 ft",
-        "usesReaction": false
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "distance": 0,
-      "speedChange": {
-        "stat": "speed",
-        "value": 0,
-        "unit": "feet"
-      },
-      "description": "One creature within 15 feet makes a Strength save or is pulled up to 10 feet in a straight line toward the caster.",
-      "conditionalEndings": [],
-      "tags": [
-        "forced-movement",
-        "strength-save",
-        "pull"
-      ]
-    },
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Strength",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "1d8",
-        "type": "Lightning"
-      },
-      "description": "After the failed Strength save pull, the target takes 1d8 Lightning damage only if it ends within 5 feet of the caster; damage scales to 2d8 at level 5, 3d8 at level 11, and 4d8 at level 17.",
-      "scaling": {
-        "type": "character_level",
-        "customFormula": "Damage increases to 2d8 at 5th level, 3d8 at 11th, 4d8 at 17th.",
-        "bonusPerLevel": ""
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You create a lash of lightning energy that strikes at one creature of your choice that you can see within 15 feet of you. The target must succeed on a Strength saving throw or be pulled up to 10 feet in a straight line toward you and then take 1d8 lightning damage if it is within 5 feet of you.",
-  "higherLevels": "This spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
-  "tags": [
-    "damage",
-    "lightning",
-    "control",
-    "cantrip"
-  ]
+    "id":  "lightning-lure",
+    "name":  "Lightning Lure",
+    "aliases":  [
+
+                ],
+    "level":  0,
+    "school":  "Evocation",
+    "legacy":  false,
+    "classes":  [
+                    "Artificer",
+                    "Sorcerer",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  false,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "instantaneous",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "ranged",
+                      "range":  15,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures",
+                                           "enemies"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "MOVEMENT",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Strength",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "movementType":  "pull",
+                        "duration":  {
+                                         "type":  "rounds",
+                                         "value":  0
+                                     },
+                        "forcedMovement":  {
+                                               "direction":  "toward_caster",
+                                               "maxDistance":  "10 ft",
+                                               "usesReaction":  false
+                                           },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "distance":  0,
+                        "speedChange":  {
+                                            "stat":  "speed",
+                                            "value":  0,
+                                            "unit":  "feet"
+                                        },
+                        "description":  "One creature within 15 feet makes a Strength save or is pulled up to 10 feet in a straight line toward the caster.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "tags":  [
+                                     "forced-movement",
+                                     "strength-save",
+                                     "pull"
+                                 ],
+                        "forcedMovementState":  {
+                                                    "kind":  "pull",
+                                                    "target":  "one_creature_within_15_feet",
+                                                    "save":  "Strength_negates",
+                                                    "distance":  "up_to_10_feet",
+                                                    "direction":  "straight_line_toward_caster",
+                                                    "followup":  "Lightning_damage_only_if_target_ends_within_5_feet_of_caster"
+                                                }
+                    },
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Strength",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "1d8",
+                                       "type":  "Lightning"
+                                   },
+                        "description":  "After the failed Strength save pull, the target takes 1d8 Lightning damage only if it ends within 5 feet of the caster; damage scales to 2d8 at level 5, 3d8 at level 11, and 4d8 at level 17.",
+                        "scaling":  {
+                                        "type":  "character_level",
+                                        "customFormula":  "Damage increases to 2d8 at 5th level, 3d8 at 11th, 4d8 at 17th.",
+                                        "bonusPerLevel":  ""
+                                    },
+                        "conditionalEndings":  [
+
+                                               ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You create a lash of lightning energy that strikes at one creature of your choice that you can see within 15 feet of you. The target must succeed on a Strength saving throw or be pulled up to 10 feet in a straight line toward you and then take 1d8 lightning damage if it is within 5 feet of you.",
+    "higherLevels":  "This spell\u0027s damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
+    "tags":  [
+                 "damage",
+                 "lightning",
+                 "control",
+                 "cantrip"
+             ]
 }

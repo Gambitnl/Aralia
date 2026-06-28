@@ -1,241 +1,296 @@
 {
-  "id": "silent-image",
-  "name": "Silent Image",
-  "aliases": [],
-  "level": 1,
-  "school": "Illusion",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a bit of fleece",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 15,
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "sensory",
-      "description": "Creates and moves a silent, intangible image up to a 15-foot cube; Investigation check (action) reveals the illusion.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "sensoryManifestation": {
-        "modeSource": "not_applicable",
-        "variants": [
-          {
-            "label": "Visual Image",
-            "allowedSenses": [
-              "sight"
-            ],
-            "excludedSenses": [
-              "sound",
-              "smell",
-              "other_sensory_effect"
-            ],
-            "maxSize": {
-              "shape": "Cube",
-              "size": 15,
-              "unit": "feet"
-            },
-            "notes": "The image is purely visual; it isn't accompanied by sound, smell, or other sensory effects."
-          }
-        ]
-      },
-      "illusion": {
-        "revealScope": "per_creature",
-        "revealRules": [
-          {
-            "method": "physical_interaction",
-            "appliesTo": [
-              "Visual Image"
-            ],
-            "notes": "Physical interaction with the image reveals it to be an illusion, because things can pass through it."
-          },
-          {
-            "method": "study_action",
-            "actionCost": "action",
-            "ability": "Intelligence",
-            "skill": "Investigation",
-            "dc": "spell_save_dc",
-            "appliesTo": [
-              "Visual Image"
-            ]
-          }
-        ],
-        "discernedState": "transparent_to_discerning_creature",
-        "notes": "If a creature discerns the illusion for what it is, the creature can see through the image."
-      }
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 15-foot Cube . The image appears at a spot within range and lasts for the duration. The image is purely visual; it isn't accompanied by sound, smell, or other sensory effects. As a Magic action, you can cause the image to move to any spot within range. As the image changes location, you can alter its appearance so that its movements appear natural for the image. For example, if you create an image of a creature and move it, you can alter the image so that it appears to be walking. Physical interaction with the image reveals it to be an illusion, since things can pass through it. A creature that takes a Study action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image.",
-  "higherLevels": "",
-  "tags": [
-    "illusion",
-    "control",
-    "concentration"
-  ]
+    "id":  "silent-image",
+    "name":  "Silent Image",
+    "aliases":  [
+
+                ],
+    "level":  1,
+    "school":  "Illusion",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a bit of fleece",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  15,
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "sensory",
+                        "description":  "Creates and moves a silent, intangible image up to a 15-foot cube; Investigation check (action) reveals the illusion.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "sensoryManifestation":  {
+                                                     "modeSource":  "not_applicable",
+                                                     "variants":  [
+                                                                      {
+                                                                          "label":  "Visual Image",
+                                                                          "allowedSenses":  [
+                                                                                                "sight"
+                                                                                            ],
+                                                                          "excludedSenses":  [
+                                                                                                 "sound",
+                                                                                                 "smell",
+                                                                                                 "other_sensory_effect"
+                                                                                             ],
+                                                                          "maxSize":  {
+                                                                                          "shape":  "Cube",
+                                                                                          "size":  15,
+                                                                                          "unit":  "feet"
+                                                                                      },
+                                                                          "notes":  "The image is purely visual; it isn\u0027t accompanied by sound, smell, or other sensory effects."
+                                                                      }
+                                                                  ]
+                                                 },
+                        "illusion":  {
+                                         "revealScope":  "per_creature",
+                                         "revealRules":  [
+                                                             {
+                                                                 "method":  "physical_interaction",
+                                                                 "appliesTo":  [
+                                                                                   "Visual Image"
+                                                                               ],
+                                                                 "notes":  "Physical interaction with the image reveals it to be an illusion, because things can pass through it."
+                                                             },
+                                                             {
+                                                                 "method":  "study_action",
+                                                                 "actionCost":  "action",
+                                                                 "ability":  "Intelligence",
+                                                                 "skill":  "Investigation",
+                                                                 "dc":  "spell_save_dc",
+                                                                 "appliesTo":  [
+                                                                                   "Visual Image"
+                                                                               ]
+                                                             }
+                                                         ],
+                                         "discernedState":  "transparent_to_discerning_creature",
+                                         "notes":  "If a creature discerns the illusion for what it is, the creature can see through the image."
+                                     },
+                        "illusionState":  {
+                                              "kind":  "purely_visual_image",
+                                              "maxSize":  "15_foot_cube",
+                                              "sensoryLimits":  [
+                                                                    "no_sound",
+                                                                    "no_smell",
+                                                                    "no_other_sensory_effects"
+                                                                ],
+                                              "movement":  "Magic_action_move_image_within_range_and_adjust_appearance_for_natural_motion",
+                                              "revealMethods":  [
+                                                                    "physical_interaction",
+                                                                    "Study_action_Intelligence_Investigation"
+                                                                ],
+                                              "afterRevealed":  "discerned_creature_can_see_through_image"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 15-foot Cube . The image appears at a spot within range and lasts for the duration. The image is purely visual; it isn\u0027t accompanied by sound, smell, or other sensory effects. As a Magic action, you can cause the image to move to any spot within range. As the image changes location, you can alter its appearance so that its movements appear natural for the image. For example, if you create an image of a creature and move it, you can alter the image so that it appears to be walking. Physical interaction with the image reveals it to be an illusion, since things can pass through it. A creature that takes a Study action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image.",
+    "higherLevels":  "",
+    "tags":  [
+                 "illusion",
+                 "control",
+                 "concentration"
+             ]
 }

@@ -1,428 +1,584 @@
 {
-  "id": "power-word-pain",
-  "name": "Power Word Pain",
-  "aliases": [],
-  "level": 7,
-  "school": "Enchantment",
-  "legacy": false,
-  "classes": [
-    "Sorcerer",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": false,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "special",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Crippling Pain",
-        "duration": {
-          "type": "special",
-          "value": 0
-        },
-        "breakTriggers": [
-          "duration_expires"
-        ],
-        "aftermath": "Target can make a Constitution save at the end of each of its turns, ending the pain on success.",
-        "repeatSave": {
-          "timing": "turn_end",
-          "saveType": "Constitution",
-          "successEnds": true,
-          "useOriginalDC": true
-        }
-      },
-      "description": "One visible creature within 60 feet is affected only if it has 100 Hit Points or fewer and is not immune to Charmed. While in crippling pain, spellcasting requires a Constitution save, and the target repeats the Constitution save at the end of each turn to end the pain on a success.",
-      "recurringMechanics": [
-        {
-          "timing": "on_target_cast",
-          "frequency": "every_time",
-          "saveType": "Constitution",
-          "saveEffect": "none",
-          "successOutcome": "spell_casting_continues",
-          "failureOutcome": "casting_fails_and_spell_is_wasted",
-          "notes": "If the affected target tries to cast a spell, it must succeed on a Constitution save first or the casting fails and the spell is wasted."
-        }
-      ],
-      "conditionalEndings": []
-    },
-    {
-      "type": "MOVEMENT",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "movementType": "speed_change",
-      "speedChange": {
-        "stat": "speed",
-        "value": 10,
-        "unit": "feet"
-      },
-      "distance": 0,
-      "duration": {
-        "type": "special",
-        "value": 0
-      },
-      "forcedMovement": {
-        "usesReaction": false,
-        "direction": "safest_route",
-        "maxDistance": ""
-      },
-      "description": "While Power Word Pain affects the target, every Speed it has is capped at 10 feet until an end-turn Constitution save succeeds and ends the pain.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "ATTACK_ROLL_MODIFIER",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "attackRollModifier": {
-        "modifier": "disadvantage",
-        "direction": "outgoing",
-        "attackKind": "any",
-        "consumption": "while_active",
-        "duration": {
-          "type": "special",
-          "value": 0
-        },
-        "notes": "Part of a broader disadvantage package that also affects ability checks and saving throws other than Constitution saves."
-      },
-      "description": "While affected, the target has Disadvantage on attack rolls, ability checks, and saving throws other than Constitution saves.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Choose one visible creature within 60 feet. If the target has 100 Hit Points or fewer and is not immune to Charmed, it suffers crippling pain; while affected, spellcasting requires a Constitution save or wastes the spell, and end-turn Constitution saves can end the pain.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "HP Threshold 100 Or Fewer",
-          "effect": "The spell affects only a target with 100 hit points or fewer."
-        },
-        {
-          "name": "Charmed Immunity Exclusion",
-          "effect": "A target immune to being charmed is unaffected."
-        },
-        {
-          "name": "Speed Maximum 10 Feet",
-          "effect": "While affected, any speed the target has can be no higher than 10 feet."
-        },
-        {
-          "name": "Disadvantage Except Constitution Saves",
-          "effect": "While affected, the target has disadvantage on attack rolls, ability checks, and saving throws other than Constitution saving throws."
-        },
-        {
-          "name": "Spellcasting Requires Constitution Save",
-          "effect": "If the target tries to cast a spell, it must first succeed on a Constitution saving throw."
-        },
-        {
-          "name": "Failed Spellcasting Wastes Spell",
-          "effect": "On a failed Constitution save to cast a spell, the casting fails and the spell is wasted."
-        },
-        {
-          "name": "End Of Turn Constitution Save Ends",
-          "effect": "The affected target can make a Constitution saving throw at the end of each of its turns, ending the pain on a success."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You speak a word of power that causes waves of intense pain to assail one creature you can see within range. If the target has 100 hit points or fewer, it is subject to crippling pain. Otherwise, the spell has no effect on it. A target is also unaffected if it is immune to being charmed. While the target is affected by crippling pain, any speed it has can be no higher than 10 feet. The target also has disadvantage on attack rolls, ability checks, and saving throws, other than Constitution saving throws. Finally, if the target tries to cast a spell, it must first succeed on a Constitution saving throw, or the casting fails and the spell is wasted. A target suffering this pain can make a Constitution saving throw at the end of each of its turns. On a successful save, the pain ends.",
-  "higherLevels": "",
-  "tags": []
+    "id":  "power-word-pain",
+    "name":  "Power Word Pain",
+    "aliases":  [
+
+                ],
+    "level":  7,
+    "school":  "Enchantment",
+    "legacy":  false,
+    "classes":  [
+                    "Sorcerer",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  false,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "special",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Crippling Pain",
+                                                "duration":  {
+                                                                 "type":  "special",
+                                                                 "value":  0
+                                                             },
+                                                "breakTriggers":  [
+                                                                      "duration_expires"
+                                                                  ],
+                                                "aftermath":  "Target can make a Constitution save at the end of each of its turns, ending the pain on success.",
+                                                "repeatSave":  {
+                                                                   "timing":  "turn_end",
+                                                                   "saveType":  "Constitution",
+                                                                   "successEnds":  true,
+                                                                   "useOriginalDC":  true
+                                                               }
+                                            },
+                        "description":  "One visible creature within 60 feet is affected only if it has 100 Hit Points or fewer and is not immune to Charmed. While in crippling pain, spellcasting requires a Constitution save, and the target repeats the Constitution save at the end of each turn to end the pain on a success.",
+                        "recurringMechanics":  [
+                                                   {
+                                                       "timing":  "on_target_cast",
+                                                       "frequency":  "every_time",
+                                                       "saveType":  "Constitution",
+                                                       "saveEffect":  "none",
+                                                       "successOutcome":  "spell_casting_continues",
+                                                       "failureOutcome":  "casting_fails_and_spell_is_wasted",
+                                                       "notes":  "If the affected target tries to cast a spell, it must succeed on a Constitution save first or the casting fails and the spell is wasted."
+                                                   }
+                                               ],
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "end_turn_constitution_save_success",
+                                                       "scope":  "pain",
+                                                       "description":  "The target repeats the Constitution save at the end of each turn, ending the pain on a success."
+                                                   },
+                                                   {
+                                                       "trigger":  "failed_spellcasting_constitution_save",
+                                                       "scope":  "attempted_spell",
+                                                       "description":  "If the target fails the Constitution save before casting a spell, that spell fails and is wasted."
+                                                   }
+                                               ],
+                        "hitPointThresholdGate":  {
+                                                      "thresholdHitPoints":  100,
+                                                      "comparison":  "less_than_or_equal",
+                                                      "immuneIf":  "target is immune to Charmed",
+                                                      "result":  "crippling pain effects apply"
+                                                  }
+                    },
+                    {
+                        "type":  "MOVEMENT",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "movementType":  "speed_change",
+                        "speedChange":  {
+                                            "stat":  "speed",
+                                            "value":  10,
+                                            "unit":  "feet"
+                                        },
+                        "distance":  0,
+                        "duration":  {
+                                         "type":  "special",
+                                         "value":  0
+                                     },
+                        "forcedMovement":  {
+                                               "usesReaction":  false,
+                                               "direction":  "safest_route",
+                                               "maxDistance":  ""
+                                           },
+                        "description":  "While Power Word Pain affects the target, every Speed it has is capped at 10 feet until an end-turn Constitution save succeeds and ends the pain.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "end_turn_constitution_save_success",
+                                                       "scope":  "pain",
+                                                       "description":  "The target repeats the Constitution save at the end of each turn, ending the pain on a success."
+                                                   },
+                                                   {
+                                                       "trigger":  "failed_spellcasting_constitution_save",
+                                                       "scope":  "attempted_spell",
+                                                       "description":  "If the target fails the Constitution save before casting a spell, that spell fails and is wasted."
+                                                   }
+                                               ]
+                    },
+                    {
+                        "type":  "ATTACK_ROLL_MODIFIER",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "attackRollModifier":  {
+                                                   "modifier":  "disadvantage",
+                                                   "direction":  "outgoing",
+                                                   "attackKind":  "any",
+                                                   "consumption":  "while_active",
+                                                   "duration":  {
+                                                                    "type":  "special",
+                                                                    "value":  0
+                                                                },
+                                                   "notes":  "Part of a broader disadvantage package that also affects ability checks and saving throws other than Constitution saves."
+                                               },
+                        "description":  "While affected, the target has Disadvantage on attack rolls, ability checks, and saving throws other than Constitution saves.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "end_turn_constitution_save_success",
+                                                       "scope":  "pain",
+                                                       "description":  "The target repeats the Constitution save at the end of each turn, ending the pain on a success."
+                                                   },
+                                                   {
+                                                       "trigger":  "failed_spellcasting_constitution_save",
+                                                       "scope":  "attempted_spell",
+                                                       "description":  "If the target fails the Constitution save before casting a spell, that spell fails and is wasted."
+                                                   }
+                                               ]
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Choose one visible creature within 60 feet. If the target has 100 Hit Points or fewer and is not immune to Charmed, it suffers crippling pain; while affected, spellcasting requires a Constitution save or wastes the spell, and end-turn Constitution saves can end the pain.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "HP Threshold 100 Or Fewer",
+                                                   "effect":  "The spell affects only a target with 100 hit points or fewer."
+                                               },
+                                               {
+                                                   "name":  "Charmed Immunity Exclusion",
+                                                   "effect":  "A target immune to being charmed is unaffected."
+                                               },
+                                               {
+                                                   "name":  "Speed Maximum 10 Feet",
+                                                   "effect":  "While affected, any speed the target has can be no higher than 10 feet."
+                                               },
+                                               {
+                                                   "name":  "Disadvantage Except Constitution Saves",
+                                                   "effect":  "While affected, the target has disadvantage on attack rolls, ability checks, and saving throws other than Constitution saving throws."
+                                               },
+                                               {
+                                                   "name":  "Spellcasting Requires Constitution Save",
+                                                   "effect":  "If the target tries to cast a spell, it must first succeed on a Constitution saving throw."
+                                               },
+                                               {
+                                                   "name":  "Failed Spellcasting Wastes Spell",
+                                                   "effect":  "On a failed Constitution save to cast a spell, the casting fails and the spell is wasted."
+                                               },
+                                               {
+                                                   "name":  "End Of Turn Constitution Save Ends",
+                                                   "effect":  "The affected target can make a Constitution saving throw at the end of each of its turns, ending the pain on a success."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "end_turn_constitution_save_success",
+                                                       "scope":  "pain",
+                                                       "description":  "The target repeats the Constitution save at the end of each turn, ending the pain on a success."
+                                                   },
+                                                   {
+                                                       "trigger":  "failed_spellcasting_constitution_save",
+                                                       "scope":  "attempted_spell",
+                                                       "description":  "If the target fails the Constitution save before casting a spell, that spell fails and is wasted."
+                                                   }
+                                               ],
+                        "socialEffect":  {
+                                             "verbalPowerWord":  true,
+                                             "targetThreshold":  "target must have 100 Hit Points or fewer",
+                                             "immunityGate":  "target immune to being Charmed is unaffected",
+                                             "painState":  "crippling pain",
+                                             "effects":  [
+                                                             "all speeds capped at 10 feet",
+                                                             "Disadvantage on attack rolls",
+                                                             "Disadvantage on ability checks",
+                                                             "Disadvantage on saving throws other than Constitution saves",
+                                                             "spellcasting requires Constitution save or spell is wasted"
+                                                         ],
+                                             "repeatSave":  "target can make Constitution save at end of each turn, ending pain on success"
+                                         },
+                        "hitPointThresholdGate":  {
+                                                      "thresholdHitPoints":  100,
+                                                      "comparison":  "less_than_or_equal",
+                                                      "immuneIf":  "target is immune to Charmed",
+                                                      "result":  "crippling pain effects apply"
+                                                  }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You speak a word of power that causes waves of intense pain to assail one creature you can see within range. If the target has 100 hit points or fewer, it is subject to crippling pain. Otherwise, the spell has no effect on it. A target is also unaffected if it is immune to being charmed. While the target is affected by crippling pain, any speed it has can be no higher than 10 feet. The target also has disadvantage on attack rolls, ability checks, and saving throws, other than Constitution saving throws. Finally, if the target tries to cast a spell, it must first succeed on a Constitution saving throw, or the casting fails and the spell is wasted. A target suffering this pain can make a Constitution saving throw at the end of each of its turns. On a successful save, the pain ends.",
+    "higherLevels":  "",
+    "tags":  [
+
+             ]
 }

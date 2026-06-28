@@ -511,12 +511,17 @@ export const useActionExecutor = ({
   const handleOpportunityAttacks = useCallback(async (
     movedCharacter: CombatCharacter,
     previousPosition: { x: number; y: number },
-    targetPosition: { x: number; y: number }
+    targetPosition: { x: number; y: number },
+    movementMode?: CombatAction['movementMode']
   ): Promise<CombatCharacter> => {
     let updatedCharacter = movedCharacter;
     const oaSystem = new OpportunityAttackSystem();
+
+    // Pass the movement mode through when the movement action knows it. This is
+    // what lets a shared summon trait such as Summon Beast Air's Flyby mean
+    // "while flying" instead of "any movement by this form."
     const oaResults = oaSystem.checkOpportunityAttacks(
-      updatedCharacter, previousPosition, targetPosition, characters, mapData
+      updatedCharacter, previousPosition, targetPosition, characters, mapData, { movementMode }
     );
 
     for (const result of oaResults) {
@@ -753,7 +758,7 @@ export const useActionExecutor = ({
     });
 
     updatedCharacter = processTileEffects(updatedCharacter, action.targetPosition);
-    updatedCharacter = await handleOpportunityAttacks(updatedCharacter, previousPosition, action.targetPosition);
+    updatedCharacter = await handleOpportunityAttacks(updatedCharacter, previousPosition, action.targetPosition, action.movementMode);
 
     // Movement-debuff triggers (e.g., Entangle)
     const moveTriggerResults = processMovementTriggers(movementDebuffs, updatedCharacter, turnState.currentTurn);

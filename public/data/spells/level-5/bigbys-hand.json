@@ -1,203 +1,397 @@
 {
-  "id": "bigbys-hand",
-  "name": "Bigby's Hand",
-  "aliases": [],
-  "level": 5,
-  "school": "Evocation",
-  "legacy": true,
-  "classes": [
-    "Wizard",
-    "Artificer"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "An eggshell and a snakeskin glove",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "single",
-    "range": 120,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures",
-      "objects",
-      "point"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "creation",
-      "description": "Create a Large shimmering force hand in a visible unoccupied space within 120 feet for up to 1 minute with concentration. When cast and on later Bonus Actions, the caster can move the hand up to 60 feet and choose Clenched Fist, Forceful Hand, Grasping Hand, or Interposing Hand; the hand has AC 20, Hit Points equal to the caster's Hit Point maximum, Strength 26, Dexterity 10, and the spell ends if the hand drops to 0 Hit Points.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+2d8 clenched-fist damage and +2d6 grasping-hand damage per slot level above 5th",
-        "customFormula": "Damage from the clenched fist option increases by 2d8 and damage from the grasping hand option increases by 2d6 for each slot level above 5th."
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "created_entity_drops_to_0_hp",
-          "scope": "spell",
-          "description": "The spell ends if the created hand object drops to 0 Hit Points."
-        }
-      ],
-      "tags": [
-        "created-force-hand",
-        "mode-choice",
-        "damage-scaling"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You create a Large hand of shimmering, translucent force in an unoccupied space that you can see within range. The hand lasts for the spell's duration, and it moves at your command, mimicking the movements of your own hand. The hand is an object that has AC 20 and hit points equal to your hit point maximum. If it drops to 0 hit points, the spell ends. It has a Strength of 26 (+8) and a Dexterity of 10 (+0). The hand doesn't fill its space. When you cast the spell and as a bonus action on your subsequent turns, you can move the hand up to 60 feet and then cause one of the following effects with it. Clenched Fist. The hand strikes one creature or object within 5 feet of it. Make a melee spell attack for the hand using your game statistics. On a hit, the target takes 4d8 force damage. Forceful Hand. The hand attempts to push a creature within 5 feet of it in a direction you choose. Make a check with the hand's Strength contested by the Strength (Athletics) check of the target. If the target is Medium or smaller, you have advantage on the check. If you succeed, the hand pushes the target up to 5 feet plus a number of feet equal to five times your spellcasting ability modifier. The hand moves with the target to remain within 5 feet of it. Grasping Hand. The hand attempts to grapple a Huge or smaller creature within 5 feet of it. You use the hand's Strength score to resolve the grapple. If the target is Medium or smaller, you have advantage on the check. While the hand is grappling the target, you can use a bonus action to have the hand crush it. When you do so, the target takes bludgeoning damage equal to 2d6 + your spellcasting ability modifier. Interposing Hand. The hand interposes itself between you and a creature you choose until you give the hand a different command. The hand moves to stay between you and the target, providing you with half cover against the target. The target can't move through the hand's space if its Strength score is less than or equal to the hand's Strength score. If its Strength score is higher than the hand's Strength score, the target can move toward you through the hand's space, but that space is difficult terrain for the target.",
-  "higherLevels": "When you cast this spell using a spell slot of 6th level or higher, the damage from the clenched fist option increases by 2d8 and the damage from the grasping hand increases by 2d6 for each slot level above 5th.",
-  "tags": [
-    "legacy",
-    "evocation",
-    "created-force-hand",
-    "mode-choice",
-    "concentration"
-  ]
+    "id":  "bigbys-hand",
+    "name":  "Bigby\u0027s Hand",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Evocation",
+    "legacy":  true,
+    "classes":  [
+                    "Wizard",
+                    "Artificer"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "An eggshell and a snakeskin glove",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  120,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures",
+                                           "objects",
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "requiresUnoccupiedSpace":  true,
+                                                                  "lineOfSightRequired":  true,
+                                                                  "spaceSize":  "Large",
+                                                                  "rangeAnchor":  "within_spell_range",
+                                                                  "chosenBy":  "caster",
+                                                                  "notes":  "The Large force hand is created in an unoccupied visible space within 120 feet."
+                                                              }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "creation",
+                        "description":  "Create a Large shimmering force hand in a visible unoccupied space within 120 feet for up to 1 minute with concentration. When cast and on later Bonus Actions, the caster can move the hand up to 60 feet and choose Clenched Fist, Forceful Hand, Grasping Hand, or Interposing Hand; the hand has AC 20, Hit Points equal to the caster\u0027s Hit Point maximum, Strength 26, Dexterity 10, and the spell ends if the hand drops to 0 Hit Points.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+2d8 clenched-fist damage and +2d6 grasping-hand damage per slot level above 5th",
+                                        "customFormula":  "Damage from the clenched fist option increases by 2d8 and damage from the grasping hand option increases by 2d6 for each slot level above 5th."
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "bonus_action",
+                                                   "action":  "Move and Command Bigby\u0027s Hand",
+                                                   "frequency":  "each_turn",
+                                                   "actor":  "caster",
+                                                   "distance":  60,
+                                                   "distanceUnit":  "feet",
+                                                   "options":  [
+                                                                   "Clenched Fist",
+                                                                   "Forceful Hand",
+                                                                   "Grasping Hand",
+                                                                   "Interposing Hand",
+                                                                   "Crush Grappled Target"
+                                                               ],
+                                                   "notes":  "When cast and on later Bonus Actions, move the hand up to 60 feet and choose one hand effect; while grappling, the Bonus Action can crush the target."
+                                               }
+                                           ],
+                        "attackAugments":  [
+                                               {
+                                                   "name":  "Bigby\u0027s Hand Checks",
+                                                   "forcefulHandCheck":  "Hand Strength contested by target Strength (Athletics); Advantage if target is Medium or smaller.",
+                                                   "graspingHandCheck":  "Use the hand\u0027s Strength to grapple a Huge or smaller creature; Advantage if target is Medium or smaller.",
+                                                   "crushDamage":  "2d6 + spellcasting ability modifier Bludgeoning, +2d6 per slot level above 5."
+                                               }
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "label":  "Clenched Fist",
+                                                   "summary":  "The hand strikes one creature or object within 5 feet, making a melee spell attack and dealing Force damage on a hit.",
+                                                   "actionCost":  "cast_or_bonus_action",
+                                                   "scaling":  "+2d8 Force damage per slot level above 5th"
+                                               },
+                                               {
+                                                   "label":  "Forceful Hand",
+                                                   "summary":  "The hand pushes a creature within 5 feet in a direction chosen by the caster, using the hand\u0027s Strength contested by the target\u0027s Athletics.",
+                                                   "actionCost":  "cast_or_bonus_action",
+                                                   "requiresDirectionChoice":  true
+                                               },
+                                               {
+                                                   "label":  "Grasping Hand",
+                                                   "summary":  "The hand grapples a Huge or smaller creature within 5 feet and can later crush the grappled target for Bludgeoning damage.",
+                                                   "actionCost":  "cast_or_bonus_action",
+                                                   "scaling":  "+2d6 crush damage per slot level above 5th"
+                                               },
+                                               {
+                                                   "label":  "Interposing Hand",
+                                                   "summary":  "The hand interposes between the caster and a chosen creature, granting half cover and blocking or slowing that creature based on Strength.",
+                                                   "actionCost":  "cast_or_bonus_action",
+                                                   "requiresTargetChoice":  true
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "created_entity_drops_to_0_hp",
+                                                       "scope":  "spell",
+                                                       "description":  "The spell ends if the created hand object drops to 0 Hit Points."
+                                                   }
+                                               ],
+                        "tags":  [
+                                     "created-force-hand",
+                                     "mode-choice",
+                                     "damage-scaling"
+                                 ],
+                        "terrainInteraction":  {
+                                                   "difficultTerrainCondition":  "target_moving_through_hand_space_when_stronger_than_hand",
+                                                   "appliesTo":  "interposing_hand_target",
+                                                   "notes":  "If a target overpowers the hand and moves toward the caster through the hand space, that space counts as Difficult Terrain for that target."
+                                               },
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "force_object",
+                                                   "name":  "Bigby Hand",
+                                                   "count":  1,
+                                                   "countUnit":  "hand",
+                                                   "appearsIn":  "visible_unoccupied_space_within_range",
+                                                   "size":  "Large",
+                                                   "materialOptions":  [
+                                                                           "shimmering translucent force"
+                                                                       ],
+                                                   "objectArmorClass":  20,
+                                                   "hitPoints":  "equal_to_caster_hit_point_maximum",
+                                                   "immuneToDamage":  false,
+                                                   "destructionRule":  "if the hand drops to 0 hit points, the spell ends",
+                                                   "expiresWithSpell":  true,
+                                                   "notes":  "The hand is an object with AC 20 and hit points equal to the caster hit point maximum."
+                                               }
+                                           ],
+                        "controlledEntity":  {
+                                                 "entityType":  "Large force hand",
+                                                 "combatEntity":  false,
+                                                 "position":  "visible unoccupied space within range",
+                                                 "moveAction":  "Bonus Action when cast and on later turns",
+                                                 "moveDistanceFeet":  60,
+                                                 "actionModes":  [
+                                                                     "Clenched Fist",
+                                                                     "Forceful Hand",
+                                                                     "Grasping Hand",
+                                                                     "Interposing Hand"
+                                                                 ],
+                                                 "durability":  "AC 20, HP equal caster maximum; spell ends at 0 HP",
+                                                 "notes":  "A controlled force object with mode-specific combat actions."
+                                             },
+                        "sustainAction":  {
+                                              "cost":  "Bonus Action",
+                                              "frequency":  "when_cast_and_on_later_turns",
+                                              "use":  "move_hand_up_to_60_feet_and_choose_Clenched_Fist_Forceful_Hand_Grasping_Hand_or_Interposing_Hand",
+                                              "duration":  "concentration_up_to_1_minute"
+                                          },
+                        "forcedMovementState":  {
+                                                    "kind":  "forceful_hand_push",
+                                                    "mode":  "Forceful Hand",
+                                                    "target":  "creature_within_5_feet_of_hand",
+                                                    "contest":  "hand_Strength_contested_by_target_Strength_Athletics",
+                                                    "advantage":  "caster_has_advantage_if_target_Medium_or_smaller",
+                                                    "distance":  "5_feet_plus_5_times_spellcasting_ability_modifier",
+                                                    "direction":  "caster_chosen",
+                                                    "follow":  "hand_moves_with_target_to_remain_within_5_feet"
+                                                }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the hand\u0027s space, then choose Clenched Fist, Forceful Hand, Grasping Hand, or Interposing Hand when casting and whenever using the later Bonus Action command. Record any required target and push direction.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast_or_bonus_action",
+                       "optionCount":  4,
+                       "optionsSource":  "effects[0].controlOptions",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Clenched Fist",
+                                           "summary":  "Strike a nearby creature or object with a melee spell attack for Force damage.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ]
+                                       },
+                                       {
+                                           "label":  "Forceful Hand",
+                                           "summary":  "Push a nearby creature in a chosen direction after a contested Strength check.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ]
+                                       },
+                                       {
+                                           "label":  "Grasping Hand",
+                                           "summary":  "Grapple a Huge or smaller creature and enable later crush damage.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ]
+                                       },
+                                       {
+                                           "label":  "Interposing Hand",
+                                           "summary":  "Place the hand between the caster and a chosen creature for half cover and movement blocking.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ]
+                                       }
+                                   ],
+                       "notes":  "The selected command controls the hand\u0027s immediate or later Bonus Action behavior while the same created hand object remains active."
+                   },
+    "description":  "You create a Large hand of shimmering, translucent force in an unoccupied space that you can see within range. The hand lasts for the spell\u0027s duration, and it moves at your command, mimicking the movements of your own hand. The hand is an object that has AC 20 and hit points equal to your hit point maximum. If it drops to 0 hit points, the spell ends. It has a Strength of 26 (+8) and a Dexterity of 10 (+0). The hand doesn\u0027t fill its space. When you cast the spell and as a bonus action on your subsequent turns, you can move the hand up to 60 feet and then cause one of the following effects with it. Clenched Fist. The hand strikes one creature or object within 5 feet of it. Make a melee spell attack for the hand using your game statistics. On a hit, the target takes 4d8 force damage. Forceful Hand. The hand attempts to push a creature within 5 feet of it in a direction you choose. Make a check with the hand\u0027s Strength contested by the Strength (Athletics) check of the target. If the target is Medium or smaller, you have advantage on the check. If you succeed, the hand pushes the target up to 5 feet plus a number of feet equal to five times your spellcasting ability modifier. The hand moves with the target to remain within 5 feet of it. Grasping Hand. The hand attempts to grapple a Huge or smaller creature within 5 feet of it. You use the hand\u0027s Strength score to resolve the grapple. If the target is Medium or smaller, you have advantage on the check. While the hand is grappling the target, you can use a bonus action to have the hand crush it. When you do so, the target takes bludgeoning damage equal to 2d6 + your spellcasting ability modifier. Interposing Hand. The hand interposes itself between you and a creature you choose until you give the hand a different command. The hand moves to stay between you and the target, providing you with half cover against the target. The target can\u0027t move through the hand\u0027s space if its Strength score is less than or equal to the hand\u0027s Strength score. If its Strength score is higher than the hand\u0027s Strength score, the target can move toward you through the hand\u0027s space, but that space is difficult terrain for the target.",
+    "higherLevels":  "When you cast this spell using a spell slot of 6th level or higher, the damage from the clenched fist option increases by 2d8 and the damage from the grasping hand increases by 2d6 for each slot level above 5th.",
+    "tags":  [
+                 "legacy",
+                 "evocation",
+                 "created-force-hand",
+                 "mode-choice",
+                 "concentration"
+             ]
 }

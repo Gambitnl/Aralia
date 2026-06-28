@@ -858,6 +858,9 @@
               "$ref": "#/definitions/HealingEffect"
             },
             {
+              "$ref": "#/definitions/AttackRollModifierEffect"
+            },
+            {
               "$ref": "#/definitions/StatusConditionEffect"
             },
             {
@@ -907,6 +910,15 @@
         "items": {
           "type": "string"
         }
+      },
+      "castingTrigger": {
+        "$ref": "#/definitions/SpellCastingTrigger"
+      },
+      "pendingAttackTrigger": {
+        "$ref": "#/definitions/PendingAttackTrigger"
+      },
+      "interruptionState": {
+        "$ref": "#/definitions/SpellInterruptionState"
       }
     },
     "required": [
@@ -925,3 +937,5 @@
     ]
   }
 }
+
+

@@ -1,231 +1,282 @@
-{
-  "id": "creation",
-  "name": "Creation",
-  "aliases": [],
-  "level": 5,
-  "school": "Illusion",
-  "legacy": false,
-  "classes": [
-    "Sorcerer",
-    "Wizard",
-    "Artificer"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a paintbrush",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "special",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "point",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 5,
-      "sizeUnit": "feet"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Create one nonliving object of seen vegetable or mineral material in a visible point within 30 feet, no larger than a 5-foot Cube at base level. The object duration depends on its material, mixed-material objects use the shortest duration, created objects cannot serve as another spell Material component, and higher slots increase the Cube by 5 feet per slot level above 5.",
-      "createdObjects": [
-        {
-          "objectType": "other",
-          "name": "Created Shadow Object",
-          "count": 1,
-          "countUnit": "item",
-          "appearsIn": "unoccupied_space",
-          "shapeOptions": [
-            "caster_seen_form"
-          ],
-          "materialOptions": [
-            "vegetable matter",
-            "soft goods",
-            "rope",
-            "wood",
-            "mineral matter",
-            "stone",
-            "crystal",
-            "metal"
-          ],
-          "nonlivingObjectOnly": true,
-          "requiresSeenFormAndMaterial": true,
-          "materialSource": "Shadowfell",
-          "maxCreatedObjectCubeFeet": 5,
-          "maxCreatedObjectCubeScaling": {
-            "type": "slot_level",
-            "bonusPerLevel": 5
-          },
-          "durationByMaterial": {
-            "vegetable matter": "24 hours",
-            "stone or crystal": "12 hours",
-            "precious metals": "1 hour",
-            "gems": "10 minutes",
-            "adamantine or mithral": "1 minute"
-          },
-          "mixedMaterialsUseShortestDuration": true,
-          "cannotServeAsMaterialComponent": true,
-          "expiresWithSpell": true,
-          "expiryTiming": "material_duration"
-        }
-      ],
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You pull wisps of shadow material from the Shadowfell to create an object within range. It is either an object of vegetable matter (soft goods, rope, wood, and the like) or mineral matter (stone, crystal, metal, and the like). The object must be no larger than a 5-foot Cube , and the object must be of a form and material that you have seen. The spell's duration depends on the object's material, as shown in the Materials table. If the object is composed of multiple materials, use the shortest duration. Using any object created by this spell as another spell's Material component causes the other spell to fail.",
-  "higherLevels": "Using a Higher-Level Spell Slot. The Cube increases by 5 feet for each spell slot level above 5.",
-  "tags": []
+﻿{
+    "id":  "creation",
+    "name":  "Creation",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Illusion",
+    "legacy":  false,
+    "classes":  [
+                    "Sorcerer",
+                    "Wizard",
+                    "Artificer"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a paintbrush",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "special",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  5,
+                                           "sizeUnit":  "feet"
+                                       }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Create one nonliving object of seen vegetable or mineral material in a visible point within 30 feet, no larger than a 5-foot Cube at base level. The object duration depends on its material, mixed-material objects use the shortest duration, created objects cannot serve as another spell Material component, and higher slots increase the Cube by 5 feet per slot level above 5.",
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "other",
+                                                   "name":  "Created Shadow Object",
+                                                   "count":  1,
+                                                   "countUnit":  "item",
+                                                   "appearsIn":  "unoccupied_space",
+                                                   "shapeOptions":  [
+                                                                        "caster_seen_form"
+                                                                    ],
+                                                   "materialOptions":  [
+                                                                           "vegetable matter",
+                                                                           "soft goods",
+                                                                           "rope",
+                                                                           "wood",
+                                                                           "mineral matter",
+                                                                           "stone",
+                                                                           "crystal",
+                                                                           "metal"
+                                                                       ],
+                                                   "nonlivingObjectOnly":  true,
+                                                   "requiresSeenFormAndMaterial":  true,
+                                                   "materialSource":  "Shadowfell",
+                                                   "maxCreatedObjectCubeFeet":  5,
+                                                   "maxCreatedObjectCubeScaling":  {
+                                                                                       "type":  "slot_level",
+                                                                                       "bonusPerLevel":  5
+                                                                                   },
+                                                   "durationByMaterial":  {
+                                                                              "vegetable matter":  "24 hours",
+                                                                              "stone or crystal":  "12 hours",
+                                                                              "precious metals":  "1 hour",
+                                                                              "gems":  "10 minutes",
+                                                                              "adamantine or mithral":  "1 minute"
+                                                                          },
+                                                   "mixedMaterialsUseShortestDuration":  true,
+                                                   "cannotServeAsMaterialComponent":  true,
+                                                   "expiresWithSpell":  true,
+                                                   "expiryTiming":  "material_duration"
+                                               }
+                                           ],
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "visionLightSound":  {
+                                                 "mode":  "seen_form_material_requirement",
+                                                 "casterSightMemory":  "object must be a form and material the caster has seen",
+                                                 "objectVisibility":  "created nonliving object is physically present and visible normally unless material/context says otherwise",
+                                                 "maximumBaseSize":  "5-foot cube",
+                                                 "materialSource":  "wisps of shadow material from the Shadowfell",
+                                                 "durationDependsOnMaterial":  true,
+                                                 "soundPayload":  "none specified by spell"
+                                             }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You pull wisps of shadow material from the Shadowfell to create an object within range. It is either an object of vegetable matter (soft goods, rope, wood, and the like) or mineral matter (stone, crystal, metal, and the like). The object must be no larger than a 5-foot Cube , and the object must be of a form and material that you have seen. The spell\u0027s duration depends on the object\u0027s material, as shown in the Materials table. If the object is composed of multiple materials, use the shortest duration. Using any object created by this spell as another spell\u0027s Material component causes the other spell to fail.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. The Cube increases by 5 feet for each spell slot level above 5.",
+    "tags":  [
+
+             ]
 }

@@ -142,15 +142,63 @@ const SavingThrowAbility = z.enum(["Strength", "Dexterity", "Constitution", "Int
 
 const CastingTime = z.object({
   value: z.number(),
-  unit: z.enum(["action", "bonus_action", "reaction", "minute", "hour", "special"]),
+  unit: z.enum(["action", "bonus_action", "reaction", "free", "minute", "hour", "special"]),
   combatCost: z.object({
-    type: z.enum(["action", "bonus_action", "reaction"]), // Validation Rule: Must strictly match castingTime.unit if applicable
+    type: z.enum(["action", "bonus_action", "reaction", "free"]), // Validation Rule: Must strictly match castingTime.unit if applicable
     condition: z.string(),
   }),
   explorationCost: z.object({
     value: z.number(),
     unit: z.enum(["minute", "hour"]),
   }),
+});
+
+// ============================================================================
+// Spell-Level Runtime Trigger Metadata
+// ============================================================================
+// These shapes validate spell timing rules that happen before or around the
+// normal effect list. Smite-style reaction spells, Counterspell, and Lightning
+// Arrow cannot be represented correctly by changing only an effect trigger,
+// because the runtime also needs to know which combat event opens the cast.
+// ============================================================================
+
+const SpellCastingTrigger = z.object({
+  type: z.enum(["after_attack_hit", "when_visible_creature_casts_spell"]),
+  timing: z.string().optional(),
+  requiredCost: z.enum(["action", "bonus_action", "reaction", "free", "free"]).optional(),
+  attackFilter: z.object({
+    weaponType: z.enum(["melee", "ranged", "melee_weapon", "ranged_weapon", "unarmed", "any"]).optional(),
+    attackType: z.enum(["weapon", "spell", "unarmed", "any"]).optional()
+  }).optional(),
+  targetBinding: z.string().optional(),
+  maxRangeFeet: z.number().optional(),
+  notes: z.string().optional(),
+});
+
+const PendingAttackTrigger = z.object({
+  type: z.enum(["next_attack"]),
+  attackFilter: z.object({
+    attackType: z.enum(["weapon", "spell", "unarmed", "any"]).optional(),
+    weaponType: z.enum(["melee", "ranged", "melee_weapon", "ranged_weapon", "unarmed", "any"]).optional()
+  }).optional(),
+  resolvesOn: z.enum(["hit", "miss", "hit_or_miss"]),
+  primaryTargetBinding: z.string().optional(),
+  consumption: z.enum(["first_matching_attack", "every_matching_attack"]).optional(),
+  missResolution: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+const SpellInterruptionState = z.object({
+  event: z.enum(["visible_creature_casts_spell"]),
+  saveType: SavingThrowAbility,
+  failureOutcome: z.enum(["spell_has_no_effect"]).optional(),
+  failedSaveOutcome: z.string(),
+  slotPolicy: z.string(),
+  preservesInterruptedSlot: z.boolean().optional(),
+  actionPolicy: z.string(),
+  visibilityRequired: z.boolean(),
+  rangeFeet: z.number(),
+  runtimeBoundary: z.string().optional(),
 });
 
 // ============================================================================
@@ -230,8 +278,8 @@ const EffectTrigger = z.object({
   frequency: z.enum(["every_time", "first_per_turn", "once", "once_per_creature"]).optional(),
   consumption: z.enum(["unlimited", "first_hit", "per_turn", "per_instance_hit_or_miss"]).optional(),
   attackFilter: z.object({
-    weaponType: z.enum(["melee", "ranged", "any"]).optional(),
-    attackType: z.enum(["weapon", "spell", "any"]).optional()
+    weaponType: z.enum(["melee", "ranged", "melee_weapon", "ranged_weapon", "unarmed", "any"]).optional(),
+    attackType: z.enum(["weapon", "spell", "unarmed", "any"]).optional()
   }).optional(),
   movementType: z.enum(["any", "willing", "forced"]).optional(),
   sustainCost: z.object({
@@ -341,7 +389,9 @@ const RecurringMechanic = z.object({
 const EffectCondition = z.object({
   type: z.enum(["hit", "save", "always"]),
   saveType: SavingThrowAbility.optional(),
-  saveEffect: z.enum(["none", "half", "negates_condition"]).optional(),
+  // Counterspell negates the triggering spell effect rather than a named
+  // condition, so the validator must allow that outcome as a real save result.
+  saveEffect: z.enum(["none", "half", "negates_condition", "negates_effect"]).optional(),
   targetFilter: TargetConditionFilter.optional(),
   requiresStatus: z.array(z.string()).optional(),
   saveModifiers: z.array(SaveModifier).optional(),
@@ -540,6 +590,11 @@ const DamageData = z.object({
 const DamageEffect = BaseEffect.extend({
   type: z.literal("DAMAGE"),
   damage: DamageData,
+  // Lightning Arrow resolves even on a miss, but for half primary damage.
+  // Keeping the multiplier on the damage effect matches the public spell type
+  // and lets AbilityCommandFactory pass the fraction into DamageCommand without
+  // a spell-name exception.
+  missDamageMultiplier: z.number().optional(),
 });
 
 // Knock-style utility spells change the state of doors, boxes, locks, bars,
@@ -604,10 +659,40 @@ const AttackRollModifier = z.object({
   notes: z.string().optional(),
 });
 
+const InvisibilitySuppression = z.object({
+  suppressesConditionBenefit: z.union([z.literal("Invisible"), z.string()]),
+  scope: z.string().optional(),
+  duration: z.string().optional(),
+  description: z.string().optional(),
+});
+
+const RiderLight = z.object({
+  brightRadius: z.number(),
+  dimRadius: z.number().optional(),
+  attachedTo: z.enum(["caster", "target", "point"]).optional(),
+  color: z.string().optional(),
+  colorChoice: z.enum(["caster_choice", "fixed", "not_applicable"]).optional(),
+  opaqueCoverBlocks: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
+  emitsHeat: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
+  ignitesObjects: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
+  consumesFuel: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
+  canBeCoveredOrHidden: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
+  canBeSmotheredOrQuenched: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
+});
+
 const AttackRollModifierEffect = BaseEffect.extend({
   type: z.literal("ATTACK_ROLL_MODIFIER"),
   attackRollModifier: AttackRollModifier,
   damage: DamageData.optional(),
+  // Shining Smite's after-hit rider also makes the target shed light. Validate
+  // that payload here so it travels with the shared attack-roll rider instead
+  // of requiring a separate utility effect or spell-specific exception.
+  light: RiderLight.optional(),
+  // Shining Smite-style rider effects can carry a second payload: attacks
+  // against the target gain the rider, and the target stops benefiting from
+  // Invisible while the rider remains active. Keep that contract validated on
+  // the shared rider family rather than accepting it as untyped spell prose.
+  invisibilitySuppression: InvisibilitySuppression.optional(),
 });
 
 const MovementEffect = BaseEffect.extend({
@@ -628,7 +713,7 @@ const MovementEffect = BaseEffect.extend({
 });
 
 const GrantedAction = z.object({
-  type: z.enum(["action", "bonus_action", "reaction"]),
+  type: z.enum(["action", "bonus_action", "reaction", "free"]),
   action: z.string(),
   frequency: z.enum(["once", "each_turn", "while_active"]),
   // Actor and action kind distinguish a caster sustaining a spell from a spell
@@ -703,6 +788,31 @@ const SummonSpecialAction = z.object({
   }).optional()
 });
 
+const SummonActionPermissions = z.object({
+  // Familiar and summon packets need action permissions beside the created
+  // entity so the runtime can enforce attacks, touch delivery, and command
+  // economy from data instead of hidden spell branches.
+  canAttack: z.boolean().optional(),
+  canDeliverTouchSpells: z.boolean().optional(),
+  touchDeliveryRangeFeet: z.number().optional(),
+  touchDeliveryCost: z.enum(["action", "bonus_action", "reaction", "free", "free", "none"]).optional(),
+  independentInitiative: z.boolean().optional(),
+  obeysCasterCommands: z.boolean().optional(),
+  commandCost: z.enum(["action", "bonus_action", "reaction", "free", "free", "none"]).optional(),
+  defaultUncommandedAction: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+const SummonFormTrait = z.object({
+  // Form traits let one summon spell expose Air/Land/Water or similar choices
+  // without pretending every form has the same movement and opportunity rules.
+  name: z.string(),
+  appliesToForms: z.array(z.string()).optional(),
+  opportunityAttackPolicy: z.enum(["does_not_provoke_when_flying_out_of_reach", "normal"]).optional(),
+  movementModeRequired: z.enum(["fly", "walk", "swim", "climb", "any"]).optional(),
+  notes: z.string().optional(),
+});
+
 const SummoningEffect = BaseEffect.extend({
   type: z.literal("SUMMONING"),
   summon: z.object({
@@ -741,7 +851,9 @@ const SummoningEffect = BaseEffect.extend({
     // costs. Keep the validator aligned so spell JSON can express those rules
     // without being rejected before SummoningCommand sees the metadata.
     sharedSensesCost: z.enum(["action", "bonus_action", "free", "none"]).optional(),
-    specialActions: z.array(SummonSpecialAction).optional()
+    specialActions: z.array(SummonSpecialAction).optional(),
+    actionPermissions: SummonActionPermissions.optional(),
+    formTraits: z.array(SummonFormTrait).optional()
   })
 });
 
@@ -1076,7 +1188,7 @@ const CreatedObject = z.object({
   orbitsCaster: z.boolean().optional(),
   expendable: z.boolean().optional(),
   maxExpendedPerAction: z.number().optional(),
-  consumeAction: z.enum(["action", "bonus_action", "reaction", "free", "not_applicable"]).optional(),
+  consumeAction: z.enum(["action", "bonus_action", "reaction", "free", "free", "not_applicable"]).optional(),
   healingPerItem: z.number().optional(),
   nourishmentDaysPerItem: z.number().optional(),
   // Long-running enrichment spells alter a future harvest instead of creating
@@ -1262,6 +1374,11 @@ export const SpellValidator = z.object({
   // Mode choice records spell menus such as "choose one of the following
   // effects." The actual payload still lives in effects/controlOptions.
   modeChoice: ModeChoice.optional(),
+  // Spell-level triggers are runtime routing contracts for spells whose legal
+  // casting moment is created by another event, such as a hit or an enemy cast.
+  castingTrigger: SpellCastingTrigger.optional(),
+  pendingAttackTrigger: PendingAttackTrigger.optional(),
+  interruptionState: SpellInterruptionState.optional(),
   // Effect schedules describe when already-modeled effects become active for
   // spells with turn-numbered stages. The field is optional so ordinary spells
   // do not have to carry an empty schedule object.
@@ -1356,3 +1473,5 @@ export const SpellValidator = z.object({
   // Subclass verification refinement retired 2026-05-11 with the field.
   // See SpellClassAccess above for context.
 });
+
+

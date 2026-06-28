@@ -1,437 +1,505 @@
 {
-  "id": "elementalism",
-  "name": "Elementalism",
-  "aliases": [],
-  "level": 0,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Artificer",
-    "Druid",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "point",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point",
-      "objects"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 5,
-      "sizeUnit": "feet"
-    },
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Beckon Air",
-          "shape": "Cube",
-          "size": 5,
-          "sizeType": "edge",
-          "sizeUnit": "feet"
-        },
-        {
-          "label": "Beckon Earth",
-          "shape": "Square",
-          "size": 5,
-          "sizeType": "side",
-          "sizeUnit": "feet"
-        },
-        {
-          "label": "Beckon Fire",
-          "shape": "Cube",
-          "size": 5,
-          "sizeType": "edge",
-          "sizeUnit": "feet"
-        },
-        {
-          "label": "Beckon Water",
-          "shape": "Cube",
-          "size": 5,
-          "sizeType": "edge",
-          "sizeUnit": "feet"
-        },
-        {
-          "label": "Sculpt Element",
-          "shape": "Cube",
-          "size": 1,
-          "sizeType": "edge",
-          "sizeUnit": "feet"
-        }
-      ],
-      "measuredDetails": [
-        {
-          "label": "Beckon Water volume",
-          "kind": "volume",
-          "subject": "clean water",
-          "value": 1,
-          "qualifier": "cup",
-          "notes": "The water evaporates in 1 minute."
-        },
-        {
-          "label": "Sculpt Element duration",
-          "kind": "time",
-          "subject": "crude shape",
-          "value": 60,
-          "unit": "minutes"
-        }
-      ]
-    }
-  },
-  "modeChoice": {
-    "type": "choose_one",
-    "timing": "on_cast",
-    "optionCount": 5,
-    "optionsSource": "controlOptions",
-    "maxActiveNonInstantaneous": "not_applicable",
-    "canDismissActive": "not_applicable",
-    "options": [
-      {
-        "label": "Beckon Air",
-        "summary": "Create a breeze in a 5-foot Cube.",
-        "controlOptionIndices": [
-          0
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ]
-      },
-      {
-        "label": "Beckon Earth",
-        "summary": "Cover surfaces in a 5-foot-square area with dust or sand, or write one word in dirt or sand.",
-        "controlOptionIndices": [
-          1
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ]
-      },
-      {
-        "label": "Beckon Fire",
-        "summary": "Create harmless embers and chosen color/scent smoke in a 5-foot Cube, with embers able to light small flames.",
-        "controlOptionIndices": [
-          2
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "smoke scent lingers 1 minute"
-      },
-      {
-        "label": "Beckon Water",
-        "summary": "Create cool mist in a 5-foot Cube or create 1 cup of clean water that evaporates in 1 minute.",
-        "controlOptionIndices": [
-          3
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "water evaporates in 1 minute"
-      },
-      {
-        "label": "Sculpt Element",
-        "summary": "Shape dirt, sand, fire, smoke, mist, or water fitting in a 1-foot Cube into a crude shape for 1 hour.",
-        "controlOptionIndices": [
-          4
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "1 hour"
-      }
-    ],
-    "notes": "The caster chooses exactly one listed Elementalism effect when the spell resolves."
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "Creates one of five minor elemental effects: Beckon Air, Beckon Earth, Beckon Fire, Beckon Water, or Sculpt Element.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "createdObjects": [
-        {
-          "objectType": "other",
-          "name": "Elemental Breeze",
-          "count": 125,
-          "countUnit": "cubic_foot",
-          "appearsIn": "spell_area",
-          "affectedVolumeShape": "Cube",
-          "affectedVolumeSizeFeet": 5,
-          "manipulationOptions": [
-            "ripple_cloth",
-            "stir_dust",
-            "rustle_leaves",
-            "close_unheld_doors_or_shutters"
-          ],
-          "expiresWithSpell": false,
-          "shelfLife": "instantaneous",
-          "notes": "Beckon Air creates a harmless breeze in a 5-foot Cube. Doors and shutters held open by someone or something are not affected."
-        },
-        {
-          "objectType": "other",
-          "name": "Dust Or Sand Shroud",
-          "count": 25,
-          "countUnit": "square_foot",
-          "appearsIn": "spell_area",
-          "affectedVolumeShape": "not_applicable",
-          "affectedVolumeSizeFeet": 5,
-          "manipulationOptions": [
-            "cover_surface",
-            "write_one_word"
-          ],
-          "expiresWithSpell": false,
-          "shelfLife": "instantaneous",
-          "notes": "Beckon Earth covers a 5-foot-square surface with dust or sand, or writes one word in dirt or sand in the caster's handwriting."
-        },
-        {
-          "objectType": "other",
-          "name": "Harmless Embers And Smoke",
-          "count": 125,
-          "countUnit": "cubic_foot",
-          "appearsIn": "spell_area",
-          "affectedVolumeShape": "Cube",
-          "affectedVolumeSizeFeet": 5,
-          "manipulationOptions": [
-            "choose_smoke_color",
-            "choose_smoke_scent",
-            "light_small_flames"
-          ],
-          "canChangeColorOrOpacity": true,
-          "ignitesTouchedObjects": true,
-          "expiresWithSpell": false,
-          "shelfLife": "1 minute scent",
-          "notes": "Beckon Fire creates harmless embers and colored, scented smoke. The embers can light candles, torches, or lamps in the area; the scent lingers for 1 minute."
-        },
-        {
-          "objectType": "water",
-          "name": "Cool Mist Or Clean Water",
-          "count": 1,
-          "countUnit": "item",
-          "appearsIn": "spell_area",
-          "affectedVolumeShape": "Cube",
-          "affectedVolumeSizeFeet": 5,
-          "manipulationOptions": [
-            "lightly_dampen",
-            "create_one_cup_clean_water"
-          ],
-          "expiresWithSpell": false,
-          "shelfLife": "1 minute",
-          "notes": "Beckon Water creates cool mist in a 5-foot Cube or 1 cup of clean water in an open container or on a surface. The created cup of water evaporates in 1 minute."
-        },
-        {
-          "objectType": "other",
-          "name": "Crude Elemental Shape",
-          "count": 1,
-          "countUnit": "cubic_foot",
-          "appearsIn": "spell_area",
-          "affectedVolumeShape": "Cube",
-          "affectedVolumeSizeFeet": 1,
-          "shapeOptions": [
-            "dirt",
-            "sand",
-            "fire",
-            "smoke",
-            "mist",
-            "water",
-            "crude creature shape"
-          ],
-          "manipulationOptions": [
-            "assume_crude_shape"
-          ],
-          "expiresWithSpell": false,
-          "shelfLife": "1 hour",
-          "notes": "Sculpt Element shapes dirt, sand, fire, smoke, mist, or water that fits in a 1-foot Cube into a crude form for 1 hour."
-        }
-      ],
-      "controlOptions": [
-        {
-          "name": "Beckon Air",
-          "effect": "Create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors and shutters.",
-          "details": "Doors and shutters being held open by someone or something aren't affected."
-        },
-        {
-          "name": "Beckon Earth",
-          "effect": "Create a thin shroud of dust or sand that covers surfaces in a 5-foot-square area.",
-          "details": "Alternatively, cause a single word to appear in your handwriting in a patch of dirt or sand."
-        },
-        {
-          "name": "Beckon Fire",
-          "effect": "Create a thin cloud of harmless embers and colored, scented smoke in a 5-foot Cube.",
-          "details": "You choose the color and scent; the embers can light candles, torches, or lamps in that area, and the smoke's scent lingers for 1 minute."
-        },
-        {
-          "name": "Beckon Water",
-          "effect": "Create a spray of cool mist that lightly dampens creatures and objects in a 5-foot Cube.",
-          "details": "Alternatively, create 1 cup of clean water either in an open container or on a surface; the water evaporates in 1 minute."
-        },
-        {
-          "name": "Sculpt Element",
-          "effect": "Cause dirt, sand, fire, smoke, mist, or water that can fit in a 1-foot Cube to assume a crude shape.",
-          "details": "The crude shape can be such as that of a creature and lasts for 1 hour."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "Choose one Elementalism option before casting: Beckon Air, Beckon Earth, Beckon Fire, Beckon Water, or Sculpt Element.",
-    "playerInputRequired": true
-  },
-  "description": "You exert control over the elements, creating one of the following effects within range. Beckon Air. You create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors and shutters, all in a 5-foot Cube. Doors and shutters being held open by someone or something aren't affected. Beckon Earth. You create a thin shroud of dust or sand that covers surfaces in a 5-foot-square area, or you cause a single word to appear in your handwriting in a patch of dirt or sand. Beckon Fire. You create a thin cloud of harmless embers and colored, scented smoke in a 5-foot Cube. You choose the color and scent, and the embers can light candles, torches, or lamps in that area. The smoke's scent lingers for 1 minute. Beckon Water. You create a spray of cool mist that lightly dampens creatures and objects in a 5-foot Cube. Alternatively, you create 1 cup of clean water either in an open container or on a surface, and the water evaporates in 1 minute. Sculpt Element. You cause dirt, sand, fire, smoke, mist, or water that can fit in a 1-foot Cube to assume a crude shape (such as that of a creature) for 1 hour.",
-  "higherLevels": "",
-  "tags": [
-    "utility",
-    "elemental",
-    "cantrip"
-  ]
+    "id":  "elementalism",
+    "name":  "Elementalism",
+    "aliases":  [
+
+                ],
+    "level":  0,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Artificer",
+                    "Druid",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "instantaneous",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point",
+                                           "objects"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  5,
+                                           "sizeUnit":  "feet"
+                                       },
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Beckon Air",
+                                                               "shape":  "Cube",
+                                                               "size":  5,
+                                                               "sizeType":  "edge",
+                                                               "sizeUnit":  "feet"
+                                                           },
+                                                           {
+                                                               "label":  "Beckon Earth",
+                                                               "shape":  "Square",
+                                                               "size":  5,
+                                                               "sizeType":  "side",
+                                                               "sizeUnit":  "feet"
+                                                           },
+                                                           {
+                                                               "label":  "Beckon Fire",
+                                                               "shape":  "Cube",
+                                                               "size":  5,
+                                                               "sizeType":  "edge",
+                                                               "sizeUnit":  "feet"
+                                                           },
+                                                           {
+                                                               "label":  "Beckon Water",
+                                                               "shape":  "Cube",
+                                                               "size":  5,
+                                                               "sizeType":  "edge",
+                                                               "sizeUnit":  "feet"
+                                                           },
+                                                           {
+                                                               "label":  "Sculpt Element",
+                                                               "shape":  "Cube",
+                                                               "size":  1,
+                                                               "sizeType":  "edge",
+                                                               "sizeUnit":  "feet"
+                                                           }
+                                                       ],
+                                             "measuredDetails":  [
+                                                                     {
+                                                                         "label":  "Beckon Water volume",
+                                                                         "kind":  "volume",
+                                                                         "subject":  "clean water",
+                                                                         "value":  1,
+                                                                         "qualifier":  "cup",
+                                                                         "notes":  "The water evaporates in 1 minute."
+                                                                     },
+                                                                     {
+                                                                         "label":  "Sculpt Element duration",
+                                                                         "kind":  "time",
+                                                                         "subject":  "crude shape",
+                                                                         "value":  60,
+                                                                         "unit":  "minutes"
+                                                                     }
+                                                                 ]
+                                         }
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  5,
+                       "optionsSource":  "controlOptions",
+                       "maxActiveNonInstantaneous":  "not_applicable",
+                       "canDismissActive":  "not_applicable",
+                       "options":  [
+                                       {
+                                           "label":  "Beckon Air",
+                                           "summary":  "Create a breeze in a 5-foot Cube.",
+                                           "controlOptionIndices":  [
+                                                                        0
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ]
+                                       },
+                                       {
+                                           "label":  "Beckon Earth",
+                                           "summary":  "Cover surfaces in a 5-foot-square area with dust or sand, or write one word in dirt or sand.",
+                                           "controlOptionIndices":  [
+                                                                        1
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ]
+                                       },
+                                       {
+                                           "label":  "Beckon Fire",
+                                           "summary":  "Create harmless embers and chosen color/scent smoke in a 5-foot Cube, with embers able to light small flames.",
+                                           "controlOptionIndices":  [
+                                                                        2
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "smoke scent lingers 1 minute"
+                                       },
+                                       {
+                                           "label":  "Beckon Water",
+                                           "summary":  "Create cool mist in a 5-foot Cube or create 1 cup of clean water that evaporates in 1 minute.",
+                                           "controlOptionIndices":  [
+                                                                        3
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "water evaporates in 1 minute"
+                                       },
+                                       {
+                                           "label":  "Sculpt Element",
+                                           "summary":  "Shape dirt, sand, fire, smoke, mist, or water fitting in a 1-foot Cube into a crude shape for 1 hour.",
+                                           "controlOptionIndices":  [
+                                                                        4
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "1 hour"
+                                       }
+                                   ],
+                       "notes":  "The caster chooses exactly one listed Elementalism effect when the spell resolves."
+                   },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "Creates one of five minor elemental effects: Beckon Air, Beckon Earth, Beckon Fire, Beckon Water, or Sculpt Element.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "other",
+                                                   "name":  "Elemental Breeze",
+                                                   "count":  125,
+                                                   "countUnit":  "cubic_foot",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Cube",
+                                                   "affectedVolumeSizeFeet":  5,
+                                                   "manipulationOptions":  [
+                                                                               "ripple_cloth",
+                                                                               "stir_dust",
+                                                                               "rustle_leaves",
+                                                                               "close_unheld_doors_or_shutters"
+                                                                           ],
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "instantaneous",
+                                                   "notes":  "Beckon Air creates a harmless breeze in a 5-foot Cube. Doors and shutters held open by someone or something are not affected."
+                                               },
+                                               {
+                                                   "objectType":  "other",
+                                                   "name":  "Dust Or Sand Shroud",
+                                                   "count":  25,
+                                                   "countUnit":  "square_foot",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "not_applicable",
+                                                   "affectedVolumeSizeFeet":  5,
+                                                   "manipulationOptions":  [
+                                                                               "cover_surface",
+                                                                               "write_one_word"
+                                                                           ],
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "instantaneous",
+                                                   "notes":  "Beckon Earth covers a 5-foot-square surface with dust or sand, or writes one word in dirt or sand in the caster\u0027s handwriting."
+                                               },
+                                               {
+                                                   "objectType":  "other",
+                                                   "name":  "Harmless Embers And Smoke",
+                                                   "count":  125,
+                                                   "countUnit":  "cubic_foot",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Cube",
+                                                   "affectedVolumeSizeFeet":  5,
+                                                   "manipulationOptions":  [
+                                                                               "choose_smoke_color",
+                                                                               "choose_smoke_scent",
+                                                                               "light_small_flames"
+                                                                           ],
+                                                   "canChangeColorOrOpacity":  true,
+                                                   "ignitesTouchedObjects":  true,
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "1 minute scent",
+                                                   "notes":  "Beckon Fire creates harmless embers and colored, scented smoke. The embers can light candles, torches, or lamps in the area; the scent lingers for 1 minute."
+                                               },
+                                               {
+                                                   "objectType":  "water",
+                                                   "name":  "Cool Mist Or Clean Water",
+                                                   "count":  1,
+                                                   "countUnit":  "item",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Cube",
+                                                   "affectedVolumeSizeFeet":  5,
+                                                   "manipulationOptions":  [
+                                                                               "lightly_dampen",
+                                                                               "create_one_cup_clean_water"
+                                                                           ],
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "1 minute",
+                                                   "notes":  "Beckon Water creates cool mist in a 5-foot Cube or 1 cup of clean water in an open container or on a surface. The created cup of water evaporates in 1 minute."
+                                               },
+                                               {
+                                                   "objectType":  "other",
+                                                   "name":  "Crude Elemental Shape",
+                                                   "count":  1,
+                                                   "countUnit":  "cubic_foot",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Cube",
+                                                   "affectedVolumeSizeFeet":  1,
+                                                   "shapeOptions":  [
+                                                                        "dirt",
+                                                                        "sand",
+                                                                        "fire",
+                                                                        "smoke",
+                                                                        "mist",
+                                                                        "water",
+                                                                        "crude creature shape"
+                                                                    ],
+                                                   "manipulationOptions":  [
+                                                                               "assume_crude_shape"
+                                                                           ],
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "1 hour",
+                                                   "notes":  "Sculpt Element shapes dirt, sand, fire, smoke, mist, or water that fits in a 1-foot Cube into a crude form for 1 hour."
+                                               }
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Beckon Air",
+                                                   "effect":  "Create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors and shutters.",
+                                                   "details":  "Doors and shutters being held open by someone or something aren\u0027t affected."
+                                               },
+                                               {
+                                                   "name":  "Beckon Earth",
+                                                   "effect":  "Create a thin shroud of dust or sand that covers surfaces in a 5-foot-square area.",
+                                                   "details":  "Alternatively, cause a single word to appear in your handwriting in a patch of dirt or sand."
+                                               },
+                                               {
+                                                   "name":  "Beckon Fire",
+                                                   "effect":  "Create a thin cloud of harmless embers and colored, scented smoke in a 5-foot Cube.",
+                                                   "details":  "You choose the color and scent; the embers can light candles, torches, or lamps in that area, and the smoke\u0027s scent lingers for 1 minute."
+                                               },
+                                               {
+                                                   "name":  "Beckon Water",
+                                                   "effect":  "Create a spray of cool mist that lightly dampens creatures and objects in a 5-foot Cube.",
+                                                   "details":  "Alternatively, create 1 cup of clean water either in an open container or on a surface; the water evaporates in 1 minute."
+                                               },
+                                               {
+                                                   "name":  "Sculpt Element",
+                                                   "effect":  "Cause dirt, sand, fire, smoke, mist, or water that can fit in a 1-foot Cube to assume a crude shape.",
+                                                   "details":  "The crude shape can be such as that of a creature and lasts for 1 hour."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "createdResource":  {
+                                                "modes":  [
+                                                              {
+                                                                  "name":  "Beckon Water",
+                                                                  "amount":  "1_cup_clean_water",
+                                                                  "placement":  "open_container_or_surface",
+                                                                  "lifecycle":  "evaporates_after_1_minute"
+                                                              },
+                                                              {
+                                                                  "name":  "Sculpt Element",
+                                                                  "amount":  "dirt_sand_fire_smoke_mist_or_water_that_fits_in_1_foot_cube",
+                                                                  "lifecycle":  "crude_shape_lasts_1_hour"
+                                                              }
+                                                          ],
+                                                "note":  "Cantrip creates minor temporary resources without material consumption."
+                                            },
+                        "aftermathState":  {
+                                               "kind":  "minor_element_lingering_cleanup",
+                                               "lingerers":  [
+                                                                 {
+                                                                     "mode":  "Beckon Fire smoke",
+                                                                     "consequence":  "smoke_scent_lingers_for_1_minute"
+                                                                 },
+                                                                 {
+                                                                     "mode":  "Beckon Water created water",
+                                                                     "consequence":  "water_evaporates_in_1_minute"
+                                                                 }
+                                                             ],
+                                               "note":  "Tracks lingering sensory/resource aftermath after the cantrip mode resolves."
+                                           }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose one Elementalism option before casting: Beckon Air, Beckon Earth, Beckon Fire, Beckon Water, or Sculpt Element.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You exert control over the elements, creating one of the following effects within range. Beckon Air. You create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors and shutters, all in a 5-foot Cube. Doors and shutters being held open by someone or something aren\u0027t affected. Beckon Earth. You create a thin shroud of dust or sand that covers surfaces in a 5-foot-square area, or you cause a single word to appear in your handwriting in a patch of dirt or sand. Beckon Fire. You create a thin cloud of harmless embers and colored, scented smoke in a 5-foot Cube. You choose the color and scent, and the embers can light candles, torches, or lamps in that area. The smoke\u0027s scent lingers for 1 minute. Beckon Water. You create a spray of cool mist that lightly dampens creatures and objects in a 5-foot Cube. Alternatively, you create 1 cup of clean water either in an open container or on a surface, and the water evaporates in 1 minute. Sculpt Element. You cause dirt, sand, fire, smoke, mist, or water that can fit in a 1-foot Cube to assume a crude shape (such as that of a creature) for 1 hour.",
+    "higherLevels":  "",
+    "tags":  [
+                 "utility",
+                 "elemental",
+                 "cantrip"
+             ]
 }

@@ -144,6 +144,33 @@
       },
       "utilityType": "other",
       "description": "Create a 10-foot-radius, 20-foot-tall Cylinder within 10 feet for 1 hour without concentration; choose Celestial, Elemental, Fey, Fiend, or Undead families, then choose inward or reversed protection that blocks entry or exit, wastes failed teleport/interplanar attempts after a Charisma save, imposes Disadvantage on attacks across the boundary, and prevents Charmed, Frightened, or Possessed from the chosen creatures.",
+      "circleProtection": {
+        "eligibleCreatureFamilies": [
+          "Celestial",
+          "Elemental",
+          "Fey",
+          "Fiend",
+          "Undead"
+        ],
+        "directionOptions": [
+          "inward_protection",
+          "reversed_outward_protection"
+        ],
+        "nonmagicalBoundaryRule": "chosen creatures cannot willingly cross the protected boundary in the blocked direction",
+        "teleportOrPlanarTravelSave": {
+          "saveType": "Charisma",
+          "failure": "attempt_fails_and_is_wasted"
+        },
+        "attackRollModifier": {
+          "modifier": "disadvantage",
+          "appliesTo": "chosen_creatures_attacking_targets_across_protected_boundary"
+        },
+        "protectedConditionImmunity": [
+          "Charmed",
+          "Frightened",
+          "Possessed"
+        ]
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -184,8 +211,73 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose one or more protected creature families, then choose whether the circle protects inward or uses the reversed outward mode. Enforce the blocked nonmagical boundary, require a Charisma save for teleportation or interplanar travel across the blocked boundary, waste failed attempts, impose Disadvantage on chosen creatures attacking protected targets across the boundary, and block Charmed, Frightened, or Possessed from the chosen creatures.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_multiple",
+    "timing": "on_cast",
+    "optionCount": 5,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Celestials",
+        "summary": "The circle affects Celestials with the chosen inward or reversed protection direction.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 hour, plus 1 hour per slot level above 3"
+      },
+      {
+        "label": "Elementals",
+        "summary": "The circle affects Elementals with the chosen inward or reversed protection direction.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 hour, plus 1 hour per slot level above 3"
+      },
+      {
+        "label": "Fey",
+        "summary": "The circle affects Fey with the chosen inward or reversed protection direction.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 hour, plus 1 hour per slot level above 3"
+      },
+      {
+        "label": "Fiends",
+        "summary": "The circle affects Fiends with the chosen inward or reversed protection direction.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 hour, plus 1 hour per slot level above 3"
+      },
+      {
+        "label": "Undead",
+        "summary": "The circle affects Undead with the chosen inward or reversed protection direction.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 hour, plus 1 hour per slot level above 3"
+      }
+    ],
+    "notes": "Choose one or more listed creature families. The separate inward-versus-reversed direction choice still needs a nested or secondary choice widget; until then, runtime should request it from the player prompt and bind it to the same utility effect."
   },
   "description": "You create a 10-foot-radius, 20-foot-tall Cylinder of magical energy centered on a point on the ground that you can see within range. Glowing runes appear wherever the Cylinder intersects with the floor or other surface. Choose one or more of the following types of creatures: Celestials, Elementals, Fey, Fiends, or Undead. The circle affects a creature of the chosen type in the following ways: Each time you cast this spell, you can cause its magic to operate in the reverse direction, preventing a creature of the specified type from leaving the Cylinder and protecting targets outside it.",
   "higherLevels": "Using a Higher-Level Spell Slot. The duration increases by 1 hour for each spell slot level above 3.",

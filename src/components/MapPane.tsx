@@ -32,8 +32,14 @@ import {
   foodRangeDays,
   tripDaysFromMinutes,
   provisionStatusMulti,
+  type RationMode,
 } from '@/systems/travel/provisioning';
 import { formatProvisionLine } from '@/systems/travel/travelReadout';
+import { decideTravelProvision } from '@/systems/travel/travelProvisionDecision';
+import { forage } from '@/systems/travel/forage';
+import { cellTraits } from './Worldforge/atlasSvg';
+import { SeededRandom } from '@/utils/random';
+import type { TravelMeta, TravelProvisionEffect } from '@/types/travelMeta';
 import { BIOMES } from '../constants';
 import { WindowFrame } from './ui/WindowFrame';
 import { WINDOW_KEYS } from '../styles/uiIds';
@@ -66,11 +72,14 @@ import { availableTransports } from '@/systems/travel/availableTransports';
 import { rollTravelEncounter } from '@/systems/travel/travelEncounter';
 import { formatTravelTime } from '@/systems/travel/travelReadout';
 import { generateFmgWorld } from '@/systems/worldforge/fmg/generateWorld';
+import { shipTravelAvailability, shipVoyageFromDestination } from '@/systems/worldforge/travel/shipEmbark';
+import { shipSpeedMph } from '@/utils/naval/navalUtils';
+import type { Ship } from '@/types/naval';
 
 interface MapPaneProps {
   mapData: MapData;
   worldSeed?: number;
-  onTileClick: (x: number, y: number, tile: MapTileType, travelMeta?: { seconds: number; encounterMessage?: string | null }) => void;
+  onTileClick: (x: number, y: number, tile: MapTileType, travelMeta?: TravelMeta) => void;
   /** When set, clicking a discovered cell in Enter 3D mode starts streamed world entry. */
   onEnter3DAtCell?: (x: number, y: number, tile: MapTileType) => void;
   /** Last known 3D position — draws AtlasPlayerMarker on the Worldforge atlas. */
@@ -98,10 +107,25 @@ interface MapPaneProps {
   provisionInventory?: Item[];
   /** Number of party members consuming rations/water (provisioning consumers). */
   partySize?: number;
+  /** Best forager's Survival modifier (Wis mod + proficiency) — for the forage choice. */
+  partySurvivalModifier?: number;
+  /**
+   * The player's currently active owned ship. When provided and the ship is
+   * docked at the player's current port, the 'Ship (owned)' sea-travel option
+   * becomes selectable. Omit (or pass null) when no active ship is available.
+   */
+  activeShip?: Ship | null;
+  /**
+   * Called instead of onTileClick when the player commits a port→port voyage in
+   * an owned ship. It notifies the caller that a voyage was committed (with the
+   * destination port burg id and the sea-miles distance) so the caller can start
+   * the voyage and open the voyage UI. No teleport happens for ship travel.
+   */
+  onSetSail?: (destinationBurgId: number, seaMiles: number) => void;
 }
 
 type WorldMapInteractionMode = 'pan' | 'travel' | 'enter3d';
-type SeaPreference = 'none' | 'ferry';
+type SeaPreference = 'none' | 'ferry' | 'ship';
 
 /**
  * Each drill tier renders fit-to-view, but the SP1 engine + clipping degrade at
@@ -110,6 +134,9 @@ type SeaPreference = 'none' | 'ferry';
  * context to a canonical span before generating so each tier has healthy geometry,
  * independent of how deep the drill is. Position is irrelevant (fit-to-view).
  */
+/** localStorage flag: has the player seen the one-time underprovisioned-travel risk explainer? */
+const PROVISION_RISK_INFO_KEY = 'aralia.travel.provisionRiskInfo.v1';
+
 const DRILL_CANON_SPAN = 1000;
 function normalizeCtxScale(ctx: SubmapParentContext): SubmapParentContext {
   const b = polygonBounds(ctx.polygon);
@@ -228,13 +255,54 @@ const MapPane: React.FC<MapPaneProps> = ({
   enableIslandHarbors = false,
   provisionInventory = [],
   partySize = 0,
+  partySurvivalModifier = 0,
+  activeShip = null,
+  onSetSail,
 }) => {
   const { gridSize } = mapData;
   const geographySnapshot = useMemo(() => fromMapData(mapData), [mapData]);
   const projectedMapData = useMemo(() => projectMapDataForRead(mapData), [mapData]);
   const projectedTiles = projectedMapData.tiles;
+  // Pre-game world-generation PREVIEW: the generation controls are shown but there
+  // is no player to travel/enter-3D with. In this context the map is a pure world
+  // viewer — there's no "me" to find, so the player marker + Find Me are meaningless
+  // (WG1/WG4). Distinguish it from the in-game World Map so the chrome reads right.
+  const isPreviewOnly = showGenerationControls && !allowTravel && !allow3DEntry;
   const [interactionMode, setInteractionMode] = useState<WorldMapInteractionMode>(allowTravel ? 'travel' : 'pan');
+  // The map opens in Travel mode for an in-game player (WM8). Until the player
+  // manually picks a mode, auto-default follows `allowTravel` even if it settles a
+  // frame after mount (so a late phase flip doesn't leave the map stuck in Pan with
+  // the travel/provisioning affordances hidden behind a switch they never make).
+  const userPickedModeRef = useRef(false);
+  // A brief, self-clearing notice for actions that would otherwise be silent no-ops
+  // (clicking a non-drillable cell in Explore, or an unreachable/ocean cell in
+  // Travel) — closes the feedback loop (WM6/WM9).
+  const [mapNotice, setMapNotice] = useState<string | null>(null);
+  const noticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showMapNotice = useCallback((text: string) => {
+    setMapNotice(text);
+    if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current);
+    noticeTimerRef.current = setTimeout(() => setMapNotice(null), 2600);
+  }, []);
+  useEffect(() => () => { if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current); }, []);
   const [hoveredCell, setHoveredCell] = useState<{ x: number; y: number } | null>(null);
+  // An underprovisioned travel pick awaiting the player's choice (turn back /
+  // half-rations / forage / push on). Holds the route geometry so a push-on can
+  // halt at the last sustainable point.
+  const [pendingTravel, setPendingTravel] = useState<{
+    cellId: number; tx: number; ty: number; minutes: number; points: Array<[number, number]>;
+  } | null>(null);
+  // One-time explainer: the FIRST time the player tries to set out underprovisioned
+  // we teach the risk (halt-short, starvation, companion fallout) + the mitigations,
+  // then never show it again (persisted). Subsequent shortfalls jump straight to the
+  // choice panel.
+  const [riskInfoDismissed, setRiskInfoDismissed] = useState<boolean>(() => {
+    try { return localStorage.getItem(PROVISION_RISK_INFO_KEY) === '1'; } catch { return false; }
+  });
+  const dismissRiskInfo = useCallback(() => {
+    try { localStorage.setItem(PROVISION_RISK_INFO_KEY, '1'); } catch { /* ignore */ }
+    setRiskInfoDismissed(true);
+  }, []);
   const [showPrecisionOverlay, setShowPrecisionOverlay] = useState(true);
   const [seedInput, setSeedInput] = useState('');
 
@@ -290,6 +358,12 @@ const MapPane: React.FC<MapPaneProps> = ({
     if (!allow3DEntry && interactionMode === 'enter3d') {
       setInteractionMode('pan');
     }
+    // WM8: snap to Travel as soon as it becomes allowed, but only while the player
+    // hasn't deliberately chosen a mode yet — so an in-game map always opens with
+    // the travel + provisioning UI visible, even if `allowTravel` settles late.
+    if (allowTravel && interactionMode === 'pan' && !userPickedModeRef.current) {
+      setInteractionMode('travel');
+    }
   }, [allow3DEntry, allowTravel, interactionMode]);
 
   useEffect(() => {
@@ -340,6 +414,21 @@ const MapPane: React.FC<MapPaneProps> = ({
     return { x, y };
   }, [worldforgeAtlas, playerCell, gridSize.cols, gridSize.rows]);
 
+  // The FMG burg id of the port at the player's current atlas cell, or null if
+  // the player is not standing at a port. Used as the embark-gate check for
+  // owned-ship travel: the ship must be docked at this exact burg.
+  const playerPortBurgId = useMemo((): number | null => {
+    if (!worldforgeAtlas || playerAtlasCell == null) return null;
+    const pack = worldforgeAtlas.pack as unknown as {
+      cells: { burg?: ArrayLike<number> };
+      burgs?: Array<{ cell?: number; port?: number } | undefined>;
+    };
+    const burgId = pack.cells.burg?.[playerAtlasCell];
+    if (!burgId) return null;
+    const burg = pack.burgs?.[burgId];
+    return burg?.port ? burgId : null;
+  }, [worldforgeAtlas, playerAtlasCell]);
+
   // Travel mode: a single-source fastest-route field from the player's atlas cell
   // (computed ONCE per origin, on foot for now), so hovering any cell reconstructs
   // a route instantly for the preview line + readout. Null outside travel mode.
@@ -386,6 +475,12 @@ const MapPane: React.FC<MapPaneProps> = ({
     };
     const haveFood = Number.isFinite(foodRange);
     const haveWater = Number.isFinite(waterRange);
+    // PRV3: at a 0-day horizon (no provisions) the "ring" collapses to the player's
+    // own cell — a meaningless dot that reads like a render bug. Suppress every ring
+    // when the binding horizon is 0; the explicit "No provisions" cue (below) carries
+    // the message instead.
+    const bindingHorizon = Math.min(haveFood ? foodRange : Infinity, haveWater ? waterRange : Infinity);
+    if (Number.isFinite(bindingHorizon) && bindingHorizon <= 0) return [];
     // Both resources tracked and their horizons differ → two labeled rings.
     if (haveFood && haveWater && foodRange !== waterRange) {
       return [
@@ -394,7 +489,7 @@ const MapPane: React.FC<MapPaneProps> = ({
       ];
     }
     // Otherwise one ring at the binding (smaller) horizon, colored by what binds.
-    const binding = Math.min(haveFood ? foodRange : Infinity, haveWater ? waterRange : Infinity);
+    const binding = bindingHorizon;
     if (!Number.isFinite(binding)) return [];
     const waterBinds = haveWater && waterRange <= (haveFood ? foodRange : Infinity);
     return [{
@@ -403,6 +498,14 @@ const MapPane: React.FC<MapPaneProps> = ({
       label: `Supply reach (${binding}d)`,
     }];
   }, [interactionMode, travelField, partySize, provisionInventory]);
+
+  // PRV3: the party is carrying no provisions (a fresh party's default) — the
+  // supply-reach ring is suppressed above; surface an explicit cue in the travel
+  // toolbar so the zero-horizon reads as "you have no provisions", not a missing ring.
+  const noProvisions = useMemo(() => {
+    if (interactionMode !== 'travel' || partySize <= 0) return false;
+    return daysOfFood(provisionInventory) <= 0 || daysOfWater(provisionInventory) <= 0;
+  }, [interactionMode, partySize, provisionInventory]);
 
   // Provisions readout line for the hovered route: "Food: 6 days" / "Water: 2
   // days · short 1 day", colored by severity, with the binding resource labeled.
@@ -421,22 +524,28 @@ const MapPane: React.FC<MapPaneProps> = ({
     return { text: line.text, color: line.color };
   }, [partySize, provisionInventory]);
 
-  // Maritime travel mode: when the player hires a ferry, build one mixed graph
-  // that can walk to a port, cross a generated sea lane, and walk away from the
-  // destination harbor. This stays separate from `travelField` so "No sea
+  // Maritime travel mode: when the player hires a ferry or sails an owned ship,
+  // build one mixed graph that can walk to a port, cross sea, and walk away from
+  // the destination harbor. This stays separate from `travelField` so "No sea
   // travel" preserves the original land-only route behavior.
   const travelMmField = useMemo(() => {
     if (interactionMode !== 'travel' || seaPref === 'none' || !worldforgeAtlas || playerAtlasCell == null) return null;
+    let seaOption: { kind: 'ferry' | 'ship'; speedMph: number };
+    if (seaPref === 'ship' && activeShip) {
+      seaOption = { kind: 'ship', speedMph: shipSpeedMph(activeShip) };
+    } else {
+      seaOption = { kind: 'ferry', speedMph: 8 };
+    }
     const graph = buildMultiModalAtlasGraph(worldforgeAtlas, {
       landSpeedMph: transportSpeedMph(selectedTransport.option),
-      sea: { kind: 'ferry', speedMph: 8 },
+      sea: seaOption,
     });
     const origin = nearestLandCell(worldforgeAtlas, playerAtlasCell);
     return planRoutesFrom(graph, origin, {
       milesPerUnit: atlasMilesPerUnit(worldforgeAtlas),
       speedMph: transportSpeedMph(selectedTransport.option),
     });
-  }, [interactionMode, seaPref, worldforgeAtlas, playerAtlasCell, selectedTransport]);
+  }, [interactionMode, seaPref, worldforgeAtlas, playerAtlasCell, selectedTransport, activeShip]);
 
   const isAtlasLandCell = useCallback((cell: number): boolean => {
     const height = (worldforgeAtlas?.pack as unknown as { cells?: { h?: ArrayLike<number> } } | undefined)
@@ -521,8 +630,14 @@ const MapPane: React.FC<MapPaneProps> = ({
 
   const handleAtlasDrill = useCallback((info: CellTraits) => {
     const tier = buildNeighbourTier(info.i);
-    if (tier) setSubmapStack([tier]);
-  }, [buildNeighbourTier]);
+    if (tier) {
+      setSubmapStack([tier]);
+      return;
+    }
+    // WM6: clicking a non-drillable cell (open water / edge / empty region) used to
+    // do nothing silently — give an explicit cue so Explore doesn't feel broken.
+    showMapNotice("Nothing to explore here — try a cell on land.");
+  }, [buildNeighbourTier, showMapNotice]);
 
   // Click a neighbour in the neighbourhood view → recenter on it, but only if
   // explored (unexplored cells stay grey/info-only until physically traveled to).
@@ -569,23 +684,155 @@ const MapPane: React.FC<MapPaneProps> = ({
     const tile = projectedTiles[ty]?.[tx];
     if (!tile) return;
     if (interactionMode === 'travel' && allowTravel) {
+      // ── Ship voyage branch ────────────────────────────────────────────────
+      // When the player is sailing an owned ship, clicking the map picks a
+      // destination port. The ship must already be at the player's current port
+      // (embark gate). If the destination is not a port, reject honestly.
+      if (seaPref === 'ship') {
+        const mmRoute = planAtlasMultiModal(info.i);
+        if (!mmRoute) { showMapNotice("Can't sail there — no route from your port."); return; }
+        const voyage = shipVoyageFromDestination(
+          info.i,
+          worldforgeAtlas.pack,
+          mmRoute,
+        );
+        if (!voyage) {
+          // Destination is not a port — reject without teleporting (WM9 cue).
+          showMapNotice("That isn't a port — pick a harbour to sail to.");
+          return;
+        }
+        if (onSetSail) {
+          onSetSail(voyage.destinationBurgId, voyage.seaMiles);
+        }
+        return;
+      }
+      // ── Ordinary land/ferry travel ────────────────────────────────────────
       // Resolve the planned route to the picked cell → real trip duration + a
       // pre-rolled "danger on the road" encounter, handed to the world-move
       // contract so the game clock advances by travel time, not a flat hour.
       const route = planSelectedAtlasRoute(info.i);
-      let travelMeta: { seconds: number; encounterMessage?: string | null } | undefined;
-      if (route) {
-        const roll = rollTravelEncounter(route, rootSeedPath(worldforgeSeed));
-        travelMeta = {
-          seconds: Math.round(route.minutes * 60),
-          encounterMessage: roll.encounter
-            ? `After ${formatTravelTime(route.minutes)} on the road, danger finds you — an encounter!`
-            : `You travel for ${formatTravelTime(route.minutes)} and arrive without incident.`,
-        };
+      if (!route) {
+        // WM9: no land/ferry route to the picked cell (unreachable / across open
+        // water). The hover readout already reads "No route to here"; mirror it on
+        // click with a brief cue instead of a silent no-op.
+        showMapNotice("Can't travel there — no route.");
+        return;
       }
-      onTileClick(tx, ty, tile, travelMeta);
+      const roll = rollTravelEncounter(route, rootSeedPath(worldforgeSeed));
+      const encounterMessage = roll.encounter
+        ? `After ${formatTravelTime(route.minutes)} on the road, danger finds you — an encounter!`
+        : `You travel for ${formatTravelTime(route.minutes)} and arrive without incident.`;
+      // Provisioning gate: does the party carry enough food + water for the trip?
+      const decision = decideTravelProvision({
+        foodDays: daysOfFood(provisionInventory),
+        waterDays: daysOfWater(provisionInventory),
+        partySize,
+        tripDays: tripDaysFromMinutes(route.minutes),
+        mode: 'full',
+      });
+      // Ungated (no consumers) or in range → travel now, spending the supplies used.
+      if (partySize <= 0 || decision.status.inRange) {
+        const provision: TravelProvisionEffect | undefined = partySize > 0
+          ? { rationsToSpend: decision.rationsToSpend, waterToSpend: decision.waterToSpend }
+          : undefined;
+        onTileClick(tx, ty, tile, { seconds: Math.round(route.minutes * 60), encounterMessage, provision });
+        return;
+      }
+      // Underprovisioned → open the choice flow instead of moving.
+      setPendingTravel({ cellId: info.i, tx, ty, minutes: route.minutes, points: route.points });
     }
-  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, gridSize.cols, gridSize.rows, projectedTiles, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planSelectedAtlasRoute, worldforgeSeed]);
+  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, gridSize.cols, gridSize.rows, projectedTiles, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planSelectedAtlasRoute, planAtlasMultiModal, worldforgeSeed, provisionInventory, partySize, seaPref, onSetSail, showMapNotice]);
+
+  // ── Underprovisioned travel choice resolution ──────────────────────────────
+  // Map a graph-space point to a world grid tile (the same proportional bridge
+  // ordinary picks use) — for resolving a partial-stop's halt point to a move.
+  const pointToTile = useCallback((gx: number, gy: number) => {
+    if (!worldforgeAtlas) return null;
+    const tx = clampIndex(Math.floor((gx / worldforgeAtlas.graphWidth) * gridSize.cols), gridSize.cols);
+    const ty = clampIndex(Math.floor((gy / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows);
+    const tile = projectedTiles[ty]?.[tx];
+    return tile ? { tx, ty, tile } : null;
+  }, [worldforgeAtlas, gridSize.cols, gridSize.rows, projectedTiles]);
+
+  // Resolve the player's choice on an underprovisioned trip. `half`/`push` commit
+  // immediately; `forage` first rolls the biome-yield forage loop (extra food-days
+  // + time cost + a possible tainted/wasted outcome) and then commits. If supplies
+  // (after foraging/half-rations) still don't cover the trip, the party PUSHES ON
+  // and auto-halts at the last sustainable point on the route, arriving starving.
+  const resolvePendingTravel = useCallback((choice: 'half' | 'push' | 'forage') => {
+    const pt = pendingTravel;
+    if (!pt || !worldforgeAtlas) return;
+    const foodDays = daysOfFood(provisionInventory);
+    const waterDays = daysOfWater(provisionInventory);
+    const tripDays = tripDaysFromMinutes(pt.minutes);
+    const mode: RationMode = choice === 'half' ? 'half' : 'full';
+
+    let forageFoodDays = 0;
+    let extraSeconds = 0;
+    const extraConditions: string[] = [];
+    let forageNote: string | null = null;
+    if (choice === 'forage') {
+      const biome = cellTraits(worldforgeAtlas, pt.cellId).biome ?? 'Grassland';
+      const rng = new SeededRandom((worldforgeSeed ?? 0) + pt.cellId * 7919 + 13);
+      const out = forage({ resource: 'food', biome, partySize, survivalModifier: partySurvivalModifier }, rng);
+      forageFoodDays = out.resourceDaysGained;
+      extraSeconds += out.timeCostMinutes * 60;
+      if (out.hazard === 'tainted') {
+        extraConditions.push('poisoned');
+        forageNote = 'You forage as you travel, but some of what you gather is tainted — the party falls ill.';
+      } else if (out.hazard === 'wasted') {
+        forageNote = 'You spend time foraging but return nearly empty-handed.';
+      } else if (forageFoodDays > 0) {
+        forageNote = `You forage along the way, gathering about ${forageFoodDays} day${forageFoodDays === 1 ? '' : 's'} of food.`;
+      }
+    }
+
+    const decision = decideTravelProvision({ foodDays, waterDays, partySize, tripDays, mode, forageFoodDays });
+
+    if (decision.status.inRange) {
+      const conditions = [...(mode === 'half' ? ['fatigued'] : []), ...extraConditions];
+      const provision: TravelProvisionEffect = {
+        rationsToSpend: decision.rationsToSpend,
+        waterToSpend: decision.waterToSpend,
+        ...(conditions.length ? { conditions } : {}),
+        note: forageNote,
+      };
+      const target = projectedTiles[pt.ty]?.[pt.tx];
+      if (target) onTileClick(pt.tx, pt.ty, target, { seconds: Math.round(pt.minutes * 60 + extraSeconds), provision });
+      setPendingTravel(null);
+      return;
+    }
+
+    // Still short → partial-stop at the last sustainable point along the route.
+    const n = pt.points.length;
+    const frac = tripDays > 0 ? Math.max(0, Math.min(1, decision.sustainableDays / tripDays)) : 1;
+    const haltIndex = Math.max(1, Math.min(n - 1, Math.round(frac * (n - 1))));
+    const haltPoint = pt.points[haltIndex];
+    const target = haltPoint ? pointToTile(haltPoint[0], haltPoint[1]) : null;
+    if (!target) { setPendingTravel(null); return; }
+    const haltSeconds = Math.round(pt.minutes * 60 * (haltIndex / Math.max(1, n - 1)) + extraSeconds);
+    const provision: TravelProvisionEffect = {
+      rationsToSpend: decision.rationsToSpend,
+      waterToSpend: decision.waterToSpend,
+      conditions: ['starving', ...extraConditions],
+      companionLoyaltyDelta: -15,
+      note: `${forageNote ? forageNote + ' ' : ''}Your supplies run out on the road. The party halts, starving.`,
+    };
+    onTileClick(target.tx, target.ty, target.tile, { seconds: haltSeconds, provision });
+    setPendingTravel(null);
+  }, [pendingTravel, worldforgeAtlas, provisionInventory, partySize, partySurvivalModifier, worldforgeSeed, onTileClick, pointToTile, projectedTiles]);
+
+  // Display status for the pending choice panel (binding resource + shortfall).
+  const pendingStatus = useMemo(() => {
+    if (!pendingTravel) return null;
+    return decideTravelProvision({
+      foodDays: daysOfFood(provisionInventory),
+      waterDays: daysOfWater(provisionInventory),
+      partySize,
+      tripDays: tripDaysFromMinutes(pendingTravel.minutes),
+      mode: 'full',
+    }).status;
+  }, [pendingTravel, provisionInventory, partySize]);
 
   // Enter 3D from inside the drill: the leaf rung of World ▸ Region ▸ Local ▸ Town
   // ▸ 3D. Resolves the region's focus atlas cell (drill base) → world tile and
@@ -675,7 +922,7 @@ const MapPane: React.FC<MapPaneProps> = ({
 
   return (
     <WindowFrame
-      title="World Map"
+      title={isPreviewOnly ? 'World Preview' : 'World Map'}
       onClose={onClose}
       storageKey={WINDOW_KEYS.WORLD_MAP}
     >
@@ -686,7 +933,7 @@ const MapPane: React.FC<MapPaneProps> = ({
         <div className="mb-3 space-y-2 text-xs">
           <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={() => setInteractionMode('pan')}
+              onClick={() => { userPickedModeRef.current = true; setInteractionMode('pan'); }}
               className={`px-2 py-1 rounded ${interactionMode === 'pan' ? 'bg-emerald-700 text-white' : 'bg-gray-600 text-gray-100'}`}
               type="button"
               title="Click a cell to drill into its submap"
@@ -695,7 +942,7 @@ const MapPane: React.FC<MapPaneProps> = ({
             </button>
             {allowTravel && (
               <button
-                onClick={() => setInteractionMode('travel')}
+                onClick={() => { userPickedModeRef.current = true; setInteractionMode('travel'); }}
                 className={`px-2 py-1 rounded ${interactionMode === 'travel' ? 'bg-amber-700 text-white' : 'bg-gray-600 text-gray-100'}`}
                 type="button"
               >
@@ -721,16 +968,38 @@ const MapPane: React.FC<MapPaneProps> = ({
                 value={seaPref}
                 onChange={(e) => setSeaPref(e.target.value as SeaPreference)}
                 className="px-2 py-1 rounded bg-gray-700 text-gray-100 border border-gray-500"
-                title="Sea travel: hire a ferry to cross water"
+                title="Sea travel: hire a ferry or sail your own ship"
                 aria-label="Sea travel"
               >
                 <option value="none">No sea travel</option>
                 <option value="ferry">Ferry (hired)</option>
+                {(() => {
+                  const embark = shipTravelAvailability(activeShip, playerPortBurgId);
+                  return (
+                    <option
+                      value="ship"
+                      disabled={!embark.available}
+                      title={embark.reason ?? undefined}
+                      data-testid="sea-pref-ship-option"
+                    >
+                      {embark.available ? 'Ship (owned)' : `Ship (owned) — ${embark.reason}`}
+                    </option>
+                  );
+                })()}
               </select>
+            )}
+            {allowTravel && interactionMode === 'travel' && noProvisions && (
+              <span
+                data-testid="travel-no-provisions"
+                className="px-2 py-1 rounded bg-rose-900/80 text-rose-100 border border-rose-600 font-semibold"
+                title="Your party carries no rations or water — stock up before a long journey."
+              >
+                ⚠ No provisions — can't sustain travel
+              </span>
             )}
             {allow3DEntry && (
               <button
-                onClick={() => setInteractionMode('enter3d')}
+                onClick={() => { userPickedModeRef.current = true; setInteractionMode('enter3d'); }}
                 className={`px-2 py-1 rounded ${interactionMode === 'enter3d' ? 'bg-rose-700 text-white' : 'bg-gray-600 text-gray-100'}`}
                 type="button"
                 title="Click a discovered cell to enter the streamed 3D world there"
@@ -899,7 +1168,10 @@ const MapPane: React.FC<MapPaneProps> = ({
                 atlas={worldforgeAtlas}
                 width={worldforgeViewportSize.width}
                 height={worldforgeViewportSize.height}
-                marker={worldforgeMarker}
+                /* WG4: in the pre-game generation preview there is no player — pass a
+                   null marker so neither the "you are here" indicator nor the "Find Me"
+                   control (gated on `marker` in AtlasSvgView) appears. */
+                marker={isPreviewOnly ? null : worldforgeMarker}
                 markers={worldforgeDiscoveryPins}
                 onPickCell={handleWorldforgePick}
                 travelActive={interactionMode === 'travel'}
@@ -911,12 +1183,114 @@ const MapPane: React.FC<MapPaneProps> = ({
                 prefsScope={worldforgeSeed}
               />
             )}
+            {/* One-time risk explainer — shown the FIRST time the player would set
+                out underprovisioned, before the choice panel. Teaches the stakes +
+                the ways to go farther, then never appears again. */}
+            {pendingTravel && pendingStatus && !riskInfoDismissed ? (
+              <div
+                data-testid="travel-provision-risk-info"
+                style={{
+                  position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)',
+                  width: 'min(460px, 94%)', background: 'rgba(15,30,45,0.98)',
+                  border: '1px solid #eab308', borderRadius: 8, padding: '14px 16px',
+                  fontFamily: 'sans-serif', color: '#e2e8f0', boxShadow: '0 6px 24px rgba(0,0,0,0.6)', zIndex: 21,
+                }}
+              >
+                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6, color: '#fde047' }}>
+                  ⚠️ Traveling beyond your supplies
+                </div>
+                <div style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.5, marginBottom: 10 }}>
+                  Every day on the road, each traveler eats <strong>one ration</strong> and drinks <strong>one day of water</strong>.
+                  This destination lies farther than your supplies can carry you.
+                  <br />
+                  If you set out anyway and take no action to find more along the way, your party will march until the
+                  food or water runs out, then <strong>halt short of where you were headed</strong> — stranded and
+                  <strong> starving</strong>. Starvation wears the party down and erodes companion loyalty; pushed far
+                  enough, a companion may <strong>abandon you</strong>.
+                  <br />
+                  To travel farther safely: <strong>carry more rations and water</strong>, set out on
+                  <strong> half rations</strong> (slower, wearying), or <strong>forage en route</strong> (an uncertain
+                  survival gamble).
+                </div>
+                <button
+                  type="button"
+                  data-testid="prov-risk-info-ack"
+                  onClick={dismissRiskInfo}
+                  style={{ width: '100%', padding: '7px 0', cursor: 'pointer', background: '#eab308', color: '#1c1409', border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 700 }}
+                >
+                  Got it — show my options
+                </button>
+              </div>
+            ) : null}
+            {/* Underprovisioned travel choice — an inline panel over the atlas
+                (not a separate modal), consistent with the travel readout. */}
+            {pendingTravel && pendingStatus && riskInfoDismissed ? (
+              <div
+                data-testid="travel-provision-choice"
+                style={{
+                  position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)',
+                  width: 'min(420px, 92%)', background: 'rgba(15,30,45,0.96)',
+                  border: `1px solid ${pendingStatus.severity === 'major' ? '#ef4444' : '#eab308'}`,
+                  borderRadius: 8, padding: '12px 14px', fontFamily: 'sans-serif', color: '#e2e8f0',
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.5)', zIndex: 20,
+                }}
+              >
+                <div style={{ fontWeight: 700, marginBottom: 4, color: pendingStatus.severity === 'major' ? '#fca5a5' : '#fde047' }}>
+                  {pendingStatus.severity === 'major' ? 'You do not have nearly enough supplies.' : "You're a little short on supplies."}
+                </div>
+                <div style={{ fontSize: 12, color: '#cbd5e1', marginBottom: 10 }}>
+                  {pendingStatus.binding === 'water' ? 'Water' : 'Food'} runs out {pendingStatus.shortfallDays} day{pendingStatus.shortfallDays === 1 ? '' : 's'} before you'd arrive. Press on and you'll halt short, starving.
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  <button type="button" data-testid="prov-turn-back" onClick={() => setPendingTravel(null)}
+                    style={{ flex: '1 1 auto', padding: '6px 10px', cursor: 'pointer', background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 5, fontSize: 12, fontWeight: 600 }}>
+                    Turn back
+                  </button>
+                  <button type="button" data-testid="prov-half" onClick={() => resolvePendingTravel('half')}
+                    style={{ flex: '1 1 auto', padding: '6px 10px', cursor: 'pointer', background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 5, fontSize: 12, fontWeight: 600 }}>
+                    Half rations
+                  </button>
+                  <button type="button" data-testid="prov-forage" onClick={() => resolvePendingTravel('forage')}
+                    style={{ flex: '1 1 auto', padding: '6px 10px', cursor: 'pointer', background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 5, fontSize: 12, fontWeight: 600 }}>
+                    Forage en route
+                  </button>
+                  <button type="button" data-testid="prov-push" onClick={() => resolvePendingTravel('push')}
+                    style={{ flex: '1 1 auto', padding: '6px 10px', cursor: 'pointer', background: '#7f1d1d', color: '#fee2e2', border: '1px solid #b91c1c', borderRadius: 5, fontSize: 12, fontWeight: 700 }}>
+                    Push on
+                  </button>
+                </div>
+              </div>
+            ) : null}
+            {/* WM6/WM9: brief, self-clearing cue for clicks that would otherwise be
+                silent no-ops (non-drillable cell in Explore, unreachable/ocean cell
+                in Travel). Sits top-center, clear of the drill chrome + choice panels. */}
+            {mapNotice ? (
+              <div
+                data-testid="map-action-notice"
+                role="status"
+                aria-live="polite"
+                style={{
+                  position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)',
+                  maxWidth: 'min(360px, 90%)', background: 'rgba(15,23,42,0.95)',
+                  border: '1px solid #475569', borderRadius: 8, padding: '8px 14px',
+                  fontFamily: 'sans-serif', fontSize: 12, color: '#e2e8f0', textAlign: 'center',
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.5)', zIndex: 22, pointerEvents: 'none',
+                }}
+              >
+                {mapNotice}
+              </div>
+            ) : null}
           </div>
 
-        <p className="text-xs text-center mt-2 text-gray-700">
+        {/* WG3: the helper line previously rendered gray-700 on a near-black panel
+            (~1.6:1, far below WCAG AA). Give it its own dark pill + light text so it
+            reads at AA-passing contrast regardless of the parchment/panel behind it. */}
+        <p
+          className="text-xs text-center mt-2 mx-auto max-w-3xl rounded bg-black/70 px-3 py-1.5 text-slate-100"
+        >
           {allowTravel || allow3DEntry
             ? 'World map: use Pan/Zoom to explore. Travel moves on the world grid; Enter 3D jumps into the streamed world at a discovered cell. Click a cell to drill into the submap.'
-            : 'World map: use Pan/Zoom and layer controls to inspect world generation before starting a game. Click cells to drill deeper.'}
+            : 'World preview: use Pan/Zoom and layer controls to inspect world generation before starting a game. Click cells to drill deeper.'}
         </p>
       </div>
     </WindowFrame>

@@ -1,186 +1,277 @@
 {
-  "id": "summon-lesser-demons",
-  "name": "Summon Lesser Demons",
-  "aliases": [],
-  "level": 3,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a vial of blood from a humanoid killed within the past 24 hours",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 1,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "ground"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Roll the d6 demon table to summon either two CR 1-or-lower demons, four CR 1/2-or-lower demons, or eight CR 1/4-or-lower demons; the GM chooses the demons and the caster places them in visible unoccupied spaces within 60 feet. The demons disappear at 0 HP or when the spell ends, are hostile to every creature, roll group initiative, pursue the nearest non-demons, and cannot cross, harm, or target creatures inside an optional blood circle that consumes the material component when the spell ends.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You utter foul words, summoning demons from the chaos of the Abyss. Roll on the following table to determine what appears. d6 Demons Summoned 1-2 Two demons of challenge rating 1 or lower 3-4 Four demons of challenge rating 1/2 or lower 5-6 Eight demons of challenge rating 1/4 or lower The DM chooses the demons, such as manes or dretches, and you choose the unoccupied spaces you can see within range where they appear. A summoned demon disappears when it drops to 0 hit points or when the spell ends. The demons are hostile to all creatures, including you. Roll initiative for the summoned demons as a group, which has its own turns. The demons pursue and attack the nearest non-demons to the best of their ability. As part of casting the spell, you can form a circle on the ground with the blood used as a material component. The circle is large enough to encompass your space. While the spell lasts, the summoned demons can't cross the circle or harm it, and they can't target anyone within it. Using the material component in this manner consumes it when the spell ends.",
-  "higherLevels": "When you cast this spell using a spell slot of 6th or 7th level, you summon twice as many demons. If you cast it using a spell slot of 8th or 9th level, you summon three times as many demons.",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "summon-lesser-demons",
+    "name":  "Summon Lesser Demons",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a vial of blood from a humanoid killed within the past 24 hours",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  1,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "ground"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "requiresUnoccupiedSpace":  true,
+                                                                  "lineOfSightRequired":  true,
+                                                                  "chosenBy":  "caster",
+                                                                  "countSource":  "summoned_demon_count_roll",
+                                                                  "rangeAnchor":  "within_spell_range",
+                                                                  "notes":  "Each demon appears in an unoccupied visible space chosen by the caster within 60 feet."
+                                                              }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Roll the d6 demon table to summon either two CR 1-or-lower demons, four CR 1/2-or-lower demons, or eight CR 1/4-or-lower demons; the GM chooses the demons and the caster places them in visible unoccupied spaces within 60 feet. The demons disappear at 0 HP or when the spell ends, are hostile to every creature, roll group initiative, pursue the nearest non-demons, and cannot cross, harm, or target creatures inside an optional blood circle that consumes the material component when the spell ends.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "summoned_demon_drops_to_0_hp",
+                                                       "scope":  "summoned_creature",
+                                                       "description":  "A summoned demon disappears when it drops to 0 hit points."
+                                                   },
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "summoned_creature",
+                                                       "description":  "Summoned demons disappear when the spell ends."
+                                                   },
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "material_component",
+                                                       "description":  "The protective material component is consumed when the spell ends if used to form the circle."
+                                                   }
+                                               ],
+                        "surfaceInteraction":  {
+                                                   "optionalBloodCircleOnGround":  true,
+                                                   "createdAsPartOfCasting":  true,
+                                                   "materialComponent":  "blood",
+                                                   "placementSurface":  "ground",
+                                                   "notes":  "As part of casting, the caster can form the material-component blood into a circle on the ground."
+                                               },
+                        "summonLifecycle":  {
+                                                "hitPointEnding":  "a summoned demon disappears when it drops to 0 hit points",
+                                                "spellEnding":  "a summoned demon disappears when the spell ends",
+                                                "summonTable":  "2 demons CR 1 or lower, 4 demons CR 1/2 or lower, or 8 demons CR 1/4 or lower",
+                                                "controller":  "GM chooses the demon stat blocks; demons are not caster-controlled allies by default"
+                                            },
+                        "materialComponentLifecycle":  {
+                                                           "component":  "blood_from_humanoid_killed_within_past_24_hours",
+                                                           "baseConsumed":  false,
+                                                           "conditionalConsumption":  "consumed_when_spell_ends_if_used_to_create_the_protective_blood_circle",
+                                                           "circleEffect":  "demons_cannot_cross_or_harm_circle_targets_while_component_circle_persists"
+                                                       },
+                        "summon":  {
+                                       "entityType":  "hostile_demons",
+                                       "countTable":  "1-2: two CR 1 or lower; 3-4: four CR 1/2 or lower; 5-6: eight CR 1/4 or lower",
+                                       "chooser":  "GM chooses demon stat blocks; caster chooses visible unoccupied spaces",
+                                       "initiative":  "group initiative with own turns",
+                                       "disposition":  "hostile to all creatures including caster",
+                                       "defaultBehavior":  "pursue and attack nearest non-demons",
+                                       "scaling":  "twice as many demons with 6th/7th slot, three times as many with 8th/9th slot",
+                                       "protectiveCircle":  "optional blood circle blocks summoned demons from crossing, harming it, or targeting anyone within it"
+                                   }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Roll the demon-count table, have the GM choose the demon stat blocks, then choose visible unoccupied spaces within 60 feet for the summoned demons. Also choose whether to form the optional blood circle.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You utter foul words, summoning demons from the chaos of the Abyss. Roll on the following table to determine what appears. d6 Demons Summoned 1-2 Two demons of challenge rating 1 or lower 3-4 Four demons of challenge rating 1/2 or lower 5-6 Eight demons of challenge rating 1/4 or lower The DM chooses the demons, such as manes or dretches, and you choose the unoccupied spaces you can see within range where they appear. A summoned demon disappears when it drops to 0 hit points or when the spell ends. The demons are hostile to all creatures, including you. Roll initiative for the summoned demons as a group, which has its own turns. The demons pursue and attack the nearest non-demons to the best of their ability. As part of casting the spell, you can form a circle on the ground with the blood used as a material component. The circle is large enough to encompass your space. While the spell lasts, the summoned demons can\u0027t cross the circle or harm it, and they can\u0027t target anyone within it. Using the material component in this manner consumes it when the spell ends.",
+    "higherLevels":  "When you cast this spell using a spell slot of 6th or 7th level, you summon twice as many demons. If you cast it using a spell slot of 8th or 9th level, you summon three times as many demons.",
+    "tags":  [
+                 "concentration"
+             ]
 }

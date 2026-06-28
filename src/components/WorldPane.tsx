@@ -59,11 +59,43 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
   };
 
   /**
-   * Processes message text to include tooltips for specific keywords.
-   * @param {string} text - The message text.
-   * @returns {React.ReactNode} The message text, potentially with Tooltip components.
+   * Normalizes raw log text before rendering.
+   * G14: some upstream entries (notably the "DM Insight" system message produced in
+   * handleObservation.ts) arrive with literal markdown bold (`**Situational Analysis:**`)
+   * and a pair of stray wrapping double-quotes. We cannot edit that producer here, so we
+   * fix it at render time: strip a single pair of outer wrapping quotes, then split the
+   * string into bold/plain runs on `**...**` so the bold renders as actual emphasis rather
+   * than visible asterisks.
+   * @param {string} text - The raw message text.
+   * @returns {{ content: string; bold: boolean }[]} Ordered runs to render.
    */
-  const processMessageText = (text: string): React.ReactNode => {
+  const normalizeMarkdownRuns = (text: string): { content: string; bold: boolean }[] => {
+    let working = text;
+
+    // Strip a single pair of stray wrapping double-quotes, e.g. `DM Insight: "…point to."`.
+    // Only when the body (after an optional `Label:` prefix) is fully wrapped in quotes.
+    const wrapped = working.match(/^(\s*[^:"]*:\s*)?"([\s\S]*)"\s*$/);
+    if (wrapped) {
+      working = `${wrapped[1] ?? ''}${wrapped[2]}`;
+    }
+
+    // Split on **bold** runs. Even indices are plain, odd indices are bold content.
+    const segments = working.split(/\*\*([\s\S]+?)\*\*/g);
+    const runs: { content: string; bold: boolean }[] = [];
+    segments.forEach((seg, i) => {
+      if (seg === '') return;
+      runs.push({ content: seg, bold: i % 2 === 1 });
+    });
+    return runs.length > 0 ? runs : [{ content: working, bold: false }];
+  };
+
+  /**
+   * Linkifies a single plain-text run against the glossary (tooltip buttons for matched terms).
+   * @param {string} text - A plain (non-bold) text run.
+   * @param {string} keyPrefix - Stable key prefix to keep React keys unique across runs.
+   * @returns {React.ReactNode} The run, potentially with Tooltip components.
+   */
+  const linkifyRun = (text: string, keyPrefix: string): React.ReactNode => {
     // RALPH: Knowledge Injector.
     // Uses the LoreService to dynamically match text against the full game glossary.
     // This provides on-demand help for rules, items, and lore.
@@ -89,7 +121,7 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
       if (entry) {
         return (
           <Tooltip
-            key={`${part}-${index}-tooltip`}
+            key={`${keyPrefix}-${part}-${index}-tooltip`}
             content={entry.excerpt || entry.title}
           >
             <button
@@ -105,6 +137,25 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
     });
   };
 
+  /**
+   * Processes message text: strips stray quotes, renders markdown bold, and linkifies
+   * glossary terms within the plain runs.
+   * @param {string} text - The message text.
+   * @returns {React.ReactNode} The rendered message body.
+   */
+  const processMessageText = (text: string): React.ReactNode => {
+    const runs = normalizeMarkdownRuns(text);
+    return runs.map((run, i) =>
+      run.bold ? (
+        <strong key={`b-${i}`} className="font-semibold">
+          {linkifyRun(run.content, `b-${i}`)}
+        </strong>
+      ) : (
+        <React.Fragment key={`p-${i}`}>{linkifyRun(run.content, `p-${i}`)}</React.Fragment>
+      )
+    );
+  };
+
 
   return (
     <div
@@ -115,10 +166,19 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
     >
       {' '}
       {/* Added min-h-0 for flex-grow with overflow */}
-      <h2 className="text-2xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2">
+      {/*
+        G13: pad the right edge so right-aligned (player) bubbles never run underneath the
+        clipped PARTY CHAT drawer tab pinned to the top-right of the viewport.
+      */}
+      <h2 className="text-2xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2 pr-10">
         Log
       </h2>
-      <div className="space-y-3 text-lg leading-relaxed">
+      {/*
+        G10: constrain the log to a readable, centered column instead of letting entries hug
+        the far left/right edges of a ~900px-wide panel. Bubbles + per-side alignment make the
+        "right = me (player), left = world" convention (G11) legible at a glance.
+      */}
+      <div className="mx-auto w-full max-w-3xl space-y-3 text-lg leading-relaxed pr-8">
         {messages.map((msg) => {
           const isBanter = msg.metadata?.type === 'banter';
 
@@ -128,44 +188,53 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
             const speakerName = match ? match[1] : '';
             const dialogue = match ? match[2] : msg.text;
 
+            // Banter is "world" voice → left-aligned bubble (G11).
             return (
-              <div
-                key={msg.id}
-                className="p-4 rounded-xl bg-gray-900/60 border border-amber-900/30 my-2 shadow-sm"
-              >
-                {speakerName && (
-                  <h4 className="text-amber-500 text-xs font-bold uppercase tracking-wider mb-1">
-                    {speakerName}
-                  </h4>
-                )}
-                <p className="text-amber-100 italic text-base leading-relaxed">
-                  &quot;{processMessageText(dialogue)}&quot;
+              <div key={msg.id} className="flex justify-start">
+                <div className="max-w-[85%] p-4 rounded-xl bg-gray-900/60 border border-amber-900/30 shadow-sm">
+                  {speakerName && (
+                    <h4 className="text-amber-500 text-xs font-bold uppercase tracking-wider mb-1">
+                      {speakerName}
+                    </h4>
+                  )}
+                  <p className="text-amber-100 italic text-base leading-relaxed">
+                    &quot;{processMessageText(dialogue)}&quot;
+                  </p>
+                  <p className="text-[10px] text-gray-500 mt-2 text-right">
+                    {formatGameTime(new Date(msg.timestamp), {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                </div>
+              </div>
+            );
+          }
+
+          // G11: consistent alignment semantics — the player's own actions are "me"
+          // (right), everything the world says back (system narration, NPC dialogue) is
+          // "world" (left). One rule, applied to every non-banter entry.
+          const isPlayer = msg.sender === 'player';
+          const bubbleTone = isPlayer
+            ? 'bg-amber-500/10 border border-amber-500/20'
+            : 'bg-gray-900/50 border border-gray-700/60';
+
+          return (
+            <div
+              key={msg.id}
+              className={`flex ${isPlayer ? 'justify-end' : 'justify-start'}`}
+            >
+              <div className={`max-w-[85%] px-4 py-2 rounded-2xl shadow-sm ${bubbleTone}`}>
+                <p className={`${getMessageStyle(msg.sender)} ${isPlayer ? 'text-right' : 'text-left'}`}>
+                  {processMessageText(msg.text)}
                 </p>
-                <p className="text-[10px] text-gray-600 mt-2 text-right">
+                <p className={`text-xs text-gray-500 mt-1 ${isPlayer ? 'text-right' : 'text-left'}`}>
                   {formatGameTime(new Date(msg.timestamp), {
                     hour: '2-digit',
                     minute: '2-digit',
                   })}
                 </p>
               </div>
-            );
-          }
-
-          return (
-            <div
-              key={msg.id}
-              className={`p-2 rounded ${msg.sender === 'player' ? 'text-right' : ''
-                }`}
-            >
-              <p className={`${getMessageStyle(msg.sender)}`}>
-                {processMessageText(msg.text)}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {formatGameTime(new Date(msg.timestamp), {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </p>
             </div>
           );
         })}

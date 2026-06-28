@@ -135,6 +135,13 @@
       },
       "utilityType": "other",
       "description": "Grants one willing creature expertise in a skill it is already proficient with, doubling its proficiency bonus for checks using that skill while concentration lasts.",
+      "abilityCheckModifier": {
+        "type": "expertise",
+        "appliesTo": "chosen_proficient_skill",
+        "proficiencyMultiplier": 2,
+        "requiresExistingProficiency": true,
+        "excludedIfAlreadyDoubled": true
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -180,8 +187,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose one skill in which the willing target is already proficient and that is not already benefiting from Expertise or another effect that doubles proficiency bonus.",
+    "playerInputRequired": true
   },
   "description": "Your magic deepens a creature's understanding of its own talent. You touch one willing creature and give it expertise in one skill of your choice; until the spell ends, the creature doubles its proficiency bonus for ability checks it makes that use the chosen skill. You must choose a skill in which the target is proficient and that isn't already benefiting from an effect, such as Expertise, that doubles its proficiency bonus.",
   "higherLevels": "",

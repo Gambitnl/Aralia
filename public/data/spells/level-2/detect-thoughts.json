@@ -1,355 +1,456 @@
 {
-  "id": "detect-thoughts",
-  "name": "Detect Thoughts",
-  "aliases": [],
-  "level": 2,
-  "school": "Divination",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [
-    "Warlock - Great Old One Patron"
-  ],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "1 Copper Piece",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "validTargets": [
-      "self"
-    ],
-    "lineOfSight": false,
-    "range": 0,
-    "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Emanation",
-      "size": 30,
-      "height": 0,
-      "sizeType": "radius",
-      "sizeUnit": "feet",
-      "heightUnit": "feet",
-      "followsCaster": true
-    },
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "spatialDetails": {
-      "measuredDetails": [
-        {
-          "label": "Barrier Thickness",
-          "kind": "blocker",
-          "subject": "stone, dirt, or wood",
-          "value": 1,
-          "unit": "feet"
-        },
-        {
-          "label": "Barrier Thickness",
-          "kind": "blocker",
-          "subject": "metal",
-          "value": 1,
-          "unit": "inches"
-        },
-        {
-          "label": "Barrier Thickness",
-          "kind": "blocker",
-          "subject": "lead",
-          "qualifier": "thin sheet"
-        }
-      ]
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "information",
-      "description": "Sense the presence of thoughts within 30 feet from creatures that know languages or are telepathic; this does not read the thoughts and is blocked by listed barriers.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "on_caster_action",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Wisdom",
-        "saveEffect": "none",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "information",
-      "description": "Action to probe deeper into one creature; on failed Wisdom save learn reasoning, emotions, and foremost thoughts. On success, the spell ends.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "repeat_save_success",
-          "scope": "spell",
-          "description": "On a successful save, the spell ends."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You activate one of the effects below. Until the spell ends, you can activate either effect as a Magic action on your later turns. Sense Thoughts. You sense the presence of thoughts within 30 feet of yourself that belong to creatures that know languages or are telepathic. You don't read the thoughts, but you know that a thinking creature is present. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead. Read Thoughts. Target one creature you can see within 30 feet of yourself or one creature within 30 feet of yourself that you detected with the Sense Thoughts option. You learn what is most on the target's mind right now. If the target doesn't know any languages and isn't telepathic, you learn nothing. As a Magic action on your next turn, you can try to probe deeper into the target's mind. If you probe deeper, the target makes a Wisdom saving throw. On a failed save, you discern the target's reasoning, emotions, and something that looms large in its mind (such as a worry, love, or hate). On a successful save, the spell ends. Either way, the target knows that you are probing into its mind, and until you shift your attention away from the target's mind, the target can take an action on its turn to make an Intelligence (Arcana) check against your spell save DC, ending the spell on a success.",
-  "higherLevels": "",
-  "tags": [
-    "divination",
-    "information",
-    "concentration"
-  ],
-  "modeChoice": {
-    "type": "choose_one",
-    "timing": "on_cast_or_later_action",
-    "optionCount": 2,
-    "optionsSource": "effects",
-    "canDismissActive": false,
-    "options": [
-      {
-        "label": "Sense Thoughts",
-        "summary": "Sense the presence of thoughts within 30 feet from creatures that know languages or are telepathic, without reading those thoughts.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "1 minute with concentration",
-        "notes": "This option is blocked by 1 foot of stone, dirt, or wood, 1 inch of metal, or a thin sheet of lead."
-      },
-      {
-        "label": "Read Thoughts",
-        "summary": "Target a visible or previously sensed creature within 30 feet to learn what is most on its mind, then optionally probe deeper on a later Magic action.",
-        "effectIndices": [
-          1
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "1 minute with concentration",
-        "notes": "The deeper probe uses the same effect packet and can end the spell on a successful Wisdom save."
-      }
-    ],
-    "notes": "The spell lets the caster activate either option when cast and again as a Magic action on later turns."
-  }
+    "id":  "detect-thoughts",
+    "name":  "Detect Thoughts",
+    "aliases":  [
+
+                ],
+    "level":  2,
+    "school":  "Divination",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+                       "Warlock - Great Old One Patron"
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "1 Copper Piece",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "validTargets":  [
+                                           "self"
+                                       ],
+                      "lineOfSight":  false,
+                      "range":  0,
+                      "maxTargets":  1,
+                      "areaOfEffect":  {
+                                           "shape":  "Emanation",
+                                           "size":  30,
+                                           "height":  0,
+                                           "sizeType":  "radius",
+                                           "sizeUnit":  "feet",
+                                           "heightUnit":  "feet",
+                                           "followsCaster":  true
+                                       },
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet",
+                      "spatialDetails":  {
+                                             "measuredDetails":  [
+                                                                     {
+                                                                         "label":  "Barrier Thickness",
+                                                                         "kind":  "blocker",
+                                                                         "subject":  "stone, dirt, or wood",
+                                                                         "value":  1,
+                                                                         "unit":  "feet"
+                                                                     },
+                                                                     {
+                                                                         "label":  "Barrier Thickness",
+                                                                         "kind":  "blocker",
+                                                                         "subject":  "metal",
+                                                                         "value":  1,
+                                                                         "unit":  "inches"
+                                                                     },
+                                                                     {
+                                                                         "label":  "Barrier Thickness",
+                                                                         "kind":  "blocker",
+                                                                         "subject":  "lead",
+                                                                         "qualifier":  "thin sheet"
+                                                                     }
+                                                                 ]
+                                         }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "information",
+                        "description":  "Sense the presence of thoughts within 30 feet from creatures that know languages or are telepathic; this does not read the thoughts and is blocked by listed barriers.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "knowledgeEffect":  {
+                                                "sensesThoughtPresence":  true,
+                                                "doesNotReadThoughtsAtPresenceStage":  true,
+                                                "validSources":  [
+                                                                     "creatures_that_know_languages",
+                                                                     "telepathic_creatures"
+                                                                 ],
+                                                "radiusFeet":  30,
+                                                "blockedByCommonMaterials":  true,
+                                                "notes":  "The basic scan senses the presence of thinking creatures without reading their thoughts."
+                                            },
+                        "communicationDetails":  {
+                                                     "mode":  "language_or_telepathy_thought_presence_gate",
+                                                     "detects":  "presence of thoughts from creatures that know languages or are telepathic",
+                                                     "doesNotReadThoughts":  true,
+                                                     "noResult":  "creatures without languages and not telepathic provide no thoughts to sense",
+                                                     "blockers":  [
+                                                                      "1 foot stone/dirt/wood",
+                                                                      "1 inch metal",
+                                                                      "thin sheet of lead"
+                                                                  ]
+                                                 }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "on_caster_action",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "none",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "information",
+                        "description":  "Action to probe deeper into one creature; on failed Wisdom save learn reasoning, emotions, and foremost thoughts. On success, the spell ends.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "repeat_save_success",
+                                                       "scope":  "spell",
+                                                       "description":  "On a successful save, the spell ends."
+                                                   }
+                                               ],
+                        "knowledgeEffect":  {
+                                                "targetProbe":  true,
+                                                "failedSaveReveals":  [
+                                                                          "reasoning",
+                                                                          "emotions",
+                                                                          "foremost_thoughts"
+                                                                      ],
+                                                "successfulSaveEndsSpell":  true,
+                                                "notes":  "A deeper probe can reveal reasoning, emotions, and foremost thoughts on a failed Wisdom save."
+                                            },
+                        "communicationDetails":  {
+                                                     "mode":  "surface_and_deep_thought_reading",
+                                                     "targetGate":  "target must know a language or be telepathic, otherwise caster learns nothing",
+                                                     "surfaceRead":  "learns what is most on target mind right now",
+                                                     "deeperProbe":  "failed Wisdom save reveals reasoning, emotions, and looming concern",
+                                                     "targetAwareness":  "target knows when caster probes deeper"
+                                                 }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Ask the caster to choose Sense Thoughts or Read Thoughts, then choose the detected or visible target for reading; if the caster probes deeper on a later Magic action, prompt the target\u0027s Wisdom save and end the spell on success.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You activate one of the effects below. Until the spell ends, you can activate either effect as a Magic action on your later turns. Sense Thoughts. You sense the presence of thoughts within 30 feet of yourself that belong to creatures that know languages or are telepathic. You don\u0027t read the thoughts, but you know that a thinking creature is present. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead. Read Thoughts. Target one creature you can see within 30 feet of yourself or one creature within 30 feet of yourself that you detected with the Sense Thoughts option. You learn what is most on the target\u0027s mind right now. If the target doesn\u0027t know any languages and isn\u0027t telepathic, you learn nothing. As a Magic action on your next turn, you can try to probe deeper into the target\u0027s mind. If you probe deeper, the target makes a Wisdom saving throw. On a failed save, you discern the target\u0027s reasoning, emotions, and something that looms large in its mind (such as a worry, love, or hate). On a successful save, the spell ends. Either way, the target knows that you are probing into its mind, and until you shift your attention away from the target\u0027s mind, the target can take an action on its turn to make an Intelligence (Arcana) check against your spell save DC, ending the spell on a success.",
+    "higherLevels":  "",
+    "tags":  [
+                 "divination",
+                 "information",
+                 "concentration"
+             ],
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast_or_later_action",
+                       "optionCount":  2,
+                       "optionsSource":  "effects",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Sense Thoughts",
+                                           "summary":  "Sense the presence of thoughts within 30 feet from creatures that know languages or are telepathic, without reading those thoughts.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "1 minute with concentration",
+                                           "notes":  "This option is blocked by 1 foot of stone, dirt, or wood, 1 inch of metal, or a thin sheet of lead."
+                                       },
+                                       {
+                                           "label":  "Read Thoughts",
+                                           "summary":  "Target a visible or previously sensed creature within 30 feet to learn what is most on its mind, then optionally probe deeper on a later Magic action.",
+                                           "effectIndices":  [
+                                                                 1
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "1 minute with concentration",
+                                           "notes":  "The deeper probe uses the same effect packet and can end the spell on a successful Wisdom save."
+                                       }
+                                   ],
+                       "notes":  "The spell lets the caster activate either option when cast and again as a Magic action on later turns."
+                   }
 }

@@ -14,6 +14,9 @@ import {
   meanBurnMultiplier,
   bindingRangeDays,
   provisionStatusMulti,
+  provisionWeight,
+  inventoryWeight,
+  encumbranceSpeedFactor,
 } from '../provisioning';
 import type { Item } from '@/types/items';
 
@@ -233,5 +236,42 @@ describe('provisionStatusMulti (E1 + R1)', () => {
     expect(s.foodRangeDays).toBe(2);
     expect(s.binding).toBe('water');
     expect(s.shortfallDays).toBe(2);
+  });
+});
+
+describe('provisionWeight / inventoryWeight (E3: weight)', () => {
+  const sword = { id: 'sword', name: 'Sword', description: '', type: 'weapon', weight: 3 } as Item;
+
+  it('sums the weight of carried provisions (rations + water), scaled by stack', () => {
+    // rations weight 2, water weight 5 (from item data) — but weight is read off
+    // each item here, so the helper stays data-driven.
+    const r = { ...ration(4), weight: 2 } as Item; // a stack of 4 ration-days
+    const w = { ...water(3), weight: 5 } as Item;
+    expect(provisionWeight([r, w, sword])).toBe(4 * 2 + 3 * 5); // 23 — sword excluded
+  });
+
+  it('inventoryWeight totals every item including non-provisions', () => {
+    const r = { ...ration(2), weight: 2 } as Item;
+    expect(inventoryWeight([r, sword])).toBe(2 * 2 + 3); // 7
+  });
+
+  it('treats a missing weight as 0 and missing quantity as 1', () => {
+    expect(provisionWeight([{ ...ration(), weight: 2 } as Item])).toBe(2);
+    expect(inventoryWeight([{ id: 'x', name: '', description: '', type: 'tool' } as Item])).toBe(0);
+  });
+});
+
+describe('encumbranceSpeedFactor (E3: weight → speed)', () => {
+  it('is full speed when within the encumbered threshold', () => {
+    expect(encumbranceSpeedFactor(40, 75, 150)).toBe(1);
+  });
+  it('drops to two-thirds when encumbered (over light threshold)', () => {
+    expect(encumbranceSpeedFactor(100, 75, 150)).toBeCloseTo(2 / 3, 5);
+  });
+  it('drops to one-third when heavily encumbered', () => {
+    expect(encumbranceSpeedFactor(200, 75, 150)).toBeCloseTo(1 / 3, 5);
+  });
+  it('never gates when capacity is unknown (zero thresholds → full speed)', () => {
+    expect(encumbranceSpeedFactor(200, 0, 0)).toBe(1);
   });
 });

@@ -1,234 +1,376 @@
 {
-  "id": "conjure-minor-elementals",
-  "name": "Conjure Minor Elementals",
-  "aliases": [],
-  "level": 4,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "validTargets": [
-      "self"
-    ],
-    "lineOfSight": false,
-    "areaOfEffect": {
-      "shape": "Emanation",
-      "size": 15,
-      "sizeType": "radius",
-      "sizeUnit": "feet",
-      "height": 0,
-      "heightUnit": "feet",
-      "followsCaster": true
-    },
-    "range": 0,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "on_attack_hit",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "hit",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "2d8",
-        "type": "Acid, Cold, Fire, or Lightning"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+1d8",
-        "customFormula": ""
-      },
-      "description": "Until the spell ends, any attack the caster makes that hits a creature in the 15-foot Emanation deals an extra 2d8 Acid, Cold, Fire, or Lightning damage chosen for that attack; each slot level above 4 adds +1d8 damage.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "TERRAIN",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "terrainType": "difficult",
-      "areaOfEffect": {
-        "shape": "Sphere",
-        "size": 15,
-        "height": 0
-      },
-      "duration": {
-        "type": "minutes",
-        "value": 10
-      },
-      "description": "The ground in the Emanation is Difficult Terrain for the caster's enemies.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You conjure spirits from the Elemental Planes that flit around you in a 15-foot Emanation for the duration. Until the spell ends, any attack you make deals an extra 2d8 damage when you hit a creature in the Emanation. This damage is Acid, Cold, Fire, or Lightning (your choice when you make the attack). In addition, the ground in the Emanation is Difficult Terrain for your enemies.",
-  "higherLevels": "The damage increases by 1d8 for each spell slot level above 4.",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "conjure-minor-elementals",
+    "name":  "Conjure Minor Elementals",
+    "aliases":  [
+
+                ],
+    "level":  4,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "validTargets":  [
+                                           "self"
+                                       ],
+                      "lineOfSight":  false,
+                      "areaOfEffect":  {
+                                           "shape":  "Emanation",
+                                           "size":  15,
+                                           "sizeType":  "radius",
+                                           "sizeUnit":  "feet",
+                                           "height":  0,
+                                           "heightUnit":  "feet",
+                                           "followsCaster":  true
+                                       },
+                      "range":  0,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "on_attack_hit",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "hit",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "2d8",
+                                       "type":  "Acid, Cold, Fire, or Lightning"
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+1d8",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Until the spell ends, any attack the caster makes that hits a creature in the 15-foot Emanation deals an extra 2d8 Acid, Cold, Fire, or Lightning damage chosen for that attack; each slot level above 4 adds +1d8 damage.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "controlledEntity":  {
+                                                 "entityType":  "elemental_spirit_emanation",
+                                                 "combatEntity":  false,
+                                                 "origin":  "Elemental Planes",
+                                                 "area":  "15-foot Emanation around caster",
+                                                 "followsCaster":  true,
+                                                 "mechanicalRole":  "extra Acid, Cold, Fire, or Lightning damage on caster attacks against creatures in emanation, plus enemy difficult terrain",
+                                                 "notes":  "Spirits are modeled as a persistent emanation, not individually targeted creatures."
+                                             }
+                    },
+                    {
+                        "type":  "TERRAIN",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "terrainType":  "difficult",
+                        "areaOfEffect":  {
+                                             "shape":  "Sphere",
+                                             "size":  15,
+                                             "height":  0
+                                         },
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  10
+                                     },
+                        "description":  "The ground in the Emanation is Difficult Terrain for the caster\u0027s enemies.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "elemental_spirit_emanation",
+                                                   "name":  "Minor Elemental Spirits Emanation",
+                                                   "count":  1,
+                                                   "countUnit":  "area",
+                                                   "appearsIn":  "caster_emanation",
+                                                   "affectedVolumeShape":  "Emanation",
+                                                   "affectedVolumeSizeFeet":  15,
+                                                   "manipulationOptions":  [
+                                                                               "make_ground_difficult_terrain_for_enemies",
+                                                                               "add_elemental_damage_to_attacks"
+                                                                           ],
+                                                   "createsDifficultTerrain":  true,
+                                                   "difficultTerrainAppliesTo":  "caster_enemies",
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "up to 10 minutes with concentration",
+                                                   "notes":  "Conjure Minor Elementals surrounds the caster with elemental spirits and makes the ground in the 15-foot Emanation Difficult Terrain for enemies while the existing damage effect handles the attack rider."
+                                               }
+                                           ],
+                        "controlledEntity":  {
+                                                 "entityType":  "elemental_spirit_emanation",
+                                                 "combatEntity":  false,
+                                                 "origin":  "Elemental Planes",
+                                                 "area":  "15-foot Emanation around caster",
+                                                 "followsCaster":  true,
+                                                 "mechanicalRole":  "extra Acid, Cold, Fire, or Lightning damage on caster attacks against creatures in emanation, plus enemy difficult terrain",
+                                                 "notes":  "Spirits are modeled as a persistent emanation, not individually targeted creatures."
+                                             }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "For each qualifying attack hit, choose whether the extra elemental damage is Acid, Cold, Fire, or Lightning.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_each_attack_hit",
+                       "optionCount":  4,
+                       "optionsSource":  "modeChoice.options",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Acid",
+                                           "summary":  "A qualifying attack hit deals extra Acid damage.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "10 minutes with concentration"
+                                       },
+                                       {
+                                           "label":  "Cold",
+                                           "summary":  "A qualifying attack hit deals extra Cold damage.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "10 minutes with concentration"
+                                       },
+                                       {
+                                           "label":  "Fire",
+                                           "summary":  "A qualifying attack hit deals extra Fire damage.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "10 minutes with concentration"
+                                       },
+                                       {
+                                           "label":  "Lightning",
+                                           "summary":  "A qualifying attack hit deals extra Lightning damage.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "10 minutes with concentration"
+                                       }
+                                   ],
+                       "notes":  "The caster chooses the damage type when each qualifying attack hits a creature in the 15-foot Emanation."
+                   },
+    "description":  "You conjure spirits from the Elemental Planes that flit around you in a 15-foot Emanation for the duration. Until the spell ends, any attack you make deals an extra 2d8 damage when you hit a creature in the Emanation. This damage is Acid, Cold, Fire, or Lightning (your choice when you make the attack). In addition, the ground in the Emanation is Difficult Terrain for your enemies.",
+    "higherLevels":  "The damage increases by 1d8 for each spell slot level above 4.",
+    "tags":  [
+                 "concentration"
+             ]
 }

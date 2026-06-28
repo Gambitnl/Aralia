@@ -180,13 +180,23 @@
         "Paralyzed",
         "Poisoned"
       ],
+      "conditionRemovalChoice": {
+        "chooseOne": true,
+        "eligibleConditions": [
+          "Blinded",
+          "Deafened",
+          "Paralyzed",
+          "Poisoned"
+        ],
+        "target": "touched_creature"
+      },
       "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose one condition on the touched creature to end immediately: Blinded, Deafened, Paralyzed, or Poisoned.",
+    "playerInputRequired": true
   },
   "description": "You touch a creature and end one condition on it: Blinded , Deafened , Paralyzed , or Poisoned .",
   "higherLevels": "",

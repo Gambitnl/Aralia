@@ -1,180 +1,253 @@
 {
-  "id": "slow",
-  "name": "Slow",
-  "aliases": [],
-  "level": 3,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a drop of molasses",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "multi",
-    "range": 120,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 6,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 40,
-      "sizeUnit": "feet"
-    }
-  },
-  "effects": [
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Wisdom",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Slowed",
-        "duration": {
-          "type": "minutes",
-          "value": 1
-        },
-        "level": 0,
-        "repeatSave": {
-          "timing": "turn_end",
-          "saveType": "Wisdom",
-          "successEnds": true,
-          "useOriginalDC": true
-        }
-      },
-    "description": "On a failed Wisdom save, each affected creature becomes Slowed for up to 1 minute with concentration. While Slowed, Speed is halved, AC and Dexterity saves take a -2 penalty, Reactions are unavailable, the target can take either an action or a Bonus Action but not both, only one attack can be made with the Attack action, Somatic spells have a 25 percent failure chance, and the target repeats the Wisdom save at the end of each turn to end the effect on itself.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You alter time around up to six creatures of your choice in a 40-foot Cube within range. Each target must succeed on a Wisdom saving throw or be affected by this spell for the duration. An affected target's Speed is halved, it takes a -2 penalty to AC and Dexterity saving throws, and it can't take Reactions. On its turns, it can take either an action or a Bonus Action, not both, and it can make only one attack if it takes the Attack action. If it casts a spell with a Somatic component, there is a 25 percent chance the spell fails as a result of the target making the spell's gestures too slowly. An affected target repeats the save at the end of each of its turns, ending the spell on itself on a success.",
-  "higherLevels": "",
-  "tags": [
-    "debuff",
-    "transmutation",
-    "concentration",
-    "control"
-  ]
+    "id":  "slow",
+    "name":  "Slow",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a drop of molasses",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "multi",
+                      "range":  120,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  6,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  40,
+                                           "sizeUnit":  "feet"
+                                       }
+                  },
+    "effects":  [
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Slowed",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  1
+                                                             },
+                                                "level":  0,
+                                                "repeatSave":  {
+                                                                   "timing":  "turn_end",
+                                                                   "saveType":  "Wisdom",
+                                                                   "successEnds":  true,
+                                                                   "useOriginalDC":  true
+                                                               }
+                                            },
+                        "speedChange":  {
+                                            "multiplier":  0.5,
+                                            "movementTypes":  [
+                                                                  "all"
+                                                              ],
+                                            "duration":  {
+                                                             "type":  "minutes",
+                                                             "value":  1
+                                                         }
+                                        },
+                        "armorClassModifier":  {
+                                                   "mode":  "penalty",
+                                                   "value":  -2,
+                                                   "appliesWhile":  "target has the Slowed condition from this spell",
+                                                   "pairedSavingThrowPenalty":  "Dexterity saving throws also take -2 while Slowed"
+                                               },
+                        "savingThrowModifier":  {
+                                                    "modifier":  "penalty",
+                                                    "stats":  [
+                                                                  "Dexterity"
+                                                              ],
+                                                    "flat":  -2,
+                                                    "consumption":  "while_active",
+                                                    "duration":  {
+                                                                     "type":  "minutes",
+                                                                     "value":  1
+                                                                 }
+                                                },
+                        "actionRestrictions":  {
+                                                   "noReactions":  true,
+                                                   "chooseActionOrBonusAction":  true,
+                                                   "maxAttacksWithAttackAction":  1,
+                                                   "somaticSpellFailureChancePercent":  25
+                                               },
+                        "description":  "On a failed Wisdom save, each affected creature becomes Slowed for up to 1 minute with concentration. While Slowed, Speed is halved, AC and Dexterity saves take a -2 penalty, Reactions are unavailable, the target can take either an action or a Bonus Action but not both, only one attack can be made with the Attack action, Somatic spells have a 25 percent failure chance, and the target repeats the Wisdom save at the end of each turn to end the effect on itself.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "resourceLimit":  {
+                                              "kind":  "somatic_component_spell_failure",
+                                              "trigger":  "slowed_creature_casts_spell_with_somatic_component",
+                                              "chance":  "25_percent",
+                                              "result":  "spell_fails",
+                                              "duration":  "while_target_is_slowed"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose up to six creatures in the 40-foot Cube; on failed Wisdom saves apply Slowed with half Speed, -2 AC, -2 Dexterity saves, no Reactions, action-or-Bonus-Action only, one Attack-action attack, 25 percent somatic spell failure, and end-of-turn repeat Wisdom saves.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You alter time around up to six creatures of your choice in a 40-foot Cube within range. Each target must succeed on a Wisdom saving throw or be affected by this spell for the duration. An affected target\u0027s Speed is halved, it takes a -2 penalty to AC and Dexterity saving throws, and it can\u0027t take Reactions. On its turns, it can take either an action or a Bonus Action, not both, and it can make only one attack if it takes the Attack action. If it casts a spell with a Somatic component, there is a 25 percent chance the spell fails as a result of the target making the spell\u0027s gestures too slowly. An affected target repeats the save at the end of each of its turns, ending the spell on itself on a success.",
+    "higherLevels":  "",
+    "tags":  [
+                 "debuff",
+                 "transmutation",
+                 "concentration",
+                 "control"
+             ]
 }

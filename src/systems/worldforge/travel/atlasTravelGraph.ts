@@ -95,6 +95,26 @@ export interface AtlasTravelGraphOptions {
 }
 
 /**
+ * Per-cell travel-terrain lookup, matching the graph's own `terrain()` logic
+ * (road/difficult-biome/open). Exposed standalone so the provisioning ring (E2)
+ * can weight reach by terrain burn without rebuilding the whole travel graph.
+ */
+export function buildAtlasTerrainFn(
+  atlas: FmgAtlasResult,
+  opts: AtlasTravelGraphOptions = {},
+): (cell: number) => TravelTerrain {
+  const cells = (atlas.pack as unknown as Packish).cells;
+  const roadCells = opts.roadCells ?? buildRoadCells(atlas);
+  const mobility = opts.mobility ?? 'land';
+  const names = (atlas.biomesData as unknown as { name?: string[] }).name;
+  const biomeName = (c: number): string => names?.[cells.biome?.[c] ?? -1] ?? '';
+  return (c: number): TravelTerrain => {
+    if (mobility !== 'land') return 'open';
+    return roadCells.has(c) ? 'road' : (DIFFICULT_BIOMES.has(biomeName(c)) ? 'difficult' : 'open');
+  };
+}
+
+/**
  * Build a `TravelGraph` over the atlas Voronoi cells, scoped to the transport's
  * mobility: land travel uses land cells (road/biome terrain), water travel uses
  * sea/lake cells, and flying (air) can cross both, ignoring terrain. This is what

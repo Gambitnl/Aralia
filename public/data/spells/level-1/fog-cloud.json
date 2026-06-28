@@ -1,202 +1,267 @@
-{
-  "id": "fog-cloud",
-  "name": "Fog Cloud",
-  "aliases": [],
-  "level": 1,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Ranger",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "hour",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "range": 120,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 20,
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "TERRAIN",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "terrainType": "obscuring",
-      "areaOfEffect": {
-        "shape": "Sphere",
-        "size": 20,
-        "height": 0
-      },
-      "duration": {
-        "type": "minutes",
-        "value": 60
-      },
-      "dispersedByStrongWind": true,
-      "scaling": {
-        "type": "slot_level",
-        "customFormula": "Increase radius by 20 feet for each slot level above 1.",
-        "bonusPerLevel": ""
-      },
-      "damage": {
-        "dice": "",
-        "type": ""
-      },
-      "wallProperties": {
-        "hp": 0,
-        "ac": 0
-      },
-      "manipulation": {
-        "type": "cosmetic",
-        "volume": {
-          "shape": "Cube",
-          "size": 0,
-          "depth": 0
-        },
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        },
-        "depositDistance": 0
-      },
-      "description": "Create a 20-foot-radius Sphere of heavily obscuring fog centered on a point within 120 feet for up to 1 hour with concentration; strong wind disperses the fog, and higher-level slots increase the radius by 20 feet per slot level above 1.",
-      "conditionalEndings": [],
-      "tags": [
-        "obscurement",
-        "terrain-control",
-        "slot-scaling"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You create a 20-foot-radius Sphere of fog centered on a point within range. The Sphere is Heavily Obscured . It lasts for the duration or until a strong wind (such as one created by Gust of Wind) disperses it.",
-  "higherLevels": "Using a Higher-Level Spell Slot. The fog's radius increases by 20 feet for each spell slot level above 1.",
-  "tags": [
-    "terrain",
-    "obscurement",
-    "concentration"
-  ]
+﻿{
+    "id":  "fog-cloud",
+    "name":  "Fog Cloud",
+    "aliases":  [
+
+                ],
+    "level":  1,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Ranger",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "hour",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  120,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Sphere",
+                                           "size":  20,
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "TERRAIN",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "terrainType":  "obscuring",
+                        "areaOfEffect":  {
+                                             "shape":  "Sphere",
+                                             "size":  20,
+                                             "height":  0
+                                         },
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  60
+                                     },
+                        "dispersedByStrongWind":  true,
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "customFormula":  "Increase radius by 20 feet for each slot level above 1.",
+                                        "bonusPerLevel":  ""
+                                    },
+                        "damage":  {
+                                       "dice":  "",
+                                       "type":  ""
+                                   },
+                        "wallProperties":  {
+                                               "hp":  0,
+                                               "ac":  0
+                                           },
+                        "manipulation":  {
+                                             "type":  "cosmetic",
+                                             "volume":  {
+                                                            "shape":  "Cube",
+                                                            "size":  0,
+                                                            "depth":  0
+                                                        },
+                                             "duration":  {
+                                                              "type":  "rounds",
+                                                              "value":  0
+                                                          },
+                                             "depositDistance":  0
+                                         },
+                        "description":  "Create a 20-foot-radius Sphere of heavily obscuring fog centered on a point within 120 feet for up to 1 hour with concentration; strong wind disperses the fog, and higher-level slots increase the radius by 20 feet per slot level above 1.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "strong_wind",
+                                                       "result":  "fog_disperses_and_spell_ends",
+                                                       "examples":  [
+                                                                        "Gust of Wind"
+                                                                    ]
+                                                   }
+                                               ],
+                        "tags":  [
+                                     "obscurement",
+                                     "terrain-control",
+                                     "slot-scaling"
+                                 ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "fog",
+                                                   "name":  "Heavily Obscuring Fog Cloud",
+                                                   "count":  1,
+                                                   "countUnit":  "area",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Sphere",
+                                                   "affectedVolumeSizeFeet":  20,
+                                                   "affectedVolumeScaling":  {
+                                                                                 "type":  "slot_level",
+                                                                                 "bonusFeetPerLevel":  20
+                                                                             },
+                                                   "manipulationOptions":  [
+                                                                               "heavily_obscure_area",
+                                                                               "disperse_in_strong_wind"
+                                                                           ],
+                                                   "createsHeavilyObscuredArea":  true,
+                                                   "dispersalCondition":  "strong_wind",
+                                                   "dispersalExamples":  [
+                                                                             "Gust of Wind"
+                                                                         ],
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "up to 1 hour with concentration or until strong wind disperses it",
+                                                   "notes":  "Fog Cloud creates a heavily obscured 20-foot-radius fog Sphere; strong wind, including Gust of Wind, disperses it early."
+                                               }
+                                           ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You create a 20-foot-radius Sphere of fog centered on a point within range. The Sphere is Heavily Obscured . It lasts for the duration or until a strong wind (such as one created by Gust of Wind) disperses it.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. The fog\u0027s radius increases by 20 feet for each spell slot level above 1.",
+    "tags":  [
+                 "terrain",
+                 "obscurement",
+                 "concentration"
+             ]
 }

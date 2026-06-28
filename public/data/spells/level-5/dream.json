@@ -1,197 +1,309 @@
 {
-  "id": "dream",
-  "name": "Dream",
-  "aliases": [],
-  "level": 5,
-  "school": "Illusion",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 10,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a handful of sand",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "special",
-    "value": 0,
-    "unit": "round",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "single",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": false,
-    "range": 10,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet"
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "communication",
-      "description": "Sends a willing messenger into a trance to appear in a known creature's dreams on the same plane, either conversing with the target or shaping a nightmare that can deny rest and deal psychic harm on a failed Wisdom save.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "tags": [
-        "communication",
-        "dream-message",
-        "nightmare-option",
-        "psychic-harm"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You target a creature you know on the same plane of existence. You or a willing creature you touch enters a trance state to act as a dream messenger. While in the trance, the messenger is Incapacitated and has a Speed of 0. If the target is asleep, the messenger appears in the target's dreams and can converse with the target as long as it remains asleep, through the spell's duration. The messenger can also shape the dream's environment, creating landscapes, objects, and other images. The messenger can emerge from the trance at any time, ending the spell. The target recalls the dream perfectly upon waking. If the target is awake when you cast the spell, the messenger knows it and can either end the trance (and the spell) or wait for the target to sleep, at which point the messenger enters its dreams. You can make the messenger terrifying to the target. If you do so, the messenger can deliver a message of no more than ten words, and then the target makes a Wisdom saving throw. On a failed save, the target gains no benefit from its rest, and it takes 3d6 Psychic damage when it wakes up.",
-  "higherLevels": "",
-  "tags": [
-    "illusion",
-    "communication",
-    "dream",
-    "psychic",
-    "same-plane"
-  ]
+    "id":  "dream",
+    "name":  "Dream",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Illusion",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  10,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a handful of sand",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "special",
+                     "value":  0,
+                     "unit":  "round",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  false,
+                      "range":  10,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet"
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+                                                                       {
+                                                                           "outcome":  "failure",
+                                                                           "effect":  "The nightmare target gains no benefit from its rest and takes 3d6 Psychic damage when it wakes."
+                                                                       }
+                                                                   ]
+                                      },
+                        "utilityType":  "communication",
+                        "description":  "Sends a willing messenger into a trance to appear in a known creature\u0027s dreams on the same plane, either conversing with the target or shaping a nightmare that forces a Wisdom save to avoid losing the rest benefit and taking psychic harm on waking.",
+                        "nightmareOption":  {
+                                                "enabledByCaster":  true,
+                                                "messageLimit":  "ten_words",
+                                                "saveType":  "Wisdom",
+                                                "saveEffect":  "negates_rest_denial_and_damage",
+                                                "damageOnWake":  {
+                                                                     "dice":  "3d6",
+                                                                     "type":  "Psychic"
+                                                                 },
+                                                "failedSaveRestEffect":  "The target gains no benefit from its rest."
+                                            },
+                        "messengerTranceState":  {
+                                                     "appliesTo":  "willing_messenger",
+                                                     "conditions":  [
+                                                                        "Incapacitated"
+                                                                    ],
+                                                     "speedOverride":  0,
+                                                     "endingTrigger":  "messenger_emerges_from_trance_or_spell_ends",
+                                                     "targetAwakeHandling":  "Messenger knows the target is awake and can end the trance or wait for the target to sleep."
+                                                 },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "name":  "Shape Dream",
+                                                   "actionType":  "narrative_control",
+                                                   "timing":  "while_target_remains_asleep_during_spell",
+                                                   "target":  "dream_environment",
+                                                   "description":  "The messenger can converse with the target and shape landscapes, objects, and images in the dream."
+                                               },
+                                               {
+                                                   "name":  "End Trance",
+                                                   "actionType":  "free",
+                                                   "timing":  "any_time",
+                                                   "target":  "messenger",
+                                                   "description":  "The messenger can emerge from the trance at any time, ending the spell."
+                                               }
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "messenger_emerges_from_trance",
+                                                       "scope":  "spell",
+                                                       "description":  "The messenger can emerge from the trance at any time, ending the spell."
+                                                   },
+                                                   {
+                                                       "trigger":  "target_awake_and_messenger_chooses_not_to_wait",
+                                                       "scope":  "spell",
+                                                       "description":  "If the target is awake when cast, the messenger can end the trance and spell instead of waiting."
+                                                   },
+                                                   {
+                                                       "trigger":  "target_stops_sleeping",
+                                                       "scope":  "dream_conversation",
+                                                       "description":  "The dream conversation can continue only as long as the target remains asleep within the duration."
+                                                   }
+                                               ],
+                        "tags":  [
+                                     "communication",
+                                     "dream-message",
+                                     "nightmare-option",
+                                     "psychic-harm"
+                                 ],
+                        "communicationDetails":  {
+                                                     "target":  "known creature on same plane",
+                                                     "messenger":  "caster or willing touched creature in trance",
+                                                     "targetAwakeKnowledge":  "messenger knows if target is awake and may wait or end trance",
+                                                     "conversation":  "messenger can converse while target remains asleep",
+                                                     "dreamShaping":  "messenger can shape dream environment",
+                                                     "targetRecall":  "target recalls dream perfectly on waking",
+                                                     "nightmareMessageLimit":  "10 words",
+                                                     "nightmareSave":  "Wisdom save avoids rest denial and psychic damage"
+                                                 },
+                        "illusionState":  {
+                                              "kind":  "dream_environment_shaping",
+                                              "actor":  "messenger_in_trance",
+                                              "target":  "known_creature_on_same_plane_while_asleep",
+                                              "canCreate":  [
+                                                                "landscapes",
+                                                                "objects",
+                                                                "other_images"
+                                                            ],
+                                              "mode":  "conversation_or_nightmare",
+                                              "nightmareSave":  "Wisdom_save_after_waking_to_avoid_psychic_damage_and_no_rest_benefit"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the willing messenger, confirm the known target is on the same plane, record whether the caster makes the dream terrifying, and if so resolve the target\u0027s Wisdom save, lost rest benefit, and 3d6 Psychic damage on waking.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You target a creature you know on the same plane of existence. You or a willing creature you touch enters a trance state to act as a dream messenger. While in the trance, the messenger is Incapacitated and has a Speed of 0. If the target is asleep, the messenger appears in the target\u0027s dreams and can converse with the target as long as it remains asleep, through the spell\u0027s duration. The messenger can also shape the dream\u0027s environment, creating landscapes, objects, and other images. The messenger can emerge from the trance at any time, ending the spell. The target recalls the dream perfectly upon waking. If the target is awake when you cast the spell, the messenger knows it and can either end the trance (and the spell) or wait for the target to sleep, at which point the messenger enters its dreams. You can make the messenger terrifying to the target. If you do so, the messenger can deliver a message of no more than ten words, and then the target makes a Wisdom saving throw. On a failed save, the target gains no benefit from its rest, and it takes 3d6 Psychic damage when it wakes up.",
+    "higherLevels":  "",
+    "tags":  [
+                 "illusion",
+                 "communication",
+                 "dream",
+                 "psychic",
+                 "same-plane"
+             ]
 }

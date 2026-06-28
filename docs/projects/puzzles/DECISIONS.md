@@ -1,7 +1,7 @@
 # Puzzles System Decisions
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-27
 
 ## Decision Log
 
@@ -64,7 +64,75 @@ Alternatives considered:
   - Rejected because no other project owns runtime `Puzzle` objects, and the deferral
     had no concrete landing site.
 
+Follow-up status:
+
+- Completed 2026-06-27: the surface, first gameplay `getPuzzleHint` callsite,
+  and focused runtime caller test landed. PZ-003 later closed the key runtime
+  contract separately.
+
+### D-004: Key Matching Ownership (PZ-003)
+
+Date: 2026-06-27
+
+Decision: The puzzle lock runtime owns deterministic key matching, but it does
+not own inventory, economy, or item-registry lookup. Callers provide a set or
+list of available key ids, and `attemptKeyUnlock` compares those ids with
+`Lock.keyId`.
+
+Rationale:
+
+- `Lock.keyId` already belongs to the puzzle lock model, so the matching rule
+  should live beside lockpick, break, trap-detect, and trap-disarm logic.
+- Inventory and economy systems may later decide which item ids are available,
+  but the lock runtime does not need those broader registries to answer whether
+  a specific lock accepts a specific key id.
+- This preserves a narrow, testable contract that future modal or inventory
+  callers can consume without widening PZ-003 into a full key item system.
+
+Alternatives considered:
+
+- Add inventory lookup directly to the puzzle runtime.
+  - Rejected for this slice because it would make the puzzle package own item
+    sourcing and registry behavior outside the active lock-runtime gap.
+- Leave key matching fully to future inventory callers.
+  - Rejected because lock progression would still have no deterministic runtime
+    acceptance rule for `Lock.keyId`.
+
 Follow-up:
 
-- Implement the surface, wire the first gameplay `getPuzzleHint` callsite, and add the
-  focused runtime caller test. Then resume PZ-003 (key path).
+- Wire visible key use or inventory key sourcing as a future bounded caller
+  slice if gameplay needs it. That future slice should consume `attemptKeyUnlock`
+  instead of redefining the key-match rule.
+
+### D-005: Puzzle Runtime Character Ability Source (PZ-004)
+
+Date: 2026-06-27
+
+Decision: Puzzle runtime checks should prefer modern character ability data in
+this order: `finalAbilityScores`, then `abilityScores`, then legacy
+`character.stats` only as a compatibility fallback.
+
+Rationale:
+
+- `finalAbilityScores` represents the active character sheet after character
+  creation modifiers and should drive puzzle DC checks when available.
+- Keeping `abilityScores` as the second source lets modern fixtures without
+  final-score materialization still work.
+- Legacy `character.stats` remains necessary for older tests, saves, and
+  partial puzzle callers, but copying legacy-first helpers across puzzle modules
+  created drift risk.
+
+Alternatives considered:
+
+- Keep each puzzle module's local legacy-first helper.
+  - Rejected because lock, plate, door, and glyph checks could silently diverge
+    as the character model migrates.
+- Remove `character.stats` fallback immediately.
+  - Rejected because existing compatibility fixtures and older callers still
+    depend on that shape.
+
+Follow-up:
+
+- Future puzzle runtime checks should use `getPuzzleCharacterStats` or modern
+  ability data directly. Caller-side adapters, including UI bridges, should be
+  aligned with this rule when those surfaces are next touched.

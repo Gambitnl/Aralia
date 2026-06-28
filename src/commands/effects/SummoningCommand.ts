@@ -2,6 +2,7 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { SummoningEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, Position, CharacterStats, Ability, AbilityEffect } from '@/types/combat'
+import type { ExtraMovementSpeeds } from '@/types/core'
 import { CLASSES_DATA } from '@/constants'
 import { MONSTERS_DATA } from '../../data/monsters'
 import { generateId } from '../../utils/combatUtils'
@@ -311,10 +312,15 @@ export class SummoningCommand extends BaseEffectCommand {
         let templateData: SummonTemplate | undefined
         let chosenFormName: string | undefined
 
-        // If the nested spell data offers several forms, choose the first form
-        // until the combat UI has a player-facing form picker.
+        // If the nested spell data offers several forms, prefer the option the
+        // caster chose through the existing mode-choice input bridge. Falling
+        // back to the first form preserves older casts and tests that create a
+        // summon directly without opening the player choice UI.
         if (effect.summon?.formOptions && effect.summon.formOptions.length > 0) {
-            const chosenForm = effect.summon.formOptions[0] // Default to first form for now
+            const selectedForm = this.context.playerInput
+                ? effect.summon.formOptions.find(form => form.toLowerCase() === this.context.playerInput?.toLowerCase())
+                : undefined
+            const chosenForm = selectedForm ?? effect.summon.formOptions[0]
             chosenFormName = chosenForm
             templateData = getSummonTemplate(chosenForm)
             if (templateData) {
@@ -346,7 +352,10 @@ export class SummoningCommand extends BaseEffectCommand {
             stats = {
                 strength: inlineStats.str, dexterity: inlineStats.dex, constitution: inlineStats.con,
                 intelligence: inlineStats.int, wisdom: inlineStats.wis, charisma: inlineStats.cha,
-                baseInitiative: 0, speed: effect.summon.statBlock.speed ?? 30, cr: '0'
+                baseInitiative: 0,
+                speed: effect.summon.statBlock.speed ?? 30,
+                extraMovementSpeeds: this.getSelectedFormMovementSpeeds(effect, chosenFormName),
+                cr: '0'
             }
             maxHP = effect.summon.statBlock.hp ?? 10
         } else if (templateData) {
@@ -428,6 +437,8 @@ export class SummoningCommand extends BaseEffectCommand {
                 telepathyRange: effect.summon?.telepathyRange,
                 sharedSenses: effect.summon?.sharedSenses,
                 sharedSensesCost: effect.summon?.sharedSensesCost,
+                actionPermissions: effect.summon?.actionPermissions,
+                formTraits: effect.summon?.formTraits,
                 durationRemaining: typeof effect.duration?.value === 'number' ? effect.duration.value : undefined,
                 dismissable: effect.summon?.dismissAction !== undefined || effect.summon?.entityType === 'familiar'
             },
@@ -512,6 +523,44 @@ export class SummoningCommand extends BaseEffectCommand {
             }],
             tags: ['summon', 'controlled-entity', 'command-surface', this.context.spellId]
         }]
+    }
+
+    private getSelectedFormMovementSpeeds(
+        effect: SummoningEffect,
+        chosenFormName?: string
+    ): ExtraMovementSpeeds | undefined {
+        const statBlock = effect.summon?.statBlock
+
+        if (!statBlock) {
+            return undefined
+        }
+
+        const allExtraSpeeds: ExtraMovementSpeeds = {
+            ...(statBlock.flySpeed !== undefined ? { fly: statBlock.flySpeed } : {}),
+            ...(statBlock.swimSpeed !== undefined ? { swim: statBlock.swimSpeed } : {}),
+            ...(statBlock.climbSpeed !== undefined ? { climb: statBlock.climbSpeed } : {})
+        }
+
+        if (Object.keys(allExtraSpeeds).length === 0) {
+            return undefined
+        }
+
+        if (!chosenFormName) {
+            return allExtraSpeeds
+        }
+
+        const normalizedForm = chosenFormName.toLowerCase()
+        const selectedSpeeds: ExtraMovementSpeeds = {
+            ...(normalizedForm.includes('air') && allExtraSpeeds.fly !== undefined ? { fly: allExtraSpeeds.fly } : {}),
+            ...(normalizedForm.includes('water') && allExtraSpeeds.swim !== undefined ? { swim: allExtraSpeeds.swim } : {}),
+            ...(normalizedForm.includes('land') && allExtraSpeeds.climb !== undefined ? { climb: allExtraSpeeds.climb } : {})
+        }
+
+        // Selected-form summons such as Summon Beast list every possible speed
+        // in one shared stat block. Store only the movement modes that belong
+        // to the chosen form so Air can prove flight for Flyby without giving
+        // Land or Water actors stray flight metadata.
+        return Object.keys(selectedSpeeds).length > 0 ? selectedSpeeds : allExtraSpeeds
     }
 
     private toAbilityCostType(cost: 'action' | 'bonus_action' | 'reaction' | 'free'): Ability['cost']['type'] {

@@ -148,7 +148,32 @@
       },
       "grantedActions": [],
       "attackAugments": [],
-      "controlOptions": [],
+      "controlOptions": [
+        {
+          "label": "Block sound through the boundary",
+          "summary": "Sound cannot pass through the warded cube's edge."
+        },
+        {
+          "label": "Obscure sight through the boundary",
+          "summary": "The warded boundary prevents normal vision through the edge of the cube."
+        },
+        {
+          "label": "Block divination sensors inside",
+          "summary": "Divination sensors cannot appear inside the protected area."
+        },
+        {
+          "label": "Block divination targeting inside",
+          "summary": "Creatures inside the area cannot be targeted by Divination spells."
+        },
+        {
+          "label": "Block teleportation",
+          "summary": "Teleportation cannot move creatures or objects into or out of the warded area."
+        },
+        {
+          "label": "Block planar travel",
+          "summary": "Planar travel cannot move creatures or objects into or out of the warded area."
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,
@@ -181,8 +206,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose the cube size from 5 to 100 feet on a side, choose any of the available security properties, and confirm whether this casting continues a same-location daily sequence toward the 365-day permanent ward.",
+    "playerInputRequired": true
   },
   "description": "You make an area within range magically secure. The area is a Cube that can be as small as 5 feet to as large as 100 feet on each side. The spell lasts for the duration. When you cast the spell, you decide what sort of security the spell provides, choosing any of the following properties: Casting this spell on the same spot every day for 365 days makes the spell last until dispelled.",
   "higherLevels": "You can increase the size of the Cube by 100 feet for each spell slot level above 4.",

@@ -78,7 +78,15 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '8px 12px',
+          // D5: the Controls dropdown sat flush at the right edge where the fixed
+          // "Party Chat" tab also lives, so they collided / the tab clipped over it.
+          // Reserve extra right clearance so the Controls trigger never tucks under
+          // the right-edge tab strip.
+          padding: '8px 56px 8px 12px',
+          // Give the interactive top bar its own stacking context above the HUD base
+          // so its dropdown (raised further in HUDControlPanel) sits over canvas chrome.
+          position: 'relative',
+          zIndex: 30,
           pointerEvents: 'auto', // Re-enable pointer events for interactive elements
         }}
       >
@@ -86,7 +94,15 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           style={{
             fontSize: '14px',
             fontWeight: 600,
-            color: 'var(--text-primary, #e8e8e8)',
+            // D2: the title sat as light-gray text directly over the bright sky and
+            // was nearly invisible. Give it a dark translucent pill backing + a
+            // text-shadow so it stays legible over any 3D background (light sky or
+            // dark terrain), not just the dark surface the token assumes.
+            color: '#ffffff',
+            backgroundColor: 'rgba(15, 23, 33, 0.66)',
+            padding: '4px 10px',
+            borderRadius: '6px',
+            textShadow: '0 1px 2px rgba(0, 0, 0, 0.9)',
             fontFamily: 'Outfit, sans-serif',
           }}
         >
@@ -112,6 +128,15 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
             type="button"
             data-testid="hud-toggle-ground-mode"
             onClick={onToggleGroundMode}
+            // D6: distinguish this from the exit controls. This toggle changes the
+            // 3D zoom level (walking village ↔ flying continent) — it does NOT leave
+            // 3D. The tooltip spells that out so it isn't confused with "Open Map"
+            // (returns to the 2D game) or "Exit to Menu" (quits).
+            title={
+              isGroundMode
+                ? 'Zoom out to the continent view — stays in 3D'
+                : 'Zoom in to the village on foot — stays in 3D'
+            }
             style={{
               padding: '6px 12px',
               fontSize: '12px',

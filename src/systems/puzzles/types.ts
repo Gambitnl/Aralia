@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 27/06/2026, 02:11:49
+ * Dependents: components/puzzles/LockpickingModal.tsx, components/puzzles/PuzzleRuntimeModal.tsx, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/puzzles/secretDoorSystem.ts, systems/puzzles/skillChallengeSystem.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -79,6 +95,14 @@ export interface LockpickResult {
   margin: number;
   triggeredTrap: boolean;
   trapEffect?: TrapEffect; // Only present if triggered
+}
+
+// Key unlocks report only the lock/key comparison outcome.
+// Inventory systems decide which key ids are available before calling the puzzle runtime.
+export interface KeyUnlockResult {
+  success: boolean;
+  matchedKeyId?: string;
+  reason: 'already_unlocked' | 'no_key_required' | 'matching_key' | 'missing_key';
 }
 
 export interface BreakResult {

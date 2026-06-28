@@ -31,10 +31,23 @@ import { ActiveRider, CombatState } from '@/types/combat';
 export interface AttackContext {
     attackerId: string;
     targetId: string;
-    attackType: "weapon" | "spell";
-    weaponType?: "melee" | "ranged";
+    attackType: "weapon" | "spell" | "unarmed";
+    weaponType?: "melee" | "ranged" | "unarmed";
     isHit: boolean;
 }
+
+const normalizeRiderWeaponType = (weaponType?: string): AttackContext['weaponType'] | 'any' | undefined => {
+    // Spell JSON and older rider fixtures have used both compact labels
+    // (`ranged`) and explicit legacy labels (`ranged_weapon`). Normalize them
+    // before matching so shared next-attack riders do not silently miss just
+    // because the data came from a different adapter generation.
+    if (weaponType === 'melee_weapon') return 'melee';
+    if (weaponType === 'ranged_weapon') return 'ranged';
+    if (weaponType === 'melee' || weaponType === 'ranged' || weaponType === 'unarmed' || weaponType === 'any') {
+        return weaponType;
+    }
+    return undefined;
+};
 
 export class AttackRiderSystem {
     /**
@@ -62,13 +75,15 @@ export class AttackRiderSystem {
      * Get all riders on the ATTACKER that match the current attack context
      */
     getMatchingRiders(state: CombatState, context: AttackContext): ActiveRider[] {
-        // RALPH: Fast-fail if the attack missed; riders generally trigger on hits.
-        if (!context.isHit) return [];
-
         const attacker = state.characters.find(c => c.id === context.attackerId);
         if (!attacker || !attacker.riders) return [];
 
         return attacker.riders.filter(rider => {
+            // Most riders are hit-only. Lightning Arrow-style riders are the
+            // exception: they are spent by the next matching attack whether it
+            // hits or misses, and may still apply a smaller miss payload.
+            if (!context.isHit && rider.consumption !== 'per_instance_hit_or_miss') return false;
+
             // 1. Caster check is implicit (riders are on the caster)
 
             // 2. Check target matching (if specific target required)
@@ -85,8 +100,9 @@ export class AttackRiderSystem {
             // Weapon Type Filter
             // RALPH: Validates weapon requirements (e.g., Melee-only riders).
             if (filter.weaponType && filter.weaponType !== 'any') {
+                const expectedWeaponType = normalizeRiderWeaponType(filter.weaponType);
                 if (!context.weaponType) return false; // Non-weapon attacks fail weapon filter
-                if (filter.weaponType !== context.weaponType) return false;
+                if (!expectedWeaponType || expectedWeaponType !== context.weaponType) return false;
             }
 
             // Attack Type Filter
@@ -111,8 +127,9 @@ export class AttackRiderSystem {
         if (!caster || !caster.riders) return state;
 
         // IDs of riders to remove after they are spent.
-        // `per_instance_hit_or_miss` is removed on hit here; attack misses need
-        // a miss-resolution caller to remove the same rider before damage runs.
+        // `per_instance_hit_or_miss` covers spells such as Lightning Arrow:
+        // the rider is removed after the matching hit or miss resolves so the
+        // next attack does not receive the same spell payload again.
         const toRemoveIds = new Set(
             activeRiders
                 .filter(r => r.consumption === 'first_hit' || r.consumption === 'per_instance_hit_or_miss')

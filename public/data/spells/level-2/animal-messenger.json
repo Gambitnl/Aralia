@@ -1,205 +1,255 @@
 {
-  "id": "animal-messenger",
-  "name": "Animal Messenger",
-  "aliases": [],
-  "level": 2,
-  "school": "Enchantment",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Druid",
-    "Ranger"
-  ],
-  "subClasses": [],
-  "ritual": true,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a morsel of food",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 24,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "single",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "filter": {
-      "creatureTypes": [
-        "Beast"
-      ],
-      "sizes": [
-        "Tiny"
-      ],
-      "excludeCreatureTypes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "maxTargets": 1
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Charisma",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [
-            "Beast"
-          ],
-          "excludeCreatureTypes": [],
-          "sizes": [
-            "Tiny"
-          ],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": [
-          {
-            "outcome": "auto_success",
-            "condition": "challenge_rating_not_zero",
-            "reason": "auto_success when challenge rating not zero."
-          }
-        ]
-      },
-      "utilityType": "communication",
-      "description": "Choose a visible Tiny Beast within 30 feet to carry a message of up to 25 words to a described recipient at a visited location. The Beast makes a Charisma save to resist, with non-CR-0 Beasts automatically succeeding; on failure it travels about 25 miles per 24 hours, or 50 miles if it can fly, and the message is lost if it does not arrive before the spell ends. Higher slots extend the duration by 48 hours per slot level above 2nd.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+48 hours duration",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "A Tiny Beast of your choice that you can see within range must succeed on a Charisma saving throw, or it attempts to deliver a message for you (if the target's Challenge Rating isn't 0, it automatically succeeds). You specify a location you have visited and a recipient who matches a general description, such as \"a person dressed in the uniform of the town guard\" or \"a red-haired dwarf wearing a pointed hat.\" You also communicate a message of up to twenty-five words. The Beast travels for the duration toward the specified location, covering about 25 miles per 24 hours or 50 miles if the Beast can fly. When the Beast arrives, it delivers your message to the creature that you described, mimicking your communication. If the Beast doesn't reach its destination before the spell ends, the message is lost, and the Beast returns to where you cast the spell.",
-  "higherLevels": "Using a Higher-Level Spell Slot. The spell's duration increases by 48 hours for each spell slot level above 2.",
-  "tags": [
-    "utility",
-    "communication",
-    "ritual"
-  ]
+    "id":  "animal-messenger",
+    "name":  "Animal Messenger",
+    "aliases":  [
+
+                ],
+    "level":  2,
+    "school":  "Enchantment",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Druid",
+                    "Ranger"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  true,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a morsel of food",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  24,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "filter":  {
+                                     "creatureTypes":  [
+                                                           "Beast"
+                                                       ],
+                                     "sizes":  [
+                                                   "Tiny"
+                                               ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "maxTargets":  1
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Charisma",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+                                                                                     "Beast"
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+                                                                             "Tiny"
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+                                                                       {
+                                                                           "outcome":  "auto_success",
+                                                                           "condition":  "challenge_rating_not_zero",
+                                                                           "reason":  "auto_success when challenge rating not zero."
+                                                                       }
+                                                                   ]
+                                      },
+                        "utilityType":  "communication",
+                        "description":  "Choose a visible Tiny Beast within 30 feet to carry a message of up to 25 words to a described recipient at a visited location. The Beast makes a Charisma save to resist, with non-CR-0 Beasts automatically succeeding; on failure it travels about 25 miles per 24 hours, or 50 miles if it can fly, and the message is lost if it does not arrive before the spell ends. Higher slots extend the duration by 48 hours per slot level above 2nd.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+48 hours duration",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "endCleanup":  {
+                                           "trigger":  "duration_expires_before_delivery",
+                                           "result":  "message is lost and beast returns to where the spell was cast",
+                                           "note":  "not an early ending, but explicit duration-expiry cleanup for routing systems"
+                                       },
+                        "communicationDetails":  {
+                                                     "mode":  "beast_courier_message",
+                                                     "messageWordLimit":  25,
+                                                     "recipientDescription":  "recipient matching caster general description at a visited location",
+                                                     "delivery":  "Tiny Beast mimics caster communication when it arrives",
+                                                     "travelRate":  "about 25 miles per 24 hours or 50 miles if flying",
+                                                     "failure":  "if destination is not reached before spell ends, message is lost and Beast returns to casting location"
+                                                 },
+                        "travelDetails":  {
+                                              "destination":  "visited location specified by caster",
+                                              "travelRateMilesPer24Hours":  25,
+                                              "flyingTravelRateMilesPer24Hours":  50,
+                                              "durationBound":  true,
+                                              "failure":  "if destination is not reached before spell ends, message is lost and Beast returns to casting location"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose a visible Tiny Beast within range, a visited destination, a recipient described generally enough for the Beast to identify, and a message of up to 25 words. Confirm whether the Beast can fly for travel speed and whether its Challenge Rating is 0 or it automatically succeeds on the saving throw.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "A Tiny Beast of your choice that you can see within range must succeed on a Charisma saving throw, or it attempts to deliver a message for you (if the target\u0027s Challenge Rating isn\u0027t 0, it automatically succeeds). You specify a location you have visited and a recipient who matches a general description, such as \"a person dressed in the uniform of the town guard\" or \"a red-haired dwarf wearing a pointed hat.\" You also communicate a message of up to twenty-five words. The Beast travels for the duration toward the specified location, covering about 25 miles per 24 hours or 50 miles if the Beast can fly. When the Beast arrives, it delivers your message to the creature that you described, mimicking your communication. If the Beast doesn\u0027t reach its destination before the spell ends, the message is lost, and the Beast returns to where you cast the spell.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. The spell\u0027s duration increases by 48 hours for each spell slot level above 2.",
+    "tags":  [
+                 "utility",
+                 "communication",
+                 "ritual"
+             ]
 }

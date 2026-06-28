@@ -1,194 +1,273 @@
 {
-  "id": "raise-dead",
-  "name": "Raise Dead",
-  "aliases": [],
-  "level": 5,
-  "school": "Necromancy",
-  "legacy": true,
-  "classes": [
-    "Bard",
-    "Cleric",
-    "Paladin"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "hour",
-    "explorationCost": {
-      "value": 1,
-      "unit": "hour"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a diamond worth at least 500 GP",
-    "materialCost": 500,
-    "isConsumed": true
-  },
-  "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 0,
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": false,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Returns a willing dead creature to life with 1 hit point if it died within 10 days, while neutralizing poisons and curing nonmagical diseases present at death; missing vital body parts still block restoration.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "tags": [
-        "resurrection",
-        "revive",
-        "poison-neutralization",
-        "disease-cure"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You return a dead creature you touch to life, provided that it has been dead no longer than 10 days. If the creature's soul is both willing and at liberty to rejoin the body, the creature returns to life with 1 hit point. This spell also neutralizes any poisons and cures nonmagical diseases that affected the creature at the time it died. This spell doesn't, however, remove magical diseases, curses, or similar effects; if these aren't first removed prior to casting the spell, they take effect when the creature returns to life. The spell can't return an undead creature to life. This spell closes all mortal wounds, but it doesn't restore missing body parts. If the creature is lacking body parts or organs integral for its survival--its head, for instance--the spell automatically fails. Coming back from the dead is an ordeal. The target takes a -4 penalty to all attack rolls, saving throws, and ability checks. Every time the target finishes a long rest, the penalty is reduced by 1 until it disappears.",
-  "higherLevels": "",
-  "tags": [
-    "legacy",
-    "necromancy",
-    "resurrection",
-    "revive"
-  ]
+    "id":  "raise-dead",
+    "name":  "Raise Dead",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Necromancy",
+    "legacy":  true,
+    "classes":  [
+                    "Bard",
+                    "Cleric",
+                    "Paladin"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "hour",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "hour"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a diamond worth at least 500 GP",
+                       "materialCost":  500,
+                       "isConsumed":  true
+                   },
+    "duration":  {
+                     "type":  "instantaneous",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  0,
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  false,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Returns a willing dead creature to life with 1 hit point if it died within 10 days, while neutralizing poisons and curing nonmagical diseases present at death; missing vital body parts still block restoration. The revived creature carries a resurrection ordeal penalty that starts at -4 to attack rolls, saving throws, and ability checks and drops by 1 after each long rest.",
+                        "resurrectionPenalty":  {
+                                                    "initialPenalty":  -4,
+                                                    "appliesTo":  [
+                                                                      "attack_rolls",
+                                                                      "saving_throws",
+                                                                      "ability_checks"
+                                                                  ],
+                                                    "recovery":  {
+                                                                     "trigger":  "finish_long_rest",
+                                                                     "change":  1,
+                                                                     "endsAt":  0
+                                                                 }
+                                                },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "tags":  [
+                                     "resurrection",
+                                     "revive",
+                                     "poison-neutralization",
+                                     "disease-cure"
+                                 ],
+                        "revivalEligibility":  {
+                                                   "targetState":  "willing_dead_creature",
+                                                   "deathWithinDays":  10,
+                                                   "requiresIntegralBodyParts":  true,
+                                                   "failsIfMissingSurvivalOrgans":  true,
+                                                   "restoresHitPoints":  1,
+                                                   "notes":  "Raise Dead fails if the corpse lacks body parts or organs integral for survival, even when the death timing and willingness requirements are met."
+                                               },
+                        "revivalState":  {
+                                             "kind":  "return_willing_dead_creature_to_life",
+                                             "deathWindow":  "10_days",
+                                             "restoredHitPoints":  1,
+                                             "exclusions":  [
+                                                                "old_age",
+                                                                "missing_vital_body_parts"
+                                                            ]
+                                         },
+                        "conditionRemovalState":  {
+                                                      "neutralizesPoisonsPresentAtDeath":  true,
+                                                      "curesNonmagicalDiseasesPresentAtDeath":  true,
+                                                      "doesNotRemove":  [
+                                                                            "magical_diseases",
+                                                                            "curses",
+                                                                            "missing_vital_body_parts"
+                                                                        ]
+                                                  }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Confirm the target died within 10 days, has a willing and free soul, is not undead, and has required body parts. If revived, apply a -4 resurrection ordeal penalty to attack rolls, saving throws, and ability checks, then reduce it by 1 after each long rest until it reaches 0.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You return a dead creature you touch to life, provided that it has been dead no longer than 10 days. If the creature\u0027s soul is both willing and at liberty to rejoin the body, the creature returns to life with 1 hit point. This spell also neutralizes any poisons and cures nonmagical diseases that affected the creature at the time it died. This spell doesn\u0027t, however, remove magical diseases, curses, or similar effects; if these aren\u0027t first removed prior to casting the spell, they take effect when the creature returns to life. The spell can\u0027t return an undead creature to life. This spell closes all mortal wounds, but it doesn\u0027t restore missing body parts. If the creature is lacking body parts or organs integral for its survival--its head, for instance--the spell automatically fails. Coming back from the dead is an ordeal. The target takes a -4 penalty to all attack rolls, saving throws, and ability checks. Every time the target finishes a long rest, the penalty is reduced by 1 until it disappears.",
+    "higherLevels":  "",
+    "tags":  [
+                 "legacy",
+                 "necromancy",
+                 "resurrection",
+                 "revive"
+             ]
 }

@@ -74,17 +74,26 @@ Race: ${character.race}
 Class: ${character.characterClass}
 Background: ${character.background}
 
-## PLACE
+## PLACE (FIXED — the player is HERE, do not relocate them)
 Location: ${location.name}${location.biome ? `\nBiome: ${location.biome}` : ''}${
         location.timeOfDay ? `\nTime of day: ${location.timeOfDay}` : ''
     }${location.weather ? `\nWeather: ${location.weather}` : ''}
 
+The player is standing in the named Location above. It is their actual starting
+place on the world map — set the scene THERE and nowhere else. Your "setting.place"
+MUST be this Location (you may add specific detail WITHIN it — a plaza, a gate, a
+market row — but never move the scene to a different kind of place). Do NOT invent
+an unrelated wilderness, forest, dungeon, road, or town. If the Location names a
+settlement, the scene is inside that settlement, among its streets and people${
+        location.biome ? `; the Biome describes the surrounding country, not a place to relocate the scene into` : ''
+    }.
+
 ## TASK
 Invent a fresh, specific predicament that is ALREADY HAPPENING as the player arrives —
-something that demands a response in the next breath. Place 1 to 3 strangers (not the
-player's allies) in the scene. One of them speaks first, directly drawing the player in.
-Make it grounded in who this character is (their class, race, and background should matter)
-and where they are. Be concrete, not generic.${
+something that demands a response in the next breath, set in the fixed Location above.
+Place 1 to 3 strangers (not the player's allies) in the scene. One of them speaks first,
+directly drawing the player in. Make it grounded in who this character is (their class,
+race, and background should matter) and exactly where they are. Be concrete, not generic.${
         location.timeOfDay || location.weather
             ? `\n\nThe time of day and weather above are FIXED by the world clock. Your ` +
               `"setting.timeOfDay" and "setting.weather" MUST match them — do not invent a ` +
@@ -103,6 +112,78 @@ Output ONLY this JSON shape, nothing else:
   "openingLine": { "speakerName": "name of the npc who speaks", "text": "what they say" },
   "suggestedReplies": ["2 to 4 short things the player could say"]
 }`;
+}
+
+/**
+ * Join a sequence of narration fragments into one clean sentence-run.
+ *
+ * The opening narration is glued from independently-authored pieces (place,
+ * time of day, weather, predicament). Naively templating them (`a, b. c`)
+ * produced artifacts when a fragment was itself a full, capitalised sentence:
+ * e.g. `Sih — Day, The air is biting cold. The sun is high.. Testius...`
+ * (a comma before a capitalised "The", and a doubled period when the weather
+ * already ended in one). This normalises every join:
+ *
+ *  - trims each fragment and drops empties;
+ *  - strips any trailing `,`/`;`/`.`/`!`/`?` the previous fragment carried;
+ *  - re-terminates it with the punctuation the boundary needs — a sentence
+ *    stop (`.`) when the next fragment starts a new (capitalised) sentence,
+ *    otherwise a comma — so we never emit `,The`, `..`, or `. .`.
+ *
+ * Exported for unit testing and reuse by the conversation-seed assembly.
+ */
+export function joinNarrationFragments(fragments: Array<string | undefined>): string {
+    const parts = fragments
+        .map((f) => (typeof f === 'string' ? f.trim() : ''))
+        .filter((f) => f.length > 0);
+    if (parts.length === 0) return '';
+
+    let out = '';
+    for (let i = 0; i < parts.length; i += 1) {
+        const isLast = i === parts.length - 1;
+        // Strip whatever terminal punctuation/whitespace this fragment carried so
+        // we control the join boundary ourselves (no doubled or mismatched marks).
+        // The LAST fragment keeps its own trailing sentence punctuation — a
+        // predicament may legitimately end in `!`, `?`, or `...` and we preserve it.
+        const core = isLast
+            ? parts[i].replace(/[\s,;]+$/u, '')
+            : parts[i].replace(/[\s,;.!?]+$/u, '');
+        if (!core) continue;
+
+        if (out === '') {
+            out = core;
+            continue;
+        }
+
+        // A fragment that opens with a capital (or opening quote/paren followed by
+        // one) reads as a NEW sentence, so the previous clause must be closed with
+        // a sentence stop rather than a comma.
+        const startsNewSentence = /^["'“‘([]?[A-Z]/u.test(parts[i]);
+        out += startsNewSentence ? `. ${core}` : `, ${core}`;
+    }
+
+    // Ensure the whole run ends in sentence punctuation (add a period only if the
+    // last fragment did not already provide `.`/`!`/`?`).
+    return /[.!?]$/u.test(out) ? out : `${out}.`;
+}
+
+/**
+ * Compose the seeded opening-narration line from a generated situation's setting
+ * and predicament, free of the glue artifacts described on
+ * {@link joinNarrationFragments}. The setting reads as `Place — Time` (an em-dash
+ * locative header), then the weather and predicament follow as clean sentences.
+ */
+export function composeOpeningNarration(
+    setting: { place?: string; timeOfDay?: string; weather?: string },
+    predicament: string,
+): string {
+    const place = setting.place?.trim();
+    const timeOfDay = setting.timeOfDay?.trim();
+    // "Place — Time" keeps the locative header readable; the em-dash join is part
+    // of the header, not a sentence boundary, so build it before normalisation.
+    const header =
+        place && timeOfDay ? `${place} — ${timeOfDay}` : place || timeOfDay || '';
+    return joinNarrationFragments([header, setting.weather, predicament]);
 }
 
 interface RawSituation {
@@ -146,7 +227,7 @@ export async function generateOpeningSituation(
     }
 
     const raw = parseJsonRobustly<RawSituation>(result.data.response);
-    const situation = raw ? mapRawSituation(raw, idFactory) : null;
+    const situation = raw ? mapRawSituation(raw, idFactory, location) : null;
     if (!situation) {
         throw new OpeningSituationParseError(
             'Model output could not be parsed into an opening situation.',
@@ -161,7 +242,11 @@ export async function generateOpeningSituation(
  * runtime NPC ids and resolving the speaker. Returns null if the output lacks
  * the minimum required structure (predicament + at least one named NPC + line).
  */
-function mapRawSituation(raw: RawSituation, idFactory: () => string): OpeningSituation | null {
+function mapRawSituation(
+    raw: RawSituation,
+    idFactory: () => string,
+    location?: OpeningSituationLocation,
+): OpeningSituation | null {
     const predicament = typeof raw.predicament === 'string' ? raw.predicament.trim() : '';
     const rawNpcs = Array.isArray(raw.npcs) ? raw.npcs : [];
 
@@ -199,7 +284,12 @@ function mapRawSituation(raw: RawSituation, idFactory: () => string): OpeningSit
 
     return {
         setting: {
-            place: raw.setting?.place?.trim() || 'an unnamed place',
+            // Anchor the displayed place to the AUTHORITATIVE start location so the
+            // narration can never contradict the settlement the player chose at
+            // Start Point Selection (G5: model once placed a 51k-pop capital "in the
+            // heart of an ancient forest"). The model's free-text place is only a
+            // fallback for dev/skip flows that pass no location.
+            place: location?.name?.trim() || raw.setting?.place?.trim() || 'an unnamed place',
             timeOfDay: raw.setting?.timeOfDay?.trim() || 'an uncertain hour',
             weather: raw.setting?.weather?.trim() || 'still air',
         },

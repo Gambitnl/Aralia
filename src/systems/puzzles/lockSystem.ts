@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/06/2026, 02:18:22
+ * Dependents: components/puzzles/LockpickingModal.tsx, systems/puzzles/pressurePlateSystem.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -10,17 +26,10 @@ import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
 import { rollDice } from '../../utils/combatUtils';
 import { getAbilityModifierValue } from '../../utils/statUtils';
-import { Lock, Trap, LockpickResult, BreakResult, TrapDetectionResult, TrapDisarmResult } from './types';
+import { getPuzzleCharacterStats } from './characterAbilityBridge';
+import { Lock, Trap, LockpickResult, KeyUnlockResult, BreakResult, TrapDetectionResult, TrapDisarmResult } from './types';
 
 const getClasses = (character: PlayerCharacter) => character.classes ?? (character.class ? [character.class] : []);
-const getLegacyStats = (character: PlayerCharacter) => ({
-  strength: character.stats?.strength ?? character.finalAbilityScores?.Strength ?? character.abilityScores.Strength,
-  dexterity: character.stats?.dexterity ?? character.finalAbilityScores?.Dexterity ?? character.abilityScores.Dexterity,
-  constitution: character.stats?.constitution ?? character.finalAbilityScores?.Constitution ?? character.abilityScores.Constitution,
-  intelligence: character.stats?.intelligence ?? character.finalAbilityScores?.Intelligence ?? character.abilityScores.Intelligence,
-  wisdom: character.stats?.wisdom ?? character.finalAbilityScores?.Wisdom ?? character.abilityScores.Wisdom,
-  charisma: character.stats?.charisma ?? character.finalAbilityScores?.Charisma ?? character.abilityScores.Charisma,
-});
 
 /**
  * Checks if a character has proficiency with a specific tool.
@@ -58,8 +67,9 @@ export function attemptLockpick(
     return { success: false, margin: -10, triggeredTrap: false };
   }
 
-  // Keep legacy-style lockpicking checks aligned with other puzzle systems in this package.
-  const stats = getLegacyStats(character);
+  // Resolve ability data through the shared bridge so modern character sheets
+  // drive lockpicking while older puzzle fixtures still work.
+  const stats = getPuzzleCharacterStats(character);
   const dexMod = getAbilityModifierValue(stats.dexterity);
   const isProficient = hasToolProficiency(character, 'thieves-tools');
   const bonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
@@ -82,6 +92,35 @@ export function attemptLockpick(
 }
 
 /**
+ * Attempts to open a lock with keys the caller already knows are available.
+ *
+ * Inventory, economy, and item registry ownership stays outside this puzzle
+ * runtime. Callers pass only key ids, and this function owns the deterministic
+ * lock/key comparison against `Lock.keyId`.
+ */
+export function attemptKeyUnlock(
+  lock: Lock,
+  availableKeyIds: Iterable<string>
+): KeyUnlockResult {
+  if (!lock.isLocked) {
+    return { success: true, reason: 'already_unlocked' };
+  }
+
+  if (!lock.keyId) {
+    return { success: false, reason: 'no_key_required' };
+  }
+
+  // Accept any iterable so UI, inventory, or future world systems can pass an array or Set
+  // without forcing the puzzle package to depend on their storage model.
+  const availableKeys = new Set(availableKeyIds);
+  if (!availableKeys.has(lock.keyId)) {
+    return { success: false, reason: 'missing_key' };
+  }
+
+  return { success: true, matchedKeyId: lock.keyId, reason: 'matching_key' };
+}
+
+/**
  * Attempts to break a lock or door using Strength.
  */
 export function attemptBreak(
@@ -100,7 +139,7 @@ export function attemptBreak(
   // If breakDC is defined, it's a single check
   if (lock.breakDC) {
     // Keep break checks on raw strength modifier only; no skill bonus unless called elsewhere.
-    const stats = getLegacyStats(character);
+    const stats = getPuzzleCharacterStats(character);
     const strMod = getAbilityModifierValue(stats.strength);
     const total = rollDice('1d20') + strMod;
     const success = total >= lock.breakDC;
@@ -126,7 +165,7 @@ export function detectTrap(
   }
 
   // Use the higher of Perception (Wisdom) or Investigation (Intelligence) logic.
-  const stats = getLegacyStats(character);
+  const stats = getPuzzleCharacterStats(character);
   const wisMod = getAbilityModifierValue(stats.wisdom);
   const intMod = getAbilityModifierValue(stats.intelligence);
   const perceptionRoll = rollDice('1d20');
@@ -161,8 +200,9 @@ export function disarmTrap(
      return { success: false, margin: -10, triggeredTrap: false };
    }
 
-  // Keep the legacy lock roll shape here so older puzzle DCs stay calibrated while the shared check system evolves.
-  const stats = getLegacyStats(character);
+  // Resolve ability data through the shared bridge, but keep the existing
+  // thieves'-tools roll formula so older trap DCs stay calibrated.
+  const stats = getPuzzleCharacterStats(character);
   const dexMod = getAbilityModifierValue(stats.dexterity);
   const isProficient = hasToolProficiency(character, 'thieves-tools');
   const bonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;

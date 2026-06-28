@@ -45,11 +45,12 @@ export interface AttackEvent extends CombatEvent {
     /**
      * Attack family facts preserved for reactive spell filters.
      * Armor of Agathys-style effects need to know whether a resolved hit was a
-     * weapon or spell attack and whether it was melee or ranged without parsing
-     * combat-log text or re-reading the original ability object.
+     * weapon, spell, or Unarmed Strike attack and whether it was melee, ranged,
+     * or unarmed without parsing combat-log text or re-reading the original
+     * ability object.
      */
-    attackType?: 'weapon' | 'spell' | 'any';
-    weaponType?: 'melee' | 'ranged' | 'any';
+    attackType?: 'weapon' | 'spell' | 'unarmed' | 'any';
+    weaponType?: 'melee' | 'ranged' | 'unarmed' | 'any';
 }
 
 export interface CombatAttackResult {

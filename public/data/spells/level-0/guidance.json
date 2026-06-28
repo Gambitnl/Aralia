@@ -186,8 +186,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Ask the caster to choose the willing touched creature and the skill that receives the 1d4 Guidance bonus for ability checks while the spell lasts.",
+    "playerInputRequired": true
   },
   "description": "You touch a willing creature and choose a skill. Until the spell ends, the creature adds 1d4 to any ability check using the chosen skill.",
   "higherLevels": "",

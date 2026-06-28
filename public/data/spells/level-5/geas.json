@@ -1,216 +1,353 @@
 {
-  "id": "geas",
-  "name": "Geas",
-  "aliases": [],
-  "level": 5,
-  "school": "Enchantment",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Cleric",
-    "Druid",
-    "Paladin",
-    "Wizard"
-  ],
-  "subClasses": [
-    "Warlock - Fiend Patron"
-  ],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": false,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 30,
-    "unit": "day",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "single",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "required",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Give one visible creature within 60 feet that can understand you a verbal command to perform a service or avoid an activity for 30 days. On a failed Wisdom save, the target is Charmed, takes 5d10 Psychic damage no more than once each day when it acts directly against the command, ends the spell if given a suicidal command, can be freed by Remove Curse, Greater Restoration, or Wish, and higher slots extend the duration to 365 days at slots 7-8 or until ended at slot 9.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate"
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Wisdom",
-        "saveEffect": "negates_condition",
-        "saveOutcomeOverrides": [
-          {
-            "outcome": "auto_success",
-            "condition": "cannot_understand_caster",
-            "reason": "auto_success when cannot understand caster."
-          }
-        ]
-      },
-      "statusCondition": {
-        "name": "Charmed",
-        "duration": {
-          "type": "minutes",
-          "value": 43200
-        }
-      },
-      "description": "On a failed Wisdom save, the target is Charmed for the 30-day base Geas duration, while a target that cannot understand the command automatically succeeds; higher slots extend the Charmed duration to 365 days at slots 7-8 or until ended at slot 9.",
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You give a verbal command to a creature that you can see within range, ordering it to carry out some service or refrain from an action or a course of activity as you decide. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target automatically succeeds if it can't understand your command. While Charmed, the creature takes 5d10 Psychic damage if it acts in a manner directly counter to your command. It takes this damage no more than once each day. You can issue any command you choose, short of an activity that would result in certain death. Should you issue a suicidal command, the spell ends. A Remove Curse , Greater Restoration , or Wish spell ends this spell.",
-  "higherLevels": "Using a Higher-Level Spell Slot. If you use a level 7 or 8 spell slot, the duration is 365 days. If you use a level 9 spell slot, the spell lasts until it is ended by one of the spells mentioned above.",
-  "tags": []
+    "id":  "geas",
+    "name":  "Geas",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Enchantment",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Cleric",
+                    "Druid",
+                    "Paladin",
+                    "Wizard"
+                ],
+    "subClasses":  [
+                       "Warlock - Fiend Patron"
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  false,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  30,
+                     "unit":  "day",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "required",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Give one visible creature within 60 feet that can understand you a verbal command to perform a service or avoid an activity for 30 days. On a failed Wisdom save, the target is Charmed, takes 5d10 Psychic damage no more than once each day when it acts directly against the command, ends the spell if given a suicidal command, can be freed by Remove Curse, Greater Restoration, or Wish, and higher slots extend the duration to 365 days at slots 7-8 or until ended at slot 9.",
+                        "geasCommandState":  {
+                                                 "commandRequired":  true,
+                                                 "requiresTargetUnderstanding":  true,
+                                                 "counterCommandDamage":  {
+                                                                              "dice":  "5d10",
+                                                                              "type":  "Psychic",
+                                                                              "frequency":  "once_per_day",
+                                                                              "trigger":  "target_acts_directly_counter_to_command"
+                                                                          },
+                                                 "suicidalCommand":  "spell_ends",
+                                                 "endingSpells":  [
+                                                                      "Remove Curse",
+                                                                      "Greater Restoration",
+                                                                      "Wish"
+                                                                  ]
+                                             },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "caster_issues_suicidal_command",
+                                                       "scope":  "spell",
+                                                       "description":  "If the caster issues a command that would result in certain death, the spell ends."
+                                                   },
+                                                   {
+                                                       "trigger":  "remove_curse_greater_restoration_or_wish",
+                                                       "scope":  "spell",
+                                                       "description":  "Remove Curse, Greater Restoration, or Wish ends this spell."
+                                                   }
+                                               ],
+                        "socialEffect":  {
+                                             "status":  "Charmed on failed Wisdom save",
+                                             "commandRequirement":  "verbal command or prohibition that target can understand",
+                                             "automaticSuccess":  "target automatically succeeds if it cannot understand command",
+                                             "obediencePressure":  "5d10 Psychic damage no more than once per day for acting directly counter to command",
+                                             "suicidalCommand":  "spell ends if command would result in certain death",
+                                             "endingSpells":  [
+                                                                  "Remove Curse",
+                                                                  "Greater Restoration",
+                                                                  "Wish"
+                                                              ],
+                                             "baseDuration":  "30 days",
+                                             "higherSlotDuration":  "365 days at slots 7-8, until ended at slot 9"
+                                         },
+                        "communicationDetails":  {
+                                                     "mode":  "understood_verbal_command",
+                                                     "targetMustUnderstand":  true,
+                                                     "autoSuccessIfCannotUnderstand":  true,
+                                                     "commandScope":  "service or course of activity for duration",
+                                                     "suicidalCommandEnds":  "issuing a certain-death command ends the spell",
+                                                     "notes":  "The spell is delivered through a command the target can understand."
+                                                 },
+                        "summonControl":  {
+                                              "entityType":  "compelled_command_target",
+                                              "summonsNewEntity":  false,
+                                              "controlType":  "long-duration verbal obligation",
+                                              "targetMustUnderstand":  true,
+                                              "commandScope":  "service or refrain from action",
+                                              "punishment":  "5d10 Psychic damage no more than once per day when acting directly counter to command",
+                                              "ending":  "suicidal command ends spell; Remove Curse, Greater Restoration, or Wish ends spell"
+                                          },
+                        "restorationDetails":  {
+                                                   "spellEndingRemedies":  [
+                                                                               "remove_curse",
+                                                                               "greater_restoration",
+                                                                               "wish"
+                                                                           ],
+                                                   "appliesTo":  "geas_spell_effect_on_target"
+                                               }
+                    },
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate"
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "negates_condition",
+                                          "saveOutcomeOverrides":  [
+                                                                       {
+                                                                           "outcome":  "auto_success",
+                                                                           "condition":  "cannot_understand_caster",
+                                                                           "reason":  "auto_success when cannot understand caster."
+                                                                       }
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Charmed",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  43200
+                                                             }
+                                            },
+                        "description":  "On a failed Wisdom save, the target is Charmed for the 30-day base Geas duration, while a target that cannot understand the command automatically succeeds; higher slots extend the Charmed duration to 365 days at slots 7-8 or until ended at slot 9.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "caster_issues_suicidal_command",
+                                                       "scope":  "spell",
+                                                       "description":  "If the caster issues a command that would result in certain death, the spell ends."
+                                                   },
+                                                   {
+                                                       "trigger":  "remove_curse_greater_restoration_or_wish",
+                                                       "scope":  "spell",
+                                                       "description":  "Remove Curse, Greater Restoration, or Wish ends this spell."
+                                                   }
+                                               ],
+                        "communicationDetails":  {
+                                                     "mode":  "understood_verbal_command_status_gate",
+                                                     "targetMustUnderstand":  true,
+                                                     "autoSuccessIfCannotUnderstand":  true
+                                                 },
+                        "summonControl":  {
+                                              "entityType":  "compelled_command_target",
+                                              "summonsNewEntity":  false,
+                                              "controlType":  "long-duration verbal obligation",
+                                              "targetMustUnderstand":  true,
+                                              "commandScope":  "service or refrain from action",
+                                              "punishment":  "5d10 Psychic damage no more than once per day when acting directly counter to command",
+                                              "ending":  "suicidal command ends spell; Remove Curse, Greater Restoration, or Wish ends spell"
+                                          },
+                        "restorationDetails":  {
+                                                   "spellEndingRemedies":  [
+                                                                               "remove_curse",
+                                                                               "greater_restoration",
+                                                                               "wish"
+                                                                           ],
+                                                   "appliesTo":  "geas_spell_effect_on_target"
+                                               }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the verbal command or prohibition given to the target. The command must not require activity that would result in certain death; if it is suicidal, the spell ends.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You give a verbal command to a creature that you can see within range, ordering it to carry out some service or refrain from an action or a course of activity as you decide. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target automatically succeeds if it can\u0027t understand your command. While Charmed, the creature takes 5d10 Psychic damage if it acts in a manner directly counter to your command. It takes this damage no more than once each day. You can issue any command you choose, short of an activity that would result in certain death. Should you issue a suicidal command, the spell ends. A Remove Curse , Greater Restoration , or Wish spell ends this spell.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. If you use a level 7 or 8 spell slot, the duration is 365 days. If you use a level 9 spell slot, the spell lasts until it is ended by one of the spells mentioned above.",
+    "tags":  [
+
+             ]
 }

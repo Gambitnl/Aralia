@@ -20,9 +20,10 @@
  * Decoupled from the main AbilitySystem to provide stable references and reduce re-renders.
  */
 import { useCallback } from 'react';
-import { CombatCharacter, Ability, Position, BattleMapData, CombatState } from '../../types/combat';
+import { CombatCharacter, Ability, Position, BattleMapData, CombatState, AbilityCost } from '../../types/combat';
 import type { SpellTargeting } from '../../types/spells';
 import { getDistance, getCharacterDistance, getOccupiedTiles } from '../../utils/combatUtils';
+import { canAffordActionCost } from '../../utils/combat/actionEconomyUtils';
 import { hasLineOfSight } from '../../utils/lineOfSight';
 import { CreatureTaxonomy } from '../../systems/creatures/CreatureTaxonomy';
 import { TargetResolver } from '../../systems/spells/targeting/TargetResolver';
@@ -31,6 +32,9 @@ interface UseTargetValidatorProps {
     characters: CombatCharacter[];
     mapData: BattleMapData | null;
 }
+
+type TouchDeliveryCost =
+    NonNullable<NonNullable<CombatCharacter['summonMetadata']>['actionPermissions']>['touchDeliveryCost'];
 
 // The UI still needs a simple yes/no answer for target highlights, but manual
 // combat also needs this richer result so invalid clicks can explain themselves.
@@ -69,37 +73,71 @@ const isTouchSpell = (ability: Ability): boolean => {
         ability.spell?.range?.type?.toLowerCase?.() === 'touch';
 };
 
-const isFamiliarForCaster = (character: CombatCharacter, caster: CombatCharacter): boolean => {
+const isTouchDeliveryActorForCaster = (character: CombatCharacter, caster: CombatCharacter): boolean => {
+    const permissions = character.summonMetadata?.actionPermissions;
+
+    // Touch delivery is now a shared controlled-entity permission, not a
+    // fallback based on a familiar-looking actor name. Requiring the explicit
+    // permission keeps summoned actors from inheriting touch delivery unless
+    // their spell data opted into that action surface.
+    if (permissions?.canDeliverTouchSpells !== true) {
+        return false;
+    }
+
+    // Once a summon is owned by the caster and has opted into touch delivery,
+    // its display identity is no longer the authority. Find Familiar is the
+    // current live spell that uses this, but future controlled actors can share
+    // the same bridge by declaring permission and cost metadata.
     return !!character.isSummon &&
-        character.summonMetadata?.casterId === caster.id &&
-        (
-            character.summonMetadata.entityType === 'familiar' ||
-            character.summonMetadata.sourceName === 'Find Familiar'
-        );
+        character.summonMetadata?.casterId === caster.id;
 };
 
-export const findFamiliarTouchDelivery = (
+export const getTouchDeliveryActionCost = (
+    touchDeliveryCost: TouchDeliveryCost = 'reaction'
+): AbilityCost | null => {
+    // Summon metadata stores player-facing cost labels, while the shared combat
+    // economy uses the internal button-cost terms. Keep the translation in one
+    // place so target validation and execution spend the same resource.
+    switch (touchDeliveryCost) {
+        case 'action':
+            return { type: 'action' };
+        case 'bonus_action':
+            return { type: 'bonus' };
+        case 'reaction':
+            return { type: 'reaction' };
+        case 'free':
+            return { type: 'free' };
+        case 'none':
+            return null;
+        default:
+            return { type: 'reaction' };
+    }
+};
+
+export const findTouchDeliveryActor = (
     ability: Ability,
     caster: CombatCharacter,
     targetCharacter: CombatCharacter | null,
     characters: CombatCharacter[]
-): { familiar: CombatCharacter; casterDistance: number; targetDistance: number } | null => {
+): { deliveryActor: CombatCharacter; casterDistance: number; targetDistance: number } | null => {
     if (!targetCharacter || !isTouchSpell(ability)) {
         return null;
     }
 
     const familiar = characters.find(candidate => {
-        if (!isFamiliarForCaster(candidate, caster)) {
+        if (!isTouchDeliveryActorForCaster(candidate, caster)) {
             return false;
         }
 
         const casterDistanceFeet = getCharacterDistance(caster, candidate) * 5;
-        const deliveryRangeFeet = candidate.summonMetadata?.telepathyRange ?? 100;
+        const deliveryRangeFeet = candidate.summonMetadata?.actionPermissions?.touchDeliveryRangeFeet ?? 100;
         const targetDistanceTiles = getCharacterDistance(candidate, targetCharacter);
-        const reactionAvailable = !candidate.actionEconomy.reaction.used &&
-            candidate.actionEconomy.reaction.remaining > 0;
+        const touchDeliveryCost = candidate.summonMetadata?.actionPermissions?.touchDeliveryCost ?? 'reaction';
+        const deliveryActionCost = getTouchDeliveryActionCost(touchDeliveryCost);
+        const deliveryCostAvailable = !deliveryActionCost ||
+            canAffordActionCost(candidate, deliveryActionCost);
 
-        return casterDistanceFeet <= deliveryRangeFeet && targetDistanceTiles <= 1 && reactionAvailable;
+        return casterDistanceFeet <= deliveryRangeFeet && targetDistanceTiles <= 1 && deliveryCostAvailable;
     });
 
     if (!familiar) {
@@ -107,7 +145,7 @@ export const findFamiliarTouchDelivery = (
     }
 
     return {
-        familiar,
+        deliveryActor: familiar,
         casterDistance: getCharacterDistance(caster, familiar),
         targetDistance: getCharacterDistance(familiar, targetCharacter)
     };
@@ -159,9 +197,12 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
             ? getCharacterDistance(caster, targetCharacter)
             : getDistance(caster.position, targetPosition);
 
-        const familiarDelivery = findFamiliarTouchDelivery(ability, caster, targetCharacter, characters);
+        // Touch spells can originate from a permissioned controlled actor when
+        // the caster is personally out of reach. Keep the local name shared so
+        // this path does not drift back into Find Familiar-only assumptions.
+        const touchDelivery = findTouchDeliveryActor(ability, caster, targetCharacter, characters);
 
-        if (distance > ability.range && !familiarDelivery) {
+        if (distance > ability.range && !touchDelivery) {
             const targetLabel = getTargetLabel(targetCharacter);
             return {
                 isValid: false,
@@ -171,7 +212,10 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
 
         // 3. Line of Sight Check
         if (ability.type === 'attack' || ability.type === 'spell') {
-            const lineOfSightSource = familiarDelivery?.familiar ?? caster;
+            // Touch delivery is a shared controlled-entity path now. Use the
+            // permissioned delivery actor as the line-of-sight origin instead
+            // of the old familiar-only return field.
+            const lineOfSightSource = touchDelivery?.deliveryActor ?? caster;
             const casterTiles = getOccupiedTiles(lineOfSightSource);
             const targetTiles = targetCharacter 
                 ? getOccupiedTiles(targetCharacter)
@@ -190,8 +234,11 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
 
             if (!hasLoS) {
                 const targetLabel = getTargetLabel(targetCharacter).toLowerCase();
-                const sourceLabel = familiarDelivery?.familiar
-                    ? ` from ${familiarDelivery.familiar.name}`
+                // Keep the invalid-target message tied to the actual
+                // permissioned actor so non-familiar delivery actors explain
+                // themselves correctly.
+                const sourceLabel = touchDelivery?.deliveryActor
+                    ? ` from ${touchDelivery.deliveryActor.name}`
                     : '';
                 return {
                     isValid: false,
@@ -361,3 +408,4 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
         getCharacterAtPosition
     };
 }
+

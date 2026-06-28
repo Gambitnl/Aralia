@@ -19,7 +19,7 @@
     "unit": "reaction",
     "combatCost": {
       "type": "reaction",
-      "condition": ""
+      "condition": "when you see a creature within 60 feet of you casting a spell"
     },
     "explorationCost": {
       "value": 0,
@@ -84,101 +84,11 @@
       "selfRelation": "not_applicable"
     }
   },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "When you see a creature within 60 feet casting a spell, you try to interrupt it. The caster makes a Constitution saving throw. On a failure, the spell fizzles, the casting action is wasted, and any slot used for it is not expended.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
+  "effects": [],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "When a visible creature within 60 feet casts a spell, prompt the reaction and the target caster's Constitution save; on a failed save, dissipate the spell with no effect while wasting the casting action but not expending its slot.",
+    "playerInputRequired": true
   },
   "description": "You attempt to interrupt a creature in the process of casting a spell. The creature makes a Constitution saving throw. On a failed save, the spell dissipates with no effect, and the action, Bonus Action, or Reaction used to cast it is wasted. If that spell was cast with a spell slot, the slot isn't expended.",
   "higherLevels": "",
@@ -186,5 +96,25 @@
     "abjuration",
     "reaction",
     "control"
-  ]
+  ],
+  "castingTrigger": {
+    "type": "when_visible_creature_casts_spell",
+    "timing": "during_event",
+    "requiredCost": "reaction",
+    "targetBinding": "triggering_spell_caster",
+    "maxRangeFeet": 60,
+    "notes": "Routes Counterspell through the shared pre-command spell-interruption gate so the original spell can be stopped before its effects execute."
+  },
+  "interruptionState": {
+    "event": "visible_creature_casts_spell",
+    "saveType": "Constitution",
+    "failureOutcome": "spell_has_no_effect",
+    "failedSaveOutcome": "interrupted_spell_has_no_effect_and_casting_action_is_wasted",
+    "slotPolicy": "interrupted_spell_slot_is_not_expended",
+    "preservesInterruptedSlot": true,
+    "actionPolicy": "interrupted_casting_action_bonus_action_or_reaction_is_wasted",
+    "visibilityRequired": true,
+    "rangeFeet": 60,
+    "runtimeBoundary": "Current shared hook suppresses original spell command execution on failed save; focused proof still needs exact action-waste and spell-slot preservation coverage."
+  }
 }

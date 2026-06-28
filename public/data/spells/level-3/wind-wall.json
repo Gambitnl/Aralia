@@ -1,298 +1,399 @@
 {
-  "id": "wind-wall",
-  "name": "Wind Wall",
-  "aliases": [],
-  "level": 3,
-  "school": "Evocation",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Ranger"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a fan and a feather",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "range": 120,
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Wall",
-      "size": 50,
-      "height": 15,
-      "sizeType": "length",
-      "sizeUnit": "feet",
-      "heightUnit": "feet",
-      "thickness": 1,
-      "thicknessUnit": "feet"
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Wind Wall",
-          "shape": "Wall",
-          "size": 50,
-          "sizeType": "length",
-          "sizeUnit": "feet",
-          "height": 15,
-          "heightUnit": "feet",
-          "thickness": 1,
-          "thicknessUnit": "feet",
-          "notes": "The wall can follow any one continuous path along the ground."
-        }
-      ]
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Strength",
-        "saveEffect": "half",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "4d8",
-        "type": "Bludgeoning"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "When the 50-foot-long, 15-foot-high, 1-foot-thick wall appears, each creature in its area makes a Strength save, taking 4d8 Bludgeoning damage on a failed save or half as much on a success.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "For up to 1 minute with concentration, the wall keeps fog, smoke, gases, gaseous creatures, Small or smaller flying creatures or objects, and loose lightweight materials from passing normally; ordinary arrows, bolts, and similar projectiles aimed through it miss automatically, while giant boulders, siege projectiles, and similar heavy projectiles are unaffected.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Gas Barrier",
-          "effect": "Keeps fog, smoke, and other gases at bay."
-        },
-        {
-          "name": "Small Flying Block",
-          "effect": "Small or smaller flying creatures or objects cannot pass through the wall."
-        },
-        {
-          "name": "Lightweight Updraft",
-          "effect": "Loose, lightweight materials brought into the wall fly upward."
-        },
-        {
-          "name": "Ordinary Projectile Deflection",
-          "effect": "Ordinary arrows, bolts, and similar projectiles launched at targets behind the wall are deflected upward and miss automatically.",
-          "details": "Boulders hurled by Giants or siege engines, and similar projectiles, are unaffected."
-        },
-        {
-          "name": "Gaseous Form Block",
-          "effect": "Creatures in gaseous form cannot pass through the wall."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "A wall of strong wind rises from the ground at a point you choose within range. You can make the wall up to 50 feet long, 15 feet high, and 1 foot thick. You can shape the wall in any way you choose so long as it makes one continuous path along the ground. The wall lasts for the duration. When the wall appears, each creature in its area makes a Strength saving throw, taking 4d8 Bludgeoning damage on a failed save or half as much damage on a successful one. The strong wind keeps fog, smoke, and other gases at bay. Small or smaller flying creatures or objects can't pass through the wall. Loose, lightweight materials brought into the wall fly upward. Arrows, bolts, and other ordinary projectiles launched at targets behind the wall are deflected upward and miss automatically. Boulders hurled by Giants or siege engines, and similar projectiles, are unaffected. Creatures in gaseous form can't pass through it.",
-  "higherLevels": "",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "wind-wall",
+    "name":  "Wind Wall",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Evocation",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Ranger"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a fan and a feather",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  120,
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Wall",
+                                           "size":  50,
+                                           "height":  15,
+                                           "sizeType":  "length",
+                                           "sizeUnit":  "feet",
+                                           "heightUnit":  "feet",
+                                           "thickness":  1,
+                                           "thicknessUnit":  "feet"
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet",
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Wind Wall",
+                                                               "shape":  "Wall",
+                                                               "size":  50,
+                                                               "sizeType":  "length",
+                                                               "sizeUnit":  "feet",
+                                                               "height":  15,
+                                                               "heightUnit":  "feet",
+                                                               "thickness":  1,
+                                                               "thicknessUnit":  "feet",
+                                                               "notes":  "The wall can follow any one continuous path along the ground."
+                                                           }
+                                                       ]
+                                         }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Strength",
+                                          "saveEffect":  "half",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "4d8",
+                                       "type":  "Bludgeoning"
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "When the 50-foot-long, 15-foot-high, 1-foot-thick wall appears, each creature in its area makes a Strength save, taking 4d8 Bludgeoning damage on a failed save or half as much on a success.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "wardTrigger":  {
+                                            "kind":  "wall_creation_damage",
+                                            "trigger":  "wall_appears_in_creature_space",
+                                            "save":  "Strength",
+                                            "response":  "4d8_bludgeoning_on_failed_save_half_on_success"
+                                        }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "For up to 1 minute with concentration, the wall keeps fog, smoke, gases, gaseous creatures, Small or smaller flying creatures or objects, and loose lightweight materials from passing normally; ordinary arrows, bolts, and similar projectiles aimed through it miss automatically, while giant boulders, siege projectiles, and similar heavy projectiles are unaffected.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Gas Barrier",
+                                                   "effect":  "Keeps fog, smoke, and other gases at bay."
+                                               },
+                                               {
+                                                   "name":  "Small Flying Block",
+                                                   "effect":  "Small or smaller flying creatures or objects cannot pass through the wall."
+                                               },
+                                               {
+                                                   "name":  "Lightweight Updraft",
+                                                   "effect":  "Loose, lightweight materials brought into the wall fly upward."
+                                               },
+                                               {
+                                                   "name":  "Ordinary Projectile Deflection",
+                                                   "effect":  "Ordinary arrows, bolts, and similar projectiles launched at targets behind the wall are deflected upward and miss automatically.",
+                                                   "details":  "Boulders hurled by Giants or siege engines, and similar projectiles, are unaffected."
+                                               },
+                                               {
+                                                   "name":  "Gaseous Form Block",
+                                                   "effect":  "Creatures in gaseous form cannot pass through the wall."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "wind_wall",
+                                                   "name":  "Wall of Strong Wind",
+                                                   "count":  1,
+                                                   "countUnit":  "structure",
+                                                   "appearsIn":  "ground_path",
+                                                   "affectedVolumeShape":  "Wall",
+                                                   "wallLengthFeet":  50,
+                                                   "wallHeightFeet":  15,
+                                                   "wallThickness":  1,
+                                                   "wallThicknessUnit":  "feet",
+                                                   "shapeRequirement":  "one_continuous_path_along_ground",
+                                                   "manipulationOptions":  [
+                                                                               "keep_fog_smoke_and_gases_at_bay",
+                                                                               "block_small_or_smaller_flying_creatures_and_objects",
+                                                                               "lift_loose_lightweight_materials",
+                                                                               "deflect_ordinary_projectiles",
+                                                                               "block_gaseous_form"
+                                                                           ],
+                                                   "keepsFogSmokeAndGasesAtBay":  true,
+                                                   "blocksGaseousForm":  true,
+                                                   "blocksSmallOrSmallerFlyingObjects":  true,
+                                                   "deflectsOrdinaryProjectiles":  true,
+                                                   "heavyProjectileException":  [
+                                                                                    "giant_boulders",
+                                                                                    "siege_projectiles",
+                                                                                    "similar_heavy_projectiles"
+                                                                                ],
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "up to 1 minute with concentration",
+                                                   "notes":  "Wind Wall creates a shaped wall of strong wind along the ground that blocks gases and light flyers, lifts loose lightweight material, and deflects ordinary projectiles."
+                                               }
+                                           ],
+                        "wardTrigger":  {
+                                            "kind":  "passage_barrier",
+                                            "trigger":  "fog_smoke_gas_gaseous_creature_small_flying_object_or_loose_material_attempts_to_pass",
+                                            "response":  "barred_from_passing_through_wall"
+                                        }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "A wall of strong wind rises from the ground at a point you choose within range. You can make the wall up to 50 feet long, 15 feet high, and 1 foot thick. You can shape the wall in any way you choose so long as it makes one continuous path along the ground. The wall lasts for the duration. When the wall appears, each creature in its area makes a Strength saving throw, taking 4d8 Bludgeoning damage on a failed save or half as much damage on a successful one. The strong wind keeps fog, smoke, and other gases at bay. Small or smaller flying creatures or objects can\u0027t pass through the wall. Loose, lightweight materials brought into the wall fly upward. Arrows, bolts, and other ordinary projectiles launched at targets behind the wall are deflected upward and miss automatically. Boulders hurled by Giants or siege engines, and similar projectiles, are unaffected. Creatures in gaseous form can\u0027t pass through it.",
+    "higherLevels":  "",
+    "tags":  [
+                 "concentration"
+             ]
 }

@@ -237,9 +237,18 @@ export class StatusConditionCommand extends BaseEffectCommand {
     }
 
     const { repeatSave, escapeCheck, breakTriggers } = this.effect.statusCondition;
+    const runtimeRepeatSave = repeatSave
+      ? {
+        ...repeatSave,
+        // Blinding Smite and similar conditions say later saves use the
+        // original spell save DC. Store that number when the condition lands so
+        // turn-end repeat saves do not fall back to the generic placeholder DC.
+        ...(repeatSave.useOriginalDC ? { dc: calculateSpellDC(this.context.caster) } : {})
+      }
+      : undefined;
 
     return {
-      ...(repeatSave ? { repeatSave } : {}),
+      ...(runtimeRepeatSave ? { repeatSave: runtimeRepeatSave } : {}),
       ...(escapeCheck ? { escapeCheck } : {}),
       ...(breakTriggers ? { breakTriggers } : {})
     };

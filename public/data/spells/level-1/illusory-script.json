@@ -1,187 +1,268 @@
 {
-  "id": "illusory-script",
-  "name": "Illusory Script",
-  "aliases": [],
-  "level": 1,
-  "school": "Illusion",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": true,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": false,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "ink worth 10+ GP, which the spell consumes",
-    "materialCost": 10,
-    "isConsumed": true
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": false,
-    "value": 10,
-    "unit": "day"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 0,
-    "validTargets": [
-      "objects"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-    "description": "Write on parchment, paper, or another suitable writing material for 10 days; the caster and designated creatures see the normal handwriting and intended meaning, others see unintelligible unknown or magical script or a different known-language message chosen by the caster, Dispel Magic removes both original and illusory writing, and Truesight reveals the hidden message.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You write on parchment, paper, or another suitable material and imbue it with an illusion that lasts for the duration. To you and any creatures you designate when you cast the spell, the writing appears normal, seems to be written in your hand, and conveys whatever meaning you intended when you wrote the text. To all others, the writing appears as if it were written in an unknown or magical script that is unintelligible. Alternatively, the illusion can alter the meaning, handwriting, and language of the text, though the language must be one you know. If the spell is dispelled, the original script and the illusion both disappear. A creature that has Truesight can read the hidden message.",
-  "higherLevels": "",
-  "tags": [
-    "ritual",
-    "deception",
-    "utility"
-  ]
+    "id":  "illusory-script",
+    "name":  "Illusory Script",
+    "aliases":  [
+
+                ],
+    "level":  1,
+    "school":  "Illusion",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  true,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  false,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "ink worth 10+ GP, which the spell consumes",
+                       "materialCost":  10,
+                       "isConsumed":  true
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  false,
+                     "value":  10,
+                     "unit":  "day"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  0,
+                      "validTargets":  [
+                                           "objects"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Write on parchment, paper, or another suitable writing material for 10 days; the caster and designated creatures see the normal handwriting and intended meaning, others see unintelligible unknown or magical script or a different known-language message chosen by the caster, Dispel Magic removes both original and illusory writing, and Truesight reveals the hidden message.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "knowledgeEffect":  {
+                                                "normalReaders":  [
+                                                                      "caster",
+                                                                      "designated_creatures"
+                                                                  ],
+                                                "otherReadersSee":  "unintelligible_unknown_or_magical_script",
+                                                "canAlterMeaningHandwritingAndLanguage":  true,
+                                                "alteredLanguageMustBeKnownByCaster":  true,
+                                                "durationDays":  10,
+                                                "notes":  "Designated readers see the intended writing, while others see unintelligible script or an altered meaning, handwriting, and caster-known language."
+                                            },
+                        "visionLightSound":  {
+                                                 "mode":  "conditional_visible_writing",
+                                                 "normalReaders":  [
+                                                                       "caster",
+                                                                       "designated creatures"
+                                                                   ],
+                                                 "normalAppearance":  "writing appears normal, in caster hand, with intended meaning",
+                                                 "otherReaders":  "unknown or magical unintelligible script, or altered meaning/handwriting/language",
+                                                 "alteredLanguageRequirement":  "must be language caster knows",
+                                                 "truesight":  "can read hidden message",
+                                                 "dispel":  "original script and illusion both disappear",
+                                                 "soundPayload":  "none"
+                                             },
+                        "communicationDetails":  {
+                                                     "mode":  "illusory_written_message",
+                                                     "normalReaders":  "caster and creatures designated at casting see normal handwriting and intended meaning",
+                                                     "otherReaders":  "others see unintelligible unknown or magical script, or altered meaning/handwriting/language chosen by caster",
+                                                     "languageLimit":  "altered language must be one the caster knows",
+                                                     "truesight":  "creature with Truesight can read the hidden message",
+                                                     "dispelResult":  "original script and illusion both disappear if dispelled"
+                                                 },
+                        "illusionState":  {
+                                              "kind":  "reader_dependent_script_illusion",
+                                              "material":  "parchment_paper_or_suitable_writing_material",
+                                              "designatedReaders":  "see_normal_handwriting_and_intended_meaning",
+                                              "otherReaders":  "see_unintelligible_unknown_or_magical_script_or_altered_text",
+                                              "alternateMode":  "alter_meaning_handwriting_and_known_language",
+                                              "truesight":  "can_read_hidden_message",
+                                              "dispel":  "original_script_and_illusion_disappear"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You write on parchment, paper, or another suitable material and imbue it with an illusion that lasts for the duration. To you and any creatures you designate when you cast the spell, the writing appears normal, seems to be written in your hand, and conveys whatever meaning you intended when you wrote the text. To all others, the writing appears as if it were written in an unknown or magical script that is unintelligible. Alternatively, the illusion can alter the meaning, handwriting, and language of the text, though the language must be one you know. If the spell is dispelled, the original script and the illusion both disappear. A creature that has Truesight can read the hidden message.",
+    "higherLevels":  "",
+    "tags":  [
+                 "ritual",
+                 "deception",
+                 "utility"
+             ]
 }

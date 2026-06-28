@@ -284,8 +284,40 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose which creatures in the 30-foot Emanation are affected, then choose Radiant or Necrotic for the second 5d6 damage packet. Thunder damage and the Prone rider use the same Constitution save.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 2,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Radiant",
+        "summary": "The second damage packet is 5d6 Radiant damage.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ],
+        "damageType": "Radiant"
+      },
+      {
+        "label": "Necrotic",
+        "summary": "The second damage packet is 5d6 Necrotic damage.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "DAMAGE"
+        ],
+        "damageType": "Necrotic"
+      }
+    ],
+    "notes": "The caster chooses the second damage type; the 5d6 Thunder damage and Prone rider are shared."
   },
   "description": "Destructive energy ripples outward from you in a 30-foot Emanation. Each creature you choose in the Emanation makes a Constitution saving throw. On a failed save, a target takes 5d6 Thunder damage and 5d6 Radiant or Necrotic damage (your choice) and has the Prone condition. On a successful save, a target takes half as much damage only.",
   "higherLevels": "",

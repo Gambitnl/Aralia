@@ -1,261 +1,310 @@
-{
-  "id": "crown-of-stars",
-  "name": "Crown of Stars",
-  "aliases": [],
-  "level": 7,
-  "school": "Evocation",
-  "legacy": false,
-  "classes": [
-    "Sorcerer",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": false,
-    "value": 1,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "single",
-    "validTargets": [
-      "creatures",
-      "objects"
-    ],
-    "lineOfSight": true,
-    "range": 0,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "on_caster_action",
-        "frequency": "every_time",
-        "consumption": "per_turn",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "bonus_action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "hit",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "4d12",
-        "type": "Radiant"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "The caster can use a bonus action to expend one mote and make a ranged spell attack against one creature or object within 120 feet. On a hit, the target takes 4d12 Radiant damage.",
-      "conditionalEndings": [
-        {
-          "trigger": "all_target_instances_expended",
-          "scope": "spell",
-          "description": "The spell ends early when the caster expends the last star-like mote."
-        }
-      ]
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "light",
-      "description": "Seven star-like motes orbit the caster's head. Motes are expended whether their attacks hit or miss; the spell ends early when the last mote is expended. Mote count also determines light radius.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+2 motes",
-        "customFormula": ""
-      },
-      "grantedActions": [
-        {
-          "type": "bonus_action",
-          "action": "fire_mote",
-          "frequency": "each_turn",
-          "rangeLimit": 120,
-          "notes": "Send one mote toward a creature or object and make a ranged spell attack."
-        }
-      ],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Seven Motes",
-          "effect": "Seven star-like motes appear and orbit the caster's head until the spell ends."
-        },
-        {
-          "name": "Bonus Action Fire Mote",
-          "effect": "The caster can use a bonus action to send one mote toward one creature or object within 120 feet and make a ranged spell attack."
-        },
-        {
-          "name": "Mote Expended",
-          "effect": "Whether the attack hits or misses, the fired mote is expended."
-        },
-        {
-          "name": "Last Mote Ends Spell",
-          "effect": "The spell ends early if the caster expends the last mote."
-        },
-        {
-          "name": "Four Or More Motes Light",
-          "effect": "With four or more motes remaining, the motes shed Bright Light in a 30-foot radius and Dim Light for an additional 30 feet."
-        },
-        {
-          "name": "One To Three Motes Light",
-          "effect": "With one to three motes remaining, the motes shed Dim Light in a 30-foot radius."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 30,
-        "dimRadius": 30,
-        "attachedTo": "caster",
-        "color": "radiant",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "all_target_instances_expended",
-          "scope": "spell",
-          "description": "The spell's orbiting mote and light effects end early when the caster expends the last star-like mote."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "Seven star-like motes of light appear and orbit your head until the spell ends. You can use a bonus action to send one of the motes streaking toward one creature or object within 120 feet of you. When you do so, make a ranged spell attack. On a hit, the target takes 4d12 radiant damage. Whether you hit or miss, the mote is expended. The spell ends early if you expend the last mote. If you have four or more motes remaining, they shed bright light in a 30-foot radius and dim light for an additional 30 feet. If you have one to three motes remaining, they shed dim light in a 30-foot radius.",
-  "higherLevels": "At Higher Levels. When you cast this spell using a spell slot of 8th level or higher, the number of motes created increases by two for each slot level above 7th.",
-  "tags": []
+﻿{
+    "id":  "crown-of-stars",
+    "name":  "Crown of Stars",
+    "aliases":  [
+
+                ],
+    "level":  7,
+    "school":  "Evocation",
+    "legacy":  false,
+    "classes":  [
+                    "Sorcerer",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  false,
+                     "value":  1,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "validTargets":  [
+                                           "creatures",
+                                           "objects"
+                                       ],
+                      "lineOfSight":  true,
+                      "range":  0,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "on_caster_action",
+                                        "frequency":  "every_time",
+                                        "consumption":  "per_turn",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "bonus_action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "hit",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "4d12",
+                                       "type":  "Radiant"
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "The caster can use a bonus action to expend one mote and make a ranged spell attack against one creature or object within 120 feet. On a hit, the target takes 4d12 Radiant damage.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "all_target_instances_expended",
+                                                       "scope":  "spell",
+                                                       "description":  "The spell ends early when the caster expends the last star-like mote."
+                                                   }
+                                               ]
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "light",
+                        "description":  "Seven star-like motes orbit the caster\u0027s head. Motes are expended whether their attacks hit or miss; the spell ends early when the last mote is expended. Mote count also determines light radius.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+2 motes",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "bonus_action",
+                                                   "action":  "fire_mote",
+                                                   "frequency":  "each_turn",
+                                                   "rangeLimit":  120,
+                                                   "notes":  "Send one mote toward a creature or object and make a ranged spell attack."
+                                               }
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Seven Motes",
+                                                   "effect":  "Seven star-like motes appear and orbit the caster\u0027s head until the spell ends."
+                                               },
+                                               {
+                                                   "name":  "Bonus Action Fire Mote",
+                                                   "effect":  "The caster can use a bonus action to send one mote toward one creature or object within 120 feet and make a ranged spell attack."
+                                               },
+                                               {
+                                                   "name":  "Mote Expended",
+                                                   "effect":  "Whether the attack hits or misses, the fired mote is expended."
+                                               },
+                                               {
+                                                   "name":  "Last Mote Ends Spell",
+                                                   "effect":  "The spell ends early if the caster expends the last mote."
+                                               },
+                                               {
+                                                   "name":  "Four Or More Motes Light",
+                                                   "effect":  "With four or more motes remaining, the motes shed Bright Light in a 30-foot radius and Dim Light for an additional 30 feet."
+                                               },
+                                               {
+                                                   "name":  "One To Three Motes Light",
+                                                   "effect":  "With one to three motes remaining, the motes shed Dim Light in a 30-foot radius."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  30,
+                                      "dimRadius":  30,
+                                      "attachedTo":  "caster",
+                                      "color":  "radiant",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "all_target_instances_expended",
+                                                       "scope":  "spell",
+                                                       "description":  "The spell\u0027s orbiting mote and light effects end early when the caster expends the last star-like mote."
+                                                   }
+                                               ],
+                        "visionLightSound":  {
+                                                 "mode":  "orbiting_mote_light",
+                                                 "initialMotes":  7,
+                                                 "attachment":  "motes orbit caster head",
+                                                 "fourOrMoreMotes":  "bright light 30-foot radius and dim light additional 30 feet",
+                                                 "oneToThreeMotes":  "dim light 30-foot radius",
+                                                 "zeroMotes":  "spell ends",
+                                                 "projectile":  "bonus action sends a mote streaking toward visible creature or object within 120 feet",
+                                                 "higherSlots":  "two extra motes per slot level above 7",
+                                                 "soundPayload":  "none specified by spell"
+                                             }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "Seven star-like motes of light appear and orbit your head until the spell ends. You can use a bonus action to send one of the motes streaking toward one creature or object within 120 feet of you. When you do so, make a ranged spell attack. On a hit, the target takes 4d12 radiant damage. Whether you hit or miss, the mote is expended. The spell ends early if you expend the last mote. If you have four or more motes remaining, they shed bright light in a 30-foot radius and dim light for an additional 30 feet. If you have one to three motes remaining, they shed dim light in a 30-foot radius.",
+    "higherLevels":  "At Higher Levels. When you cast this spell using a spell slot of 8th level or higher, the number of motes created increases by two for each slot level above 7th.",
+    "tags":  [
+
+             ]
 }

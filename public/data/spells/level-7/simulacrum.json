@@ -1,393 +1,496 @@
 {
-  "id": "simulacrum",
-  "name": "Simulacrum",
-  "aliases": [],
-  "level": 7,
-  "school": "Illusion",
-  "legacy": false,
-  "classes": [
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 12,
-    "unit": "hour",
-    "explorationCost": {
-      "value": 12,
-      "unit": "hour"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "powdered ruby worth 1,500+ GP, which the spell consumes",
-    "materialCost": 1500,
-    "isConsumed": true
-  },
-  "duration": {
-    "type": "until_dispelled",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 0,
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [
-        "Beast",
-        "Humanoid"
-      ],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "SUMMONING",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [
-            "Beast",
-            "Humanoid"
-          ],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "summon": {
-        "entityType": "creature",
-        "persistent": true,
-        "count": 1,
-        "formOptions": [
-          "Simulacrum of one Beast or Humanoid"
-        ],
-        "statBlock": {
-          "name": "Simulacrum",
-          "type": "Construct",
-          "size": "Medium"
-        },
-        "commandCost": "none",
-        "commandsPerTurn": 1,
-        "initiative": "shared",
-        "objectDescription": "Persistent Construct duplicate of one Beast or Humanoid; it obeys the caster's commands, acts on the caster's turn, uses copied statistics with half Hit Point maximum, and cannot rest or level.",
-        "specialActions": []
-      },
-      "description": "Creates a Construct simulacrum using the original creature statistics, with half Hit Point maximum, command obedience, turn sharing, and rest/level restrictions.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "HEALING",
-      "trigger": {
-        "type": "after_primary",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "healing": {
-        "dice": "repair 1 HP per 100 GP components",
-        "isTemporaryHp": false
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "Damaged simulacrum Hit Points can be restored only by repair during the caster Long Rest, expending components worth 100 GP per Hit Point restored while the simulacrum stays within 5 feet.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [
-            "Beast",
-            "Humanoid"
-          ],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "After a 12-hour casting that consumes 1,500+ GP powdered ruby, touch one Beast or Humanoid that stayed within 10 feet for the full casting and a same-size pile of ice or snow to create a friendly commanded simulacrum. The simulacrum acts on the caster turn, cannot cast Simulacrum, cannot gain levels, cannot take Short or Long Rests, reverts to snow and melts at 0 Hit Points, and any existing simulacrum made by this spell is instantly destroyed if the caster casts it again.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Beast Or Humanoid Target",
-          "effect": "The copied creature must be one Beast or Humanoid."
-        },
-        {
-          "name": "Ten Foot Casting Presence",
-          "effect": "The copied creature must be within 10 feet of you for the entire casting."
-        },
-        {
-          "name": "Ice Or Snow Body",
-          "effect": "You finish by touching the creature and a same-size pile of ice or snow, which turns into the simulacrum."
-        },
-        {
-          "name": "Construct Copy",
-          "effect": "The simulacrum uses the original creature's statistics except it is a Construct."
-        },
-        {
-          "name": "Half Hit Point Maximum",
-          "effect": "The simulacrum's Hit Point maximum is half the original creature's."
-        },
-        {
-          "name": "Cannot Cast Simulacrum",
-          "effect": "The simulacrum cannot cast this spell."
-        },
-        {
-          "name": "Friendly To Designated Creatures",
-          "effect": "The simulacrum is Friendly to you and creatures you designate."
-        },
-        {
-          "name": "Obeys Commands",
-          "effect": "The simulacrum obeys your commands."
-        },
-        {
-          "name": "Acts On Your Turn",
-          "effect": "The simulacrum acts on your turn in combat."
-        },
-        {
-          "name": "Cannot Gain Levels",
-          "effect": "The simulacrum cannot gain levels."
-        },
-        {
-          "name": "Cannot Rest",
-          "effect": "The simulacrum cannot take Short or Long Rests."
-        },
-        {
-          "name": "Repair During Long Rest",
-          "effect": "If damaged, the simulacrum can restore Hit Points only by repair as you take a Long Rest."
-        },
-        {
-          "name": "Repair Cost Per HP",
-          "effect": "Repair requires components worth 100 GP per Hit Point restored."
-        },
-        {
-          "name": "Repair Proximity",
-          "effect": "The simulacrum must stay within 5 feet of you for repair."
-        },
-        {
-          "name": "Drops To Zero Reverts To Snow",
-          "effect": "When it drops to 0 Hit Points, it reverts to snow and melts away."
-        },
-        {
-          "name": "Recast Destroys Existing Simulacrum",
-          "effect": "If you cast this spell again, any simulacrum you created with this spell is instantly destroyed."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You create a simulacrum of one Beast or Humanoid that is within 10 feet of you for the entire casting of the spell. You finish the casting by touching both the creature and a pile of ice or snow that is the same size as that creature, and the pile turns into the simulacrum, which is a creature. It uses the game statistics of the original creature at the time of casting, except it is a Construct, its Hit Point maximum is half as much, and it can't cast this spell. The simulacrum is Friendly to you and creatures you designate. It obeys your commands and acts on your turn in combat. The simulacrum can't gain levels, and it can't take Short or Long Rests. If the simulacrum takes damage, the only way to restore its Hit Points is to repair it as you take a Long Rest, during which you expend components worth 100 GP per Hit Point restored. The simulacrum must stay within 5 feet of you for the repair. The simulacrum lasts until it drops to 0 Hit Points, at which point it reverts to snow and melts away. If you cast this spell again, any simulacrum you created with this spell is instantly destroyed.",
-  "higherLevels": "",
-  "tags": [
-    "summoning",
-    "controlled-entity",
-    "persistent",
-    "deferred-stat-copy"
-  ]
+    "id":  "simulacrum",
+    "name":  "Simulacrum",
+    "aliases":  [
+
+                ],
+    "level":  7,
+    "school":  "Illusion",
+    "legacy":  false,
+    "classes":  [
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  12,
+                        "unit":  "hour",
+                        "explorationCost":  {
+                                                "value":  12,
+                                                "unit":  "hour"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "powdered ruby worth 1,500+ GP, which the spell consumes",
+                       "materialCost":  1500,
+                       "isConsumed":  true
+                   },
+    "duration":  {
+                     "type":  "until_dispelled",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  0,
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+                                                           "Beast",
+                                                           "Humanoid"
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "SUMMONING",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+                                                                                     "Beast",
+                                                                                     "Humanoid"
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "summon":  {
+                                       "entityType":  "creature",
+                                       "persistent":  true,
+                                       "count":  1,
+                                       "formOptions":  [
+                                                           "Simulacrum of one Beast or Humanoid"
+                                                       ],
+                                       "statBlock":  {
+                                                         "name":  "Simulacrum",
+                                                         "type":  "Construct",
+                                                         "size":  "Medium"
+                                                     },
+                                       "commandCost":  "none",
+                                       "commandsPerTurn":  1,
+                                       "initiative":  "shared",
+                                       "objectDescription":  "Persistent Construct duplicate of one Beast or Humanoid; it obeys the caster\u0027s commands, acts on the caster\u0027s turn, uses copied statistics with half Hit Point maximum, and cannot rest or level.",
+                                       "specialActions":  [
+
+                                                          ],
+                                       "lifecycle":  {
+                                                         "hitPointMaximum":  "half the original creature Hit Point maximum",
+                                                         "repairOnly":  "damaged simulacrum HP restored only by Long Rest repair costing 100 GP per Hit Point",
+                                                         "zeroHpEnding":  "at 0 Hit Points, simulacrum reverts to snow and melts away",
+                                                         "recastEnding":  "casting Simulacrum again instantly destroys any existing simulacrum from this spell"
+                                                     },
+                                       "control":  {
+                                                       "entityType":  "simulacrum_construct_duplicate",
+                                                       "source":  "Beast or Humanoid present through casting and snow/ice duplicate material",
+                                                       "allegiance":  "friendly to caster and creatures caster designates",
+                                                       "obedience":  "obeys spoken commands",
+                                                       "initiative":  "acts on caster turn or as existing summon data describes",
+                                                       "restrictions":  [
+                                                                            "cannot learn",
+                                                                            "cannot become more powerful",
+                                                                            "cannot regain expended spell slots",
+                                                                            "cannot take rests to recover resources unless represented elsewhere"
+                                                                        ],
+                                                       "destruction":  "0 HP melts to snow; recasting destroys prior simulacrum"
+                                                   }
+                                   },
+                        "description":  "Creates a Construct simulacrum using the original creature statistics, with half Hit Point maximum, command obedience, turn sharing, and rest/level restrictions.",
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "HEALING",
+                        "trigger":  {
+                                        "type":  "after_primary",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "healing":  {
+                                        "dice":  "repair 1 HP per 100 GP components",
+                                        "isTemporaryHp":  false
+                                    },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Damaged simulacrum Hit Points can be restored only by repair during the caster Long Rest, expending components worth 100 GP per Hit Point restored while the simulacrum stays within 5 feet.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "hitPointState":  {
+                                              "mode":  "simulacrum_repair_healing",
+                                              "cost":  "100 GP components per Hit Point restored",
+                                              "timing":  "during caster Long Rest",
+                                              "range":  "simulacrum within 5 feet",
+                                              "isTemporaryHp":  false
+                                          },
+                        "resourceState":  {
+                                              "kind":  "simulacrum_repair_cost",
+                                              "onlyHealingMethod":  "repair_during_caster_long_rest",
+                                              "componentCost":  "100_GP_per_Hit_Point_restored",
+                                              "rangeRequirement":  "simulacrum_must_remain_within_5_feet_during_repair"
+                                          }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+                                                                                     "Beast",
+                                                                                     "Humanoid"
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "After a 12-hour casting that consumes 1,500+ GP powdered ruby, touch one Beast or Humanoid that stayed within 10 feet for the full casting and a same-size pile of ice or snow to create a friendly commanded simulacrum. The simulacrum acts on the caster turn, cannot cast Simulacrum, cannot gain levels, cannot take Short or Long Rests, reverts to snow and melts at 0 Hit Points, and any existing simulacrum made by this spell is instantly destroyed if the caster casts it again.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Beast Or Humanoid Target",
+                                                   "effect":  "The copied creature must be one Beast or Humanoid."
+                                               },
+                                               {
+                                                   "name":  "Ten Foot Casting Presence",
+                                                   "effect":  "The copied creature must be within 10 feet of you for the entire casting."
+                                               },
+                                               {
+                                                   "name":  "Ice Or Snow Body",
+                                                   "effect":  "You finish by touching the creature and a same-size pile of ice or snow, which turns into the simulacrum."
+                                               },
+                                               {
+                                                   "name":  "Construct Copy",
+                                                   "effect":  "The simulacrum uses the original creature\u0027s statistics except it is a Construct."
+                                               },
+                                               {
+                                                   "name":  "Half Hit Point Maximum",
+                                                   "effect":  "The simulacrum\u0027s Hit Point maximum is half the original creature\u0027s."
+                                               },
+                                               {
+                                                   "name":  "Cannot Cast Simulacrum",
+                                                   "effect":  "The simulacrum cannot cast this spell."
+                                               },
+                                               {
+                                                   "name":  "Friendly To Designated Creatures",
+                                                   "effect":  "The simulacrum is Friendly to you and creatures you designate."
+                                               },
+                                               {
+                                                   "name":  "Obeys Commands",
+                                                   "effect":  "The simulacrum obeys your commands."
+                                               },
+                                               {
+                                                   "name":  "Acts On Your Turn",
+                                                   "effect":  "The simulacrum acts on your turn in combat."
+                                               },
+                                               {
+                                                   "name":  "Cannot Gain Levels",
+                                                   "effect":  "The simulacrum cannot gain levels."
+                                               },
+                                               {
+                                                   "name":  "Cannot Rest",
+                                                   "effect":  "The simulacrum cannot take Short or Long Rests."
+                                               },
+                                               {
+                                                   "name":  "Repair During Long Rest",
+                                                   "effect":  "If damaged, the simulacrum can restore Hit Points only by repair as you take a Long Rest."
+                                               },
+                                               {
+                                                   "name":  "Repair Cost Per HP",
+                                                   "effect":  "Repair requires components worth 100 GP per Hit Point restored."
+                                               },
+                                               {
+                                                   "name":  "Repair Proximity",
+                                                   "effect":  "The simulacrum must stay within 5 feet of you for repair."
+                                               },
+                                               {
+                                                   "name":  "Drops To Zero Reverts To Snow",
+                                                   "effect":  "When it drops to 0 Hit Points, it reverts to snow and melts away."
+                                               },
+                                               {
+                                                   "name":  "Recast Destroys Existing Simulacrum",
+                                                   "effect":  "If you cast this spell again, any simulacrum you created with this spell is instantly destroyed."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You create a simulacrum of one Beast or Humanoid that is within 10 feet of you for the entire casting of the spell. You finish the casting by touching both the creature and a pile of ice or snow that is the same size as that creature, and the pile turns into the simulacrum, which is a creature. It uses the game statistics of the original creature at the time of casting, except it is a Construct, its Hit Point maximum is half as much, and it can\u0027t cast this spell. The simulacrum is Friendly to you and creatures you designate. It obeys your commands and acts on your turn in combat. The simulacrum can\u0027t gain levels, and it can\u0027t take Short or Long Rests. If the simulacrum takes damage, the only way to restore its Hit Points is to repair it as you take a Long Rest, during which you expend components worth 100 GP per Hit Point restored. The simulacrum must stay within 5 feet of you for the repair. The simulacrum lasts until it drops to 0 Hit Points, at which point it reverts to snow and melts away. If you cast this spell again, any simulacrum you created with this spell is instantly destroyed.",
+    "higherLevels":  "",
+    "tags":  [
+                 "summoning",
+                 "controlled-entity",
+                 "persistent",
+                 "deferred-stat-copy"
+             ]
 }

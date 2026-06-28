@@ -1,166 +1,327 @@
 {
-  "id": "transmute-rock",
-  "name": "Transmute Rock",
-  "aliases": [],
-  "level": 5,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Wizard",
-    "Artificer"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "clay and water",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "until_dispelled",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "area",
-    "range": 120,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "objects"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 40,
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Dexterity",
-        "saveEffect": "half",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "4d8",
-        "type": "Bludgeoning"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "If transmuted ceiling mud falls, each creature under the falling mud makes a Dexterity save, taking 4d8 Bludgeoning damage on a failure or half as much on a success.",
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You choose an area of stone or mud that you can see that fits within a 40-foot cube and is within range, and choose one of the following effects. Transmute Rock to Mud. Nonmagical rock of any sort in the area becomes an equal volume of thick, flowing mud that remains for the spell's duration. The ground in the spell's area becomes muddy enough that creatures can sink into it. Each foot that a creature moves through the mud costs 4 feet of movement, and any creature on the ground when you cast the spell must make a Strength saving throw. A creature must also make the saving throw when it moves into the area for the first time on a turn or ends its turn there. On a failed save, a creature sinks into the mud and is restrained, though it can use an action to end the restrained condition on itself by pulling itself free of the mud. If you cast the spell on a ceiling, the mud falls. Any creature under the mud when it falls must make a Dexterity saving throw. A creature takes 4d8 bludgeoning damage on a failed save, or half as much damage on a successful one. Transmute Mud to Rock. Nonmagical mud or quicksand in the area no more than 10 feet deep transforms into soft stone for the spell's duration. Any creature in the mud when it transforms must make a Dexterity saving throw. On a successful save, a creature is shunted safely to the surface in an unoccupied space. On a failed save, a creature becomes restrained by the rock. A restrained creature, or another creature within reach, can use an action to try to break the rock by succeeding on a DC 20 Strength check or by dealing damage to it. The rock has AC 15 and 25 hit points, and it is immune to poison and psychic damage.",
-  "higherLevels": "",
-  "tags": []
+    "id":  "transmute-rock",
+    "name":  "Transmute Rock",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Wizard",
+                    "Artificer"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "clay and water",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "until_dispelled",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  120,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "objects"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  40,
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Dexterity",
+                                          "saveEffect":  "half",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "4d8",
+                                       "type":  "Bludgeoning"
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "If transmuted ceiling mud falls, each creature under the falling mud makes a Dexterity save, taking 4d8 Bludgeoning damage on a failure or half as much on a success.",
+                        "areaMechanics":  [
+                                              {
+                                                  "mode":  "Transmute Rock to Mud",
+                                                  "terrain":  "mud",
+                                                  "movementCostMultiplier":  4,
+                                                  "strengthSaveTriggers":  [
+                                                                               "on_cast_for_creatures_on_ground_in_area",
+                                                                               "first_time_entering_area_on_a_turn",
+                                                                               "ends_turn_in_area"
+                                                                           ],
+                                                  "failedStrengthSave":  "Creature sinks into mud and is Restrained."
+                                              },
+                                              {
+                                                  "mode":  "Transmute Mud to Rock",
+                                                  "dexteritySaveTrigger":  "creature_in_mud_when_it_transforms",
+                                                  "successfulDexteritySave":  "Creature is shunted safely to the surface in an unoccupied space.",
+                                                  "failedDexteritySave":  "Creature is Restrained by the rock."
+                                              }
+                                          ],
+                        "escapeMechanics":  {
+                                                "action":  "pull_free_or_break_rock",
+                                                "mudEscape":  "Restrained creature can use an action to end the condition by pulling itself free.",
+                                                "rockEscape":  {
+                                                                   "abilityCheck":  "Strength",
+                                                                   "dc":  20,
+                                                                   "alternate":  "deal damage to the rock",
+                                                                   "rockArmorClass":  15,
+                                                                   "rockHitPoints":  25,
+                                                                   "damageImmunities":  [
+                                                                                            "Poison",
+                                                                                            "Psychic"
+                                                                                        ]
+                                                               }
+                                            },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "transmuted_mud_area",
+                                                   "name":  "Rock Transmuted To Mud",
+                                                   "count":  1,
+                                                   "countUnit":  "area",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Cube",
+                                                   "affectedVolumeSizeFeet":  40,
+                                                   "manipulationOptions":  [
+                                                                               "turn_nonmagical_rock_to_mud",
+                                                                               "movement_cost_four_to_one",
+                                                                               "restrain_sinking_creatures",
+                                                                               "fall_from_ceiling"
+                                                                           ],
+                                                   "movementCostMultiplier":  4,
+                                                   "restraintEscape":  "action_to_pull_free",
+                                                   "ceilingMudDamageDice":  "4d8",
+                                                   "ceilingMudDamageType":  "Bludgeoning",
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "up to 10 minutes with concentration",
+                                                   "notes":  "Rock to Mud turns nonmagical rock into thick flowing mud, creating 4-to-1 movement cost and Strength-save restraint on ground, or falling mud damage from ceilings."
+                                               },
+                                               {
+                                                   "objectType":  "transmuted_stone_area",
+                                                   "name":  "Mud Transmuted To Rock",
+                                                   "count":  1,
+                                                   "countUnit":  "area",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Cube",
+                                                   "affectedVolumeSizeFeet":  40,
+                                                   "maxMudDepthFeet":  10,
+                                                   "manipulationOptions":  [
+                                                                               "turn_nonmagical_mud_or_quicksand_to_soft_stone",
+                                                                               "shunt_successful_creatures_to_surface",
+                                                                               "restrain_failed_creatures_in_rock",
+                                                                               "break_rock_escape"
+                                                                           ],
+                                                   "restrainedRockArmorClass":  15,
+                                                   "restrainedRockHitPoints":  25,
+                                                   "restrainedRockDamageImmunities":  [
+                                                                                          "Poison",
+                                                                                          "Psychic"
+                                                                                      ],
+                                                   "breakCheck":  "DC 20 Strength",
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "up to 10 minutes with concentration",
+                                                   "notes":  "Mud to Rock turns nonmagical mud or quicksand up to 10 feet deep into soft stone, shunting successful creatures to the surface and restraining failed creatures until the rock is broken.",
+                                                   "successfulSaveDestinationEligibility":  {
+                                                                                                "trigger":  "mud_to_rock_successful_dexterity_save",
+                                                                                                "destinationPreference":  "surface_unoccupied_space",
+                                                                                                "requiresUnoccupiedSpace":  true,
+                                                                                                "notes":  "A creature that succeeds on the save against mud hardening into rock is safely shunted to an unoccupied space on the surface."
+                                                                                            }
+                                               }
+                                           ],
+                        "forcedMovementState":  {
+                                                    "kind":  "mud_sink_or_shunt",
+                                                    "rockToMud":  "failed_Strength_save_sinks_into_mud_and_is_Restrained_until_action_pull_free",
+                                                    "mudToRock":  "successful_Dexterity_save_shunts_creature_safely_to_surface_unoccupied_space",
+                                                    "ceilingMud":  "falling_mud_hits_creatures_under_area",
+                                                    "movementCost":  "each_foot_through_mud_costs_4_feet"
+                                                }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose a visible stone or mud area that fits in a 40-foot Cube, then choose Transmute Rock to Mud or Transmute Mud to Rock. For Rock to Mud, record whether the area is ground or ceiling; for Mud to Rock, record shunted safe spaces or restrained targets.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  2,
+                       "optionsSource":  "modeChoice.options",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Transmute Rock to Mud",
+                                           "summary":  "Turn nonmagical rock into thick mud, creating difficult movement and possible Strength-save restraint; ceiling mud falls and can deal Bludgeoning damage.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ]
+                                       },
+                                       {
+                                           "label":  "Transmute Mud to Rock",
+                                           "summary":  "Turn nonmagical mud or quicksand up to 10 feet deep into soft stone, shunting successful creatures to the surface and restraining failed creatures in the rock.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ]
+                                       }
+                                   ],
+                       "notes":  "The selected mode determines whether the area becomes mud or stone; existing damage data covers the falling ceiling mud branch, while the prompt captures the restraint and shunting branches."
+                   },
+    "description":  "You choose an area of stone or mud that you can see that fits within a 40-foot cube and is within range, and choose one of the following effects. Transmute Rock to Mud. Nonmagical rock of any sort in the area becomes an equal volume of thick, flowing mud that remains for the spell\u0027s duration. The ground in the spell\u0027s area becomes muddy enough that creatures can sink into it. Each foot that a creature moves through the mud costs 4 feet of movement, and any creature on the ground when you cast the spell must make a Strength saving throw. A creature must also make the saving throw when it moves into the area for the first time on a turn or ends its turn there. On a failed save, a creature sinks into the mud and is restrained, though it can use an action to end the restrained condition on itself by pulling itself free of the mud. If you cast the spell on a ceiling, the mud falls. Any creature under the mud when it falls must make a Dexterity saving throw. A creature takes 4d8 bludgeoning damage on a failed save, or half as much damage on a successful one. Transmute Mud to Rock. Nonmagical mud or quicksand in the area no more than 10 feet deep transforms into soft stone for the spell\u0027s duration. Any creature in the mud when it transforms must make a Dexterity saving throw. On a successful save, a creature is shunted safely to the surface in an unoccupied space. On a failed save, a creature becomes restrained by the rock. A restrained creature, or another creature within reach, can use an action to try to break the rock by succeeding on a DC 20 Strength check or by dealing damage to it. The rock has AC 15 and 25 hit points, and it is immune to poison and psychic damage.",
+    "higherLevels":  "",
+    "tags":  [
+
+             ]
 }

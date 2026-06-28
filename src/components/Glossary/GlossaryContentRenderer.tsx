@@ -68,10 +68,63 @@ export const expandGlossaryShorthand = (content: string, validTermIds?: Set<stri
   // Pattern 3: <g t="term_id">Display</g> - compact custom element
   const compactElementPattern = /<g\s+t="([^"]+)"(?:\s+c="([^"]+)")?>(.*?)<\/g>/g;
 
+  // Convert a snake_case term id into a clean, title-cased display label, and
+  // reconstruct possessive apostrophes that were lost when the id was slugified.
+  // `magic_initiate` -> `Magic Initiate`; `holy_symbol` -> `Holy Symbol`;
+  // `calligrapher_s_supplies` -> `Calligrapher's Supplies` (the `_s_` run is a
+  // collapsed possessive, so it becomes "'s " rather than " s ").
+  const titleCaseFromId = (id: string): string =>
+    id
+      .replace(/_s_/g, "'s_")          // collapsed possessive: calligrapher_s_supplies -> calligrapher's_supplies
+      .replace(/_s$/g, "'s")            // trailing possessive: smith_s -> smith's
+      .replace(/_/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, c => c.toUpperCase())
+      .replace(/'S\b/g, "'s");          // keep the possessive "s" lowercase after title-casing
+
+  // Normalize the raw token inside [[...]]/{{...}} into a clean { id, display }.
+  //
+  // Some upstream-ingested entries carry a corrupted token where the snake_case
+  // id has had a redundant word (and sometimes a mangled possessive) appended,
+  // e.g. `[[magic_initiate Initiate]]`, `[[holy_symbol Symbol]]`, or
+  // `[[calligrapher_s_supplies's Supplies]]`. The leading snake_case run is the
+  // real term id; everything after it (an echoed word and/or a stray `'s`
+  // possessive) is garbage to be discarded.
+  //
+  // We therefore split the id from any trailing display fragment, validate the
+  // id against the known-terms set, and derive the display label from the id
+  // itself so the link reads "Magic Initiate" (a link to itself), not
+  // "Magic Initiate Initiate". This makes the term replacement idempotent.
+  const normalizeTermToken = (rawTermId: string, displayText?: string): { id: string; display: string } => {
+    const raw = rawTermId.trim();
+
+    // The id is the leading run up to the first whitespace OR the first stray
+    // apostrophe-possessive. `holy_symbol Symbol` -> `holy_symbol`;
+    // `calligrapher_s_supplies's Supplies` -> `calligrapher_s_supplies`.
+    const cut = raw.search(/\s|'/);
+    let id = cut === -1 ? raw : raw.slice(0, cut);
+
+    // If the leading run isn't a known term, try the full token with whitespace
+    // collapsed to underscores — this rescues cleanly-authored multi-word ids
+    // (e.g. an actual `[[some multi word]]` whose id is `some_multi_word`).
+    if (validTermIds && !validTermIds.has(id)) {
+      const collapsedRaw = raw.replace(/'/g, '').replace(/\s+/g, '_');
+      if (validTermIds.has(collapsedRaw)) id = collapsedRaw;
+    }
+
+    // Explicit display text (from `[[id|Display]]`) always wins; otherwise the
+    // label is derived purely from the resolved id, never from the echoed garbage.
+    const display = displayText && displayText.trim()
+      ? displayText.trim()
+      : titleCaseFromId(id);
+
+    return { id, display };
+  };
+
   // Helper to create the span HTML or just return display text if term doesn't exist
   const createSpanOrText = (termId: string, displayText?: string): string => {
-    const display = displayText || termId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    const trimmedId = termId.trim();
+    const { id: trimmedId, display } = normalizeTermToken(termId, displayText);
 
     // Determine if the link is valid (exists in the index)
     const isValid = validTermIds && validTermIds.has(trimmedId);
@@ -117,8 +170,14 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
   const structuredHtml = useMemo(() => {
     if (!markdownContent) return '';
 
+    // Normalize doubled label colons before anything else. Some upstream-ingested
+    // entries emit field labels that already end in ":" and then have a separator
+    // ":" appended, producing "Feat::", "Ability Scores::", "Equipment::". Collapse
+    // any run of 2+ colons back to a single colon so labels read "Feat:" not "Feat::".
+    const deColoned = markdownContent.replace(/:{2,}/g, ':');
+
     // First expand any shorthand glossary link syntaxes, validating against known terms
-    const expandedContent = expandGlossaryShorthand(markdownContent, validTermIds);
+    const expandedContent = expandGlossaryShorthand(deColoned, validTermIds);
 
     // Replace Markdown horizontal rules with styled HTML ones before parsing
     const preppedMarkdown = expandedContent.replace(/^---$/gm, '<hr />');

@@ -1,197 +1,349 @@
 {
-  "id": "scrying",
-  "name": "Scrying",
-  "aliases": [],
-  "level": 5,
-  "school": "Divination",
-  "legacy": true,
-  "classes": [
-    "Bard",
-    "Cleric",
-    "Druid",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 10,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 10,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a focus worth at least 1,000 gp, such as a crystal ball, a silver mirror, or a font filled with holy water",
-    "materialCost": 1000,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "single",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": false,
-    "range": 0,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "sensory",
-      "description": "On a failed Wisdom save, creates an invisible sensor near a chosen creature on the same plane so the caster can see and hear the target for the duration, with save modifiers based on familiarity and physical connection.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "tags": [
-        "remote-sensing",
-        "wisdom-save",
-        "same-plane",
-        "sensor"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You can see and hear a particular creature you choose that is on the same plane of existence as you. The target must make a Wisdom saving throw, which is modified by how well you know the target and the sort of physical connection you have to it. If a target knows you're casting this spell, it can fail the saving throw voluntarily if it wants to be observed. Knowledge On a successful save, the target isn't affected, and you can't use this spell against it again for 24 hours. On a failed save, the spell creates an invisible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. A creature that can see invisible objects sees the sensor as a luminous orb about the size of your fist. Instead of targeting a creature, you can choose a location you have seen before as the target of this spell. When you do, the sensor appears at that location and doesn't move.",
-  "higherLevels": "",
-  "tags": [
-    "legacy",
-    "divination",
-    "sensory",
-    "remote-sensing",
-    "concentration"
-  ]
+    "id":  "scrying",
+    "name":  "Scrying",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Divination",
+    "legacy":  true,
+    "classes":  [
+                    "Bard",
+                    "Cleric",
+                    "Druid",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  10,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  10,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a focus worth at least 1,000 gp, such as a crystal ball, a silver mirror, or a font filled with holy water",
+                       "materialCost":  1000,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  false,
+                      "range":  0,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+                                                                {
+                                                                    "type":  "flat",
+                                                                    "source":  "knowledge",
+                                                                    "options":  [
+                                                                                    {
+                                                                                        "label":  "Secondhand",
+                                                                                        "modifier":  5
+                                                                                    },
+                                                                                    {
+                                                                                        "label":  "Firsthand",
+                                                                                        "modifier":  0
+                                                                                    },
+                                                                                    {
+                                                                                        "label":  "Familiar",
+                                                                                        "modifier":  -5
+                                                                                    }
+                                                                                ]
+                                                                },
+                                                                {
+                                                                    "type":  "flat",
+                                                                    "source":  "connection",
+                                                                    "options":  [
+                                                                                    {
+                                                                                        "label":  "Likeness or picture",
+                                                                                        "modifier":  -2
+                                                                                    },
+                                                                                    {
+                                                                                        "label":  "Possession or garment",
+                                                                                        "modifier":  -4
+                                                                                    },
+                                                                                    {
+                                                                                        "label":  "Body part, lock of hair, bit of nail, or similar",
+                                                                                        "modifier":  -10
+                                                                                    }
+                                                                                ]
+                                                                }
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+                                                                       {
+                                                                           "outcome":  "voluntary_failure",
+                                                                           "effect":  "If the target knows the spell is being cast, it can choose to fail the Wisdom save."
+                                                                       },
+                                                                       {
+                                                                           "outcome":  "success",
+                                                                           "effect":  "The target is unaffected and cannot be targeted by this spell again for 24 hours."
+                                                                       }
+                                                                   ]
+                                      },
+                        "utilityType":  "sensory",
+                        "description":  "On a failed Wisdom save, creates an invisible sensor near a chosen creature on the same plane so the caster can see and hear the target for the duration, with save modifiers based on familiarity and physical connection.",
+                        "sensorState":  {
+                                            "kind":  "scrying_sensor",
+                                            "targetMode":  "particular_creature_same_plane_on_failed_Wisdom_save",
+                                            "locationMode":  "seen_before_location_creates_stationary_sensor",
+                                            "senses":  [
+                                                           "sight",
+                                                           "hearing"
+                                                       ],
+                                            "movement":  "creature_sensor_moves_with_target_within_10_feet",
+                                            "visibleTo":  "creatures_that_can_see_invisible_objects_as_fist_sized_luminous_orb",
+                                            "saveModifiers":  "knowledge_and_physical_connection"
+                                        },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "tags":  [
+                                     "remote-sensing",
+                                     "wisdom-save",
+                                     "same-plane",
+                                     "sensor"
+                                 ],
+                        "knowledgeEffect":  {
+                                                "targetModes":  [
+                                                                    "particular creature on same plane",
+                                                                    "location seen before"
+                                                                ],
+                                                "saveModifiers":  "Wisdom save modified by familiarity and physical connection",
+                                                "voluntaryFailure":  "target can choose to fail if it knows the spell is being cast",
+                                                "successLockout":  "successful save prevents targeting that creature again for 24 hours",
+                                                "sensoryPayload":  [
+                                                                       "sight",
+                                                                       "hearing"
+                                                                   ],
+                                                "sensorPlacement":  "within 10 feet of creature target or at seen location",
+                                                "invisibleSensorSeenAs":  "luminous orb about fist size to creatures that can see invisible objects"
+                                            },
+                        "visionLightSound":  {
+                                                 "mode":  "remote_sight_hearing_sensor",
+                                                 "creatureTarget":  "see and hear chosen creature on same plane on failed save",
+                                                 "locationTarget":  "sensor appears at seen location and does not move",
+                                                 "sensorVisibility":  "Invisible",
+                                                 "visibleToInvisibleSightAs":  "luminous orb about fist size",
+                                                 "sensoryPayload":  [
+                                                                        "sight",
+                                                                        "hearing"
+                                                                    ],
+                                                 "sensorPlacement":  "within 10 feet of creature target and moves with it, or fixed at location target",
+                                                 "soundSource":  "sensor hearing as if caster were there"
+                                             }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose whether to scry on a creature on the same plane or on a location you have seen before. For a creature target, record familiarity, physical connection modifiers, and whether the target voluntarily fails the Wisdom save if it knows you are casting.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  2,
+                       "optionsSource":  "modeChoice.options",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Creature target",
+                                           "summary":  "Choose a particular creature on the same plane; it makes a Wisdom save modified by familiarity and physical connection unless it voluntarily fails.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ]
+                                       },
+                                       {
+                                           "label":  "Location target",
+                                           "summary":  "Choose a location you have seen before; the sensor appears there and does not move.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ]
+                                       }
+                                   ],
+                       "notes":  "The selected mode determines whether the sensor follows a creature after a save or remains fixed at a seen location."
+                   },
+    "description":  "You can see and hear a particular creature you choose that is on the same plane of existence as you. The target must make a Wisdom saving throw, which is modified by how well you know the target and the sort of physical connection you have to it. If a target knows you\u0027re casting this spell, it can fail the saving throw voluntarily if it wants to be observed. Knowledge On a successful save, the target isn\u0027t affected, and you can\u0027t use this spell against it again for 24 hours. On a failed save, the spell creates an invisible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. A creature that can see invisible objects sees the sensor as a luminous orb about the size of your fist. Instead of targeting a creature, you can choose a location you have seen before as the target of this spell. When you do, the sensor appears at that location and doesn\u0027t move.",
+    "higherLevels":  "",
+    "tags":  [
+                 "legacy",
+                 "divination",
+                 "sensory",
+                 "remote-sensing",
+                 "concentration"
+             ]
 }

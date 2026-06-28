@@ -53,7 +53,12 @@ describe('groundWorldAdapter (LocalArtifact → WorldData)', () => {
 
   it('biome mapping covers every material with a palette id', () => {
     const wd = localArtifactToWorldData(local, 42);
-    const KNOWN = new Set(['plains', 'mountain', 'desert', 'wetland', 'water', 'forest']);
+    // Each TerrainMaterial maps to its own faithful palette id (no more
+    // folding 8 materials into ~5 colors). Every emitted id must be a real
+    // PALETTE entry the renderer can tint.
+    const KNOWN = new Set([
+      'grassland', 'dirt', 'mountain', 'desert', 'wetland', 'water', 'paved', 'floor',
+    ]);
     for (const id of new Set(wd.biomeIds)) {
       expect(KNOWN.has(id)).toBe(true);
     }

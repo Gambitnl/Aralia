@@ -200,6 +200,16 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
       };
     }
 
+    case 'NAVAL_CLEAR_VOYAGE': {
+      return {
+        ...state,
+        naval: {
+          ...state.naval,
+          currentVoyage: null,
+        },
+      };
+    }
+
     default:
       return state;
   }

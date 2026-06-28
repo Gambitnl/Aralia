@@ -47,6 +47,8 @@
 import React, { useReducer, useCallback, useEffect, useRef, lazy, Suspense, useState } from 'react';
 import { resolveWorldDataFor3D } from './utils/mapDataToWorldData';
 import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase, Notification } from './types';
+import type { TravelMeta } from './types/travelMeta';
+import { buildProvisionActions } from './systems/travel/applyProvision';
 import { loadMonstersData } from './data/monsters';
 // State management - appReducer handles all state updates via actions, initialGameState provides defaults
 import { appReducer } from './state/appState';
@@ -274,6 +276,8 @@ const App: React.FC = () => {
         id: Date.now() + Math.random(),
         text,
         sender,
+        // Stamped with in-game time by the ADD_MESSAGE reducer; this real-world
+        // value is a placeholder that the reducer overrides.
         timestamp: new Date(),
       };
       dispatch({ type: 'ADD_MESSAGE', payload: newMessage });
@@ -668,13 +672,23 @@ const App: React.FC = () => {
     dispatch({ type: 'ABANDON_RUN' });
   }, [dispatch]);
 
-  const handleTileClick = useCallback((x: number, y: number, tile: MapTile, travelMeta?: { seconds: number; encounterMessage?: string | null }) => {
+  const handleTileClick = useCallback((x: number, y: number, tile: MapTile, travelMeta?: TravelMeta) => {
     const targetBiome = BIOMES[tile.biomeId];
     // Travel-mode picks carry the planned route's real duration + a pre-rolled
     // "danger on the road" message; fall back to the legacy flat hour otherwise.
     const travelSeconds = travelMeta?.seconds != null ? Math.max(60, Math.round(travelMeta.seconds)) : 3600;
     const announceEncounter = () => {
       if (travelMeta?.encounterMessage) addMessage(travelMeta.encounterMessage, 'system');
+    };
+    // Apply the trip's provisioning consequences (food/water spend, starvation,
+    // companion morale). MapPane resolved these against the route + supplies; here
+    // we just execute them after the move so the move and its cost stay atomic.
+    const applyProvisionEffects = () => {
+      const prov = travelMeta?.provision;
+      if (!prov) return;
+      const companionViews = Object.values(gameState.companions ?? {}).map(c => ({ id: c.id, loyalty: c.loyalty }));
+      for (const action of buildProvisionActions(prov, companionViews)) dispatch(action);
+      if (prov.note) addMessage(prov.note, 'system');
     };
 
     if (!targetBiome) {
@@ -724,6 +738,7 @@ const App: React.FC = () => {
       dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: tile.locationId, newSubMapCoordinates, mapData: newMapDataForDispatch || undefined, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(tile.locationId, LOCATIONS) } });
       dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
       dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
+      applyProvisionEffects();
       announceEncounter();
     } else if (tile.discovered && !tile.locationId) {
       const targetCoordId = `coord_${x}_${y}`;
@@ -741,6 +756,7 @@ const App: React.FC = () => {
         dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: targetCoordId, newSubMapCoordinates, mapData: newMapDataForDispatch || undefined, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetCoordId, LOCATIONS) } });
         dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
         dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
+        applyProvisionEffects();
         announceEncounter();
       } else {
         addMessage(`This is your current world map area: ${targetBiome.name} at (${x},${y}).`, 'system');
@@ -753,7 +769,7 @@ const App: React.FC = () => {
       addMessage('That place lies beyond the known map — scout closer before you can travel there.', 'system');
     }
 
-  }, [gameState.currentLocationId, gameState.mapData, addMessage, dispatch]);
+  }, [gameState.currentLocationId, gameState.mapData, gameState.companions, addMessage, dispatch]);
 
   /**
    * Atlas "Enter 3D" mode: place the player in the streamed world at the clicked cell.

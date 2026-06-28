@@ -1,177 +1,230 @@
 {
-  "id": "charm-monster",
-  "name": "Charm Monster",
-  "aliases": [],
-  "level": 4,
-  "school": "Enchantment",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Druid",
-    "Sorcerer",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "single",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Wisdom",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [
-          {
-            "type": "advantage",
-            "reason": "The target has Advantage on the Wisdom saving throw if the caster or the caster's allies are fighting it."
-          }
-        ],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Charmed",
-        "duration": {
-          "type": "minutes",
-          "value": 60
-        },
-        "level": 0
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "One visible creature within 30 feet makes a Wisdom save, with Advantage if the caster or the caster's allies are fighting it; on a failed save, it is Charmed for up to 1 hour and the condition ends early if the caster or allies damage it.",
-      "conditionalEndings": [
-        {
-          "trigger": "caster_or_ally_damages_target",
-          "scope": "effect",
-          "description": "The Charmed condition ends early if the caster or the caster's allies damage the target."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "One creature you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you.",
-  "higherLevels": "You can target one additional creature for each spell slot level above 4.",
-  "tags": []
+    "id":  "charm-monster",
+    "name":  "Charm Monster",
+    "aliases":  [
+
+                ],
+    "level":  4,
+    "school":  "Enchantment",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Druid",
+                    "Sorcerer",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+                                                                {
+                                                                    "type":  "advantage",
+                                                                    "reason":  "The target has Advantage on the Wisdom saving throw if the caster or the caster\u0027s allies are fighting it."
+                                                                }
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Charmed",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  60
+                                                             },
+                                                "level":  0
+                                            },
+                        "charmState":  {
+                                           "friendlyToCaster":  true,
+                                           "targetKnowsCharmedByCasterWhenSpellEnds":  true,
+                                           "endingTriggers":  [
+                                                                  "caster_or_ally_damages_target",
+                                                                  "spell_ends"
+                                                              ],
+                                           "description":  "While Charmed by this spell, the creature is Friendly to the caster; when the spell ends, it knows the caster Charmed it."
+                                       },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "One visible creature within 30 feet makes a Wisdom save, with Advantage if the caster or the caster\u0027s allies are fighting it; on a failed save, it is Charmed for up to 1 hour and the condition ends early if the caster or allies damage it.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "caster_or_ally_damages_target",
+                                                       "scope":  "effect",
+                                                       "description":  "The Charmed condition ends early if the caster or the caster\u0027s allies damage the target."
+                                                   }
+                                               ],
+                        "socialEffect":  {
+                                             "condition":  "Charmed",
+                                             "targetDispositionToCaster":  "Friendly",
+                                             "saveAdvantageIfFightingCasterOrAllies":  true,
+                                             "endsIfDamagedByCasterOrAllies":  true,
+                                             "targetKnowsItWasCharmedWhenSpellEnds":  true,
+                                             "notes":  "Charm Monster makes the failed-save creature Friendly to the caster, with save advantage if fighting, early ending on harm, and awareness when it ends."
+                                         },
+                        "memoryState":  {
+                                            "kind":  "post_charm_awareness",
+                                            "when":  "spell_ends",
+                                            "targetKnows":  "it_was_Charmed_by_caster",
+                                            "appliesTo":  "failed_save_target"
+                                        }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Prompt the Wisdom save, including Advantage if the caster or allies are fighting the target. On failure, apply Charmed, mark the creature Friendly to the caster, end early if the caster or allies damage it, and reveal to the target that the caster Charmed it when the spell ends.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "One creature you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you.",
+    "higherLevels":  "You can target one additional creature for each spell slot level above 4.",
+    "tags":  [
+
+             ]
 }

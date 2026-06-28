@@ -1,7 +1,7 @@
 # Spells Decisions
 
 Status: active
-Last updated: 2026-06-25
+Last updated: 2026-06-27
 
 Use this file for durable choices that affect project scope, required documentation, or protocol interpretation. Keep operational notes in `AUDIT_OR_PROOF.md` and re-openable workflow deltas in `TRACKER.md` or `GAPS.md`.
 
@@ -91,3 +91,24 @@ Rationale and evidence:
 
 Follow-up:
 Keep the dashboard recommendation, handoff preview, and copied handoff text generated from the same child-lane data. If the dashboard recommendation disagrees with `SUBPROJECTS.md`, repair the registry or renderer before launching another child-lane agent from the parent.
+
+### D5: Deferred reaction/timing closeout is split across two child lanes
+
+Date: 2026-06-27
+
+Owner: Codex
+
+Decision point:
+The parent `reaction_or_opportunity_restriction` bucket has six remaining `implementation_unverified` rows: Find Familiar, Summon Beast, Shining Smite, Blinding Smite, Lightning Arrow, and Counterspell. They looked like one parent-level deferred pile, but their executable proof belongs to different runtime systems.
+
+Decision made:
+Route the rows to child packets by runtime ownership. `structured-spell-execution` owns Shining Smite and Blinding Smite after-hit casting, Lightning Arrow next-attack hit-or-miss riders, and Counterspell spell-interruption reactions. `summons-controlled-entities` owns Find Familiar touch-delivery permissions and Summon Beast selected-form Flyby behavior. The parent may summarize and route, but it must not close these rows from metadata presence alone.
+
+Rationale and evidence:
+- Parent bucket: `docs/tasks/spells/mechanics-discovery/buckets/reaction_or_opportunity_restriction.md`
+- Structured tracker: `docs/projects/spells/subprojects/structured-spell-execution/TRACKER.md`
+- Controlled-entity tracker: `docs/projects/spells/subprojects/summons-controlled-entities/TRACKER.md`
+- Parent registry: `docs/projects/spells/SUBPROJECTS.md`
+
+Follow-up:
+Run focused executable proof in the owning child packet, record detailed proof in the child `AUDIT_OR_PROOF.md`, then import only concise parent-visible status. Keep all six parent rows `implementation_unverified` until the named proof executes and covers the row-specific closure rule.

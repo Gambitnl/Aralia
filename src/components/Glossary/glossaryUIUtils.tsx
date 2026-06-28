@@ -225,32 +225,16 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
   );
 };
 
-// Get category color for visual differentiation
-export const getCategoryColor = (category: string): string => {
-  switch (category.toLowerCase()) {
-    case 'character classes':
-      return 'text-red-400';
-    case 'character races':
-      return 'text-green-400';
-    case 'character backgrounds':
-      return 'text-teal-400';
-    case 'feats':
-      return 'text-indigo-400';
-    case 'spells':
-      return 'text-purple-400';
-    case 'rules glossary':
-      return 'text-blue-400';
-    case 'conditions':
-      return 'text-orange-400';
-    case 'equipment':
-      return 'text-yellow-400';
-    case 'actions':
-      return 'text-cyan-400';
-    case 'magic items':
-      return 'text-pink-400';
-    case 'crafting':
-      return 'text-amber-500';
-    default:
-      return 'text-sky-300';
-  }
+/**
+ * Category header color.
+ *
+ * Previously every category used a different saturated hue (red/green/teal/
+ * indigo/purple/blue/orange/yellow/cyan/pink/amber) with no semantic meaning —
+ * a rainbow that read as visual noise (GL6 / the app-wide X2 no-color-system
+ * issue). The glossary now uses a single neutral accent for every category so
+ * the headers read as one consistent system. Differentiation comes from the
+ * per-category icon (getCategoryIcon), not from arbitrary color.
+ */
+export const getCategoryColor = (_category: string): string => {
+  return 'text-amber-300';
 };

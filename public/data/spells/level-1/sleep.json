@@ -150,7 +150,13 @@
         },
         "requiresStatus": [],
         "saveModifiers": [],
-        "saveOutcomeOverrides": []
+        "saveOutcomeOverrides": [
+          {
+            "outcome": "auto_success",
+            "condition": "creature_does_not_sleep_or_has_exhaustion_immunity",
+            "reason": "Creatures that do not sleep, such as elves, or that have Immunity to Exhaustion automatically succeed on saves against this spell."
+          }
+        ]
       },
       "statusCondition": {
         "name": "Incapacitated",
@@ -230,7 +236,13 @@
           "Incapacitated"
         ],
         "saveModifiers": [],
-        "saveOutcomeOverrides": []
+        "saveOutcomeOverrides": [
+          {
+            "outcome": "auto_success",
+            "condition": "creature_does_not_sleep_or_has_exhaustion_immunity",
+            "reason": "Creatures that do not sleep, such as elves, or that have Immunity to Exhaustion automatically succeed on saves against this spell."
+          }
+        ]
       },
       "statusCondition": {
         "name": "Unconscious",
@@ -245,6 +257,12 @@
         ]
       },
       "description": "If a creature Incapacitated by this spell fails the repeat Wisdom save at the end of its next turn, it becomes Unconscious for the spell's duration.",
+      "stateProgression": {
+        "from": "Incapacitated",
+        "trigger": "failed_end_of_next_turn_wisdom_save",
+        "to": "Unconscious",
+        "duration": "spell_duration"
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -255,8 +273,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Ask the caster to place the 5-foot-radius sphere and choose which creatures in it are affected; skip targets that do not sleep or have Exhaustion immunity because they automatically succeed, then prompt the initial and repeat Wisdom saves.",
+    "playerInputRequired": true
   },
   "description": "Each creature of your choice in a 5-foot-radius Sphere centered on a point within range must succeed on a Wisdom saving throw or have the Incapacitated condition until the end of its next turn, at which point it must repeat the save. If the target fails the second save, the target has the Unconscious condition for the duration. The spell ends on a target if it takes damage or someone within 5 feet of it takes an action to shake it out of the spell's effect. Creatures that don't sleep, such as elves, or that have Immunity to the Exhaustion condition automatically succeed on saves against this spell.",
   "higherLevels": "",

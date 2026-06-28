@@ -225,6 +225,18 @@
           "value": 1
         },
         "level": 0,
+        "attackRollModifier": {
+          "dice": "-1d6",
+          "appliesTo": "all_attack_rolls"
+        },
+        "abilityCheckModifier": {
+          "dice": "-1d6",
+          "appliesTo": "all_ability_checks"
+        },
+        "savingThrowModifier": {
+          "dice": "-1d6",
+          "appliesTo": "Constitution_saves_to_maintain_concentration"
+        },
         "escapeCheck": {
           "dc": 0,
           "actionCost": "action"
@@ -247,8 +259,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose the 20-foot-radius sphere point, exclude creatures with Intelligence 2 or lower, resolve the Intelligence save for damage, then apply Muddled Thoughts on failed saves with -1d6 to attack rolls, ability checks, and Constitution saves for concentration until an end-of-turn Intelligence save succeeds.",
+    "playerInputRequired": true
   },
   "description": "You choose a point within range and cause psychic energy to explode there. Each creature in a 20-foot-radius sphere centered on that point must make an Intelligence saving throw. A creature with an Intelligence score of 2 or lower can't be affected by this spell. A target takes 8d6 psychic damage on a failed save, or half as much damage on a successful one. After a failed save, a target has muddled thoughts for 1 minute. During that time, it rolls a d6 and subtracts the number rolled from all its attack rolls and ability checks, as well as its Constitution saving throws to maintain concentration. The target can make an Intelligence saving throw at the end of each of its turns, ending the effect on itself on a success.",
   "higherLevels": "",

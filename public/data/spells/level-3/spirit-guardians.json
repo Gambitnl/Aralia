@@ -1,164 +1,266 @@
-{
-  "id": "spirit-guardians",
-  "name": "Spirit Guardians",
-  "aliases": [],
-  "level": 3,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Cleric"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a prayer scroll",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Emanation",
-      "size": 15,
-      "sizeUnit": "feet",
-      "followsCaster": true
-    },
-    "range": 0,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Wisdom",
-        "saveEffect": "half",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "3d8",
-        "type": "Radiant/Necrotic"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+1d8",
-        "customFormula": ""
-      },
-      "description": "Creatures in the 15-foot Emanation that follows the caster make a Wisdom save, taking 3d8 Radiant or Necrotic damage on a failed save or half as much on a success; damage increases by +1d8 per slot level above 3.",
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "Protective spirits flit around you in a 15-foot Emanation for the duration. If you are good or neutral, their spectral form appears angelic or fey (your choice). If you are evil, they appear fiendish. When you cast this spell, you can designate creatures to be unaffected by it. Any other creature's Speed is halved in the Emanation, and whenever the Emanation enters a creature's space and whenever a creature enters the Emanation or ends its turn there, the creature must make a Wisdom saving throw. On a failed save, the creature takes 3d8 Radiant damage (if you are good or neutral) or 3d8 Necrotic damage (if you are evil). On a successful save, the creature takes half as much damage. A creature makes this save only once per turn.",
-  "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 3.",
-  "tags": [
-    "concentration"
-  ]
+﻿{
+    "id":  "spirit-guardians",
+    "name":  "Spirit Guardians",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Cleric"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a prayer scroll",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Emanation",
+                                           "size":  15,
+                                           "sizeUnit":  "feet",
+                                           "followsCaster":  true
+                                       },
+                      "range":  0,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "designationEligibility":  {
+                                                                    "timing":  "when_cast",
+                                                                    "designatedCreaturesAreUnaffected":  true,
+                                                                    "defaultAffectedTargets":  "creatures_not_designated_by_caster",
+                                                                    "notes":  "The caster can designate creatures to ignore the emanation; all other qualifying creatures remain affected."
+                                                                }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "emanation_entry_or_turn_end",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "areaTiming":  [
+                                                           "emanation_enters_creature_space",
+                                                           "creature_enters_emanation",
+                                                           "creature_ends_turn_in_emanation"
+                                                       ],
+                                        "oncePerTurn":  true,
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "half",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "speedChange":  {
+                                            "multiplier":  0.5,
+                                            "movementTypes":  [
+                                                                  "all"
+                                                              ],
+                                            "area":  "15-foot Emanation",
+                                            "duration":  {
+                                                             "type":  "minutes",
+                                                             "value":  10
+                                                         }
+                                        },
+                        "damage":  {
+                                       "dice":  "3d8",
+                                       "type":  "Radiant/Necrotic"
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+1d8",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Creatures in the 15-foot Emanation that follows the caster make a Wisdom save, taking 3d8 Radiant or Necrotic damage on a failed save or half as much on a success; damage increases by +1d8 per slot level above 3.",
+                        "conditionalEndings":  [
+
+                                               ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Designate unaffected creatures, choose the spirit form/damage mode, halve other creatures\u0027 Speed while they are in the 15-foot Emanation, and resolve the once-per-turn Wisdom save when the Emanation enters a creature\u0027s space, a creature enters it, or a creature ends its turn there.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  3,
+                       "optionsSource":  "modeChoice.options",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Angelic Spirits",
+                                           "summary":  "Good or neutral caster option: spirits appear angelic and the spell\u0027s damage remains Radiant.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "10 minutes with concentration",
+                                           "notes":  "Only available for good or neutral casters."
+                                       },
+                                       {
+                                           "label":  "Fey Spirits",
+                                           "summary":  "Good or neutral caster option: spirits appear fey and the spell\u0027s damage remains Radiant.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "10 minutes with concentration",
+                                           "notes":  "Only available for good or neutral casters."
+                                       },
+                                       {
+                                           "label":  "Fiendish Spirits",
+                                           "summary":  "Evil caster option: spirits appear fiendish and the spell\u0027s damage is Necrotic.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "10 minutes with concentration",
+                                           "notes":  "Used for evil casters; this is alignment-determined rather than freely selectable."
+                                       }
+                                   ],
+                       "notes":  "Caster alignment gates which spectral form and damage type apply. The unaffected-creature designation is separate target exclusion input and still needs runtime binding."
+                   },
+    "description":  "Protective spirits flit around you in a 15-foot Emanation for the duration. If you are good or neutral, their spectral form appears angelic or fey (your choice). If you are evil, they appear fiendish. When you cast this spell, you can designate creatures to be unaffected by it. Any other creature\u0027s Speed is halved in the Emanation, and whenever the Emanation enters a creature\u0027s space and whenever a creature enters the Emanation or ends its turn there, the creature must make a Wisdom saving throw. On a failed save, the creature takes 3d8 Radiant damage (if you are good or neutral) or 3d8 Necrotic damage (if you are evil). On a successful save, the creature takes half as much damage. A creature makes this save only once per turn.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 3.",
+    "tags":  [
+                 "concentration"
+             ]
 }
+

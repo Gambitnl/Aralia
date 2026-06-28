@@ -1,315 +1,439 @@
 {
-  "id": "motivational-speech",
-  "name": "Motivational Speech",
-  "aliases": [],
-  "level": 3,
-  "school": "Enchantment",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Cleric"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": false,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": false,
-    "value": 1,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "multi",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 5,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "description": "Choose up to five creatures within 60 feet that can hear the 1-minute speech; each gains 5 Temporary Hit Points for up to 1 hour, +5 Temporary Hit Points per slot level above 3, and the spell ends for a creature when those Temporary Hit Points are lost.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+5 Temporary Hit Points per slot level above 3rd",
-        "customFormula": "A 4th-level or higher spell slot increases the Temporary Hit Points by 5 for each spell slot level above 3rd."
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "temporary_hit_points_depleted",
-          "scope": "effect",
-          "description": "The spell ends for an affected creature when that creature loses the Temporary Hit Points granted by this spell."
-        }
-      ],
-      "defenseType": "temporary_hp",
-      "value": 5,
-      "duration": {
-        "type": "minutes",
-        "value": 60
-      }
-    },
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "description": "While a creature keeps the Temporary Hit Points from Motivational Speech, it has Advantage on Wisdom saving throws for up to 1 hour.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "temporary_hit_points_depleted",
-          "scope": "effect",
-          "description": "The spell ends for an affected creature when that creature loses the Temporary Hit Points granted by this spell."
-        }
-      ],
-      "defenseType": "advantage_on_saves",
-      "duration": {
-        "type": "minutes",
-        "value": 60
-      },
-      "savingThrow": [
-        "Wisdom"
-      ]
-    },
-    {
-      "type": "ATTACK_ROLL_MODIFIER",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "description": "After a creature affected by Motivational Speech is hit by an attack, it has Advantage on the next attack roll it makes while the spell remains active for that creature.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "temporary_hit_points_depleted",
-          "scope": "effect",
-          "description": "The spell ends for an affected creature when that creature loses the Temporary Hit Points granted by this spell."
-        }
-      ],
-      "attackRollModifier": {
-        "modifier": "advantage",
-        "direction": "outgoing",
-        "attackKind": "any",
-        "consumption": "next_attack",
-        "duration": {
-          "type": "minutes",
-          "value": 60
-        }
-      }
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You address allies, staff, or innocent bystanders to exhort and inspire them to greatness, whether they have anything to get excited about or not. Choose up to five creatures within range that can hear you. For the duration, each affected creature gains 5 temporary hit points and has advantage on Wisdom saving throws. If an affected creature is hit by an attack, it has advantage on the next attack roll it makes. Once an affected creature loses the temporary hit points granted by this spell, the spell ends for that creature.",
-  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, the Temporary Hit Points increase by 5 for each slot level above 3rd.",
-  "tags": [
-    "buff",
-    "enchantment",
-    "temporary_hp"
-  ]
+    "id":  "motivational-speech",
+    "name":  "Motivational Speech",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Enchantment",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Cleric"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  false,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  false,
+                     "value":  1,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "multi",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  5,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "description":  "Choose up to five creatures within 60 feet that can hear the 1-minute speech; each gains 5 Temporary Hit Points for up to 1 hour, +5 Temporary Hit Points per slot level above 3, and the spell ends for a creature when those Temporary Hit Points are lost.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+5 Temporary Hit Points per slot level above 3rd",
+                                        "customFormula":  "A 4th-level or higher spell slot increases the Temporary Hit Points by 5 for each spell slot level above 3rd."
+                                    },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "temporary_hit_points_depleted",
+                                                       "scope":  "effect",
+                                                       "description":  "The spell ends for an affected creature when that creature loses the Temporary Hit Points granted by this spell."
+                                                   }
+                                               ],
+                        "defenseType":  "temporary_hp",
+                        "value":  5,
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  60
+                                     },
+                        "socialEffect":  {
+                                             "inspirationalAddressTargets":  [
+                                                                                 "allies",
+                                                                                 "staff",
+                                                                                 "innocent_bystanders"
+                                                                             ],
+                                             "requiresTargetsCanHearSpeech":  true,
+                                             "temporaryHitPointsGateOtherBenefits":  true,
+                                             "endsForTargetWhenTemporaryHitPointsLost":  true,
+                                             "notes":  "Motivational Speech works through an exhorting speech and its later Wisdom-save and attack benefits last only while the target keeps the temporary hit points."
+                                         },
+                        "visionLightSound":  {
+                                                 "mode":  "audible_inspiring_speech",
+                                                 "delivery":  "caster addresses allies, staff, or bystanders for a 1-minute speech",
+                                                 "targetEligibility":  "up to five creatures within range that can hear the caster",
+                                                 "durationLink":  "benefits last while the speech-granted Temporary Hit Points remain",
+                                                 "soundPayload":  "spoken exhortation is required for targeting"
+                                             },
+                        "hitPointState":  {
+                                              "kind":  "temporary_hit_points",
+                                              "amount":  5,
+                                              "scalingPerSlotAboveBase":  5,
+                                              "baseSlotLevel":  3,
+                                              "ending":  "spell_benefits_end_for_a_creature_when_it_loses_these_temporary_hit_points"
+                                          },
+                        "temporaryHitPoints":  {
+                                                   "amount":  5,
+                                                   "scaling":  "plus_5_per_slot_level_above_3",
+                                                   "targets":  "up_to_five_creatures_that_can_hear_the_speech",
+                                                   "duration":  "up_to_1_hour",
+                                                   "lossEndsSpellForCreature":  true
+                                               }
+                    },
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "description":  "While a creature keeps the Temporary Hit Points from Motivational Speech, it has Advantage on Wisdom saving throws for up to 1 hour.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "temporary_hit_points_depleted",
+                                                       "scope":  "effect",
+                                                       "description":  "The spell ends for an affected creature when that creature loses the Temporary Hit Points granted by this spell."
+                                                   }
+                                               ],
+                        "defenseType":  "advantage_on_saves",
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  60
+                                     },
+                        "savingThrow":  [
+                                            "Wisdom"
+                                        ],
+                        "visionLightSound":  {
+                                                 "mode":  "audible_inspiring_speech",
+                                                 "delivery":  "caster addresses allies, staff, or bystanders for a 1-minute speech",
+                                                 "targetEligibility":  "up to five creatures within range that can hear the caster",
+                                                 "durationLink":  "benefits last while the speech-granted Temporary Hit Points remain",
+                                                 "soundPayload":  "spoken exhortation is required for targeting"
+                                             },
+                        "hitPointState":  {
+                                              "mode":  "grant_temporary_hit_points_with_depletion_ending",
+                                              "baseTemporaryHitPoints":  5,
+                                              "scaling":  "+5 Temporary Hit Points per spell slot level above 3",
+                                              "targetCount":  5,
+                                              "ending":  "spell benefits end for a creature when it loses the Temporary Hit Points granted by this spell",
+                                              "isTemporaryHp":  true
+                                          }
+                    },
+                    {
+                        "type":  "ATTACK_ROLL_MODIFIER",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "description":  "After a creature affected by Motivational Speech is hit by an attack, it has Advantage on the next attack roll it makes while the spell remains active for that creature.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "temporary_hit_points_depleted",
+                                                       "scope":  "effect",
+                                                       "description":  "The spell ends for an affected creature when that creature loses the Temporary Hit Points granted by this spell."
+                                                   }
+                                               ],
+                        "attackRollModifier":  {
+                                                   "modifier":  "advantage",
+                                                   "direction":  "outgoing",
+                                                   "attackKind":  "any",
+                                                   "consumption":  "next_attack",
+                                                   "duration":  {
+                                                                    "type":  "minutes",
+                                                                    "value":  60
+                                                                }
+                                               },
+                        "visionLightSound":  {
+                                                 "mode":  "audible_inspiring_speech",
+                                                 "delivery":  "caster addresses allies, staff, or bystanders for a 1-minute speech",
+                                                 "targetEligibility":  "up to five creatures within range that can hear the caster",
+                                                 "durationLink":  "benefits last while the speech-granted Temporary Hit Points remain",
+                                                 "soundPayload":  "spoken exhortation is required for targeting"
+                                             },
+                        "hitPointState":  {
+                                              "mode":  "grant_temporary_hit_points_with_depletion_ending",
+                                              "baseTemporaryHitPoints":  5,
+                                              "scaling":  "+5 Temporary Hit Points per spell slot level above 3",
+                                              "targetCount":  5,
+                                              "ending":  "spell benefits end for a creature when it loses the Temporary Hit Points granted by this spell",
+                                              "isTemporaryHp":  true
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose up to five hearing creatures; while each keeps the granted Temporary Hit Points, apply Advantage on Wisdom saves and grant Advantage on that creature\u0027s next attack roll after it is hit by an attack.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You address allies, staff, or innocent bystanders to exhort and inspire them to greatness, whether they have anything to get excited about or not. Choose up to five creatures within range that can hear you. For the duration, each affected creature gains 5 temporary hit points and has advantage on Wisdom saving throws. If an affected creature is hit by an attack, it has advantage on the next attack roll it makes. Once an affected creature loses the temporary hit points granted by this spell, the spell ends for that creature.",
+    "higherLevels":  "When you cast this spell using a spell slot of 4th level or higher, the Temporary Hit Points increase by 5 for each slot level above 3rd.",
+    "tags":  [
+                 "buff",
+                 "enchantment",
+                 "temporary_hp"
+             ]
 }

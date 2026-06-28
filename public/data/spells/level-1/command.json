@@ -1,227 +1,279 @@
 {
-  "id": "command",
-  "name": "Command",
-  "aliases": [],
-  "level": 1,
-  "school": "Enchantment",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Cleric",
-    "Paladin"
-  ],
-  "subClasses": [
-    "Sorcerer - Draconic Sorcery",
-    "Warlock - Fiend Patron"
-  ],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": false,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Wisdom",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+1 target",
-        "customFormula": ""
-      },
-      "utilityType": "control",
-      "description": "One visible creature within 60 feet that fails a Wisdom save follows the chosen one-word command on its next turn only: Approach moves by the shortest direct route toward you and ends if within 5 feet, Drop releases held items and ends its turn, Flee moves away by the fastest available means, Grovel becomes Prone and ends its turn, or Halt does not move and takes no action or Bonus Action. Higher-level slots add one target per slot level above 1.",
-      "controlOptions": [
-        {
-          "name": "Approach",
-          "effect": "approach",
-          "details": "Target moves toward you by the shortest and most direct route, ending its turn if it moves within 5 feet of you."
-        },
-        {
-          "name": "Drop",
-          "effect": "drop",
-          "details": "Target drops whatever it is holding and then ends its turn."
-        },
-        {
-          "name": "Flee",
-          "effect": "flee",
-          "details": "Target spends its turn moving away from you by the fastest available means."
-        },
-        {
-          "name": "Grovel",
-          "effect": "grovel",
-          "details": "Target has the Prone condition and then ends its turn.",
-          "statusCondition": {
-            "name": "Prone",
-            "duration": {
-              "type": "rounds",
-              "value": 1
-            },
-            "level": 0
-          }
-        },
-        {
-          "name": "Halt",
-          "effect": "halt",
-          "details": "On its turn, the target doesn't move and takes no action or Bonus Action."
-        }
-      ],
-      "grantedActions": [],
-      "attackAugments": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "Choose one command option before casting: Approach, Drop, Flee, Grovel, or Halt.",
-    "playerInputRequired": true
-  },
-  "description": "You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. Choose the command from these options: Approach. The target moves toward you by the shortest and most direct route, ending its turn if it moves within 5 feet of you. Drop. The target drops whatever it is holding and then ends its turn. Flee. The target spends its turn moving away from you by the fastest available means. Grovel. The target has the Prone condition and then ends its turn. Halt. On its turn, the target doesn't move and takes no action or Bonus Action.",
-  "higherLevels": "Using a Higher-Level Spell Slot. You can affect one additional creature for each spell slot level above 1.",
-  "tags": [
-    "control",
-    "enchantment"
-  ]
+    "id":  "command",
+    "name":  "Command",
+    "aliases":  [
+
+                ],
+    "level":  1,
+    "school":  "Enchantment",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Cleric",
+                    "Paladin"
+                ],
+    "subClasses":  [
+                       "Sorcerer - Draconic Sorcery",
+                       "Warlock - Fiend Patron"
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  false,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "instantaneous",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+1 target",
+                                        "customFormula":  ""
+                                    },
+                        "utilityType":  "control",
+                        "description":  "One visible creature within 60 feet that fails a Wisdom save follows the chosen one-word command on its next turn only: Approach moves by the shortest direct route toward you and ends if within 5 feet, Drop releases held items and ends its turn, Flee moves away by the fastest available means, Grovel becomes Prone and ends its turn, or Halt does not move and takes no action or Bonus Action. Higher-level slots add one target per slot level above 1.",
+                        "statusStateOptions":  [
+                                                   {
+                                                       "command":  "Grovel",
+                                                       "condition":  "Prone",
+                                                       "appliesOn":  "failed_wisdom_save",
+                                                       "duration":  "target_next_turn_until_it_ends_turn"
+                                                   }
+                                               ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Approach",
+                                                   "effect":  "approach",
+                                                   "details":  "Target moves toward you by the shortest and most direct route, ending its turn if it moves within 5 feet of you."
+                                               },
+                                               {
+                                                   "name":  "Drop",
+                                                   "effect":  "drop",
+                                                   "details":  "Target drops whatever it is holding and then ends its turn."
+                                               },
+                                               {
+                                                   "name":  "Flee",
+                                                   "effect":  "flee",
+                                                   "details":  "Target spends its turn moving away from you by the fastest available means."
+                                               },
+                                               {
+                                                   "name":  "Grovel",
+                                                   "effect":  "grovel",
+                                                   "details":  "Target has the Prone condition and then ends its turn.",
+                                                   "statusCondition":  {
+                                                                           "name":  "Prone",
+                                                                           "duration":  {
+                                                                                            "type":  "rounds",
+                                                                                            "value":  1
+                                                                                        },
+                                                                           "level":  0
+                                                                       }
+                                               },
+                                               {
+                                                   "name":  "Halt",
+                                                   "effect":  "halt",
+                                                   "details":  "On its turn, the target doesn\u0027t move and takes no action or Bonus Action."
+                                               }
+                                           ],
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "communicationDetails":  {
+                                                     "mode":  "spoken_command",
+                                                     "wordLimit":  1,
+                                                     "targetMustSeeCaster":  true,
+                                                     "languageRequirement":  "target must understand the one-word command unless another rule overrides comprehension",
+                                                     "commandTiming":  "target follows the command on its next turn after failed Wisdom save",
+                                                     "notes":  "Command is a control effect delivered through a spoken one-word instruction."
+                                                 }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose one command option before casting: Approach, Drop, Flee, Grovel, or Halt.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. Choose the command from these options: Approach. The target moves toward you by the shortest and most direct route, ending its turn if it moves within 5 feet of you. Drop. The target drops whatever it is holding and then ends its turn. Flee. The target spends its turn moving away from you by the fastest available means. Grovel. The target has the Prone condition and then ends its turn. Halt. On its turn, the target doesn\u0027t move and takes no action or Bonus Action.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. You can affect one additional creature for each spell slot level above 1.",
+    "tags":  [
+                 "control",
+                 "enchantment"
+             ]
 }

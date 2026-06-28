@@ -111,6 +111,16 @@ export class DamageCommand extends BaseEffectCommand {
       this.emitSpellAttackHitEvent(caster, target, isCritical);
       let damageRoll = this.rollDamage(this.effect.damage.dice, isCritical, minRoll);
 
+      // Some spell payloads deliberately resolve as a fraction of the rolled
+      // damage before any mitigation is applied. Lightning Arrow's missed
+      // attack rider is the first shared runtime use: it rolls the normal
+      // primary damage, halves that roll, then still needs the standard
+      // resistance, immunity, temporary HP, death-save, elemental-state, and
+      // concentration handling below.
+      if (typeof this.context.damageMultiplier === 'number') {
+        damageRoll = Math.max(0, Math.floor(damageRoll * this.context.damageMultiplier));
+      }
+
       // --- RACIAL TRAIT: Savage Attacks (Half-Orc) ---
       // If melee weapon attack and critical hit, roll one extra damage die
       // Following the 5e rules, Savage Attacks applies to a melee weapon attack.

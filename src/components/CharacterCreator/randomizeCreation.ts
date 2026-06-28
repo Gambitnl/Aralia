@@ -26,6 +26,7 @@ import { CLASSES_DATA, WEAPONS_DATA } from '../../constants';
 import { ACTIVE_RACES } from '../../data/races';
 import { getRacialSpellCastingAbilityChoiceForRace } from '../../data/races';
 import { BACKGROUNDS } from '../../data/backgrounds';
+import { RACE_NAMES } from '../../data/names/raceNames';
 import { FEATS_DATA } from '../../data/feats/featsData';
 import { SKILLS_DATA } from '../../data/skills';
 import { evaluateFeatPrerequisites, getAbilityModifierValue } from '../../utils/characterUtils';
@@ -143,6 +144,16 @@ const DEFAULT_TOOLS = [
   'poisoners_kit',
   'thieves_tools',
 ] as const;
+
+function randomCharacterName(raceId: string, gender: 'Male' | 'Female', rng: RandomNumberGenerator): string {
+  // Use the same data-driven name banks as NPC generation, falling back to the
+  // human pool for races that have no dedicated names yet.
+  const raceData = RACE_NAMES[raceId] ?? RACE_NAMES.human;
+  const firstNames = gender === 'Female' ? raceData.female : raceData.male;
+  const firstName = pickOne(firstNames, rng, `${raceId} first name`);
+  const surname = pickOne(raceData.surnames, rng, `${raceId} surname`);
+  return `${firstName} ${surname}`;
+}
 
 function buildRaceChoices(race: Race, rng: RandomNumberGenerator): RacialChoiceData {
   const choices: RacialChoiceData = {};
@@ -498,8 +509,8 @@ function randomEligibleFeat(state: CharacterCreationState, rng: RandomNumberGene
 // Plan Assembly
 // ============================================================================
 // This is the only exported behavior the button needs. It starts with a full
-// reset, walks the canonical step order, and stores the blank name so the final
-// review screen remains editable.
+// reset, walks the canonical step order, and fills a race/gender-appropriate
+// name so the review screen is immediately submittable (still editable).
 // ============================================================================
 
 export function randomizeCreation(input: RandomizeCreationInput): RandomizedCreationPlan {
@@ -521,7 +532,8 @@ export function randomizeCreation(input: RandomizeCreationInput): RandomizedCrea
   dispatch({ type: 'SET_STEP', payload: CreationStep.BackgroundSelection });
   dispatch({ type: 'SELECT_BACKGROUND', payload: pickOne(Object.keys(BACKGROUNDS), rng, 'background') });
   dispatch({ type: 'SET_STEP', payload: CreationStep.Visuals });
-  dispatch({ type: 'SELECT_VISUALS', payload: { gender: pickOne(['Male', 'Female'] as const, rng, 'appearance gender') } });
+  const gender = pickOne(['Male', 'Female'] as const, rng, 'appearance gender');
+  dispatch({ type: 'SELECT_VISUALS', payload: { gender } });
   dispatch({ type: 'SET_STEP', payload: CreationStep.Class });
 
   const charClass = pickOne(Object.values(CLASSES_DATA), rng, 'class');
@@ -583,7 +595,10 @@ export function randomizeCreation(input: RandomizeCreationInput): RandomizedCrea
     dispatch({ type: 'SET_STEP', payload: CreationStep.NameAndReview });
   }
 
-  dispatch({ type: 'SET_CHARACTER_NAME', payload: '' });
+  // Fill a race/gender-appropriate name so the review screen's "Begin Adventure"
+  // is immediately actionable. The field stays editable for players who want to
+  // rename.
+  dispatch({ type: 'SET_CHARACTER_NAME', payload: randomCharacterName(race.id, gender, rng) });
 
   return { actions, state };
 }

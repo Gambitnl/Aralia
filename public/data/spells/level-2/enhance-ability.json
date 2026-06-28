@@ -169,6 +169,23 @@
       },
       "utilityType": "other",
       "description": "Choose Strength, Dexterity, Intelligence, Wisdom, or Charisma. For the duration, the target has Advantage on ability checks using the chosen ability.",
+      "abilityCheckModifier": {
+        "appliesTo": "ability_check",
+        "bonusDice": "",
+        "flatModifier": "advantage",
+        "skillSelection": "chosen_ability",
+        "skillChooser": "caster_per_target",
+        "skillPool": [
+          "Strength",
+          "Dexterity",
+          "Intelligence",
+          "Wisdom",
+          "Charisma"
+        ],
+        "frequency": "every_matching_check",
+        "durationScope": "while_active",
+        "notes": "Each selected target can receive a different ability choice, and has Advantage on ability checks using that chosen ability."
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -209,8 +226,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Ask the caster to choose the touched target or higher-slot targets and choose Strength, Dexterity, Intelligence, Wisdom, or Charisma separately for each target; each target gains Advantage on ability checks using its chosen ability.",
+    "playerInputRequired": true
   },
   "description": "You touch a creature and choose Strength, Dexterity, Intelligence, Wisdom, or Charisma. For the duration, the target has Advantage on ability checks using the chosen ability.",
   "higherLevels": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 2. You can choose a different ability for each target.",

@@ -1,287 +1,385 @@
 {
-  "id": "mass-polymorph",
-  "name": "Mass Polymorph",
-  "aliases": [],
-  "level": 9,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a caterpillar cocoon",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 1,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "multi",
-    "range": 120,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 10,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Transform up to ten visible creatures within 120 feet into Beast forms you choose for up to 1 hour with concentration. Unwilling targets make Wisdom saves, unwilling shapechangers automatically succeed, eligible forms must be Beasts you have seen within the spell CR or half-level limits, and targets keep Hit Points, alignment, and personality while the chosen form supplies statistics, action limits, speech, spellcasting, hands use, gear access, and reversion timing.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Up to ten creatures",
-          "effect": "The caster transforms up to ten chosen creatures they can see within range."
-        },
-        {
-          "name": "Unwilling save",
-          "effect": "An unwilling target makes a Wisdom save to resist the transformation."
-        },
-        {
-          "name": "Shapechanger auto success",
-          "effect": "An unwilling shapechanger automatically succeeds on the save."
-        },
-        {
-          "name": "Beast form choice",
-          "effect": "Each target assumes a beast form the caster has seen, with CR no higher than the target CR or half the target level.",
-          "details": "The caster can choose the same beast form or different forms for each target."
-        },
-        {
-          "name": "Stat replacement",
-          "effect": "The beast form replaces the target game statistics, including mental ability scores, while hit points, alignment, and personality remain."
-        },
-        {
-          "name": "Temporary hit points",
-          "effect": "Each target gains temporary hit points equal to the new form hit points, and those temporary hit points cannot be replaced by another source."
-        },
-        {
-          "name": "Reversion",
-          "effect": "A target reverts when it has no temporary hit points, dies, or the spell ends; if the spell ends first, the temporary hit points are lost."
-        },
-        {
-          "name": "Action and communication limits",
-          "effect": "The creature is limited by the new form and cannot speak, cast spells, or do anything requiring hands or speech."
-        },
-        {
-          "name": "Gear meld",
-          "effect": "The target gear melds into the new form and cannot be activated, used, wielded, or otherwise provide benefit."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "Each Mass Polymorph target gains temporary hit points equal to the chosen Beast form Hit Points, and those temporary hit points cannot be replaced by another source.",
-      "defenseType": "temporary_hp",
-      "duration": {
-        "type": "special"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "Ask the caster to choose up to ten target creatures, identify unwilling targets and shapechangers, and choose eligible beast forms the caster has seen for each target.",
-    "playerInputRequired": true
-  },
-  "description": "You transform up to ten creatures of your choice that you can see within range. An unwilling target must succeed on a Wisdom saving throw to resist the transformation. An unwilling shapechanger automatically succeeds on the save. Each target assumes a beast form of your choice, and you can choose the same form or different ones for each target. The new form can be any beast you have seen whose challenge rating is equal to or less than the target's (or half the target's level, if the target doesn't have a challenge rating). The target's game statistics, including mental ability scores, are replaced by the statistics of the chosen beast, but the target retains its hit points, alignment, and personality. Each target gains a number of temporary hit points equal to the hit points of its new form. These temporary hit points can't be replaced by temporary hit points from another source. A target reverts to its normal form when it has no more temporary hit points or it dies. If the spell ends before then, the creature loses all its temporary hit points and reverts to its normal form. The creature is limited in the actions it can perform by the nature of its new form. It can't speak, cast spells, or do anything else that requires hands or speech. The target's gear melds into the new form. The target can't activate, use, wield, or otherwise benefit from any of its equipment.",
-  "higherLevels": "",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "mass-polymorph",
+    "name":  "Mass Polymorph",
+    "aliases":  [
+
+                ],
+    "level":  9,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a caterpillar cocoon",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  1,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "multi",
+                      "range":  120,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  10,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Transform up to ten visible creatures within 120 feet into Beast forms you choose for up to 1 hour with concentration. Unwilling targets make Wisdom saves, unwilling shapechangers automatically succeed, eligible forms must be Beasts you have seen within the spell CR or half-level limits, and targets keep Hit Points, alignment, and personality while the chosen form supplies statistics, action limits, speech, spellcasting, hands use, gear access, and reversion timing.",
+                        "transformationSave":  {
+                                                   "saveType":  "Wisdom",
+                                                   "appliesTo":  "unwilling_targets",
+                                                   "success":  "The target resists the transformation.",
+                                                   "failure":  "The target assumes the chosen Beast form.",
+                                                   "autoSuccess":  "Unwilling shapechangers automatically succeed."
+                                               },
+                        "statReplacement":  {
+                                                "replacedByBeastForm":  [
+                                                                            "game_statistics",
+                                                                            "mental_ability_scores",
+                                                                            "actions_available"
+                                                                        ],
+                                                "retainedFromTarget":  [
+                                                                           "hit_points",
+                                                                           "alignment",
+                                                                           "personality"
+                                                                       ]
+                                            },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Up to ten creatures",
+                                                   "effect":  "The caster transforms up to ten chosen creatures they can see within range."
+                                               },
+                                               {
+                                                   "name":  "Unwilling save",
+                                                   "effect":  "An unwilling target makes a Wisdom save to resist the transformation."
+                                               },
+                                               {
+                                                   "name":  "Shapechanger auto success",
+                                                   "effect":  "An unwilling shapechanger automatically succeeds on the save."
+                                               },
+                                               {
+                                                   "name":  "Beast form choice",
+                                                   "effect":  "Each target assumes a beast form the caster has seen, with CR no higher than the target CR or half the target level.",
+                                                   "details":  "The caster can choose the same beast form or different forms for each target."
+                                               },
+                                               {
+                                                   "name":  "Stat replacement",
+                                                   "effect":  "The beast form replaces the target game statistics, including mental ability scores, while hit points, alignment, and personality remain."
+                                               },
+                                               {
+                                                   "name":  "Temporary hit points",
+                                                   "effect":  "Each target gains temporary hit points equal to the new form hit points, and those temporary hit points cannot be replaced by another source."
+                                               },
+                                               {
+                                                   "name":  "Reversion",
+                                                   "effect":  "A target reverts when it has no temporary hit points, dies, or the spell ends; if the spell ends first, the temporary hit points are lost."
+                                               },
+                                               {
+                                                   "name":  "Action and communication limits",
+                                                   "effect":  "The creature is limited by the new form and cannot speak, cast spells, or do anything requiring hands or speech."
+                                               },
+                                               {
+                                                   "name":  "Gear meld",
+                                                   "effect":  "The target gear melds into the new form and cannot be activated, used, wielded, or otherwise provide benefit."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "transformationState":  {
+                                                    "mode":  "multi_target_beast_form_temporary_hit_points",
+                                                    "targetCount":  10,
+                                                    "statisticsReplacement":  "chosen Beast statistics replace target game statistics including mental ability scores while retaining hit points, alignment, and personality",
+                                                    "temporaryHitPoints":  "equal to chosen Beast form Hit Points",
+                                                    "tempHpCannotBeReplaced":  true,
+                                                    "reversion":  "target reverts when it has no more Temporary Hit Points, dies, or spell ends"
+                                                }
+                    },
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Each Mass Polymorph target gains temporary hit points equal to the chosen Beast form Hit Points, and those temporary hit points cannot be replaced by another source.",
+                        "defenseType":  "temporary_hp",
+                        "duration":  {
+                                         "type":  "special"
+                                     },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "transformationState":  {
+                                                    "mode":  "multi_target_beast_form_temporary_hit_points",
+                                                    "targetCount":  10,
+                                                    "statisticsReplacement":  "chosen Beast statistics replace target game statistics including mental ability scores while retaining hit points, alignment, and personality",
+                                                    "temporaryHitPoints":  "equal to chosen Beast form Hit Points",
+                                                    "tempHpCannotBeReplaced":  true,
+                                                    "reversion":  "target reverts when it has no more Temporary Hit Points, dies, or spell ends"
+                                                },
+                        "hitPointState":  {
+                                              "kind":  "temporary_hit_points_from_beast_form",
+                                              "amount":  "chosen_beast_form_hit_points",
+                                              "cannotBeReplacedByOtherTemporaryHitPoints":  true,
+                                              "cleanup":  "lost_when_spell_ends",
+                                              "ending":  "target_reverts_when_no_temporary_hit_points_remain_or_when_it_dies"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Ask the caster to choose up to ten target creatures, identify unwilling targets and shapechangers, and choose eligible beast forms the caster has seen for each target. Resolve Wisdom saves for unwilling non-shapechangers, auto-success for unwilling shapechangers, then track Beast-form stat replacement, temporary Hit Points that cannot be replaced, action/speech/hand limits, gear melding, and reversion.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You transform up to ten creatures of your choice that you can see within range. An unwilling target must succeed on a Wisdom saving throw to resist the transformation. An unwilling shapechanger automatically succeeds on the save. Each target assumes a beast form of your choice, and you can choose the same form or different ones for each target. The new form can be any beast you have seen whose challenge rating is equal to or less than the target\u0027s (or half the target\u0027s level, if the target doesn\u0027t have a challenge rating). The target\u0027s game statistics, including mental ability scores, are replaced by the statistics of the chosen beast, but the target retains its hit points, alignment, and personality. Each target gains a number of temporary hit points equal to the hit points of its new form. These temporary hit points can\u0027t be replaced by temporary hit points from another source. A target reverts to its normal form when it has no more temporary hit points or it dies. If the spell ends before then, the creature loses all its temporary hit points and reverts to its normal form. The creature is limited in the actions it can perform by the nature of its new form. It can\u0027t speak, cast spells, or do anything else that requires hands or speech. The target\u0027s gear melds into the new form. The target can\u0027t activate, use, wield, or otherwise benefit from any of its equipment.",
+    "higherLevels":  "",
+    "tags":  [
+                 "concentration"
+             ]
 }

@@ -1,225 +1,292 @@
 {
-  "id": "arcane-eye",
-  "name": "Arcane Eye",
-  "aliases": [],
-  "level": 4,
-  "school": "Divination",
-  "legacy": false,
-  "classes": [
-    "Artificer",
-    "Wizard"
-  ],
-  "subClasses": [
-    "Cleric - Light Domain",
-    "Sorcerer - Draconic Sorcery"
-  ],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a bit of bat fur",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "hour",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "point",
-    "range": 30,
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "spatialDetails": {
-      "measuredDetails": [
-        {
-          "label": "Eye Darkvision Range",
-          "kind": "distance",
-          "value": 30,
-          "unit": "feet",
-          "notes": "The eye can see in every direction with this Darkvision range."
-        },
-        {
-          "label": "Opening Allowance",
-          "kind": "opening",
-          "value": 1,
-          "unit": "inches",
-          "qualifier": "diameter",
-          "notes": "The eye can pass through an opening this small."
-        },
-        {
-          "label": "Move Distance",
-          "kind": "distance",
-          "value": 30,
-          "unit": "feet",
-          "notes": "As a Bonus Action, you can move the eye this far in any direction."
-        }
-      ]
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "sensory",
-      "description": "Creates an invisible invulnerable sensor with all-around vision, 30-foot Darkvision, mental visual feed to the caster, and bonus-action 30-foot movement through openings at least 1 inch wide.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [
-        {
-          "type": "bonus_action",
-          "action": "Move the eye up to 30 feet in any direction.",
-          "frequency": "while_active",
-          "notes": "A solid barrier blocks the eye's movement, but it can pass through an opening as small as 1 inch in diameter."
-        }
-      ],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You create an Invisible, invulnerable eye within range that hovers for the duration. You mentally receive visual information from the eye, which can see in every direction. It also has Darkvision with a range of 30 feet. As a Bonus Action, you can move the eye up to 30 feet in any direction. A solid barrier blocks the eye's movement, but the eye can pass through an opening as small as 1 inch in diameter.",
-  "higherLevels": "",
-  "tags": [
-    "divination",
-    "sensory",
-    "scouting",
-    "concentration"
-  ]
+    "id":  "arcane-eye",
+    "name":  "Arcane Eye",
+    "aliases":  [
+
+                ],
+    "level":  4,
+    "school":  "Divination",
+    "legacy":  false,
+    "classes":  [
+                    "Artificer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+                       "Cleric - Light Domain",
+                       "Sorcerer - Draconic Sorcery"
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a bit of bat fur",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "hour",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  30,
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet",
+                      "spatialDetails":  {
+                                             "measuredDetails":  [
+                                                                     {
+                                                                         "label":  "Eye Darkvision Range",
+                                                                         "kind":  "distance",
+                                                                         "value":  30,
+                                                                         "unit":  "feet",
+                                                                         "notes":  "The eye can see in every direction with this Darkvision range."
+                                                                     },
+                                                                     {
+                                                                         "label":  "Opening Allowance",
+                                                                         "kind":  "opening",
+                                                                         "value":  1,
+                                                                         "unit":  "inches",
+                                                                         "qualifier":  "diameter",
+                                                                         "notes":  "The eye can pass through an opening this small."
+                                                                     },
+                                                                     {
+                                                                         "label":  "Move Distance",
+                                                                         "kind":  "distance",
+                                                                         "value":  30,
+                                                                         "unit":  "feet",
+                                                                         "notes":  "As a Bonus Action, you can move the eye this far in any direction."
+                                                                     }
+                                                                 ]
+                                         }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "sensory",
+                        "description":  "Creates an invisible invulnerable sensor with all-around vision, 30-foot Darkvision, mental visual feed to the caster, and bonus-action 30-foot movement through openings at least 1 inch wide.",
+                        "sensorState":  {
+                                            "form":  "invisible_invulnerable_eye",
+                                            "hovering":  true,
+                                            "vision":  "all_directions",
+                                            "darkvisionFeet":  30,
+                                            "bonusActionMoveFeet":  30,
+                                            "minimumOpeningDiameterInches":  1,
+                                            "blockedBySolidBarrier":  true,
+                                            "description":  "The spell creates an Invisible, invulnerable, hovering eye sensor that can move through openings at least 1 inch wide and feed visual information to the caster."
+                                        },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "bonus_action",
+                                                   "action":  "Move the eye up to 30 feet in any direction.",
+                                                   "frequency":  "while_active",
+                                                   "notes":  "A solid barrier blocks the eye\u0027s movement, but it can pass through an opening as small as 1 inch in diameter."
+                                               }
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "visionLightSound":  {
+                                                 "mode":  "remote_visual_sensor",
+                                                 "sensorVisibility":  "Invisible",
+                                                 "sensorDurability":  "invulnerable",
+                                                 "visualFeed":  "caster mentally receives visual information",
+                                                 "visionArc":  "all directions",
+                                                 "darkvisionFeet":  30,
+                                                 "movement":  "bonus action moves eye up to 30 feet",
+                                                 "passageLimit":  "can pass through openings at least 1 inch in diameter",
+                                                 "blockedBy":  "solid barrier",
+                                                 "soundPayload":  "none"
+                                             },
+                        "movementState":  {
+                                              "kind":  "movable_remote_sensor",
+                                              "createdObject":  "Invisible_invulnerable_eye",
+                                              "hover":  true,
+                                              "moveCost":  "Bonus Action",
+                                              "moveDistance":  "up_to_30_feet_any_direction",
+                                              "blocker":  "solid_barrier_blocks_movement",
+                                              "opening":  "can_pass_through_opening_as_small_as_1_inch_diameter"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Create an Invisible, invulnerable hovering eye sensor. Track all-direction vision, 30-foot Darkvision, mental visual feed, and Bonus Action movement up to 30 feet through openings at least 1 inch wide.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You create an Invisible, invulnerable eye within range that hovers for the duration. You mentally receive visual information from the eye, which can see in every direction. It also has Darkvision with a range of 30 feet. As a Bonus Action, you can move the eye up to 30 feet in any direction. A solid barrier blocks the eye\u0027s movement, but the eye can pass through an opening as small as 1 inch in diameter.",
+    "higherLevels":  "",
+    "tags":  [
+                 "divination",
+                 "sensory",
+                 "scouting",
+                 "concentration"
+             ]
 }

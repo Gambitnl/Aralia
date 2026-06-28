@@ -1,183 +1,256 @@
 {
-  "id": "dominate-beast",
-  "name": "Dominate Beast",
-  "aliases": [],
-  "level": 4,
-  "school": "Enchantment",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Ranger",
-    "Sorcerer"
-  ],
-  "subClasses": [
-    "Warlock - Archfey Patron"
-  ],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "single",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [
-        "Beast"
-      ],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Wisdom",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [
-            "Beast"
-          ],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [
-          {
-            "type": "advantage",
-            "reason": "The target has Advantage on the Wisdom saving throw if the caster or the caster's allies are fighting it."
-          }
-        ],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Charmed",
-        "duration": {
-          "type": "minutes",
-          "value": 1
-        },
-        "level": 0,
-        "repeatSave": {
-          "timing": "on_damage",
-          "saveType": "Wisdom",
-          "successEnds": true,
-          "useOriginalDC": true
-        }
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "One visible Beast within 60 feet makes a Wisdom save, with Advantage if the caster or the caster's allies are fighting it; on a failed save, it is Charmed for up to 1 minute, and each time it takes damage it repeats the Wisdom save, ending the spell on itself on a success.",
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "One Beast you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn't receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.",
-  "higherLevels": "Your Concentration can last longer with a spell slot of level 5 (up to 10 minutes), 6 (up to 1 hour), or 7+ (up to 8 hours).",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "dominate-beast",
+    "name":  "Dominate Beast",
+    "aliases":  [
+
+                ],
+    "level":  4,
+    "school":  "Enchantment",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Ranger",
+                    "Sorcerer"
+                ],
+    "subClasses":  [
+                       "Warlock - Archfey Patron"
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+                                                           "Beast"
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+                                                                                     "Beast"
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+                                                                {
+                                                                    "type":  "advantage",
+                                                                    "reason":  "The target has Advantage on the Wisdom saving throw if the caster or the caster\u0027s allies are fighting it."
+                                                                }
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Charmed",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  1
+                                                             },
+                                                "level":  0,
+                                                "repeatSave":  {
+                                                                   "timing":  "on_damage",
+                                                                   "saveType":  "Wisdom",
+                                                                   "successEnds":  true,
+                                                                   "useOriginalDC":  true
+                                                               }
+                                            },
+                        "dominationControl":  {
+                                                  "telepathicLink":  {
+                                                                         "requiresSamePlane":  true,
+                                                                         "actionCost":  "none",
+                                                                         "description":  "While the target is Charmed and on the same plane, the caster can issue telepathic commands with no action on the caster\u0027s turn."
+                                                                     },
+                                                  "reactionCommand":  {
+                                                                          "requiresCasterReaction":  true,
+                                                                          "description":  "The caster can command the Charmed Beast to take a Reaction only by spending the caster\u0027s own Reaction."
+                                                                      },
+                                                  "defaultAfterCompletedOrder":  "acts_and_moves_as_it_likes_focusing_on_self_protection"
+                                              },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "One visible Beast within 60 feet makes a Wisdom save, with Advantage if the caster or the caster\u0027s allies are fighting it; on a failed save, it is Charmed for up to 1 minute, and each time it takes damage it repeats the Wisdom save, ending the spell on itself on a success.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "socialEffect":  {
+                                             "condition":  "Charmed",
+                                             "targetCreatureType":  "Beast",
+                                             "saveAdvantageIfFightingCasterOrAllies":  true,
+                                             "telepathicLinkWhileSamePlane":  true,
+                                             "canIssueCommands":  true,
+                                             "notes":  "Dominate Beast charms a Beast, grants fighting-save Advantage, and creates a same-plane telepathic command link."
+                                         },
+                        "communicationDetails":  {
+                                                     "mode":  "same_plane_telepathic_command_link",
+                                                     "participants":  "caster and Charmed Beast target",
+                                                     "planeLimit":  "works while both are on the same plane of existence",
+                                                     "commandChannel":  "caster can issue commands through the telepathic link while domination persists",
+                                                     "notes":  "Telepathy is tied to the Charmed domination state."
+                                                 },
+                        "summonControl":  {
+                                              "entityType":  "dominated_beast_target",
+                                              "summonsNewEntity":  false,
+                                              "controlChannel":  "same-plane telepathic link",
+                                              "commandAction":  "no action on caster turn",
+                                              "commands":  [
+                                                               "Attack that creature",
+                                                               "Move over there",
+                                                               "Fetch that object"
+                                                           ],
+                                              "obedience":  "target does its best to obey on its turn",
+                                              "idleBehavior":  "if order complete and no new command, acts and moves as it likes while protecting itself",
+                                              "reactionCommand":  "caster can command target Reaction by spending caster Reaction"
+                                          },
+                        "reactionState":  {
+                                              "kind":  "domination_reaction_command",
+                                              "command":  "caster_can_command_target_to_take_a_Reaction",
+                                              "cost":  "caster_must_spend_own_Reaction",
+                                              "target":  "dominated_Beast",
+                                              "link":  "telepathic_link_same_plane",
+                                              "scope":  "while_target_is_Charmed_by_this_spell"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Prompt the Beast\u0027s Wisdom save, including Advantage if the caster or allies are fighting it. On failure, apply Charmed, establish same-plane telepathic commands with no action, repeat the save when the Beast takes damage, and require the caster\u0027s Reaction to command a Reaction.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "One Beast you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn\u0027t receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.",
+    "higherLevels":  "Your Concentration can last longer with a spell slot of level 5 (up to 10 minutes), 6 (up to 1 hour), or 7+ (up to 8 hours).",
+    "tags":  [
+                 "concentration"
+             ]
 }

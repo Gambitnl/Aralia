@@ -1,298 +1,445 @@
 {
-  "id": "thaumaturgy",
-  "name": "Thaumaturgy",
-  "aliases": [],
-  "level": 0,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Cleric"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": false,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "point",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "modeChoice": {
-    "type": "choose_one",
-    "timing": "on_cast",
-    "optionCount": 6,
-    "optionsSource": "controlOptions",
-    "maxActiveNonInstantaneous": 3,
-    "canDismissActive": "not_applicable",
-    "options": [
-      {
-        "label": "Altered Eyes",
-        "summary": "Alter the appearance of your eyes for 1 minute.",
-        "controlOptionIndices": [
-          0
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "1 minute"
-      },
-      {
-        "label": "Booming Voice",
-        "summary": "Make your voice boom up to three times as loud for 1 minute and gain Advantage on Charisma (Intimidation) checks.",
-        "controlOptionIndices": [
-          1
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "1 minute"
-      },
-      {
-        "label": "Fire Play",
-        "summary": "Cause flames to flicker, brighten, dim, or change color for 1 minute.",
-        "controlOptionIndices": [
-          2
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "1 minute"
-      },
-      {
-        "label": "Invisible Hand",
-        "summary": "Instantly cause an unlocked door or window to fly open or slam shut.",
-        "controlOptionIndices": [
-          3
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "instantaneous"
-      },
-      {
-        "label": "Phantom Sound",
-        "summary": "Create an instantaneous sound from a chosen point within range.",
-        "controlOptionIndices": [
-          4
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "instantaneous"
-      },
-      {
-        "label": "Tremors",
-        "summary": "Cause harmless tremors in the ground for 1 minute.",
-        "controlOptionIndices": [
-          5
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "1 minute"
-      }
-    ],
-    "notes": "Up to three 1-minute Thaumaturgy effects can be active at a time."
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "creation",
-      "description": "Create one minor sign (voice boom, flame change, tremor, door/shutter movement, eye color change, harmless omen) lasting up to 1 minute.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Altered Eyes",
-          "effect": "Alter the appearance of your eyes for 1 minute."
-        },
-        {
-          "name": "Booming Voice",
-          "effect": "Your voice booms up to three times as loud as normal for 1 minute.",
-          "details": "For the duration, you have Advantage on Charisma (Intimidation) checks."
-        },
-        {
-          "name": "Fire Play",
-          "effect": "Cause flames to flicker, brighten, dim, or change color for 1 minute."
-        },
-        {
-          "name": "Invisible Hand",
-          "effect": "Instantly cause an unlocked door or window to fly open or slam shut."
-        },
-        {
-          "name": "Phantom Sound",
-          "effect": "Create an instantaneous sound that originates from a point of your choice within range."
-        },
-        {
-          "name": "Tremors",
-          "effect": "Cause harmless tremors in the ground for 1 minute."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "soundEmission": {
-        "audibleRadius": "not_applicable",
-        "radiusUnit": "not_applicable",
-        "source": "caster",
-        "trigger": "on_cast",
-        "description": "Your voice booms up to three times as loud as normal for 1 minute."
-      }
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "Choose one Thaumaturgy option before casting: Altered Eyes, Booming Voice, Fire Play, Invisible Hand, Phantom Sound, or Tremors.",
-    "playerInputRequired": true
-  },
-  "description": "You manifest a minor wonder within range. You create one of the effects below within range. If you cast this spell multiple times, you can have up to three of its 1-minute effects active at a time. Altered Eyes. You alter the appearance of your eyes for 1 minute. Booming Voice. Your voice booms up to three times as loud as normal for 1 minute. For the duration, you have Advantage on Charisma (Intimidation) checks. Fire Play. You cause flames to flicker, brighten, dim, or change color for 1 minute. Invisible Hand. You instantaneously cause an unlocked door or window to fly open or slam shut. Phantom Sound. You create an instantaneous sound that originates from a point of your choice within range, such as a rumble of thunder, the cry of a raven, or ominous whispers. Tremors. You cause harmless tremors in the ground for 1 minute.",
-  "higherLevels": "",
-  "tags": [
-    "utility",
-    "cantrip",
-    "divine",
-    "sensory"
-  ]
+    "id":  "thaumaturgy",
+    "name":  "Thaumaturgy",
+    "aliases":  [
+
+                ],
+    "level":  0,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Cleric"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  false,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "minute",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  6,
+                       "optionsSource":  "controlOptions",
+                       "maxActiveNonInstantaneous":  3,
+                       "canDismissActive":  "not_applicable",
+                       "options":  [
+                                       {
+                                           "label":  "Altered Eyes",
+                                           "summary":  "Alter the appearance of your eyes for 1 minute.",
+                                           "controlOptionIndices":  [
+                                                                        0
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "1 minute"
+                                       },
+                                       {
+                                           "label":  "Booming Voice",
+                                           "summary":  "Make your voice boom up to three times as loud for 1 minute and gain Advantage on Charisma (Intimidation) checks.",
+                                           "controlOptionIndices":  [
+                                                                        1
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "1 minute"
+                                       },
+                                       {
+                                           "label":  "Fire Play",
+                                           "summary":  "Cause flames to flicker, brighten, dim, or change color for 1 minute.",
+                                           "controlOptionIndices":  [
+                                                                        2
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "1 minute"
+                                       },
+                                       {
+                                           "label":  "Invisible Hand",
+                                           "summary":  "Instantly cause an unlocked door or window to fly open or slam shut.",
+                                           "controlOptionIndices":  [
+                                                                        3
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "instantaneous"
+                                       },
+                                       {
+                                           "label":  "Phantom Sound",
+                                           "summary":  "Create an instantaneous sound from a chosen point within range.",
+                                           "controlOptionIndices":  [
+                                                                        4
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "instantaneous"
+                                       },
+                                       {
+                                           "label":  "Tremors",
+                                           "summary":  "Cause harmless tremors in the ground for 1 minute.",
+                                           "controlOptionIndices":  [
+                                                                        5
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "1 minute"
+                                       }
+                                   ],
+                       "notes":  "Up to three 1-minute Thaumaturgy effects can be active at a time."
+                   },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "creation",
+                        "description":  "Create one minor sign (voice boom, flame change, tremor, door/shutter movement, eye color change, harmless omen) lasting up to 1 minute.",
+                        "abilityCheckModifier":  {
+                                                     "appliesTo":  "Charisma (Intimidation) checks",
+                                                     "bonusDice":  "",
+                                                     "flatModifier":  "advantage",
+                                                     "skillSelection":  "fixed_skill",
+                                                     "skillChooser":  "spell_option",
+                                                     "skillPool":  [
+                                                                       "Intimidation"
+                                                                   ],
+                                                     "frequency":  "every_matching_check",
+                                                     "durationScope":  "while_booming_voice_active",
+                                                     "notes":  "Only the Booming Voice option grants Advantage on Charisma (Intimidation) checks."
+                                                 },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Altered Eyes",
+                                                   "effect":  "Alter the appearance of your eyes for 1 minute."
+                                               },
+                                               {
+                                                   "name":  "Booming Voice",
+                                                   "effect":  "Your voice booms up to three times as loud as normal for 1 minute.",
+                                                   "details":  "For the duration, you have Advantage on Charisma (Intimidation) checks."
+                                               },
+                                               {
+                                                   "name":  "Fire Play",
+                                                   "effect":  "Cause flames to flicker, brighten, dim, or change color for 1 minute."
+                                               },
+                                               {
+                                                   "name":  "Invisible Hand",
+                                                   "effect":  "Instantly cause an unlocked door or window to fly open or slam shut."
+                                               },
+                                               {
+                                                   "name":  "Phantom Sound",
+                                                   "effect":  "Create an instantaneous sound that originates from a point of your choice within range."
+                                               },
+                                               {
+                                                   "name":  "Tremors",
+                                                   "effect":  "Cause harmless tremors in the ground for 1 minute."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "soundEmission":  {
+                                              "audibleRadius":  "not_applicable",
+                                              "radiusUnit":  "not_applicable",
+                                              "source":  "caster",
+                                              "trigger":  "on_cast",
+                                              "description":  "Your voice booms up to three times as loud as normal for 1 minute."
+                                          },
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "appearance_state",
+                                                   "name":  "Altered Eyes",
+                                                   "count":  1,
+                                                   "countUnit":  "creature",
+                                                   "appearsIn":  "caster",
+                                                   "manipulationOptions":  [
+                                                                               "alter_eye_appearance"
+                                                                           ],
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "1 minute",
+                                                   "notes":  "Altered Eyes changes the caster eye appearance for 1 minute."
+                                               },
+                                               {
+                                                   "objectType":  "sound_state",
+                                                   "name":  "Booming Voice",
+                                                   "count":  1,
+                                                   "countUnit":  "creature",
+                                                   "appearsIn":  "caster",
+                                                   "manipulationOptions":  [
+                                                                               "triple_voice_volume",
+                                                                               "intimidation_advantage"
+                                                                           ],
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "1 minute",
+                                                   "notes":  "Booming Voice makes the caster voice up to three times as loud and supports the Intimidation advantage rider."
+                                               },
+                                               {
+                                                   "objectType":  "fire_state_change",
+                                                   "name":  "Changed Flame",
+                                                   "count":  1,
+                                                   "countUnit":  "area",
+                                                   "appearsIn":  "target_flame",
+                                                   "manipulationOptions":  [
+                                                                               "flicker",
+                                                                               "brighten",
+                                                                               "dim",
+                                                                               "change_color"
+                                                                           ],
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "1 minute",
+                                                   "notes":  "Fire Play changes existing flames for 1 minute without creating a damage hazard."
+                                               },
+                                               {
+                                                   "objectType":  "object_motion",
+                                                   "name":  "Unlocked Door Or Window Motion",
+                                                   "count":  1,
+                                                   "countUnit":  "object",
+                                                   "appearsIn":  "target_object",
+                                                   "manipulationOptions":  [
+                                                                               "fly_open",
+                                                                               "slam_shut"
+                                                                           ],
+                                                   "requiresUnlocked":  true,
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "instantaneous",
+                                                   "notes":  "Invisible Hand moves an unlocked door or window open or shut immediately."
+                                               },
+                                               {
+                                                   "objectType":  "sound_state",
+                                                   "name":  "Phantom Sound",
+                                                   "count":  1,
+                                                   "countUnit":  "point",
+                                                   "appearsIn":  "spell_area",
+                                                   "manipulationOptions":  [
+                                                                               "thunder_rumble",
+                                                                               "raven_cry",
+                                                                               "ominous_whispers",
+                                                                               "chosen_sound"
+                                                                           ],
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "instantaneous",
+                                                   "notes":  "Phantom Sound creates one instantaneous sound from a chosen point within range."
+                                               },
+                                               {
+                                                   "objectType":  "ground_motion",
+                                                   "name":  "Harmless Tremors",
+                                                   "count":  1,
+                                                   "countUnit":  "area",
+                                                   "appearsIn":  "spell_area",
+                                                   "manipulationOptions":  [
+                                                                               "harmless_ground_tremors"
+                                                                           ],
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "1 minute",
+                                                   "notes":  "Tremors creates harmless ground movement for 1 minute."
+                                               }
+                                           ],
+                        "disguiseState":  {
+                                              "kind":  "minor_eye_appearance_change",
+                                              "target":  "caster_eyes",
+                                              "duration":  "1_minute",
+                                              "scope":  "appearance_only",
+                                              "mechanicalDisguise":  false
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose one Thaumaturgy option before casting: Altered Eyes, Booming Voice, Fire Play, Invisible Hand, Phantom Sound, or Tremors.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You manifest a minor wonder within range. You create one of the effects below within range. If you cast this spell multiple times, you can have up to three of its 1-minute effects active at a time. Altered Eyes. You alter the appearance of your eyes for 1 minute. Booming Voice. Your voice booms up to three times as loud as normal for 1 minute. For the duration, you have Advantage on Charisma (Intimidation) checks. Fire Play. You cause flames to flicker, brighten, dim, or change color for 1 minute. Invisible Hand. You instantaneously cause an unlocked door or window to fly open or slam shut. Phantom Sound. You create an instantaneous sound that originates from a point of your choice within range, such as a rumble of thunder, the cry of a raven, or ominous whispers. Tremors. You cause harmless tremors in the ground for 1 minute.",
+    "higherLevels":  "",
+    "tags":  [
+                 "utility",
+                 "cantrip",
+                 "divine",
+                 "sensory"
+             ]
 }

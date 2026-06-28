@@ -30,6 +30,8 @@
     "continue": "Continue Journey",
     "last_played": "Last Seen: {date}",
     "new_game": "Begin Legend",
+    "new_game_aria": "Begin a new legend",
+    "new_game_title": "Begin a new legend",
     "save_to_slot": "Chronicle Journey",
     "skip_character_creator": "Quick Start (Dev)",
     "load_game": "Resume Journey",
@@ -42,8 +44,7 @@
     "abandon_run_confirm": "Abandon your current run? The in-memory session will be cleared. Any unsaved progress will be lost.",
     "glossary": "Lore & Rules",
     "glossary_aria": "View game glossary",
-    "glossary_title": "View Game Glossary",
-    "powered_by": "Powered by Gemini"
+    "glossary_title": "View Game Glossary"
   },
   "encounter_modal": {
     "loading": "Conjuring Monsters...",

@@ -1,211 +1,268 @@
 {
-  "id": "create-undead",
-  "name": "Create Undead",
-  "aliases": [],
-  "level": 6,
-  "school": "Necromancy",
-  "legacy": false,
-  "classes": [
-    "Cleric",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 10,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "one 150+ GP black onyx stone for each corpse",
-    "materialCost": 150,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "point",
-    "range": 10,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "objects"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 3,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "At night, turn up to three Small or Medium Humanoid corpses within 10 feet into controlled Ghouls for 24 hours. As a Bonus Action, you can mentally command any Undead created by this spell within 120 feet, issuing the same command to multiple controlled Undead; without commands they Dodge and move only to avoid harm, orders continue until complete, control stops after 24 hours unless recast before expiry, and higher slots animate or reassert control over four Ghouls at slot 7, five Ghouls or two Ghasts/Wights at slot 8, or six Ghouls, three Ghasts/Wights, or two Mummies at slot 9.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "7th: four Ghouls; 8th: five Ghouls or two Ghasts/Wights; 9th: six Ghouls, three Ghasts/Wights, or two Mummies",
-        "customFormula": "Higher slots increase the number and allowed undead stat blocks exactly as listed in higherLevels."
-      },
-      "grantedActions": [
-        {
-          "type": "bonus_action",
-          "action": "mentally_command_animated_undead",
-          "frequency": "each_turn",
-          "rangeLimit": 120,
-          "notes": "Command any animated undead from this spell within 120 feet; if commanding multiple, the same command is issued to all."
-        }
-      ],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Mental Command",
-          "effect": "Command one or more animated undead within 120 feet as a Bonus Action.",
-          "details": "The caster decides the action and movement for the undead's next turn or gives a general command. If no command is issued, the undead takes the Dodge action and moves only to avoid harm. Control lasts 24 hours and can be reasserted by recasting before the period ends."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "tags": [
-        "undead",
-        "corpse-animation",
-        "bonus-action-command",
-        "slot-table-scaling"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You can cast this spell only at night. Choose up to three corpses of Medium or Small Humanoids within range. Each one becomes a Ghoul under your control (see the Monster Manual for its stat block). As a Bonus Action on each of your turns, you can mentally command any creature you animated with this spell if the creature is within 120 feet of you (if you control multiple creatures, you can command any of them at the same time, issuing the same command to them). You decide what action the creature will take and where it will move on its next turn, or you can issue a general command, such as to guard a particular place. If you issue no commands, the creature takes the Dodge action and moves only to avoid harm. Once given an order, the creature continues to follow the order until its task is complete. The creature is under your control for 24 hours, after which it stops obeying any command you've given it. To maintain control of the creature for another 24 hours, you must cast this spell on the creature before the current 24-hour period ends. This use of the spell reasserts your control over up to three creatures you have animated with this spell rather than animating new ones.",
-  "higherLevels": "Using a Higher-Level Spell Slot. If you use a level 7 spell slot, you can animate or reassert control over four Ghouls. If you use a level 8 spell slot, you can animate or reassert control over five Ghouls or two Ghasts or Wights. If you use a level 9 spell slot, you can animate or reassert control over six Ghouls, three Ghasts or Wights, or two Mummies. See the Monster Manual for these stat blocks.",
-  "tags": [
-    "necromancy",
-    "undead",
-    "corpse-animation",
-    "control",
-    "slot-table-scaling"
-  ]
+    "id":  "create-undead",
+    "name":  "Create Undead",
+    "aliases":  [
+
+                ],
+    "level":  6,
+    "school":  "Necromancy",
+    "legacy":  false,
+    "classes":  [
+                    "Cleric",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  10,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "one 150+ GP black onyx stone for each corpse",
+                       "materialCost":  150,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "instantaneous",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  10,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "objects"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  3,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "corpseOrRemainsEligibility":  {
+                                                                        "targetState":  "corpse",
+                                                                        "originalCreatureType":  "Humanoid",
+                                                                        "allowedSizes":  [
+                                                                                             "Medium",
+                                                                                             "Small"
+                                                                                         ],
+                                                                        "maxTargets":  3,
+                                                                        "rangeFeet":  10,
+                                                                        "notes":  "Create Undead targets up to three Medium or Small Humanoid corpses within 10 feet."
+                                                                    }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "At night, turn up to three Small or Medium Humanoid corpses within 10 feet into controlled Ghouls for 24 hours. As a Bonus Action, you can mentally command any Undead created by this spell within 120 feet, issuing the same command to multiple controlled Undead; without commands they Dodge and move only to avoid harm, orders continue until complete, control stops after 24 hours unless recast before expiry, and higher slots animate or reassert control over four Ghouls at slot 7, five Ghouls or two Ghasts/Wights at slot 8, or six Ghouls, three Ghasts/Wights, or two Mummies at slot 9.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "7th: four Ghouls; 8th: five Ghouls or two Ghasts/Wights; 9th: six Ghouls, three Ghasts/Wights, or two Mummies",
+                                        "customFormula":  "Higher slots increase the number and allowed undead stat blocks exactly as listed in higherLevels."
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "bonus_action",
+                                                   "action":  "mentally_command_animated_undead",
+                                                   "frequency":  "each_turn",
+                                                   "rangeLimit":  120,
+                                                   "notes":  "Command any animated undead from this spell within 120 feet; if commanding multiple, the same command is issued to all."
+                                               }
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Mental Command",
+                                                   "effect":  "Command one or more animated undead within 120 feet as a Bonus Action.",
+                                                   "details":  "The caster decides the action and movement for the undead\u0027s next turn or gives a general command. If no command is issued, the undead takes the Dodge action and moves only to avoid harm. Control lasts 24 hours and can be reasserted by recasting before the period ends."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "tags":  [
+                                     "undead",
+                                     "corpse-animation",
+                                     "bonus-action-command",
+                                     "slot-table-scaling"
+                                 ],
+                        "summonControl":  {
+                                              "entityType":  "controlled_ghouls_or_higher_undead",
+                                              "baseCreation":  "up to three Small or Medium Humanoid corpses become Ghouls",
+                                              "controlDurationHours":  24,
+                                              "commandAction":  "Bonus Action",
+                                              "commandRangeFeet":  120,
+                                              "multiCommand":  "can command any or all undead created by this spell with same command",
+                                              "higherLevelForms":  "higher slots allow Ghasts, Wights, or Mummies as described by spell text",
+                                              "noReassert":  "control must be maintained by later castings if spell supports it"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose up to three Small or Medium Humanoid corpses within 10 feet at night, or choose existing undead from this spell to reassert control over before the current 24-hour period ends. On later Bonus Actions, choose which controlled undead within 120 feet receive the shared command.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You can cast this spell only at night. Choose up to three corpses of Medium or Small Humanoids within range. Each one becomes a Ghoul under your control (see the Monster Manual for its stat block). As a Bonus Action on each of your turns, you can mentally command any creature you animated with this spell if the creature is within 120 feet of you (if you control multiple creatures, you can command any of them at the same time, issuing the same command to them). You decide what action the creature will take and where it will move on its next turn, or you can issue a general command, such as to guard a particular place. If you issue no commands, the creature takes the Dodge action and moves only to avoid harm. Once given an order, the creature continues to follow the order until its task is complete. The creature is under your control for 24 hours, after which it stops obeying any command you\u0027ve given it. To maintain control of the creature for another 24 hours, you must cast this spell on the creature before the current 24-hour period ends. This use of the spell reasserts your control over up to three creatures you have animated with this spell rather than animating new ones.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. If you use a level 7 spell slot, you can animate or reassert control over four Ghouls. If you use a level 8 spell slot, you can animate or reassert control over five Ghouls or two Ghasts or Wights. If you use a level 9 spell slot, you can animate or reassert control over six Ghouls, three Ghasts or Wights, or two Mummies. See the Monster Manual for these stat blocks.",
+    "tags":  [
+                 "necromancy",
+                 "undead",
+                 "corpse-animation",
+                 "control",
+                 "slot-table-scaling"
+             ]
 }

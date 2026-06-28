@@ -16,7 +16,7 @@ export const HUMAN_DATA: Race = {
   abilityBonuses: [], // Explicitly empty to override any previous versions with bonuses.
   traits: [
     'Creature Type: Humanoid',
-    'Size: Medium (about 4–7 feet tall) or Small (about 2–4 feet tall), chosen when you select this species (defaults to Medium for now).',
+    'Size: Medium, about 4–7 feet tall, or Small, about 2–4 feet tall.',
     'Speed: 30 feet',
     'Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest.',
     'Skillful: You gain proficiency in one skill of your choice (chosen during character creation).',

@@ -179,7 +179,15 @@
           "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveOutcomeOverrides": []
+        "saveOutcomeOverrides": [
+          {
+            "outcome": "failure",
+            "appliesTo": "shape_shifted_creature",
+            "stateChange": "revert_to_true_form",
+            "suppression": "cannot_shape_shift_until_leaving_cylinder",
+            "description": "On a failed Constitution save, a shape-shifted creature reverts to its true form and cannot shape-shift again until it leaves the Moonbeam cylinder."
+          }
+        ]
       },
       "damage": {
         "dice": "2d10",
@@ -282,7 +290,15 @@
           "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveOutcomeOverrides": []
+        "saveOutcomeOverrides": [
+          {
+            "outcome": "failure",
+            "appliesTo": "shape_shifted_creature",
+            "stateChange": "revert_to_true_form",
+            "suppression": "cannot_shape_shift_until_leaving_cylinder",
+            "description": "On a failed Constitution save, a shape-shifted creature reverts to its true form and cannot shape-shift again until it leaves the Moonbeam cylinder."
+          }
+        ]
       },
       "damage": {
         "dice": "2d10",
@@ -353,7 +369,17 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "grantedActions": [],
+      "grantedActions": [
+        {
+          "type": "action",
+          "action": "move_moonbeam",
+          "frequency": "each_turn",
+          "actor": "caster",
+          "actionKind": "magic_action",
+          "rangeLimit": 60,
+          "notes": "On later turns, the caster can take a Magic action to move the Cylinder up to 60 feet, triggering the Constitution save for creatures whose spaces it enters."
+        }
+      ],
       "attackAugments": [],
       "controlOptions": [],
       "taunt": {
@@ -388,8 +414,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Ask the caster to place the 5-foot-radius, 40-foot-high Cylinder; prompt Constitution saves when it appears, moves into a creature's space, a creature enters it, or a creature ends its turn there, no more than once per creature per turn. If a shape-shifted creature fails, revert it to its true form and suppress further shape-shifting until it leaves the Cylinder.",
+    "playerInputRequired": true
   },
   "description": "A silvery beam of pale light shines down in a 5-foot-radius, 40-foot-high Cylinder centered on a point within range. Until the spell ends, Dim Light fills the Cylinder, and you can take a Magic action on later turns to move the Cylinder up to 60 feet. When the Cylinder appears, each creature in it makes a Constitution saving throw. On a failed save, a creature takes 2d10 Radiant damage, and if the creature is shape-shifted (as a result of the Polymorph spell, for example), it reverts to its true form and can't shape-shift until it leaves the Cylinder. On a successful save, a creature takes half as much damage only. A creature also makes this save when the spell's area moves into its space and when it enters the spell's area or ends its turn there. A creature makes this save only once per turn.",
   "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d10 for each spell slot level above 2.",

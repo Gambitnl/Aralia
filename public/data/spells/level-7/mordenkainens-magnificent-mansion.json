@@ -1,407 +1,520 @@
 {
-  "id": "mordenkainens-magnificent-mansion",
-  "name": "Mordenkainen's Magnificent Mansion",
-  "aliases": [],
-  "level": 7,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 300,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a miniature door worth 15+ GP",
-    "materialCost": 15,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 24,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "area",
-    "range": 300,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures",
-      "objects",
-      "point"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 50,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 10,
-      "sizeType": "edge",
-      "sizeUnit": "feet",
-      "height": 0,
-      "heightUnit": "feet"
-    },
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Extradimensional Floor Plan Cubes",
-          "shape": "Cube",
-          "size": 10,
-          "sizeType": "edge",
-          "sizeUnit": "feet",
-          "notes": "Floor plan can contain up to 50 contiguous 10-foot Cubes."
-        }
-      ]
-    }
-  },
-  "effects": [
-    {
-      "type": "MOVEMENT",
-      "trigger": {
-        "type": "on_exit_area",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "movementType": "teleport",
-      "distance": 0,
-      "duration": {
-        "type": "special",
-        "value": 0
-      },
-      "forcedMovement": {
-        "usesReaction": false,
-        "direction": "safest_route",
-        "maxDistance": "nearest unoccupied spaces to the entrance"
-      },
-      "description": "When the mansion ends, creatures and objects left inside the extradimensional dwelling are expelled into unoccupied spaces nearest the entrance.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "SUMMONING",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "summon": {
-        "entityType": "creature",
-        "persistent": false,
-        "count": 100,
-        "formOptions": [
-          "Near-transparent servant"
-        ],
-        "statBlock": {
-          "name": "Mansion Servant",
-          "type": "Constructed magical servant",
-          "size": "Medium"
-        },
-        "commandCost": "none",
-        "commandsPerTurn": 1,
-        "initiative": "shared",
-        "objectDescription": "Staff of 100 near-transparent invulnerable mansion servants that obey the caster's commands, perform human-servant tasks, cannot directly harm creatures, and cannot leave the extradimensional dwelling.",
-        "specialActions": []
-      },
-      "description": "Summon 100 near-transparent invulnerable servants inside the mansion; they attend entrants, obey commands, perform human-servant tasks, cannot attack or directly harm creatures, and cannot leave the dwelling.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Create a 5-foot-wide, 10-foot-tall shimmering door within 300 feet for 24 hours leading to a clean, fresh, warm extradimensional dwelling of up to 50 contiguous 10-foot Cubes; only the caster and designated creatures can enter while the door is open, the caster can open or close it without an action within 30 feet, a closed door is imperceptible, furnishings and decor are chosen by the caster, food serves a nine-course banquet for up to 100 people, and spell-created objects dissipate if removed.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Shimmering Door",
-          "effect": "You conjure a shimmering 5-foot wide and 10-foot tall door in range that lasts for the duration and leads to an extradimensional dwelling."
-        },
-        {
-          "name": "Designated Entrants",
-          "effect": "You and creatures you designate when casting can enter while the door remains open."
-        },
-        {
-          "name": "Open Or Close Door",
-          "effect": "You can open or close the door with no action required while within 30 feet of it."
-        },
-        {
-          "name": "Closed Door Imperceptible",
-          "effect": "While closed, the door is imperceptible."
-        },
-        {
-          "name": "Extradimensional Dwelling",
-          "effect": "The door leads to an extradimensional dwelling with clean, fresh, warm atmosphere."
-        },
-        {
-          "name": "Floor Plan Limit",
-          "effect": "The floor plan cannot exceed 50 contiguous 10-foot Cubes."
-        },
-        {
-          "name": "Furnished And Decorated",
-          "effect": "The place is furnished and decorated as you choose."
-        },
-        {
-          "name": "Food Banquet",
-          "effect": "The dwelling contains sufficient food for a nine-course banquet for up to 100 people."
-        },
-        {
-          "name": "Removed Objects Dissipate",
-          "effect": "Furnishings and other objects created by the spell dissipate into smoke if removed from the dwelling."
-        },
-        {
-          "name": "Near Transparent Servants",
-          "effect": "A staff of 100 near-transparent servants attends all who enter."
-        },
-        {
-          "name": "Servants Invulnerable",
-          "effect": "The servants are invulnerable."
-        },
-        {
-          "name": "Servants Obey Commands",
-          "effect": "The servants obey your commands and can perform tasks a human servant could perform."
-        },
-        {
-          "name": "Servants Cannot Harm",
-          "effect": "The servants cannot attack or take any action that would directly harm another creature."
-        },
-        {
-          "name": "Servants Cannot Leave",
-          "effect": "The servants cannot leave the dwelling."
-        },
-        {
-          "name": "Expelled On End",
-          "effect": "Creatures and objects left inside when the spell ends are expelled into unoccupied spaces nearest the entrance."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You conjure a shimmering door in range that lasts for the duration. The door leads to an extradimensional dwelling and is 5 feet wide and 10 feet tall. You and any creature you designate when you cast the spell can enter the extradimensional dwelling as long as the door remains open. You can open or close it (no action required) if you are within 30 feet of it. While closed, the door is imperceptible. Beyond the door is a magnificent foyer with numerous chambers beyond. The dwelling's atmosphere is clean, fresh, and warm. You can create any floor plan you like for the dwelling, but it can't exceed 50 contiguous 10-foot Cubes. The place is furnished and decorated as you choose. It contains sufficient food to serve a nine-course banquet for up to 100 people. Furnishings and other objects created by this spell dissipate into smoke if removed from it. A staff of 100 near-transparent servants attends all who enter. You determine the appearance of these servants and their attire. They are invulnerable and obey your commands. Each servant can perform tasks that a human could perform, but they can't attack or take any action that would directly harm another creature. Thus the servants can fetch things, clean, mend, fold clothes, light fires, serve food, pour wine, and so on. The servants can't leave the dwelling. When the spell ends, any creatures or objects left inside the extradimensional space are expelled into the unoccupied spaces nearest to the entrance.",
-  "higherLevels": "",
-  "tags": [
-    "summoning",
-    "controlled-entity",
-    "extradimensional-space",
-    "deferred-space-runtime"
-  ]
+    "id":  "mordenkainens-magnificent-mansion",
+    "name":  "Mordenkainen\u0027s Magnificent Mansion",
+    "aliases":  [
+
+                ],
+    "level":  7,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  300,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a miniature door worth 15+ GP",
+                       "materialCost":  15,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  24,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  300,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures",
+                                           "objects",
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  50,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  10,
+                                           "sizeType":  "edge",
+                                           "sizeUnit":  "feet",
+                                           "height":  0,
+                                           "heightUnit":  "feet"
+                                       },
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Extradimensional Floor Plan Cubes",
+                                                               "shape":  "Cube",
+                                                               "size":  10,
+                                                               "sizeType":  "edge",
+                                                               "sizeUnit":  "feet",
+                                                               "notes":  "Floor plan can contain up to 50 contiguous 10-foot Cubes."
+                                                           }
+                                                       ]
+                                         }
+                  },
+    "effects":  [
+                    {
+                        "type":  "MOVEMENT",
+                        "trigger":  {
+                                        "type":  "on_exit_area",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "movementType":  "teleport",
+                        "distance":  0,
+                        "duration":  {
+                                         "type":  "special",
+                                         "value":  0
+                                     },
+                        "forcedMovement":  {
+                                               "usesReaction":  false,
+                                               "direction":  "safest_route",
+                                               "maxDistance":  "nearest unoccupied spaces to the entrance"
+                                           },
+                        "description":  "When the mansion ends, creatures and objects left inside the extradimensional dwelling are expelled into unoccupied spaces nearest the entrance.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "expulsionDestinationEligibility":  {
+                                                                "trigger":  "mansion_spell_ends_with_creatures_or_objects_inside",
+                                                                "destinationPreference":  "unoccupied_spaces_nearest_to_entrance",
+                                                                "requiresUnoccupiedSpace":  true,
+                                                                "appliesTo":  [
+                                                                                  "creatures",
+                                                                                  "objects"
+                                                                              ],
+                                                                "notes":  "When the extradimensional mansion ends, remaining creatures and objects are expelled into unoccupied spaces nearest the entrance."
+                                                            }
+                    },
+                    {
+                        "type":  "SUMMONING",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "summon":  {
+                                       "entityType":  "creature",
+                                       "persistent":  false,
+                                       "count":  100,
+                                       "formOptions":  [
+                                                           "Near-transparent servant"
+                                                       ],
+                                       "statBlock":  {
+                                                         "name":  "Mansion Servant",
+                                                         "type":  "Constructed magical servant",
+                                                         "size":  "Medium"
+                                                     },
+                                       "commandCost":  "none",
+                                       "commandsPerTurn":  1,
+                                       "initiative":  "shared",
+                                       "objectDescription":  "Staff of 100 near-transparent invulnerable mansion servants that obey the caster\u0027s commands, perform human-servant tasks, cannot directly harm creatures, and cannot leave the extradimensional dwelling.",
+                                       "specialActions":  [
+
+                                                          ],
+                                       "control":  {
+                                                       "entityType":  "mansion_servants",
+                                                       "count":  100,
+                                                       "appearance":  "near-transparent",
+                                                       "invulnerable":  true,
+                                                       "location":  "inside mansion only",
+                                                       "obeyCommands":  true,
+                                                       "tasks":  "ordinary human servant tasks for entrants",
+                                                       "cannotAttack":  true,
+                                                       "cannotDirectlyHarm":  true,
+                                                       "cannotLeaveDwelling":  true
+                                                   }
+                                   },
+                        "description":  "Summon 100 near-transparent invulnerable servants inside the mansion; they attend entrants, obey commands, perform human-servant tasks, cannot attack or directly harm creatures, and cannot leave the dwelling.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "disguiseState":  {
+                                              "kind":  "servant_appearance_choice",
+                                              "targets":  "100_near_transparent_servants",
+                                              "casterDetermines":  [
+                                                                       "appearance",
+                                                                       "attire"
+                                                                   ],
+                                              "note":  "Appearance customization for conjured servants, not a deceptive illusion against observers."
+                                          }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Create a 5-foot-wide, 10-foot-tall shimmering door within 300 feet for 24 hours leading to a clean, fresh, warm extradimensional dwelling of up to 50 contiguous 10-foot Cubes; only the caster and designated creatures can enter while the door is open, the caster can open or close it without an action within 30 feet, a closed door is imperceptible, furnishings and decor are chosen by the caster, food serves a nine-course banquet for up to 100 people, and spell-created objects dissipate if removed.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Shimmering Door",
+                                                   "effect":  "You conjure a shimmering 5-foot wide and 10-foot tall door in range that lasts for the duration and leads to an extradimensional dwelling."
+                                               },
+                                               {
+                                                   "name":  "Designated Entrants",
+                                                   "effect":  "You and creatures you designate when casting can enter while the door remains open."
+                                               },
+                                               {
+                                                   "name":  "Open Or Close Door",
+                                                   "effect":  "You can open or close the door with no action required while within 30 feet of it."
+                                               },
+                                               {
+                                                   "name":  "Closed Door Imperceptible",
+                                                   "effect":  "While closed, the door is imperceptible."
+                                               },
+                                               {
+                                                   "name":  "Extradimensional Dwelling",
+                                                   "effect":  "The door leads to an extradimensional dwelling with clean, fresh, warm atmosphere."
+                                               },
+                                               {
+                                                   "name":  "Floor Plan Limit",
+                                                   "effect":  "The floor plan cannot exceed 50 contiguous 10-foot Cubes."
+                                               },
+                                               {
+                                                   "name":  "Furnished And Decorated",
+                                                   "effect":  "The place is furnished and decorated as you choose."
+                                               },
+                                               {
+                                                   "name":  "Food Banquet",
+                                                   "effect":  "The dwelling contains sufficient food for a nine-course banquet for up to 100 people."
+                                               },
+                                               {
+                                                   "name":  "Removed Objects Dissipate",
+                                                   "effect":  "Furnishings and other objects created by the spell dissipate into smoke if removed from the dwelling."
+                                               },
+                                               {
+                                                   "name":  "Near Transparent Servants",
+                                                   "effect":  "A staff of 100 near-transparent servants attends all who enter."
+                                               },
+                                               {
+                                                   "name":  "Servants Invulnerable",
+                                                   "effect":  "The servants are invulnerable."
+                                               },
+                                               {
+                                                   "name":  "Servants Obey Commands",
+                                                   "effect":  "The servants obey your commands and can perform tasks a human servant could perform."
+                                               },
+                                               {
+                                                   "name":  "Servants Cannot Harm",
+                                                   "effect":  "The servants cannot attack or take any action that would directly harm another creature."
+                                               },
+                                               {
+                                                   "name":  "Servants Cannot Leave",
+                                                   "effect":  "The servants cannot leave the dwelling."
+                                               },
+                                               {
+                                                   "name":  "Expelled On End",
+                                                   "effect":  "Creatures and objects left inside when the spell ends are expelled into unoccupied spaces nearest the entrance."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "createdResource":  {
+                                                "food":  "sufficient_for_nine_course_banquet_for_up_to_100_people",
+                                                "servants":  "100_near_transparent_servants_can_serve_food_and_pour_wine",
+                                                "scope":  "exists_only_inside_extradimensional_mansion",
+                                                "duration":  "24_hours"
+                                            }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You conjure a shimmering door in range that lasts for the duration. The door leads to an extradimensional dwelling and is 5 feet wide and 10 feet tall. You and any creature you designate when you cast the spell can enter the extradimensional dwelling as long as the door remains open. You can open or close it (no action required) if you are within 30 feet of it. While closed, the door is imperceptible. Beyond the door is a magnificent foyer with numerous chambers beyond. The dwelling\u0027s atmosphere is clean, fresh, and warm. You can create any floor plan you like for the dwelling, but it can\u0027t exceed 50 contiguous 10-foot Cubes. The place is furnished and decorated as you choose. It contains sufficient food to serve a nine-course banquet for up to 100 people. Furnishings and other objects created by this spell dissipate into smoke if removed from it. A staff of 100 near-transparent servants attends all who enter. You determine the appearance of these servants and their attire. They are invulnerable and obey your commands. Each servant can perform tasks that a human could perform, but they can\u0027t attack or take any action that would directly harm another creature. Thus the servants can fetch things, clean, mend, fold clothes, light fires, serve food, pour wine, and so on. The servants can\u0027t leave the dwelling. When the spell ends, any creatures or objects left inside the extradimensional space are expelled into the unoccupied spaces nearest to the entrance.",
+    "higherLevels":  "",
+    "tags":  [
+                 "summoning",
+                 "controlled-entity",
+                 "extradimensional-space",
+                 "deferred-space-runtime"
+             ]
 }

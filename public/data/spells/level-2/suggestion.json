@@ -1,236 +1,307 @@
 {
-  "id": "suggestion",
-  "name": "Suggestion",
-  "aliases": [],
-  "level": 2,
-  "school": "Enchantment",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Sorcerer",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": false,
-    "material": true,
-    "materialDescription": "a drop of honey",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 8,
-    "unit": "hour",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "single",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "required",
-        "canUnderstandCaster": "required",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Wisdom",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "excludeCreatureTypes": [],
-          "creatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "required",
-            "canUnderstandCaster": "required",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "One creature within 30 feet that can hear and understand the caster makes a Wisdom save; on a failure, it follows a reasonable suggestion for up to 8 hours with concentration, ending early if the caster or allies damage it or when the suggested activity is completed.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "caster_or_ally_damages_target",
-          "scope": "effect",
-          "description": "The spell ends for the target if the caster or the caster's allies deal damage to that target."
-        },
-        {
-          "trigger": "suggested_activity_completed",
-          "scope": "effect",
-          "description": "If the suggested activity can be completed before the full duration, the spell ends for the target when that activity is completed."
-        }
-      ]
-    },
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate"
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Wisdom",
-        "saveEffect": "negates_condition",
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Charmed",
-        "duration": {
-          "type": "minutes",
-          "value": 480
-        }
-      },
-      "description": "A failed Wisdom save applies the Charmed condition for the spell's duration or until the spell ends early.",
-      "conditionalEndings": [
-        {
-          "trigger": "caster_or_ally_damages_target",
-          "scope": "effect",
-          "description": "Damage dealt to the target by the caster or the caster's allies ends the spell for that target."
-        },
-        {
-          "trigger": "suggested_activity_completed",
-          "scope": "effect",
-          "description": "Completing the suggested activity before the full duration ends the spell for that target."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "ai_dm",
-  "aiContext": {
-    "prompt": "The player is casting Suggestion. Adjudicate the requested command. The suggestion must sound reasonable, be achievable within 8 hours, and not involve anything that would obviously deal damage to the target or its allies. For example, 'drop your weapons and flee' is okay, 'stab yourself' is not. Evaluate if the command meets these criteria. If valid, approve it and optionally define narrative mechanical effects. If invalid, reject it.",
-    "playerInputRequired": true
-  },
-  "description": "You suggest a course of activity-described in no more than 25 words-to one creature you can see within range that can hear and understand you. The suggestion must sound achievable and not involve anything that would obviously deal damage to the target or its allies. For example, you could say, \"Fetch the key to the cult's treasure vault, and give the key to me.\" Or you could say, \"Stop fighting, leave this library peacefully, and don't return.\" The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration or until you or your allies deal damage to the target. The Charmed target pursues the suggestion to the best of its ability. The suggested activity can continue for the entire duration, but if the suggested activity can be completed in a shorter time, the spell ends for the target upon completing it.",
-  "higherLevels": "",
-  "tags": [
-    "enchantment",
-    "control",
-    "charm",
-    "concentration"
-  ]
+    "id":  "suggestion",
+    "name":  "Suggestion",
+    "aliases":  [
+
+                ],
+    "level":  2,
+    "school":  "Enchantment",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Sorcerer",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  false,
+                       "material":  true,
+                       "materialDescription":  "a drop of honey",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  8,
+                     "unit":  "hour",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "required",
+                                                                        "canUnderstandCaster":  "required",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "required",
+                                                                                                  "canUnderstandCaster":  "required",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "One creature within 30 feet that can hear and understand the caster makes a Wisdom save; on a failure, it follows a reasonable suggestion for up to 8 hours with concentration, ending early if the caster or allies damage it or when the suggested activity is completed.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "caster_or_ally_damages_target",
+                                                       "scope":  "effect",
+                                                       "description":  "The spell ends for the target if the caster or the caster\u0027s allies deal damage to that target."
+                                                   },
+                                                   {
+                                                       "trigger":  "suggested_activity_completed",
+                                                       "scope":  "effect",
+                                                       "description":  "If the suggested activity can be completed before the full duration, the spell ends for the target when that activity is completed."
+                                                   }
+                                               ],
+                        "socialEffect":  {
+                                             "suggestionMustSoundAchievable":  true,
+                                             "suggestionCannotObviouslyDamageTargetOrAllies":  true,
+                                             "targetMustHearAndUnderstandCaster":  true,
+                                             "endsIfCasterOrAlliesDamageTarget":  true,
+                                             "commandedActivityCanContinueForDuration":  true,
+                                             "notes":  "Suggestion requires an achievable non-obviously-harmful course of action, a target that hears and understands, and ends if the caster or allies damage it."
+                                         },
+                        "communicationDetails":  {
+                                                     "mode":  "spoken_reasonable_suggestion",
+                                                     "wordLimit":  25,
+                                                     "targetMustHear":  true,
+                                                     "targetMustUnderstand":  true,
+                                                     "targetMustSeeCaster":  true,
+                                                     "unreasonableRequest":  "obviously harmful suggestion fails",
+                                                     "notes":  "The control effect is delivered as a short course of activity the target can hear and understand."
+                                                 }
+                    },
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate"
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "negates_condition",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Charmed",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  480
+                                                             }
+                                            },
+                        "description":  "A failed Wisdom save applies the Charmed condition for the spell\u0027s duration or until the spell ends early.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "caster_or_ally_damages_target",
+                                                       "scope":  "effect",
+                                                       "description":  "Damage dealt to the target by the caster or the caster\u0027s allies ends the spell for that target."
+                                                   },
+                                                   {
+                                                       "trigger":  "suggested_activity_completed",
+                                                       "scope":  "effect",
+                                                       "description":  "Completing the suggested activity before the full duration ends the spell for that target."
+                                                   }
+                                               ],
+                        "socialEffect":  {
+                                             "condition":  "Charmed",
+                                             "duration":  "up to 8 hours concentration or until early ending",
+                                             "notes":  "The failed-save target has Charmed while following the suggestion."
+                                         },
+                        "communicationDetails":  {
+                                                     "mode":  "spoken_reasonable_suggestion",
+                                                     "wordLimit":  25,
+                                                     "targetMustHear":  true,
+                                                     "targetMustUnderstand":  true,
+                                                     "targetMustSeeCaster":  true,
+                                                     "unreasonableRequest":  "obviously harmful suggestion fails",
+                                                     "notes":  "The control effect is delivered as a short course of activity the target can hear and understand."
+                                                 }
+                    }
+                ],
+    "arbitrationType":  "ai_dm",
+    "aiContext":  {
+                      "prompt":  "The player is casting Suggestion. Adjudicate the requested command. The suggestion must sound reasonable, be achievable within 8 hours, and not involve anything that would obviously deal damage to the target or its allies. For example, \u0027drop your weapons and flee\u0027 is okay, \u0027stab yourself\u0027 is not. Evaluate if the command meets these criteria. If valid, approve it and optionally define narrative mechanical effects. If invalid, reject it.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You suggest a course of activity-described in no more than 25 words-to one creature you can see within range that can hear and understand you. The suggestion must sound achievable and not involve anything that would obviously deal damage to the target or its allies. For example, you could say, \"Fetch the key to the cult\u0027s treasure vault, and give the key to me.\" Or you could say, \"Stop fighting, leave this library peacefully, and don\u0027t return.\" The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration or until you or your allies deal damage to the target. The Charmed target pursues the suggestion to the best of its ability. The suggested activity can continue for the entire duration, but if the suggested activity can be completed in a shorter time, the spell ends for the target upon completing it.",
+    "higherLevels":  "",
+    "tags":  [
+                 "enchantment",
+                 "control",
+                 "charm",
+                 "concentration"
+             ]
 }

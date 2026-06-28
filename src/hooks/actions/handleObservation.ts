@@ -171,7 +171,7 @@ export async function handleAnalyzeSituation({
   }
 
   if (analysisResult.data?.text) {
-    addMessage(`DM Insight: "${analysisResult.data.text}"`, 'system');
+    addMessage(`DM Insight: ${analysisResult.data.text}`, 'system');
     // We don't resolve entities from Analysis - it's meta-game advice.
   } else {
     addMessage("The spirits are silent.", 'system');

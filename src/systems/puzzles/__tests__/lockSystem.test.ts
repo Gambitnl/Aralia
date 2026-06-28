@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { attemptLockpick, attemptBreak, detectTrap, disarmTrap } from '../lockSystem';
+import { attemptLockpick, attemptKeyUnlock, attemptBreak, detectTrap, disarmTrap } from '../lockSystem';
 import { Lock, Trap } from '../types';
 import { PlayerCharacter } from '../../../types/character';
 import { CharacterStats } from '../../../types/core'; // Added to type the stats helper explicitly.
@@ -85,6 +85,52 @@ describe('Lock System', () => {
       expect(result.margin).toBe(0); // 11 + 4 - 15 = 0
     });
 
+    it('prefers final ability scores over the legacy stats shim when both shapes exist', () => {
+      const modernLock: Lock = { ...lock, dc: 16 };
+      const char = createDummyCharacter({
+        stats: { ...createDummyCharacter().stats, dexterity: 8 },
+        finalAbilityScores: {
+          Strength: 10,
+          Dexterity: 18,
+          Constitution: 10,
+          Intelligence: 10,
+          Wisdom: 10,
+          Charisma: 10,
+        },
+        classes: [rogueClass],
+      });
+
+      // Use the real D&D modifier formula in this test so the chosen score determines the outcome.
+      vi.mocked(statUtils.getAbilityModifierValue).mockImplementation(score => Math.floor((score - 10) / 2));
+      vi.mocked(combatUtils.rollDice).mockReturnValue(10);
+
+      const result = attemptLockpick(char, modernLock, [thievesTools]);
+
+      expect(result.success).toBe(true);
+      expect(result.margin).toBe(0);
+      expect(statUtils.getAbilityModifierValue).toHaveBeenCalledWith(18);
+    });
+
+    it('keeps legacy stats working when a compatibility fixture has no modern ability scores', () => {
+      const modernlessCharacter = createDummyCharacter({
+        abilityScores: undefined as unknown as PlayerCharacter['abilityScores'],
+        finalAbilityScores: undefined as unknown as PlayerCharacter['finalAbilityScores'],
+        stats: { ...createDummyCharacter().stats, dexterity: 18 },
+        classes: [rogueClass],
+      });
+      const legacyLock: Lock = { ...lock, dc: 16 };
+
+      // This protects older puzzle fixtures while the rest of character data migrates.
+      vi.mocked(statUtils.getAbilityModifierValue).mockImplementation(score => Math.floor((score - 10) / 2));
+      vi.mocked(combatUtils.rollDice).mockReturnValue(10);
+
+      const result = attemptLockpick(modernlessCharacter, legacyLock, [thievesTools]);
+
+      expect(result.success).toBe(true);
+      expect(result.margin).toBe(0);
+      expect(statUtils.getAbilityModifierValue).toHaveBeenCalledWith(18);
+    });
+
     it('fails if roll is too low', () => {
       const char = createDummyCharacter({
         stats: { ...createDummyCharacter().stats, dexterity: 10 }, // +0 Dex
@@ -140,6 +186,40 @@ describe('Lock System', () => {
         const result = attemptLockpick(char, trappedLock, [thievesTools]);
         expect(result.success).toBe(false);
         expect(result.triggeredTrap).toBe(false);
+    });
+  });
+
+  describe('lock progression acceptance paths', () => {
+    it('keeps the existing pick path working while key matching is resolved by caller-supplied key ids', () => {
+      const keyedLock: Lock = {
+        id: 'vault-lock',
+        dc: 15,
+        keyId: 'brass-vault-key',
+        isLocked: true,
+        isBroken: false,
+        isTrapped: false,
+      };
+      const char = createDummyCharacter({
+        stats: { ...createDummyCharacter().stats, dexterity: 14 },
+        classes: [rogueClass],
+      });
+
+      // First prove the non-key route still opens through the existing thieves'-tools check.
+      vi.mocked(statUtils.getAbilityModifierValue).mockReturnValue(2);
+      vi.mocked(combatUtils.rollDice).mockReturnValue(11);
+
+      const pickResult = attemptLockpick(char, keyedLock, [thievesTools]);
+      expect(pickResult.success).toBe(true);
+      expect(pickResult.triggeredTrap).toBe(false);
+
+      // Then prove the key route is deterministic and owned by the lock runtime, not by inventory lookup.
+      const missingKeyResult = attemptKeyUnlock(keyedLock, ['iron-cell-key']);
+      expect(missingKeyResult.success).toBe(false);
+      expect(missingKeyResult.matchedKeyId).toBeUndefined();
+
+      const matchingKeyResult = attemptKeyUnlock(keyedLock, new Set(['brass-vault-key']));
+      expect(matchingKeyResult.success).toBe(true);
+      expect(matchingKeyResult.matchedKeyId).toBe('brass-vault-key');
     });
   });
 

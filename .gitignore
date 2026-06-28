@@ -206,6 +206,13 @@ docs/projects/
 # Local-only agent/runtime artifacts from external or desktop-side processes.
 .agent/rules/environment-learnings/codex-desktop-terminal.md
 
+# Agora peer-coordination daemon runtime state (snapshot + journal + identity).
+# Ignored so a sibling agent's `git reset --hard` cannot nuke live coordination
+# state. (Note: `git clean -fdx` would still remove it — see tools/agora/PROTOCOL.md.)
+# .agent/ is NOT wholesale-ignored in this repo, so this is path-specific.
+.agent/agora/
+.agent/agora-*test*/
+
 # Symphony/Jules runtime state. These files are created while the local
 # dashboard, preflight, and Jules handoff flow are running; keeping them ignored
 # prevents Symphony from dirtying the same worktree it is trying to inspect.

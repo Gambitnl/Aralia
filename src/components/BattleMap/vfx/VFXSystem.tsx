@@ -511,8 +511,8 @@ const SpellDeliveryVisualCue: React.FC<{ visual: SpellDeliveryVisual }> = ({ vis
   return (
     <group>
       {/* Touch delivery is not forced movement. The dotted cyan line shows the
-          spell's delivery origin through the familiar so the 3D map exposes
-          the same tactical information as the 2D overlay. */}
+          spell's delivery origin through the permissioned actor so the 3D map
+          exposes the same tactical information as the 2D overlay. */}
       <Line
         points={[from, to]}
         color="#22d3ee"
@@ -714,7 +714,7 @@ interface VFXSystemProps {
   damageNumbers?: CombatDamageNumber[];
   /** Resolved forced-movement and teleport cues shared with the 2D combat-map overlay. */
   spellMovementVisuals?: SpellMovementVisual[];
-  /** Familiar-origin touch delivery cues shared with the 2D combat-map overlay. */
+  /** Controlled-entity touch delivery cues shared with the 2D combat-map overlay. */
   spellDeliveryVisuals?: SpellDeliveryVisual[];
   /** Teleport destination candidates from the targeting system. */
   teleportDestinationPreviewTiles?: Set<string>;
@@ -1041,7 +1041,7 @@ const VFXSystem: React.FC<VFXSystemProps> = ({
         />
       ))}
 
-      {/* Familiar touch-delivery origin cues */}
+      {/* Controlled-entity touch-delivery origin cues */}
       {spellDeliveryVisuals.map(visual => (
         <SpellDeliveryVisualCue key={visual.id} visual={visual} />
       ))}

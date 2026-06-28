@@ -21,7 +21,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AtlasSvgView from './AtlasSvgView';
 import { generateMap } from '../../services/mapService';
-import { generateFmgWorld } from '../../systems/worldforge/fmg/generateWorld';
+import { getBridgeAtlas } from '../../systems/worldforge/bridge/legacySubmapBridge';
 import { applyWfSpawnToMap } from '../../systems/worldforge/local/resolveSpawn';
 import { legacyGridToAtlasCell } from '../../systems/worldforge/local/gridAtlasBridge';
 import { wfBiomeIndexToLegacyId } from '../../systems/worldforge/local/wfBiomeToLegacy';
@@ -56,16 +56,20 @@ interface SpawnAudit {
  * Run the full fix + the MapPane marker pipeline for one seed. Pure: returns the
  * resolved map, the atlas it was resolved against, and an audit verdict.
  */
-function resolveAndAudit(seed: number): { map: MapData; atlas: ReturnType<typeof generateFmgWorld>; audit: SpawnAudit } {
+function resolveAndAudit(seed: number): { map: MapData; atlas: ReturnType<typeof getBridgeAtlas>; audit: SpawnAudit } {
   const map = generateMap(GRID.rows, GRID.cols, LOCATIONS, BIOMES, seed);
   const spawn = applyWfSpawnToMap(map, seed, GRID, {
     biomeIndexToLegacyId: (idx) => wfBiomeIndexToLegacyId(idx),
     fallbackBiomeId: LOCATIONS[STARTING_LOCATION_ID].biomeId,
     isWalkable: (biomeId) => BIOMES[biomeId]?.passable ?? false,
   });
-  // The rendered atlas uses the SAME seed MapPane would (worldSeed prop), so the
-  // marker pipeline below is bit-for-bit what the live World Map computes.
-  const atlas = generateFmgWorld(String(seed));
+  // The rendered atlas uses the SAME canonical world MapPane would (`getBridgeAtlas`,
+  // i.e. "aralia-<seed>" + the fixed 960×540/10k/continents options), so the marker
+  // pipeline below is bit-for-bit what the live World Map computes — and the SAME world
+  // `applyWfSpawnToMap` resolved the spawn against (WM1 unification). Auditing against a
+  // bare `generateFmgWorld(String(seed))` here would re-introduce the world mismatch the
+  // harness is meant to catch.
+  const atlas = getBridgeAtlas(seed);
 
   // ---- EXACT MapPane marker pipeline ----
   let playerCell: { x: number; y: number } | null = null;

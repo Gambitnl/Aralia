@@ -1,396 +1,474 @@
 {
-  "id": "hex",
-  "name": "Hex",
-  "aliases": [],
-  "level": 1,
-  "school": "Enchantment",
-  "legacy": false,
-  "classes": [
-    "Warlock"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "bonus_action",
-    "combatCost": {
-      "type": "bonus_action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 90,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "the petrified eye of a newt",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "hour",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "single",
-    "range": 90,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "on_attack_hit",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "frequency": "every_time",
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "hit",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "1d6",
-        "type": "Necrotic"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "When the caster hits the cursed target with an attack roll, the spell adds 1d6 Necrotic damage.",
-      "conditionalEndings": [],
-      "tags": [
-        "necrotic-rider",
-        "marked-target",
-        "hit-rider"
-      ]
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "The cursed target has Disadvantage on ability checks using the caster-chosen ability, and if it drops to 0 Hit Points before the spell ends, the caster can use a later-turn Bonus Action to curse a new creature.",
-      "controlOptions": [
-        {
-          "name": "Strength",
-          "effect": "disadvantage",
-          "details": "Target has Disadvantage on ability checks made with Strength."
-        },
-        {
-          "name": "Dexterity",
-          "effect": "disadvantage",
-          "details": "Target has Disadvantage on ability checks made with Dexterity."
-        },
-        {
-          "name": "Constitution",
-          "effect": "disadvantage",
-          "details": "Target has Disadvantage on ability checks made with Constitution."
-        },
-        {
-          "name": "Intelligence",
-          "effect": "disadvantage",
-          "details": "Target has Disadvantage on ability checks made with Intelligence."
-        },
-        {
-          "name": "Wisdom",
-          "effect": "disadvantage",
-          "details": "Target has Disadvantage on ability checks made with Wisdom."
-        },
-        {
-          "name": "Charisma",
-          "effect": "disadvantage",
-          "details": "Target has Disadvantage on ability checks made with Charisma."
-        }
-      ],
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "target_drops_to_0_hp",
-          "scope": "effect",
-          "description": "If the target drops to 0 Hit Points before this spell ends, you can take a Bonus Action on a later turn to curse a new creature."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You place a curse on a creature that you can see within range. Until the spell ends, you deal an extra 1d6 Necrotic damage to the target whenever you hit it with an attack roll. Also, choose one ability when you cast the spell. The target has Disadvantage on ability checks made with the chosen ability. If the target drops to 0 Hit Points before this spell ends, you can take a Bonus Action on a later turn to curse a new creature.",
-  "higherLevels": "Using a Higher-Level Spell Slot. Your Concentration can last longer with a spell slot of level 2 (up to 4 hours), 3-4 (up to 8 hours), or 5+ (24 hours).",
-  "higherLevelScaling": {
-    "type": "slot_level_table",
-    "baseSpellLevel": 1,
-    "entries": {
-      "1": "duration up to 1 hour with concentration",
-      "2": "duration up to 4 hours with concentration",
-      "3-4": "duration up to 8 hours with concentration",
-      "5+": "duration up to 24 hours with concentration"
-    },
-    "notes": "Higher slots increase Hex's maximum concentration duration."
-  },
-  "tags": [
-    "damage",
-    "debuff",
-    "concentration"
-  ],
-  "modeChoice": {
-    "type": "choose_one",
-    "timing": "on_cast",
-    "optionCount": 6,
-    "optionsSource": "controlOptions",
-    "canDismissActive": false,
-    "options": [
-      {
-        "label": "Strength",
-        "summary": "The target has Disadvantage on ability checks made with Strength.",
-        "effectIndices": [
-          1
-        ],
-        "controlOptionIndices": [
-          0
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "while Hex remains on the target"
-      },
-      {
-        "label": "Dexterity",
-        "summary": "The target has Disadvantage on ability checks made with Dexterity.",
-        "effectIndices": [
-          1
-        ],
-        "controlOptionIndices": [
-          1
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "while Hex remains on the target"
-      },
-      {
-        "label": "Constitution",
-        "summary": "The target has Disadvantage on ability checks made with Constitution.",
-        "effectIndices": [
-          1
-        ],
-        "controlOptionIndices": [
-          2
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "while Hex remains on the target"
-      },
-      {
-        "label": "Intelligence",
-        "summary": "The target has Disadvantage on ability checks made with Intelligence.",
-        "effectIndices": [
-          1
-        ],
-        "controlOptionIndices": [
-          3
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "while Hex remains on the target"
-      },
-      {
-        "label": "Wisdom",
-        "summary": "The target has Disadvantage on ability checks made with Wisdom.",
-        "effectIndices": [
-          1
-        ],
-        "controlOptionIndices": [
-          4
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "while Hex remains on the target"
-      },
-      {
-        "label": "Charisma",
-        "summary": "The target has Disadvantage on ability checks made with Charisma.",
-        "effectIndices": [
-          1
-        ],
-        "controlOptionIndices": [
-          5
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "while Hex remains on the target"
-      }
-    ],
-    "notes": "The utility effect's controlOptions carry the ability-specific disadvantage payloads; this menu makes the required caster ability choice explicit for UI and command creation."
-  }
+    "id":  "hex",
+    "name":  "Hex",
+    "aliases":  [
+
+                ],
+    "level":  1,
+    "school":  "Enchantment",
+    "legacy":  false,
+    "classes":  [
+                    "Warlock"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "bonus_action",
+                        "combatCost":  {
+                                           "type":  "bonus_action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  90,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "the petrified eye of a newt",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "hour",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  90,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "on_attack_hit",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "frequency":  "every_time",
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "hit",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "1d6",
+                                       "type":  "Necrotic"
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "When the caster hits the cursed target with an attack roll, the spell adds 1d6 Necrotic damage.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "tags":  [
+                                     "necrotic-rider",
+                                     "marked-target",
+                                     "hit-rider"
+                                 ]
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "The cursed target has Disadvantage on ability checks using the caster-chosen ability, and if it drops to 0 Hit Points before the spell ends, the caster can use a later-turn Bonus Action to curse a new creature.",
+                        "abilityCheckModifier":  {
+                                                     "appliesTo":  "ability_check",
+                                                     "bonusDice":  "",
+                                                     "flatModifier":  "disadvantage",
+                                                     "skillSelection":  "chosen_ability",
+                                                     "skillChooser":  "caster",
+                                                     "skillPool":  [
+                                                                       "Strength",
+                                                                       "Dexterity",
+                                                                       "Constitution",
+                                                                       "Intelligence",
+                                                                       "Wisdom",
+                                                                       "Charisma"
+                                                                   ],
+                                                     "frequency":  "every_matching_check",
+                                                     "durationScope":  "while_hex_remains_on_target",
+                                                     "notes":  "The caster chooses one ability when Hex is applied; the cursed target has Disadvantage on ability checks using that ability."
+                                                 },
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Strength",
+                                                   "effect":  "disadvantage",
+                                                   "details":  "Target has Disadvantage on ability checks made with Strength."
+                                               },
+                                               {
+                                                   "name":  "Dexterity",
+                                                   "effect":  "disadvantage",
+                                                   "details":  "Target has Disadvantage on ability checks made with Dexterity."
+                                               },
+                                               {
+                                                   "name":  "Constitution",
+                                                   "effect":  "disadvantage",
+                                                   "details":  "Target has Disadvantage on ability checks made with Constitution."
+                                               },
+                                               {
+                                                   "name":  "Intelligence",
+                                                   "effect":  "disadvantage",
+                                                   "details":  "Target has Disadvantage on ability checks made with Intelligence."
+                                               },
+                                               {
+                                                   "name":  "Wisdom",
+                                                   "effect":  "disadvantage",
+                                                   "details":  "Target has Disadvantage on ability checks made with Wisdom."
+                                               },
+                                               {
+                                                   "name":  "Charisma",
+                                                   "effect":  "disadvantage",
+                                                   "details":  "Target has Disadvantage on ability checks made with Charisma."
+                                               }
+                                           ],
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "target_drops_to_0_hp",
+                                                       "scope":  "effect",
+                                                       "description":  "If the target drops to 0 Hit Points before this spell ends, you can take a Bonus Action on a later turn to curse a new creature."
+                                                   }
+                                               ],
+                        "sustainAction":  {
+                                              "cost":  "Bonus Action",
+                                              "timing":  "later_turn_after_cursed_target_drops_to_0_HP_before_spell_ends",
+                                              "use":  "curse_new_creature",
+                                              "preserves":  "same_hex_duration"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Ask the caster to choose the cursed creature and the ability that suffers Disadvantage on checks; when the cursed target drops to 0 Hit Points, prompt for the later Bonus Action retarget.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You place a curse on a creature that you can see within range. Until the spell ends, you deal an extra 1d6 Necrotic damage to the target whenever you hit it with an attack roll. Also, choose one ability when you cast the spell. The target has Disadvantage on ability checks made with the chosen ability. If the target drops to 0 Hit Points before this spell ends, you can take a Bonus Action on a later turn to curse a new creature.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. Your Concentration can last longer with a spell slot of level 2 (up to 4 hours), 3-4 (up to 8 hours), or 5+ (24 hours).",
+    "higherLevelScaling":  {
+                               "type":  "slot_level_table",
+                               "baseSpellLevel":  1,
+                               "entries":  {
+                                               "1":  "duration up to 1 hour with concentration",
+                                               "2":  "duration up to 4 hours with concentration",
+                                               "3-4":  "duration up to 8 hours with concentration",
+                                               "5+":  "duration up to 24 hours with concentration"
+                                           },
+                               "notes":  "Higher slots increase Hex\u0027s maximum concentration duration."
+                           },
+    "tags":  [
+                 "damage",
+                 "debuff",
+                 "concentration"
+             ],
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  6,
+                       "optionsSource":  "controlOptions",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Strength",
+                                           "summary":  "The target has Disadvantage on ability checks made with Strength.",
+                                           "effectIndices":  [
+                                                                 1
+                                                             ],
+                                           "controlOptionIndices":  [
+                                                                        0
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "while Hex remains on the target"
+                                       },
+                                       {
+                                           "label":  "Dexterity",
+                                           "summary":  "The target has Disadvantage on ability checks made with Dexterity.",
+                                           "effectIndices":  [
+                                                                 1
+                                                             ],
+                                           "controlOptionIndices":  [
+                                                                        1
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "while Hex remains on the target"
+                                       },
+                                       {
+                                           "label":  "Constitution",
+                                           "summary":  "The target has Disadvantage on ability checks made with Constitution.",
+                                           "effectIndices":  [
+                                                                 1
+                                                             ],
+                                           "controlOptionIndices":  [
+                                                                        2
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "while Hex remains on the target"
+                                       },
+                                       {
+                                           "label":  "Intelligence",
+                                           "summary":  "The target has Disadvantage on ability checks made with Intelligence.",
+                                           "effectIndices":  [
+                                                                 1
+                                                             ],
+                                           "controlOptionIndices":  [
+                                                                        3
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "while Hex remains on the target"
+                                       },
+                                       {
+                                           "label":  "Wisdom",
+                                           "summary":  "The target has Disadvantage on ability checks made with Wisdom.",
+                                           "effectIndices":  [
+                                                                 1
+                                                             ],
+                                           "controlOptionIndices":  [
+                                                                        4
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "while Hex remains on the target"
+                                       },
+                                       {
+                                           "label":  "Charisma",
+                                           "summary":  "The target has Disadvantage on ability checks made with Charisma.",
+                                           "effectIndices":  [
+                                                                 1
+                                                             ],
+                                           "controlOptionIndices":  [
+                                                                        5
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "while Hex remains on the target"
+                                       }
+                                   ],
+                       "notes":  "The utility effect\u0027s controlOptions carry the ability-specific disadvantage payloads; this menu makes the required caster ability choice explicit for UI and command creation."
+                   }
 }

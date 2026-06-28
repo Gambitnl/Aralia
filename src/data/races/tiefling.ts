@@ -43,7 +43,7 @@ export const TIEFLING_DATA: Race = {
   abilityBonuses: [], // As per 2024 PHB style.
   traits: [
     'Creature Type: Humanoid',
-    'Size: Medium (about 4–7 feet tall) or Small (about 3–4 feet tall), chosen when you select this species (defaults to Medium for now).',
+    'Size: Medium, about 4–7 feet tall, or Small, about 3–4 feet tall.',
     'Speed: 30 feet',
     "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
     'Fiendish Legacy: You are the recipient of a legacy that grants you supernatural abilities. Choose a legacy (Abyssal, Chthonic, or Infernal). You gain benefits at levels 1, 3, and 5. Spells learned this way can be cast once per Long Rest without a spell slot, or using spell slots. Your spellcasting ability for these spells (Intelligence, Wisdom, or Charisma) is chosen when you select your legacy.',

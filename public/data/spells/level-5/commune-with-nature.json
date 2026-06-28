@@ -1,206 +1,285 @@
-{
-  "id": "commune-with-nature",
-  "name": "Commune with Nature",
-  "aliases": [],
-  "level": 5,
-  "school": "Divination",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Ranger"
-  ],
-  "subClasses": [
-    "Paladin - Oath of the Ancients"
-  ],
-  "ritual": true,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "self",
-    "validTargets": [
-      "self"
-    ],
-    "lineOfSight": false,
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Outdoor Knowledge Area",
-          "shape": "Radius",
-          "size": 3,
-          "sizeType": "radius",
-          "sizeUnit": "miles",
-          "notes": "Knowledge area in outdoor natural terrain."
-        },
-        {
-          "label": "Underground Knowledge Area",
-          "shape": "Radius",
-          "size": 300,
-          "sizeType": "radius",
-          "sizeUnit": "feet",
-          "notes": "Reduced radius in caves and other natural underground settings."
-        }
-      ]
-    },
-    "range": 0,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Commune with nature spirits to learn three chosen facts about the surrounding natural area: within 3 miles outdoors or 300 feet in caves and natural underground settings, but not where construction such as castles or settlements has replaced nature; facts can include settlements, planar portals, one DM-chosen CR 10+ Celestial, Elemental, Fey, Fiend, or Undead, prevalent plants/minerals/Beasts, or bodies of water.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You commune with nature spirits and gain knowledge of the surrounding area. In the outdoors, the spell gives you knowledge of the area within 3 miles of you. In caves and other natural underground settings, the radius is limited to 300 feet. The spell doesn't function where nature has been replaced by construction, such as in castles and settlements. Choose three of the following facts; you learn those facts as they pertain to the spell's area: For example, you could determine the location of a powerful monster in the area, the locations of bodies of water, and the locations of any towns.",
-  "higherLevels": "",
-  "tags": [
-    "ritual"
-  ]
+﻿{
+    "id":  "commune-with-nature",
+    "name":  "Commune with Nature",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Divination",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Ranger"
+                ],
+    "subClasses":  [
+                       "Paladin - Oath of the Ancients"
+                   ],
+    "ritual":  true,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "instantaneous",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "self",
+                      "validTargets":  [
+                                           "self"
+                                       ],
+                      "lineOfSight":  false,
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Outdoor Knowledge Area",
+                                                               "shape":  "Radius",
+                                                               "size":  3,
+                                                               "sizeType":  "radius",
+                                                               "sizeUnit":  "miles",
+                                                               "notes":  "Knowledge area in outdoor natural terrain."
+                                                           },
+                                                           {
+                                                               "label":  "Underground Knowledge Area",
+                                                               "shape":  "Radius",
+                                                               "size":  300,
+                                                               "sizeType":  "radius",
+                                                               "sizeUnit":  "feet",
+                                                               "notes":  "Reduced radius in caves and other natural underground settings."
+                                                           }
+                                                       ]
+                                         },
+                      "range":  0,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "information",
+                        "description":  "Commune with nature spirits to learn three chosen facts about the surrounding natural area: within 3 miles outdoors or 300 feet in caves and natural underground settings, but not where construction such as castles or settlements has replaced nature; facts can include settlements, planar portals, one DM-chosen CR 10+ Celestial, Elemental, Fey, Fiend, or Undead, prevalent plants/minerals/Beasts, or bodies of water.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Terrain and bodies of water",
+                                                   "effect":  "learn_terrain_and_water",
+                                                   "details":  "Learn information about terrain features and bodies of water in the spell\u0027s natural area."
+                                               },
+                                               {
+                                                   "name":  "Prevalent plants, minerals, animals, or peoples",
+                                                   "effect":  "learn_prevalent_nature",
+                                                   "details":  "Learn information about prevalent plants, minerals, Beasts, or peoples in the spell\u0027s natural area."
+                                               },
+                                               {
+                                                   "name":  "Powerful otherworldly creature",
+                                                   "effect":  "learn_powerful_creature",
+                                                   "details":  "Learn about one DM-chosen powerful Celestial, Elemental, Fey, Fiend, or Undead in the spell\u0027s area."
+                                               },
+                                               {
+                                                   "name":  "Planar influence or portal",
+                                                   "effect":  "learn_planar_influence",
+                                                   "details":  "Learn whether planar influence, a portal, or similar other-planar feature affects the spell\u0027s area."
+                                               },
+                                               {
+                                                   "name":  "Settlements or constructed features",
+                                                   "effect":  "learn_settlements",
+                                                   "details":  "Learn about settlements or constructed features where they are relevant to the natural area and do not make the spell fail."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "knowledgeEffect":  {
+                                                "source":  "nature_spirits",
+                                                "factsChosen":  3,
+                                                "outdoorRadiusMiles":  3,
+                                                "undergroundRadiusFeet":  300,
+                                                "factScope":  "surrounding_natural_area",
+                                                "notes":  "Commune with Nature teaches three chosen facts about the surrounding natural area, using the outdoor or underground radius."
+                                            }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose exactly three facts to learn from the available Commune with Nature categories, and confirm whether the casting area uses the outdoor 3-mile radius or the cave/natural-underground 300-foot radius. The spell does not function where construction has replaced nature.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_multiple",
+                       "timing":  "on_cast",
+                       "optionCount":  3,
+                       "optionsSource":  "effects[0].controlOptions",
+                       "canDismissActive":  false,
+                       "notes":  "The caster chooses three information categories; the DM answers those categories as they pertain to the spell\u0027s natural area."
+                   },
+    "description":  "You commune with nature spirits and gain knowledge of the surrounding area. In the outdoors, the spell gives you knowledge of the area within 3 miles of you. In caves and other natural underground settings, the radius is limited to 300 feet. The spell doesn\u0027t function where nature has been replaced by construction, such as in castles and settlements. Choose three of the following facts; you learn those facts as they pertain to the spell\u0027s area: For example, you could determine the location of a powerful monster in the area, the locations of bodies of water, and the locations of any towns.",
+    "higherLevels":  "",
+    "tags":  [
+                 "ritual"
+             ]
 }
+

@@ -306,8 +306,48 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose Warm Shield or Chill Shield when casting. Warm Shield grants Resistance to Cold and retaliates with Fire damage; Chill Shield grants Resistance to Fire and retaliates with Cold damage.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 2,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Warm Shield",
+        "summary": "Gain Resistance to Cold damage; melee attackers within 5 feet take Fire damage.",
+        "effectIndices": [
+          0,
+          1,
+          2
+        ],
+        "effectTypes": [
+          "DAMAGE",
+          "DEFENSIVE",
+          "UTILITY"
+        ],
+        "duration": "10 minutes"
+      },
+      {
+        "label": "Chill Shield",
+        "summary": "Gain Resistance to Fire damage; melee attackers within 5 feet take Cold damage.",
+        "effectIndices": [
+          0,
+          1,
+          2
+        ],
+        "effectTypes": [
+          "DAMAGE",
+          "DEFENSIVE",
+          "UTILITY"
+        ],
+        "duration": "10 minutes"
+      }
+    ],
+    "notes": "The selected shield mode determines both the resistance granted to the caster and the retaliation damage type. The light effect applies to either mode."
   },
   "description": "Wispy flames wreathe your body for the duration, shedding Bright Light in a 10-foot radius and Dim Light for an additional 10 feet. The flames provide you with a warm shield or a chill shield, as you choose. The warm shield grants you Resistance to Cold damage, and the chill shield grants you Resistance to Fire damage. In addition, whenever a creature within 5 feet of you hits you with a melee attack roll, the shield erupts with flame. The attacker takes 2d8 Fire damage from a warm shield or 2d8 Cold damage from a chill shield.",
   "higherLevels": "",

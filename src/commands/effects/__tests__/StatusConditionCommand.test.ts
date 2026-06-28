@@ -115,10 +115,24 @@ describe('StatusConditionCommand', () => {
 
     const updatedTarget = newState.characters.find(c => c.id === 'target')!;
 
-    expect(updatedTarget.statusEffects[0].repeatSave).toEqual(repeatSave);
+    // The status mirror and the structured condition must both remember which
+    // spell created the condition. Blinding Smite depends on that source label
+    // for human-readable proof and future cleanup logic even though the weapon
+    // hit delivered the condition.
+    expect(updatedTarget.statusEffects[0].source).toBe('Test Spell');
+    expect(updatedTarget.statusEffects[0].sourceCasterId).toBe('caster');
+    expect(updatedTarget.conditions![0].source).toBe('Test Spell');
+    expect(updatedTarget.conditions![0].sourceCasterId).toBe('caster');
+    expect(updatedTarget.statusEffects[0].repeatSave).toEqual({
+      ...repeatSave,
+      dc: 13
+    });
     expect(updatedTarget.statusEffects[0].escapeCheck).toEqual(escapeCheck);
     expect(updatedTarget.statusEffects[0].breakTriggers).toEqual(['target_takes_damage']);
-    expect(updatedTarget.conditions![0].repeatSave).toEqual(repeatSave);
+    expect(updatedTarget.conditions![0].repeatSave).toEqual({
+      ...repeatSave,
+      dc: 13
+    });
     expect(updatedTarget.conditions![0].escapeCheck).toEqual(escapeCheck);
     expect(updatedTarget.conditions![0].breakTriggers).toEqual(['target_takes_damage']);
   });

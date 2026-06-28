@@ -11,7 +11,8 @@
  *
  * Pure: no React/DOM. Deterministic from the world.
  */
-import { generateFmgWorld, type FmgWorldResult } from '../fmg/generateWorld';
+import { type FmgWorldResult } from '../fmg/generateWorld';
+import { getBridgeAtlas } from '../bridge/legacySubmapBridge';
 import type { MapData } from '../../../types';
 import { atlasCellToLegacyGrid, legacyGridToAtlasCell, type GridCoord, type GridSize } from './gridAtlasBridge';
 import { unifyMapBiomesWithWorld } from './unifyMapBiomes';
@@ -167,7 +168,13 @@ export function applyWfSpawnToMap(
   gridSize: GridSize,
   opts: ApplyWfSpawnOptions = {},
 ): WorldSpawn {
-  const world = generateFmgWorld(String(worldSeed));
+  // WM1: spawn into the SAME canonical world the player sees in-game. The map,
+  // town tiles, start-selection step, and 3D bake all source their world from
+  // `getBridgeAtlas(seed)` ("aralia-<seed>" + the fixed 960×540/10k/continents
+  // options). Generating a bare `generateFmgWorld(String(seed))` here built a
+  // DIFFERENT world, so the chosen town's `spawnAtlasCellId` referred to a burg
+  // that did not exist in the world the gameplay map rendered.
+  const world = getBridgeAtlas(worldSeed);
   unifyMapBiomesWithWorld(mapData, world, gridSize);
   const spawn = opts.spawnAtlasCellId != null
     ? spawnFromAtlasCell(world, gridSize, opts.spawnAtlasCellId, opts.spawnBurgName)

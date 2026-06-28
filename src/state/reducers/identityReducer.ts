@@ -8,6 +8,7 @@
 
 import { GameState } from '../../types/index';
 import { AppAction } from '../actionTypes';
+import { inGameTimestamp } from '../../utils/core/timeUtils';
 import { IdentityManager } from '../../systems/intrigue/IdentityManager';
 import { LeverageSystem } from '../../systems/intrigue/LeverageSystem';
 import { PlayerIdentityState } from '../../types/identity';
@@ -44,7 +45,7 @@ export function identityReducer(state: GameState, action: AppAction): Partial<Ga
                         id: Date.now(),
                         text: `You have established a new alias: "${alias.name}".`,
                         sender: 'system',
-                        timestamp: new Date()
+                        timestamp: inGameTimestamp(state.gameTime)
                     }
                 ]
             };
@@ -63,7 +64,7 @@ export function identityReducer(state: GameState, action: AppAction): Partial<Ga
                         id: Date.now(),
                         text: `You are now disguised as: ${disguise.targetAppearance}.`,
                         sender: 'system',
-                        timestamp: new Date()
+                        timestamp: inGameTimestamp(state.gameTime)
                     }
                 ]
             };
@@ -81,7 +82,7 @@ export function identityReducer(state: GameState, action: AppAction): Partial<Ga
                         id: Date.now(),
                         text: `You removed your disguise.`,
                         sender: 'system',
-                        timestamp: new Date()
+                        timestamp: inGameTimestamp(state.gameTime)
                     }
                 ]
             };
@@ -100,7 +101,7 @@ export function identityReducer(state: GameState, action: AppAction): Partial<Ga
                         id: Date.now(),
                         text: `Secret learned: ${secret.content}`,
                         sender: 'system',
-                        timestamp: new Date()
+                        timestamp: inGameTimestamp(state.gameTime)
                     }
                 ]
             };
@@ -119,7 +120,7 @@ export function identityReducer(state: GameState, action: AppAction): Partial<Ga
                             id: Date.now(),
                             text: `You do not know that secret.`,
                             sender: 'system',
-                            timestamp: new Date()
+                            timestamp: inGameTimestamp(state.gameTime)
                         }
                     ]
                 };
@@ -163,7 +164,7 @@ export function identityReducer(state: GameState, action: AppAction): Partial<Ga
                         id: Date.now(),
                         text: result.message,
                         sender: 'system',
-                        timestamp: new Date()
+                        timestamp: inGameTimestamp(state.gameTime)
                     }
                 ]
             };

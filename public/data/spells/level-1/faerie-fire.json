@@ -148,6 +148,17 @@
       },
       "utilityType": "control",
       "description": "Outlined creatures shed dim light, cannot benefit from Invisible, and attackers who can see them have Advantage.",
+      "attackRollModifier": {
+        "modifier": "advantage",
+        "direction": "incoming",
+        "attackKind": "any",
+        "consumption": "while_active",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "notes": "Attack rolls against an affected creature or object have Advantage only if the attacker can see the outlined target."
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -188,8 +199,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Ask the caster to place the 20-foot cube and choose blue, green, or violet light; creatures in the cube make Dexterity saves, and attack rolls against outlined visible targets have Advantage.",
+    "playerInputRequired": true
   },
   "description": "Objects in a 20-foot Cube within range are outlined in blue, green, or violet light (your choice). Each creature in the Cube is also outlined if it fails a Dexterity saving throw. For the duration, objects and affected creatures shed Dim Light in a 10-foot radius and can't benefit from the Invisible condition. Attack rolls against an affected creature or object have Advantage if the attacker can see it.",
   "higherLevels": "",

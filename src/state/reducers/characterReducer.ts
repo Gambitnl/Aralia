@@ -129,6 +129,31 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 party: [...state.party, action.payload],
             };
 
+        // Apply a status condition (e.g. travel 'starving'/'fatigued') to the whole
+        // party. Idempotent: a member already carrying the condition is untouched so
+        // repeated starving days don't stack duplicates.
+        case 'SET_PARTY_CONDITION': {
+            const { condition } = action.payload;
+            return {
+                party: state.party.map(pc =>
+                    pc.conditions?.includes(condition)
+                        ? pc
+                        : { ...pc, conditions: [...(pc.conditions ?? []), condition] },
+                ),
+            };
+        }
+
+        // Clear a party-wide condition (e.g. on resupply / a good meal).
+        case 'CLEAR_PARTY_CONDITION': {
+            const { condition } = action.payload;
+            return {
+                party: state.party.map(pc => ({
+                    ...pc,
+                    conditions: (pc.conditions ?? []).filter(c => c !== condition),
+                })),
+            };
+        }
+
         case 'ADD_ITEM': {
             const { itemId, count = 1 } = action.payload;
             const item = ITEMS[itemId] || Object.values(ITEMS).find(i => i.id === itemId);

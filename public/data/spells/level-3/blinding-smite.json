@@ -14,15 +14,16 @@
   "attackType": "",
   "castingTime": {
     "value": 1,
-    "unit": "bonus_action",
+    "unit": "reaction",
     "combatCost": {
-      "type": "bonus_action",
-      "condition": ""
+      "type": "reaction",
+      "condition": "after you hit a creature with a melee weapon or Unarmed Strike"
     },
     "explorationCost": {
       "value": 0,
       "unit": "minute"
-    }
+    },
+    "reactionCondition": "immediately after you hit a creature with a melee weapon or Unarmed Strike"
   },
   "range": {
     "type": "self",
@@ -83,12 +84,12 @@
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate",
+        "type": "on_attack_hit",
         "frequency": "every_time",
-        "consumption": "unlimited",
+        "consumption": "first_hit",
         "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
+          "weaponType": "melee",
+          "attackType": "weapon"
         },
         "movementType": "any",
         "sustainCost": {
@@ -136,7 +137,7 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "",
+        "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
       "description": "The triggering weapon hit deals an extra 3d8 Radiant damage to the target, and each slot level above 3 adds +1d8 damage.",
@@ -145,12 +146,12 @@
     {
       "type": "STATUS_CONDITION",
       "trigger": {
-        "type": "immediate",
+        "type": "on_attack_hit",
         "frequency": "every_time",
-        "consumption": "unlimited",
+        "consumption": "first_hit",
         "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
+          "weaponType": "melee",
+          "attackType": "weapon"
         },
         "movementType": "any",
         "sustainCost": {
@@ -207,7 +208,7 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+1d8",
+        "bonusPerLevel": "",
         "customFormula": ""
       },
       "description": "On the hit-based smite effect, applies Blinded for 1 minute; a turn-end Constitution save can end it, and slot scaling adds +1d8 damage.",
@@ -221,5 +222,17 @@
   },
   "description": "The target hit by the strike takes an extra 3d8 Radiant damage from the attack, and the target has the Blinded condition until the spell ends. At the end of each of its turns, the Blinded target makes a Constitution saving throw, ending the spell on itself on a success.",
   "higherLevels": "Using a Higher-Level Spell Slot. The extra damage increases by 1d8 for each spell slot level above 3.",
-  "tags": []
+  "tags": [],
+  "castingTrigger": {
+    "type": "after_attack_hit",
+    "timing": "immediate_after_event",
+    "requiredCost": "reaction",
+    "attackFilter": {
+      "attackType": "weapon",
+      "weaponType": "melee",
+      "includesUnarmedStrike": true
+    },
+    "targetBinding": "triggering_attack_target",
+    "notes": "Routes the smite damage and blind-save payload through the shared attack-rider timing path."
+  }
 }

@@ -195,6 +195,69 @@ describe('navalReducer', () => {
     expect(activeShip?.dockedPortBurgId).toBeUndefined();
   });
 
+  // ============================================================================
+  // NAVAL_CLEAR_VOYAGE (3C-4): clears voyage, leaves ships + dockedPortBurgId intact
+  // ============================================================================
+
+  it('NAVAL_CLEAR_VOYAGE sets currentVoyage to null', () => {
+    let state = navalReducer(createMockGameState({ worldSeed: 12345 }), { type: 'NAVAL_INITIALIZE_FLEET' });
+    state = navalReducer(state, {
+      type: 'NAVAL_START_VOYAGE',
+      payload: { destinationId: '42', distance: 200 },
+    });
+
+    expect(state.naval.currentVoyage).not.toBeNull();
+
+    state = navalReducer(state, { type: 'NAVAL_CLEAR_VOYAGE' });
+
+    expect(state.naval.currentVoyage).toBeNull();
+  });
+
+  it('NAVAL_CLEAR_VOYAGE leaves playerShips intact', () => {
+    let state = navalReducer(createMockGameState({ worldSeed: 12345 }), { type: 'NAVAL_INITIALIZE_FLEET' });
+    const shipsBefore = state.naval.playerShips;
+
+    state = navalReducer(state, {
+      type: 'NAVAL_START_VOYAGE',
+      payload: { destinationId: '42', distance: 200 },
+    });
+    state = navalReducer(state, { type: 'NAVAL_CLEAR_VOYAGE' });
+
+    expect(state.naval.playerShips).toEqual(shipsBefore);
+  });
+
+  it('NAVAL_CLEAR_VOYAGE leaves dockedPortBurgId intact after arrival', () => {
+    // Arrive (voyage sets dockedPortBurgId), then clear the voyage.
+    let state = navalReducer(createMockGameState({ worldSeed: 12345 }), { type: 'NAVAL_INITIALIZE_FLEET' });
+    const shipId = state.naval.activeShipId!;
+
+    state = navalReducer(state, {
+      type: 'NAVAL_START_VOYAGE',
+      payload: { destinationId: '99', distance: 1 }, // guaranteed 1-day arrival
+    });
+    state = navalReducer(state, { type: 'NAVAL_ADVANCE_VOYAGE' }); // arrives → Docked, dockedPortBurgId=99
+
+    expect(state.naval.currentVoyage?.status).toBe('Docked');
+    const shipBeforeClear = state.naval.playerShips.find(s => s.id === shipId);
+    expect(shipBeforeClear?.dockedPortBurgId).toBe(99);
+
+    state = navalReducer(state, { type: 'NAVAL_CLEAR_VOYAGE' });
+
+    expect(state.naval.currentVoyage).toBeNull();
+    const shipAfterClear = state.naval.playerShips.find(s => s.id === shipId);
+    // dockedPortBurgId must survive the voyage clear — ship stays docked
+    expect(shipAfterClear?.dockedPortBurgId).toBe(99);
+  });
+
+  it('NAVAL_CLEAR_VOYAGE is a no-op when currentVoyage is already null', () => {
+    const state = createMockGameState({ worldSeed: 12345 });
+    expect(state.naval.currentVoyage).toBeNull();
+
+    const newState = navalReducer(state, { type: 'NAVAL_CLEAR_VOYAGE' });
+
+    expect(newState.naval.currentVoyage).toBeNull();
+  });
+
   it('should advance voyages deterministically for identical seeded states', () => {
     const baseStateA = createMockGameState({ worldSeed: 24680 });
     const baseStateB = createMockGameState({ worldSeed: 24680 });

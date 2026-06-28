@@ -1,301 +1,409 @@
 {
-  "id": "gaseous-form",
-  "name": "Gaseous Form",
-  "aliases": [],
-  "level": 3,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Sorcerer",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a bit of gauze",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "hour",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "multi",
-    "range": 0,
-    "validTargets": [
-      "allies"
-    ],
-    "lineOfSight": true,
-    "maxTargets": {
-      "base": 1,
-      "scaling": {
-        "type": "slot_level",
-        "thresholds": {
-          "3": 1,
-          "4": 2,
-          "5": 3,
-          "6": 4,
-          "7": 5,
-          "8": 6,
-          "9": 7
-        }
-      }
-    },
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "required",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "defenseType": "resistance",
-      "duration": {
-        "type": "minutes",
-        "value": 60
-      },
-      "description": "While transformed into misty cloud form, the target has Resistance to Bludgeoning, Piercing, and Slashing damage.",
-      "damageType": [
-        "Bludgeoning",
-        "Piercing",
-        "Slashing"
-      ],
-      "conditionalEndings": [
-        {
-          "trigger": "target_drops_to_0_hp",
-          "scope": "effect",
-          "description": "The spell ends on an affected target if that target drops to 0 Hit Points."
-        },
-        {
-          "trigger": "target_uses_magic_action_to_end_effect",
-          "scope": "effect",
-          "description": "The affected target can take a Magic action to end the spell on itself."
-        }
-      ]
-    },
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "defenseType": "immunity",
-      "duration": {
-        "type": "minutes",
-        "value": 60
-      },
-      "description": "While transformed into misty cloud form, the target cannot be knocked Prone.",
-      "damageType": [],
-      "conditionImmunity": [
-        "Prone"
-      ],
-      "conditionalEndings": [
-        {
-          "trigger": "target_drops_to_0_hp",
-          "scope": "effect",
-          "description": "The spell ends on an affected target if that target drops to 0 Hit Points."
-        },
-        {
-          "trigger": "target_uses_magic_action_to_end_effect",
-          "scope": "effect",
-          "description": "The affected target can take a Magic action to end the spell on itself."
-        }
-      ]
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Touch one willing creature and transform it, plus worn and carried gear, into misty cloud form for up to 1 hour with concentration; higher slots add one target per slot level above 3. The target only has a 10-foot Fly Speed with hover, has Advantage on Strength, Dexterity, and Constitution saves, can share creature spaces and pass through narrow openings, treats liquids as solid, cannot speak, manipulate or drop objects, attack, or cast spells, and the form ends for that target at 0 Hit Points or when it uses a Magic action to end it.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "target_drops_to_0_hp",
-          "scope": "effect",
-          "description": "The spell ends on an affected target if that target drops to 0 Hit Points."
-        },
-        {
-          "trigger": "target_uses_magic_action_to_end_effect",
-          "scope": "effect",
-          "description": "The affected target can take a Magic action to end the spell on itself."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "A willing creature you touch shape-shifts , along with everything it's wearing and carrying, into a misty cloud for the duration. The spell ends on the target if it drops to 0 Hit Points or if it takes a Magic action to end the spell on itself. While in this form, the target's only method of movement is a Fly Speed of 10 feet, and it can hover. The target can enter and occupy the space of another creature. The target has Resistance to Bludgeoning, Piercing, and Slashing damage; it has Immunity to the Prone condition; and it has Advantage on Strength, Dexterity, and Constitution saving throws. The target can pass through narrow openings, but it treats liquids as though they were solid surfaces. The target can't talk or manipulate objects, and any objects it was carrying or holding can't be dropped, used, or otherwise interacted with. Finally, the target can't attack or cast spells.",
-  "higherLevels": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 3.",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "gaseous-form",
+    "name":  "Gaseous Form",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Sorcerer",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a bit of gauze",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "hour",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "multi",
+                      "range":  0,
+                      "validTargets":  [
+                                           "allies"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  {
+                                         "base":  1,
+                                         "scaling":  {
+                                                         "type":  "slot_level",
+                                                         "thresholds":  {
+                                                                            "3":  1,
+                                                                            "4":  2,
+                                                                            "5":  3,
+                                                                            "6":  4,
+                                                                            "7":  5,
+                                                                            "8":  6,
+                                                                            "9":  7
+                                                                        }
+                                                     }
+                                     },
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "required",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "defenseType":  "resistance",
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  60
+                                     },
+                        "description":  "While transformed into misty cloud form, the target has Resistance to Bludgeoning, Piercing, and Slashing damage.",
+                        "damageType":  [
+                                           "Bludgeoning",
+                                           "Piercing",
+                                           "Slashing"
+                                       ],
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "target_drops_to_0_hp",
+                                                       "scope":  "effect",
+                                                       "description":  "The spell ends on an affected target if that target drops to 0 Hit Points."
+                                                   },
+                                                   {
+                                                       "trigger":  "target_uses_magic_action_to_end_effect",
+                                                       "scope":  "effect",
+                                                       "description":  "The affected target can take a Magic action to end the spell on itself."
+                                                   }
+                                               ]
+                    },
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "defenseType":  "immunity",
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  60
+                                     },
+                        "description":  "While transformed into misty cloud form, the target cannot be knocked Prone.",
+                        "damageType":  [
+
+                                       ],
+                        "conditionImmunity":  [
+                                                  "Prone"
+                                              ],
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "target_drops_to_0_hp",
+                                                       "scope":  "effect",
+                                                       "description":  "The spell ends on an affected target if that target drops to 0 Hit Points."
+                                                   },
+                                                   {
+                                                       "trigger":  "target_uses_magic_action_to_end_effect",
+                                                       "scope":  "effect",
+                                                       "description":  "The affected target can take a Magic action to end the spell on itself."
+                                                   }
+                                               ]
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Touch one willing creature and transform it, plus worn and carried gear, into misty cloud form for up to 1 hour with concentration; higher slots add one target per slot level above 3. The target only has a 10-foot Fly Speed with hover, has Advantage on Strength, Dexterity, and Constitution saves, can share creature spaces and pass through narrow openings, treats liquids as solid, cannot speak, manipulate or drop objects, attack, or cast spells, and the form ends for that target at 0 Hit Points or when it uses a Magic action to end it.",
+                        "savingThrowModifier":  {
+                                                    "modifier":  "advantage",
+                                                    "stats":  [
+                                                                  "Strength",
+                                                                  "Dexterity",
+                                                                  "Constitution"
+                                                              ],
+                                                    "consumption":  "while_active",
+                                                    "duration":  {
+                                                                     "type":  "minutes",
+                                                                     "value":  60
+                                                                 }
+                                                },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "transformationState":  {
+                                                    "form":  "misty_cloud",
+                                                    "includesWornAndCarriedObjects":  true,
+                                                    "movement":  {
+                                                                     "onlyMovementMode":  "fly",
+                                                                     "speedFeet":  10,
+                                                                     "canHover":  true,
+                                                                     "canShareCreatureSpace":  true,
+                                                                     "canPassThroughNarrowOpenings":  true,
+                                                                     "treatsLiquidsAsSolid":  true
+                                                                 },
+                                                    "restrictions":  {
+                                                                         "canTalk":  false,
+                                                                         "canManipulateObjects":  false,
+                                                                         "canDropCarriedObjects":  false,
+                                                                         "canAttack":  false,
+                                                                         "canCastSpells":  false
+                                                                     },
+                                                    "endTriggers":  [
+                                                                        "target_drops_to_0_hp",
+                                                                        "target_uses_magic_action_to_end_effect"
+                                                                    ]
+                                                },
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "target_drops_to_0_hp",
+                                                       "scope":  "effect",
+                                                       "description":  "The spell ends on an affected target if that target drops to 0 Hit Points."
+                                                   },
+                                                   {
+                                                       "trigger":  "target_uses_magic_action_to_end_effect",
+                                                       "scope":  "effect",
+                                                       "description":  "The affected target can take a Magic action to end the spell on itself."
+                                                   }
+                                               ],
+                        "surfaceInteraction":  {
+                                                   "canPassThroughNarrowOpenings":  true,
+                                                   "liquidTreatment":  "treated_as_solid_surface",
+                                                   "carriedGearTransformsWithTarget":  true,
+                                                   "notes":  "The misty target can pass through narrow openings, but liquids count as solid surfaces for movement and blocking."
+                                               },
+                        "movementState":  {
+                                              "kind":  "movement_replacement_cloud_form",
+                                              "onlyMovement":  "Fly_Speed_10_feet",
+                                              "hover":  true,
+                                              "canEnterOccupiedSpace":  true,
+                                              "narrowOpenings":  "can_pass_through_narrow_openings",
+                                              "liquidSurface":  "treats_liquids_as_solid_surfaces",
+                                              "restrictions":  [
+                                                                   "cannot_talk",
+                                                                   "cannot_manipulate_objects",
+                                                                   "cannot_attack",
+                                                                   "cannot_cast_spells"
+                                                               ]
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Track the target\u0027s misty form restrictions, 10-foot hover Fly Speed, Resistance to Bludgeoning, Piercing, and Slashing damage, Prone immunity, Advantage on Strength, Dexterity, and Constitution saving throws, carried-object lock, no speech, no object manipulation, no attacks, no spellcasting, and the 0 HP or Magic action ending triggers.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "A willing creature you touch shape-shifts , along with everything it\u0027s wearing and carrying, into a misty cloud for the duration. The spell ends on the target if it drops to 0 Hit Points or if it takes a Magic action to end the spell on itself. While in this form, the target\u0027s only method of movement is a Fly Speed of 10 feet, and it can hover. The target can enter and occupy the space of another creature. The target has Resistance to Bludgeoning, Piercing, and Slashing damage; it has Immunity to the Prone condition; and it has Advantage on Strength, Dexterity, and Constitution saving throws. The target can pass through narrow openings, but it treats liquids as though they were solid surfaces. The target can\u0027t talk or manipulate objects, and any objects it was carrying or holding can\u0027t be dropped, used, or otherwise interacted with. Finally, the target can\u0027t attack or cast spells.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 3.",
+    "tags":  [
+                 "concentration"
+             ]
 }

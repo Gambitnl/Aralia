@@ -39,9 +39,10 @@ import { DamageCommand } from '../effects/DamageCommand';
 import { HealingCommand } from '../effects/HealingCommand';
 import { MovementCommand } from '../effects/MovementCommand';
 import { StatusConditionCommand } from '../effects/StatusConditionCommand';
+import { AttackRollModifierCommand } from '../effects/AttackRollModifierCommand';
 import { AbilityEffectMapper } from './AbilityEffectMapper';
-import { rollDice, generateId, calculateCover, resolveAttack, getDistance, rollD20 } from '@/utils/combatUtils';
-import { SpellEffect, isDamageEffect, isHealingEffect, isMovementEffect, isStatusConditionEffect } from '@/types/spells';
+import { generateId, calculateCover, resolveAttack, getDistance, rollD20 } from '@/utils/combatUtils';
+import { SpellEffect, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, isMovementEffect, isStatusConditionEffect } from '@/types/spells';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
 import { VisibilitySystem } from '@/systems/visibility';
 import { DismissFamiliarToPocketCommand, RecallFamiliarFromPocketCommand } from '../effects/FamiliarPocketCommands';
@@ -50,6 +51,56 @@ import { CommandedSummonCommand } from '../effects/CommandedSummonCommand';
 import { GrantedActionCommand } from '../effects/GrantedActionCommand';
 import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidationUtils';
 import { combatEvents } from '@/systems/events/CombatEvents';
+
+// ============================================================================
+// Attack Classification Helpers
+// ============================================================================
+// This section translates visible attack-button metadata into the smaller
+// attack families used by riders and reaction spells. Unarmed Strike is
+// intentionally separated from ordinary weapons because modern smite spells
+// opt into it explicitly instead of treating every punch as a weapon object.
+// ============================================================================
+
+const isUnarmedStrikeAbility = (ability: Ability): boolean => {
+  // Generated monster and player action ids commonly normalize "Unarmed
+  // Strike" into `unarmed_strike`, while hand-authored fixtures often keep the
+  // display name. Check both so the event bridge is not tied to one adapter.
+  const normalizedId = ability.id.toLowerCase().replace(/[\s-]+/g, '_');
+  const normalizedName = ability.name.toLowerCase();
+
+  return normalizedId.includes('unarmed_strike') || normalizedName.includes('unarmed strike');
+};
+
+const getAttackEventClassification = (ability: Ability): {
+  attackType: 'weapon' | 'spell' | 'unarmed';
+  weaponType: 'melee' | 'ranged' | 'unarmed';
+} => {
+  // Unarmed Strike can be a real attack action, but it is not a held melee
+  // weapon. Publishing it separately lets Shining/Blinding Smite honor their
+  // explicit includesUnarmedStrike contract without widening all melee riders.
+  if (ability.attackType === 'unarmed' || isUnarmedStrikeAbility(ability)) {
+    return {
+      attackType: 'unarmed',
+      weaponType: 'unarmed'
+    };
+  }
+
+  // Some attack-roll buttons are spell attacks rather than weapon attacks.
+  // Lightning Arrow and similar next-weapon-attack riders must ignore those
+  // buttons even when they are ranged, so honor explicit spell-attack metadata
+  // before falling back to the older weapon-attack default.
+  if (ability.attackType === 'spell') {
+    return {
+      attackType: 'spell',
+      weaponType: (ability.range || 5) <= 5 ? 'melee' : 'ranged'
+    };
+  }
+
+  return {
+    attackType: ability.type === 'attack' ? 'weapon' : 'spell',
+    weaponType: (ability.range || 5) <= 5 ? 'melee' : 'ranged'
+  };
+};
 
 /**
  * Command for executing a weapon attack.
@@ -167,7 +218,11 @@ export class WeaponAttackCommand implements SpellCommand {
       if (currentTarget.conditions?.some(c => c.name === 'Blinded')) {
         hasAdvantage = true;
       }
-      if (currentTarget.conditions?.some(c => c.name === 'Invisible')) {
+      const invisibleBenefitSuppressed = currentTarget.activeEffects?.some(effect =>
+        effect.mechanics?.suppressedConditionBenefit?.toLowerCase?.() === 'invisible'
+      ) ?? false;
+
+      if (currentTarget.conditions?.some(c => c.name === 'Invisible') && !invisibleBenefitSuppressed) {
         hasDisadvantage = true;
       }
       if (this.caster.conditions?.some(c => c.name === 'Invisible')) {
@@ -299,6 +354,7 @@ export class WeaponAttackCommand implements SpellCommand {
       // knows the real hit/miss outcome. Reactive systems and future action
       // envelope bridges should consume this event instead of scraping prose
       // combat-log messages for whether the target was actually hit.
+      const attackEventClassification = getAttackEventClassification(this.ability);
       combatEvents.emit({
         type: 'unit_attack',
         attackerId: this.caster.id,
@@ -308,8 +364,8 @@ export class WeaponAttackCommand implements SpellCommand {
         // Preserve the same weapon/spell and melee/ranged classification used
         // by rider matching so event-driven reactive spells can enforce their
         // attack filters without duplicating ability inspection elsewhere.
-        attackType: this.ability.type === 'attack' ? 'weapon' : 'spell',
-        weaponType: (this.ability.range || 5) <= 5 ? 'melee' : 'ranged'
+        attackType: attackEventClassification.attackType,
+        weaponType: attackEventClassification.weaponType
       });
 
       // Log Attack Roll
@@ -323,34 +379,131 @@ export class WeaponAttackCommand implements SpellCommand {
       });
 
       if (!isHit) {
+        // Some attack riders are consumed by the next matching attack even on
+        // a miss. Lightning Arrow is the pilot case: the primary target takes
+        // a data-declared fraction of the rider damage, and the rider is spent
+        // so the spell does not wait for another attack.
+        if (this.ability.type === 'attack') {
+          const missAttackContext: AttackContext = {
+            attackerId: this.caster.id,
+            targetId: currentTarget.id,
+            attackType: attackEventClassification.attackType,
+            weaponType: attackEventClassification.weaponType,
+            isHit: false
+          };
+          const missRiders = riderSystem.getMatchingRiders(newState, missAttackContext);
+
+          for (const rider of missRiders) {
+            if (isDamageEffect(rider.effect) && typeof rider.effect.missDamageMultiplier === 'number') {
+              currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
+
+              // Route miss-rider damage through the same damage command used
+              // on hits. The only special part is the data-declared fraction;
+              // resistance, immunity, temporary HP, concentration, and damage
+              // logging stay owned by the shared damage engine.
+              const missDamageContext: CommandContext = {
+                ...this.context,
+                spellId: rider.spellId,
+                spellName: rider.sourceName,
+                targets: [currentTarget],
+                isCritical: false,
+                isMagical: true,
+                damageMultiplier: rider.effect.missDamageMultiplier
+              };
+              const missDamageCommand = new DamageCommand(rider.effect, missDamageContext);
+              newState = await missDamageCommand.execute(newState);
+              currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
+            } else if (isDamageEffect(rider.effect) && rider.effect.areaOfEffect) {
+              currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
+
+              // Lightning Arrow-style riders can carry a secondary burst that
+              // is centered on the attack target even when the attack misses.
+              // Resolve all creatures in that burst through DamageCommand so
+              // saving throws, mitigation, and combat logging use the normal
+              // damage path instead of a spell-specific shortcut.
+              const burstTargets = this.getRiderAreaTargets(newState, currentTarget, rider.effect.areaOfEffect.size);
+              if (burstTargets.length > 0) {
+                const burstContext: CommandContext = {
+                  ...this.context,
+                  spellId: rider.spellId,
+                  spellName: rider.sourceName,
+                  targets: burstTargets,
+                  isCritical: false,
+                  isMagical: true
+                };
+                const burstCommand = new DamageCommand(rider.effect, burstContext);
+                newState = await burstCommand.execute(newState);
+                currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
+              }
+            }
+          }
+
+          if (missRiders.length > 0) {
+            newState = riderSystem.consumeRiders(newState, this.caster.id, missRiders);
+          }
+        }
         continue;
       }
 
-      // 3. Apply Base Ability Effects
-      for (const abilityEffect of this.ability.effects) {
-        const spellEffect = AbilityEffectMapper.mapToSpellEffect(abilityEffect);
-        if (!spellEffect) continue;
+      let matchingHitRiders: ReturnType<AttackRiderSystem['getMatchingRiders']> = [];
+      let attackPayloadIsReplaced = false;
 
-        const subContext: CommandContext = {
-          ...this.context,
-          targets: [currentTarget],
-          isCritical,
-          weaponProperties: this.ability.weapon?.properties,
-          isMagical: this.ability.isMagical,
+      if (this.ability.type === 'attack') {
+        const attackContext: AttackContext = {
+          attackerId: this.caster.id,
+          targetId: currentTarget.id,
+          attackType: attackEventClassification.attackType,
+          weaponType: attackEventClassification.weaponType,
+          isHit: true
         };
 
-        let command: SpellCommand | null = null;
-        switch (spellEffect.type) {
-          case 'DAMAGE': command = new DamageCommand(spellEffect, subContext); break;
-          case 'HEALING': command = new HealingCommand(spellEffect, subContext); break;
-          case 'STATUS_CONDITION': command = new StatusConditionCommand(spellEffect, subContext); break;
-        }
+        matchingHitRiders = riderSystem.getMatchingRiders(newState, attackContext);
+        attackPayloadIsReplaced = matchingHitRiders.some(rider =>
+          isDamageEffect(rider.effect) &&
+          rider.effect.objectTransformation?.sourceObject === 'weapon_or_ammunition_used_for_attack'
+        );
+      }
 
-        if (command) {
-          newState = await command.execute(newState);
-          // Refresh target
-          currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
+      // 3. Apply Base Ability Effects
+      if (!attackPayloadIsReplaced) {
+        for (const abilityEffect of this.ability.effects) {
+          const spellEffect = AbilityEffectMapper.mapToSpellEffect(abilityEffect);
+          if (!spellEffect) continue;
+
+          const subContext: CommandContext = {
+            ...this.context,
+            targets: [currentTarget],
+            isCritical,
+            weaponProperties: this.ability.weapon?.properties,
+            isMagical: this.ability.isMagical,
+          };
+
+          let command: SpellCommand | null = null;
+          switch (spellEffect.type) {
+            case 'DAMAGE': command = new DamageCommand(spellEffect, subContext); break;
+            case 'HEALING': command = new HealingCommand(spellEffect, subContext); break;
+            case 'STATUS_CONDITION': command = new StatusConditionCommand(spellEffect, subContext); break;
+          }
+
+          if (command) {
+            newState = await command.execute(newState);
+            // Refresh target
+            currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
+          }
         }
+      } else {
+        // Lightning Arrow-style riders say the weapon or ammunition becomes
+        // the spell payload. That means the normal weapon damage and other
+        // attack payloads should not resolve first; the matched rider below is
+        // the thing the target takes instead of the attack's ordinary effects.
+        newState.combatLog.push({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'action',
+          message: `${this.caster.name}'s attack payload is replaced by a spell rider before normal weapon effects resolve.`,
+          characterId: this.caster.id,
+          targetIds: [currentTarget.id]
+        });
       }
 
       // ================================================================
@@ -375,7 +528,7 @@ export class WeaponAttackCommand implements SpellCommand {
                        this.ability.weapon?.category?.toLowerCase().includes('ranged');
       const isEligibleWeapon = isFinesse || isRanged;
 
-      if (isRogue && !hasUsedSneakAttack && isEligibleWeapon) {
+      if (!attackPayloadIsReplaced && isRogue && !hasUsedSneakAttack && isEligibleWeapon) {
         const hasAdv = hasAdvantage && !hasDisadvantage;
         const hasDisadv = hasDisadvantage && !hasAdvantage;
 
@@ -443,26 +596,35 @@ export class WeaponAttackCommand implements SpellCommand {
 
       // 4. Rider System Integration (Restored)
       if (this.ability.type === 'attack') {
-        const weaponTypeMatch = (this.ability.range || 5) <= 5 ? 'melee' : 'ranged'; // Simple heuristic
-
-        const attackContext: AttackContext = {
-          attackerId: this.caster.id,
-          targetId: currentTarget.id,
-          attackType: 'weapon',
-          weaponType: weaponTypeMatch,
-          isHit: true
-        };
-
-        const matchingRiders = riderSystem.getMatchingRiders(newState, attackContext);
+        const matchingRiders = matchingHitRiders;
 
         if (matchingRiders.length > 0) {
           for (const rider of matchingRiders) {
             // Determine effect type
             if (isDamageEffect(rider.effect)) {
+              // Area riders resolve around the attack target rather than
+              // replacing the attack target. Lightning Arrow uses this for
+              // the 10-foot secondary burst that follows its primary hit or
+              // miss damage, while single-target riders still use the target
+              // that was actually attacked.
+              const riderDamageTargets = rider.effect.areaOfEffect
+                ? this.getRiderAreaTargets(newState, currentTarget, rider.effect.areaOfEffect.size)
+                : [currentTarget];
+
+              if (riderDamageTargets.length === 0) continue;
+
               // Create Damage Command for Rider
               const dmgContext: CommandContext = {
                 ...this.context,
-                targets: [currentTarget],
+                // Rider payloads belong to the spell that registered the rider,
+                // not to the weapon button that happened to trigger it. Keep
+                // hit-rider command metadata aligned with the miss-rider path so
+                // logs, concentration side effects, and downstream proof can
+                // identify Lightning Arrow or a smite as the actual source.
+                spellId: rider.spellId,
+                spellName: rider.sourceName,
+                isMagical: true,
+                targets: riderDamageTargets,
                 isCritical
               };
               const dmgCommand = new DamageCommand(rider.effect, dmgContext);
@@ -481,11 +643,40 @@ export class WeaponAttackCommand implements SpellCommand {
             } else if (isStatusConditionEffect(rider.effect)) {
               const statusContext: CommandContext = {
                 ...this.context,
+                // Status riders such as Blinding Smite are produced by the
+                // reaction spell even though a weapon attack delivered them.
+                // Preserve that spell identity for saved condition metadata and
+                // future cleanup/proof instead of attributing the condition to
+                // the base attack ability.
+                spellId: rider.spellId,
+                spellName: rider.sourceName,
+                isMagical: true,
                 targets: [currentTarget],
                 isCritical
               };
               const statusCommand = new StatusConditionCommand(rider.effect, statusContext);
               newState = await statusCommand.execute(newState);
+              currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
+            } else if (isAttackRollModifierEffect(rider.effect)) {
+              // Shining Smite-style riders do not deal only damage. They also
+              // leave a rule on the hit target so later attacks against that
+              // target get advantage while the spell remains active. Route that
+              // payload through the existing attack-roll modifier command
+              // instead of hard-coding the smite inside weapon attacks.
+              const modifierContext: CommandContext = {
+                ...this.context,
+                // Attack-roll modifier riders such as Shining Smite need their
+                // active-effect and light-source records to point back to the
+                // rider spell. Otherwise the shared command path can apply the
+                // right behavior while leaving misleading source metadata.
+                spellId: rider.spellId,
+                spellName: rider.sourceName,
+                isMagical: true,
+                targets: [currentTarget],
+                isCritical
+              };
+              const modifierCommand = new AttackRollModifierCommand(rider.effect, modifierContext);
+              newState = await modifierCommand.execute(newState);
               currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
             }
           }
@@ -497,6 +688,24 @@ export class WeaponAttackCommand implements SpellCommand {
     }
 
     return newState;
+  }
+
+  private getRiderAreaTargets(
+    state: CombatState,
+    centerTarget: CombatCharacter,
+    radiusFeet: number
+  ): CombatCharacter[] {
+    const radiusTiles = Math.ceil(radiusFeet / 5);
+
+    // Rider area payloads are centered on the creature that was attacked, not
+    // on the original caster or the spell-cast target. The center creature has
+    // already received the primary rider payload, so exclude it from the burst
+    // list and let the area rider cover only nearby secondary creatures.
+    return state.characters.filter(character =>
+      character.currentHP > 0 &&
+      character.id !== centerTarget.id &&
+      getDistance(centerTarget.position, character.position) <= radiusTiles
+    );
   }
 }
 

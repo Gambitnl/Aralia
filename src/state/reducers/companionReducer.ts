@@ -25,6 +25,7 @@
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
 import { RelationshipManager } from '../../systems/companions/RelationshipManager';
+import { inGameTimestamp } from '../../utils/core/timeUtils';
 
 export function companionReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -68,7 +69,7 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
             id: Date.now(),
             text: `${companion.identity.name} ${sign} of that.`,
             sender: 'system',
-            timestamp: new Date()
+            timestamp: inGameTimestamp(state.gameTime)
           }
         ];
       }
@@ -84,7 +85,7 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
               id: Date.now() + Math.random(), // slight offset
               text: `RELATIONSHIP MILESTONE: ${companion.identity.name} has unlocked "${unlock.description}"`,
               sender: 'system',
-              timestamp: new Date()
+              timestamp: inGameTimestamp(state.gameTime)
             }
           ];
         });
@@ -96,6 +97,39 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
           [companionId]: updatedCompanion
         },
         messages
+      };
+    }
+
+    // Adjust a companion's loyalty (0–100), the "will they leave/betray" meter.
+    // Used by travel provisioning to drain loyalty on a starving march.
+    case 'ADJUST_COMPANION_LOYALTY': {
+      const { companionId, delta } = action.payload;
+      const companion = state.companions[companionId];
+      if (!companion) return {};
+      const loyalty = Math.max(0, Math.min(100, companion.loyalty + delta));
+      return {
+        companions: { ...state.companions, [companionId]: { ...companion, loyalty } },
+      };
+    }
+
+    // A companion abandons the party (e.g. marched too long while starving).
+    // Removes them from the roster and announces the departure.
+    case 'COMPANION_DESERT': {
+      const { companionId } = action.payload;
+      const companion = state.companions[companionId];
+      if (!companion) return {};
+      const { [companionId]: _gone, ...remaining } = state.companions;
+      return {
+        companions: remaining,
+        messages: [
+          ...state.messages,
+          {
+            id: Date.now(),
+            text: `${companion.identity.name} can bear no more and abandons the party.`,
+            sender: 'system',
+            timestamp: inGameTimestamp(state.gameTime),
+          },
+        ],
       };
     }
 
@@ -112,7 +146,7 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
             id: Date.now(),
             text: `${companion.identity.name}: "${reaction}"`,
             sender: 'npc',
-            timestamp: new Date(),
+            timestamp: inGameTimestamp(state.gameTime),
             metadata: {
               companionId: companion.id,
               reactionType: 'comment'

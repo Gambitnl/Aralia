@@ -1,224 +1,291 @@
 {
-  "id": "clairvoyance",
-  "name": "Clairvoyance",
-  "aliases": [],
-  "level": 3,
-  "school": "Divination",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Cleric",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [
-    "Warlock - Great Old One Patron"
-  ],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 10,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 10,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 1,
-    "distanceUnit": "miles"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a focus worth 100+ GP, either a jeweled horn for hearing or a glass eye for seeing",
-    "materialCost": 100,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "point",
-    "validTargets": [
-      "ground"
-    ],
-    "lineOfSight": false,
-    "range": 1,
-    "rangeUnit": "miles",
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Create an invisible, intangible, invulnerable sensor within 1 mile for up to 10 minutes with concentration, placed in a familiar location or an obvious unfamiliar one; choose sight or hearing through the sensor, switch senses as a Bonus Action, and creatures with See Invisibility or Truesight see it as a fist-sized luminous orb.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "Choose whether the sensor starts with seeing or hearing; the caster can switch between those senses later as a Bonus Action.",
-    "playerInputRequired": true
-  },
-  "modeChoice": {
-    "type": "choose_one",
-    "timing": "on_cast_or_later_bonus_action",
-    "optionCount": 2,
-    "optionsSource": "modeChoice.options",
-    "canDismissActive": false,
-    "options": [
-      {
-        "label": "Seeing",
-        "summary": "Use sight through the invisible sensor as if standing in its space.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "10 minutes with concentration",
-        "notes": "The caster can switch from seeing to hearing with a Bonus Action while the spell persists."
-      },
-      {
-        "label": "Hearing",
-        "summary": "Use hearing through the invisible sensor as if standing in its space.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "10 minutes with concentration",
-        "notes": "The caster can switch from hearing to seeing with a Bonus Action while the spell persists."
-      }
-    ],
-    "notes": "The mode choice controls which sense is active through the sensor; the sensor placement remains ordinary point targeting."
-  },
-  "description": "You create an Invisible sensor within range in a location familiar to you (a place you have visited or seen before) or in an obvious location that is unfamiliar to you (such as behind a door, around a corner, or in a grove of trees). The intangible, invulnerable sensor remains in place for the duration. When you cast the spell, choose seeing or hearing. You can use the chosen sense through the sensor as if you were in its space. As a Bonus Action, you can switch between seeing and hearing. A creature that sees the sensor (such as a creature benefiting from See Invisibility or Truesight) sees a luminous orb about the size of your fist.",
-  "higherLevels": "",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "clairvoyance",
+    "name":  "Clairvoyance",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Divination",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Cleric",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+                       "Warlock - Great Old One Patron"
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  10,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  10,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  1,
+                  "distanceUnit":  "miles"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a focus worth 100+ GP, either a jeweled horn for hearing or a glass eye for seeing",
+                       "materialCost":  100,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "validTargets":  [
+                                           "ground"
+                                       ],
+                      "lineOfSight":  false,
+                      "range":  1,
+                      "rangeUnit":  "miles",
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Create an invisible, intangible, invulnerable sensor within 1 mile for up to 10 minutes with concentration, placed in a familiar location or an obvious unfamiliar one; choose sight or hearing through the sensor, switch senses as a Bonus Action, and creatures with See Invisibility or Truesight see it as a fist-sized luminous orb.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "visionLightSound":  {
+                                                 "mode":  "invisible_remote_sensor",
+                                                 "sensorVisibility":  "Invisible; creatures with See Invisibility or Truesight can see it as a luminous orb",
+                                                 "sensorDurability":  "intangible and invulnerable",
+                                                 "placement":  "familiar location within range or obvious unfamiliar location such as behind a door, around a corner, or in a grove",
+                                                 "senseMode":  "caster chooses seeing or hearing when cast and can switch senses as a Bonus Action",
+                                                 "soundPayload":  "remote hearing mode when selected"
+                                             },
+                        "sensorState":  {
+                                            "kind":  "stationary_invisible_sensor",
+                                            "range":  "1_mile",
+                                            "placement":  [
+                                                              "familiar_location_visited_or_seen_before",
+                                                              "obvious_unfamiliar_location"
+                                                          ],
+                                            "senses":  "choose_sight_or_hearing_switchable_by_bonus_action",
+                                            "physicalState":  [
+                                                                  "intangible",
+                                                                  "invulnerable",
+                                                                  "stationary"
+                                                              ],
+                                            "visibleTo":  "See_Invisibility_or_Truesight_as_fist_sized_luminous_orb"
+                                        },
+                        "sustainAction":  {
+                                              "cost":  "Bonus Action",
+                                              "use":  "switch_sensor_between_seeing_and_hearing",
+                                              "duration":  "concentration_up_to_10_minutes",
+                                              "sensor":  "stationary_invisible_clairvoyance_sensor"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose whether the sensor starts with seeing or hearing; the caster can switch between those senses later as a Bonus Action.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast_or_later_bonus_action",
+                       "optionCount":  2,
+                       "optionsSource":  "modeChoice.options",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Seeing",
+                                           "summary":  "Use sight through the invisible sensor as if standing in its space.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "10 minutes with concentration",
+                                           "notes":  "The caster can switch from seeing to hearing with a Bonus Action while the spell persists."
+                                       },
+                                       {
+                                           "label":  "Hearing",
+                                           "summary":  "Use hearing through the invisible sensor as if standing in its space.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "10 minutes with concentration",
+                                           "notes":  "The caster can switch from hearing to seeing with a Bonus Action while the spell persists."
+                                       }
+                                   ],
+                       "notes":  "The mode choice controls which sense is active through the sensor; the sensor placement remains ordinary point targeting."
+                   },
+    "description":  "You create an Invisible sensor within range in a location familiar to you (a place you have visited or seen before) or in an obvious location that is unfamiliar to you (such as behind a door, around a corner, or in a grove of trees). The intangible, invulnerable sensor remains in place for the duration. When you cast the spell, choose seeing or hearing. You can use the chosen sense through the sensor as if you were in its space. As a Bonus Action, you can switch between seeing and hearing. A creature that sees the sensor (such as a creature benefiting from See Invisibility or Truesight) sees a luminous orb about the size of your fist.",
+    "higherLevels":  "",
+    "tags":  [
+                 "concentration"
+             ]
 }

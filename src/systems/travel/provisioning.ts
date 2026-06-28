@@ -155,6 +155,40 @@ export function bindingRangeDays(
   return { rangeDays, binding };
 }
 
+// ── E3: provision weight → encumbrance → travel speed ────────────────────────
+
+/** Total weight (lbs) of carried provisions (rations + water). */
+export function provisionWeight(inventory: readonly Item[]): number {
+  let total = 0;
+  for (const item of inventory) {
+    if (item.id === RATIONS_ITEM_ID || item.id === WATER_ITEM_ID) {
+      total += (item.weight ?? 0) * (item.quantity ?? 1);
+    }
+  }
+  return total;
+}
+
+/** Total weight (lbs) of the entire inventory — for encumbrance. */
+export function inventoryWeight(inventory: readonly Item[]): number {
+  let total = 0;
+  for (const item of inventory) total += (item.weight ?? 0) * (item.quantity ?? 1);
+  return total;
+}
+
+/**
+ * Travel-speed multiplier from carried weight (E3), mirroring 5e variant
+ * encumbrance as a fraction of the 30ft base: over the light threshold costs
+ * −10ft (×2/3), over the heavy threshold −20ft (×1/3). This is the core tension
+ * — packing more food/water for a long trip slows the trip, shrinking the reach
+ * horizon. Zero thresholds (unknown party capacity) disable the gate (×1).
+ */
+export function encumbranceSpeedFactor(weightLbs: number, encumberedAt: number, heavilyAt: number): number {
+  if (encumberedAt <= 0 || heavilyAt <= 0) return 1; // capacity unknown → no penalty
+  if (weightLbs <= encumberedAt) return 1;
+  if (weightLbs <= heavilyAt) return 2 / 3;
+  return 1 / 3;
+}
+
 export type ProvisionSeverity = 'none' | 'minor' | 'major';
 
 export interface ProvisionStatus {

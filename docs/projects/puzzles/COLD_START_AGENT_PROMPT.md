@@ -5,7 +5,7 @@ project: Puzzles System
 slug: puzzles
 status: active
 last_updated: 2026-06-27
-iteration: 7
+iteration: 9
 source_agent: Codex app lane / coordinator
 target_agent: next cold-start agent
 runtime_surface: Codex app thread
@@ -39,7 +39,7 @@ docs/projects/puzzles/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Puzzles System
 Project folder: docs/projects/puzzles
-iteration: 7
+iteration: 9
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -55,6 +55,8 @@ Gaps: docs/projects/puzzles/GAPS.md
 | 4 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-09 | Sub-agent final receipt |
 | 5 | Schrodinger / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-09 | Subagent completion notification `019eaa3b-2e4b-77e3-90a6-38842e8af280` |
 | 6 | Codex / GPT-5 | application agent | certain | 2026-06-27 | PZ-007 runtime surface implementation in local lane |
+| 7 | Codex / GPT-5 | Codex app lane thread | certain | 2026-06-27 | PZ-003 key runtime contract implementation in local lane |
+| 8 | Codex / GPT-5 | Codex app lane thread | certain | 2026-06-27 | PZ-004 runtime stat bridge implementation in local lane |
 
 ## Previous Agent Handoff
 
@@ -67,10 +69,10 @@ Iteration 2 completed `T2`: first production lockpicking dispatch from a real wo
 ## Current Mission
 
 Active task:
-`T4` / `PZ-007` is done. The active next task is `T5` / `PZ-003`: resolve key-based lock progression ownership and implement a deterministic key unlock path without widening into map integration.
+`T4` / `PZ-007`, `T5` / `PZ-003`, and `T6` / `PZ-004` are done. The next safe task is one of the remaining open gaps: `PZ-005` map/BattleMap integration, `PZ-006` skill challenge host ownership, or `G6` authored puzzle registry discovery. Keep those slices separate unless the coordinator explicitly joins them.
 
 Acceptance criteria:
-Use `docs/projects/puzzles/TRACKER.md`, `NORTH_STAR.md`, and `GAPS.md` as your live queue. For PZ-003, decide whether key matching is puzzle-system owned or inventory-system owned, then prove both pick and key paths with focused production-oriented tests.
+Use `docs/projects/puzzles/TRACKER.md`, `NORTH_STAR.md`, and `GAPS.md` as your live queue. Do not reopen PZ-003 or PZ-004 unless a caller integration needs them: deterministic key matching is puzzle-runtime owned through caller-supplied key ids, and puzzle runtime stat checks are modern-first through `getPuzzleCharacterStats`.
 
 Key files to touch:
 - docs/projects/puzzles/NORTH_STAR.md
@@ -81,15 +83,14 @@ Key files to touch:
 - docs/projects/puzzles/RUNBOOK.md
 - docs/projects/PROJECT_CARD_SCHEMA.md
 - docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- src/systems/puzzles/types.ts
-- src/systems/puzzles/lockSystem.ts
-- src/components/puzzles/LockpickingModal.tsx
-- src/components/ActionPane/__tests__/ActionPane.test.tsx
+- source files named by the selected remaining gap
+- nearby focused tests for the selected remaining gap
 
 Scoped verification:
 Use the scoped verification named by the active tracker row plus these proofs:
-- Key-path tests added by the PZ-003 slice
+- Focused tests for the selected PZ-005/PZ-006/G6 slice
 - Existing PZ-007 tests if the runtime surface is touched: `src/systems/puzzles/__tests__/puzzleRuntime.test.ts`, `src/components/puzzles/PuzzleRuntimeModal.test.tsx`, `src/components/ActionPane/__tests__/ActionPane.test.tsx`
+- Existing PZ-004 tests if runtime stat resolution is touched: `src/systems/puzzles/__tests__/lockSystem.test.ts`, plus affected puzzle runtime tests
 - `docs/projects/puzzles/NORTH_STAR.md`
 - `docs/projects/puzzles/TRACKER.md`
 - `docs/projects/puzzles/GAPS.md`
@@ -102,6 +103,8 @@ Recent progress:
 - `T3` completed; `getPuzzleHint` now resolves a live Intelligence check.
 - `PZ-002` is resolved at the helper layer.
 - `PZ-007` is resolved: `PuzzleRuntimeModal` owns a live `Puzzle`, `requestPuzzleHint` wraps `getPuzzleHint`, and `cave_chamber.interactableFeatures[].type === 'puzzle'` routes into `OPEN_PUZZLE_RUNTIME`.
+- `PZ-003` is resolved at the puzzle-runtime contract layer: `attemptKeyUnlock` accepts caller-supplied key ids and compares them deterministically to `Lock.keyId`; inventory/economy sourcing and visible modal key-use remain future bounded slices.
+- `PZ-004` is resolved at the puzzle-runtime stat bridge layer: `getPuzzleCharacterStats` prefers `finalAbilityScores`, then `abilityScores`, and uses `character.stats` only as compatibility fallback.
 - `docs/projects/puzzles/NORTH_STAR.md`, `docs/projects/puzzles/TRACKER.md`, `docs/projects/puzzles/GAPS.md`, `docs/projects/puzzles/AUDIT_OR_PROOF.md`, and `docs/projects/puzzles/RUNBOOK.md` have been kept aligned.
 
 ## Required End State For This Iteration
@@ -119,7 +122,7 @@ Update needed: none for this iteration.
 
 ## Next Safe Resume Action
 
-Continue with `PZ-003` in `docs/projects/puzzles/GAPS.md`: clarify key ownership and add deterministic unlock behavior with focused tests before considering map integration follow-ups.
+Continue with `PZ-005`, `PZ-006`, or `G6` in `docs/projects/puzzles/GAPS.md`, based on coordinator priority. Preserve the resolved PZ-003 and PZ-004 contracts instead of redefining key matching or stat-source ownership.
 
 ## agent_comments
 

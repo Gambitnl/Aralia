@@ -1,185 +1,306 @@
 {
-  "id": "mislead",
-  "name": "Mislead",
-  "aliases": [],
-  "level": 5,
-  "school": "Illusion",
-  "legacy": true,
-  "classes": [
-    "Bard",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": false,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 1,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "self",
-    "validTargets": [
-      "self"
-    ],
-    "lineOfSight": false,
-    "range": 0,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "For up to 1 hour with concentration, the caster becomes Invisible while an illusory double appears in the caster space; the double lasts for the duration, the invisibility ends if the caster attacks or casts a spell, the caster can use a Magic action to move the double up to twice Speed and make it gesture, speak, or behave, and can use a Bonus Action each turn to switch between the double senses and their own, becoming Blinded and Deafened to their own surroundings while using the double senses.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You become invisible at the same time that an illusory double of you appears where you are standing. The double lasts for the duration, but the invisibility ends if you attack or cast a spell. You can use your action to move your illusory double up to twice your Speed and make it gesture, speak, and behave in whatever way you choose. You can see through its eyes and hear through its ears as if you were located where it is. On each of your turns as a bonus action, you can switch from using its senses to using your own, or back again. While you are using its senses, you are blinded and deafened in regard to your own surroundings.",
-  "higherLevels": "",
-  "tags": [
-    "legacy",
-    "concentration"
-  ]
+    "id":  "mislead",
+    "name":  "Mislead",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Illusion",
+    "legacy":  true,
+    "classes":  [
+                    "Bard",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  false,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  1,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "self",
+                      "validTargets":  [
+                                           "self"
+                                       ],
+                      "lineOfSight":  false,
+                      "range":  0,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "sensory",
+                        "description":  "For up to 1 hour with concentration, the caster becomes Invisible while an illusory double appears in the caster space; the double lasts for the duration, the invisibility ends if the caster attacks or casts a spell, the caster can use a Magic action to move the double up to twice Speed and make it gesture, speak, or behave, and can use a Bonus Action each turn to switch between the double senses and their own, becoming Blinded and Deafened to their own surroundings while using the double senses.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Move and perform",
+                                                   "effect":  "move_illusory_double",
+                                                   "details":  "Use an action to move the illusory double up to twice the caster\u0027s Speed and choose its gestures, speech, and behavior."
+                                               },
+                                               {
+                                                   "name":  "Use double senses",
+                                                   "effect":  "switch_to_double_senses",
+                                                   "details":  "Use a Bonus Action to see and hear through the illusory double, becoming Blinded and Deafened to the caster\u0027s own surroundings."
+                                               },
+                                               {
+                                                   "name":  "Return to own senses",
+                                                   "effect":  "switch_to_own_senses",
+                                                   "details":  "Use a Bonus Action to stop using the double\u0027s senses and return to the caster\u0027s own sight and hearing."
+                                               }
+                                           ],
+                        "misleadState":  {
+                                             "casterCondition":  "Invisible",
+                                             "illusionCreated":  true,
+                                             "illusionAppearsAtCasterSpace":  true,
+                                             "invisibilityEndingTriggers":  [
+                                                                                "caster_attacks",
+                                                                                "caster_casts_spell"
+                                                                            ],
+                                             "doubleSenseState":  {
+                                                                      "activation":  "bonus_action",
+                                                                      "casterOwnSurroundingsConditions":  [
+                                                                                                              "Blinded",
+                                                                                                              "Deafened"
+                                                                                                          ],
+                                                                      "ending":  "bonus_action_return_to_own_senses"
+                                                                  }
+                                         },
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "knowledgeEffect":  {
+                                                "sensoryMode":  "caster can see through the double eyes and hear through its ears as if located there",
+                                                "activation":  "bonus action switches between double senses and own senses each turn",
+                                                "ownBodyTradeoff":  "caster is Blinded and Deafened to own surroundings while using double senses",
+                                                "doubleControl":  "action moves double up to twice Speed and chooses gestures, speech, and behavior",
+                                                "invisibilityEndsOn":  [
+                                                                           "caster attacks",
+                                                                           "caster casts a spell"
+                                                                       ]
+                                            },
+                        "visionLightSound":  {
+                                                 "mode":  "invisible_caster_and_illusory_double",
+                                                 "casterCondition":  "Invisible until caster attacks or casts a spell",
+                                                 "doubleAppearance":  "illusory double appears where caster stands",
+                                                 "doubleCan":  "gesture, speak, and behave as caster chooses",
+                                                 "remoteSenses":  "caster can see through double eyes and hear through double ears",
+                                                 "ownSensePenalty":  "caster is Blinded and Deafened to own surroundings while using double senses",
+                                                 "switchTiming":  "bonus action switches between double senses and own senses"
+                                             },
+                        "communicationDetails":  {
+                                                     "mode":  "illusory_double_expression",
+                                                     "action":  "caster can move double and make it gesture, speak, and behave as chosen",
+                                                     "speechSource":  "illusory double",
+                                                     "range":  "uses spell movement/sensory projection rules",
+                                                     "notes":  "The double can act as a visible/audible communication proxy."
+                                                 },
+                        "sensorState":  {
+                                            "kind":  "illusory_double_remote_senses",
+                                            "channel":  [
+                                                            "see_through_double_eyes",
+                                                            "hear_through_double_ears"
+                                                        ],
+                                            "perspective":  "as_if_caster_were_where_double_is",
+                                            "duration":  "concentration_up_to_1_hour",
+                                            "pairedState":  "caster_invisible_until_attack_cast_or_damage"
+                                        },
+                        "sustainAction":  {
+                                              "cost":  "Magic Action",
+                                              "frequency":  "on_caster_turn",
+                                              "use":  "move_illusory_double_up_to_twice_caster_speed_and_make_it_gesture_speak_and_behave",
+                                              "senses":  "caster_can_see_and_hear_through_double"
+                                          },
+                        "illusionState":  {
+                                              "kind":  "invisibility_plus_illusory_double",
+                                              "casterState":  "Invisible_until_attack_cast_or_damage",
+                                              "double":  "illusory_copy_appears_in_caster_space",
+                                              "control":  "Magic_action_move_double_and_make_it_gesture_speak_behave",
+                                              "senses":  "caster_can_see_and_hear_through_double",
+                                              "duration":  "concentration_up_to_1_hour"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose how the illusory double moves, gestures, speaks, and behaves whenever you use the action to control it. On each turn, choose whether your Bonus Action switches to the double\u0027s senses or back to your own.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You become invisible at the same time that an illusory double of you appears where you are standing. The double lasts for the duration, but the invisibility ends if you attack or cast a spell. You can use your action to move your illusory double up to twice your Speed and make it gesture, speak, and behave in whatever way you choose. You can see through its eyes and hear through its ears as if you were located where it is. On each of your turns as a bonus action, you can switch from using its senses to using your own, or back again. While you are using its senses, you are blinded and deafened in regard to your own surroundings.",
+    "higherLevels":  "",
+    "tags":  [
+                 "legacy",
+                 "concentration"
+             ]
 }

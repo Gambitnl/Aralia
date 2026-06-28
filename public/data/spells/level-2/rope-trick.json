@@ -1,220 +1,303 @@
 {
-  "id": "rope-trick",
-  "name": "Rope Trick",
-  "aliases": [],
-  "level": 2,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Wizard",
-    "Artificer"
-  ],
-  "subClasses": [
-    "Ranger - Gloom Stalker"
-  ],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a segment of rope",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "single",
-    "range": 0,
-    "validTargets": [
-      "objects"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "creation",
-    "description": "Touch a rope up to 60 feet long for 1 hour; one end rises until the rope hangs vertically, opening an invisible extradimensional entrance at the top that up to eight Medium-or-smaller creatures can enter by climbing, the rope can be pulled inside and hidden, attacks and spells cannot cross the entrance, occupants can see out through a 3-foot-by-5-foot window, and anything inside drops out when the spell ends.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "createdObjects": [
-        {
-          "objectType": "portal",
-          "name": "Rope Trick Extradimensional Entrance",
-          "count": 1,
-          "countUnit": "not_applicable",
-          "appearsIn": "unoccupied_space",
-          "portalWidthFeet": 3,
-          "portalHeightFeet": 5,
-          "extradimensionalSpace": true,
-          "capacityCreatures": 8,
-          "capacityCreatureMaxSize": "Medium",
-          "blocksCrossBoundaryEffects": true,
-          "occupantsCanSeeOut": true,
-          "contentsDropOutOnEnd": true,
-          "expiresWithSpell": true,
-          "shelfLife": "1 hour",
-          "notes": "An invisible 3-foot-by-5-foot entrance opens at the rope's upper end into an extradimensional space for up to eight Medium or smaller creatures. Attacks, spells, and effects cannot cross the entrance; occupants can see out, and anything inside drops out when the spell ends."
-        }
-      ],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "endCleanup": [
-        {
-          "trigger": "spell_ends",
-          "removes": "extradimensional_space",
-          "source": "this_spell",
-          "scope": "contents",
-          "amount": "all_remaining",
-          "consequence": "contents_drop_out",
-          "destination": "space_exit_anchor",
-          "preventedBy": "not_applicable",
-          "notes": "Anything inside the extradimensional space drops out when Rope Trick ends."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You touch a rope. One end of it hovers upward until the rope hangs perpendicular to the ground or the rope reaches a ceiling. At the rope's upper end, an Invisible 3-foot-by-5-foot portal opens to an extradimensional space that lasts until the spell ends. That space can be reached by climbing the rope, which can be pulled into or dropped out of it. The space can hold up to eight Medium or smaller creatures. Attacks, spells, and other effects can't pass into or out of the space, but creatures inside it can see through the portal. Anything inside the space drops out when the spell ends.",
-  "higherLevels": "",
-  "tags": [
-    "utility",
-    "transmutation"
-  ]
+    "id":  "rope-trick",
+    "name":  "Rope Trick",
+    "aliases":  [
+
+                ],
+    "level":  2,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Wizard",
+                    "Artificer"
+                ],
+    "subClasses":  [
+                       "Ranger - Gloom Stalker"
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a segment of rope",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  0,
+                      "validTargets":  [
+                                           "objects"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "creation",
+                        "description":  "Touch a rope up to 60 feet long for 1 hour; one end rises until the rope hangs vertically, opening an invisible extradimensional entrance at the top that up to eight Medium-or-smaller creatures can enter by climbing, the rope can be pulled inside and hidden, attacks and spells cannot cross the entrance, occupants can see out through a 3-foot-by-5-foot window, and anything inside drops out when the spell ends.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "portal",
+                                                   "name":  "Rope Trick Extradimensional Entrance",
+                                                   "count":  1,
+                                                   "countUnit":  "not_applicable",
+                                                   "appearsIn":  "unoccupied_space",
+                                                   "portalWidthFeet":  3,
+                                                   "portalHeightFeet":  5,
+                                                   "extradimensionalSpace":  true,
+                                                   "capacityCreatures":  8,
+                                                   "capacityCreatureMaxSize":  "Medium",
+                                                   "blocksCrossBoundaryEffects":  true,
+                                                   "occupantsCanSeeOut":  true,
+                                                   "contentsDropOutOnEnd":  true,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "1 hour",
+                                                   "notes":  "An invisible 3-foot-by-5-foot entrance opens at the rope\u0027s upper end into an extradimensional space for up to eight Medium or smaller creatures. Attacks, spells, and effects cannot cross the entrance; occupants can see out, and anything inside drops out when the spell ends."
+                                               }
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "endCleanup":  [
+                                           {
+                                               "trigger":  "spell_ends",
+                                               "removes":  "extradimensional_space",
+                                               "source":  "this_spell",
+                                               "scope":  "contents",
+                                               "amount":  "all_remaining",
+                                               "consequence":  "contents_drop_out",
+                                               "destination":  "space_exit_anchor",
+                                               "preventedBy":  "not_applicable",
+                                               "notes":  "Anything inside the extradimensional space drops out when Rope Trick ends."
+                                           }
+                                       ],
+                        "surfaceInteraction":  {
+                                                   "ropeHangsPerpendicularToGround":  true,
+                                                   "upwardMotionStopsAtCeiling":  true,
+                                                   "portalAtUpperEnd":  true,
+                                                   "notes":  "One end of the rope rises until the rope hangs perpendicular to the ground or reaches a ceiling, putting the extradimensional entrance at the upper end."
+                                               },
+                        "visionLightSound":  {
+                                                 "mode":  "invisible_extradimensional_portal_with_one_way_sight",
+                                                 "portalVisibility":  "Invisible",
+                                                 "portalSize":  "3-foot-by-5-foot",
+                                                 "location":  "upper end of touched rope",
+                                                 "ropeBehavior":  "one end rises until vertical or reaches ceiling",
+                                                 "boundaryBlock":  "attacks, spells, and other effects cannot pass into or out",
+                                                 "occupantsCanSeeOut":  true,
+                                                 "outsideCanSeeIn":  "not specified; portal is Invisible",
+                                                 "ropeCanBePulledInside":  true,
+                                                 "endCleanup":  "anything inside drops out when spell ends"
+                                             },
+                        "planarMovement":  {
+                                               "mode":  "extradimensional_portal",
+                                               "entrance":  "invisible 3-foot-by-5-foot portal at rope upper end",
+                                               "capacity":  "up to eight Medium-or-smaller creatures",
+                                               "entry":  "creatures climb rope into extradimensional space",
+                                               "barrier":  "attacks, spells, and other effects cannot pass into or out of the space",
+                                               "vision":  "creatures inside can see through portal",
+                                               "duration":  "until spell ends"
+                                           },
+                        "sensorState":  {
+                                            "kind":  "one_way_extradimensional_portal_sight",
+                                            "insideCreaturesCanSeeOut":  true,
+                                            "outsideEffectsBlocked":  [
+                                                                          "attacks",
+                                                                          "spells",
+                                                                          "other_effects"
+                                                                      ],
+                                            "portal":  "invisible_entrance_at_rope_top",
+                                            "capacity":  "up_to_eight_medium_or_smaller_creatures"
+                                        },
+                        "movementState":  {
+                                              "kind":  "rope_and_portal_repositioning",
+                                              "ropeMotion":  "one_end_hovers_upward_until_perpendicular_or_reaches_ceiling",
+                                              "access":  "creatures_climb_rope_to_invisible_extradimensional_entrance",
+                                              "ropeControl":  "rope_can_be_pulled_into_or_dropped_out_of_space",
+                                              "end":  "anything_inside_drops_out_when_spell_ends"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You touch a rope. One end of it hovers upward until the rope hangs perpendicular to the ground or the rope reaches a ceiling. At the rope\u0027s upper end, an Invisible 3-foot-by-5-foot portal opens to an extradimensional space that lasts until the spell ends. That space can be reached by climbing the rope, which can be pulled into or dropped out of it. The space can hold up to eight Medium or smaller creatures. Attacks, spells, and other effects can\u0027t pass into or out of the space, but creatures inside it can see through the portal. Anything inside the space drops out when the spell ends.",
+    "higherLevels":  "",
+    "tags":  [
+                 "utility",
+                 "transmutation"
+             ]
 }

@@ -1,209 +1,263 @@
 {
-  "id": "aid",
-  "name": "Aid",
-  "aliases": [],
-  "level": 2,
-  "school": "Abjuration",
-  "legacy": false,
-  "classes": [
-    "Artificer",
-    "Bard",
-    "Cleric",
-    "Druid",
-    "Paladin",
-    "Ranger"
-  ],
-  "subClasses": [
-    "Warlock - Celestial Patron"
-  ],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a strip of white cloth",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 8,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "multi",
-    "range": 30,
-    "rangeUnit": "feet",
-    "maxTargets": 3,
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "defenseType": "temporary_hp",
-      "value": 5,
-      "duration": {
-        "type": "minutes",
-        "value": 480
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+5 hp per target",
-        "customFormula": ""
-      },
-      "description": "Choose up to three creatures within 30 feet for 8 hours; each target increases current and maximum Hit Points by 5, plus 5 more Hit Points per slot level above 2.",
-      "baseACFormula": "",
-      "acMinimum": 0,
-      "damageType": [],
-      "savingThrow": [],
-      "attackerFilter": {
-        "creatureTypes": [],
-        "excludeCreatureTypes": [],
-        "sizes": [],
-        "alignments": [],
-        "hasCondition": [],
-        "isNativeToPlane": false,
-        "willing": "not_applicable",
-        "objectEligibility": {
-          "wornOrCarried": "not_applicable",
-          "magicalStatus": "not_applicable",
-          "fixedToSurface": "not_applicable",
-          "maxSize": "not_applicable",
-          "maxWeightPounds": "not_applicable",
-          "maxWeightScaling": "not_applicable"
-        },
-        "communicationPrerequisites": {
-          "canHearCaster": "not_applicable",
-          "canUnderstandCaster": "not_applicable",
-          "canSeeCaster": "not_applicable"
-        },
-        "abilityThreshold": {
-          "ability": "not_applicable",
-          "operator": "not_applicable",
-          "value": "not_applicable"
-        },
-        "selfRelation": "not_applicable"
-      },
-      "reactionTrigger": {
-        "event": "when_hit",
-        "includesSpells": []
-      },
-      "restrictions": {
-        "noArmor": false,
-        "noShield": false,
-        "targetSelf": false
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "Choose up to three creatures within range. Each target's Hit Point maximum and current Hit Points increase by 5 for the duration.",
-  "higherLevels": "Using a Higher-Level Spell Slot. Each target's Hit Points increase by 5 for each spell slot level above 2.",
-  "tags": [
-    "buff",
-    "abjuration"
-  ]
+    "id":  "aid",
+    "name":  "Aid",
+    "aliases":  [
+
+                ],
+    "level":  2,
+    "school":  "Abjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Artificer",
+                    "Bard",
+                    "Cleric",
+                    "Druid",
+                    "Paladin",
+                    "Ranger"
+                ],
+    "subClasses":  [
+                       "Warlock - Celestial Patron"
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a strip of white cloth",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  8,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "multi",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "maxTargets":  3,
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "defenseType":  "temporary_hp",
+                        "value":  5,
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  480
+                                     },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+5 hp per target",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Choose up to three creatures within 30 feet for 8 hours; each target increases current and maximum Hit Points by 5, plus 5 more Hit Points per slot level above 2.",
+                        "baseACFormula":  "",
+                        "acMinimum":  0,
+                        "damageType":  [
+
+                                       ],
+                        "savingThrow":  [
+
+                                        ],
+                        "attackerFilter":  {
+                                               "creatureTypes":  [
+
+                                                                 ],
+                                               "excludeCreatureTypes":  [
+
+                                                                        ],
+                                               "sizes":  [
+
+                                                         ],
+                                               "alignments":  [
+
+                                                              ],
+                                               "hasCondition":  [
+
+                                                                ],
+                                               "isNativeToPlane":  false,
+                                               "willing":  "not_applicable",
+                                               "objectEligibility":  {
+                                                                         "wornOrCarried":  "not_applicable",
+                                                                         "magicalStatus":  "not_applicable",
+                                                                         "fixedToSurface":  "not_applicable",
+                                                                         "maxSize":  "not_applicable",
+                                                                         "maxWeightPounds":  "not_applicable",
+                                                                         "maxWeightScaling":  "not_applicable"
+                                                                     },
+                                               "communicationPrerequisites":  {
+                                                                                  "canHearCaster":  "not_applicable",
+                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                  "canSeeCaster":  "not_applicable"
+                                                                              },
+                                               "abilityThreshold":  {
+                                                                        "ability":  "not_applicable",
+                                                                        "operator":  "not_applicable",
+                                                                        "value":  "not_applicable"
+                                                                    },
+                                               "selfRelation":  "not_applicable"
+                                           },
+                        "reactionTrigger":  {
+                                                "event":  "when_hit",
+                                                "includesSpells":  [
+
+                                                                   ]
+                                            },
+                        "restrictions":  {
+                                             "noArmor":  false,
+                                             "noShield":  false,
+                                             "targetSelf":  false
+                                         },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "hitPointState":  {
+                                              "mode":  "increase_current_and_maximum_hit_points",
+                                              "targetCount":  3,
+                                              "baseIncrease":  5,
+                                              "scaling":  "+5 current and maximum Hit Points per spell slot level above 2",
+                                              "duration":  "8 hours",
+                                              "isTemporaryHp":  false
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "Choose up to three creatures within range. Each target\u0027s Hit Point maximum and current Hit Points increase by 5 for the duration.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. Each target\u0027s Hit Points increase by 5 for each spell slot level above 2.",
+    "tags":  [
+                 "buff",
+                 "abjuration"
+             ]
 }

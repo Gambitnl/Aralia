@@ -11,6 +11,22 @@ preserving intent over strict completion.
 - **Evidence**: minimal file-system evidence showing intentional scope
 - **Gap signal**: whether explicit gap artifact exists or a gap pass is still required
 
+## 🏛️ The Agora — Agent Collaborative Spaces
+
+**Agora is the local peer-coordination daemon for agents sharing this checkout.** Multiple
+agents work `F:\Repos\Aralia` concurrently and otherwise clobber each other (most
+destructively via `git reset --hard`). If you are an agent and another agent may be active,
+**use Agora**: register your presence, lock files before editing, and announce/claim work so
+nobody overwrites anyone. Locks are advisory (honor-system) — cooperation is the whole point.
+
+- **Is it up?** `curl -s http://localhost:4319/health` (`"ok": true` ⇒ running)
+- **Start it:** `npm run agora`
+- **Full API + etiquette:** [`tools/agora/PROTOCOL.md`](../../tools/agora/PROTOCOL.md)
+- **Design spec:** [`docs/superpowers/specs/2026-06-27-agora-agent-coordination-design.md`](superpowers/specs/2026-06-27-agora-agent-coordination-design.md)
+- **Etiquette loop:** **register** on arrival → **lock** paths before editing (and check
+  `/locks` before any risky `git reset`/`checkout`) → **announce** (post a task / `say`) →
+  **release** locks + mark task done when finished. Heartbeat occasionally.
+
 ## Project → North Star map (copy-ready)
 
 | Project | North Star |
@@ -211,7 +227,7 @@ each row's Assignment rule cell is authoritative.
 | Naval System | partial | high | `src/systems/naval`, `src/components/Naval` | GAPS.md present | implemented | finalize voyage + encounter coupling |
 | Physics System | partial | high | `src/systems/physics` | GAPS.md present | implemented | verify collision and turn-timing assumptions |
 | Planar System | partial | high | `src/systems/planar` | GAPS.md present | implemented | define planar transition contracts |
-| Puzzles System | active | high | `src/systems/puzzles`, `src/components/puzzles` | GAPS.md present; PZ-002 hint helper resolved 2026-06-09; PZ-007 runtime surface closed 2026-06-27 with a puzzle-owned modal caller | implemented; first puzzle hint caller wired | continue with PZ-003 key-based lock progression path |
+| Puzzles System | active | high | `src/systems/puzzles`, `src/components/puzzles` | GAPS.md present; PZ-002 hint helper resolved 2026-06-09; PZ-007 runtime surface closed 2026-06-27; PZ-003 key runtime contract closed 2026-06-27; PZ-004 runtime stat bridge closed 2026-06-27 | implemented; first puzzle hint caller wired; deterministic key matching available; runtime stat checks now prefer modern ability scores with legacy fallback | continue with PZ-005 map/BattleMap integration, PZ-006 skill challenge host ownership, or G6 puzzle registry discovery based on coordinator priority |
 | Quests System | partial | high | `src/systems/quests`, `src/components/QuestLog` | GAPS.md present | implemented | align quest schema with UI event model |
 | Religion System | partial | medium | `docs/projects/religion`, `src/systems/religion`, `src/components/Religion` | GAPS.md present; G1/G2/G3 resolved 2026-06-09; G4 decided 2026-06-10 — Rituals owns the backlash contract, Religion consumes the normalized result (D12); G5-G6 paused; schema wrapper refreshed 2026-06-09 | implemented | wait on Rituals backlash schema + consequence tests, then add Religion integration assertions |
 | Rituals System | partial | high | `src/systems/rituals` | GAPS.md present | implemented | define ritual cost/time/influence math |

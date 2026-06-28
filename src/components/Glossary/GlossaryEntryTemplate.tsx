@@ -33,6 +33,41 @@ interface GlossaryEntryTemplateProps {
 }
 
 /**
+ * Extract the clean term id from a (possibly corrupted) cross-reference token.
+ * Some upstream-ingested entries store See Also ids with a redundant word and/or
+ * mangled possessive appended to the snake_case id, e.g. "magic_initiate Initiate",
+ * "holy_symbol Symbol", "calligrapher_s_supplies's Supplies". The real id is the
+ * leading run up to the first whitespace OR stray apostrophe; everything after is
+ * echoed garbage. Mirrors normalizeTermToken in GlossaryContentRenderer.
+ */
+const cleanTermId = (rawId: string): string => {
+    const raw = (rawId ?? '').trim();
+    const cut = raw.search(/\s|'/);
+    return cut === -1 ? raw : raw.slice(0, cut);
+};
+
+/**
+ * Title-cased human label derived purely from a clean snake_case term id, with
+ * collapsed possessives reconstructed ("calligrapher_s_supplies" ->
+ * "Calligrapher's Supplies"). Mirrors titleCaseFromId in GlossaryContentRenderer.
+ */
+const termLabelFromId = (rawId: string): string =>
+    cleanTermId(rawId)
+        .replace(/_s_/g, "'s_")
+        .replace(/_s$/g, "'s")
+        .replace(/_/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/\b\w/g, c => c.toUpperCase())
+        .replace(/'S\b/g, "'s");
+
+/**
+ * Hide internal/data-pipeline tags from players. `source:xphb`-style tags are an
+ * internal dataset/source code, not player-facing copy (GL4 / X1 family).
+ */
+const isPlayerFacingTag = (tag: string): boolean => !/^source\s*:/i.test(tag.trim());
+
+/**
  * A standardized template for displaying non-spell glossary entries.
  * Supports both legacy markdownContent and new structured data fields.
  */
@@ -50,7 +85,10 @@ export const GlossaryEntryTemplate: React.FC<GlossaryEntryTemplateProps> = ({
 
     if (!entry) return null;
 
-    const hasExtraInfo = (entry.tags && entry.tags.length > 0) ||
+    // Strip internal data tags (e.g. source:xphb) so only player-facing tags show.
+    const visibleTags = (entry.tags ?? []).filter(isPlayerFacingTag);
+
+    const hasExtraInfo = (visibleTags.length > 0) ||
         (entry.aliases && entry.aliases.length > 0) ||
         (entry.seeAlso && entry.seeAlso.length > 0) ||
         entry.source;
@@ -205,8 +243,8 @@ export const GlossaryEntryTemplate: React.FC<GlossaryEntryTemplateProps> = ({
                         {entry.source && (
                             <p><strong className="text-sky-300/80">Source:</strong> <span className="text-gray-500">{entry.source}</span></p>
                         )}
-                        {entry.tags && entry.tags.length > 0 && (
-                            <p><strong className="text-sky-300">Tags:</strong> <span className="text-gray-400">{entry.tags.join(', ')}</span></p>
+                        {visibleTags.length > 0 && (
+                            <p><strong className="text-sky-300">Tags:</strong> <span className="text-gray-400">{visibleTags.join(', ')}</span></p>
                         )}
                         {entry.aliases && entry.aliases.length > 0 && (
                             <p><strong className="text-sky-300">Aliases:</strong> <span className="text-gray-400">{entry.aliases.join(', ')}</span></p>
@@ -216,9 +254,9 @@ export const GlossaryEntryTemplate: React.FC<GlossaryEntryTemplateProps> = ({
                                 <strong className="text-sky-300 flex-shrink-0">See Also:</strong>
                                 <div className="flex flex-wrap gap-1.5">
                                     {entry.seeAlso.map(termId => (
-                                        <button key={termId} onClick={() => onNavigate?.(termId)}
+                                        <button key={termId} onClick={() => onNavigate?.(cleanTermId(termId))}
                                             className="text-sky-400 hover:text-sky-200 hover:bg-sky-800/50 bg-sky-900/50 px-2 py-0.5 rounded-md text-xs transition-colors focus:outline-none focus:ring-1 focus:ring-sky-400">
-                                            {termId.replace(/_/g, ' ')}
+                                            {termLabelFromId(termId)}
                                         </button>
                                     ))}
                                 </div>

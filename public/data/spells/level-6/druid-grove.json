@@ -1,206 +1,386 @@
 {
-  "id": "druid-grove",
-  "name": "Druid Grove",
-  "aliases": [],
-  "level": 6,
-  "school": "Abjuration",
-  "legacy": false,
-  "classes": [
-    "Druid"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 10,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 10,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "mistletoe, which the spell consumes, that was harvested with a golden sickle under the light of a full moon",
-    "isConsumed": true,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": false,
-    "value": 24,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "melee",
-    "range": 0,
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": false,
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 90,
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "maxTargets": 1,
-    "instanceAllocation": {
-      "instanceType": "animated_tree",
-      "baseCount": 4,
-      "scalingRule": "not_applicable",
-      "assignment": "independent_positions",
-      "resolution": "persistent",
-      "notes": "Animates up to four existing trees inside the warded area as persistent grove guardians. Command, intruder, ward-boundary, and ending rules remain represented by separate open Druid Grove buckets."
-    },
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "Wards an outdoor or underground area up to a 90-foot cube with caster-selected protections that can exclude chosen creatures, obscure movement, hinder intruders, and become permanent after a year of daily casting.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "tags": [
-        "area-ward",
-        "outdoor-only",
-        "creature-exclusion",
-        "long-duration"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You invoke the spirits of nature to protect an area outdoors or underground. The area can be as small as a 30-foot cube or as large as a 90-foot cube. Buildings and other structures are excluded from the affected area. If you cast this spell in the same area every day for a year, the spell lasts until dispelled. The spell creates the following effects within the area. When you cast this spell, you can specify creatures as friends who are immune to the effects. You can also specify a password that, when spoken aloud, makes the speaker immune to these effects. The entire warded area radiates magic. A dispel magic cast on the area, if successful, removes only one of the following effects, not the entire area. That spell's caster chooses which effect to end. Only when all its effects are gone is this spell dispelled. Solid Fog. You can fill any number of 5-foot squares on the ground with thick fog, making them heavily obscured . The fog reaches 10 feet high. In addition, every foot of movement through the fog costs 2 extra feet. To a creature immune to this effect, the fog obscures nothing and looks like soft mist, with motes of green light floating in the air. Grasping Undergrowth. You can fill any number of 5-foot squares on the ground that aren't filled with fog with grasping weeds and vines, as if they were affected by an entangle spell. To a creature immune to this effect, the weeds and vines feel soft and reshape themselves to serve as temporary seats or beds. Grove Guardians. You can animate up to four trees in the area, causing them to uproot themselves from the ground. These trees have the same statistics as an awakened tree , which appears in the Monster Manual , except they can't speak, and their bark is covered with druidic symbols. If any creature not immune to this effect enters the warded area, the grove guardians fight until they have driven off or slain the intruders. The grove guardians also obey your spoken commands (no action required by you) that you issue while in the area. If you don't give them commands and no intruders are present, the grove guardians do nothing. The grove guardians can't leave the warded area. When the spell ends, the magic animating them disappears, and the trees take root again if possible. Additional Spell Effect. You can place your choice of one of the following magical effects within the warded area: To a creature immune to this effect, the winds are a fragrant, gentle breeze, and the area of spike growth is harmless.",
-  "higherLevels": "",
-  "tags": [
-    "abjuration",
-    "area-ward",
-    "control",
-    "outdoor-only"
-  ]
+    "id":  "druid-grove",
+    "name":  "Druid Grove",
+    "aliases":  [
+
+                ],
+    "level":  6,
+    "school":  "Abjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Druid"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  10,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  10,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "mistletoe, which the spell consumes, that was harvested with a golden sickle under the light of a full moon",
+                       "isConsumed":  true,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  false,
+                     "value":  24,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "melee",
+                      "range":  0,
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  false,
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  90,
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "maxTargets":  1,
+                      "instanceAllocation":  {
+                                                 "instanceType":  "animated_tree",
+                                                 "baseCount":  4,
+                                                 "scalingRule":  "not_applicable",
+                                                 "assignment":  "independent_positions",
+                                                 "resolution":  "persistent",
+                                                 "notes":  "Animates up to four existing trees inside the warded area as persistent grove guardians. Command, intruder, ward-boundary, and ending rules remain represented by separate open Druid Grove buckets."
+                                             },
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "Wards an outdoor or underground area up to a 90-foot cube with caster-selected protections that can exclude chosen creatures, obscure movement, hinder intruders, and become permanent after a year of daily casting.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Warded Area Size",
+                                                   "effect":  "The caster chooses an outdoor or underground warded area from a 30-foot cube up to a 90-foot cube, excluding buildings and structures."
+                                               },
+                                               {
+                                                   "name":  "Immune Friends",
+                                                   "effect":  "The caster names creatures that are immune to the grove effects."
+                                               },
+                                               {
+                                                   "name":  "Password Immunity",
+                                                   "effect":  "The caster can set a spoken password that makes a speaker immune to the grove effects."
+                                               },
+                                               {
+                                                   "name":  "Solid Fog Squares",
+                                                   "effect":  "The caster chooses any number of 5-foot ground squares to fill with thick fog."
+                                               },
+                                               {
+                                                   "name":  "Grasping Undergrowth Squares",
+                                                   "effect":  "The caster chooses any number of non-fog 5-foot ground squares to fill with grasping weeds and vines."
+                                               },
+                                               {
+                                                   "name":  "Grove Guardian Trees",
+                                                   "effect":  "The caster chooses up to four existing trees in the warded area to animate as grove guardians."
+                                               },
+                                               {
+                                                   "name":  "Additional Spell Effect",
+                                                   "effect":  "The caster chooses the additional magical effect placed in the warded area."
+                                               },
+                                               {
+                                                   "name":  "Dispel One Effect",
+                                                   "effect":  "A successful Dispel Magic on the area removes only one selected grove effect, and the grove remains until all effects are gone."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "animated_trees",
+                                                       "description":  "When the spell ends, the magic animating grove trees disappears and they take root again if possible."
+                                                   }
+                                               ],
+                        "tags":  [
+                                     "area-ward",
+                                     "outdoor-only",
+                                     "creature-exclusion",
+                                     "long-duration"
+                                 ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "nature_ward_area",
+                                                   "name":  "Druid Grove Warded Area",
+                                                   "count":  1,
+                                                   "countUnit":  "area",
+                                                   "appearsIn":  "outdoor_or_underground_area",
+                                                   "affectedVolumeShape":  "Cube",
+                                                   "minCubeSizeFeet":  30,
+                                                   "maxCubeSizeFeet":  90,
+                                                   "manipulationOptions":  [
+                                                                               "solid_fog_squares",
+                                                                               "grasping_undergrowth_squares",
+                                                                               "animate_guardian_trees",
+                                                                               "place_additional_gust_spike_or_wind_effect",
+                                                                               "friend_and_password_immunity",
+                                                                               "one_effect_dispel"
+                                                                           ],
+                                                   "excludesBuildingsAndStructures":  true,
+                                                   "wardRadiatesMagic":  true,
+                                                   "solidFog":  {
+                                                                    "squareSizeFeet":  5,
+                                                                    "heightFeet":  10,
+                                                                    "heavilyObscured":  true,
+                                                                    "extraMovementCostFeetPerFoot":  2,
+                                                                    "immuneCreatureAppearance":  "soft_mist_with_green_light_motes"
+                                                                },
+                                                   "graspingUndergrowth":  {
+                                                                               "squareSizeFeet":  5,
+                                                                               "behavesAs":  "Entangle",
+                                                                               "immuneCreatureAppearance":  "soft_seats_or_beds",
+                                                                               "harmlessToImmuneCreatures":  true
+                                                                           },
+                                                   "groveGuardians":  {
+                                                                          "maxTrees":  4,
+                                                                          "stats":  "Awakened Tree except cannot speak",
+                                                                          "cannotLeaveWardedArea":  true,
+                                                                          "obeysSpokenCommandsInArea":  true,
+                                                                          "rerootsWhenSpellEndsIfPossible":  true
+                                                                      },
+                                                   "additionalEffects":  [
+                                                                             "Gust of Wind",
+                                                                             "Spike Growth",
+                                                                             "Wind Wall"
+                                                                         ],
+                                                   "dispelRemovesOneEffectOnly":  true,
+                                                   "permanentAfterDailyCastsForDays":  365,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "24 hours, or until dispelled after one year of daily same-area casting",
+                                                   "notes":  "Druid Grove creates a configurable nature ward with fog, undergrowth, guardian trees, optional extra wind/spike effect, immunity routing, and one-effect-at-a-time dispel behavior."
+                                               }
+                                           ],
+                        "communicationDetails":  {
+                                                     "mode":  "spoken_password_and_silent_trees",
+                                                     "password":  "caster can specify a spoken password that makes the speaker immune to chosen grove effects",
+                                                     "animatedTreesSpeech":  "animated trees cannot speak",
+                                                     "visibleSymbols":  "tree bark is covered with druidic symbols",
+                                                     "notes":  "Grove communication mechanics are password bypass plus explicit no-speech tree guardians."
+                                                 },
+                        "controlledEntity":  {
+                                                 "entityType":  "animated_grove_trees",
+                                                 "maxCount":  4,
+                                                 "statBlock":  "Awakened Tree except cannot speak",
+                                                 "trigger":  "attack intruders designated by grove rules",
+                                                 "boundary":  "inside warded area",
+                                                 "endState":  "animation disappears and trees take root again if possible when spell ends",
+                                                 "passwordBypass":  "spoken password can exempt speakers from effects"
+                                             },
+                        "wardTrigger":  {
+                                            "kind":  "area_ward_package",
+                                            "trigger":  "non_exempt_creature_enters_or_moves_through_protected_area",
+                                            "exclusions":  "caster_designated_creatures_can_be_exempt",
+                                            "effects":  [
+                                                            "solid_fog",
+                                                            "grasping_undergrowth",
+                                                            "guardian_trees",
+                                                            "one_additional_spell_effect"
+                                                        ],
+                                            "permanence":  "casting_daily_for_1_year_makes_effect_last_until_dispelled"
+                                        },
+                        "aftermathState":  {
+                                               "kind":  "guardian_tree_animation_cleanup",
+                                               "when":  "spell_ends",
+                                               "consequence":  "magic_animating_trees_disappears",
+                                               "recovery":  "trees_take_root_again_if_possible",
+                                               "appliesTo":  "animated_tree_guardians_inside_grove"
+                                           }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Ask the caster to choose the grove cube size and placement, immune friends, optional password, Solid Fog squares, Grasping Undergrowth squares, up to four guardian trees, and the additional magical effect; later Dispel Magic prompts must choose which grove effect ends.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "selectionType":  "choose_one",
+                       "options":  [
+                                       "Gust of Wind",
+                                       "Spike Growth",
+                                       "Wind Wall"
+                                   ],
+                       "secondaryChoices":  [
+                                                "warded area size and placement",
+                                                "immune friends",
+                                                "optional password",
+                                                "Solid Fog squares",
+                                                "Grasping Undergrowth squares",
+                                                "guardian tree selections",
+                                                "dispelled effect"
+                                            ],
+                       "notes":  "The additional spell effect is a required casting choice, while the secondary choices capture the grove layout, exclusions, guardians, and later one-effect dispel routing."
+                   },
+    "description":  "You invoke the spirits of nature to protect an area outdoors or underground. The area can be as small as a 30-foot cube or as large as a 90-foot cube. Buildings and other structures are excluded from the affected area. If you cast this spell in the same area every day for a year, the spell lasts until dispelled. The spell creates the following effects within the area. When you cast this spell, you can specify creatures as friends who are immune to the effects. You can also specify a password that, when spoken aloud, makes the speaker immune to these effects. The entire warded area radiates magic. A dispel magic cast on the area, if successful, removes only one of the following effects, not the entire area. That spell\u0027s caster chooses which effect to end. Only when all its effects are gone is this spell dispelled. Solid Fog. You can fill any number of 5-foot squares on the ground with thick fog, making them heavily obscured . The fog reaches 10 feet high. In addition, every foot of movement through the fog costs 2 extra feet. To a creature immune to this effect, the fog obscures nothing and looks like soft mist, with motes of green light floating in the air. Grasping Undergrowth. You can fill any number of 5-foot squares on the ground that aren\u0027t filled with fog with grasping weeds and vines, as if they were affected by an entangle spell. To a creature immune to this effect, the weeds and vines feel soft and reshape themselves to serve as temporary seats or beds. Grove Guardians. You can animate up to four trees in the area, causing them to uproot themselves from the ground. These trees have the same statistics as an awakened tree , which appears in the Monster Manual , except they can\u0027t speak, and their bark is covered with druidic symbols. If any creature not immune to this effect enters the warded area, the grove guardians fight until they have driven off or slain the intruders. The grove guardians also obey your spoken commands (no action required by you) that you issue while in the area. If you don\u0027t give them commands and no intruders are present, the grove guardians do nothing. The grove guardians can\u0027t leave the warded area. When the spell ends, the magic animating them disappears, and the trees take root again if possible. Additional Spell Effect. You can place your choice of one of the following magical effects within the warded area: To a creature immune to this effect, the winds are a fragrant, gentle breeze, and the area of spike growth is harmless.",
+    "higherLevels":  "",
+    "tags":  [
+                 "abjuration",
+                 "area-ward",
+                 "control",
+                 "outdoor-only"
+             ]
 }

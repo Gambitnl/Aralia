@@ -1,318 +1,506 @@
 {
-  "id": "magic-jar",
-  "name": "Magic Jar",
-  "aliases": [],
-  "level": 6,
-  "school": "Necromancy",
-  "legacy": false,
-  "classes": [
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a gem, crystal, or reliquary worth 500+ GP",
-    "materialCost": 500,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "until_dispelled",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "self",
-    "validTargets": [
-      "self"
-    ],
-    "lineOfSight": false,
-    "range": 0,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Incapacitated",
-        "duration": {
-          "type": "special",
-          "value": 0
-        },
-        "level": 0
-      },
-      "description": "The possessed creature's soul can perceive from the container using its own senses, but it cannot move and is Incapacitated.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "MOVEMENT",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "movementType": "stop",
-      "duration": {
-        "type": "special",
-        "value": 0
-      },
-      "distance": 0,
-      "speedChange": {
-        "stat": "speed",
-        "value": 0,
-        "unit": "feet"
-      },
-      "forcedMovement": {
-        "usesReaction": false,
-        "direction": "away_from_caster",
-        "maxDistance": ""
-      },
-      "description": "While the caster's soul inhabits the container, the caster cannot move or take Reactions and can only project the soul up to 100 feet; reaction suppression still needs a first-class runtime field.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "The caster soul enters the 500+ GP container while the caster body becomes catatonic, perceives from the container, and can project up to 100 feet to return to the living body or attempt to possess a visible Humanoid not warded by Protection from Evil and Good or Magic Circle. Possession uses a Charisma save, failed saves move the caster soul into the host, successful saves block repeat attempts for 24 hours, the possessed host uses host Hit Points, Hit Point Dice, Strength, Dexterity, Constitution, Speed, and senses while the caster keeps other statistics, a Magic action can return to a nearby container, host death can force the caster back by Charisma save, container destruction or spell ending returns souls to living bodies within 100 feet or kills stranded souls, and spell end destroys the container.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Soul Container",
-          "effect": "The caster's soul enters the material container while the caster's body becomes catatonic."
-        },
-        {
-          "name": "Project Soul",
-          "effect": "The caster can project their soul up to 100 feet from the container."
-        },
-        {
-          "name": "Possess Humanoid",
-          "effect": "The caster can attempt to possess a visible Humanoid within 100 feet unless warded by Protection from Evil and Good or Magic Circle."
-        },
-        {
-          "name": "Return To Container",
-          "effect": "While possessing a body, the caster can take a Magic action to return to the container if it is within 100 feet."
-        },
-        {
-          "name": "Host Death Check",
-          "effect": "If the host body dies while possessed, the host dies and the caster makes a Charisma save against their own spell save DC to return to the container if it is within 100 feet."
-        },
-        {
-          "name": "Container Destruction",
-          "effect": "If the container is destroyed or the spell ends, souls return to their bodies if alive and within 100 feet; otherwise the creature dies, and the container is destroyed when the spell ends."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "endCleanup": [
-        {
-          "trigger": "spell_ends",
-          "removes": "spell_material_container",
-          "source": "this_spell",
-          "scope": "spell_component",
-          "amount": "all_remaining",
-          "consequence": "destroy",
-          "preventedBy": "not_applicable",
-          "notes": "When Magic Jar ends, the gem, crystal, or reliquary container used as the spell's material component is destroyed."
-        }
-      ],
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "Your body falls into a catatonic state as your soul leaves it and enters the container you used for the spell's Material component. While your soul inhabits the container, you are aware of your surroundings as if you were in the container's space. You can't move or take Reactions. The only action you can take is to project your soul up to 100 feet out of the container, either returning to your living body (and ending the spell) or attempting to possess a Humanoid's body. You can attempt to possess any Humanoid within 100 feet of you that you can see (creatures warded by a Protection from Evil and Good or Magic Circle spell can't be possessed). The target makes a Charisma saving throw. On a failed save, your soul enters the target's body, and the target's soul becomes trapped in the container. On a successful save, the target resists your efforts to possess it, and you can't attempt to possess it again for 24 hours. Once you possess a creature's body, you control it. Your Hit Points, Hit Point Dice, Strength, Dexterity, Constitution, Speed, and senses are replaced by the creature's. You otherwise keep your game statistics. Meanwhile, the possessed creature's soul can perceive from the container using its own senses, but it can't move and it is Incapacitated . While possessing a body, you can take a Magic action to return from the host body to the container if it is within 100 feet of you, returning the host creature's soul to its body. If the host body dies while you're in it, the creature dies, and you make a Charisma saving throw against your own spellcasting DC. On a success, you return to the container if it is within 100 feet of you. Otherwise, you die. If the container is destroyed or the spell ends, your soul returns to your body. If your body is more than 100 feet away from you or if your body is dead, you die. If another creature's soul is in the container when it is destroyed, the creature's soul returns to its body if the body is alive and within 100 feet. Otherwise, that creature dies. When the spell ends, the container is destroyed.",
-  "higherLevels": "",
-  "tags": []
+    "id":  "magic-jar",
+    "name":  "Magic Jar",
+    "aliases":  [
+
+                ],
+    "level":  6,
+    "school":  "Necromancy",
+    "legacy":  false,
+    "classes":  [
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a gem, crystal, or reliquary worth 500+ GP",
+                       "materialCost":  500,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "until_dispelled",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "self",
+                      "validTargets":  [
+                                           "self"
+                                       ],
+                      "lineOfSight":  false,
+                      "range":  0,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Incapacitated",
+                                                "duration":  {
+                                                                 "type":  "special",
+                                                                 "value":  0
+                                                             },
+                                                "level":  0
+                                            },
+                        "description":  "The possessed creature\u0027s soul can perceive from the container using its own senses, but it cannot move and is Incapacitated.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "sensorState":  {
+                                            "kind":  "soul_container_perception",
+                                            "subject":  "possessed_creature_soul",
+                                            "channel":  "perceives_from_container_using_own_senses",
+                                            "restrictions":  [
+                                                                 "cannot_move",
+                                                                 "Incapacitated"
+                                                             ]
+                                        }
+                    },
+                    {
+                        "type":  "MOVEMENT",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "movementType":  "stop",
+                        "duration":  {
+                                         "type":  "special",
+                                         "value":  0
+                                     },
+                        "distance":  0,
+                        "speedChange":  {
+                                            "stat":  "speed",
+                                            "value":  0,
+                                            "unit":  "feet"
+                                        },
+                        "forcedMovement":  {
+                                               "usesReaction":  false,
+                                               "direction":  "away_from_caster",
+                                               "maxDistance":  ""
+                                           },
+                        "description":  "While the caster\u0027s soul inhabits the container, the caster cannot move or take Reactions and can only project the soul up to 100 feet; reaction suppression still needs a first-class runtime field.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "reactionState":  {
+                                              "kind":  "reaction_suppression",
+                                              "subject":  "caster_soul_in_container",
+                                              "suppressed":  "all_reactions",
+                                              "duration":  "while_soul_inhabits_container",
+                                              "pairedMovement":  "cannot_move"
+                                          }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "The caster soul enters the 500+ GP container while the caster body becomes catatonic, perceives from the container, and can project up to 100 feet to return to the living body or attempt to possess a visible Humanoid not warded by Protection from Evil and Good or Magic Circle. Possession uses a Charisma save, failed saves move the caster soul into the host, successful saves block repeat attempts for 24 hours, the possessed host uses host Hit Points, Hit Point Dice, Strength, Dexterity, Constitution, Speed, and senses while the caster keeps other statistics, a Magic action can return to a nearby container, host death can force the caster back by Charisma save, container destruction or spell ending returns souls to living bodies within 100 feet or kills stranded souls, and spell end destroys the container.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "name":  "Project Soul",
+                                                   "actionType":  "only_available_action",
+                                                   "timing":  "while_soul_in_container",
+                                                   "target":  "living_body_or_visible_humanoid_within_100_feet",
+                                                   "description":  "Return to the caster\u0027s living body and end the spell, or attempt to possess an eligible Humanoid."
+                                               },
+                                               {
+                                                   "name":  "Return To Container",
+                                                   "actionType":  "magic_action",
+                                                   "timing":  "while_possessing_host_body",
+                                                   "target":  "container_within_100_feet",
+                                                   "description":  "Return the caster\u0027s soul to the container and the host soul to its body."
+                                               }
+                                           ],
+                        "savingThrows":  [
+                                             {
+                                                 "name":  "Possession Save",
+                                                 "saveType":  "Charisma",
+                                                 "dc":  "caster_spell_save_dc",
+                                                 "trigger":  "caster_projects_soul_to_attempt_possession",
+                                                 "target":  "visible_eligible_humanoid_within_100_feet",
+                                                 "failure":  "The caster\u0027s soul enters the target body and the target soul is trapped in the container.",
+                                                 "success":  "The target resists possession and cannot be targeted by this spell again for 24 hours."
+                                             },
+                                             {
+                                                 "name":  "Host Death Return Save",
+                                                 "saveType":  "Charisma",
+                                                 "dc":  "caster_own_spell_save_dc",
+                                                 "trigger":  "host_body_dies_while_caster_possesses_it",
+                                                 "target":  "caster",
+                                                 "success":  "The caster returns to the container if it is within 100 feet.",
+                                                 "failure":  "The caster dies; the caster also dies if the container is not within 100 feet."
+                                             }
+                                         ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Soul Container",
+                                                   "effect":  "The caster\u0027s soul enters the material container while the caster\u0027s body becomes catatonic."
+                                               },
+                                               {
+                                                   "name":  "Project Soul",
+                                                   "effect":  "The caster can project their soul up to 100 feet from the container."
+                                               },
+                                               {
+                                                   "name":  "Possess Humanoid",
+                                                   "effect":  "The caster can attempt to possess a visible Humanoid within 100 feet unless warded by Protection from Evil and Good or Magic Circle."
+                                               },
+                                               {
+                                                   "name":  "Return To Container",
+                                                   "effect":  "While possessing a body, the caster can take a Magic action to return to the container if it is within 100 feet."
+                                               },
+                                               {
+                                                   "name":  "Host Death Check",
+                                                   "effect":  "If the host body dies while possessed, the host dies and the caster makes a Charisma save against their own spell save DC to return to the container if it is within 100 feet."
+                                               },
+                                               {
+                                                   "name":  "Container Destruction",
+                                                   "effect":  "If the container is destroyed or the spell ends, souls return to their bodies if alive and within 100 feet; otherwise the creature dies, and the container is destroyed when the spell ends."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "endCleanup":  [
+                                           {
+                                               "trigger":  "spell_ends",
+                                               "removes":  "spell_material_container",
+                                               "source":  "this_spell",
+                                               "scope":  "spell_component",
+                                               "amount":  "all_remaining",
+                                               "consequence":  "destroy",
+                                               "preventedBy":  "not_applicable",
+                                               "notes":  "When Magic Jar ends, the gem, crystal, or reliquary container used as the spell\u0027s material component is destroyed."
+                                           }
+                                       ],
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "caster_returns_to_living_body_by_magic_action",
+                                                       "scope":  "spell",
+                                                       "description":  "Returning to the caster living body ends the spell."
+                                                   },
+                                                   {
+                                                       "trigger":  "container_destroyed_or_spell_ends",
+                                                       "scope":  "soul_routing",
+                                                       "description":  "If the container is destroyed or the spell ends, the caster soul returns to its body if alive and within 100 feet, otherwise the caster dies."
+                                                   },
+                                                   {
+                                                       "trigger":  "host_body_dies",
+                                                       "scope":  "caster_soul",
+                                                       "description":  "If the host body dies, the caster makes a Charisma save to return to the container if within 100 feet; otherwise the caster dies."
+                                                   },
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "container",
+                                                       "description":  "When the spell ends, the container is destroyed."
+                                                   }
+                                               ],
+                        "possessionTargetEligibility":  {
+                                                            "projectionRangeFeet":  100,
+                                                            "returnToOwnBodyAllowed":  true,
+                                                            "possessionTargetCreatureType":  "Humanoid",
+                                                            "targetBodyRequired":  true,
+                                                            "notes":  "The projected soul can return to the caster body or attempt to possess a Humanoid body within 100 feet of the container."
+                                                        },
+                        "objectLifecycle":  {
+                                                "container":  "500+ GP container that holds the caster soul",
+                                                "containerDestroyed":  "caster soul returns to caster body if body is alive and within 100 feet, otherwise caster dies",
+                                                "otherSoulInContainer":  "other soul returns to its body if alive and within 100 feet",
+                                                "spellEnd":  "container is destroyed when spell ends"
+                                            },
+                        "statReplacementState":  {
+                                                     "mode":  "possessed_body_statistics",
+                                                     "replacedStats":  [
+                                                                           "Hit Points",
+                                                                           "Hit Point Dice",
+                                                                           "Strength",
+                                                                           "Dexterity",
+                                                                           "Constitution",
+                                                                           "Speed",
+                                                                           "senses"
+                                                                       ],
+                                                     "retainedStats":  [
+                                                                           "Intelligence",
+                                                                           "Wisdom",
+                                                                           "Charisma",
+                                                                           "class features"
+                                                                       ]
+                                                 },
+                        "wardTrigger":  {
+                                            "kind":  "possession_ward_gate",
+                                            "trigger":  "caster_attempts_to_possess_visible_humanoid_within_100_feet",
+                                            "blockedBy":  [
+                                                              "protection_from_evil_and_good",
+                                                              "magic_circle"
+                                                          ],
+                                            "save":  "Charisma",
+                                            "success":  "target_resists_and_cannot_be_targeted_again_for_24_hours",
+                                            "failure":  "caster_soul_enters_target_body"
+                                        },
+                        "sensorState":  {
+                                            "kind":  "caster_container_perception",
+                                            "subject":  "caster_soul_in_container",
+                                            "channel":  "aware_of_surroundings_as_if_in_container_space",
+                                            "restrictions":  [
+                                                                 "cannot_move",
+                                                                 "cannot_take_reactions"
+                                                             ]
+                                        },
+                        "reactionState":  {
+                                              "kind":  "reaction_suppression",
+                                              "subject":  "caster_soul_in_container",
+                                              "suppressed":  "all_reactions",
+                                              "duration":  "while_soul_inhabits_container",
+                                              "allowedActions":  "project_soul_to_body_or_possession_attempt_only"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Track the container, caster body, current soul location, 100-foot ranges, warding by Protection from Evil and Good or Magic Circle, Charisma saves for possession, 24-hour immunity after a successful save, host-stat replacement while possessed, host death Charisma save against the caster\u0027s own spell DC, and soul return/death outcomes when the container is destroyed or the spell ends.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "Your body falls into a catatonic state as your soul leaves it and enters the container you used for the spell\u0027s Material component. While your soul inhabits the container, you are aware of your surroundings as if you were in the container\u0027s space. You can\u0027t move or take Reactions. The only action you can take is to project your soul up to 100 feet out of the container, either returning to your living body (and ending the spell) or attempting to possess a Humanoid\u0027s body. You can attempt to possess any Humanoid within 100 feet of you that you can see (creatures warded by a Protection from Evil and Good or Magic Circle spell can\u0027t be possessed). The target makes a Charisma saving throw. On a failed save, your soul enters the target\u0027s body, and the target\u0027s soul becomes trapped in the container. On a successful save, the target resists your efforts to possess it, and you can\u0027t attempt to possess it again for 24 hours. Once you possess a creature\u0027s body, you control it. Your Hit Points, Hit Point Dice, Strength, Dexterity, Constitution, Speed, and senses are replaced by the creature\u0027s. You otherwise keep your game statistics. Meanwhile, the possessed creature\u0027s soul can perceive from the container using its own senses, but it can\u0027t move and it is Incapacitated . While possessing a body, you can take a Magic action to return from the host body to the container if it is within 100 feet of you, returning the host creature\u0027s soul to its body. If the host body dies while you\u0027re in it, the creature dies, and you make a Charisma saving throw against your own spellcasting DC. On a success, you return to the container if it is within 100 feet of you. Otherwise, you die. If the container is destroyed or the spell ends, your soul returns to your body. If your body is more than 100 feet away from you or if your body is dead, you die. If another creature\u0027s soul is in the container when it is destroyed, the creature\u0027s soul returns to its body if the body is alive and within 100 feet. Otherwise, that creature dies. When the spell ends, the container is destroyed.",
+    "higherLevels":  "",
+    "tags":  [
+
+             ]
 }

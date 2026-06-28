@@ -5,6 +5,153 @@ Last updated: 2026-06-22
 
 Use this file for concise parent-dashboard proof and imported child-proof summaries. Detailed implementation proof should stay in the child packet or task packet that owns the executable pass.
 
+## 2026-06-27 - Deferred timing route wording correction
+
+Status: documentation-only; rows remain implementation_unverified.
+
+Scope:
+- docs/projects/spells/SUBPROJECTS.md
+- docs/tasks/spells/mechanics-discovery/buckets/reaction_or_opportunity_restriction.md
+- docs/projects/spells/subprojects/structured-spell-execution/COLD_START_AGENT_PROMPT.md
+- docs/projects/spells/subprojects/structured-spell-execution/AUDIT_OR_PROOF.md
+
+Proof:
+- Corrected the parent and child routing text so Shining Smite and Blinding Smite close through live after-hit materialization onto the already-triggering hit target.
+- Kept Lightning Arrow as the live next-attack rider registration, duration, hit/miss, and consumption proof lane.
+
+Boundary:
+- This is a routing correction only. No focused tests, representative spell validation, dependency sync, rendered proof, MemPalace mining, session ritual, or git commands were run, so the six deferred rows remain open.
+
+
+## 2026-06-27 - Lightning Arrow pending executable proof import
+
+Status: focused tests pending validation run.
+
+Scope:
+- src/commands/factory/__tests__/AbilityCommandFactory.test.ts
+- docs/projects/spells/subprojects/structured-spell-execution/AUDIT_OR_PROOF.md
+
+Proof:
+- Added focused command-layer tests for Lightning Arrow-style `per_instance_hit_or_miss` attack riders on ranged weapon hits and misses.
+- The pending tests expect first matching attack consumption, primary target damage on hit and miss, secondary 10-foot burst damage to a nearby creature, and no burst damage to a far creature.
+
+Boundary:
+- This parent row imports pending executable proof scaffolding only. The focused tests were not run in this pass, so the Lightning Arrow deferred row remains open pending execution and repair. Spell validation, rendered proof, dependency sync, MemPalace mining, session ritual, and git commands were also not run.
+
+
+## 2026-06-27 - Structured reaction pending executable proof import
+
+Status: focused tests pending validation run.
+
+Scope:
+- src/hooks/__tests__/useAbilitySystem.test.ts
+- docs/projects/spells/subprojects/structured-spell-execution/AUDIT_OR_PROOF.md
+
+Proof:
+- Added a focused after-hit reaction test that uses command-backed attack results to prompt a metadata-declared smite-style reaction, spends the attacker's reaction and spell slot, and materializes the hit-bound payload as an immediate spell against the triggering target.
+- Added a focused Counterspell recursion test that prompts the first Counterspell, then prompts one counter-counterspell response, and expects the command path to contain exactly the two Counterspell spells plus the original spell rather than an unbounded interruption loop.
+
+Boundary:
+- This parent row imports pending executable proof scaffolding only. The focused tests were not run in this pass, so Shining Smite, Blinding Smite, and Counterspell deferred rows remain open pending execution and repair. Spell validation, rendered proof, dependency sync, MemPalace mining, session ritual, and git commands were also not run.
+
+
+## 2026-06-27 - Controlled-entity pending executable proof import
+
+Status: focused tests pending validation run.
+
+Scope:
+- src/hooks/combat/__tests__/useTargetValidator.test.ts
+- src/hooks/__tests__/useAbilitySystem.test.ts
+- src/systems/combat/reactions/__tests__/OpportunityAttackSystem.test.ts
+- docs/projects/spells/subprojects/summons-controlled-entities/AUDIT_OR_PROOF.md
+
+Proof:
+- Added child-lane focused tests for Find Familiar touch-delivery targeting, including allowed delivery and rejection when the familiar has spent its reaction, is outside the 100-foot bond, or lacks delivery permission.
+- Added a hook-level test that exercises the familiar-delivered touch spell execution boundary and expects the familiar reaction to be spent plus a familiar delivery visual to be emitted.
+- Added an Opportunity Attack test that proves the Summon Beast Air form's Flyby metadata suppresses reactions while the Land form with the same trait list still provokes normally.
+
+Boundary:
+- This parent row imports pending executable proof scaffolding only. The focused tests were not run in this pass, so no controlled-entity deferred bucket row should be closed from this row alone. Spell validation, rendered proof, dependency sync, MemPalace mining, session ritual, and git commands were also not run.
+
+
+## 2026-06-27 - Controlled-entity child-lane current-source import
+
+Status: implementation-unverified.
+
+Scope:
+- src/hooks/combat/useTargetValidator.ts
+- src/hooks/useAbilitySystem.ts
+- src/commands/effects/SummoningCommand.ts
+- src/systems/combat/reactions/OpportunityAttackSystem.ts
+- public/data/spells/level-1/find-familiar.json
+- public/data/spells/level-2/summon-beast.json
+- docs/projects/spells/subprojects/summons-controlled-entities/AUDIT_OR_PROOF.md
+
+Proof:
+- Imported child-lane current-source evidence for Find Familiar: touch-delivery targeting reads summon `actionPermissions` for permission, range, and reaction availability, and the execution path spends the familiar reaction before resolving the caster's touch spell.
+- Imported child-lane current-source evidence for Summon Beast: summon creation preserves the selected Air/Land/Water `formName` plus `formTraits`, and Opportunity Attack suppression checks Flyby-style traits against that selected form instead of applying the Air trait to every form.
+
+Boundary:
+- This parent row records source-evidence routing only. Focused runtime tests, spell validation, rendered proof, dependency sync, MemPalace mining, session ritual, and git commands were not run. The deferred controlled-entity rows should remain open until executable proof covers familiar reaction spending/range rejection and Air versus Land/Water opportunity behavior.
+
+
+## 2026-06-27 - Summon Beast controlled-entity form-choice runtime import
+
+Status: implementation-unverified.
+
+Scope:
+- src/commands/effects/SummoningCommand.ts
+- docs/projects/spells/subprojects/summons-controlled-entities/GAPS.md
+- docs/projects/spells/subprojects/summons-controlled-entities/TRACKER.md
+- docs/projects/spells/subprojects/summons-controlled-entities/AUDIT_OR_PROOF.md
+- docs/tasks/spells/mechanics-discovery/buckets/reaction_or_opportunity_restriction.md
+
+Proof:
+- Imported child-lane progress for Summon Beast: the summoned actor now preserves the selected form from existing mode-choice input, so Air/Land/Water can be distinguished by shared controlled-entity metadata and Flyby is not tied to the default first form.
+
+Boundary:
+- This parent row records routing and child proof import only. Focused tests, spell validation, rendered proof, dependency sync, MemPalace mining, session ritual, and git commands were not run.
+
+## 2026-06-27 - After-hit smite child-lane runtime import
+
+Status: implementation-unverified.
+
+Scope:
+- src/hooks/useAbilitySystem.ts
+- docs/projects/spells/subprojects/structured-spell-execution/GAPS.md
+- docs/projects/spells/subprojects/structured-spell-execution/TRACKER.md
+- docs/projects/spells/subprojects/structured-spell-execution/AUDIT_OR_PROOF.md
+- docs/tasks/spells/mechanics-discovery/buckets/reaction_or_opportunity_restriction.md
+
+Proof:
+- Imported child-lane progress for after-hit smites: command-backed hit results now drive attacker-side reaction prompts for metadata-declared after-hit spells, spend reaction and spell-slot resources, and execute hit-bound payloads against the triggering target.
+
+Boundary:
+- This parent row records routing and child proof import only. Focused tests, spell validation, rendered proof, dependency sync, MemPalace mining, session ritual, and git commands were not run.
+
+## 2026-06-27 - Counterspell child-lane runtime import
+
+Status: implementation-unverified.
+
+Scope:
+- src/hooks/useAbilitySystem.ts
+- docs/projects/spells/subprojects/structured-spell-execution/GAPS.md
+- docs/projects/spells/subprojects/structured-spell-execution/TRACKER.md
+- docs/projects/spells/subprojects/structured-spell-execution/AUDIT_OR_PROOF.md
+- docs/tasks/spells/mechanics-discovery/buckets/reaction_or_opportunity_restriction.md
+
+Proof:
+- Imported the child-lane Counterspell progress into the parent proof log: the shared pre-command interruption gate now checks line of sight when battle-map tiles exist and allows one bounded counter-counterspell layer.
+- Reclassified the six reaction/opportunity bucket rows from broad deferrals to child-owned implementation-unverified rows so the parent dashboard routes proof work to structured spell execution or controlled-entity lanes instead of treating the work as unsplit.
+
+Boundary:
+- This parent row records routing and child proof import only. Focused tests, spell validation, rendered proof, dependency sync, MemPalace mining, session ritual, and git commands were not run.
+
+
+| 2026-06-27 | Deferred reaction/summon wiring schema parity | partial | Advanced the remaining `reaction_or_opportunity_restriction` deferred set by aligning spell data, Zod validation, and JSON schema artifacts for the shared runtime fields behind Shining Smite, Blinding Smite, Lightning Arrow, Counterspell, Find Familiar, and Summon Beast. The pass also repaired malformed Lightning Arrow JSON around `missDamageMultiplier`. No runtime tests, schema validation commands, dependency sync, MemPalace mining, or rendered checks were run in this continuation, so the six bucket rows remain implementation-unverified pending focused executable proof. |
+| 2026-06-27 | Deferred wiring contract correction | partial | Corrected the follow-up schema/validator contract so Lightning Arrow's `missDamageMultiplier` is accepted on the `DAMAGE` effect where the spell data and `AbilityCommandFactory` read it, and so Summon Beast `formTraits` validate with the existing `name`, `appliesToForms`, `opportunityAttackPolicy`, and `movementModeRequired` shape used by summon metadata. This removes a schema/data mismatch but does not claim executable proof for the six deferred rows. |
+| 2026-06-27 | Lightning Arrow rider metadata alignment | partial | Reconciled Lightning Arrow's own `pendingAttackTrigger.notes` with the current shared attack-rider implementation: primary hit damage, primary miss half-damage, secondary burst targeting, and first-matching-attack consumption now all point at the shared rider path in source. The bucket row remains `implementation_unverified` because no focused executable proof was run. |
+| 2026-06-27 | Counterspell bounded recursion repair | implementation-unverified | Updated the shared spell-interruption hook so Counterspell can be counterspelled once before recursion stops. This aligns source behavior with the documented G12 bounded counter-counterspell policy. No focused runtime proof was run, so the Counterspell row remains `implementation_unverified`. |
 
 ## 2026-06-22 - Parent scoped-dashboard reshape
 
@@ -2462,6 +2609,12 @@ pm run test:types (passed). This keeps SSO-SPELL-FILTER-DATA-COMPLETENESS-001 op
 pm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts (15 passed), 
 pm run validate:spells -- --spell public/data/spells/level-2/animal-messenger.json (459 valid / 0 invalid), and 
 pm run test:types (passed). |
+| 2026-06-27 | Parent North Star routed to deferred reaction/timing closeout | documentation-only | Updated `NORTH_STAR.md` so the parent Spells dashboard now names deferred reaction/timing closeout as the current highest-impact route, split between `structured-spell-execution` for Shining Smite, Blinding Smite, Lightning Arrow, and Counterspell, and `summons-controlled-entities` for Find Familiar and Summon Beast. This keeps the parent scoped-dashboard role intact: executable proof stays in child packets, and parent rows remain open until focused proof runs and is imported. Tests, validation, dependency sync, rendered proof, MemPalace mining, session ritual, and git commands were not run. |
+| 2026-06-27 | Parent tracker routed to deferred reaction/timing closeout | documentation-only | Updated `TRACKER.md` task T5 so the active parent routing task now points to the proof-bearing Structured Spell Execution and Summons Controlled Entities child packets instead of the older Mechanics Discovery / created-object route. This keeps the parent tracker aligned with `NORTH_STAR.md` and `SUBPROJECTS.md` while preserving the parent boundary: child packets own executable proof and row closure. Tests, validation, dependency sync, rendered proof, MemPalace mining, session ritual, and git commands were not run. |
+| 2026-06-27 | Parent cold-start handoff routed to deferred reaction/timing closeout | documentation-only | Updated `COLD_START_AGENT_PROMPT.md` so new agents entering the Spells parent are routed to Structured Spell Execution for Shining Smite, Blinding Smite, Lightning Arrow, and Counterspell, and to Summons Controlled Entities for Find Familiar and Summon Beast. The handoff now warns not to close parent `reaction_or_opportunity_restriction` rows from metadata presence alone and to run focused executable proof in the child packet before importing parent-visible status. Tests, validation, dependency sync, rendered proof, MemPalace mining, session ritual, and git commands were not run. |
+| 2026-06-27 | Parent runbook routed to deferred reaction/timing closeout | documentation-only | Updated `RUNBOOK.md` with a current deferred reaction/timing closeout route: Structured Spell Execution owns Shining Smite, Blinding Smite, Lightning Arrow, and Counterspell, while Summons Controlled Entities owns Find Familiar touch delivery and Summon Beast Flyby. The runbook now repeats that focused child proof must execute before parent rows close and that detailed evidence belongs in child `AUDIT_OR_PROOF.md` files. Tests, validation, dependency sync, rendered proof, MemPalace mining, session ritual, and git commands were not run. |
+| 2026-06-27 | Parent decision recorded for deferred reaction/timing lane split | documentation-only | Added `DECISIONS.md` D5 to record that the remaining `reaction_or_opportunity_restriction` rows are split by runtime ownership: Structured Spell Execution owns Shining Smite, Blinding Smite, Lightning Arrow, and Counterspell; Summons Controlled Entities owns Find Familiar and Summon Beast. The decision explicitly says the parent may route and summarize but must not close rows from metadata presence alone. Tests, validation, dependency sync, rendered proof, MemPalace mining, session ritual, and git commands were not run. |
+| 2026-06-27 | Parent registry priority routed to deferred reaction/timing closeout | documentation-only | Updated `SUBPROJECTS.md` frontmatter so `highest_priority` now points to the real child lane `structured-spell-execution` instead of the older created-object route. The structured row now explicitly calls out the paired `summons-controlled-entities` closeout lane, preserving the two-lane split while keeping the rendered parent dashboard recommendation tied to an actual registry row. Tests, validation, dependency sync, rendered proof, MemPalace mining, session ritual, and git commands were not run. |
 
 
 

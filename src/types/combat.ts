@@ -175,6 +175,13 @@ export interface ActiveEffect {
     attackRollConsumption?: "next_attack" | "first_attack" | "while_active";
     attackRollValue?: number;
         attackRollDice?: string;
+    /**
+     * Some attack-roll riders also shut off a condition's combat benefit.
+     * Shining Smite is the current shared use: the target still may carry the
+     * Invisible condition record, but attacks against it should not suffer the
+     * Invisible-target disadvantage while this rider is active.
+     */
+    suppressedConditionBenefit?: string;
 
     /**
      * Saving throw riders.
@@ -303,12 +310,28 @@ export interface CombatCharacter {
     initiativePolicy?: 'immediate' | 'rolled' | 'shared';
     followDistance?: number;
     hoverHeight?: number;
-    telepathyRange?: number;
-    sharedSenses?: boolean;
-    sharedSensesCost?: 'action' | 'bonus_action' | 'free' | 'none';
-    durationRemaining?: number;
-    dismissable: boolean;
-  };
+      telepathyRange?: number;
+      sharedSenses?: boolean;
+      sharedSensesCost?: 'action' | 'bonus_action' | 'free' | 'none';
+      actionPermissions?: {
+        canAttack?: boolean;
+        canDeliverTouchSpells?: boolean;
+        touchDeliveryRangeFeet?: number;
+        touchDeliveryCost?: 'reaction' | 'action' | 'bonus_action' | 'free' | 'none';
+        independentInitiative?: boolean;
+        obeysCasterCommands?: boolean;
+        notes?: string;
+      };
+      formTraits?: Array<{
+        name: string;
+        appliesToForms?: string[];
+        opportunityAttackPolicy?: 'does_not_provoke_when_flying_out_of_reach' | 'normal';
+        movementModeRequired?: 'fly' | 'walk' | 'swim' | 'climb' | 'any';
+        notes?: string;
+      }>;
+      durationRemaining?: number;
+      dismissable: boolean;
+    };
 
   // Defensive tracking (for DefensiveCommand)
   armorClass?: number;      // Current AC (including bonuses)
@@ -508,6 +531,14 @@ export interface Ability {
    * Ensures that monsters with atypical attack bonuses (finesse, multi-stat, racial bonuses) roll correctly.
    */
   attackBonus?: number;
+  /**
+   * Explicitly marks an attack-roll button as a weapon, spell, or unarmed
+   * attack for shared rider matching. Most old attack buttons omit this and
+   * keep the historical weapon default, but spell-attack buttons need this so
+   * next-weapon-attack riders such as Lightning Arrow do not wake up from a
+   * ranged spell attack.
+   */
+  attackType?: 'weapon' | 'spell' | 'unarmed';
   recharge?: {
     /** Recharge threshold (e.g. 5 = must roll 5+ to recharge) */
     threshold: number;
@@ -631,6 +662,14 @@ export interface CombatAction {
    * even when the move starts and ends outside that area.
    */
   movementPath?: Position[];
+  /**
+   * Optional movement mode used for this movement action.
+   * Most current movement actions still omit this and behave as ordinary map
+   * movement, but spell-created actors with form-specific traits can set it so
+   * shared reaction rules know whether the creature walked, flew, swam, or
+   * climbed out of reach.
+   */
+  movementMode?: 'fly' | 'walk' | 'swim' | 'climb' | 'any';
   targetCharacterIds?: string[];
   /** Rich spell target refs for creature, object, and point selections. */
   selectedSpellTargets?: SelectedSpellTarget[];
@@ -654,10 +693,10 @@ export interface CombatAction {
     targetId: string;
     isHit: boolean;
     isCritical?: boolean;
-    /** Whether the resolved attack was a weapon or spell attack. */
-    attackType?: 'weapon' | 'spell' | 'any';
-    /** Whether the resolved attack was melee or ranged. */
-    weaponType?: 'melee' | 'ranged' | 'any';
+    /** Whether the resolved attack was a weapon, spell, or Unarmed Strike. */
+    attackType?: 'weapon' | 'spell' | 'unarmed' | 'any';
+    /** Whether the resolved attack was melee, ranged, or unarmed. */
+    weaponType?: 'melee' | 'ranged' | 'unarmed' | 'any';
     rollResult?: number;
     total?: number;
   }>;
@@ -909,7 +948,14 @@ export interface SpellDeliveryVisual {
   spellId: string;
   spellName: string;
   casterId: string;
-  familiarId: string;
+  /**
+   * Shared controlled-entity actor that delivered a touch spell.
+   * Find Familiar is the current live spell using this path, but the runtime
+   * permission is now actor metadata, not a familiar-only exception.
+   */
+  deliveryActorId: string;
+  /** Backward-compatible alias for older Find Familiar visual consumers. */
+  familiarId?: string;
   targetId: string;
   from: Position;
   to: Position;

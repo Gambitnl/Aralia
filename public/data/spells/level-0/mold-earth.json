@@ -1,572 +1,682 @@
 {
-  "id": "mold-earth",
-  "name": "Mold Earth",
-  "aliases": [],
-  "level": 0,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": false,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "area",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point",
-      "ground"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 5,
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "modeChoice": {
-    "type": "choose_one",
-    "timing": "on_cast",
-    "optionCount": 3,
-    "optionsSource": "effects",
-    "maxActiveNonInstantaneous": 2,
-    "canDismissActive": true,
-    "options": [
-      {
-        "label": "Excavation",
-        "summary": "Excavate loose earth in the 5-foot Cube, move it along the ground, and deposit it up to 5 feet away without damage.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "TERRAIN"
-        ],
-        "duration": "instantaneous"
-      },
-      {
-        "label": "Shapes And Colors",
-        "summary": "Cause shapes, colors, words, images, or patterns to appear on dirt or stone for 1 hour.",
-        "effectIndices": [
-          3
-        ],
-        "effectTypes": [
-          "TERRAIN"
-        ],
-        "duration": "1 hour"
-      },
-      {
-        "label": "Terrain Toggle",
-        "summary": "Make ground difficult terrain, or return difficult terrain to normal terrain, for 1 hour.",
-        "effectIndices": [
-          1,
-          2
-        ],
-        "effectTypes": [
-          "TERRAIN"
-        ],
-        "duration": "1 hour"
-      }
-    ],
-    "notes": "No more than two non-instantaneous Mold Earth effects can be active at once, and the caster can dismiss one as an action."
-  },
-  "effects": [
-    {
-      "type": "TERRAIN",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "terrainType": "difficult",
-      "areaOfEffect": {
-        "shape": "Cube",
-        "size": 5,
-        "height": 0
-      },
-      "duration": {
-        "type": "special",
-        "value": 0
-      },
-      "manipulation": {
-        "type": "excavate",
-        "volume": {
-          "shape": "Cube",
-          "size": 5,
-          "depth": 5
-        },
-        "depositDistance": 5,
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "damage": {
-        "dice": "",
-        "type": ""
-      },
-      "wallProperties": {
-        "hp": 0,
-        "ac": 0
-      },
-      "dispersedByStrongWind": false,
-      "description": "Manipulates a 5-foot cube of loose earth within 30 feet as one terrain-control option of the cantrip.",
-      "conditionalEndings": [],
-      "grantedActions": [
-        {
-          "type": "action",
-          "action": "Dismiss",
-          "frequency": "while_active",
-          "actor": "caster",
-          "actionKind": "standard_action",
-          "notes": "Dismiss an active non-instantaneous effect."
-        }
-      ],
-      "tags": [
-        "terrain-shaping",
-        "earth",
-        "cantrip-utility"
-      ]
-    },
-    {
-      "type": "TERRAIN",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "terrainType": "difficult",
-      "areaOfEffect": {
-        "shape": "Cube",
-        "size": 5,
-        "height": 0
-      },
-      "duration": {
-        "type": "minutes",
-        "value": 60
-      },
-      "manipulation": {
-        "type": "difficult",
-        "volume": {
-          "shape": "Cube",
-          "size": 5,
-          "depth": 0
-        },
-        "duration": {
-          "type": "minutes",
-          "value": 60
-        },
-        "depositDistance": 0
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "damage": {
-        "dice": "",
-        "type": ""
-      },
-      "wallProperties": {
-        "hp": 0,
-        "ac": 0
-      },
-      "dispersedByStrongWind": false,
-      "description": "Shapes or marks loose earth or stone in a 5-foot cube as one terrain-control option of the cantrip.",
-      "conditionalEndings": [],
-      "grantedActions": [
-        {
-          "type": "action",
-          "action": "Dismiss",
-          "frequency": "while_active",
-          "actor": "caster",
-          "actionKind": "standard_action",
-          "notes": "Dismiss an active non-instantaneous effect."
-        }
-      ],
-      "tags": [
-        "terrain-shaping",
-        "earth",
-        "cantrip-utility"
-      ]
-    },
-    {
-      "type": "TERRAIN",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "terrainType": "difficult",
-      "areaOfEffect": {
-        "shape": "Cube",
-        "size": 5,
-        "height": 0
-      },
-      "duration": {
-        "type": "minutes",
-        "value": 60
-      },
-      "manipulation": {
-        "type": "normal",
-        "volume": {
-          "shape": "Cube",
-          "size": 5,
-          "depth": 0
-        },
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        },
-        "depositDistance": 0
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "damage": {
-        "dice": "",
-        "type": ""
-      },
-      "wallProperties": {
-        "hp": 0,
-        "ac": 0
-      },
-      "dispersedByStrongWind": false,
-      "description": "Creates or removes simple difficult-terrain style earth shaping in a 5-foot cube as one terrain-control option of the cantrip.",
-      "conditionalEndings": [],
-      "grantedActions": [
-        {
-          "type": "action",
-          "action": "Dismiss",
-          "frequency": "while_active",
-          "actor": "caster",
-          "actionKind": "standard_action",
-          "notes": "Dismiss an active non-instantaneous effect."
-        }
-      ],
-      "tags": [
-        "terrain-shaping",
-        "earth",
-        "cantrip-utility"
-      ]
-    },
-    {
-      "type": "TERRAIN",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "terrainType": "difficult",
-      "areaOfEffect": {
-        "shape": "Cube",
-        "size": 5,
-        "height": 0
-      },
-      "duration": {
-        "type": "minutes",
-        "value": 60
-      },
-      "manipulation": {
-        "type": "cosmetic",
-        "volume": {
-          "shape": "Cube",
-          "size": 5,
-          "depth": 0
-        },
-        "duration": {
-          "type": "minutes",
-          "value": 60
-        },
-        "depositDistance": 0
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "damage": {
-        "dice": "",
-        "type": ""
-      },
-      "wallProperties": {
-        "hp": 0,
-        "ac": 0
-      },
-      "dispersedByStrongWind": false,
-      "description": "Produces a harmless earth tremor or similar minor terrain effect in a 5-foot cube as one terrain-control option of the cantrip.",
-      "conditionalEndings": [],
-      "grantedActions": [
-        {
-          "type": "action",
-          "action": "Dismiss",
-          "frequency": "while_active",
-          "actor": "caster",
-          "actionKind": "standard_action",
-          "notes": "Dismiss an active non-instantaneous effect."
-        }
-      ],
-      "tags": [
-        "terrain-shaping",
-        "earth",
-        "cantrip-utility"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You choose a portion of dirt or stone that you can see within range and that fits within a 5-foot cube. You manipulate it in one of the following ways: If you target an area of loose earth, you can instantaneously excavate it, move it along the ground, and deposit it up to 5 feet away. This movement doesn't have enough force to cause damage. You cause shapes, colors, or both to appear on the dirt or stone, spelling out words, creating images, or shaping patterns. The changes last for 1 hour. If the dirt or stone you target is on the ground, you cause it to become difficult terrain. Alternatively, you can cause the ground to become normal terrain if it is already difficult terrain. This change lasts for 1 hour. If you cast this spell multiple times, you can have no more than two of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action.",
-  "higherLevels": "",
-  "tags": [
-    "utility",
-    "transmutation",
-    "cantrip"
-  ]
+    "id":  "mold-earth",
+    "name":  "Mold Earth",
+    "aliases":  [
+
+                ],
+    "level":  0,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  false,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "instantaneous",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point",
+                                           "ground"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  5,
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  3,
+                       "optionsSource":  "effects",
+                       "maxActiveNonInstantaneous":  2,
+                       "canDismissActive":  true,
+                       "options":  [
+                                       {
+                                           "label":  "Excavation",
+                                           "summary":  "Excavate loose earth in the 5-foot Cube, move it along the ground, and deposit it up to 5 feet away without damage.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "TERRAIN"
+                                                           ],
+                                           "duration":  "instantaneous"
+                                       },
+                                       {
+                                           "label":  "Shapes And Colors",
+                                           "summary":  "Cause shapes, colors, words, images, or patterns to appear on dirt or stone for 1 hour.",
+                                           "effectIndices":  [
+                                                                 3
+                                                             ],
+                                           "effectTypes":  [
+                                                               "TERRAIN"
+                                                           ],
+                                           "duration":  "1 hour"
+                                       },
+                                       {
+                                           "label":  "Terrain Toggle",
+                                           "summary":  "Make ground difficult terrain, or return difficult terrain to normal terrain, for 1 hour.",
+                                           "effectIndices":  [
+                                                                 1,
+                                                                 2
+                                                             ],
+                                           "effectTypes":  [
+                                                               "TERRAIN"
+                                                           ],
+                                           "duration":  "1 hour"
+                                       }
+                                   ],
+                       "notes":  "No more than two non-instantaneous Mold Earth effects can be active at once, and the caster can dismiss one as an action."
+                   },
+    "effects":  [
+                    {
+                        "type":  "TERRAIN",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "terrainType":  "difficult",
+                        "areaOfEffect":  {
+                                             "shape":  "Cube",
+                                             "size":  5,
+                                             "height":  0
+                                         },
+                        "duration":  {
+                                         "type":  "special",
+                                         "value":  0
+                                     },
+                        "manipulation":  {
+                                             "type":  "excavate",
+                                             "volume":  {
+                                                            "shape":  "Cube",
+                                                            "size":  5,
+                                                            "depth":  5
+                                                        },
+                                             "depositDistance":  5,
+                                             "duration":  {
+                                                              "type":  "rounds",
+                                                              "value":  0
+                                                          }
+                                         },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "damage":  {
+                                       "dice":  "",
+                                       "type":  ""
+                                   },
+                        "wallProperties":  {
+                                               "hp":  0,
+                                               "ac":  0
+                                           },
+                        "dispersedByStrongWind":  false,
+                        "description":  "Manipulates a 5-foot cube of loose earth within 30 feet as one terrain-control option of the cantrip.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "action",
+                                                   "action":  "Dismiss",
+                                                   "frequency":  "while_active",
+                                                   "actor":  "caster",
+                                                   "actionKind":  "standard_action",
+                                                   "notes":  "Dismiss an active non-instantaneous effect."
+                                               }
+                                           ],
+                        "tags":  [
+                                     "terrain-shaping",
+                                     "earth",
+                                     "cantrip-utility"
+                                 ]
+                    },
+                    {
+                        "type":  "TERRAIN",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "terrainType":  "difficult",
+                        "areaOfEffect":  {
+                                             "shape":  "Cube",
+                                             "size":  5,
+                                             "height":  0
+                                         },
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  60
+                                     },
+                        "manipulation":  {
+                                             "type":  "difficult",
+                                             "volume":  {
+                                                            "shape":  "Cube",
+                                                            "size":  5,
+                                                            "depth":  0
+                                                        },
+                                             "duration":  {
+                                                              "type":  "minutes",
+                                                              "value":  60
+                                                          },
+                                             "depositDistance":  0
+                                         },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "damage":  {
+                                       "dice":  "",
+                                       "type":  ""
+                                   },
+                        "wallProperties":  {
+                                               "hp":  0,
+                                               "ac":  0
+                                           },
+                        "dispersedByStrongWind":  false,
+                        "description":  "Shapes or marks loose earth or stone in a 5-foot cube as one terrain-control option of the cantrip.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "action",
+                                                   "action":  "Dismiss",
+                                                   "frequency":  "while_active",
+                                                   "actor":  "caster",
+                                                   "actionKind":  "standard_action",
+                                                   "notes":  "Dismiss an active non-instantaneous effect."
+                                               }
+                                           ],
+                        "tags":  [
+                                     "terrain-shaping",
+                                     "earth",
+                                     "cantrip-utility"
+                                 ],
+                        "communicationDetails":  {
+                                                     "mode":  "visible_earth_marks",
+                                                     "contentTypes":  [
+                                                                          "words",
+                                                                          "images",
+                                                                          "patterns"
+                                                                      ],
+                                                     "targetMedium":  "loose earth or stone in a 5-foot cube",
+                                                     "delivery":  "visual only",
+                                                     "notes":  "This option can spell out words or create images/patterns without sending sound or telepathy."
+                                                 },
+                        "illusionState":  {
+                                              "kind":  "earth_surface_visual_marking",
+                                              "target":  "5_foot_cube_of_dirt_or_stone",
+                                              "visuals":  [
+                                                              "shapes",
+                                                              "colors",
+                                                              "words",
+                                                              "images",
+                                                              "patterns"
+                                                          ],
+                                              "duration":  "1_hour",
+                                              "createsCreatureOrSensor":  false
+                                          }
+                    },
+                    {
+                        "type":  "TERRAIN",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "terrainType":  "difficult",
+                        "areaOfEffect":  {
+                                             "shape":  "Cube",
+                                             "size":  5,
+                                             "height":  0
+                                         },
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  60
+                                     },
+                        "manipulation":  {
+                                             "type":  "normal",
+                                             "volume":  {
+                                                            "shape":  "Cube",
+                                                            "size":  5,
+                                                            "depth":  0
+                                                        },
+                                             "duration":  {
+                                                              "type":  "rounds",
+                                                              "value":  0
+                                                          },
+                                             "depositDistance":  0
+                                         },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "damage":  {
+                                       "dice":  "",
+                                       "type":  ""
+                                   },
+                        "wallProperties":  {
+                                               "hp":  0,
+                                               "ac":  0
+                                           },
+                        "dispersedByStrongWind":  false,
+                        "description":  "Creates or removes simple difficult-terrain style earth shaping in a 5-foot cube as one terrain-control option of the cantrip.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "action",
+                                                   "action":  "Dismiss",
+                                                   "frequency":  "while_active",
+                                                   "actor":  "caster",
+                                                   "actionKind":  "standard_action",
+                                                   "notes":  "Dismiss an active non-instantaneous effect."
+                                               }
+                                           ],
+                        "tags":  [
+                                     "terrain-shaping",
+                                     "earth",
+                                     "cantrip-utility"
+                                 ]
+                    },
+                    {
+                        "type":  "TERRAIN",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "terrainType":  "difficult",
+                        "areaOfEffect":  {
+                                             "shape":  "Cube",
+                                             "size":  5,
+                                             "height":  0
+                                         },
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  60
+                                     },
+                        "manipulation":  {
+                                             "type":  "cosmetic",
+                                             "volume":  {
+                                                            "shape":  "Cube",
+                                                            "size":  5,
+                                                            "depth":  0
+                                                        },
+                                             "duration":  {
+                                                              "type":  "minutes",
+                                                              "value":  60
+                                                          },
+                                             "depositDistance":  0
+                                         },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "damage":  {
+                                       "dice":  "",
+                                       "type":  ""
+                                   },
+                        "wallProperties":  {
+                                               "hp":  0,
+                                               "ac":  0
+                                           },
+                        "dispersedByStrongWind":  false,
+                        "description":  "Produces a harmless earth tremor or similar minor terrain effect in a 5-foot cube as one terrain-control option of the cantrip.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "action",
+                                                   "action":  "Dismiss",
+                                                   "frequency":  "while_active",
+                                                   "actor":  "caster",
+                                                   "actionKind":  "standard_action",
+                                                   "notes":  "Dismiss an active non-instantaneous effect."
+                                               }
+                                           ],
+                        "tags":  [
+                                     "terrain-shaping",
+                                     "earth",
+                                     "cantrip-utility"
+                                 ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You choose a portion of dirt or stone that you can see within range and that fits within a 5-foot cube. You manipulate it in one of the following ways: If you target an area of loose earth, you can instantaneously excavate it, move it along the ground, and deposit it up to 5 feet away. This movement doesn\u0027t have enough force to cause damage. You cause shapes, colors, or both to appear on the dirt or stone, spelling out words, creating images, or shaping patterns. The changes last for 1 hour. If the dirt or stone you target is on the ground, you cause it to become difficult terrain. Alternatively, you can cause the ground to become normal terrain if it is already difficult terrain. This change lasts for 1 hour. If you cast this spell multiple times, you can have no more than two of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action.",
+    "higherLevels":  "",
+    "tags":  [
+                 "utility",
+                 "transmutation",
+                 "cantrip"
+             ]
 }

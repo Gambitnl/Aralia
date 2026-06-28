@@ -1,416 +1,495 @@
 {
-  "id": "investiture-of-wind",
-  "name": "Investiture of Wind",
-  "aliases": [],
-  "level": 6,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Sorcerer",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 10,
-    "unit": "minute"
-  },
-  "targeting": {
-    "type": "self",
-    "validTargets": [
-      "self"
-    ],
-    "lineOfSight": false,
-    "range": 0,
-    "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 15,
-      "sizeType": "edge",
-      "sizeUnit": "feet",
-      "height": 0,
-      "heightUnit": "feet"
-    },
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Swirling Wind Cube",
-          "shape": "Cube",
-          "size": 15,
-          "sizeType": "edge",
-          "sizeUnit": "feet",
-          "notes": "Centered on a point you can see within 60 feet of you when you use the spell-granted action."
-        }
-      ]
-    },
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "on_caster_action",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Constitution",
-        "saveEffect": "half",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "2d10",
-        "type": "Bludgeoning"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "For up to 10 minutes with concentration, the caster can use an action to create a 15-foot Cube of swirling wind centered on a visible point within 60 feet; each creature in the Cube makes a Constitution save, taking 2d10 Bludgeoning damage on a failed save or half as much on a success.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "ranged",
-          "attackType": "weapon"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "defenseType": "disadvantage_on_attacks",
-      "duration": {
-        "type": "minutes",
-        "value": 10
-      },
-      "description": "For up to 10 minutes with concentration, ranged weapon attacks made against the caster have Disadvantage on the attack roll.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "MOVEMENT",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "movementType": "speed_change",
-      "speedChange": {
-        "stat": "speed",
-        "value": 60,
-        "unit": "feet"
-      },
-      "duration": {
-        "type": "minutes",
-        "value": 10
-      },
-      "distance": 0,
-      "forcedMovement": {
-        "usesReaction": false,
-        "direction": "away_from_caster",
-        "maxDistance": ""
-      },
-      "description": "For up to 10 minutes with concentration, the caster gains a 60-foot Fly Speed; if the spell ends while the caster is still flying, the caster falls unless another effect prevents the fall.",
-      "conditionalEndings": [],
-      "endCleanup": [
-        {
-          "trigger": "spell_ends",
-          "removes": "spell_granted_flying_speed",
-          "source": "this_effect",
-          "scope": "caster",
-          "amount": "all_remaining",
-          "consequence": "fall_if_aloft",
-          "preventedBy": "can_prevent_fall",
-          "notes": "If the caster is still flying when Investiture of Wind ends, the caster falls unless another effect prevents it."
-        }
-      ]
-    },
-    {
-      "type": "MOVEMENT",
-      "trigger": {
-        "type": "on_caster_action",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Constitution",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [
-            "Large",
-            "Medium",
-            "Small",
-            "Tiny"
-          ],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "movementType": "push",
-      "distance": 10,
-      "duration": {
-        "type": "rounds",
-        "value": 0
-      },
-      "forcedMovement": {
-        "usesReaction": false,
-        "direction": "caster_choice",
-        "maxDistance": "10 ft"
-      },
-      "speedChange": {
-        "stat": "speed",
-        "value": 0,
-        "unit": "feet"
-      },
-      "description": "If a Large or smaller creature fails the save against the swirling wind Cube, it is pushed up to 10 feet away from the center of the Cube.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "For up to 10 minutes with concentration, the caster gains a 60-foot Fly Speed, can use an action each turn to create the 15-foot swirling wind Cube, and falls when the spell ends if still flying unless another effect prevents the fall.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [
-        {
-          "type": "action",
-          "action": "create_15_foot_cube_of_swirling_wind",
-          "frequency": "each_turn",
-          "rangeLimit": 60,
-          "notes": "The Cube is centered on a point the caster can see within 60 feet and causes Bludgeoning damage plus a push on failed saves by Large or smaller creatures."
-        }
-      ],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Flying Speed",
-          "effect": "The caster gains a flying speed of 60 feet."
-        },
-        {
-          "name": "Swirling Wind Action",
-          "effect": "The caster can use an action to create the 15-foot Cube of swirling wind."
-        },
-        {
-          "name": "Fall If Flying When Spell Ends",
-          "effect": "If the caster is still flying when the spell ends, the caster falls unless another effect prevents it."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "Until the spell ends, wind whirls around you, and you gain the following benefits: Ranged weapon attacks made against you have disadvantage on the attack roll. You gain a flying speed of 60 feet. If you are still flying when the spell ends, you fall, unless you can somehow prevent it. You can use your action to create a 15-foot cube of swirling wind centered on a point you can see within 60 feet of you. Each creature in that area must make a Constitution saving throw. A creature takes 2d10 bludgeoning damage on a failed save, or half as much damage on a successful one. If a Large or smaller creature fails the save, that creature is also pushed up to 10 feet away from the center of the cube.",
-  "higherLevels": "",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "investiture-of-wind",
+    "name":  "Investiture of Wind",
+    "aliases":  [
+
+                ],
+    "level":  6,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Sorcerer",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  10,
+                     "unit":  "minute"
+                 },
+    "targeting":  {
+                      "type":  "self",
+                      "validTargets":  [
+                                           "self"
+                                       ],
+                      "lineOfSight":  false,
+                      "range":  0,
+                      "maxTargets":  1,
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  15,
+                                           "sizeType":  "edge",
+                                           "sizeUnit":  "feet",
+                                           "height":  0,
+                                           "heightUnit":  "feet"
+                                       },
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Swirling Wind Cube",
+                                                               "shape":  "Cube",
+                                                               "size":  15,
+                                                               "sizeType":  "edge",
+                                                               "sizeUnit":  "feet",
+                                                               "notes":  "Centered on a point you can see within 60 feet of you when you use the spell-granted action."
+                                                           }
+                                                       ]
+                                         },
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "on_caster_action",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Constitution",
+                                          "saveEffect":  "half",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "2d10",
+                                       "type":  "Bludgeoning"
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "For up to 10 minutes with concentration, the caster can use an action to create a 15-foot Cube of swirling wind centered on a visible point within 60 feet; each creature in the Cube makes a Constitution save, taking 2d10 Bludgeoning damage on a failed save or half as much on a success.",
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "ranged",
+                                                             "attackType":  "weapon"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "defenseType":  "disadvantage_on_attacks",
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  10
+                                     },
+                        "description":  "For up to 10 minutes with concentration, ranged weapon attacks made against the caster have Disadvantage on the attack roll.",
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "MOVEMENT",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "movementType":  "speed_change",
+                        "speedChange":  {
+                                            "stat":  "speed",
+                                            "value":  60,
+                                            "unit":  "feet"
+                                        },
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  10
+                                     },
+                        "distance":  0,
+                        "forcedMovement":  {
+                                               "usesReaction":  false,
+                                               "direction":  "away_from_caster",
+                                               "maxDistance":  ""
+                                           },
+                        "description":  "For up to 10 minutes with concentration, the caster gains a 60-foot Fly Speed; if the spell ends while the caster is still flying, the caster falls unless another effect prevents the fall.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "endCleanup":  [
+                                           {
+                                               "trigger":  "spell_ends",
+                                               "removes":  "spell_granted_flying_speed",
+                                               "source":  "this_effect",
+                                               "scope":  "caster",
+                                               "amount":  "all_remaining",
+                                               "consequence":  "fall_if_aloft",
+                                               "preventedBy":  "can_prevent_fall",
+                                               "notes":  "If the caster is still flying when Investiture of Wind ends, the caster falls unless another effect prevents it."
+                                           }
+                                       ],
+                        "movementState":  {
+                                              "kind":  "flying_speed_grant",
+                                              "target":  "caster",
+                                              "flySpeed":  "60_feet",
+                                              "duration":  "concentration_up_to_10_minutes",
+                                              "end":  "falls_if_still_flying_unless_can_prevent_fall"
+                                          }
+                    },
+                    {
+                        "type":  "MOVEMENT",
+                        "trigger":  {
+                                        "type":  "on_caster_action",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Constitution",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+                                                                             "Large",
+                                                                             "Medium",
+                                                                             "Small",
+                                                                             "Tiny"
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "movementType":  "push",
+                        "distance":  10,
+                        "duration":  {
+                                         "type":  "rounds",
+                                         "value":  0
+                                     },
+                        "forcedMovement":  {
+                                               "usesReaction":  false,
+                                               "direction":  "caster_choice",
+                                               "maxDistance":  "10 ft"
+                                           },
+                        "speedChange":  {
+                                            "stat":  "speed",
+                                            "value":  0,
+                                            "unit":  "feet"
+                                        },
+                        "description":  "If a Large or smaller creature fails the save against the swirling wind Cube, it is pushed up to 10 feet away from the center of the Cube.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "forcedMovementState":  {
+                                                    "kind":  "swirling_wind_push",
+                                                    "cost":  "Action_to_create_15_foot_cube",
+                                                    "target":  "Large_or_smaller_creature_that_fails_save",
+                                                    "save":  "Constitution",
+                                                    "distance":  "up_to_10_feet",
+                                                    "direction":  "away_from_cube_center"
+                                                }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "For up to 10 minutes with concentration, the caster gains a 60-foot Fly Speed, can use an action each turn to create the 15-foot swirling wind Cube, and falls when the spell ends if still flying unless another effect prevents the fall.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "action",
+                                                   "action":  "create_15_foot_cube_of_swirling_wind",
+                                                   "frequency":  "each_turn",
+                                                   "rangeLimit":  60,
+                                                   "notes":  "The Cube is centered on a point the caster can see within 60 feet and causes Bludgeoning damage plus a push on failed saves by Large or smaller creatures."
+                                               }
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Flying Speed",
+                                                   "effect":  "The caster gains a flying speed of 60 feet."
+                                               },
+                                               {
+                                                   "name":  "Swirling Wind Action",
+                                                   "effect":  "The caster can use an action to create the 15-foot Cube of swirling wind."
+                                               },
+                                               {
+                                                   "name":  "Fall If Flying When Spell Ends",
+                                                   "effect":  "If the caster is still flying when the spell ends, the caster falls unless another effect prevents it."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "Until the spell ends, wind whirls around you, and you gain the following benefits: Ranged weapon attacks made against you have disadvantage on the attack roll. You gain a flying speed of 60 feet. If you are still flying when the spell ends, you fall, unless you can somehow prevent it. You can use your action to create a 15-foot cube of swirling wind centered on a point you can see within 60 feet of you. Each creature in that area must make a Constitution saving throw. A creature takes 2d10 bludgeoning damage on a failed save, or half as much damage on a successful one. If a Large or smaller creature fails the save, that creature is also pushed up to 10 feet away from the center of the cube.",
+    "higherLevels":  "",
+    "tags":  [
+                 "concentration"
+             ]
 }

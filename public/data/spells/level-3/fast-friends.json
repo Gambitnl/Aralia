@@ -1,176 +1,242 @@
 {
-  "id": "fast-friends",
-  "name": "Fast Friends",
-  "aliases": [],
-  "level": 3,
-  "school": "Enchantment",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Cleric",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": false,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 1,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "filter": {
-      "creatureTypes": [
-        "Humanoid"
-      ],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "required",
-        "canUnderstandCaster": "required",
-        "canSeeCaster": "required"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "maxTargets": 1
-  },
-  "effects": [
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Wisdom",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [
-            "Humanoid"
-          ],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "required",
-            "canUnderstandCaster": "required",
-            "canSeeCaster": "required"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Charmed",
-        "duration": {
-          "type": "minutes",
-          "value": 60
-        },
-        "level": 0
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "One Humanoid within 30 feet that can see, hear, and understand the caster makes a Wisdom save or is Charmed for up to 1 hour with concentration, performs requested services in a friendly manner, can repeat the save for harmful or conflicting tasks, saves with Advantage if fighting the caster or companions, ends if asked to face certain death, and knows it was charmed when the spell ends.",
-      "conditionalEndings": [
-        {
-          "trigger": "certain_death_activity_requested",
-          "scope": "spell",
-          "description": "If the service or activity requested of the charmed creature would result in certain death for that creature, the spell ends."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "When you need to make sure something gets done, you can't rely on vague promises, sworn oaths, or binding contracts of employment. When you cast this spell, choose one humanoid within range that can see and hear you, and that can understand you. The creature must succeed on a Wisdom saving throw or become charmed by you for the duration. While the creature is charmed in this way, it undertakes to perform any services or activities you ask of it in a friendly manner, to the best of its ability. You can set the creature new tasks when a previous task is completed, or if you decide to end its current task. If the service or activity might cause harm to the creature, or if it conflicts with the creature's normal activities and desires, the creature can make another Wisdom saving throw to try to end the effect. This save is made with advantage if you or your companions are fighting the creature. If the activity would result in certain death for the creature, the spell ends. When the spell ends, the creature knows it was charmed by you.",
-  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, you can target one additional creature for each slot level above 3rd.",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "fast-friends",
+    "name":  "Fast Friends",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Enchantment",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Cleric",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  false,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  1,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "filter":  {
+                                     "creatureTypes":  [
+                                                           "Humanoid"
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "required",
+                                                                        "canUnderstandCaster":  "required",
+                                                                        "canSeeCaster":  "required"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "maxTargets":  1
+                  },
+    "effects":  [
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+                                                                                     "Humanoid"
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "required",
+                                                                                                  "canUnderstandCaster":  "required",
+                                                                                                  "canSeeCaster":  "required"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+                                                                {
+                                                                    "modifier":  "advantage",
+                                                                    "condition":  "caster_or_companions_fighting_target",
+                                                                    "reason":  "The repeat Wisdom save has Advantage if the caster or companions are fighting the creature."
+                                                                }
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Charmed",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  60
+                                                             },
+                                                "level":  0
+                                            },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "One Humanoid within 30 feet that can see, hear, and understand the caster makes a Wisdom save or is Charmed for up to 1 hour with concentration, performs requested services in a friendly manner, can repeat the save for harmful or conflicting tasks, saves with Advantage if fighting the caster or companions, ends if asked to face certain death, and knows it was charmed when the spell ends.",
+                        "recurringMechanics":  {
+                                                   "timing":  "harmful_or_conflicting_service_requested",
+                                                   "saveType":  "Wisdom",
+                                                   "saveEffect":  "ends_condition",
+                                                   "successEnds":  true,
+                                                   "useOriginalDC":  true,
+                                                   "saveModifiers":  [
+                                                                         {
+                                                                             "modifier":  "advantage",
+                                                                             "condition":  "caster_or_companions_fighting_target",
+                                                                             "reason":  "The creature has Advantage on this repeat save if the caster or companions are fighting it."
+                                                                         }
+                                                                     ]
+                                               },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "certain_death_activity_requested",
+                                                       "scope":  "spell",
+                                                       "description":  "If the service or activity requested of the charmed creature would result in certain death for that creature, the spell ends."
+                                                   }
+                                               ],
+                        "socialEffect":  {
+                                             "condition":  "Charmed",
+                                             "targetPerformsRequestedServices":  true,
+                                             "performanceManner":  "friendly_to_best_of_ability",
+                                             "requestCannotCauseCertainDeath":  true,
+                                             "targetKnowsItWasCharmedWhenSpellEnds":  true,
+                                             "notes":  "Fast Friends charms the target into friendly service to the best of its ability, blocks certain-death requests, and leaves the target aware afterward."
+                                         },
+                        "communicationDetails":  {
+                                                     "mode":  "audible_understood_request_gate",
+                                                     "targetMustSeeCaster":  true,
+                                                     "targetMustHearCaster":  true,
+                                                     "targetMustUnderstandCaster":  true,
+                                                     "requestChannel":  "caster asks services in a friendly manner while target is charmed",
+                                                     "harmfulRequestSave":  "target repeats save when asked to do something that would harm it"
+                                                 },
+                        "memoryState":  {
+                                            "kind":  "post_charm_awareness",
+                                            "when":  "spell_ends",
+                                            "targetKnows":  "it_was_Charmed_by_caster",
+                                            "appliesTo":  "each_failed_save_target"
+                                        }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the humanoid target that can see, hear, and understand the caster; if the charmed creature is asked to do harmful or conflicting work, offer a repeat Wisdom save, with Advantage if the caster or companions are fighting it.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "When you need to make sure something gets done, you can\u0027t rely on vague promises, sworn oaths, or binding contracts of employment. When you cast this spell, choose one humanoid within range that can see and hear you, and that can understand you. The creature must succeed on a Wisdom saving throw or become charmed by you for the duration. While the creature is charmed in this way, it undertakes to perform any services or activities you ask of it in a friendly manner, to the best of its ability. You can set the creature new tasks when a previous task is completed, or if you decide to end its current task. If the service or activity might cause harm to the creature, or if it conflicts with the creature\u0027s normal activities and desires, the creature can make another Wisdom saving throw to try to end the effect. This save is made with advantage if you or your companions are fighting the creature. If the activity would result in certain death for the creature, the spell ends. When the spell ends, the creature knows it was charmed by you.",
+    "higherLevels":  "When you cast this spell using a spell slot of 4th level or higher, you can target one additional creature for each slot level above 3rd.",
+    "tags":  [
+                 "concentration"
+             ]
 }

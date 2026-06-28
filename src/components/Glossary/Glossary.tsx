@@ -533,7 +533,7 @@ const Glossary: React.FC<GlossaryProps> = ({
 
   return (
     <WindowFrame
-      title="Game Glossary"
+      title="Lore & Rules"
       onClose={onClose}
       headerActions={headerActions}
       storageKey={WINDOW_KEYS.GLOSSARY}

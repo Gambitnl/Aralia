@@ -1,445 +1,551 @@
 {
-  "id": "wall-of-light",
-  "name": "Wall of Light",
-  "aliases": [],
-  "level": 5,
-  "school": "Evocation",
-  "legacy": false,
-  "classes": [
-    "Sorcerer",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a hand mirror",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 10,
-    "unit": "minute"
-  },
-  "targeting": {
-    "type": "area",
-    "range": 120,
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Wall",
-      "size": 60,
-      "height": 10,
-      "sizeType": "length",
-      "sizeUnit": "feet",
-      "heightUnit": "feet",
-      "thickness": 5,
-      "thicknessUnit": "feet"
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Wall of Light",
-          "shape": "Wall",
-          "size": 60,
-          "sizeType": "length",
-          "sizeUnit": "feet",
-          "height": 10,
-          "heightUnit": "feet",
-          "thickness": 5,
-          "thicknessUnit": "feet",
-          "notes": "The wall can be horizontal, vertical, or diagonal."
-        }
-      ],
-      "measuredDetails": [
-        {
-          "label": "Bright Light Radius",
-          "kind": "distance",
-          "value": 120,
-          "unit": "feet"
-        },
-        {
-          "label": "Dim Light Radius",
-          "kind": "distance",
-          "value": 120,
-          "unit": "feet",
-          "qualifier": "additional"
-        },
-        {
-          "label": "Beam Range From Wall",
-          "kind": "distance",
-          "value": 60,
-          "unit": "feet"
-        },
-        {
-          "label": "Length Reduction Per Beam",
-          "kind": "distance",
-          "value": 10,
-          "unit": "feet"
-        }
-      ]
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Constitution",
-        "saveEffect": "half",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "4d8",
-        "type": "Radiant"
-      },
-      "recurringMechanics": [
-        {
-          "timing": "turn_end",
-          "frequency": "every_time",
-          "damage": {
-            "dice": "4d8",
-            "type": "Radiant"
-          },
-          "notes": "A creature that ends its turn in the wall's area takes Radiant damage; this recurring damage is separate from the initial save when the wall appears."
-        }
-      ],
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+1d8",
-        "customFormula": ""
-      },
-      "description": "When the 60-foot-long, 10-foot-high, 5-foot-thick wall appears at a point within 120 feet, each creature in the wall makes a Constitution save, taking 4d8 Radiant damage on a failure or half as much on a success; each slot level above 5 adds +1d8 damage.",
-      "grantedActions": [
-        {
-          "type": "action",
-          "action": "Launch Radiant Beam",
-          "frequency": "each_turn",
-          "actor": "caster",
-          "actionKind": "magic_action",
-          "attackType": "ranged_spell_attack",
-          "rangeLimit": 60,
-          "damage": {
-            "dice": "4d8",
-            "type": "Radiant"
-          },
-          "wallLengthReduction": 10,
-          "endsWhenLengthZero": true,
-          "prerequisites": [
-            "target_within_spell_range"
-          ],
-          "notes": "Until the spell ends, the caster can use an action to launch a beam of radiance from the wall at one visible creature within 60 feet of it. On hit, the target takes 4d8 Radiant damage; hit or miss, the wall length is reduced by 10 feet."
-        }
-      ],
-      "conditionalEndings": []
-    },
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Constitution",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Blinded",
-        "duration": {
-          "type": "minutes",
-          "value": 1
-        },
-        "level": 0,
-        "escapeCheck": {
-          "dc": 0,
-          "actionCost": "action"
-        },
-        "repeatSave": {
-          "timing": "turn_end",
-          "saveType": "Constitution",
-          "successEnds": true,
-          "useOriginalDC": true
-        }
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "A creature that fails the wall's initial Constitution save is Blinded for 1 minute and can repeat the Constitution save at the end of each turn, ending the Blinded effect on a success.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "creation",
-      "description": "Creates a shimmering wall of bright light that blocks line of sight while allowing creatures and objects to pass through it.",
-      "createdObjects": [
-        {
-          "objectType": "hazard",
-          "name": "Wall of Light",
-          "count": 1,
-          "countUnit": "structure",
-          "appearsIn": "spell_area",
-          "wallLengthFeet": 60,
-          "wallHeightFeet": 10,
-          "wallThickness": 5,
-          "wallThicknessUnit": "feet",
-          "orientationOptions": [
-            "horizontal",
-            "vertical",
-            "diagonal",
-            "caster_choice"
-          ],
-          "freeFloating": true,
-          "blocksPhysicalPassage": false,
-          "blocksLineOfSight": true,
-          "blocksCrossBoundaryEffects": false,
-          "hazardRadiusFeet": 0,
-          "burnDamage": {
-            "dice": "4d8",
-            "type": "Radiant"
-          },
-          "expiresWithSpell": true,
-          "shelfLife": "10 minutes",
-          "notes": "A 60-foot-long, 10-foot-high, 5-foot-thick shimmering light wall. It blocks line of sight, does not block passage, emits bright and dim light, damages creatures that end their turn in its area, and can shrink by 10 feet whenever the caster launches a radiant beam."
-        }
-      ],
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 120,
-        "dimRadius": 120,
-        "attachedTo": "point",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "A shimmering wall of bright light appears at a point you choose within range. The wall appears in any orientation you choose: horizontally, vertically, or diagonally. It can be free floating, or it can rest on a solid surface. The wall can be up to 60 feet long, 10 feet high, and 5 feet thick. The wall blocks line of sight, but creatures and objects can pass through it. It emits bright light out to 120 feet and dim light for an additional 120 feet. When the wall appears, each creature in its area must make a Constitution saving throw. On a failed save, a creature takes 4d8 radiant damage, and it is blinded for 1 minute. On a successful save, it takes half as much damage and isn't blinded. A blinded creature can make a Constitution saving throw at the end of each of its turns, ending the effect on itself on a success. A creature that ends its turn in the wall's area takes 4d8 radiant damage. Until the spell ends, you can use an action to launch a beam of radiance from the wall at one creature you can see within 60 feet of it. Make a ranged spell attack. On a hit, the target takes 4d8 radiant damage. Whether you hit or miss, reduce the length of the wall by 10 feet. If the wall's length drops to 0 feet, the spell ends.",
-  "higherLevels": "When you cast this spell using a spell slot of 6th level or higher, the damage increases by 1d8 for each slot level above 5th.",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "wall-of-light",
+    "name":  "Wall of Light",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Evocation",
+    "legacy":  false,
+    "classes":  [
+                    "Sorcerer",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a hand mirror",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  10,
+                     "unit":  "minute"
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  120,
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Wall",
+                                           "size":  60,
+                                           "height":  10,
+                                           "sizeType":  "length",
+                                           "sizeUnit":  "feet",
+                                           "heightUnit":  "feet",
+                                           "thickness":  5,
+                                           "thicknessUnit":  "feet"
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet",
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Wall of Light",
+                                                               "shape":  "Wall",
+                                                               "size":  60,
+                                                               "sizeType":  "length",
+                                                               "sizeUnit":  "feet",
+                                                               "height":  10,
+                                                               "heightUnit":  "feet",
+                                                               "thickness":  5,
+                                                               "thicknessUnit":  "feet",
+                                                               "notes":  "The wall can be horizontal, vertical, or diagonal."
+                                                           }
+                                                       ],
+                                             "measuredDetails":  [
+                                                                     {
+                                                                         "label":  "Bright Light Radius",
+                                                                         "kind":  "distance",
+                                                                         "value":  120,
+                                                                         "unit":  "feet"
+                                                                     },
+                                                                     {
+                                                                         "label":  "Dim Light Radius",
+                                                                         "kind":  "distance",
+                                                                         "value":  120,
+                                                                         "unit":  "feet",
+                                                                         "qualifier":  "additional"
+                                                                     },
+                                                                     {
+                                                                         "label":  "Beam Range From Wall",
+                                                                         "kind":  "distance",
+                                                                         "value":  60,
+                                                                         "unit":  "feet"
+                                                                     },
+                                                                     {
+                                                                         "label":  "Length Reduction Per Beam",
+                                                                         "kind":  "distance",
+                                                                         "value":  10,
+                                                                         "unit":  "feet"
+                                                                     }
+                                                                 ]
+                                         }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Constitution",
+                                          "saveEffect":  "half",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+                                                                       {
+                                                                           "outcome":  "success",
+                                                                           "effect":  "The creature takes half Radiant damage and is not Blinded."
+                                                                       },
+                                                                       {
+                                                                           "outcome":  "failure",
+                                                                           "effect":  "The creature takes full Radiant damage and is Blinded for 1 minute."
+                                                                       }
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "4d8",
+                                       "type":  "Radiant"
+                                   },
+                        "recurringMechanics":  [
+                                                   {
+                                                       "timing":  "turn_end",
+                                                       "frequency":  "every_time",
+                                                       "damage":  {
+                                                                      "dice":  "4d8",
+                                                                      "type":  "Radiant"
+                                                                  },
+                                                       "notes":  "A creature that ends its turn in the wall\u0027s area takes Radiant damage; this recurring damage is separate from the initial save when the wall appears."
+                                                   }
+                                               ],
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+1d8",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "When the 60-foot-long, 10-foot-high, 5-foot-thick wall appears at a point within 120 feet, each creature in the wall makes a Constitution save, taking 4d8 Radiant damage on a failure or half as much on a success; each slot level above 5 adds +1d8 damage.",
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "action",
+                                                   "action":  "Launch Radiant Beam",
+                                                   "frequency":  "each_turn",
+                                                   "actor":  "caster",
+                                                   "actionKind":  "magic_action",
+                                                   "attackType":  "ranged_spell_attack",
+                                                   "rangeLimit":  60,
+                                                   "damage":  {
+                                                                  "dice":  "4d8",
+                                                                  "type":  "Radiant"
+                                                              },
+                                                   "wallLengthReduction":  10,
+                                                   "endsWhenLengthZero":  true,
+                                                   "prerequisites":  [
+                                                                         "target_within_spell_range"
+                                                                     ],
+                                                   "notes":  "Until the spell ends, the caster can use an action to launch a beam of radiance from the wall at one visible creature within 60 feet of it. On hit, the target takes 4d8 Radiant damage; hit or miss, the wall length is reduced by 10 feet."
+                                               }
+                                           ],
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "beam_use_reduces_wall_length_to_0_feet",
+                                                       "scope":  "spell",
+                                                       "description":  "Whether the radiant beam hits or misses, wall length drops by 10 feet; if it reaches 0 feet, the spell ends."
+                                                   }
+                                               ]
+                    },
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Constitution",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Blinded",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  1
+                                                             },
+                                                "level":  0,
+                                                "escapeCheck":  {
+                                                                    "dc":  0,
+                                                                    "actionCost":  "action"
+                                                                },
+                                                "repeatSave":  {
+                                                                   "timing":  "turn_end",
+                                                                   "saveType":  "Constitution",
+                                                                   "successEnds":  true,
+                                                                   "useOriginalDC":  true
+                                                               }
+                                            },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "A creature that fails the wall\u0027s initial Constitution save is Blinded for 1 minute and can repeat the Constitution save at the end of each turn, ending the Blinded effect on a success.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "beam_use_reduces_wall_length_to_0_feet",
+                                                       "scope":  "spell",
+                                                       "description":  "Whether the radiant beam hits or misses, wall length drops by 10 feet; if it reaches 0 feet, the spell ends."
+                                                   }
+                                               ]
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "creation",
+                        "description":  "Creates a shimmering wall of bright light that blocks line of sight while allowing creatures and objects to pass through it.",
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "hazard",
+                                                   "name":  "Wall of Light",
+                                                   "count":  1,
+                                                   "countUnit":  "structure",
+                                                   "appearsIn":  "spell_area",
+                                                   "wallLengthFeet":  60,
+                                                   "wallHeightFeet":  10,
+                                                   "wallThickness":  5,
+                                                   "wallThicknessUnit":  "feet",
+                                                   "orientationOptions":  [
+                                                                              "horizontal",
+                                                                              "vertical",
+                                                                              "diagonal",
+                                                                              "caster_choice"
+                                                                          ],
+                                                   "freeFloating":  true,
+                                                   "blocksPhysicalPassage":  false,
+                                                   "blocksLineOfSight":  true,
+                                                   "blocksCrossBoundaryEffects":  false,
+                                                   "hazardRadiusFeet":  0,
+                                                   "burnDamage":  {
+                                                                      "dice":  "4d8",
+                                                                      "type":  "Radiant"
+                                                                  },
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "10 minutes",
+                                                   "notes":  "A 60-foot-long, 10-foot-high, 5-foot-thick shimmering light wall. It blocks line of sight, does not block passage, emits bright and dim light, damages creatures that end their turn in its area, and can shrink by 10 feet whenever the caster launches a radiant beam."
+                                               }
+                                           ],
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  120,
+                                      "dimRadius":  120,
+                                      "attachedTo":  "point",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "beam_use_reduces_wall_length_to_0_feet",
+                                                       "scope":  "spell",
+                                                       "description":  "Whether the radiant beam hits or misses, wall length drops by 10 feet; if it reaches 0 feet, the spell ends."
+                                                   }
+                                               ],
+                        "visionLightSound":  {
+                                                 "mode":  "bright_light_wall",
+                                                 "wallDimensions":  "up to 60 feet long, 10 feet high, 5 feet thick",
+                                                 "blocksLineOfSight":  true,
+                                                 "blocksPhysicalPassage":  false,
+                                                 "brightLightFeet":  120,
+                                                 "dimLightAdditionalFeet":  120,
+                                                 "blindOnFailedSave":  "initial Constitution save failure Blinds for 1 minute with end-turn repeats",
+                                                 "beam":  "caster can launch radiant beam at visible creature within 60 feet of wall, reducing wall length by 10 feet",
+                                                 "spellEndsWhen":  "wall length drops to 0 feet"
+                                             }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the wall orientation and point, resolve Constitution saves for creatures in the wall when it appears, track Blinded repeat saves at turn end, apply Radiant damage to creatures ending in the wall, and reduce wall length by 10 feet whenever the caster fires a radiant beam.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "A shimmering wall of bright light appears at a point you choose within range. The wall appears in any orientation you choose: horizontally, vertically, or diagonally. It can be free floating, or it can rest on a solid surface. The wall can be up to 60 feet long, 10 feet high, and 5 feet thick. The wall blocks line of sight, but creatures and objects can pass through it. It emits bright light out to 120 feet and dim light for an additional 120 feet. When the wall appears, each creature in its area must make a Constitution saving throw. On a failed save, a creature takes 4d8 radiant damage, and it is blinded for 1 minute. On a successful save, it takes half as much damage and isn\u0027t blinded. A blinded creature can make a Constitution saving throw at the end of each of its turns, ending the effect on itself on a success. A creature that ends its turn in the wall\u0027s area takes 4d8 radiant damage. Until the spell ends, you can use an action to launch a beam of radiance from the wall at one creature you can see within 60 feet of it. Make a ranged spell attack. On a hit, the target takes 4d8 radiant damage. Whether you hit or miss, reduce the length of the wall by 10 feet. If the wall\u0027s length drops to 0 feet, the spell ends.",
+    "higherLevels":  "When you cast this spell using a spell slot of 6th level or higher, the damage increases by 1d8 for each slot level above 5th.",
+    "tags":  [
+                 "concentration"
+             ]
 }

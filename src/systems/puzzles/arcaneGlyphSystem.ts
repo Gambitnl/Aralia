@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/06/2026, 02:18:23
+ * Dependents: components/puzzles/LockpickingModal.tsx
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -9,16 +25,8 @@
 import { PlayerCharacter } from '../../types/character';
 import { rollDice } from '../../utils/combatUtils';
 import { getAbilityModifierValue } from '../../utils/statUtils';
+import { getPuzzleCharacterStats } from './characterAbilityBridge';
 import { Trap, TrapDetectionResult, TrapDisarmResult } from './types';
-
-const getLegacyStats = (character: PlayerCharacter) => ({
-  strength: character.stats?.strength ?? character.finalAbilityScores?.Strength ?? character.abilityScores.Strength,
-  dexterity: character.stats?.dexterity ?? character.finalAbilityScores?.Dexterity ?? character.abilityScores.Dexterity,
-  constitution: character.stats?.constitution ?? character.finalAbilityScores?.Constitution ?? character.abilityScores.Constitution,
-  intelligence: character.stats?.intelligence ?? character.finalAbilityScores?.Intelligence ?? character.abilityScores.Intelligence,
-  wisdom: character.stats?.wisdom ?? character.finalAbilityScores?.Wisdom ?? character.abilityScores.Wisdom,
-  charisma: character.stats?.charisma ?? character.finalAbilityScores?.Charisma ?? character.abilityScores.Charisma,
-});
 
 const getClasses = (character: PlayerCharacter) => character.classes ?? (character.class ? [character.class] : []);
 
@@ -53,7 +61,7 @@ export function detectGlyph(
      return { success: false, margin: 0, trapDetected: false };
   }
 
-  const stats = getLegacyStats(character);
+  const stats = getPuzzleCharacterStats(character);
   const intMod = getAbilityModifierValue(stats.intelligence); // Arcana is Int-based
   const wisMod = getAbilityModifierValue(stats.wisdom); // Perception to notice shimmering air
 
@@ -96,7 +104,7 @@ export function disarmGlyph(
    }
 
    // Thieves tools don't help. This is pure magical theory.
-   const stats = getLegacyStats(character);
+   const stats = getPuzzleCharacterStats(character);
    const intMod = getAbilityModifierValue(stats.intelligence);
    const isProficient = hasArcanaProficiency(character);
    const profBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
@@ -131,7 +139,7 @@ export function identifyGlyphSchool(
 ): string | null {
     if (!glyph.effect) return null;
 
-    const stats = getLegacyStats(character);
+    const stats = getPuzzleCharacterStats(character);
     const intMod = getAbilityModifierValue(stats.intelligence);
     const isProficient = hasArcanaProficiency(character);
     const profBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;

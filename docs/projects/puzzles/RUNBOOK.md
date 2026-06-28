@@ -28,21 +28,24 @@ Read the following first:
 - If a blocker is found, document it in `GAPS.md` with next action and proof target before widening scope.
 - After each pass, update `COLD_START_AGENT_PROMPT.md` with a single current handoff block.
 
-## Current Iteration (Iteration 7) Flow
+## Current Iteration (Iteration 9) Flow
 
-1. Confirm `T4` is marked done in `TRACKER.md`, `PZ-007` is resolved in `GAPS.md`, and `PZ-003` is the active next task.
-2. Keep the next pass focused on key-based lock progression ownership and deterministic unlock behavior.
-3. Update required docs:
+1. Confirm `T4`, `T5`, and `T6` are marked done in `TRACKER.md`, and `PZ-007`, `PZ-003`, plus `PZ-004` are resolved in `GAPS.md`.
+2. Treat deterministic key resolution as puzzle-runtime complete: callers provide key ids, and `attemptKeyUnlock` compares them to `Lock.keyId`.
+3. Treat puzzle runtime character ability checks as modern-first: `finalAbilityScores` first, then `abilityScores`, with `character.stats` retained only as compatibility fallback through `getPuzzleCharacterStats`.
+4. Keep inventory/economy key sourcing, visible modal key use, broad character-model cleanup, and caller-side stat adapter updates out of this closure unless a future slice explicitly takes that work.
+5. Update required docs:
    - `NORTH_STAR.md`
    - `TRACKER.md`
    - `GAPS.md`
    - `COLD_START_AGENT_PROMPT.md`
-4. Add iteration records to:
+6. Add iteration records to:
    - `AUDIT_OR_PROOF.md`
    - `RUNBOOK.md`
    - `DECISIONS.md` only if a new decision is introduced.
-5. Run scoped verification:
-   - focused puzzle/key tests added or updated by the slice
+7. Run scoped verification:
+   - focused puzzle runtime tests added or updated by the slice
+   - dependency sync for touched exported puzzle contract files
    - `npm run projects:audit`
    - `git diff --check` before finish.
 
@@ -61,4 +64,5 @@ contradicts the implementation.
 
 - Keep `PZ-002` as resolved helper work.
 - Keep `PZ-007` as resolved runtime-caller work.
-- Continue with `PZ-003` next, and do not widen into BattleMap/Submap integration from that branch.
+- Keep `PZ-003` as resolved runtime key-matching work, and do not widen it into inventory/economy sourcing or BattleMap/Submap integration.
+- Keep `PZ-004` as resolved runtime stat-bridge work, and do not reintroduce copied legacy-first shims in future puzzle checks.

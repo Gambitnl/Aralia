@@ -1,270 +1,392 @@
 {
-  "id": "planar-binding",
-  "name": "Planar Binding",
-  "aliases": [],
-  "level": 5,
-  "school": "Abjuration",
-  "legacy": true,
-  "classes": [
-    "Bard",
-    "Cleric",
-    "Druid",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "hour",
-    "explorationCost": {
-      "value": 1,
-      "unit": "hour"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a jewel worth at least 1,000 gp, which the spell consumes",
-    "materialCost": 1000,
-    "isConsumed": true
-  },
-  "duration": {
-    "type": "timed",
-    "value": 24,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "single",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [
-        "Celestial",
-        "Elemental",
-        "Fey",
-        "Fiend"
-      ],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [
-            "Celestial",
-            "Elemental",
-            "Fey",
-            "Fiend"
-          ],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "Bind one Celestial, Elemental, Fey, or Fiend that stays within 60 feet for the full 1-hour casting and fails the Charisma save. The bound creature serves for 24 hours, a summoned or created target has its source spell duration extended to match, hostile bound creatures obey the letter of instructions while trying to twist them, completed instructions cause same-plane targets to report back or different-plane targets to wait at the binding site, and higher slots extend the duration to 10 days, 30 days, 180 days, or a year and a day.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Charisma",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [
-            "Celestial",
-            "Elemental",
-            "Fey",
-            "Fiend"
-          ],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Bound",
-        "duration": {
-          "type": "minutes",
-          "value": 1440
-        }
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "On a failed Charisma save, the Celestial, Elemental, Fey, or Fiend gains the Bound condition and serves the caster for the 24-hour base duration; higher slots extend Bound to 10 days at slot 6, 30 days at slot 7, 180 days at slot 8, or a year and a day at slot 9.",
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "With this spell, you attempt to bind a celestial, an elemental, a fey, or a fiend to your service. The creature must be within range for the entire casting of the spell. (Typically, the creature is first summoned into the center of an inverted magic circle in order to keep it trapped while this spell is cast.) At the completion of the casting, the target must make a Charisma saving throw. On a failed save, it is bound to serve you for the duration. If the creature was summoned or created by another spell, that spell's duration is extended to match the duration of this spell. A bound creature must follow your instructions to the best of its ability. You might command the creature to accompany you on an adventure, to guard a location, or to deliver a message. The creature obeys the letter of your instructions, but if the creature is hostile to you, it strives to twist your words to achieve its own objectives. If the creature carries out your instructions completely before the spell ends, it travels to you to report this fact if you are on the same plane of existence. If you are on a different plane of existence, it returns to the place where you bound it and remains there until the spell ends.",
-  "higherLevels": "When you cast this spell using a spell slot of a higher level, the duration increases to 10 days with a 6th-level slot, to 30 days with a 7th- level slot, to 180 days with an 8th-level slot, and to a year and a day with a 9th-level spell slot.",
-  "tags": [
-    "legacy"
-  ]
+    "id":  "planar-binding",
+    "name":  "Planar Binding",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Abjuration",
+    "legacy":  true,
+    "classes":  [
+                    "Bard",
+                    "Cleric",
+                    "Druid",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "hour",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "hour"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a jewel worth at least 1,000 gp, which the spell consumes",
+                       "materialCost":  1000,
+                       "isConsumed":  true
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  24,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+                                                           "Celestial",
+                                                           "Elemental",
+                                                           "Fey",
+                                                           "Fiend"
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+                                                                                     "Celestial",
+                                                                                     "Elemental",
+                                                                                     "Fey",
+                                                                                     "Fiend"
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "Bind one Celestial, Elemental, Fey, or Fiend that stays within 60 feet for the full 1-hour casting and fails the Charisma save. The bound creature serves for 24 hours, a summoned or created target has its source spell duration extended to match, hostile bound creatures obey the letter of instructions while trying to twist them, completed instructions cause same-plane targets to report back or different-plane targets to wait at the binding site, and higher slots extend the duration to 10 days, 30 days, 180 days, or a year and a day.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "instructions_completed_before_spell_ends_same_plane",
+                                                       "scope":  "bound_creature",
+                                                       "description":  "If instructions are completed before the spell ends and caster is on same plane, the bound creature travels to the caster to report."
+                                                   },
+                                                   {
+                                                       "trigger":  "instructions_completed_before_spell_ends_different_plane",
+                                                       "scope":  "bound_creature",
+                                                       "description":  "If caster is on another plane, the creature returns to the binding place and remains there until the spell ends."
+                                                   }
+                                               ],
+                        "communicationDetails":  {
+                                                     "mode":  "literal_instruction_binding",
+                                                     "commandExamples":  [
+                                                                             "accompany caster",
+                                                                             "guard a location",
+                                                                             "deliver a message"
+                                                                         ],
+                                                     "obedience":  "bound creature obeys the letter of caster instructions",
+                                                     "hostileTwist":  "hostile bound creature may twist words to its own objectives",
+                                                     "reportBehavior":  "if instructions complete before spell ends, creature reports based on same-plane/different-plane rules"
+                                                 },
+                        "travelDetails":  {
+                                              "mode":  "bound_creature_report_travel",
+                                              "samePlane":  "if instructions complete before spell ends and caster is on same plane, creature travels to caster to report",
+                                              "differentPlane":  "if caster is on different plane, creature returns to binding place and remains there until spell ends",
+                                              "sourceSpellExtension":  "summoned or created target source spell duration extends to match binding duration"
+                                          },
+                        "summonControl":  {
+                                              "entityType":  "bound_celestial_elemental_fey_or_fiend",
+                                              "summonsNewEntity":  false,
+                                              "save":  "Charisma at completion of 1-hour casting",
+                                              "serviceDuration":  "24 hours base, scaling by slot",
+                                              "obedience":  "serves caster and follows instructions to best of ability",
+                                              "hostileTwist":  "hostile target can twist words to its own objectives",
+                                              "sourceSpellExtension":  "summoned or created target source spell duration extends to match binding"
+                                          }
+                    },
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Charisma",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+                                                                                     "Celestial",
+                                                                                     "Elemental",
+                                                                                     "Fey",
+                                                                                     "Fiend"
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Bound",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  1440
+                                                             }
+                                            },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "On a failed Charisma save, the Celestial, Elemental, Fey, or Fiend gains the Bound condition and serves the caster for the 24-hour base duration; higher slots extend Bound to 10 days at slot 6, 30 days at slot 7, 180 days at slot 8, or a year and a day at slot 9.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "instructions_completed_before_spell_ends_same_plane",
+                                                       "scope":  "bound_creature",
+                                                       "description":  "If instructions are completed before the spell ends and caster is on same plane, the bound creature travels to the caster to report."
+                                                   },
+                                                   {
+                                                       "trigger":  "instructions_completed_before_spell_ends_different_plane",
+                                                       "scope":  "bound_creature",
+                                                       "description":  "If caster is on another plane, the creature returns to the binding place and remains there until the spell ends."
+                                                   }
+                                               ],
+                        "communicationDetails":  {
+                                                     "mode":  "literal_instruction_binding",
+                                                     "commandExamples":  [
+                                                                             "accompany caster",
+                                                                             "guard a location",
+                                                                             "deliver a message"
+                                                                         ],
+                                                     "obedience":  "bound creature obeys the letter of caster instructions",
+                                                     "hostileTwist":  "hostile bound creature may twist words to its own objectives",
+                                                     "reportBehavior":  "if instructions complete before spell ends, creature reports based on same-plane/different-plane rules"
+                                                 },
+                        "travelDetails":  {
+                                              "mode":  "bound_creature_report_travel",
+                                              "samePlane":  "if instructions complete before spell ends and caster is on same plane, creature travels to caster to report",
+                                              "differentPlane":  "if caster is on different plane, creature returns to binding place and remains there until spell ends",
+                                              "sourceSpellExtension":  "summoned or created target source spell duration extends to match binding duration"
+                                          },
+                        "summonControl":  {
+                                              "entityType":  "bound_celestial_elemental_fey_or_fiend",
+                                              "summonsNewEntity":  false,
+                                              "save":  "Charisma at completion of 1-hour casting",
+                                              "serviceDuration":  "24 hours base, scaling by slot",
+                                              "obedience":  "serves caster and follows instructions to best of ability",
+                                              "hostileTwist":  "hostile target can twist words to its own objectives",
+                                              "sourceSpellExtension":  "summoned or created target source spell duration extends to match binding"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "With this spell, you attempt to bind a celestial, an elemental, a fey, or a fiend to your service. The creature must be within range for the entire casting of the spell. (Typically, the creature is first summoned into the center of an inverted magic circle in order to keep it trapped while this spell is cast.) At the completion of the casting, the target must make a Charisma saving throw. On a failed save, it is bound to serve you for the duration. If the creature was summoned or created by another spell, that spell\u0027s duration is extended to match the duration of this spell. A bound creature must follow your instructions to the best of its ability. You might command the creature to accompany you on an adventure, to guard a location, or to deliver a message. The creature obeys the letter of your instructions, but if the creature is hostile to you, it strives to twist your words to achieve its own objectives. If the creature carries out your instructions completely before the spell ends, it travels to you to report this fact if you are on the same plane of existence. If you are on a different plane of existence, it returns to the place where you bound it and remains there until the spell ends.",
+    "higherLevels":  "When you cast this spell using a spell slot of a higher level, the duration increases to 10 days with a 6th-level slot, to 30 days with a 7th- level slot, to 180 days with an 8th-level slot, and to a year and a day with a 9th-level spell slot.",
+    "tags":  [
+                 "legacy"
+             ]
 }

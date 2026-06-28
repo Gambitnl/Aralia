@@ -37,10 +37,10 @@
     "isConsumed": false
   },
   "duration": {
-    "type": "instantaneous",
-    "value": 0,
-    "unit": "round",
-    "concentration": false
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
   },
   "targeting": {
     "type": "single",
@@ -83,12 +83,12 @@
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate",
+        "type": "on_attack_hit",
         "frequency": "every_time",
-        "consumption": "unlimited",
+        "consumption": "per_instance_hit_or_miss",
         "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
+          "weaponType": "ranged",
+          "attackType": "weapon"
         },
         "movementType": "any",
         "sustainCost": {
@@ -97,9 +97,7 @@
         }
       },
       "condition": {
-        "type": "save",
-        "saveType": "Dexterity",
-        "saveEffect": "half",
+        "type": "always",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
@@ -136,6 +134,14 @@
         "dice": "4d8",
         "type": "Lightning"
       },
+      "missDamageMultiplier": 0.5,
+      "objectTransformation": {
+        "sourceObject": "weapon_or_ammunition_used_for_attack",
+        "temporaryForm": "lightning_bolt",
+        "trigger": "attack_hits_or_misses",
+        "returnsToNormalForm": true,
+        "description": "As the pending attack hits or misses, the weapon or ammunition becomes a lightning bolt, resolves this spell's Lightning damage, and then returns to its normal form."
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+1d8",
@@ -147,12 +153,12 @@
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate",
+        "type": "on_attack_hit",
         "frequency": "every_time",
-        "consumption": "unlimited",
+        "consumption": "per_instance_hit_or_miss",
         "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
+          "weaponType": "ranged",
+          "attackType": "weapon"
         },
         "movementType": "any",
         "sustainCost": {
@@ -200,6 +206,11 @@
         "dice": "2d8",
         "type": "Lightning"
       },
+      "areaOfEffect": {
+        "shape": "Sphere",
+        "size": 10,
+        "height": 0
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+1d8",
@@ -211,10 +222,22 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
+    "prompt": "Resolve the pending ranged weapon or ammunition attack first: as the attack hits or misses, transform the weapon or ammunition into a lightning bolt, resolve scaled 4d8 Lightning damage on hit or half on miss, return the weapon or ammunition to normal form, then separately resolve the 10-foot Dexterity-save burst for nearby creatures.",
     "playerInputRequired": false
   },
   "description": "As your attack hits or misses the target, the weapon or ammunition you're using transforms into a lightning bolt. Instead of taking any damage or other effects from the attack, the target takes 4d8 Lightning damage on a hit or half as much damage on a miss. Each creature within 10 feet of the target then makes a Dexterity saving throw, taking 2d8 Lightning damage on a failed save or half as much damage on a successful one. The weapon or ammunition then returns to its normal form.",
   "higherLevels": "Using a Higher-Level Spell Slot. The damage for both effects of the spell increases by 1d8 for each spell slot level above 3.",
-  "tags": []
+  "tags": [],
+  "pendingAttackTrigger": {
+    "type": "next_attack",
+    "attackFilter": {
+      "attackType": "weapon",
+      "weaponType": "ranged"
+    },
+    "resolvesOn": "hit_or_miss",
+    "primaryTargetBinding": "attack_target",
+    "consumption": "first_matching_attack",
+    "missResolution": "half_primary_damage",
+    "notes": "Primary hit damage, miss half-damage, first matching attack consumption, and the 10-foot burst now route through the shared attack-rider path. Focused proof still needs to exercise hit, miss, burst target selection, and consumption together."
+  }
 }

@@ -1,13 +1,24 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { useTargetValidator } from '../useTargetValidator';
-import type { Ability, BattleMapData, BattleMapTile } from '../../../types/combat';
+import { findTouchDeliveryActor, useTargetValidator } from '../useTargetValidator';
+import type { Ability, BattleMapData, BattleMapTile, CombatCharacter } from '../../../types/combat';
 import { createMockCombatCharacter } from '../../../utils/core/factories';
+import findFamiliar from '../../../../public/data/spells/level-1/find-familiar.json';
 
-// These tests cover the targeting rulebook used by the battle-map UI. The
-// important player-facing behavior is not just whether a target is valid, but
-// whether the system can explain invalid clicks such as a melee attack aimed
-// at an enemy several grid tiles away.
+/**
+ * This test file covers the targeting rulebook used by the battle-map UI.
+ *
+ * The important player-facing behavior is not just whether a target is valid,
+ * but whether the system can explain invalid clicks such as a melee attack
+ * aimed at an enemy several grid tiles away. It also protects the controlled
+ * touch-delivery bridge: a caster can target through a summoned actor only when
+ * that actor has the right permission, range, adjacency, and declared delivery
+ * cost available.
+ *
+ * Called by: Vitest focused hook/targeting checks.
+ * Depends on: useTargetValidator, findTouchDeliveryActor, and combat test
+ * factories.
+ */
 
 const createTile = (x: number, y: number): BattleMapTile => ({
     id: `${x}-${y}`,
@@ -84,6 +95,22 @@ const structuredEnemySpellAbility: Ability = {
             range: 60,
             validTargets: ['enemies'],
             lineOfSight: false
+        }
+    }
+};
+
+const touchSpellAbility: Ability = {
+    id: 'cure-wounds-like',
+    name: 'Cure Wounds Like',
+    description: 'A touch spell used to prove familiar delivery.',
+    type: 'spell',
+    cost: { type: 'action' },
+    targeting: 'single_any',
+    range: 1,
+    effects: [{ type: 'heal', value: 1 }],
+    spell: {
+        range: {
+            type: 'touch'
         }
     }
 };
@@ -257,4 +284,313 @@ describe('useTargetValidator', () => {
             reason: 'This spell can only target enemies.'
         });
     });
+
+    it('allows Find Familiar touch delivery only when permission, range, adjacency, and reaction are available', () => {
+        const caster = createMockCombatCharacter({
+            id: 'kaelen',
+            name: 'Kaelen',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        });
+        const target = createMockCombatCharacter({
+            id: 'ally-target',
+            name: 'Ally Target',
+            team: 'player',
+            position: { x: 3, y: 0 }
+        });
+        const familiar = createMockCombatCharacter({
+            id: 'owl-familiar',
+            name: 'Owl Familiar',
+            team: 'player',
+            position: { x: 2, y: 0 }
+        });
+        familiar.isSummon = true;
+        familiar.summonMetadata = {
+            casterId: caster.id,
+            spellId: 'find-familiar',
+            entityType: 'familiar',
+            sourceName: 'Find Familiar',
+            actionPermissions: {
+                canDeliverTouchSpells: true,
+                touchDeliveryRangeFeet: 100,
+                touchDeliveryCost: 'reaction'
+            },
+            dismissable: true
+        };
+
+        // The familiar is 10 feet from the caster and adjacent to the target,
+        // so it can be the delivery origin for this otherwise out-of-reach
+        // touch spell.
+        expect(findTouchDeliveryActor(touchSpellAbility, caster, target, [caster, target, familiar])).toEqual({
+            deliveryActor: familiar,
+            casterDistance: 2,
+            targetDistance: 1
+        });
+
+        const spentReactionFamiliar = {
+            ...familiar,
+            actionEconomy: {
+                ...familiar.actionEconomy,
+                reaction: { used: true, remaining: 0 }
+            }
+        };
+
+        expect(findTouchDeliveryActor(touchSpellAbility, caster, target, [caster, target, spentReactionFamiliar])).toBeNull();
+        // The permission model is shared beyond Find Familiar. A future actor
+        // can declare no delivery cost, and targeting should not reject that
+        // actor just because its Reaction is already spent.
+        expect(findTouchDeliveryActor(touchSpellAbility, caster, target, [
+            caster,
+            target,
+            {
+                ...spentReactionFamiliar,
+                summonMetadata: {
+                    ...spentReactionFamiliar.summonMetadata!,
+                    actionPermissions: {
+                        ...spentReactionFamiliar.summonMetadata!.actionPermissions,
+                        touchDeliveryCost: 'none'
+                    }
+                }
+            }
+        ])).toMatchObject({
+            deliveryActor: expect.objectContaining({ id: familiar.id }),
+            casterDistance: 2,
+            targetDistance: 1
+        });
+        // The permission, not the familiar name, is the shared runtime
+        // authority. This keeps future controlled actors from needing a
+        // Find-Familiar-shaped identity just to use the same delivery bridge.
+        expect(findTouchDeliveryActor(touchSpellAbility, caster, target, [
+            caster,
+            target,
+            {
+                ...spentReactionFamiliar,
+                id: 'permissioned-touch-construct',
+                name: 'Permissioned Touch Construct',
+                summonMetadata: {
+                    ...spentReactionFamiliar.summonMetadata!,
+                    entityType: 'touch_construct',
+                    sourceName: 'Permissioned Touch Construct',
+                    actionPermissions: {
+                        ...spentReactionFamiliar.summonMetadata!.actionPermissions,
+                        touchDeliveryCost: 'none'
+                    }
+                }
+            }
+        ])).toMatchObject({
+            deliveryActor: expect.objectContaining({ id: 'permissioned-touch-construct' }),
+            casterDistance: 2,
+            targetDistance: 1
+        });
+        expect(findTouchDeliveryActor(touchSpellAbility, caster, target, [
+            caster,
+            target,
+            {
+                ...familiar,
+                position: { x: 21, y: 0 }
+            }
+        ])).toBeNull();
+        // The familiar can be close enough to the caster but still too far
+        // from the touch target. This protects Find Familiar's delivery rule:
+        // the familiar is the delivery origin, so it must be adjacent to the
+        // creature receiving the touch spell.
+        expect(findTouchDeliveryActor(touchSpellAbility, caster, target, [
+            caster,
+            target,
+            {
+                ...familiar,
+                position: { x: 1, y: 0 }
+            }
+        ])).toBeNull();
+        expect(findTouchDeliveryActor(touchSpellAbility, caster, target, [
+            caster,
+            target,
+            {
+                ...familiar,
+                summonMetadata: {
+                    ...familiar.summonMetadata!,
+                    actionPermissions: {
+                        ...familiar.summonMetadata!.actionPermissions,
+                        canDeliverTouchSpells: false
+                    }
+                }
+            }
+        ])).toBeNull();
+        expect(findTouchDeliveryActor(touchSpellAbility, caster, target, [
+            caster,
+            target,
+            {
+                ...familiar,
+                summonMetadata: {
+                    ...familiar.summonMetadata!,
+                    actionPermissions: undefined
+                }
+            }
+        ])).toBeNull();
+    });
 });
+
+describe('findTouchDeliveryActor action-cost variants', () => {
+    type SummonActionPermissions = NonNullable<NonNullable<CombatCharacter['summonMetadata']>['actionPermissions']>;
+
+    it('uses live Find Familiar action-permission data for reaction-cost touch delivery', () => {
+        const caster = createMockCombatCharacter({
+            id: 'live-find-familiar-caster',
+            name: 'Live Find Familiar Caster',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        });
+        const target = createMockCombatCharacter({
+            id: 'live-find-familiar-target',
+            name: 'Live Find Familiar Target',
+            team: 'enemy',
+            position: { x: 3, y: 0 }
+        });
+        const summonEffect = findFamiliar.effects.find(effect => effect.type === 'SUMMONING');
+        const liveActionPermissions = summonEffect?.summon?.actionPermissions;
+        const liveFamiliar = createMockCombatCharacter({
+            id: 'live-find-familiar-owl',
+            name: 'Live Find Familiar Owl',
+            team: 'player',
+            position: { x: 2, y: 0 },
+            actionEconomy: {
+                action: { used: false, remaining: 1 },
+                bonusAction: { used: false, remaining: 1 },
+                reaction: { used: false, remaining: 1 },
+                movement: { used: 0, total: 30 }
+            },
+            summonMetadata: {
+                casterId: caster.id,
+                spellId: findFamiliar.id,
+                entityType: summonEffect?.summon?.entityType,
+                sourceName: findFamiliar.name,
+                actionPermissions: liveActionPermissions as SummonActionPermissions,
+                dismissable: true
+            }
+        });
+
+        // This guard ties the shared delivery-actor bridge to the actual Find
+        // Familiar packet. If the live spell data loses touch-delivery
+        // permission, its 100-foot range, or its reaction cost, the validator
+        // proof should fail before the parent row is closed.
+        expect(liveActionPermissions).toEqual(expect.objectContaining({
+            canDeliverTouchSpells: true,
+            touchDeliveryRangeFeet: 100,
+            touchDeliveryCost: 'reaction'
+        }));
+        expect(findTouchDeliveryActor(touchSpellAbility, caster, target, [
+            caster,
+            target,
+            liveFamiliar
+        ])).toMatchObject({
+            deliveryActor: expect.objectContaining({ id: liveFamiliar.id }),
+            casterDistance: 2,
+            targetDistance: 1
+        });
+
+        // The same live packet declares a Reaction cost, so the shared helper
+        // must reject the delivery actor when that specific actor's Reaction
+        // is already spent. This protects Find Familiar from accidentally
+        // inheriting the no-cost future-actor path.
+        expect(findTouchDeliveryActor(touchSpellAbility, caster, target, [
+            caster,
+            target,
+            {
+                ...liveFamiliar,
+                actionEconomy: {
+                    ...liveFamiliar.actionEconomy,
+                    reaction: { used: true, remaining: 0 }
+                }
+            }
+        ])).toBeNull();
+    });
+
+    it('rejects touch-delivery actors that cannot afford their declared action, bonus-action, or free cost', () => {
+        const caster = createMockCombatCharacter({
+            id: 'caster-touch-costs',
+            name: 'Touch Caster',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        });
+        const target = createMockCombatCharacter({
+            id: 'touch-target-costs',
+            name: 'Touch Target',
+            team: 'player',
+            position: { x: 2, y: 0 }
+        });
+        const actionEconomyTemplate = createMockCombatCharacter({ id: 'economy-template' }).actionEconomy;
+
+        const actionSpentFamiliar = createMockCombatCharacter({
+            id: 'action-spent-familiar',
+            name: 'Action-Spent Familiar',
+            team: 'player',
+            position: { x: 1, y: 0 },
+            isSummon: true,
+            actionEconomy: {
+                ...actionEconomyTemplate,
+                action: { used: true, remaining: 0 }
+            },
+            summonMetadata: {
+                casterId: caster.id,
+                entityType: 'familiar',
+                sourceName: 'Find Familiar',
+                actionPermissions: {
+                    canDeliverTouchSpells: true,
+                    touchDeliveryRangeFeet: 100,
+                    touchDeliveryCost: 'action'
+                }
+            }
+        });
+        const bonusActionSpentFamiliar = createMockCombatCharacter({
+            id: 'bonus-action-spent-familiar',
+            name: 'Bonus-Action-Spent Familiar',
+            team: 'player',
+            position: { x: 1, y: 0 },
+            isSummon: true,
+            actionEconomy: {
+                ...actionEconomyTemplate,
+                bonusAction: { used: true, remaining: 0 }
+            },
+            summonMetadata: {
+                casterId: caster.id,
+                entityType: 'familiar',
+                sourceName: 'Find Familiar',
+                actionPermissions: {
+                    canDeliverTouchSpells: true,
+                    touchDeliveryRangeFeet: 100,
+                    touchDeliveryCost: 'bonus_action'
+                }
+            }
+        });
+        const freeActionSpentFamiliar = createMockCombatCharacter({
+            id: 'free-action-spent-familiar',
+            name: 'Free-Action-Spent Familiar',
+            team: 'player',
+            position: { x: 1, y: 0 },
+            isSummon: true,
+            actionEconomy: {
+                ...actionEconomyTemplate,
+                freeActions: 0
+            },
+            summonMetadata: {
+                casterId: caster.id,
+                entityType: 'familiar',
+                sourceName: 'Find Familiar',
+                actionPermissions: {
+                    canDeliverTouchSpells: true,
+                    touchDeliveryRangeFeet: 100,
+                    touchDeliveryCost: 'free'
+                }
+            }
+        });
+
+        // Touch-delivery permissions can now declare more than reactions. These
+        // cases prove the shared validator does not treat action, bonus-action,
+        // or limited free-action delivery actors as free just because Find
+        // Familiar itself uses a Reaction.
+        expect(findTouchDeliveryActor(touchSpellAbility, caster, target, [caster, actionSpentFamiliar, target])).toBeNull();
+        expect(findTouchDeliveryActor(touchSpellAbility, caster, target, [caster, bonusActionSpentFamiliar, target])).toBeNull();
+        expect(findTouchDeliveryActor(touchSpellAbility, caster, target, [caster, freeActionSpentFamiliar, target])).toBeNull();
+    });
+});
+

@@ -1,207 +1,357 @@
 {
-  "id": "glyph-of-warding",
-  "name": "Glyph of Warding",
-  "aliases": [],
-  "level": 3,
-  "school": "Abjuration",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Cleric",
-    "Wizard",
-    "Artificer"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "hour",
-    "explorationCost": {
-      "value": 1,
-      "unit": "hour"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "powdered diamond worth 200+ GP, which the spell consumes",
-    "materialCost": 200,
-    "isConsumed": true
-  },
-  "duration": {
-    "type": "until_dispelled_or_triggered",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 0,
-    "validTargets": [
-      "objects"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Glyph Coverage",
-          "shape": "Circle",
-          "size": 10,
-          "sizeType": "diameter",
-          "sizeUnit": "feet",
-          "notes": "Maximum glyph coverage."
-        },
-        {
-          "label": "Explosive Rune Burst",
-          "shape": "Sphere",
-          "size": 20,
-          "sizeType": "radius",
-          "sizeUnit": "feet",
-          "notes": "Triggered explosive-rune effect area."
-        }
-      ],
-      "measuredDetails": [
-        {
-          "label": "Break Distance",
-          "kind": "distance",
-          "value": 10,
-          "unit": "feet",
-          "notes": "Moving the surface or object farther breaks the glyph."
-        }
-      ]
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Dexterity",
-        "saveEffect": "half",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "5d8",
-        "type": "Acid/Cold/Fire/Lightning/Thunder"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "When the explosive rune is triggered, each creature in the 20-foot-radius Sphere centered on the glyph makes a Dexterity save, taking 5d8 Acid, Cold, Fire, Lightning, or Thunder damage chosen when the glyph was created on a failure or half as much on a success; the glyph breaks harmlessly if moved more than 10 feet from where it was cast, and each slot level above 3 adds +1d8 damage.",
-      "conditionalEndings": [
-        {
-          "trigger": "inscribed_ward_moved_beyond_distance",
-          "scope": "spell",
-          "distanceFeet": 10,
-          "durationValue": "not_applicable",
-          "durationUnit": "not_applicable",
-          "description": "If the inscribed surface or object moves more than 10 feet from where the spell was cast, the glyph breaks and the spell ends without triggering."
-        },
-        {
-          "trigger": "ward_triggered",
-          "scope": "spell",
-          "distanceFeet": "not_applicable",
-          "durationValue": "not_applicable",
-          "durationUnit": "not_applicable",
-          "description": "Once the glyph triggers, this spell ends after delivering the explosive rune or stored spell payload."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You inscribe a glyph that later unleashes a magical effect. You inscribe it either on a surface (such as a table or a section of floor) or within an object that can be closed (such as a book or chest) to conceal the glyph. The glyph can cover an area no larger than 10 feet in diameter. If the surface or object is moved more than 10 feet from where you cast this spell, the glyph is broken, and the spell ends without being triggered. The glyph is nearly imperceptible and requires a successful Wisdom (Perception) check against your spell save DC to notice. When you inscribe the glyph, you set its trigger and choose whether it's an explosive rune or a spell glyph, as explained below. Set the Trigger. You decide what triggers the glyph when you cast the spell. For glyphs inscribed on a surface, common triggers include touching or stepping on the glyph, removing another object covering it, or approaching within a certain distance of it. For glyphs inscribed within an object, common triggers include opening that object or seeing the glyph. Once a glyph is triggered, this spell ends. You can refine the trigger so that only creatures of certain types activate it (for example, the glyph could be set to affect Aberrations). You can also set conditions for creatures that don't trigger the glyph, such as those who say a certain password. Explosive Rune. When triggered, the glyph erupts with magical energy in a 20-foot-radius Sphere centered on the glyph. Each creature in the area makes a Dexterity saving throw. A creature takes 5d8 Acid, Cold, Fire, Lightning, or Thunder damage (your choice when you create the glyph) on a failed save or half as much damage on a successful one. Spell Glyph. You can store a prepared spell of level 3 or lower in the glyph by casting it as part of creating the glyph. The spell must target a single creature or an area. The spell being stored has no immediate effect when cast in this way. When the glyph is triggered, the stored spell takes effect. If the spell has a target, it targets the creature that triggered the glyph. If the spell affects an area, the area is centered on that creature. If the spell summons Hostile creatures or creates harmful objects or traps, they appear as close as possible to the intruder and attack it. If the spell requires Concentration , it lasts until the end of its full duration.",
-  "higherLevels": "Using a Higher-Level Spell Slot. The damage of an explosive rune increases by 1d8 for each spell slot level above 3. If you create a spell glyph, you can store any spell of up to the same level as the spell slot you use for the Glyph of Warding .",
-  "tags": []
+    "id":  "glyph-of-warding",
+    "name":  "Glyph of Warding",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Abjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Cleric",
+                    "Wizard",
+                    "Artificer"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "hour",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "hour"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "powdered diamond worth 200+ GP, which the spell consumes",
+                       "materialCost":  200,
+                       "isConsumed":  true
+                   },
+    "duration":  {
+                     "type":  "until_dispelled_or_triggered",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  0,
+                      "validTargets":  [
+                                           "objects",
+                                           "surfaces"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "surfaceEligibility":  {
+                                                                "allowed":  true,
+                                                                "examples":  [
+                                                                                 "table",
+                                                                                 "floor_section"
+                                                                             ],
+                                                                "closableObjectAllowed":  true,
+                                                                "breakDistanceFeet":  10,
+                                                                "notes":  "The glyph can be inscribed on a surface or hidden in a closable object, but moving that surface or object more than 10 feet breaks the glyph."
+                                                            }
+                                 },
+                      "rangeUnit":  "feet",
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Glyph Coverage",
+                                                               "shape":  "Circle",
+                                                               "size":  10,
+                                                               "sizeType":  "diameter",
+                                                               "sizeUnit":  "feet",
+                                                               "notes":  "Maximum glyph coverage."
+                                                           },
+                                                           {
+                                                               "label":  "Explosive Rune Burst",
+                                                               "shape":  "Sphere",
+                                                               "size":  20,
+                                                               "sizeType":  "radius",
+                                                               "sizeUnit":  "feet",
+                                                               "notes":  "Triggered explosive-rune effect area."
+                                                           }
+                                                       ],
+                                             "measuredDetails":  [
+                                                                     {
+                                                                         "label":  "Break Distance",
+                                                                         "kind":  "distance",
+                                                                         "value":  10,
+                                                                         "unit":  "feet",
+                                                                         "notes":  "Moving the surface or object farther breaks the glyph."
+                                                                     }
+                                                                 ]
+                                         }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Dexterity",
+                                          "saveEffect":  "half",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "5d8",
+                                       "type":  "Acid/Cold/Fire/Lightning/Thunder"
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "When the explosive rune is triggered, each creature in the 20-foot-radius Sphere centered on the glyph makes a Dexterity save, taking 5d8 Acid, Cold, Fire, Lightning, or Thunder damage chosen when the glyph was created on a failure or half as much on a success; the glyph breaks harmlessly if moved more than 10 feet from where it was cast, and each slot level above 3 adds +1d8 damage.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "inscribed_ward_moved_beyond_distance",
+                                                       "scope":  "spell",
+                                                       "distanceFeet":  10,
+                                                       "durationValue":  "not_applicable",
+                                                       "durationUnit":  "not_applicable",
+                                                       "description":  "If the inscribed surface or object moves more than 10 feet from where the spell was cast, the glyph breaks and the spell ends without triggering."
+                                                   },
+                                                   {
+                                                       "trigger":  "ward_triggered",
+                                                       "scope":  "spell",
+                                                       "distanceFeet":  "not_applicable",
+                                                       "durationValue":  "not_applicable",
+                                                       "durationUnit":  "not_applicable",
+                                                       "description":  "Once the glyph triggers, this spell ends after delivering the explosive rune or stored spell payload."
+                                                   }
+                                               ],
+                        "surfaceInteraction":  {
+                                                   "inscriptionAnchor":  "surface_or_closable_object",
+                                                   "breaksIfAnchorMovedMoreThanFeet":  10,
+                                                   "triggerAreaAnchoredToGlyph":  true,
+                                                   "notes":  "The explosive rune is anchored to the inscribed surface or closable object; moving the anchor too far ends it without triggering."
+                                               },
+                        "visionLightSound":  {
+                                                 "mode":  "concealed_glyph_trigger",
+                                                 "visibility":  "glyph is nearly invisible after inscription",
+                                                 "discoveryGate":  "requires successful Intelligence (Investigation) check against spell save DC to find",
+                                                 "triggerExamples":  "touching or standing on the glyph, removing another object covering it, approaching within a distance, or manipulating the warded object can trigger it",
+                                                 "visualAudibleTriggers":  "trigger can be based on physical interaction, proximity, or other specified observable circumstances",
+                                                 "soundPayload":  "none unless the stored spell or chosen trigger supplies sound"
+                                             },
+                        "storedSpellEntityBehavior":  {
+                                                          "mode":  "triggered_stored_spell_summons_or_objects",
+                                                          "trigger":  "glyph trigger",
+                                                          "summonedHostiles":  "appear as close as possible to the intruder and attack it",
+                                                          "harmfulObjectsOrTraps":  "appear as close as possible to the intruder",
+                                                          "concentrationOverride":  "stored spell requiring Concentration lasts until its full duration",
+                                                          "notes":  "This captures stored spell entity/object behavior without implementing the stored spell itself."
+                                                      },
+                        "wardTrigger":  {
+                                            "kind":  "glyph_trap",
+                                            "anchor":  "surface_or_closable_object",
+                                            "trigger":  "caster_defined_trigger_refined_by_creature_traits_or_password",
+                                            "movementBreak":  "object_moved_more_than_10_feet_from_casting_location_breaks_glyph_without_triggering",
+                                            "storedSpellConstraint":  "stored_spell_targets_triggering_creature_or_area_centered_on_triggering_creature",
+                                            "explosiveRune":  "20_foot_radius_sphere_save_for_5d8_damage"
+                                        }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose whether the glyph is an explosive rune or a spell glyph. For an explosive rune, choose Acid, Cold, Fire, Lightning, or Thunder damage.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  6,
+                       "optionsSource":  "modeChoice.options",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Explosive Rune - Acid",
+                                           "summary":  "The glyph erupts when triggered, dealing Acid damage in a 20-foot-radius Sphere centered on the glyph.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "Until triggered, dispelled, or broken by movement"
+                                       },
+                                       {
+                                           "label":  "Explosive Rune - Cold",
+                                           "summary":  "The glyph erupts when triggered, dealing Cold damage in a 20-foot-radius Sphere centered on the glyph.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "Until triggered, dispelled, or broken by movement"
+                                       },
+                                       {
+                                           "label":  "Explosive Rune - Fire",
+                                           "summary":  "The glyph erupts when triggered, dealing Fire damage in a 20-foot-radius Sphere centered on the glyph.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "Until triggered, dispelled, or broken by movement"
+                                       },
+                                       {
+                                           "label":  "Explosive Rune - Lightning",
+                                           "summary":  "The glyph erupts when triggered, dealing Lightning damage in a 20-foot-radius Sphere centered on the glyph.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "Until triggered, dispelled, or broken by movement"
+                                       },
+                                       {
+                                           "label":  "Explosive Rune - Thunder",
+                                           "summary":  "The glyph erupts when triggered, dealing Thunder damage in a 20-foot-radius Sphere centered on the glyph.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "Until triggered, dispelled, or broken by movement"
+                                       },
+                                       {
+                                           "label":  "Spell Glyph",
+                                           "summary":  "Store a prepared spell that takes effect when the glyph is triggered, using the triggering creature or its space as the target anchor.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "Until triggered, dispelled, or broken by movement",
+                                           "notes":  "The stored spell payload is still prose-only in the current effect packet and needs runtime support for selecting, storing, and firing the embedded spell."
+                                       }
+                                   ],
+                       "notes":  "The explosive rune options share the existing delayed damage effect; Spell Glyph is exposed as a mode so UI/runtime can request the stored spell even though the embedded spell payload is still deferred."
+                   },
+    "description":  "You inscribe a glyph that later unleashes a magical effect. You inscribe it either on a surface (such as a table or a section of floor) or within an object that can be closed (such as a book or chest) to conceal the glyph. The glyph can cover an area no larger than 10 feet in diameter. If the surface or object is moved more than 10 feet from where you cast this spell, the glyph is broken, and the spell ends without being triggered. The glyph is nearly imperceptible and requires a successful Wisdom (Perception) check against your spell save DC to notice. When you inscribe the glyph, you set its trigger and choose whether it\u0027s an explosive rune or a spell glyph, as explained below. Set the Trigger. You decide what triggers the glyph when you cast the spell. For glyphs inscribed on a surface, common triggers include touching or stepping on the glyph, removing another object covering it, or approaching within a certain distance of it. For glyphs inscribed within an object, common triggers include opening that object or seeing the glyph. Once a glyph is triggered, this spell ends. You can refine the trigger so that only creatures of certain types activate it (for example, the glyph could be set to affect Aberrations). You can also set conditions for creatures that don\u0027t trigger the glyph, such as those who say a certain password. Explosive Rune. When triggered, the glyph erupts with magical energy in a 20-foot-radius Sphere centered on the glyph. Each creature in the area makes a Dexterity saving throw. A creature takes 5d8 Acid, Cold, Fire, Lightning, or Thunder damage (your choice when you create the glyph) on a failed save or half as much damage on a successful one. Spell Glyph. You can store a prepared spell of level 3 or lower in the glyph by casting it as part of creating the glyph. The spell must target a single creature or an area. The spell being stored has no immediate effect when cast in this way. When the glyph is triggered, the stored spell takes effect. If the spell has a target, it targets the creature that triggered the glyph. If the spell affects an area, the area is centered on that creature. If the spell summons Hostile creatures or creates harmful objects or traps, they appear as close as possible to the intruder and attack it. If the spell requires Concentration , it lasts until the end of its full duration.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. The damage of an explosive rune increases by 1d8 for each spell slot level above 3. If you create a spell glyph, you can store any spell of up to the same level as the spell slot you use for the Glyph of Warding .",
+    "tags":  [
+
+             ]
 }

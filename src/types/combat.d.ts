@@ -6,11 +6,15 @@
 import type { AbilityScoreName, CharacterStats } from './core.js';
 import type { Class, SpellbookData, SpellSlots, FeatChoice, HitPointDicePool } from './character.js';
 import type { Item } from './items.js';
-import type { Spell, DamageType, ConditionName, EffectDuration, SpellEffect, TargetFilter } from './spells.js';
+import type { Spell, DamageType, ConditionName, EffectDuration, SpellEffect, TargetFilter, RepeatSave, EscapeCheck, ConditionBreakTrigger } from './spells.js';
 import { StateTag } from './elemental.js';
 import { Plane } from './planes.js';
 import { RitualState } from './ritual.js';
 export type { CharacterStats };
+export interface RepeatSaveProgressState {
+    successes: number;
+    failures: number;
+}
 /**
  * Filter criteria for selecting targets for an effect.
  * Strictly typed to avoid 'any'.
@@ -32,7 +36,18 @@ export interface StatusEffect {
     description?: string;
     duration: number;
     source?: string;
+    /** Character id that applied this status, needed for caster-relative repeat-save gates. */
+    sourceCasterId?: string;
     icon?: string;
+    /**
+     * Spell-condition metadata that must survive the bridge into runtime state.
+     * Repeat saves are read from statusEffects by the turn engine.
+     */
+    repeatSave?: RepeatSave;
+    /** Runtime counters for repeat-save progressions such as Flesh to Stone. */
+    repeatSaveProgress?: RepeatSaveProgressState;
+    escapeCheck?: EscapeCheck;
+    breakTriggers?: ConditionBreakTrigger[];
     effect?: {
         type: 'stat_modifier' | 'damage_per_turn' | 'heal_per_turn' | 'skip_turn' | 'condition';
         value?: number;
@@ -103,6 +118,13 @@ export interface ActiveEffect {
         disadvantageOnAttacks?: boolean;
         /** When true, this effect grants advantage on attack rolls */
         advantageOnAttacks?: boolean;
+        /**
+         * Condition benefit suppressed by this active effect.
+         * Shining Smite uses this to leave an Invisible condition record in
+         * place while preventing that condition from imposing attack-roll
+         * disadvantage against the shining target.
+         */
+        suppressedConditionBenefit?: string;
     };
 }
 export type { SpellSlots };
@@ -140,6 +162,12 @@ export interface ActiveCondition {
     };
     appliedTurn: number;
     source?: string;
+    /** Character id that applied this condition, preserved for caster-relative repeat-save rules. */
+    sourceCasterId?: string;
+    /** Repeat-save metadata mirrored from the spell condition payload. */
+    repeatSave?: RepeatSave;
+    escapeCheck?: EscapeCheck;
+    breakTriggers?: ConditionBreakTrigger[];
 }
 export interface CombatCharacter {
     id: string;
@@ -197,6 +225,22 @@ export interface CombatCharacter {
         telepathyRange?: number;
         sharedSenses?: boolean;
         sharedSensesCost?: 'action' | 'bonus_action' | 'free' | 'none';
+        actionPermissions?: {
+            canAttack?: boolean;
+            canDeliverTouchSpells?: boolean;
+            touchDeliveryRangeFeet?: number;
+            touchDeliveryCost?: 'reaction' | 'action' | 'bonus_action' | 'free' | 'none';
+            independentInitiative?: boolean;
+            obeysCasterCommands?: boolean;
+            notes?: string;
+        };
+        formTraits?: Array<{
+            name: string;
+            appliesToForms?: string[];
+            opportunityAttackPolicy?: 'does_not_provoke_when_flying_out_of_reach' | 'normal';
+            movementModeRequired?: 'fly' | 'walk' | 'swim' | 'climb' | 'any';
+            notes?: string;
+        }>;
         durationRemaining?: number;
         dismissable: boolean;
     };
@@ -335,6 +379,12 @@ export interface Ability {
     weapon?: Item;
     isProficient?: boolean;
     mastery?: string;
+    /**
+     * Explicitly marks an attack-roll button as a weapon, spell, or unarmed
+     * attack for shared rider matching. Older attack buttons omit this and keep
+     * the historical weapon default.
+     */
+    attackType?: 'weapon' | 'spell' | 'unarmed';
 }
 export interface TurnState {
     currentTurn: number;
@@ -367,6 +417,7 @@ export interface CombatAction {
     abilityId?: string;
     targetEffectId?: string;
     targetPosition?: Position;
+    movementMode?: 'fly' | 'walk' | 'swim' | 'climb' | 'any';
     targetCharacterIds?: string[];
     movementUsed?: number;
     cost: AbilityCost;
@@ -387,7 +438,7 @@ export interface ActiveRider {
     sourceName: string;
     targetId?: string;
     effect: SpellEffect;
-    consumption: "unlimited" | "first_hit" | "per_turn";
+    consumption: "unlimited" | "first_hit" | "per_turn" | "per_instance_hit_or_miss";
     attackFilter: {
         weaponType?: "melee" | "ranged" | "any";
         attackType?: "weapon" | "spell" | "any";

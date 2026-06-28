@@ -238,7 +238,7 @@ describe('randomizeCreation', () => {
 
         return {
           finalStepFailures: acc.finalStepFailures + (state.step === CreationStep.NameAndReview ? 0 : 1),
-          nameFailures: acc.nameFailures + (state.characterName.trim().length === 0 ? 0 : 1),
+          nameFailures: acc.nameFailures + (state.characterName.trim().length > 0 ? 0 : 1),
           racePoolFailures: acc.racePoolFailures + (ACTIVE_RACES.some((race) => race.id === state.selectedRace?.id) ? 0 : 1),
           backgroundFailures: acc.backgroundFailures + (state.selectedBackground && BACKGROUNDS[state.selectedBackground] ? 0 : 1),
           classSkillCountFailures: acc.classSkillCountFailures + (selectedClassSkillCount === classSkillCount ? 0 : 1),

@@ -1,200 +1,346 @@
 {
-  "id": "control-winds",
-  "name": "Control Winds",
-  "aliases": [],
-  "level": 5,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 300,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 1,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 300,
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 100,
-      "sizeUnit": "feet"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "Controls air in a 100-foot cube within range, allowing the caster to choose and change wind modes such as gusts, downdrafts, or updrafts while concentration lasts.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "tags": [
-        "wind-control",
-        "mode-choice",
-        "area-control"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You take control of the air in a 100-foot cube that you can see within range. Choose one of the following effects when you cast the spell. The effect lasts for the spell's duration, unless you use your action on a later turn to switch to a different effect. You can also use your action to temporarily halt the effect or to restart one you've halted. Gusts. A wind picks up within the cube, continually blowing in a horizontal direction you designate. You choose the intensity of the wind: calm, moderate, or strong. If the wind is moderate or strong, ranged weapon attacks that enter or leave the cube or pass through it have disadvantage on their attack rolls. If the wind is strong, any creature moving against the wind must spend 1 extra foot of movement for each foot moved. Downdraft. You cause a sustained blast of strong wind to blow downward from the top of the cube. Ranged weapon attacks that pass through the cube or that are made against targets within it have disadvantage on their attack rolls. A creature must make a Strength saving throw if it flies into the cube for the first time on a turn or starts its turn there flying. On a failed save, the creature is knocked prone. Updraft. You cause a sustained updraft within the cube, rising upward from the cube's bottom side. Creatures that end a fall within the cube take only half damage from the fall. When a creature in the cube makes a vertical jump, the creature can jump up to 10 feet higher than normal.",
-  "higherLevels": "",
-  "tags": [
-    "transmutation",
-    "wind-control",
-    "area-control",
-    "concentration"
-  ]
+    "id":  "control-winds",
+    "name":  "Control Winds",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  300,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  1,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  300,
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet",
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  100,
+                                           "sizeUnit":  "feet"
+                                       }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "Controls air in a 100-foot cube within range, allowing the caster to choose and change wind modes such as gusts, downdrafts, or updrafts while concentration lasts.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "action",
+                                                   "action":  "Switch, Halt, or Restart Control Winds",
+                                                   "frequency":  "each_turn",
+                                                   "actor":  "caster",
+                                                   "notes":  "Use an action on a later turn to switch to a different wind effect, temporarily halt the current effect, or restart a halted effect."
+                                               }
+                                           ],
+                        "attackAugments":  [
+                                               {
+                                                   "name":  "Gusts ranged weapon interference",
+                                                   "attackRollModifier":  "disadvantage",
+                                                   "condition":  "moderate_or_strong_wind_and_ranged_weapon_attack_enters_leaves_or_passes_through_cube"
+                                               },
+                                               {
+                                                   "name":  "Downdraft ranged weapon interference",
+                                                   "attackRollModifier":  "disadvantage",
+                                                   "condition":  "ranged_weapon_attack_passes_through_cube_or_targets_creature_inside_cube"
+                                               },
+                                               {
+                                                   "name":  "Downdraft flying creature save",
+                                                   "saveType":  "Strength",
+                                                   "areaTiming":  "flies_into_cube_first_time_on_turn_or_starts_turn_there_flying",
+                                                   "failure":  "Prone"
+                                               }
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Gusts",
+                                                   "effect":  "horizontal_wind",
+                                                   "details":  "Wind blows in a horizontal direction chosen by the caster. The caster chooses calm, moderate, or strong intensity; moderate or strong winds impose Disadvantage on ranged weapon attacks that enter, leave, or pass through the cube, and strong wind also costs extra movement against the wind."
+                                               },
+                                               {
+                                                   "name":  "Downdraft",
+                                                   "effect":  "downward_wind",
+                                                   "details":  "Strong wind blows downward from the top of the cube. Ranged weapon attacks through or into the cube have Disadvantage, and flying creatures entering or starting there must save or fall Prone."
+                                               },
+                                               {
+                                                   "name":  "Updraft",
+                                                   "effect":  "upward_wind",
+                                                   "details":  "Wind rises from the bottom of the cube. Creatures ending a fall in the cube take half fall damage, and vertical jumps inside the cube can rise 10 feet higher than normal."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "tags":  [
+                                     "wind-control",
+                                     "mode-choice",
+                                     "area-control"
+                                 ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "controlled_air_cube",
+                                                   "name":  "Controlled Winds Cube",
+                                                   "count":  1,
+                                                   "countUnit":  "area",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Cube",
+                                                   "affectedVolumeSizeFeet":  100,
+                                                   "manipulationOptions":  [
+                                                                               "gusts_horizontal_wind",
+                                                                               "downdraft",
+                                                                               "updraft",
+                                                                               "switch_modes",
+                                                                               "halt_effect",
+                                                                               "restart_effect"
+                                                                           ],
+                                                   "gustIntensityOptions":  [
+                                                                                "calm",
+                                                                                "moderate",
+                                                                                "strong"
+                                                                            ],
+                                                   "moderateOrStrongAttackPenalty":  "ranged_weapon_attacks_entering_leaving_or_passing_through_have_disadvantage",
+                                                   "strongWindMovementPenalty":  "extra_1_foot_per_1_foot_against_wind",
+                                                   "downdraftAttackPenalty":  "ranged_weapon_attacks_through_cube_or_against_targets_inside_have_disadvantage",
+                                                   "downdraftFlyingSave":  "Strength save or Prone when flying creature enters first time on turn or starts there flying",
+                                                   "updraftFallDamageMultiplier":  0.5,
+                                                   "updraftVerticalJumpBonusFeet":  10,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "up to 1 hour with concentration",
+                                                   "notes":  "Control Winds controls air in a 100-foot Cube with switchable Gusts, Downdraft, and Updraft modes; the existing mode choice and granted action handle selecting, halting, and restarting modes."
+                                               }
+                                           ],
+                        "forcedMovementState":  {
+                                                    "kind":  "downdraft_knock_prone",
+                                                    "mode":  "Downdraft",
+                                                    "target":  "creature_in_affected_air_cube",
+                                                    "save":  "Strength_or_relevant_mode_save_as_spell_mode_uses",
+                                                    "consequence":  "knocked_Prone_on_failed_save",
+                                                    "note":  "This row tracks forced prone movement rather than push distance."
+                                                }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose Gusts, Downdraft, or Updraft when casting, and choose a new mode or halt/restart the effect when spending later actions. If choosing Gusts, also choose the horizontal wind direction and intensity: calm, moderate, or strong.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast_or_action",
+                       "optionCount":  3,
+                       "optionsSource":  "effects[0].controlOptions",
+                       "canDismissActive":  true,
+                       "options":  [
+                                       {
+                                           "label":  "Gusts",
+                                           "summary":  "Create horizontal wind in a chosen direction at calm, moderate, or strong intensity."
+                                       },
+                                       {
+                                           "label":  "Downdraft",
+                                           "summary":  "Create strong downward wind that hinders ranged attacks and can knock flying creatures Prone."
+                                       },
+                                       {
+                                           "label":  "Updraft",
+                                           "summary":  "Create upward wind that reduces fall damage and increases vertical jumps."
+                                       }
+                                   ],
+                       "secondaryChoices":  {
+                                                "gustIntensityOptions":  [
+                                                                             "calm",
+                                                                             "moderate",
+                                                                             "strong"
+                                                                         ],
+                                                "gustDirectionRequired":  true,
+                                                "notes":  "Gusts has an additional direction and intensity choice; later actions can switch, halt, or restart the active mode."
+                                            }
+                   },
+    "description":  "You take control of the air in a 100-foot cube that you can see within range. Choose one of the following effects when you cast the spell. The effect lasts for the spell\u0027s duration, unless you use your action on a later turn to switch to a different effect. You can also use your action to temporarily halt the effect or to restart one you\u0027ve halted. Gusts. A wind picks up within the cube, continually blowing in a horizontal direction you designate. You choose the intensity of the wind: calm, moderate, or strong. If the wind is moderate or strong, ranged weapon attacks that enter or leave the cube or pass through it have disadvantage on their attack rolls. If the wind is strong, any creature moving against the wind must spend 1 extra foot of movement for each foot moved. Downdraft. You cause a sustained blast of strong wind to blow downward from the top of the cube. Ranged weapon attacks that pass through the cube or that are made against targets within it have disadvantage on their attack rolls. A creature must make a Strength saving throw if it flies into the cube for the first time on a turn or starts its turn there flying. On a failed save, the creature is knocked prone. Updraft. You cause a sustained updraft within the cube, rising upward from the cube\u0027s bottom side. Creatures that end a fall within the cube take only half damage from the fall. When a creature in the cube makes a vertical jump, the creature can jump up to 10 feet higher than normal.",
+    "higherLevels":  "",
+    "tags":  [
+                 "transmutation",
+                 "wind-control",
+                 "area-control",
+                 "concentration"
+             ]
 }

@@ -23,6 +23,7 @@ import { getTimeOfDay, getTimeModifiers } from '../utils/core/timeUtils';
 import type { ConversationMessage, ConversationNpcParticipant } from '../types/conversation';
 import {
     generateOpeningSituation,
+    composeOpeningNarration,
     type GenerateOpeningSituationDeps,
 } from '../systems/gameEntry/generateOpeningSituation';
 import { situationNpcsToRichNpcs } from '../systems/gameEntry/situationNpcToRichNpc';
@@ -97,7 +98,9 @@ export function buildConversationSeed(situation: OpeningSituation): {
     const narration: ConversationMessage = {
         id: generateId(),
         speakerId: 'narrator',
-        text: `${situation.setting.place} — ${situation.setting.timeOfDay}, ${situation.setting.weather}. ${situation.predicament}`,
+        // Normalised join — avoids the comma-before-capital / doubled-period glue
+        // artifacts the old raw template produced (see composeOpeningNarration).
+        text: composeOpeningNarration(situation.setting, situation.predicament),
         timestamp: now,
     };
     const utterance: ConversationMessage = {

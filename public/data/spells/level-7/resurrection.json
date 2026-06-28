@@ -204,6 +204,19 @@
         ],
         "aftermath": "The target takes a -4 penalty to D20 Tests; each Long Rest reduces the penalty by 1 until it reaches 0."
       },
+      "d20TestModifier": {
+        "initialPenalty": -4,
+        "appliesTo": [
+          "attack_rolls",
+          "ability_checks",
+          "saving_throws"
+        ],
+        "recovery": {
+          "trigger": "finish_long_rest",
+          "change": 1,
+          "endsAt": 0
+        }
+      },
       "description": "Coming back from the dead gives the target a -4 penalty to D20 Tests that improves by 1 after each Long Rest.",
       "conditionalEndings": []
     },
@@ -259,6 +272,19 @@
       },
       "utilityType": "other",
       "description": "Touch a creature dead no more than a century, that did not die of old age, and that was not Undead when it died. The spell neutralizes death-time poisons, closes mortal wounds, restores missing body parts, and taxes the caster until a Long Rest if the creature has been dead for 365 days or longer.",
+      "casterTax": {
+        "appliesWhen": "revived_creature_dead_365_days_or_longer",
+        "endsWhen": "caster_finishes_long_rest",
+        "spellcastingRestriction": "cannot_cast_spells",
+        "d20TestModifier": {
+          "type": "disadvantage",
+          "appliesTo": [
+            "attack_rolls",
+            "ability_checks",
+            "saving_throws"
+          ]
+        }
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -344,8 +370,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Confirm the creature has been dead no more than a century, did not die of old age, was not Undead at death, and can be touched. On revival, restore all Hit Points, apply the target's -4 D20 Test ordeal with Long Rest recovery, and if the creature was dead 365 days or longer apply the caster spellcasting lockout and D20 Test Disadvantage until the caster finishes a Long Rest.",
+    "playerInputRequired": true
   },
   "description": "With a touch, you revive a dead creature that has been dead for no more than a century, didn't die of old age, and wasn't Undead when it died. The creature returns to life with all its Hit Points. This spell also neutralizes any poisons that affected the creature at the time of death. This spell closes all mortal wounds and restores any missing body parts. Coming back from the dead is an ordeal. The target takes a -4 penalty to D20 Tests. Every time the target finishes a Long Rest, the penalty is reduced by 1 until it becomes 0. Casting this spell to revive a creature that has been dead for 365 days or longer taxes you. Until you finish a Long Rest, you can't cast spells again, and you have Disadvantage on D20 Tests.",
   "higherLevels": "",

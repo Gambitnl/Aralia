@@ -1,206 +1,290 @@
 {
-  "id": "tiny-servant",
-  "name": "Tiny Servant",
-  "aliases": [],
-  "level": 3,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Artificer",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 8,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "multi",
-    "range": 0,
-    "validTargets": [
-      "objects"
-    ],
-    "lineOfSight": true,
-    "maxTargets": {
-      "base": 1,
-      "scaling": {
-        "type": "slot_level",
-        "thresholds": {
-          "3": 1,
-          "4": 3,
-          "5": 5,
-          "6": 7,
-          "7": 9,
-          "8": 11,
-          "9": 13
-        }
-      }
-    },
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "excluded",
-        "magicalStatus": "nonmagical",
-        "fixedToSurface": "excluded",
-        "maxSize": "Tiny",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "Animate each touched Tiny nonmagical unattended object into a controlled Tiny Servant for 8 hours. As a Bonus Action, you can mentally command any or all servants within 120 feet, they keep following a simple order until complete, they defend themselves if uncommanded, and each servant reverts to object form when it drops to 0 Hit Points.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+2 animated objects per slot level above 3rd",
-        "customFormula": "A 4th-level or higher slot animates two additional Tiny objects for each spell slot level above 3rd."
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "created_entity_drops_to_0_hp",
-          "scope": "effect",
-          "description": "The animated servant form ends when the creature drops to 0 Hit Points, reverting the target to its original object form with any remaining damage carrying over."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You touch one Tiny, nonmagical object that isn't attached to another object or a surface and isn't being carried by another creature. The target animates and sprouts little arms and legs, becoming a creature under your control until the spell ends or the creature drops to 0 hit points. See Tiny Servant for its statistics. As a bonus action, you can mentally command the creature if it is within 120 feet of you. (If you control multiple creatures with this spell, you can command any or all of them at the same time, issuing the same command to each one.) You decide what action the creature will take and where it will move during its next turn, or you can issue a simple, general command, such as to fetch a key, stand watch, or stack some books. If you issue no commands, the servant does nothing other than defend itself against hostile creatures. Once given an order, the servant continues to follow that order until its task is complete. When the creature drops to 0 hit points, it reverts to its original form, and any remaining damage carries over to that form.",
-  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, you can animate two additional objects for each slot level above 3rd.",
-  "tags": [
-    "transmutation",
-    "summoning",
-    "control"
-  ]
+    "id":  "tiny-servant",
+    "name":  "Tiny Servant",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Artificer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  8,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "multi",
+                      "range":  0,
+                      "validTargets":  [
+                                           "objects"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  {
+                                         "base":  1,
+                                         "scaling":  {
+                                                         "type":  "slot_level",
+                                                         "thresholds":  {
+                                                                            "3":  1,
+                                                                            "4":  3,
+                                                                            "5":  5,
+                                                                            "6":  7,
+                                                                            "7":  9,
+                                                                            "8":  11,
+                                                                            "9":  13
+                                                                        }
+                                                     }
+                                     },
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "excluded",
+                                                               "magicalStatus":  "nonmagical",
+                                                               "fixedToSurface":  "excluded",
+                                                               "maxSize":  "Tiny",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "Animate each touched Tiny nonmagical unattended object into a controlled Tiny Servant for 8 hours. As a Bonus Action, you can mentally command any or all servants within 120 feet, they keep following a simple order until complete, they defend themselves if uncommanded, and each servant reverts to object form when it drops to 0 Hit Points.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+2 animated objects per slot level above 3rd",
+                                        "customFormula":  "A 4th-level or higher slot animates two additional Tiny objects for each spell slot level above 3rd."
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "bonus_action",
+                                                   "action":  "Command Tiny Servant",
+                                                   "frequency":  "each_turn",
+                                                   "actor":  "caster",
+                                                   "range":  120,
+                                                   "rangeUnit":  "feet",
+                                                   "targets":  "any_or_all_controlled_servants",
+                                                   "notes":  "Mentally command one, any, or all Tiny Servants within 120 feet; a servant follows the order until complete and otherwise only defends itself."
+                                               }
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "created_entity_drops_to_0_hp",
+                                                       "scope":  "effect",
+                                                       "description":  "The animated servant form ends when the creature drops to 0 Hit Points, reverting the target to its original object form with any remaining damage carrying over."
+                                                   }
+                                               ],
+                        "surfaceInteraction":  {
+                                                   "targetMustNotBeAttachedToObjectOrSurface":  true,
+                                                   "targetMustNotBeCarried":  true,
+                                                   "targetSize":  "Tiny",
+                                                   "targetMagicalStatus":  "nonmagical",
+                                                   "notes":  "Tiny Servant can animate only a Tiny nonmagical object that is not attached to another object or surface and is not being carried."
+                                               },
+                        "animatedObjectState":  {
+                                                    "creatureType":  "Construct",
+                                                    "size":  "Tiny",
+                                                    "sourceObject":  "Tiny nonmagical unattended object touched by the caster",
+                                                    "lifecycle":  {
+                                                                      "hitPointEnding":  "servant remains animated until spell ends or it drops to 0 hit points",
+                                                                      "reversion":  "when it drops to 0 hit points, it reverts to its original object form",
+                                                                      "damageCarryover":  "remaining damage carries over to the original object form"
+                                                                  },
+                                                    "control":  "caster can mentally command one or all servants within 120 feet as a Bonus Action"
+                                                },
+                        "summonControl":  {
+                                              "entityType":  "Tiny Servant",
+                                              "source":  "Tiny nonmagical unattended object not attached or carried",
+                                              "commandAction":  "Bonus Action",
+                                              "commandRangeFeet":  120,
+                                              "multiCommand":  "can command any or all servants from this spell at once with the same command",
+                                              "commandOptions":  "specific action and movement for next turn or simple general command",
+                                              "noCommandBehavior":  "does nothing except defend itself against hostile creatures",
+                                              "persistentOrder":  "continues following order until task complete",
+                                              "lifecycle":  "reverts at 0 HP with remaining damage carryover"
+                                          },
+                        "sustainAction":  {
+                                              "commandCost":  "Bonus Action",
+                                              "commandTargets":  "any_or_all_tiny_servants_within_120_feet",
+                                              "command":  "mentally_command_action_and_movement",
+                                              "noCommandBehavior":  "Dodge",
+                                              "recastScaling":  "higher_slots_animate_two_additional_objects_per_slot_above_3",
+                                              "duplicateRows":  "covers command and recast/action economy findings"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose each eligible Tiny unattended nonmagical object to animate; while servants remain within 120 feet, offer the caster a Bonus Action command for one, any, or all controlled servants.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You touch one Tiny, nonmagical object that isn\u0027t attached to another object or a surface and isn\u0027t being carried by another creature. The target animates and sprouts little arms and legs, becoming a creature under your control until the spell ends or the creature drops to 0 hit points. See Tiny Servant for its statistics. As a bonus action, you can mentally command the creature if it is within 120 feet of you. (If you control multiple creatures with this spell, you can command any or all of them at the same time, issuing the same command to each one.) You decide what action the creature will take and where it will move during its next turn, or you can issue a simple, general command, such as to fetch a key, stand watch, or stack some books. If you issue no commands, the servant does nothing other than defend itself against hostile creatures. Once given an order, the servant continues to follow that order until its task is complete. When the creature drops to 0 hit points, it reverts to its original form, and any remaining damage carries over to that form.",
+    "higherLevels":  "When you cast this spell using a spell slot of 4th level or higher, you can animate two additional objects for each slot level above 3rd.",
+    "tags":  [
+                 "transmutation",
+                 "summoning",
+                 "control"
+             ]
 }

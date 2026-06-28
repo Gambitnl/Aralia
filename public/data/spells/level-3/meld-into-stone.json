@@ -1,205 +1,322 @@
 {
-  "id": "meld-into-stone",
-  "name": "Meld into Stone",
-  "aliases": [],
-  "level": 3,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Cleric",
-    "Druid",
-    "Ranger"
-  ],
-  "subClasses": [],
-  "ritual": true,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 8,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "single",
-    "range": 0,
-    "validTargets": [
-      "ground"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Step into a touched stone object or surface large enough to fully contain you and your equipment for up to 8 hours. While merged, you are hidden from nonmagical senses, cannot see outside, make hearing-based Perception checks outside with Disadvantage, remain aware of time, can cast only self-targeting spells, cannot move except to spend 5 feet of movement to exit where you entered, and are expelled Prone to the nearest unoccupied space if the stone no longer contains you: partial destruction or reshaping deals 6d6 Force damage, while complete destruction or transmutation deals 50 Force damage.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "not_applicable",
-          "scope": "spell",
-          "description": "The caster can spend 5 feet of movement to leave the stone where they entered it, ending the spell."
-        },
-        {
-          "trigger": "not_applicable",
-          "scope": "spell",
-          "description": "If the stone is partially destroyed or reshaped so the caster no longer fits, the caster is expelled, takes 6d6 Force damage, moves to the nearest unoccupied space, and falls Prone."
-        },
-        {
-          "trigger": "not_applicable",
-          "scope": "spell",
-          "description": "If the stone is completely destroyed or transmuted into another substance, the caster is expelled, takes 50 Force damage, moves to the nearest unoccupied space, and falls Prone."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You step into a stone object or surface large enough to fully contain your body, merging yourself and your equipment with the stone for the duration. You must touch the stone to do so. Nothing of your presence remains visible or otherwise detectable by nonmagical senses. While merged with the stone, you can't see what occurs outside it, and any Wisdom (Perception) checks you make to hear sounds outside it are made with Disadvantage. You remain aware of the passage of time and can cast spells on yourself while merged in the stone. You can use 5 feet of movement to leave the stone where you entered it, which ends the spell. You otherwise can't move. Minor physical damage to the stone doesn't harm you, but its partial destruction or a change in its shape (to the extent that you no longer fit within it) expels you and deals 6d6 Force damage to you. The stone's complete destruction (or transmutation into a different substance) expels you and deals 50 Force damage to you. If expelled, you move into an unoccupied space closest to where you first entered and have the Prone condition.",
-  "higherLevels": "",
-  "tags": [
-    "utility",
-    "transmutation",
-    "ritual",
-    "movement",
-    "defensive"
-  ]
+    "id":  "meld-into-stone",
+    "name":  "Meld into Stone",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Cleric",
+                    "Druid",
+                    "Ranger"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  true,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  8,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  0,
+                      "validTargets":  [
+                                           "objects",
+                                           "surfaces"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "surfaceEligibility":  {
+                                                                "material":  "stone",
+                                                                "requiresLargeEnoughToContainCasterAndEquipment":  true,
+                                                                "allowedTargets":  [
+                                                                                       "stone_object",
+                                                                                       "stone_surface"
+                                                                                   ],
+                                                                "notes":  "Meld into Stone requires a touched stone object or surface large enough to fully contain the caster and carried equipment."
+                                                            }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Step into a touched stone object or surface large enough to fully contain you and your equipment for up to 8 hours. While merged, you are hidden from nonmagical senses, cannot see outside, make hearing-based Perception checks outside with Disadvantage, remain aware of time, can cast only self-targeting spells, cannot move except to spend 5 feet of movement to exit where you entered, and are expelled Prone to the nearest unoccupied space if the stone no longer contains you: partial destruction or reshaping deals 6d6 Force damage, while complete destruction or transmutation deals 50 Force damage.",
+                        "mergedState":  {
+                                            "state":  "merged_into_stone",
+                                            "movementRestriction":  "can_only_spend_5_feet_to_exit_entry_point",
+                                            "selfTargetedSpellcastingOnly":  true,
+                                            "expulsionOutcomes":  [
+                                                                      {
+                                                                          "trigger":  "stone_partially_destroyed_or_reshaped_so_target_no_longer_fits",
+                                                                          "damage":  "6d6 Force",
+                                                                          "moveTo":  "nearest_unoccupied_space_to_entry_point",
+                                                                          "statusConditions":  [
+                                                                                                   "Prone"
+                                                                                               ]
+                                                                      },
+                                                                      {
+                                                                          "trigger":  "stone_completely_destroyed_or_transmuted",
+                                                                          "damage":  "50 Force",
+                                                                          "moveTo":  "nearest_unoccupied_space_to_entry_point",
+                                                                          "statusConditions":  [
+                                                                                                   "Prone"
+                                                                                               ]
+                                                                      }
+                                                                  ]
+                                        },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "caster_spends_5_feet_of_movement_to_leave_entry_point",
+                                                       "scope":  "spell",
+                                                       "description":  "The caster can leave the stone where they entered it by spending 5 feet of movement, ending the spell."
+                                                   },
+                                                   {
+                                                       "trigger":  "stone_partially_destroyed_or_shape_changed",
+                                                       "scope":  "spell",
+                                                       "description":  "Partial destruction or shape change expels the caster and deals 6d6 Force damage."
+                                                   },
+                                                   {
+                                                       "trigger":  "stone_completely_destroyed_or_transmuted",
+                                                       "scope":  "spell",
+                                                       "description":  "Complete destruction or transmutation expels the caster and deals 50 Force damage."
+                                                   }
+                                               ],
+                        "expulsionDestinationEligibility":  {
+                                                                "trigger":  "spell_end_or_expulsion_from_stone",
+                                                                "destinationPreference":  "unoccupied_space_closest_to_entry_point",
+                                                                "requiresUnoccupiedSpace":  true,
+                                                                "distanceAnchor":  "where_caster_first_entered_the_stone",
+                                                                "notes":  "If the caster is expelled from the stone, the runtime should place them in the nearest unoccupied space to the original entry point."
+                                                            },
+                        "surfaceInteraction":  {
+                                                   "mergeIntoMaterial":  "stone",
+                                                   "requiredCapacity":  "caster_and_equipment",
+                                                   "hidesFromNonmagicalSenses":  true,
+                                                   "notes":  "The caster and equipment merge into the qualifying stone object or surface for the duration."
+                                               },
+                        "knowledgeEffect":  {
+                                                "hiddenFromNonmagicalSenses":  true,
+                                                "casterAwareOfTimePassing":  true,
+                                                "casterCanCastSpellsOnSelf":  true,
+                                                "cannotSeeOutsideStone":  true,
+                                                "hearingOutsideHasDisadvantage":  true,
+                                                "notes":  "While merged, the caster leaves no nonmagical sensory trace, remains aware of time, can cast only on self, cannot see outside, and hears outside poorly."
+                                            },
+                        "visionLightSound":  {
+                                                 "mode":  "stone_merged_sensory_block",
+                                                 "exteriorDetectability":  "nothing of the caster presence remains visible or otherwise detectable by nonmagical senses",
+                                                 "casterVision":  "caster cannot see what occurs outside the stone",
+                                                 "casterHearing":  "Wisdom (Perception) checks made to hear outside events have Disadvantage",
+                                                 "movementCue":  "minor physical damage to the stone is not visible on the caster until after exiting unless the stone is destroyed enough to expel them",
+                                                 "soundPayload":  "muffled outside hearing only"
+                                             },
+                        "expulsionDamage":  {
+                                                "partialDamage":  "6d6 Force",
+                                                "completeDamage":  "50 Force",
+                                                "triggers":  [
+                                                                 "partial destruction",
+                                                                 "shape change",
+                                                                 "complete destruction",
+                                                                 "transmutation"
+                                                             ]
+                                            },
+                        "movementState":  {
+                                              "kind":  "merged_in_stone_movement_limit",
+                                              "whileMerged":  "cannot_move",
+                                              "exit":  "use_5_feet_of_movement_to_leave_stone_where_entered",
+                                              "exitEndsSpell":  true,
+                                              "expulsion":  "stone_damage_or_shape_change_can_force_exit_with_damage_as_conditional_ending_tracks"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Track the caster as merged into the touched stone with equipment, unable to move except by spending 5 feet to exit where they entered. If the stone is partially destroyed or reshaped so the caster no longer fits, expel them to the nearest unoccupied entry-point space, deal 6d6 Force damage, and apply Prone; if it is destroyed or transmuted, deal 50 Force damage and apply the same Prone expulsion.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You step into a stone object or surface large enough to fully contain your body, merging yourself and your equipment with the stone for the duration. You must touch the stone to do so. Nothing of your presence remains visible or otherwise detectable by nonmagical senses. While merged with the stone, you can\u0027t see what occurs outside it, and any Wisdom (Perception) checks you make to hear sounds outside it are made with Disadvantage. You remain aware of the passage of time and can cast spells on yourself while merged in the stone. You can use 5 feet of movement to leave the stone where you entered it, which ends the spell. You otherwise can\u0027t move. Minor physical damage to the stone doesn\u0027t harm you, but its partial destruction or a change in its shape (to the extent that you no longer fit within it) expels you and deals 6d6 Force damage to you. The stone\u0027s complete destruction (or transmutation into a different substance) expels you and deals 50 Force damage to you. If expelled, you move into an unoccupied space closest to where you first entered and have the Prone condition.",
+    "higherLevels":  "",
+    "tags":  [
+                 "utility",
+                 "transmutation",
+                 "ritual",
+                 "movement",
+                 "defensive"
+             ]
 }

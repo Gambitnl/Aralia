@@ -1,206 +1,333 @@
 {
-  "id": "leomunds-tiny-hut",
-  "name": "Leomund's Tiny Hut",
-  "aliases": [],
-  "level": 3,
-  "school": "Evocation",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": true,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a crystal bead",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": false,
-    "value": 8,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "area",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": false,
-    "areaOfEffect": {
-      "shape": "Emanation",
-      "size": 10,
-      "sizeType": "radius",
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "range": 0,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "creation",
-      "description": "Create a stationary 10-foot-radius shelter around the caster for 8 hours; creatures and objects inside when cast can pass through freely, all others are barred, spells of 3rd level or lower cannot cross the boundary, and the interior stays dry and comfortable with caster-chosen dim light or darkness.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "caster_leaves_area",
-          "scope": "spell",
-          "description": "The hut ends early if the caster leaves the emanation."
-        },
-        {
-          "trigger": "end_on_recast",
-          "scope": "spell",
-          "description": "The hut ends early if the caster casts this spell again."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "A 10-foot Emanation springs into existence around you and remains stationary for the duration. The spell fails when you cast it if the Emanation isn't big enough to fully encapsulate all creatures in its area. Creatures and objects within the Emanation when you cast the spell can move through it freely. All other creatures and objects are barred from passing through it. Spells of level 3 or lower can't be cast through it, and the effects of such spells can't extend into it. The atmosphere inside the Emanation is comfortable and dry, regardless of the weather outside. Until the spell ends, you can command the interior to have Dim Light or Darkness (no action required). The Emanation is opaque from the outside and of any color you choose, but it's transparent from the inside. The spell ends early if you leave the Emanation or if you cast it again.",
-  "higherLevels": "",
-  "tags": [
-    "utility",
-    "evocation",
-    "ritual",
-    "shelter",
-    "barrier"
-  ]
+    "id":  "leomunds-tiny-hut",
+    "name":  "Leomund\u0027s Tiny Hut",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Evocation",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  true,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a crystal bead",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  false,
+                     "value":  8,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  false,
+                      "areaOfEffect":  {
+                                           "shape":  "Emanation",
+                                           "size":  10,
+                                           "sizeType":  "radius",
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "range":  0,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "creation",
+                        "description":  "Create a stationary 10-foot-radius shelter around the caster for 8 hours; creatures and objects inside when cast can pass through freely, all others are barred, spells of 3rd level or lower cannot cross the boundary, and the interior stays dry and comfortable with caster-chosen dim light or darkness.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "caster_choice",
+                                      "opaqueCoverBlocks":  "outside_only",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "caster_leaves_area",
+                                                       "scope":  "spell",
+                                                       "description":  "The hut ends early if the caster leaves the emanation."
+                                                   },
+                                                   {
+                                                       "trigger":  "end_on_recast",
+                                                       "scope":  "spell",
+                                                       "description":  "The hut ends early if the caster casts this spell again."
+                                                   }
+                                               ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "shelter_barrier",
+                                                   "name":  "Leomund Tiny Hut",
+                                                   "count":  1,
+                                                   "countUnit":  "structure",
+                                                   "appearsIn":  "stationary_emanation_around_caster",
+                                                   "affectedVolumeShape":  "Emanation",
+                                                   "affectedVolumeSizeFeet":  10,
+                                                   "manipulationOptions":  [
+                                                                               "bar_outside_creatures_and_objects",
+                                                                               "allow_initial_contents_to_pass",
+                                                                               "block_low_level_spells",
+                                                                               "maintain_comfortable_dry_atmosphere",
+                                                                               "command_dim_light_or_darkness",
+                                                                               "opaque_outside_transparent_inside"
+                                                                           ],
+                                                   "interiorAtmosphere":  "comfortable_and_dry",
+                                                   "ignoresOutsideWeather":  true,
+                                                   "allowedPassage":  "creatures_and_objects_inside_when_cast",
+                                                   "barredPassage":  "all_other_creatures_and_objects",
+                                                   "blocksSpellLevelsAtOrBelow":  3,
+                                                   "exteriorOpacity":  "opaque_from_outside_transparent_from_inside",
+                                                   "interiorLightOptions":  [
+                                                                                "Dim Light",
+                                                                                "Darkness"
+                                                                            ],
+                                                   "failsIfInitialCreaturesNotFullyEncapsulated":  true,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "8 hours or until caster leaves/recasts",
+                                                   "notes":  "Leomund Tiny Hut creates a stationary 10-foot shelter whose interior stays comfortable and dry regardless of outside weather while enforcing passage and spell-crossing limits."
+                                               }
+                                           ],
+                        "visionLightSound":  {
+                                                 "mode":  "one_way_visible_shelter",
+                                                 "exteriorVisibility":  "dome is opaque from the outside",
+                                                 "interiorVisibility":  "dome is transparent from the inside",
+                                                 "lightControl":  "interior can be dimly lit or dark, chosen by the caster",
+                                                 "boundaryRule":  "spells and other magical effects cannot extend through or be cast through the dome",
+                                                 "soundPayload":  "shelter boundary has no special sound channel"
+                                             },
+                        "castFailureConditions":  [
+                                                      {
+                                                          "trigger":  "emanation_cannot_fully_encapsulate_all_creatures_in_area",
+                                                          "result":  "spell_fails_on_cast",
+                                                          "description":  "The spell fails when cast if the 10-foot Emanation is not big enough to fully encapsulate all creatures in its area."
+                                                      }
+                                                  ],
+                        "wardTrigger":  {
+                                            "kind":  "stationary_shelter_barrier",
+                                            "trigger":  "creature_or_object_attempts_to_pass_barrier",
+                                            "allowed":  "creatures_and_objects_inside_when_cast_can_pass_freely",
+                                            "blocked":  "all_other_creatures_objects_and_spells_of_3rd_level_or_lower",
+                                            "castFailure":  "spell_fails_if_large_creature_or_more_than_nine_creatures_are_inside_area_when_cast"
+                                        }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose whether the hut interior has Dim Light or Darkness, and choose the exterior color of the opaque outside surface.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast_or_no_action_command",
+                       "optionCount":  2,
+                       "optionsSource":  "modeChoice.options",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Dim Light Interior",
+                                           "summary":  "The hut interior has Dim Light while remaining opaque from outside and transparent from inside.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "8 hours",
+                                           "notes":  "The caster can command the interior light mode with no action while the hut persists."
+                                       },
+                                       {
+                                           "label":  "Dark Interior",
+                                           "summary":  "The hut interior is Dark while remaining opaque from outside and transparent from inside.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "8 hours",
+                                           "notes":  "The caster can command the interior light mode with no action while the hut persists."
+                                       }
+                                   ],
+                       "notes":  "The exterior color is a separate caster-selected presentation choice stored on the light payload as caster_choice; one-way opacity is recorded as outside_only."
+                   },
+    "description":  "A 10-foot Emanation springs into existence around you and remains stationary for the duration. The spell fails when you cast it if the Emanation isn\u0027t big enough to fully encapsulate all creatures in its area. Creatures and objects within the Emanation when you cast the spell can move through it freely. All other creatures and objects are barred from passing through it. Spells of level 3 or lower can\u0027t be cast through it, and the effects of such spells can\u0027t extend into it. The atmosphere inside the Emanation is comfortable and dry, regardless of the weather outside. Until the spell ends, you can command the interior to have Dim Light or Darkness (no action required). The Emanation is opaque from the outside and of any color you choose, but it\u0027s transparent from the inside. The spell ends early if you leave the Emanation or if you cast it again.",
+    "higherLevels":  "",
+    "tags":  [
+                 "utility",
+                 "evocation",
+                 "ritual",
+                 "shelter",
+                 "barrier"
+             ]
 }

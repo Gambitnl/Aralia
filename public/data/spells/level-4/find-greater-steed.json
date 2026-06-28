@@ -1,192 +1,390 @@
 {
-  "id": "find-greater-steed",
-  "name": "Find Greater Steed",
-  "aliases": [],
-  "level": 4,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Paladin"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 10,
-    "unit": "minute",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Summons a loyal spirit mount in an empowered steed form within range; the summoned creature serves as a mount and follows the spell's persistent companion rules until dismissed or replaced.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "tags": [
-        "summon",
-        "mount",
-        "spirit-companion"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You summon a spirit that assumes the form of a loyal, majestic mount. Appearing in an unoccupied space within range, the spirit takes on a form you choose: a griffon , a pegasus , a peryton , a dire wolf , a rhinoceros , or a saber-toothed tiger . The creature has the statistics provided in the Monster Manual for the chosen form, though it is a celestial, a fey, or a fiend (your choice) instead of its normal creature type. Additionally, if it has an Intelligence score of 5 or lower, its Intelligence becomes 6, and it gains the ability to understand one language of your choice that you speak. You control the mount in combat. While the mount is within 1 mile of you, you can communicate with it telepathically. While mounted on it, you can make any spell you cast that targets only you also target the mount. The mount disappears temporarily when it drops to 0 hit points or when you dismiss it as an action. Casting this spell again re-summons the bonded mount, with all its hit points restored and any conditions removed. You can't have more than one mount bonded by this spell or find steed at the same time. As an action, you can release a mount from its bond, causing it to disappear permanently. Whenever the mount disappears, it leaves behind any objects it was wearing or carrying.",
-  "higherLevels": "",
-  "tags": [
-    "summoning",
-    "mount",
-    "spirit-companion"
-  ]
+    "id":  "find-greater-steed",
+    "name":  "Find Greater Steed",
+    "aliases":  [
+
+                ],
+    "level":  4,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Paladin"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  10,
+                        "unit":  "minute",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "instantaneous",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "ground"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "requiresUnoccupiedSpace":  true,
+                                                                  "rangeAnchor":  "within_spell_range",
+                                                                  "chosenBy":  "caster",
+                                                                  "summonFormOptions":  [
+                                                                                            "griffon",
+                                                                                            "pegasus",
+                                                                                            "peryton",
+                                                                                            "dire_wolf",
+                                                                                            "rhinoceros",
+                                                                                            "saber_toothed_tiger"
+                                                                                        ],
+                                                                  "notes":  "Find Greater Steed places the chosen spirit mount form in an unoccupied space within 30 feet."
+                                                              }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Summons a loyal spirit mount in an empowered steed form within range; the summoned creature serves as a mount and follows the spell\u0027s persistent companion rules until dismissed or replaced.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "tags":  [
+                                     "summon",
+                                     "mount",
+                                     "spirit-companion"
+                                 ],
+                        "socialEffect":  {
+                                             "relationship":  "bonded_mount",
+                                             "bondedMountLimit":  1,
+                                             "mutuallyExclusiveWith":  [
+                                                                           "find-steed",
+                                                                           "find-greater-steed"
+                                                                       ],
+                                             "loyalToCaster":  true,
+                                             "notes":  "The caster cannot have more than one Find Steed or Find Greater Steed bonded mount at the same time."
+                                         },
+                        "summonLifecycle":  {
+                                                "hitPointEnding":  "mount disappears temporarily when it drops to 0 hit points",
+                                                "dismissAction":  "caster can dismiss it as an action",
+                                                "recastRecovery":  "casting the spell again re-summons the bonded mount with all hit points restored and conditions removed",
+                                                "persistence":  "bonded mount persists under the greater steed companion rules until dismissed, replaced, or dropped to 0 hit points"
+                                            },
+                        "communicationDetails":  {
+                                                     "mode":  "bonded_mount_language_and_telepathy",
+                                                     "intelligenceFloor":  6,
+                                                     "grantedLanguage":  "one language the caster speaks, chosen by caster",
+                                                     "telepathyRangeFeet":  5280,
+                                                     "telepathyParticipants":  "caster and mount only",
+                                                     "notes":  "Greater steed understands one caster language and communicates telepathically within 1 mile."
+                                                 },
+                        "summon":  {
+                                       "entityType":  "greater_steed_mount",
+                                       "persistent":  true,
+                                       "formOptions":  [
+                                                           "griffon",
+                                                           "pegasus",
+                                                           "peryton",
+                                                           "dire wolf",
+                                                           "rhinoceros",
+                                                           "saber-toothed tiger"
+                                                       ],
+                                       "creatureTypeChoice":  [
+                                                                  "Celestial",
+                                                                  "Fey",
+                                                                  "Fiend"
+                                                              ],
+                                       "control":  "controlled mount in combat",
+                                       "bondLimit":  "cannot have more than one mount bonded by Find Steed or Find Greater Steed at same time",
+                                       "recast":  "re-summons bonded mount with all HP restored and conditions removed",
+                                       "dismissal":  "action dismisses temporarily; action can release bond permanently",
+                                       "leavesGear":  true
+                                   },
+                        "sustainAction":  {
+                                              "actions":  [
+                                                              {
+                                                                  "cost":  "Bonus Action",
+                                                                  "use":  "share_steed_sight_hearing_and_special_senses_if_supported_by_steed_rules"
+                                                              },
+                                                              {
+                                                                  "cost":  "steed Reaction",
+                                                                  "use":  "deliver_touch_spell_when_caster_casts_touch_spell_within_100_feet"
+                                                              }
+                                                          ],
+                                              "recast":  "casting_again_changes_or_replaces_persistent_steed_per_one_steed_limit",
+                                              "note":  "Greater steed follows Find Steed companion action boundaries."
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the steed form, the spirit creature type (Celestial, Fey, or Fiend), and one language the mount understands if its Intelligence would otherwise be 5 or lower.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  6,
+                       "optionsSource":  "modeChoice.options",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Griffon",
+                                           "summary":  "Summon the bonded spirit mount using the Griffon form and stat profile.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "persistent bonded mount"
+                                       },
+                                       {
+                                           "label":  "Pegasus",
+                                           "summary":  "Summon the bonded spirit mount using the Pegasus form and stat profile.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "persistent bonded mount"
+                                       },
+                                       {
+                                           "label":  "Peryton",
+                                           "summary":  "Summon the bonded spirit mount using the Peryton form and stat profile.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "persistent bonded mount"
+                                       },
+                                       {
+                                           "label":  "Dire Wolf",
+                                           "summary":  "Summon the bonded spirit mount using the Dire Wolf form and stat profile.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "persistent bonded mount"
+                                       },
+                                       {
+                                           "label":  "Rhinoceros",
+                                           "summary":  "Summon the bonded spirit mount using the Rhinoceros form and stat profile.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "persistent bonded mount"
+                                       },
+                                       {
+                                           "label":  "Saber-Toothed Tiger",
+                                           "summary":  "Summon the bonded spirit mount using the Saber-Toothed Tiger form and stat profile.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "persistent bonded mount"
+                                       }
+                                   ],
+                       "secondaryChoices":  {
+                                                "creatureTypeOptions":  [
+                                                                            "Celestial",
+                                                                            "Fey",
+                                                                            "Fiend"
+                                                                        ],
+                                                "languageChoiceRequired":  true,
+                                                "notes":  "The form controls the borrowed stat profile. The secondary spirit type and language choices are captured by the casting prompt until the runtime has a dedicated multi-choice schema."
+                                            }
+                   },
+    "description":  "You summon a spirit that assumes the form of a loyal, majestic mount. Appearing in an unoccupied space within range, the spirit takes on a form you choose: a griffon , a pegasus , a peryton , a dire wolf , a rhinoceros , or a saber-toothed tiger . The creature has the statistics provided in the Monster Manual for the chosen form, though it is a celestial, a fey, or a fiend (your choice) instead of its normal creature type. Additionally, if it has an Intelligence score of 5 or lower, its Intelligence becomes 6, and it gains the ability to understand one language of your choice that you speak. You control the mount in combat. While the mount is within 1 mile of you, you can communicate with it telepathically. While mounted on it, you can make any spell you cast that targets only you also target the mount. The mount disappears temporarily when it drops to 0 hit points or when you dismiss it as an action. Casting this spell again re-summons the bonded mount, with all its hit points restored and any conditions removed. You can\u0027t have more than one mount bonded by this spell or find steed at the same time. As an action, you can release a mount from its bond, causing it to disappear permanently. Whenever the mount disappears, it leaves behind any objects it was wearing or carrying.",
+    "higherLevels":  "",
+    "tags":  [
+                 "summoning",
+                 "mount",
+                 "spirit-companion"
+             ]
 }

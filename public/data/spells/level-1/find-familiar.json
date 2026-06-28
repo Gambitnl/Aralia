@@ -174,7 +174,29 @@
             "description": "Familiar delivers touch spells within 100 feet using its reaction.",
             "cost": "reaction"
           }
-        ]
+        ],
+        "lifecycle": {
+          "hitPointEnding": "familiar disappears when it drops to 0 Hit Points",
+          "dismissal": "caster can temporarily dismiss it to a pocket dimension or dismiss it forever as specified by the spell",
+          "carriedGearDrop": "when the familiar drops to 0 Hit Points or disappears into the pocket dimension, it leaves behind anything it was wearing or carrying in its space",
+          "replacement": "casting the spell again lets the caster choose a new familiar form"
+        },
+        "communication": {
+          "mode": "telepathy",
+          "rangeFeet": 100,
+          "participants": "caster and familiar only",
+          "sharedSenses": "caster can use familiar senses while within range as specified",
+          "notes": "Telepathic connection operates only while familiar is within 100 feet."
+        },
+        "actionPermissions": {
+          "canAttack": false,
+          "canDeliverTouchSpells": true,
+          "touchDeliveryRangeFeet": 100,
+          "touchDeliveryCost": "reaction",
+          "independentInitiative": true,
+          "obeysCasterCommands": true,
+          "notes": "The familiar cannot attack, acts independently, obeys commands, and can deliver the caster touch spell while within 100 feet by spending the familiar Reaction."
+        }
       },
       "scaling": {
         "type": "slot_level",
@@ -187,13 +209,141 @@
         "summon",
         "familiar",
         "spirit-companion"
-      ]
+      ],
+      "socialEffect": {
+        "relationship": "ally",
+        "alliedTo": [
+          "caster",
+          "caster_allies"
+        ],
+        "obeysCasterCommands": true,
+        "actsIndependently": true,
+        "notes": "The summoned familiar is an ally to the caster and the caster allies while acting independently and obeying commands."
+      },
+      "visionLightSound": {
+        "mode": "familiar_shared_senses",
+        "rangeFeet": 100,
+        "activation": "Bonus Action",
+        "duration": "until start of caster next turn",
+        "visualFeed": "caster sees through familiar eyes",
+        "audioFeed": "caster hears what familiar hears",
+        "specialSenses": "caster gains benefits of familiar special senses while sharing",
+        "telepathy": "caster can communicate telepathically within 100 feet",
+        "lightPayload": "none from spell"
+      },
+      "sensorState": {
+        "kind": "familiar_shared_senses",
+        "action": "Bonus Action",
+        "duration": "until_start_of_caster_next_turn",
+        "senses": [
+          "familiar_sight",
+          "familiar_hearing",
+          "familiar_special_senses"
+        ],
+        "casterOwnSenses": "replaced_or_supplemented_by_familiar_channel_as_play_interprets_shared_senses"
+      },
+      "sustainAction": {
+        "actions": [
+          {
+            "cost": "Bonus Action",
+            "use": "share_familiar_sight_hearing_and_special_senses_until_start_of_next_turn"
+          },
+          {
+            "cost": "Magic Action",
+            "use": "temporarily_dismiss_or_reappear_familiar"
+          },
+          {
+            "cost": "familiar Reaction",
+            "use": "deliver_touch_spell_when_caster_casts_touch_spell_within_100_feet"
+          }
+        ],
+        "recast": "casting_again_after_0_HP_reappears_familiar_or_changes_existing_familiar_form",
+        "limit": "one_familiar_at_a_time"
+      }
     }
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose the familiar's animal form and spirit type (Celestial, Fey, or Fiend). If recasting while a familiar exists, choose whether this casting changes the existing familiar's eligible form.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 15,
+    "optionsSource": "effects[0].summon.formOptions",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Bat",
+        "summary": "Summon or reshape the familiar into a Bat form."
+      },
+      {
+        "label": "Cat",
+        "summary": "Summon or reshape the familiar into a Cat form."
+      },
+      {
+        "label": "Crab",
+        "summary": "Summon or reshape the familiar into a Crab form."
+      },
+      {
+        "label": "Frog",
+        "summary": "Summon or reshape the familiar into a Frog form."
+      },
+      {
+        "label": "Hawk",
+        "summary": "Summon or reshape the familiar into a Hawk form."
+      },
+      {
+        "label": "Lizard",
+        "summary": "Summon or reshape the familiar into a Lizard form."
+      },
+      {
+        "label": "Octopus",
+        "summary": "Summon or reshape the familiar into an Octopus form."
+      },
+      {
+        "label": "Owl",
+        "summary": "Summon or reshape the familiar into an Owl form."
+      },
+      {
+        "label": "Poisonous Snake",
+        "summary": "Summon or reshape the familiar into a Poisonous Snake form."
+      },
+      {
+        "label": "Quipper",
+        "summary": "Summon or reshape the familiar into a Quipper form."
+      },
+      {
+        "label": "Rat",
+        "summary": "Summon or reshape the familiar into a Rat form."
+      },
+      {
+        "label": "Raven",
+        "summary": "Summon or reshape the familiar into a Raven form."
+      },
+      {
+        "label": "Sea Horse",
+        "summary": "Summon or reshape the familiar into a Sea Horse form."
+      },
+      {
+        "label": "Spider",
+        "summary": "Summon or reshape the familiar into a Spider form."
+      },
+      {
+        "label": "Weasel",
+        "summary": "Summon or reshape the familiar into a Weasel form."
+      }
+    ],
+    "secondaryChoices": {
+      "creatureTypeOptions": [
+        "Celestial",
+        "Fey",
+        "Fiend"
+      ],
+      "notes": "The form choice uses the existing summon.formOptions list; the spirit type is captured as a secondary casting choice until the runtime has a dedicated multi-choice schema."
+    },
+    "notes": "The selected familiar form determines the stat profile and special senses/actions available to the persistent familiar."
   },
   "description": "You gain the service of a familiar, a spirit that takes an animal form you choose: Bat , Cat , Frog , Hawk , Lizard , Octopus , Owl , Rat , Raven , Spider , Weasel , or another Beast that has a Challenge Rating of 0 . Appearing in an unoccupied space within range, the familiar has the statistics of the chosen form, though it is a Celestial, Fey, or Fiend (your choice) instead of a Beast. Your familiar acts independently of you, but it obeys your commands. Telepathic Connection. While your familiar is within 100 feet of you, you can communicate with it telepathically. Additionally, as a Bonus Action, you can see through the familiar's eyes and hear what it hears until the start of your next turn, gaining the benefits of any special senses it has. Finally, when you cast a spell with a range of touch, your familiar can deliver the touch. Your familiar must be within 100 feet of you, and it must take a Reaction to deliver the touch when you cast the spell. Combat. The familiar is an ally to you and your allies. It rolls its own Initiative and acts on its own turn. A familiar can't attack, but it can take other actions as normal. Disappearance of the Familiar. When the familiar drops to 0 Hit Points, it disappears. It reappears after you cast this spell again. As a Magic action, you can temporarily dismiss the familiar to a pocket dimension. Alternatively, you can dismiss it forever. As a Magic action while it is temporarily dismissed, you can cause it to reappear in an unoccupied space within 30 feet of you. Whenever the familiar drops to 0 Hit Points or disappears into the pocket dimension, it leaves behind in its space anything it was wearing or carrying. One Familiar Only. You can't have more than one familiar at a time. If you cast this spell while you have a familiar, you instead cause it to adopt a new eligible form.",
   "higherLevels": "",

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { resolveWorldSpawn, relocateStartTile, applyWfSpawnToMap } from '../resolveSpawn';
 import { legacyGridToAtlasCell } from '../gridAtlasBridge';
 import { generateFmgWorld } from '../../fmg/generateWorld';
+import { getBridgeAtlas } from '../../bridge/legacySubmapBridge';
 import { wfBiomeIndexToLegacyId } from '../wfBiomeToLegacy';
 import type { MapData } from '../../../../types';
 
@@ -133,7 +134,11 @@ describe('applyWfSpawnToMap — player-chosen town (spawnAtlasCellId)', () => {
 
   it('spawns at the chosen burg cell, not the auto capital', () => {
     const seed = 4321;
-    const world = generateFmgWorld(String(seed));
+    // WM1: derive the chosen burg from the SAME canonical world applyWfSpawnToMap
+    // resolves against (the bridge atlas, "aralia-<seed>"), not a bare
+    // generateFmgWorld(String(seed)) — otherwise the chosen cell belongs to a
+    // different world than the spawn is computed in (the exact WM1 mismatch).
+    const world = getBridgeAtlas(seed);
     const burgs = (world.pack.burgs ?? []).filter(
       (b: any) => b && b.i !== 0 && !b.removed && typeof b.cell === 'number',
     );

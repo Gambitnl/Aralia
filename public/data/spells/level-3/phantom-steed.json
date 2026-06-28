@@ -1,187 +1,260 @@
 {
-  "id": "phantom-steed",
-  "name": "Phantom Steed",
-  "aliases": [],
-  "level": 3,
-  "school": "Illusion",
-  "legacy": false,
-  "classes": [
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": true,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": false,
-    "value": 1,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "point",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "ground"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "SUMMONING",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "description": "Summon one Large quasi-real horse-like mount on an unoccupied ground space within 30 feet for up to 1 hour. The steed uses Riding Horse statistics with Speed 100 feet, can be ridden by the caster or a chosen creature, has saddle, bit, and bridle equipment that vanishes if carried more than 10 feet away, ends early if the steed takes damage, and fades over 1 minute when the spell ends.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "created_entity_takes_damage",
-          "scope": "spell",
-          "description": "The spell ends early if the phantom steed takes any damage."
-        }
-      ],
-      "summon": {
-        "entityType": "mount",
-        "persistent": false,
-        "count": 1,
-        "commandCost": "none",
-        "initiative": "shared",
-        "objectDescription": "Large quasi-real horse-like mount using Riding Horse statistics, Speed 100 feet, rideable by the caster or a chosen creature.",
-        "statBlock": {
-          "name": "Phantom Steed",
-          "type": "Beast",
-          "size": "Large",
-          "hp": 13,
-          "ac": 10,
-          "speed": 100,
-          "abilities": {
-            "str": 16,
-            "dex": 10,
-            "con": 12,
-            "int": 2,
-            "wis": 11,
-            "cha": 7
-          }
-        }
-      }
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "A Large, quasi-real, horselike creature appears on the ground in an unoccupied space of your choice within range. You decide the creature's appearance, and it is equipped with a saddle, bit, and bridle. Any of the equipment created by the spell vanishes in a puff of smoke if it is carried more than 10 feet away from the steed. For the duration, you or a creature you choose can ride the steed. The steed uses the Riding Horse stat block, except it has a Speed of 100 feet and can travel 13 miles in an hour. When the spell ends, the steed gradually fades, giving the rider 1 minute to dismount. The spell ends early if the steed takes any damage.",
-  "higherLevels": "",
-  "tags": [
-    "summoning",
-    "mount",
-    "ritual",
-    "utility"
-  ]
+    "id":  "phantom-steed",
+    "name":  "Phantom Steed",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Illusion",
+    "legacy":  false,
+    "classes":  [
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  true,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  false,
+                     "value":  1,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "ground"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "requiresUnoccupiedSpace":  true,
+                                                                  "surface":  "ground",
+                                                                  "spaceSize":  "Large",
+                                                                  "chosenBy":  "caster",
+                                                                  "rangeAnchor":  "within_spell_range",
+                                                                  "lineOfSightRequired":  true,
+                                                                  "notes":  "The quasi-real steed appears on the ground in an unoccupied Large space of the caster choice within 30 feet."
+                                                              }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "SUMMONING",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "description":  "Summon one Large quasi-real horse-like mount on an unoccupied ground space within 30 feet for up to 1 hour. The steed uses Riding Horse statistics with Speed 100 feet, can be ridden by the caster or a chosen creature, has saddle, bit, and bridle equipment that vanishes if carried more than 10 feet away, ends early if the steed takes damage, and fades over 1 minute when the spell ends.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "created_entity_takes_damage",
+                                                       "scope":  "spell",
+                                                       "description":  "The spell ends early if the phantom steed takes any damage."
+                                                   }
+                                               ],
+                        "summon":  {
+                                       "entityType":  "mount",
+                                       "persistent":  false,
+                                       "count":  1,
+                                       "commandCost":  "none",
+                                       "initiative":  "shared",
+                                       "objectDescription":  "Large quasi-real horse-like mount using Riding Horse statistics, Speed 100 feet, rideable by the caster or a chosen creature.",
+                                       "statBlock":  {
+                                                         "name":  "Phantom Steed",
+                                                         "type":  "Beast",
+                                                         "size":  "Large",
+                                                         "hp":  13,
+                                                         "ac":  10,
+                                                         "speed":  100,
+                                                         "abilities":  {
+                                                                           "str":  16,
+                                                                           "dex":  10,
+                                                                           "con":  12,
+                                                                           "int":  2,
+                                                                           "wis":  11,
+                                                                           "cha":  7
+                                                                       }
+                                                     },
+                                       "travelDetails":  {
+                                                             "speedFeet":  100,
+                                                             "travelPaceMilesPerHour":  13,
+                                                             "rider":  "caster or chosen rider",
+                                                             "fadeAfterSpellEnd":  "rider has 1 minute to dismount as steed fades",
+                                                             "equipmentLimit":  "created equipment vanishes if carried more than 10 feet from steed"
+                                                         }
+                                   },
+                        "createdResource":  {
+                                                "equipment":  [
+                                                                  "saddle",
+                                                                  "bit",
+                                                                  "bridle"
+                                                              ],
+                                                "equipmentLifecycle":  "equipment_created_by_spell_vanishes_if_carried_more_than_10_feet_from_steed",
+                                                "steedLifecycle":  "steed_fades_after_duration_or_when_dismissed_or_after_taking_damage_delay"
+                                            },
+                        "illusionState":  {
+                                              "kind":  "quasi_real_illusory_mount",
+                                              "form":  "Large_horselike_creature",
+                                              "appearance":  "caster_decides_creature_appearance",
+                                              "equipment":  [
+                                                                "saddle",
+                                                                "bit",
+                                                                "bridle"
+                                                            ],
+                                              "lifecycle":  "quasi_real_steed_last_up_to_1_hour_or_fades_after_damage_or_dismissal"
+                                          },
+                        "aftermathState":  {
+                                               "kind":  "steed_fade_grace_period",
+                                               "when":  "spell_ends",
+                                               "consequence":  "steed_gradually_fades",
+                                               "gracePeriod":  "1_minute_for_rider_to_dismount",
+                                               "appliesTo":  "summoned_quasi_real_mount"
+                                           }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the unoccupied ground space for the steed, describe its appearance, and choose whether the caster or another creature can ride it.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "A Large, quasi-real, horselike creature appears on the ground in an unoccupied space of your choice within range. You decide the creature\u0027s appearance, and it is equipped with a saddle, bit, and bridle. Any of the equipment created by the spell vanishes in a puff of smoke if it is carried more than 10 feet away from the steed. For the duration, you or a creature you choose can ride the steed. The steed uses the Riding Horse stat block, except it has a Speed of 100 feet and can travel 13 miles in an hour. When the spell ends, the steed gradually fades, giving the rider 1 minute to dismount. The spell ends early if the steed takes any damage.",
+    "higherLevels":  "",
+    "tags":  [
+                 "summoning",
+                 "mount",
+                 "ritual",
+                 "utility"
+             ]
 }

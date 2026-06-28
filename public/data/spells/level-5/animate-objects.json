@@ -1,197 +1,322 @@
 {
-  "id": "animate-objects",
-  "name": "Animate Objects",
-  "aliases": [],
-  "level": 5,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Sorcerer",
-    "Wizard",
-    "Artificer"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "multi",
-    "range": 120,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "objects"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "excluded",
-        "magicalStatus": "nonmagical",
-        "fixedToSurface": "excluded",
-        "maxSize": "Huge or smaller",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "Animate eligible nonmagical unattended Huge-or-smaller objects within 120 feet for up to 1 minute with concentration. Object size counts against your spellcasting ability modifier limit, each object becomes an allied Construct that shares your initiative, you can command any within 500 feet as a Bonus Action, uncommanded objects Dodge and avoid harm, and each object reverts at 0 Hit Points with excess damage carrying over.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "Slam damage increases by object size per slot level above 5th",
-        "customFormula": "Each slot level above 5th increases Slam damage by 1d4 for Medium-or-smaller objects, 1d6 for Large objects, or 1d12 for Huge objects."
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "created_entity_drops_to_0_hp",
-          "scope": "effect",
-          "description": "Control over an animated object ends when that creature is reduced to 0 Hit Points; it reverts to object form, and any remaining damage carries over to that form."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "Objects animate at your command. Choose a number of nonmagical objects within range that aren't being worn or carried, aren't fixed to a surface, and aren't Gargantuan. The maximum number of objects is equal to your spellcasting ability modifier; for this number, a Medium or smaller target counts as one object, a Large target counts as two, and a Huge target counts as three. Each target animates, sprouts legs, and becomes a Construct that uses the Animated Object stat block; this creature is under your control until the spell ends or until it is reduced to 0 Hit Points. Each creature you make with this spell is an ally to you and your allies. In combat, it shares your Initiative count and takes its turn immediately after yours. Until the spell ends, you can take a Bonus Action to mentally command any creature you made with this spell if the creature is within 500 feet of you (if you control multiple creatures, you can command any of them at the same time, issuing the same command to each one). If you issue no commands, the creature takes the Dodge action and moves only to avoid harm. When the creature drops to 0 Hit Points, it reverts to its object form, and any remaining damage carries over to that form.",
-  "higherLevels": "The creature's Slam damage increases by 1d4 (Medium or smaller), 1d6 (Large), or 1d12 (Huge) for each spell slot level above 5. Huge or Smaller Construct, Unaligned AC 15 HP 10 (Medium or smaller), 20 (Large), 40 (Huge) Speed 30 ft. Immunities Poison, Psychic; Charmed, Exhaustion, Frightened, Paralyzed, Poisoned Senses Blindsight 30 ft.; Passive Perception 6 Languages Understands the languages you know CR None (XP 0; PB equals your Proficiency Bonus) Slam. Melee Attack Roll: Bonus equals your spell attack modifier, reach 5 ft. Hit: Force damage equal to 1d4 + 3 (Medium or smaller), 2d6 + 3 + your spellcasting ability modifier (Large), or 2d12 + 3 + your spellcasting ability modifier (Huge).",
-  "tags": [
-    "transmutation",
-    "summoning",
-    "control",
-    "concentration"
-  ]
+    "id":  "animate-objects",
+    "name":  "Animate Objects",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Sorcerer",
+                    "Wizard",
+                    "Artificer"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "multi",
+                      "range":  120,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "objects"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "excluded",
+                                                               "magicalStatus":  "nonmagical",
+                                                               "fixedToSurface":  "excluded",
+                                                               "maxSize":  "Huge or smaller",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "Animate eligible nonmagical unattended Huge-or-smaller objects within 120 feet for up to 1 minute with concentration. Object size counts against your spellcasting ability modifier limit, each object becomes an allied Construct that shares your initiative, you can command any within 500 feet as a Bonus Action, uncommanded objects Dodge and avoid harm, and each object reverts at 0 Hit Points with excess damage carrying over.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "Slam damage increases by object size per slot level above 5th",
+                                        "customFormula":  "Each slot level above 5th increases Slam damage by 1d4 for Medium-or-smaller objects, 1d6 for Large objects, or 1d12 for Huge objects."
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "bonus_action",
+                                                   "action":  "Command Animated Objects",
+                                                   "frequency":  "each_turn",
+                                                   "actor":  "caster",
+                                                   "range":  500,
+                                                   "rangeUnit":  "feet",
+                                                   "targets":  "any_or_all_animated_objects",
+                                                   "notes":  "Mentally command any or all animated objects within 500 feet; without commands, they Dodge and avoid harm."
+                                               }
+                                           ],
+                        "attackAugments":  [
+                                               {
+                                                   "name":  "Animated Object Slam",
+                                                   "attackBonusSource":  "caster_spell_attack_modifier",
+                                                   "reach":  5,
+                                                   "reachUnit":  "feet",
+                                                   "damageBySize":  {
+                                                                        "medium_or_smaller":  "1d4 + 3 Force",
+                                                                        "large":  "2d6 + 3 + spellcasting ability modifier Force",
+                                                                        "huge":  "2d12 + 3 + spellcasting ability modifier Force"
+                                                                    },
+                                                   "slotScaling":  {
+                                                                       "medium_or_smaller":  "+1d4 per slot level above 5",
+                                                                       "large":  "+1d6 per slot level above 5",
+                                                                       "huge":  "+1d12 per slot level above 5"
+                                                                   }
+                                               }
+                                           ],
+                        "animatedObjectState":  {
+                                                    "creatureType":  "Construct",
+                                                    "damageImmunities":  [
+                                                                             "Poison",
+                                                                             "Psychic"
+                                                                         ],
+                                                    "conditionImmunities":  [
+                                                                                "Charmed",
+                                                                                "Exhaustion",
+                                                                                "Frightened",
+                                                                                "Paralyzed",
+                                                                                "Poisoned"
+                                                                            ],
+                                                    "description":  "Animated objects use the Animated Object stat block immunity package while they remain animated.",
+                                                    "armorClass":  15,
+                                                    "hitPointsBySize":  {
+                                                                            "mediumOrSmaller":  10,
+                                                                            "large":  20,
+                                                                            "huge":  40
+                                                                        },
+                                                    "lifecycle":  {
+                                                                      "hitPointEnding":  "animated construct remains under caster control until spell ends or it is reduced to 0 hit points",
+                                                                      "reversion":  "when the creature drops to 0 hit points, it reverts to object form",
+                                                                      "damageCarryover":  "remaining damage carries over to the original object form"
+                                                                  },
+                                                    "communication":  {
+                                                                          "understandsCasterLanguages":  true,
+                                                                          "languageEntry":  "Understands the languages the caster knows",
+                                                                          "commandChannel":  "caster mentally commands animated objects as described by existing control action data",
+                                                                          "speechGranted":  false
+                                                                      },
+                                                    "control":  {
+                                                                    "entityType":  "Animated Object Construct",
+                                                                    "maxObjects":  "caster spellcasting ability modifier worth of objects by size cost",
+                                                                    "allegiance":  "ally",
+                                                                    "initiative":  "shares caster initiative",
+                                                                    "commandAction":  "Bonus Action",
+                                                                    "commandRangeFeet":  500,
+                                                                    "commandScope":  "commands one or all animated objects to move and act",
+                                                                    "noCommandBehavior":  "Dodges and avoids danger",
+                                                                    "lifecycle":  "controlled until spell ends or object reaches 0 HP, then reverts with damage carryover"
+                                                                }
+                                                },
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "created_entity_drops_to_0_hp",
+                                                       "scope":  "effect",
+                                                       "description":  "Control over an animated object ends when that creature is reduced to 0 Hit Points; it reverts to object form, and any remaining damage carries over to that form."
+                                                   }
+                                               ],
+                        "socialEffect":  {
+                                             "relationship":  "ally",
+                                             "alliedTo":  [
+                                                              "caster",
+                                                              "caster_allies"
+                                                          ],
+                                             "understandsCasterLanguages":  true,
+                                             "conditionImmunities":  [
+                                                                         "Charmed",
+                                                                         "Exhaustion",
+                                                                         "Frightened",
+                                                                         "Paralyzed",
+                                                                         "Poisoned"
+                                                                     ],
+                                             "damageImmunities":  [
+                                                                      "Poison",
+                                                                      "Psychic"
+                                                                  ],
+                                             "notes":  "Animated objects are allies to the caster and allies, understand the caster languages, and carry listed immunities."
+                                         }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose eligible nonmagical unattended objects within 120 feet. Count each Medium or smaller object as 1, each Large object as 2, and each Huge object as 3 against the caster\u0027s spellcasting ability modifier limit; record the command issued to animated objects within 500 feet on later Bonus Actions.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "Objects animate at your command. Choose a number of nonmagical objects within range that aren\u0027t being worn or carried, aren\u0027t fixed to a surface, and aren\u0027t Gargantuan. The maximum number of objects is equal to your spellcasting ability modifier; for this number, a Medium or smaller target counts as one object, a Large target counts as two, and a Huge target counts as three. Each target animates, sprouts legs, and becomes a Construct that uses the Animated Object stat block; this creature is under your control until the spell ends or until it is reduced to 0 Hit Points. Each creature you make with this spell is an ally to you and your allies. In combat, it shares your Initiative count and takes its turn immediately after yours. Until the spell ends, you can take a Bonus Action to mentally command any creature you made with this spell if the creature is within 500 feet of you (if you control multiple creatures, you can command any of them at the same time, issuing the same command to each one). If you issue no commands, the creature takes the Dodge action and moves only to avoid harm. When the creature drops to 0 Hit Points, it reverts to its object form, and any remaining damage carries over to that form.",
+    "higherLevels":  "The creature\u0027s Slam damage increases by 1d4 (Medium or smaller), 1d6 (Large), or 1d12 (Huge) for each spell slot level above 5. Huge or Smaller Construct, Unaligned AC 15 HP 10 (Medium or smaller), 20 (Large), 40 (Huge) Speed 30 ft. Immunities Poison, Psychic; Charmed, Exhaustion, Frightened, Paralyzed, Poisoned Senses Blindsight 30 ft.; Passive Perception 6 Languages Understands the languages you know CR None (XP 0; PB equals your Proficiency Bonus) Slam. Melee Attack Roll: Bonus equals your spell attack modifier, reach 5 ft. Hit: Force damage equal to 1d4 + 3 (Medium or smaller), 2d6 + 3 + your spellcasting ability modifier (Large), or 2d12 + 3 + your spellcasting ability modifier (Huge).",
+    "tags":  [
+                 "transmutation",
+                 "summoning",
+                 "control",
+                 "concentration"
+             ]
 }

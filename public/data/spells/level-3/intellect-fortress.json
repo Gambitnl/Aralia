@@ -159,6 +159,19 @@
       },
       "utilityType": "other",
       "description": "Choose yourself or one willing creature you can see within 30 feet for up to 1 hour with concentration; the target has Advantage on Intelligence, Wisdom, and Charisma saves. Higher slots add one target per slot level above 3, and all targets must be within 30 feet of each other.",
+      "savingThrowModifier": {
+        "modifier": "advantage",
+        "stats": [
+          "Intelligence",
+          "Wisdom",
+          "Charisma"
+        ],
+        "consumption": "while_active",
+        "duration": {
+          "type": "minutes",
+          "value": 60
+        }
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -232,8 +245,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Apply Psychic resistance and Advantage on Intelligence, Wisdom, and Charisma saving throws to each chosen willing target for the spell's duration.",
+    "playerInputRequired": true
   },
   "description": "For the duration, you or one willing creature you can see within range has resistance to psychic damage, as well as advantage on Intelligence, Wisdom, and Charisma saving throws.",
   "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, you can target one additional creature for each slot level above 3rd. The creatures must be within 30 feet of each other when you target them.",

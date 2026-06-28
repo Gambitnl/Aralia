@@ -1,270 +1,354 @@
 {
-  "id": "primordial-ward",
-  "name": "Primordial Ward",
-  "aliases": [],
-  "level": 6,
-  "school": "Abjuration",
-  "legacy": false,
-  "classes": [
-    "Druid"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 1,
-    "unit": "minute"
-  },
-  "targeting": {
-    "type": "self",
-    "validTargets": [
-      "self"
-    ],
-    "lineOfSight": false,
-    "range": 0,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "defenseType": "resistance",
-      "damageType": [
-        "Acid",
-        "Cold",
-        "Fire",
-        "Lightning",
-        "Thunder"
-      ],
-      "duration": {
-        "type": "minutes",
-        "value": 1
-      },
-      "description": "The caster has resistance to Acid, Cold, Fire, Lightning, and Thunder damage for up to 1 minute with concentration.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "on_target_attack",
-        "frequency": "every_time",
-        "consumption": "per_turn",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "reaction",
-          "optional": true
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "defenseType": "immunity",
-      "damageType": [
-        "Acid",
-        "Cold",
-        "Fire",
-        "Lightning",
-        "Thunder"
-      ],
-      "duration": {
-        "type": "rounds",
-        "value": 1
-      },
-      "description": "When the caster takes Acid, Cold, Fire, Lightning, or Thunder damage, the caster can use a reaction to gain immunity to that triggering damage type, including against the triggering damage, until the end of the caster's next turn.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Using the reaction immunity ends the spell's Acid, Cold, Fire, Lightning, and Thunder resistances immediately, and the spell ends when the chosen immunity ends at the end of the caster's next turn.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Reaction Immunity",
-          "effect": "When the caster takes one of the listed damage types, the caster can use a reaction to gain immunity to that type, including against the triggering damage."
-        },
-        {
-          "name": "Resistances End",
-          "effect": "Using the reaction immunity ends the spell's resistances."
-        },
-        {
-          "name": "Immunity Until Next Turn",
-          "effect": "The chosen immunity lasts until the end of the caster's next turn."
-        },
-        {
-          "name": "Spell Ends After Immunity",
-          "effect": "The spell ends at the end of the caster's next turn after the reaction immunity."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You have resistance to acid, cold, fire, lightning, and thunder damage for the spell's duration. When you take damage of one of those types, you can use your reaction to gain immunity to that type of damage, including against the triggering damage. If you do so, the resistances end, and you have the immunity until the end of your next turn, at which time the spell ends.",
-  "higherLevels": "",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "primordial-ward",
+    "name":  "Primordial Ward",
+    "aliases":  [
+
+                ],
+    "level":  6,
+    "school":  "Abjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Druid"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  1,
+                     "unit":  "minute"
+                 },
+    "targeting":  {
+                      "type":  "self",
+                      "validTargets":  [
+                                           "self"
+                                       ],
+                      "lineOfSight":  false,
+                      "range":  0,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "defenseType":  "resistance",
+                        "damageType":  [
+                                           "Acid",
+                                           "Cold",
+                                           "Fire",
+                                           "Lightning",
+                                           "Thunder"
+                                       ],
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  1
+                                     },
+                        "description":  "The caster has resistance to Acid, Cold, Fire, Lightning, and Thunder damage for up to 1 minute with concentration.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "reaction_immunity_used",
+                                                       "scope":  "resistance_package",
+                                                       "description":  "Using the reaction immunity ends the Acid, Cold, Fire, Lightning, and Thunder resistances."
+                                                   },
+                                                   {
+                                                       "trigger":  "end_of_next_turn_after_immunity",
+                                                       "scope":  "spell",
+                                                       "description":  "The chosen immunity lasts until the end of the caster next turn, then the spell ends."
+                                                   }
+                                               ]
+                    },
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "on_target_attack",
+                                        "frequency":  "every_time",
+                                        "consumption":  "per_turn",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "reaction",
+                                                            "optional":  true
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "defenseType":  "immunity",
+                        "damageType":  [
+                                           "Acid",
+                                           "Cold",
+                                           "Fire",
+                                           "Lightning",
+                                           "Thunder"
+                                       ],
+                        "duration":  {
+                                         "type":  "rounds",
+                                         "value":  1
+                                     },
+                        "description":  "When the caster takes Acid, Cold, Fire, Lightning, or Thunder damage, the caster can use a reaction to gain immunity to that triggering damage type, including against the triggering damage, until the end of the caster\u0027s next turn.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "reaction_immunity_used",
+                                                       "scope":  "resistance_package",
+                                                       "description":  "Using the reaction immunity ends the Acid, Cold, Fire, Lightning, and Thunder resistances."
+                                                   },
+                                                   {
+                                                       "trigger":  "end_of_next_turn_after_immunity",
+                                                       "scope":  "spell",
+                                                       "description":  "The chosen immunity lasts until the end of the caster next turn, then the spell ends."
+                                                   }
+                                               ],
+                        "wardTrigger":  {
+                                            "kind":  "reaction_immunity_conversion",
+                                            "trigger":  "caster_takes_acid_cold_fire_lightning_or_thunder_damage",
+                                            "response":  "caster_can_use_reaction_to_gain_immunity_to_triggering_damage_type",
+                                            "tradeoff":  "all_resistances_end_and_spell_ends_when_immunity_ends"
+                                        }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Using the reaction immunity ends the spell\u0027s Acid, Cold, Fire, Lightning, and Thunder resistances immediately, and the spell ends when the chosen immunity ends at the end of the caster\u0027s next turn.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Reaction Immunity",
+                                                   "effect":  "When the caster takes one of the listed damage types, the caster can use a reaction to gain immunity to that type, including against the triggering damage."
+                                               },
+                                               {
+                                                   "name":  "Resistances End",
+                                                   "effect":  "Using the reaction immunity ends the spell\u0027s resistances."
+                                               },
+                                               {
+                                                   "name":  "Immunity Until Next Turn",
+                                                   "effect":  "The chosen immunity lasts until the end of the caster\u0027s next turn."
+                                               },
+                                               {
+                                                   "name":  "Spell Ends After Immunity",
+                                                   "effect":  "The spell ends at the end of the caster\u0027s next turn after the reaction immunity."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "reaction_immunity_used",
+                                                       "scope":  "resistance_package",
+                                                       "description":  "Using the reaction immunity ends the Acid, Cold, Fire, Lightning, and Thunder resistances."
+                                                   },
+                                                   {
+                                                       "trigger":  "end_of_next_turn_after_immunity",
+                                                       "scope":  "spell",
+                                                       "description":  "The chosen immunity lasts until the end of the caster next turn, then the spell ends."
+                                                   }
+                                               ],
+                        "wardTrigger":  {
+                                            "kind":  "reaction_immunity_cleanup",
+                                            "trigger":  "caster_uses_reaction_immunity",
+                                            "response":  "resistances_end_immediately_and_spell_ends_at_end_of_next_turn"
+                                        }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You have resistance to acid, cold, fire, lightning, and thunder damage for the spell\u0027s duration. When you take damage of one of those types, you can use your reaction to gain immunity to that type of damage, including against the triggering damage. If you do so, the resistances end, and you have the immunity until the end of your next turn, at which time the spell ends.",
+    "higherLevels":  "",
+    "tags":  [
+                 "concentration"
+             ]
 }

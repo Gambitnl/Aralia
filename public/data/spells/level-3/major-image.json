@@ -1,252 +1,349 @@
 {
-  "id": "major-image",
-  "name": "Major Image",
-  "aliases": [],
-  "level": 3,
-  "school": "Illusion",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Sorcerer",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a bit of fleece",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "range": 120,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 20,
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "sensory",
-      "description": "Creates a movable multisensory illusion up to a 20-foot cube; it can include sight, sound, smell, and temperature, cannot cause damage or conditions, and is revealed per creature by physical interaction or a successful Study action.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "sensoryManifestation": {
-        "modeSource": "not_applicable",
-        "variants": [
-          {
-            "label": "Major Image",
-            "allowedSenses": [
-              "sight",
-              "sound",
-              "smell",
-              "other_sensory_effect"
-            ],
-            "excludedSenses": [],
-            "maxSize": {
-              "shape": "Cube",
-              "size": 20,
-              "unit": "feet"
-            },
-            "timing": "continuous_or_discrete_before_spell_end",
-            "notes": "It seems real, including sounds, smells, and temperature appropriate to the thing depicted. You can cause the illusion to make different sounds at different times."
-          }
-        ]
-      },
-      "illusion": {
-        "revealScope": "per_creature",
-        "revealRules": [
-          {
-            "method": "physical_interaction",
-            "appliesTo": [
-              "Major Image"
-            ],
-            "notes": "Physical interaction with the image reveals it to be an illusion, because things can pass through it."
-          },
-          {
-            "method": "study_action",
-            "actionCost": "action",
-            "ability": "Intelligence",
-            "skill": "Investigation",
-            "dc": "spell_save_dc",
-            "appliesTo": [
-              "Major Image"
-            ]
-          }
-        ],
-        "discernedState": "faint_to_discerning_creature",
-        "notes": "If a creature discerns the illusion for what it is, the creature can see through the image, and its other sensory qualities become faint to the creature."
-      }
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 20-foot Cube . The image appears at a spot that you can see within range and lasts for the duration. It seems real, including sounds, smells, and temperature appropriate to the thing depicted, but it can't deal damage or cause conditions. If you are within range of the illusion, you can take a Magic action to cause the image to move to any other spot within range. As the image changes location, you can alter its appearance so that its movements appear natural for the image. For example, if you create an image of a creature and move it, you can alter the image so that it appears to be walking. Similarly, you can cause the illusion to make different sounds at different times, even making it carry on a conversation, for example. Physical interaction with the image reveals it to be an illusion, for things can pass through it. A creature that takes a Study action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image, and its other sensory qualities become faint to the creature.",
-  "higherLevels": "Using a Higher-Level Spell Slot. The spell lasts until dispelled, without requiring Concentration , if cast with a level 4+ spell slot.",
-  "higherLevelScaling": {
-    "type": "slot_level_table",
-    "baseSpellLevel": 3,
-    "entries": {
-      "3": "duration 10 minutes with concentration",
-      "4+": "duration until dispelled without concentration"
-    },
-    "notes": "Casting Major Image with a level 4 or higher slot removes concentration and changes the duration to until dispelled."
-  },
-  "tags": [
-    "illusion",
-    "utility",
-    "sensory",
-    "concentration"
-  ]
+    "id":  "major-image",
+    "name":  "Major Image",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Illusion",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Sorcerer",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a bit of fleece",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  120,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  20,
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "sensory",
+                        "description":  "Creates a movable multisensory illusion up to a 20-foot cube; it can include sight, sound, smell, and temperature, cannot cause damage or conditions, and is revealed per creature by physical interaction or a successful Study action.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "sensoryManifestation":  {
+                                                     "modeSource":  "not_applicable",
+                                                     "variants":  [
+                                                                      {
+                                                                          "label":  "Major Image",
+                                                                          "allowedSenses":  [
+                                                                                                "sight",
+                                                                                                "sound",
+                                                                                                "smell",
+                                                                                                "other_sensory_effect"
+                                                                                            ],
+                                                                          "excludedSenses":  [
+
+                                                                                             ],
+                                                                          "maxSize":  {
+                                                                                          "shape":  "Cube",
+                                                                                          "size":  20,
+                                                                                          "unit":  "feet"
+                                                                                      },
+                                                                          "timing":  "continuous_or_discrete_before_spell_end",
+                                                                          "notes":  "It seems real, including sounds, smells, and temperature appropriate to the thing depicted. You can cause the illusion to make different sounds at different times."
+                                                                      }
+                                                                  ]
+                                                 },
+                        "illusion":  {
+                                         "revealScope":  "per_creature",
+                                         "revealRules":  [
+                                                             {
+                                                                 "method":  "physical_interaction",
+                                                                 "appliesTo":  [
+                                                                                   "Major Image"
+                                                                               ],
+                                                                 "notes":  "Physical interaction with the image reveals it to be an illusion, because things can pass through it."
+                                                             },
+                                                             {
+                                                                 "method":  "study_action",
+                                                                 "actionCost":  "action",
+                                                                 "ability":  "Intelligence",
+                                                                 "skill":  "Investigation",
+                                                                 "dc":  "spell_save_dc",
+                                                                 "appliesTo":  [
+                                                                                   "Major Image"
+                                                                               ]
+                                                             }
+                                                         ],
+                                         "discernedState":  "faint_to_discerning_creature",
+                                         "notes":  "If a creature discerns the illusion for what it is, the creature can see through the image, and its other sensory qualities become faint to the creature."
+                                     },
+                        "apparentEnvironment":  {
+                                                    "maxIllusionShape":  "Cube",
+                                                    "maxIllusionSizeFeet":  20,
+                                                    "sensoryChannels":  [
+                                                                            "sight",
+                                                                            "sound",
+                                                                            "smell",
+                                                                            "temperature"
+                                                                        ],
+                                                    "seemsReal":  true,
+                                                    "canDealDamage":  false,
+                                                    "canCauseConditions":  false,
+                                                    "movableWithinRangeByMagicAction":  true,
+                                                    "naturalMotionAppearance":  true,
+                                                    "canChangeSoundsOverTime":  true,
+                                                    "canConverseAsIllusion":  true,
+                                                    "revealedByPhysicalInteraction":  true,
+                                                    "studyCheck":  {
+                                                                       "action":  "Study",
+                                                                       "ability":  "Intelligence",
+                                                                       "skill":  "Investigation",
+                                                                       "dc":  "spell_save_dc"
+                                                                   },
+                                                    "discernedState":  "see_through_image_and_other_sensory_qualities_become_faint",
+                                                    "notes":  "Major Image can simulate environmental sensory qualities such as sound, smell, and temperature, but they are apparent illusion qualities only and cannot damage or impose conditions."
+                                                },
+                        "perceptionState":  {
+                                                "kind":  "discerned_illusion_observer_state",
+                                                "revealMethods":  [
+                                                                      "physical_interaction",
+                                                                      "Study_action_Investigation_check"
+                                                                  ],
+                                                "afterDiscerned":  "observer_can_see_through_image_and_other_sensory_qualities_become_faint_to_that_observer",
+                                                "remoteSensor":  false
+                                            },
+                        "illusionState":  {
+                                              "kind":  "movable_multisensory_image",
+                                              "maxSize":  "20_foot_cube",
+                                              "senses":  [
+                                                             "sight",
+                                                             "sound",
+                                                             "smell",
+                                                             "temperature"
+                                                         ],
+                                              "cannot":  [
+                                                             "deal_damage",
+                                                             "cause_conditions"
+                                                         ],
+                                              "movement":  "caster_within_range_can_take_Magic_action_to_move_image_and_adjust_appearance_sounds",
+                                              "revealMethods":  [
+                                                                    "physical_interaction",
+                                                                    "Study_action_Intelligence_Investigation"
+                                                                ],
+                                              "afterRevealed":  "observer_sees_through_image_and_other_sensory_qualities_become_faint"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 20-foot Cube . The image appears at a spot that you can see within range and lasts for the duration. It seems real, including sounds, smells, and temperature appropriate to the thing depicted, but it can\u0027t deal damage or cause conditions. If you are within range of the illusion, you can take a Magic action to cause the image to move to any other spot within range. As the image changes location, you can alter its appearance so that its movements appear natural for the image. For example, if you create an image of a creature and move it, you can alter the image so that it appears to be walking. Similarly, you can cause the illusion to make different sounds at different times, even making it carry on a conversation, for example. Physical interaction with the image reveals it to be an illusion, for things can pass through it. A creature that takes a Study action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image, and its other sensory qualities become faint to the creature.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. The spell lasts until dispelled, without requiring Concentration , if cast with a level 4+ spell slot.",
+    "higherLevelScaling":  {
+                               "type":  "slot_level_table",
+                               "baseSpellLevel":  3,
+                               "entries":  {
+                                               "3":  "duration 10 minutes with concentration",
+                                               "4+":  "duration until dispelled without concentration"
+                                           },
+                               "notes":  "Casting Major Image with a level 4 or higher slot removes concentration and changes the duration to until dispelled."
+                           },
+    "tags":  [
+                 "illusion",
+                 "utility",
+                 "sensory",
+                 "concentration"
+             ]
 }

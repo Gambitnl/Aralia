@@ -1,339 +1,441 @@
 {
-  "id": "unseen-servant",
-  "name": "Unseen Servant",
-  "aliases": [],
-  "level": 1,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": true,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a bit of string and of wood",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "point",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "range": 60,
-    "rangeUnit": "feet",
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable",
-      "placementEligibility": {
-        "unoccupied": "required",
-        "surface": "ground",
-        "destination": "not_applicable"
-      }
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable",
-          "placementEligibility": {
-            "unoccupied": "required",
-            "surface": "ground",
-            "destination": "not_applicable"
-          }
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "Expose the invisible force as a controlled utility helper: the caster can command it once per turn with a Bonus Action to move and interact with objects, but it cannot attack and the spell ends if it is destroyed or sent too far away.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlledEntity": {
-        "entityType": "unseen_servant",
-        "count": 1,
-        "appearsAt": "chosen_point",
-        "durationScope": "spell_duration",
-        "controlActionType": "bonus_action",
-        "initialUseOnCast": false,
-        "laterControlTiming": "later_turns",
-        "movementDistance": 15,
-        "movementUnit": "feet",
-        "maxDistanceFromCaster": 60,
-        "canAttack": false,
-        "canActivateMagicItems": false,
-        "carryCapacityPounds": "not_applicable",
-        "allowedInteractions": [
-          "fetch_objects",
-          "clean",
-          "mend",
-          "fold_clothes",
-          "light_fires",
-          "serve_food",
-          "pour_drinks",
-          "interact_with_object"
-        ],
-        "endingTriggers": [
-          "beyond_max_distance",
-          "drops_to_0_hp"
-        ],
-        "notes": "The servant is an invisible, mindless, shapeless Medium force. Its AC, HP, Strength, size, and speed remain on the SUMMONING stat block; this utility row makes the command economy and allowed simple tasks machine-readable."
-      },
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "SUMMONING",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable",
-          "placementEligibility": {
-            "unoccupied": "required",
-            "surface": "ground",
-            "destination": "not_applicable"
-          }
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "summon": {
-        "entityType": "servant",
-        "persistent": false,
-        "count": 1,
-        "objectDescription": "Invisible servant (AC 10, 1 hp, Str 2, speed 15 ft) that performs simple tasks; cannot attack.",
-        "commandCost": "bonus_action",
-        "commandsPerTurn": 1,
-        "statBlock": {
-          "name": "Unseen Servant",
-          "type": "Force",
-          "size": "Medium",
-          "ac": 10,
-          "hp": 1,
-          "speed": 15,
-          "abilities": {
-            "str": 2,
-            "dex": 10,
-            "con": 10,
-            "int": 1,
-            "wis": 10,
-            "cha": 1
-          }
-        },
-        "specialActions": [
-          {
-            "name": "Move and Interact",
-            "description": "Move up to 15 feet and interact with an object to perform a simple task such as fetching, cleaning, mending, lighting, serving, or pouring.",
-            "cost": "bonus_action"
-          }
-        ]
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "Summon one temporary invisible servant in an unoccupied ground space within 60 feet. The servant has AC 10, 1 Hit Point, Strength 2, Speed 15 feet, cannot attack, can perform simple tasks when commanded with a Bonus Action, and the spell ends if it drops to 0 Hit Points or moves too far away.",
-      "conditionalEndings": [
-        {
-          "trigger": "created_entity_drops_to_0_hp",
-          "scope": "spell",
-          "description": "The spell ends if the servant drops to 0 Hit Points."
-        },
-        {
-          "trigger": "beyond_max_distance",
-          "scope": "spell",
-          "description": "The spell ends if the caster commands the servant to perform a task that would move it more than 60 feet away from the caster."
-        }
-      ],
-      "tags": [
-        "summon",
-        "unseen-servant",
-        "utility"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "This spell creates an Invisible , mindless, shapeless, Medium force that performs simple tasks at your command until the spell ends. The servant springs into existence in an unoccupied space on the ground within range. It has AC 10, 1 Hit Point, and a Strength of 2, and it can't attack. If it drops to 0 Hit Points, the spell ends. Once on each of your turns as a Bonus Action, you can mentally command the servant to move up to 15 feet and interact with an object. The servant can perform simple tasks that a human could do, such as fetching things, cleaning, mending, folding clothes, lighting fires, serving food, and pouring drinks. Once you give the command, the servant performs the task to the best of its ability until it completes the task, then waits for your next command. If you command the servant to perform a task that would move it more than 60 feet away from you, the spell ends.",
-  "higherLevels": "",
-  "tags": [
-    "summoning",
-    "utility",
-    "ritual"
-  ]
+    "id":  "unseen-servant",
+    "name":  "Unseen Servant",
+    "aliases":  [
+
+                ],
+    "level":  1,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  true,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a bit of string and of wood",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "unoccupied":  "required",
+                                                                  "surface":  "ground",
+                                                                  "destination":  "not_applicable"
+                                                              }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable",
+                                                               "placementEligibility":  {
+                                                                                            "unoccupied":  "required",
+                                                                                            "surface":  "ground",
+                                                                                            "destination":  "not_applicable"
+                                                                                        }
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "Expose the invisible force as a controlled utility helper: the caster can command it once per turn with a Bonus Action to move and interact with objects, but it cannot attack and the spell ends if it is destroyed or sent too far away.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlledEntity":  {
+                                                 "entityType":  "unseen_servant",
+                                                 "statusConditions":  [
+                                                                          "Invisible"
+                                                                      ],
+                                                 "count":  1,
+                                                 "appearsAt":  "chosen_point",
+                                                 "durationScope":  "spell_duration",
+                                                 "controlActionType":  "bonus_action",
+                                                 "initialUseOnCast":  false,
+                                                 "laterControlTiming":  "later_turns",
+                                                 "movementDistance":  15,
+                                                 "movementUnit":  "feet",
+                                                 "maxDistanceFromCaster":  60,
+                                                 "canAttack":  false,
+                                                 "canActivateMagicItems":  false,
+                                                 "carryCapacityPounds":  "not_applicable",
+                                                 "allowedInteractions":  [
+                                                                             "fetch_objects",
+                                                                             "clean",
+                                                                             "mend",
+                                                                             "fold_clothes",
+                                                                             "light_fires",
+                                                                             "serve_food",
+                                                                             "pour_drinks",
+                                                                             "interact_with_object"
+                                                                         ],
+                                                 "endingTriggers":  [
+                                                                        "beyond_max_distance",
+                                                                        "drops_to_0_hp"
+                                                                    ],
+                                                 "notes":  "The servant is an invisible, mindless, shapeless Medium force. Its AC, HP, Strength, size, and speed remain on the SUMMONING stat block; this utility row makes the command economy and allowed simple tasks machine-readable."
+                                             },
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "visionLightSound":  {
+                                                 "mode":  "invisible_helper_force",
+                                                 "entityVisibility":  "Invisible",
+                                                 "shape":  "mindless shapeless Medium force",
+                                                 "placement":  "unoccupied ground space within 60 feet",
+                                                 "command":  "mental Bonus Action command once per turn",
+                                                 "audibleOutput":  "not specified, but object interactions may create ordinary environmental sound",
+                                                 "visualPresence":  "force itself not visible, carried/moved objects remain normally visible",
+                                                 "endDistanceFeet":  60
+                                             },
+                        "sustainAction":  {
+                                              "cost":  "Bonus Action",
+                                              "frequency":  "once_on_each_caster_turn",
+                                              "use":  "mentally_command_servant_to_move_up_to_15_feet_and_interact_with_object",
+                                              "ending":  "spell_ends_if_commanded_task_moves_servant_more_than_60_feet_from_caster"
+                                          },
+                        "movementState":  {
+                                              "kind":  "commanded_servant_movement",
+                                              "moveCost":  "Bonus Action",
+                                              "frequency":  "once_on_each_caster_turn",
+                                              "distance":  "up_to_15_feet",
+                                              "pairedAction":  "interact_with_object",
+                                              "maximumDistance":  "spell_ends_if_commanded_task_moves_servant_more_than_60_feet_from_caster"
+                                          }
+                    },
+                    {
+                        "type":  "SUMMONING",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable",
+                                                               "placementEligibility":  {
+                                                                                            "unoccupied":  "required",
+                                                                                            "surface":  "ground",
+                                                                                            "destination":  "not_applicable"
+                                                                                        }
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "summon":  {
+                                       "entityType":  "servant",
+                                       "statusConditions":  [
+                                                                "Invisible"
+                                                            ],
+                                       "persistent":  false,
+                                       "count":  1,
+                                       "objectDescription":  "Invisible servant (AC 10, 1 hp, Str 2, speed 15 ft) that performs simple tasks; cannot attack.",
+                                       "commandCost":  "bonus_action",
+                                       "commandsPerTurn":  1,
+                                       "statBlock":  {
+                                                         "name":  "Unseen Servant",
+                                                         "type":  "Force",
+                                                         "size":  "Medium",
+                                                         "ac":  10,
+                                                         "hp":  1,
+                                                         "speed":  15,
+                                                         "abilities":  {
+                                                                           "str":  2,
+                                                                           "dex":  10,
+                                                                           "con":  10,
+                                                                           "int":  1,
+                                                                           "wis":  10,
+                                                                           "cha":  1
+                                                                       }
+                                                     },
+                                       "specialActions":  [
+                                                              {
+                                                                  "name":  "Move and Interact",
+                                                                  "description":  "Move up to 15 feet and interact with an object to perform a simple task such as fetching, cleaning, mending, lighting, serving, or pouring.",
+                                                                  "cost":  "bonus_action"
+                                                              }
+                                                          ],
+                                       "lifecycle":  {
+                                                         "hitPointEnding":  "spell_ends_when_servant_drops_to_0_hit_points",
+                                                         "distanceEnding":  "spell_ends_if_servant_is_more_than_60_feet_from_caster_at_end_of_caster_turn",
+                                                         "destroyedState":  "invisible servant ceases to exist; it is a force, not a physical corpse or object"
+                                                     }
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Summon one temporary invisible servant in an unoccupied ground space within 60 feet. The servant has AC 10, 1 Hit Point, Strength 2, Speed 15 feet, cannot attack, can perform simple tasks when commanded with a Bonus Action, and the spell ends if it drops to 0 Hit Points or moves too far away.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "created_entity_drops_to_0_hp",
+                                                       "scope":  "spell",
+                                                       "description":  "The spell ends if the servant drops to 0 Hit Points."
+                                                   },
+                                                   {
+                                                       "trigger":  "beyond_max_distance",
+                                                       "scope":  "spell",
+                                                       "description":  "The spell ends if the caster commands the servant to perform a task that would move it more than 60 feet away from the caster."
+                                                   }
+                                               ],
+                        "tags":  [
+                                     "summon",
+                                     "unseen-servant",
+                                     "utility"
+                                 ],
+                        "visionLightSound":  {
+                                                 "mode":  "summoned_invisible_servant",
+                                                 "entityVisibility":  "Invisible",
+                                                 "statBlockVisible":  "not visible as creature body",
+                                                 "interactionVisibility":  "task results and manipulated objects are observable normally",
+                                                 "soundPayload":  "no voice or innate sound specified",
+                                                 "endTriggers":  [
+                                                                     "drops to 0 HP",
+                                                                     "moves more than 60 feet from caster"
+                                                                 ]
+                                             }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the unoccupied ground space within 60 feet for the Invisible, mindless, shapeless Medium servant. Track its AC 10, 1 Hit Point, Strength 2, 15-foot movement, once-per-turn Bonus Action commands, object-interaction tasks, inability to attack, and endings at 0 Hit Points or beyond 60 feet.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "This spell creates an Invisible , mindless, shapeless, Medium force that performs simple tasks at your command until the spell ends. The servant springs into existence in an unoccupied space on the ground within range. It has AC 10, 1 Hit Point, and a Strength of 2, and it can\u0027t attack. If it drops to 0 Hit Points, the spell ends. Once on each of your turns as a Bonus Action, you can mentally command the servant to move up to 15 feet and interact with an object. The servant can perform simple tasks that a human could do, such as fetching things, cleaning, mending, folding clothes, lighting fires, serving food, and pouring drinks. Once you give the command, the servant performs the task to the best of its ability until it completes the task, then waits for your next command. If you command the servant to perform a task that would move it more than 60 feet away from you, the spell ends.",
+    "higherLevels":  "",
+    "tags":  [
+                 "summoning",
+                 "utility",
+                 "ritual"
+             ]
 }

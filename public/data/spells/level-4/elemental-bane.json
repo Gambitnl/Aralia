@@ -102,7 +102,9 @@
         }
       },
       "condition": {
-        "type": "always",
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "negates_effect",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
@@ -198,8 +200,73 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose the affected creature and damage type, then resolve the target's Constitution save; on failure, remove resistance to the chosen type and apply the first-time-each-turn extra 2d6 damage rider.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 5,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Acid",
+        "summary": "The target loses Acid Resistance and takes extra Acid damage the first time each turn it takes Acid damage.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 minute with concentration"
+      },
+      {
+        "label": "Cold",
+        "summary": "The target loses Cold Resistance and takes extra Cold damage the first time each turn it takes Cold damage.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 minute with concentration"
+      },
+      {
+        "label": "Fire",
+        "summary": "The target loses Fire Resistance and takes extra Fire damage the first time each turn it takes Fire damage.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 minute with concentration"
+      },
+      {
+        "label": "Lightning",
+        "summary": "The target loses Lightning Resistance and takes extra Lightning damage the first time each turn it takes Lightning damage.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 minute with concentration"
+      },
+      {
+        "label": "Thunder",
+        "summary": "The target loses Thunder Resistance and takes extra Thunder damage the first time each turn it takes Thunder damage.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 minute with concentration"
+      }
+    ],
+    "notes": "The existing effect already marks its recurring damage as sourced from the chosen damage type; this choice captures which type was selected."
   },
   "description": "Choose one creature you can see within range, and choose one of the following damage types: acid, cold, fire, lightning, or thunder. The target must succeed on a Constitution saving throw or be affected by the spell for its duration. The first time each turn the affected target takes damage of the chosen type, the target takes an extra 2d6 damage of that type. Moreover, the target loses any resistance to that damage type until the spell ends.",
   "higherLevels": "When you cast this spell using a spell slot of 5th level or higher, you can target one additional creature for each slot level above 4th. The creatures must be within 30 feet of each other when you target them.",

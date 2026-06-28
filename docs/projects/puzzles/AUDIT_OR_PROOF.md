@@ -113,6 +113,66 @@ Focused implementation, rendered proof, and assertion-based verification:
 
 ### Conclusion
 
-`PZ-007` is complete as a bounded slice. The project remains active, and the next
-documented step is `PZ-003`: decide and implement deterministic key-based lock
-progression without widening into full map integration or puzzle solving UI.
+`PZ-007` was completed as a bounded slice. At that time, the next documented
+step was `PZ-003`: decide and implement deterministic key-based lock progression
+without widening into full map integration or puzzle solving UI.
+
+## Iteration 7: Deterministic Key-Based Lock Runtime Contract
+
+### Method
+
+Focused runtime implementation, red-green unit proof, and project-doc alignment:
+
+- `src/systems/puzzles/types.ts`
+- `src/systems/puzzles/types.d.ts`
+- `src/systems/puzzles/lockSystem.ts`
+- `src/systems/puzzles/__tests__/lockSystem.test.ts`
+- `docs/projects/puzzles/NORTH_STAR.md`
+- `docs/projects/puzzles/TRACKER.md`
+- `docs/projects/puzzles/GAPS.md`
+
+### Results
+
+| Item | Result | Evidence |
+|---|---|---|
+| Ownership rule is explicit | [Done] | Puzzle runtime owns deterministic comparison of caller-supplied key ids against `Lock.keyId`; inventory/economy sourcing remains outside this slice |
+| Key path exists in runtime | [Done] | `attemptKeyUnlock` returns a `KeyUnlockResult` for already-open, no-key, missing-key, and matching-key cases |
+| Existing pick path still works | [Done] | `lockSystem.test.ts` proves `attemptLockpick` still succeeds for the existing thieves'-tools route |
+| Key path unlocks only with the matching key id | [Done] | `lockSystem.test.ts` proves a missing key fails and a matching key succeeds deterministically |
+
+### Conclusion
+
+`PZ-003` is complete for the puzzle-runtime contract. The project remains active;
+visible modal key use, inventory key sourcing, and any item/economy registry work
+remain future bounded slices.
+
+## Iteration 8: Modern-First Character Ability Bridge (PZ-004)
+
+### Method
+
+Focused red-green runtime implementation, dependency-header sync, and project-doc alignment:
+
+- `src/systems/puzzles/characterAbilityBridge.ts`
+- `src/systems/puzzles/lockSystem.ts`
+- `src/systems/puzzles/pressurePlateSystem.ts`
+- `src/systems/puzzles/secretDoorSystem.ts`
+- `src/systems/puzzles/arcaneGlyphSystem.ts`
+- `src/systems/puzzles/__tests__/lockSystem.test.ts`
+- `docs/projects/puzzles/NORTH_STAR.md`
+- `docs/projects/puzzles/TRACKER.md`
+- `docs/projects/puzzles/GAPS.md`
+
+### Results
+
+| Item | Result | Evidence |
+|---|---|---|
+| Migration target is explicit | [Done] | `getPuzzleCharacterStats` prefers `finalAbilityScores`, then `abilityScores`, and uses legacy `character.stats` only as compatibility fallback |
+| Duplicated runtime shims are removed | [Done] | Lock, pressure plate, secret door, and arcane glyph checks now use the shared bridge instead of local `getLegacyStats` helpers |
+| Modern-preferred path is proven | [Done] | `lockSystem.test.ts` fails under legacy-first behavior and passes when `finalAbilityScores.Dexterity` drives lockpicking |
+| Legacy fallback remains compatible | [Done] | `lockSystem.test.ts` keeps a modern-missing fixture working through legacy `stats` |
+
+### Conclusion
+
+`PZ-004` is complete for puzzle runtime checks. The remaining project gaps are
+integration/content follow-ups; caller-side stat adapters should be kept aligned
+with this bridge when those UI or runtime surfaces are next touched.

@@ -1,194 +1,325 @@
 {
-  "id": "summon-greater-demon",
-  "name": "Summon Greater Demon",
-  "aliases": [],
-  "level": 4,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a vial of blood from a humanoid killed within the past 24 hours",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 1,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 0,
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Summon one chosen Demon of CR 5 or lower in a visible unoccupied space within 60 feet for up to 1 hour with concentration; maximum CR increases by 1 per slot level above 4. The demon rolls its own Initiative, takes its own turns, obeys no-action verbal commands until it succeeds on an end-turn Charisma save, has Disadvantage on that save if you speak its true name, attacks creatures that attacked it when uncommanded, pursues nearest non-demons after control breaks, lingers for 1d6 rounds if concentration ends early while uncontrolled, disappears at 0 Hit Points or when the spell ends, and cannot cross or harm the optional consumed blood circle or target creatures inside it.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+1 maximum demon CR per slot level above 4th",
-        "customFormula": "Maximum summoned demon challenge rating increases by 1 for each slot level above 4th."
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "tags": [
-        "summon",
-        "demon",
-        "cr-scaling"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You utter foul words, summoning one demon from the chaos of the Abyss. You choose the demon's type, which must be one of challenge rating 5 or lower, such as a shadow demon or a barlgura. The demon appears in an unoccupied space you can see within range, and the demon disappears when it drops to 0 hit points or when the spell ends. Roll initiative for the demon, which has its own turns. When you summon it and on each of your turns thereafter, you can issue a verbal command to it (requiring no action on your part), telling it what it must do on its next turn. If you issue no command, it spends its turn attacking any creature within reach that has attacked it. At the end of each of the demon's turns, it makes a Charisma saving throw. The demon has disadvantage on this saving throw if you say its true name. On a failed save, the demon continues to obey you. On a successful save, your control of the demon ends for the rest of the duration, and the demon spends its turns pursuing and attacking the nearest non-demons to the best of its ability. If you stop concentrating on the spell before it reaches its full duration, an uncontrolled demon doesn't disappear for 1d6 rounds if it still has hit points. As part of casting the spell, you can form a circle on the ground with the blood used as a material component. The circle is large enough to encompass your space. While the spell lasts, the summoned demon can't cross the circle or harm it, and it can't target anyone within it. Using the material component in this manner consumes it when the spell ends.",
-  "higherLevels": "When you cast this spell using a spell slot of 5th level or higher, the challenge rating increases by 1 for each slot level above 4th.",
-  "tags": [
-    "conjuration",
-    "summon",
-    "demon",
-    "concentration",
-    "cr-scaling"
-  ]
+    "id":  "summon-greater-demon",
+    "name":  "Summon Greater Demon",
+    "aliases":  [
+
+                ],
+    "level":  4,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a vial of blood from a humanoid killed within the past 24 hours",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  1,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  60,
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "requiresUnoccupiedSpace":  true,
+                                                                  "lineOfSightRequired":  true,
+                                                                  "rangeAnchor":  "within_spell_range",
+                                                                  "chosenBy":  "caster",
+                                                                  "summonedCreatureType":  "Demon",
+                                                                  "baseMaxChallengeRating":  5,
+                                                                  "slotScaling":  "maximum_cr_increases_by_1_per_slot_level_above_4",
+                                                                  "notes":  "The chosen demon appears in an unoccupied visible space within 60 feet."
+                                                              }
+                                 },
+                      "rangeUnit":  "feet"
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Summon one chosen Demon of CR 5 or lower in a visible unoccupied space within 60 feet for up to 1 hour with concentration; maximum CR increases by 1 per slot level above 4. The demon rolls its own Initiative, takes its own turns, obeys no-action verbal commands until it succeeds on an end-turn Charisma save, has Disadvantage on that save if you speak its true name, attacks creatures that attacked it when uncommanded, pursues nearest non-demons after control breaks, lingers for 1d6 rounds if concentration ends early while uncontrolled, disappears at 0 Hit Points or when the spell ends, and cannot cross or harm the optional consumed blood circle or target creatures inside it.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+1 maximum demon CR per slot level above 4th",
+                                        "customFormula":  "Maximum summoned demon challenge rating increases by 1 for each slot level above 4th."
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "free_command",
+                                                   "action":  "Command Summoned Demon",
+                                                   "frequency":  "each_caster_turn",
+                                                   "actor":  "caster",
+                                                   "notes":  "The caster can issue a verbal command without spending an action; if no command is given, the demon attacks a creature within reach that has attacked it."
+                                               }
+                                           ],
+                        "recurringMechanics":  [
+                                                   {
+                                                       "timing":  "summoned_demon_turn_end",
+                                                       "saveType":  "Charisma",
+                                                       "saveEffect":  "control_ends_on_success",
+                                                       "successEndsControl":  true,
+                                                       "failureContinuesControl":  true,
+                                                       "saveModifiers":  [
+                                                                             {
+                                                                                 "modifier":  "disadvantage",
+                                                                                 "condition":  "caster_says_true_name",
+                                                                                 "reason":  "The demon has Disadvantage on the end-turn Charisma save if the caster says its true name."
+                                                                             }
+                                                                         ]
+                                                   }
+                                               ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "summoned_demon_drops_to_0_hp",
+                                                       "scope":  "summoned_creature",
+                                                       "description":  "The summoned demon disappears when it drops to 0 hit points."
+                                                   },
+                                                   {
+                                                       "trigger":  "spell_ends_after_normal_duration",
+                                                       "scope":  "summoned_creature",
+                                                       "description":  "The summoned demon disappears when the spell ends."
+                                                   },
+                                                   {
+                                                       "trigger":  "early_concentration_ends_while_uncontrolled_and_demon_has_hp",
+                                                       "scope":  "summoned_creature",
+                                                       "description":  "An uncontrolled demon remains for 1d6 rounds instead of disappearing immediately if concentration ends early."
+                                                   },
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "material_component",
+                                                       "description":  "The protective circle material component is consumed when the spell ends if used."
+                                                   }
+                                               ],
+                        "tags":  [
+                                     "summon",
+                                     "demon",
+                                     "cr-scaling"
+                                 ],
+                        "surfaceInteraction":  {
+                                                   "optionalBloodCircleOnGround":  true,
+                                                   "createdAsPartOfCasting":  true,
+                                                   "materialComponent":  "blood",
+                                                   "placementSurface":  "ground",
+                                                   "notes":  "As part of casting, the caster can form the material-component blood into a circle on the ground."
+                                               },
+                        "summonLifecycle":  {
+                                                "hitPointEnding":  "summoned demon disappears when it drops to 0 hit points",
+                                                "spellEnding":  "summoned demon disappears when the spell ends after normal control",
+                                                "concentrationBreak":  "if concentration ends early before full duration, an uncontrolled demon that still has hit points remains for 1d6 rounds",
+                                                "maximumCR":  "CR 5 or lower, plus 1 maximum CR per spell slot level above 4"
+                                            },
+                        "materialComponentLifecycle":  {
+                                                           "component":  "blood_from_humanoid_killed_within_past_24_hours",
+                                                           "baseConsumed":  false,
+                                                           "conditionalConsumption":  "consumed_when_spell_ends_if_used_to_create_the_protective_blood_circle",
+                                                           "circleEffect":  "demon_cannot_cross_or_harm_circle_targets_while_component_circle_persists"
+                                                       },
+                        "summon":  {
+                                       "entityType":  "chosen_demon",
+                                       "count":  1,
+                                       "maxCR":  "5 or lower, +1 per slot level above 4",
+                                       "placement":  "visible unoccupied space within range",
+                                       "initiative":  "rolls own initiative and has own turns",
+                                       "commandChannel":  "no-action verbal command each caster turn",
+                                       "noCommandBehavior":  "attacks a creature within reach that attacked it",
+                                       "controlSave":  "Charisma save at end of each demon turn, disadvantage if true name spoken",
+                                       "controlBreak":  "on successful save, control ends and demon attacks nearest non-demons",
+                                       "concentrationBreak":  "uncontrolled demon remains 1d6 rounds if concentration ends early and it still has HP",
+                                       "protectiveCircle":  "optional blood circle protects creatures inside"
+                                   },
+                        "sustainAction":  {
+                                              "commandCost":  "verbal_command_no_action_listed",
+                                              "timing":  "when_summoned_and_on_later_turns_as_available",
+                                              "repeatedSave":  "demon_repeats_Charisma_save_at_end_of_each_turn",
+                                              "failedSave":  "continues_obeying_commands",
+                                              "successfulSave":  "control_ends_and_demon_acts_normally_until_spell_ends"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the demon type to summon, limited to the maximum challenge rating allowed by the spell slot. Also note whether the caster uses the blood component to draw the protective circle and whether the demon\u0027s true name is spoken for the control save disadvantage.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You utter foul words, summoning one demon from the chaos of the Abyss. You choose the demon\u0027s type, which must be one of challenge rating 5 or lower, such as a shadow demon or a barlgura. The demon appears in an unoccupied space you can see within range, and the demon disappears when it drops to 0 hit points or when the spell ends. Roll initiative for the demon, which has its own turns. When you summon it and on each of your turns thereafter, you can issue a verbal command to it (requiring no action on your part), telling it what it must do on its next turn. If you issue no command, it spends its turn attacking any creature within reach that has attacked it. At the end of each of the demon\u0027s turns, it makes a Charisma saving throw. The demon has disadvantage on this saving throw if you say its true name. On a failed save, the demon continues to obey you. On a successful save, your control of the demon ends for the rest of the duration, and the demon spends its turns pursuing and attacking the nearest non-demons to the best of its ability. If you stop concentrating on the spell before it reaches its full duration, an uncontrolled demon doesn\u0027t disappear for 1d6 rounds if it still has hit points. As part of casting the spell, you can form a circle on the ground with the blood used as a material component. The circle is large enough to encompass your space. While the spell lasts, the summoned demon can\u0027t cross the circle or harm it, and it can\u0027t target anyone within it. Using the material component in this manner consumes it when the spell ends.",
+    "higherLevels":  "When you cast this spell using a spell slot of 5th level or higher, the challenge rating increases by 1 for each slot level above 4th.",
+    "tags":  [
+                 "conjuration",
+                 "summon",
+                 "demon",
+                 "concentration",
+                 "cr-scaling"
+             ]
 }

@@ -1,289 +1,442 @@
 {
-  "id": "dispel-evil-and-good",
-  "name": "Dispel Evil and Good",
-  "aliases": [],
-  "level": 5,
-  "school": "Abjuration",
-  "legacy": false,
-  "classes": [
-    "Cleric",
-    "Paladin"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "powdered silver and iron",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "self",
-    "validTargets": [
-      "self"
-    ],
-    "lineOfSight": false,
-    "range": 0,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "ATTACK_ROLL_MODIFIER",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "attackRollModifier": {
-        "modifier": "disadvantage",
-        "direction": "incoming",
-        "attackKind": "any",
-        "consumption": "while_active",
-        "duration": {
-          "type": "minutes",
-          "value": 1
-        },
-        "attackerFilter": {
-          "creatureTypes": [
-            "Celestial",
-            "Elemental",
-            "Fey",
-            "Fiend",
-            "Undead"
-          ],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "notes": "Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against the caster for the spell's duration."
-      },
-      "description": "Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against the caster.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "For the duration, Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you. You can end the spell early by using either of the following special functions.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "For the duration, Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you. You can end the spell early by using either of the following special functions. Break Enchantment. As a Magic action, you touch a creature that is possessed by or has the Charmed or Frightened condition from one or more creatures of the types above. The target is no longer possessed, Charmed, or Frightened by such creatures. Dismissal. As a Magic action, you target one creature you can see within 5 feet of you that has one of the creature types above. The target must succeed on a Charisma saving throw or be sent back to its home plane if it isn't there already. If they aren't on their home plane, Undead are sent to the Shadowfell, and Fey are sent to the Feywild.",
-  "higherLevels": "",
-  "tags": [
-    "control",
-    "debuff",
-    "concentration"
-  ]
+    "id":  "dispel-evil-and-good",
+    "name":  "Dispel Evil and Good",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Abjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Cleric",
+                    "Paladin"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "powdered silver and iron",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "self",
+                      "validTargets":  [
+                                           "self"
+                                       ],
+                      "lineOfSight":  false,
+                      "range":  0,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "ATTACK_ROLL_MODIFIER",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "attackRollModifier":  {
+                                                   "modifier":  "disadvantage",
+                                                   "direction":  "incoming",
+                                                   "attackKind":  "any",
+                                                   "consumption":  "while_active",
+                                                   "duration":  {
+                                                                    "type":  "minutes",
+                                                                    "value":  1
+                                                                },
+                                                   "attackerFilter":  {
+                                                                          "creatureTypes":  [
+                                                                                                "Celestial",
+                                                                                                "Elemental",
+                                                                                                "Fey",
+                                                                                                "Fiend",
+                                                                                                "Undead"
+                                                                                            ],
+                                                                          "excludeCreatureTypes":  [
+
+                                                                                                   ],
+                                                                          "sizes":  [
+
+                                                                                    ],
+                                                                          "alignments":  [
+
+                                                                                         ],
+                                                                          "hasCondition":  [
+
+                                                                                           ],
+                                                                          "isNativeToPlane":  false,
+                                                                          "willing":  "not_applicable",
+                                                                          "objectEligibility":  {
+                                                                                                    "wornOrCarried":  "not_applicable",
+                                                                                                    "magicalStatus":  "not_applicable",
+                                                                                                    "fixedToSurface":  "not_applicable",
+                                                                                                    "maxSize":  "not_applicable",
+                                                                                                    "maxWeightPounds":  "not_applicable",
+                                                                                                    "maxWeightScaling":  "not_applicable"
+                                                                                                },
+                                                                          "communicationPrerequisites":  {
+                                                                                                             "canHearCaster":  "not_applicable",
+                                                                                                             "canUnderstandCaster":  "not_applicable",
+                                                                                                             "canSeeCaster":  "not_applicable"
+                                                                                                         },
+                                                                          "abilityThreshold":  {
+                                                                                                   "ability":  "not_applicable",
+                                                                                                   "operator":  "not_applicable",
+                                                                                                   "value":  "not_applicable"
+                                                                                               },
+                                                                          "selfRelation":  "not_applicable"
+                                                                      },
+                                                   "notes":  "Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against the caster for the spell\u0027s duration."
+                                               },
+                        "description":  "Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against the caster.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "For the duration, Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you. You can end the spell early by using either of the following special functions.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "magic_action",
+                                                   "action":  "Break Enchantment",
+                                                   "frequency":  "once_or_until_spell_ends",
+                                                   "actor":  "caster",
+                                                   "range":  0,
+                                                   "rangeUnit":  "touch",
+                                                   "notes":  "Touch a creature possessed by or Charmed/Frightened by Celestials, Elementals, Fey, Fiends, or Undead to end that possession or condition."
+                                               },
+                                               {
+                                                   "type":  "magic_action",
+                                                   "action":  "Dismissal",
+                                                   "frequency":  "once_or_until_spell_ends",
+                                                   "actor":  "caster",
+                                                   "range":  5,
+                                                   "rangeUnit":  "feet",
+                                                   "saveType":  "Charisma",
+                                                   "saveEffect":  "negates_dismissal",
+                                                   "notes":  "Target a visible Celestial, Elemental, Fey, Fiend, or Undead within 5 feet; on a failed Charisma save, send it to its home plane if it is not already there."
+                                               }
+                                           ],
+                        "breakEnchantmentState":  {
+                                                      "actionType":  "magic_action",
+                                                      "range":  "touch",
+                                                      "sourceCreatureTypes":  [
+                                                                                  "Celestial",
+                                                                                  "Elemental",
+                                                                                  "Fey",
+                                                                                  "Fiend",
+                                                                                  "Undead"
+                                                                              ],
+                                                      "removesStates":  [
+                                                                            "possessed",
+                                                                            "Charmed",
+                                                                            "Frightened"
+                                                                        ],
+                                                      "endsSpellEarly":  true
+                                                  },
+                        "dismissalState":  {
+                                               "actionType":  "magic_action",
+                                               "rangeFeet":  5,
+                                               "targetCreatureTypes":  [
+                                                                           "Celestial",
+                                                                           "Elemental",
+                                                                           "Fey",
+                                                                           "Fiend",
+                                                                           "Undead"
+                                                                       ],
+                                               "saveType":  "Charisma",
+                                               "saveEffect":  "negates_dismissal",
+                                               "failedSaveDestination":  "home_plane",
+                                               "fallbackDestinations":  {
+                                                                            "Undead":  "Shadowfell",
+                                                                            "Fey":  "Feywild"
+                                                                        },
+                                               "endsSpellEarly":  true
+                                           },
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "socialEffect":  {
+                                             "magicActionCanEnd":  [
+                                                                       "Possessed",
+                                                                       "Charmed",
+                                                                       "Frightened"
+                                                                   ],
+                                             "validSourceCreatureTypes":  [
+                                                                              "Celestial",
+                                                                              "Elemental",
+                                                                              "Fey",
+                                                                              "Fiend",
+                                                                              "Undead"
+                                                                          ],
+                                             "touchRequired":  true,
+                                             "endsSpellEarly":  true,
+                                             "notes":  "The special action can touch a creature to end possession, Charmed, or Frightened caused by listed creature types, ending Dispel Evil and Good early."
+                                         },
+                        "planarMovement":  {
+                                               "mode":  "dismissal_to_home_plane",
+                                               "action":  "Magic action",
+                                               "targetTypes":  [
+                                                                   "Celestial",
+                                                                   "Elemental",
+                                                                   "Fey",
+                                                                   "Fiend",
+                                                                   "Undead"
+                                                               ],
+                                               "save":  "Charisma",
+                                               "result":  "sent back to home plane if not already there",
+                                               "undeadFallback":  "Undead not on home plane are sent to Shadowfell",
+                                               "feyFallback":  "Fey not on home plane are sent to Feywild"
+                                           }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Apply incoming attack Disadvantage from Celestials, Elementals, Fey, Fiends, and Undead. If ending the spell early, choose Break Enchantment by touch or Dismissal against a visible qualifying creature within 5 feet, then resolve the Charisma save for Dismissal.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "For the duration, Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you. You can end the spell early by using either of the following special functions. Break Enchantment. As a Magic action, you touch a creature that is possessed by or has the Charmed or Frightened condition from one or more creatures of the types above. The target is no longer possessed, Charmed, or Frightened by such creatures. Dismissal. As a Magic action, you target one creature you can see within 5 feet of you that has one of the creature types above. The target must succeed on a Charisma saving throw or be sent back to its home plane if it isn\u0027t there already. If they aren\u0027t on their home plane, Undead are sent to the Shadowfell, and Fey are sent to the Feywild.",
+    "higherLevels":  "",
+    "tags":  [
+                 "control",
+                 "debuff",
+                 "concentration"
+             ]
 }

@@ -394,6 +394,173 @@
         "requiresAttackRoll",
         "requiresDamageRoll"
       ]
+    },
+    "SpellCastingTrigger": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "after_attack_hit",
+            "when_visible_creature_casts_spell"
+          ]
+        },
+        "timing": {
+          "type": "string"
+        },
+        "requiredCost": {
+          "type": "string",
+          "enum": [
+            "action",
+            "bonus_action",
+            "reaction",
+            "free"
+          ]
+        },
+        "attackFilter": {
+          "type": "object",
+          "properties": {
+            "weaponType": {
+              "type": "string",
+              "enum": [
+                "melee",
+                "ranged",
+                "any"
+              ]
+            },
+            "attackType": {
+              "type": "string",
+              "enum": [
+                "weapon",
+                "spell",
+                "any"
+              ]
+            }
+          }
+        },
+        "targetBinding": {
+          "type": "string"
+        },
+        "maxRangeFeet": {
+          "type": "number"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "PendingAttackTrigger": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "next_attack"
+          ]
+        },
+        "attackFilter": {
+          "type": "object",
+          "properties": {
+            "attackType": {
+              "type": "string",
+              "enum": [
+                "weapon",
+                "spell",
+                "any"
+              ]
+            },
+            "weaponType": {
+              "type": "string",
+              "enum": [
+                "melee",
+                "ranged",
+                "any"
+              ]
+            }
+          }
+        },
+        "resolvesOn": {
+          "type": "string",
+          "enum": [
+            "hit",
+            "miss",
+            "hit_or_miss"
+          ]
+        },
+        "primaryTargetBinding": {
+          "type": "string"
+        },
+        "consumption": {
+          "type": "string",
+          "enum": [
+            "first_matching_attack",
+            "every_matching_attack"
+          ]
+        },
+        "missResolution": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "resolvesOn"
+      ]
+    },
+    "SpellInterruptionState": {
+      "type": "object",
+      "properties": {
+        "event": {
+          "type": "string",
+          "enum": [
+            "visible_creature_casts_spell"
+          ]
+        },
+        "saveType": {
+          "type": "string",
+          "enum": [
+            "Strength",
+            "Dexterity",
+            "Constitution",
+            "Intelligence",
+            "Wisdom",
+            "Charisma"
+          ]
+        },
+        "failedSaveOutcome": {
+          "type": "string"
+        },
+        "slotPolicy": {
+          "type": "string"
+        },
+        "actionPolicy": {
+          "type": "string"
+        },
+        "visibilityRequired": {
+          "type": "boolean"
+        },
+        "rangeFeet": {
+          "type": "number"
+        },
+        "runtimeBoundary": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "event",
+        "saveType",
+        "failedSaveOutcome",
+        "slotPolicy",
+        "actionPolicy",
+        "visibilityRequired",
+        "rangeFeet"
+      ]
     }
   }
 }
+

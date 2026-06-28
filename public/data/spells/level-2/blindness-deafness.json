@@ -251,8 +251,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose Blindness or Deafness for each target before resolving the Constitution save. On a failed save, apply the chosen condition for up to 1 minute and repeat the Constitution save at the end of each affected target's turns, ending the spell on that target on success.",
+    "playerInputRequired": true
   },
   "description": "One creature that you can see within range must succeed on a Constitution saving throw, or it has the Blinded or Deafened condition (your choice) for the duration. At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.",
   "higherLevels": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 2.",

@@ -71,7 +71,11 @@ const HUDControlPanel: React.FC<HUDControlPanelProps> = ({ onOpenMap, onExitToMe
             backgroundColor: 'var(--bg-surface, #2a3a4a)',
             border: '1px solid var(--border-color, #3a4a5a)',
             borderRadius: '4px',
-            zIndex: 20,
+            // D5: the open dropdown drops down toward the fixed right-edge "Party Chat"
+            // tab (which uses a mid-tier overlay z-index). Raise the menu well above it
+            // so the controls are never occluded by / colliding with the tab.
+            zIndex: 1000,
+            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.45)',
           }}
         >
           {/* Movement help — how to drive the map camera (MapControls bindings). */}
@@ -118,10 +122,29 @@ const HUDControlPanel: React.FC<HUDControlPanelProps> = ({ onOpenMap, onExitToMe
             ))}
           </div>
 
+          {/* D6: group the two exits under a clear header and give each a one-line
+              subtitle + tooltip so a first-timer knows which returns to the 2D game
+              (Return to Map) vs which quits the session (Exit to Menu). These are
+              distinct from the "Ascend / Enter Village" toggle, which stays in 3D. */}
+          <div
+            style={{
+              padding: '6px 12px 4px',
+              fontSize: '10px',
+              fontWeight: 600,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              color: 'var(--text-secondary, #8a9aaa)',
+              borderBottom: '1px solid var(--border-color, #3a4a5a)',
+              fontFamily: 'Outfit, sans-serif',
+            }}
+          >
+            Leave 3D
+          </div>
           <button
             type="button"
             data-testid="hud-open-map"
             onClick={handleOpenMap}
+            title="Go back to the 2D world map and continue the game"
             style={{
               display: 'block',
               width: '100%',
@@ -138,10 +161,14 @@ const HUDControlPanel: React.FC<HUDControlPanelProps> = ({ onOpenMap, onExitToMe
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover, #3a4a5a)')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           >
-            Open Map
+            <div style={{ fontWeight: 600 }}>Return to Map (2D)</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary, #8a9aaa)', marginTop: '1px' }}>
+              Back to the game world map
+            </div>
           </button>
           <button
             onClick={handleExitToMenu}
+            title="Quit to the main menu (leaves the game)"
             style={{
               display: 'block',
               width: '100%',
@@ -157,7 +184,10 @@ const HUDControlPanel: React.FC<HUDControlPanelProps> = ({ onOpenMap, onExitToMe
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover, #3a4a5a)')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           >
-            Exit to Menu
+            <div style={{ fontWeight: 600 }}>Exit to Menu</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-danger, #e88)', marginTop: '1px' }}>
+              Quit to the main menu
+            </div>
           </button>
         </div>
       )}

@@ -44,6 +44,15 @@ export const formatGameTime = (date: Date, options: Intl.DateTimeFormatOptions =
   return date.toLocaleTimeString([], { ...options, timeZone: 'UTC' });
 };
 
+/**
+ * Returns a fresh snapshot of the in-game clock for stamping player-visible log
+ * entries, so the adventure Log stays consistent with the HUD's date/time rather
+ * than showing the real-world wall clock. Falls back to the real clock only if
+ * gameTime is somehow not a Date (e.g. a malformed legacy save).
+ */
+export const inGameTimestamp = (gameTime: unknown): Date =>
+  gameTime instanceof Date ? new Date(gameTime.getTime()) : new Date();
+
 export const formatGameDate = (date: Date, options: Intl.DateTimeFormatOptions = {}): string => {
   return date.toLocaleDateString([], { ...options, timeZone: 'UTC' });
 };

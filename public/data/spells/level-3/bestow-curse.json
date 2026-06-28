@@ -136,6 +136,57 @@
       },
       "utilityType": "other",
       "description": "Touch one creature and force a Wisdom save; on a failure, choose one curse for the duration: Disadvantage on checks and saves with one ability score, Disadvantage on attacks against you, a start-turn Wisdom save that can waste the target action, +1d8 Necrotic damage from your attacks and spells, or a DM-approved alternative no stronger than those options. Remove Curse ends the curse, and higher slots extend duration or remove Concentration as listed in the scaling table.",
+      "abilityCheckModifier": {
+        "appliesTo": "ability checks using the chosen ability",
+        "bonusDice": "",
+        "flatModifier": "disadvantage",
+        "skillSelection": "chosen_ability",
+        "skillChooser": "caster_on_failed_save",
+        "skillPool": [
+          "Strength",
+          "Dexterity",
+          "Constitution",
+          "Intelligence",
+          "Wisdom",
+          "Charisma"
+        ],
+        "frequency": "every_matching_check",
+        "durationScope": "while_cursed",
+        "notes": "Ability Curse option only: the cursed target has Disadvantage on ability checks made with the ability chosen by the caster."
+      },
+      "savingThrowModifier": {
+        "modifier": "disadvantage",
+        "ability": "chosen_ability",
+        "consumption": "while_cursed",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "notes": "Ability Curse option only: the cursed target has Disadvantage on saving throws made with the chosen ability."
+      },
+      "attackRollModifier": {
+        "modifier": "disadvantage",
+        "direction": "outgoing",
+        "attackKind": "any",
+        "consumption": "while_cursed",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "targetRestriction": "attacks_against_caster",
+        "notes": "Attack Curse option only: the cursed target has Disadvantage on attack rolls against the caster."
+      },
+      "damageRollModifier": {
+        "modifier": "bonus",
+        "dice": "1d8",
+        "type": "Necrotic",
+        "appliesTo": "caster_attacks_and_spells_against_cursed_target",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "notes": "Extra Necrotic Damage option only: the caster's attacks and spells deal an extra 1d8 Necrotic damage to the cursed target."
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -176,7 +227,7 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "Choose which curse option applies if the target fails the Wisdom saving throw.",
+    "prompt": "Ask the caster to choose the touched creature, prompt its Wisdom save, then choose the curse option on failure: ability-check/save Disadvantage, attack Disadvantage against the caster, start-turn action-waste save, extra Necrotic damage, or adjudicated alternative.",
     "playerInputRequired": true
   },
   "modeChoice": {

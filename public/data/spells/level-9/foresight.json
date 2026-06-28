@@ -140,6 +140,20 @@
       },
       "description": "Touch a willing creature and give it limited future sight for 8 hours. The target gains broad D20-test advantage, attacks more accurately, is harder to hit, and the spell ends early if the caster casts it again.",
       "utilityType": "other",
+      "d20TestModifier": {
+        "type": "advantage",
+        "appliesTo": [
+          "attack_rolls",
+          "ability_checks",
+          "saving_throws"
+        ],
+        "duration": "8_hours"
+      },
+      "incomingAttackModifier": {
+        "type": "disadvantage",
+        "appliesTo": "attack_rolls_against_target",
+        "duration": "8_hours"
+      },
       "grantedActions": [],
       "attackAugments": [],
       "controlOptions": [
@@ -386,8 +400,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose the willing touched creature. For 8 hours, apply Advantage on all D20 Tests, including attack rolls, ability checks, and saving throws, and apply Disadvantage to other creatures' attack rolls against the target; end the old instance early if the caster casts Foresight again.",
+    "playerInputRequired": true
   },
   "description": "You touch a willing creature and bestow a limited ability to see into the immediate future. For the duration, the target has Advantage on D20 Tests , and other creatures have Disadvantage on attack rolls against it. The spell ends early if you cast it again.",
   "higherLevels": "",

@@ -1,196 +1,316 @@
 {
-  "id": "infernal-calling",
-  "name": "Infernal Calling",
-  "aliases": [],
-  "level": 5,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 90,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a ruby worth at least 999 gp",
-    "materialCost": 999,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 1,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "point",
-    "range": 90,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Summons a CR 6 or lower devil in an unoccupied visible space; the devil is initially unfriendly, can be commanded through Charisma contests, and disappears at 0 hit points or when the spell ends.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+1 maximum devil CR per slot level above 5th",
-        "customFormula": "Maximum summoned devil challenge rating increases by 1 for each slot level above 5th."
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "tags": [
-        "summon",
-        "devil",
-        "charisma-contest",
-        "cr-scaling"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "Uttering a dark incantation, you summon a devil from the Nine Hells. You choose the devil's type, which must be one of challenge rating 6 or lower, such as a barbed devil or a bearded devil. The devil appears in an unoccupied space that you can see within range. The devil disappears when it drops to 0 hit points or when the spell ends. The devil is unfriendly toward you and your companions. Roll initiative for the devil, which has its own turns. It is under the Dungeon Master's control and acts according to its nature on each of its turns, which might result in its attacking you if it thinks it can prevail, or trying to tempt you to undertake an evil act in exchange for limited service. The DM has the creature's statistics. On each of your turns, you can try to issue a verbal command to the devil (no action required by you). It obeys the command if the likely outcome is in accordance with its desires, especially if the result would draw you toward evil. Otherwise, you must make a Charisma (Deception, Intimidation, or Persuasion) check contested by its Wisdom (Insight) check. You make the check with advantage if you say the devil's true name. If your check fails, the devil becomes immune to your verbal commands for the duration of the spell, though it can still carry out your commands if it chooses. If your check succeeds, the devil carries out your command - such as \"attack my enemies,\" \"explore the room ahead,\" or \"bear this message to the queen\" - until it completes the activity, at which point it returns to you to report having done so. If your concentration ends before the spell reaches its full duration, the devil doesn't disappear if it has become immune to your verbal commands. Instead, it acts in whatever manner it chooses for 3d6 minutes, and then it disappears. If you possess an individual devil's talisman, you can summon that devil if it is of the appropriate challenge rating plus 1, and it obeys all your commands, with no Charisma checks required.",
-  "higherLevels": "When you cast this spell using a spell slot of 6th level or higher, the challenge rating increases by 1 for each slot level above 5th.",
-  "tags": [
-    "conjuration",
-    "summon",
-    "devil",
-    "concentration",
-    "cr-scaling"
-  ]
+    "id":  "infernal-calling",
+    "name":  "Infernal Calling",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  90,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a ruby worth at least 999 gp",
+                       "materialCost":  999,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  1,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  90,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "requiresUnoccupiedSpace":  true,
+                                                                  "lineOfSightRequired":  true,
+                                                                  "rangeAnchor":  "within_spell_range",
+                                                                  "chosenBy":  "caster",
+                                                                  "summonedCreatureType":  "Devil",
+                                                                  "baseMaxChallengeRating":  6,
+                                                                  "notes":  "The called devil appears in an unoccupied visible space within 90 feet."
+                                                              }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Summons a CR 6 or lower devil in an unoccupied visible space; the devil is initially unfriendly, can be commanded through Charisma contests, and disappears at 0 hit points or when the spell ends.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+1 maximum devil CR per slot level above 5th",
+                                        "customFormula":  "Maximum summoned devil challenge rating increases by 1 for each slot level above 5th."
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "name":  "Issue Devil Command",
+                                                   "actionType":  "no_action",
+                                                   "timing":  "each_caster_turn",
+                                                   "target":  "summoned_devil",
+                                                   "description":  "Issue a verbal command. The devil obeys if the result suits its desires, otherwise resolve the command contest."
+                                               }
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "abilityCheckModifier":  {
+                                                     "check":  "Charisma (Deception, Intimidation, or Persuasion)",
+                                                     "contestAgainst":  "devil Wisdom (Insight)",
+                                                     "advantageCondition":  "The caster says the devil\u0027s true name.",
+                                                     "autoSuccessCondition":  "The caster possesses the individual devil\u0027s talisman and the devil is within the allowed challenge rating plus 1.",
+                                                     "failureEffect":  "The devil becomes immune to the caster\u0027s verbal commands for the spell\u0027s duration."
+                                                 },
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "devil_drops_to_0_hp",
+                                                       "scope":  "summoned_creature",
+                                                       "description":  "The devil disappears when it drops to 0 hit points."
+                                                   },
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "summoned_creature",
+                                                       "description":  "The devil disappears when the spell ends."
+                                                   },
+                                                   {
+                                                       "trigger":  "concentration_ends_early_after_command_immunity",
+                                                       "scope":  "summoned_creature",
+                                                       "description":  "If concentration ends early after the devil has become immune to commands, it remains uncontrolled for 3d6 minutes, then disappears."
+                                                   }
+                                               ],
+                        "tags":  [
+                                     "summon",
+                                     "devil",
+                                     "charisma-contest",
+                                     "cr-scaling"
+                                 ],
+                        "summonLifecycle":  {
+                                                "hitPointEnding":  "devil disappears when it drops to 0 hit points",
+                                                "spellEnding":  "devil disappears when the spell ends",
+                                                "maximumCR":  "CR 6 or lower, higher-level scaling if represented elsewhere",
+                                                "disposition":  "initially unfriendly and commandable through Charisma contest rules"
+                                            },
+                        "communicationDetails":  {
+                                                     "mode":  "devil_command_and_report",
+                                                     "commandCheck":  "Charisma (Deception, Intimidation, or Persuasion) contested by devil Wisdom (Insight), with advantage if true name is spoken",
+                                                     "commandExamples":  [
+                                                                             "attack my enemies",
+                                                                             "explore the room ahead",
+                                                                             "bear this message to the queen"
+                                                                         ],
+                                                     "reportBehavior":  "after completing a successful command, devil returns to report",
+                                                     "failedCheck":  "devil becomes immune to caster verbal commands for the spell duration"
+                                                 },
+                        "summon":  {
+                                       "entityType":  "called_devil",
+                                       "maxCR":  "6 or lower",
+                                       "placement":  "visible unoccupied space",
+                                       "disposition":  "unfriendly to caster and companions",
+                                       "controller":  "DM controls by nature unless caster succeeds command contest",
+                                       "commandContest":  "Charisma Deception/Intimidation/Persuasion vs devil Wisdom Insight, advantage if true name spoken",
+                                       "failedCommand":  "devil becomes immune to caster verbal commands for duration",
+                                       "talisman":  "specific devil talisman improves summon and obedience rules",
+                                       "earlyConcentration":  "if command-immune, remains uncontrolled for 3d6 minutes before disappearing"
+                                   },
+                        "sustainAction":  {
+                                              "commandCost":  "verbal_command_no_action_listed",
+                                              "contest":  "Charisma_check_contested_by_devil_Insight_when_command_issued",
+                                              "successfulCommand":  "devil_obeys_until_task_complete",
+                                              "failedCommand":  "devil_becomes_uncontrolled_and_can_act_against_caster",
+                                              "duration":  "concentration_up_to_1_hour"
+                                          },
+                        "aftermathState":  {
+                                               "kind":  "summoned_devil_disappearance",
+                                               "when":  [
+                                                            "devil_drops_to_0_HP",
+                                                            "spell_ends"
+                                                        ],
+                                               "consequence":  "devil_disappears",
+                                               "controlAftermath":  "uncontrolled_devil_may_act_normally_until_spell_end_if_command_contest_fails"
+                                           }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the devil type to summon within the spell slot\u0027s challenge rating limit. Record whether the caster has a specific devil\u0027s talisman, whether the devil\u0027s true name is spoken for command checks, and the command attempted on each turn.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "Uttering a dark incantation, you summon a devil from the Nine Hells. You choose the devil\u0027s type, which must be one of challenge rating 6 or lower, such as a barbed devil or a bearded devil. The devil appears in an unoccupied space that you can see within range. The devil disappears when it drops to 0 hit points or when the spell ends. The devil is unfriendly toward you and your companions. Roll initiative for the devil, which has its own turns. It is under the Dungeon Master\u0027s control and acts according to its nature on each of its turns, which might result in its attacking you if it thinks it can prevail, or trying to tempt you to undertake an evil act in exchange for limited service. The DM has the creature\u0027s statistics. On each of your turns, you can try to issue a verbal command to the devil (no action required by you). It obeys the command if the likely outcome is in accordance with its desires, especially if the result would draw you toward evil. Otherwise, you must make a Charisma (Deception, Intimidation, or Persuasion) check contested by its Wisdom (Insight) check. You make the check with advantage if you say the devil\u0027s true name. If your check fails, the devil becomes immune to your verbal commands for the duration of the spell, though it can still carry out your commands if it chooses. If your check succeeds, the devil carries out your command - such as \"attack my enemies,\" \"explore the room ahead,\" or \"bear this message to the queen\" - until it completes the activity, at which point it returns to you to report having done so. If your concentration ends before the spell reaches its full duration, the devil doesn\u0027t disappear if it has become immune to your verbal commands. Instead, it acts in whatever manner it chooses for 3d6 minutes, and then it disappears. If you possess an individual devil\u0027s talisman, you can summon that devil if it is of the appropriate challenge rating plus 1, and it obeys all your commands, with no Charisma checks required.",
+    "higherLevels":  "When you cast this spell using a spell slot of 6th level or higher, the challenge rating increases by 1 for each slot level above 5th.",
+    "tags":  [
+                 "conjuration",
+                 "summon",
+                 "devil",
+                 "concentration",
+                 "cr-scaling"
+             ]
 }

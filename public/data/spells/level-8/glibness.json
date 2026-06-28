@@ -138,6 +138,16 @@
       },
       "description": "For the duration, the caster can treat any Charisma check roll as 15 and magic that checks truthfulness reads the caster's statements as truthful.",
       "utilityType": "other",
+      "abilityCheckModifier": {
+        "ability": "Charisma",
+        "minimumD20Roll": 15,
+        "appliesTo": "all_charisma_checks",
+        "duration": "1_hour"
+      },
+      "truthDetectionOverride": {
+        "appliesTo": "magic_that_determines_truthfulness",
+        "result": "caster_statements_register_as_truthful"
+      },
       "grantedActions": [],
       "attackAugments": [],
       "controlOptions": [
@@ -187,8 +197,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "For 1 hour, whenever the caster makes a Charisma check, replace any d20 roll below 15 with 15, and treat truth-detecting magic as reporting the caster's statements as truthful.",
+    "playerInputRequired": true
   },
   "description": "Until the spell ends, when you make a Charisma check, you can replace the number you roll with a 15. Additionally, no matter what you say, magic that would determine if you are telling the truth indicates that you are being truthful.",
   "higherLevels": "",

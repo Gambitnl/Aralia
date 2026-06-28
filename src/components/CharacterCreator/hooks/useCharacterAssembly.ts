@@ -278,6 +278,40 @@ const getAgeCategoryForAssembly = (age: number, ageData: AgeData): AgeCategory =
   return ageData.categories.elderly;
 };
 
+/** Human-readable label for the age band a character falls into. */
+export type AgeBandLabel = 'Child' | 'Adolescent' | 'Adult' | 'Middle-aged' | 'Elderly';
+
+export interface AgeAdjustmentSummary {
+  /** The age band the character falls into. */
+  band: AgeBandLabel;
+  /** Flat modifier applied to every ability score (negative = penalty). */
+  statPenalty: number;
+  /** Size override the age band imposes, if any (e.g. children render Small). */
+  sizeModifier?: AgeSizeOverride;
+}
+
+/**
+ * Resolve how a character's age modifies their stats/size, so the review sheet
+ * can EXPLAIN the age-adjusted ability scores instead of silently showing
+ * numbers that differ from the pre-age sidebar values (GAPS.md C10). Returns
+ * null when age has no mechanical effect (the Adult band).
+ */
+export const getAgeAdjustmentSummary = (raceId: string, age: number): AgeAdjustmentSummary | null => {
+  if (!age || age <= 0) return null;
+  const ageData = getAgeDataForAssembly(raceId);
+  const categories = ageData.categories;
+  let band: AgeBandLabel;
+  let category: AgeCategory;
+  if (age <= categories.child.max) { band = 'Child'; category = categories.child; }
+  else if (age <= categories.adolescent.max) { band = 'Adolescent'; category = categories.adolescent; }
+  else if (age <= categories.adult.max) { band = 'Adult'; category = categories.adult; }
+  else if (age <= categories.middleAged.max) { band = 'Middle-aged'; category = categories.middleAged; }
+  else { band = 'Elderly'; category = categories.elderly; }
+
+  if (category.statPenalty === 0 && !category.sizeModifier) return null;
+  return { band, statPenalty: category.statPenalty, sizeModifier: category.sizeModifier };
+};
+
 function validateAllSelectionsMade(state: CharacterCreationState): boolean {
   const {
     selectedRace, selectedClass, finalAbilityScores, baseAbilityScores,

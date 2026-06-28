@@ -14,15 +14,16 @@
   "attackType": "",
   "castingTime": {
     "value": 1,
-    "unit": "bonus_action",
+    "unit": "reaction",
     "combatCost": {
-      "type": "bonus_action",
-      "condition": ""
+      "type": "reaction",
+      "condition": "after you hit a creature with a weapon or Unarmed Strike"
     },
     "explorationCost": {
       "value": 0,
       "unit": "minute"
-    }
+    },
+    "reactionCondition": "immediately after you hit a creature with a weapon or Unarmed Strike"
   },
   "range": {
     "type": "self",
@@ -83,12 +84,12 @@
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate",
+        "type": "on_attack_hit",
         "frequency": "every_time",
-        "consumption": "unlimited",
+        "consumption": "first_hit",
         "attackFilter": {
           "weaponType": "any",
-          "attackType": "any"
+          "attackType": "weapon"
         },
         "movementType": "any",
         "sustainCost": {
@@ -143,14 +144,14 @@
       "conditionalEndings": []
     },
     {
-      "type": "UTILITY",
+      "type": "ATTACK_ROLL_MODIFIER",
       "trigger": {
-        "type": "immediate",
+        "type": "on_attack_hit",
         "frequency": "every_time",
-        "consumption": "unlimited",
+        "consumption": "first_hit",
         "attackFilter": {
           "weaponType": "any",
-          "attackType": "any"
+          "attackType": "weapon"
         },
         "movementType": "any",
         "sustainCost": {
@@ -194,6 +195,17 @@
       },
       "utilityType": "light",
       "description": "Until the spell ends, the hit target sheds Bright Light in a 5-foot radius, attack rolls against it have Advantage, and it cannot benefit from the Invisible condition.",
+      "attackRollModifier": {
+        "modifier": "advantage",
+        "direction": "incoming",
+        "attackKind": "any",
+        "consumption": "while_active",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "notes": "Attack rolls against the shining target have Advantage while the smite remains active."
+      },
       "light": {
         "brightRadius": 5,
         "dimRadius": 0,
@@ -206,6 +218,12 @@
         "consumesFuel": "not_applicable",
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "invisibilitySuppression": {
+        "suppressesConditionBenefit": "Invisible",
+        "scope": "target",
+        "duration": "while_spell_active",
+        "description": "The shining target cannot benefit from the Invisible condition while the spell remains active."
       },
       "scaling": {
         "type": "slot_level",
@@ -234,12 +252,24 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
+    "prompt": "Apply Shining Smite to the next weapon hit; on hit add Radiant damage, attach 5-foot Bright Light to the target, prevent Invisible benefits, and give attack rolls against it Advantage while the spell lasts.",
     "playerInputRequired": false
   },
   "description": "The target hit by the strike takes an extra 2d6 Radiant damage from the attack. Until the spell ends, the target sheds Bright Light in a 5-foot radius, attack rolls against it have Advantage, and it can't benefit from the Invisible condition.",
   "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 2.",
   "tags": [
     "concentration"
-  ]
+  ],
+  "castingTrigger": {
+    "type": "after_attack_hit",
+    "timing": "immediate_after_event",
+    "requiredCost": "reaction",
+    "attackFilter": {
+      "attackType": "weapon",
+      "weaponType": "any",
+      "includesUnarmedStrike": true
+    },
+    "targetBinding": "triggering_attack_target",
+    "notes": "Routes the smite through the shared attack-rider timing path instead of resolving immediately on cast."
+  }
 }

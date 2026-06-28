@@ -1,369 +1,519 @@
 {
-  "id": "tensers-transformation",
-  "name": "Tenser's Transformation",
-  "aliases": [],
-  "level": 6,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a few hairs from a bull",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 10,
-    "unit": "minute"
-  },
-  "targeting": {
-    "type": "self",
-    "validTargets": [
-      "self"
-    ],
-    "lineOfSight": false,
-    "range": 0,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "HEALING",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "healing": {
-        "dice": "50",
-        "isTemporaryHp": true
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "The caster gains 50 temporary Hit Points. Any remaining temporary Hit Points from this spell are lost when the spell ends.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "on_attack_hit",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "weapon"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "hit",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "2d12",
-        "type": "Force"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "When the caster hits a target with a weapon attack, the target takes an extra 2d12 Force damage.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "on_exit_area",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Constitution",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Exhaustion",
-        "duration": {
-          "type": "special",
-          "value": 0
-        },
-        "level": 1
-      },
-      "description": "Immediately after the spell ends, the caster must succeed on a DC 15 Constitution save or suffer one level of Exhaustion.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "For up to 10 minutes with concentration, the caster cannot cast spells and gains Advantage on simple and martial weapon attacks, proficiency with all armor, shields, simple weapons, and martial weapons, proficiency in Strength and Constitution saves, and a two-attack Attack action unless another feature already grants extra attacks.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Cannot Cast Spells",
-          "effect": "Until the spell ends, the caster cannot cast spells."
-        },
-        {
-          "name": "Simple And Martial Weapon Advantage",
-          "effect": "The caster has Advantage on attack rolls made with simple and martial weapons."
-        },
-        {
-          "name": "Armor Shield Weapon Proficiency",
-          "effect": "The caster has proficiency with all armor, shields, simple weapons, and martial weapons."
-        },
-        {
-          "name": "Strength Constitution Save Proficiency",
-          "effect": "The caster has proficiency in Strength and Constitution saving throws."
-        },
-        {
-          "name": "Extra Attack",
-          "effect": "The caster can attack twice when taking the Attack action, unless another feature already grants extra attacks."
-        },
-        {
-          "name": "Temporary Hit Points Lost",
-          "effect": "Any remaining temporary Hit Points from the spell are lost when the spell ends."
-        },
-        {
-          "name": "End Save Exhaustion",
-          "effect": "Immediately after the spell ends, the caster must succeed on a DC 15 Constitution save or suffer one level of Exhaustion."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You endow yourself with endurance and martial prowess fueled by magic. Until the spell ends, you can't cast spells, and you gain the following benefits: You gain 50 temporary hit points. If any of these remain when the spell ends, they are lost. You have advantage on attack rolls that you make with simple and martial weapons. When you hit a target with a weapon attack, that target takes an extra 2d12 force damage. You have proficiency with all armor, shields, simple weapons, and martial weapons. You have proficiency in Strength and Constitution saving throws. You can attack twice, instead of once, when you take the Attack action on your turn. You ignore this benefit if you already have a feature, like Extra Attack, that gives you extra attacks. Immediately after the spell ends, you must succeed on a DC 15 Constitution saving throw or suffer one level of exhaustion.",
-  "higherLevels": "",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "tensers-transformation",
+    "name":  "Tenser\u0027s Transformation",
+    "aliases":  [
+
+                ],
+    "level":  6,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "self",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a few hairs from a bull",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  10,
+                     "unit":  "minute"
+                 },
+    "targeting":  {
+                      "type":  "self",
+                      "validTargets":  [
+                                           "self"
+                                       ],
+                      "lineOfSight":  false,
+                      "range":  0,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "HEALING",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "healing":  {
+                                        "dice":  "50",
+                                        "isTemporaryHp":  true
+                                    },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "The caster gains 50 temporary Hit Points. Any remaining temporary Hit Points from this spell are lost when the spell ends.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "temporary_hit_points",
+                                                       "description":  "Any remaining Temporary Hit Points from this spell are lost when the spell ends."
+                                                   },
+                                                   {
+                                                       "trigger":  "immediately_after_spell_ends",
+                                                       "scope":  "caster_exhaustion_save",
+                                                       "description":  "Immediately after the spell ends, the caster makes a DC 15 Constitution save or gains one level of Exhaustion."
+                                                   }
+                                               ],
+                        "aftermathState":  {
+                                               "kind":  "temporary_hit_point_cleanup",
+                                               "when":  "spell_ends",
+                                               "consequence":  "remaining_temporary_hit_points_from_spell_are_lost"
+                                           }
+                    },
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "on_attack_hit",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "weapon"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "hit",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ],
+                                          "fixedDC":  15
+                                      },
+                        "damage":  {
+                                       "dice":  "2d12",
+                                       "type":  "Force"
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "When the caster hits a target with a weapon attack, the target takes an extra 2d12 Force damage.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "temporary_hit_points",
+                                                       "description":  "Any remaining Temporary Hit Points from this spell are lost when the spell ends."
+                                                   },
+                                                   {
+                                                       "trigger":  "immediately_after_spell_ends",
+                                                       "scope":  "caster_exhaustion_save",
+                                                       "description":  "Immediately after the spell ends, the caster makes a DC 15 Constitution save or gains one level of Exhaustion."
+                                                   }
+                                               ]
+                    },
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "on_exit_area",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Constitution",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Exhaustion",
+                                                "duration":  {
+                                                                 "type":  "special",
+                                                                 "value":  0
+                                                             },
+                                                "level":  1
+                                            },
+                        "description":  "Immediately after the spell ends, the caster must succeed on a DC 15 Constitution save or suffer one level of Exhaustion.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "temporary_hit_points",
+                                                       "description":  "Any remaining Temporary Hit Points from this spell are lost when the spell ends."
+                                                   },
+                                                   {
+                                                       "trigger":  "immediately_after_spell_ends",
+                                                       "scope":  "caster_exhaustion_save",
+                                                       "description":  "Immediately after the spell ends, the caster makes a DC 15 Constitution save or gains one level of Exhaustion."
+                                                   }
+                                               ],
+                        "aftermathState":  {
+                                               "kind":  "post_transformation_exhaustion_save",
+                                               "when":  "immediately_after_spell_ends",
+                                               "save":  "DC_15_Constitution",
+                                               "failure":  "suffer_1_level_of_Exhaustion"
+                                           }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "For up to 10 minutes with concentration, the caster cannot cast spells and gains Advantage on simple and martial weapon attacks, proficiency with all armor, shields, simple weapons, and martial weapons, proficiency in Strength and Constitution saves, and a two-attack Attack action unless another feature already grants extra attacks.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "name":  "Two-Attack Attack Action",
+                                                   "actionType":  "attack_action_modifier",
+                                                   "timing":  "while_spell_active",
+                                                   "description":  "When the caster takes the Attack action, they can attack twice unless another feature already grants extra attacks."
+                                               }
+                                           ],
+                        "attackAugments":  [
+                                               {
+                                                   "name":  "Simple and Martial Weapon Advantage",
+                                                   "attackRollModifier":  "advantage",
+                                                   "appliesTo":  "simple_and_martial_weapon_attack_rolls"
+                                               },
+                                               {
+                                                   "name":  "Weapon Hit Force Damage",
+                                                   "damageRollModifier":  "+2d12 Force",
+                                                   "appliesOn":  "weapon_attack_hit"
+                                               }
+                                           ],
+                        "savingThrowProficiencies":  [
+                                                         "Strength",
+                                                         "Constitution"
+                                                     ],
+                        "actionRestrictions":  [
+                                                   {
+                                                       "restriction":  "cannot_cast_spells",
+                                                       "duration":  "while_spell_active"
+                                                   }
+                                               ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Cannot Cast Spells",
+                                                   "effect":  "Until the spell ends, the caster cannot cast spells."
+                                               },
+                                               {
+                                                   "name":  "Simple And Martial Weapon Advantage",
+                                                   "effect":  "The caster has Advantage on attack rolls made with simple and martial weapons."
+                                               },
+                                               {
+                                                   "name":  "Armor Shield Weapon Proficiency",
+                                                   "effect":  "The caster has proficiency with all armor, shields, simple weapons, and martial weapons."
+                                               },
+                                               {
+                                                   "name":  "Strength Constitution Save Proficiency",
+                                                   "effect":  "The caster has proficiency in Strength and Constitution saving throws."
+                                               },
+                                               {
+                                                   "name":  "Extra Attack",
+                                                   "effect":  "The caster can attack twice when taking the Attack action, unless another feature already grants extra attacks."
+                                               },
+                                               {
+                                                   "name":  "Temporary Hit Points Lost",
+                                                   "effect":  "Any remaining temporary Hit Points from the spell are lost when the spell ends."
+                                               },
+                                               {
+                                                   "name":  "End Save Exhaustion",
+                                                   "effect":  "Immediately after the spell ends, the caster must succeed on a DC 15 Constitution save or suffer one level of Exhaustion."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "temporary_hit_points",
+                                                       "description":  "Any remaining Temporary Hit Points from this spell are lost when the spell ends."
+                                                   },
+                                                   {
+                                                       "trigger":  "immediately_after_spell_ends",
+                                                       "scope":  "caster_exhaustion_save",
+                                                       "description":  "Immediately after the spell ends, the caster makes a DC 15 Constitution save or gains one level of Exhaustion."
+                                                   }
+                                               ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "While the spell is active, apply 50 temporary Hit Points, spellcasting lockout, simple/martial weapon attack Advantage, +2d12 Force damage on weapon hits, armor/shield/weapon proficiencies, Strength and Constitution save proficiency, and two attacks per Attack action unless already granted. When the spell ends, remove remaining temporary Hit Points and resolve the DC 15 Constitution save against one Exhaustion level.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You endow yourself with endurance and martial prowess fueled by magic. Until the spell ends, you can\u0027t cast spells, and you gain the following benefits: You gain 50 temporary hit points. If any of these remain when the spell ends, they are lost. You have advantage on attack rolls that you make with simple and martial weapons. When you hit a target with a weapon attack, that target takes an extra 2d12 force damage. You have proficiency with all armor, shields, simple weapons, and martial weapons. You have proficiency in Strength and Constitution saving throws. You can attack twice, instead of once, when you take the Attack action on your turn. You ignore this benefit if you already have a feature, like Extra Attack, that gives you extra attacks. Immediately after the spell ends, you must succeed on a DC 15 Constitution saving throw or suffer one level of exhaustion.",
+    "higherLevels":  "",
+    "tags":  [
+                 "concentration"
+             ]
 }

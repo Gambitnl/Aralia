@@ -1,198 +1,253 @@
-{
-  "id": "conjure-animals",
-  "name": "Conjure Animals",
-  "aliases": [],
-  "level": 3,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Ranger"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "range": 60,
-    "rangeUnit": "feet",
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Spectral Pack Threat Radius",
-          "shape": "Emanation",
-          "size": 10,
-          "sizeType": "radius",
-          "sizeUnit": "feet",
-          "notes": "Centered on the conjured pack, not on the caster; the pack can move up to 30 feet when you move."
-        }
-      ]
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "SUMMONING",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "summon": {
-        "entityType": "creature",
-        "persistent": false,
-        "count": 1,
-        "commandCost": "free",
-        "commandsPerTurn": 1,
-        "initiative": "rolled",
-        "objectDescription": "Large spectral pack of fey animal spirits that can move up to 30 feet when the caster moves and threatens creatures within 10 feet with a Dexterity-save Slashing damage trigger."
-      },
-      "recurringMechanics": [
-        {
-          "timing": "on_entity_proximity",
-          "frequency": "first_per_turn",
-          "saveType": "Dexterity",
-          "saveEffect": "none",
-          "damage": {
-            "dice": "3d10",
-            "type": "Slashing"
-          },
-          "failureOutcome": "takes_damage",
-          "notes": "Whenever the pack moves within 10 feet of a visible creature, or a visible creature enters or ends its turn within 10 feet of the pack, the caster can force one Dexterity save per creature per turn. Failure deals Slashing damage; success has no half-damage branch."
-        }
-      ],
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "Creates the summoned creature group as a persistent combat effect; form selection, creature count, and detailed command behavior are deferred to separate summoning work.",
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You conjure nature spirits that appear as a Large pack of spectral, intangible animals in an unoccupied space you can see within range. The pack lasts for the duration, and you choose the spirits' animal form, such as wolves, serpents, or birds. You have Advantage on Strength saving throws while you're within 5 feet of the pack, and when you move on your turn, you can also move the pack up to 30 feet to an unoccupied space you can see. Whenever the pack moves within 10 feet of a creature you can see and whenever a creature you can see enters a space within 10 feet of the pack or ends its turn there, you can force that creature to make a Dexterity saving throw. On a failed save, the creature takes 3d10 Slashing damage. A creature makes this save only once per turn.",
-  "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d10 for each spell slot level above 3.",
-  "tags": [
-    "summoning",
-    "controlled-entity",
-    "concentration"
-  ]
+﻿{
+    "id":  "conjure-animals",
+    "name":  "Conjure Animals",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Ranger"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "areaOfEffect":  {
+                                           "shape":  "Sphere",
+                                           "size":  0,
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Spectral Pack Threat Radius",
+                                                               "shape":  "Emanation",
+                                                               "size":  10,
+                                                               "sizeType":  "radius",
+                                                               "sizeUnit":  "feet",
+                                                               "notes":  "Centered on the conjured pack, not on the caster; the pack can move up to 30 feet when you move."
+                                                           }
+                                                       ]
+                                         },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "unoccupied":  "required",
+                                                                  "surface":  "not_applicable",
+                                                                  "destination":  "visible_space_within_range",
+                                                                  "notes":  "Conjure Animals places the Large spectral pack in an unoccupied space the caster can see within range; later pack movement also requires a visible unoccupied space."
+                                                              }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "SUMMONING",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "summon":  {
+                                       "entityType":  "creature",
+                                       "persistent":  false,
+                                       "count":  1,
+                                       "commandCost":  "free",
+                                       "commandsPerTurn":  1,
+                                       "initiative":  "rolled",
+                                       "objectDescription":  "Large spectral pack of fey animal spirits that can move up to 30 feet when the caster moves and threatens creatures within 10 feet with a Dexterity-save Slashing damage trigger."
+                                   },
+                        "savingThrowModifier":  {
+                                                    "modifier":  "advantage",
+                                                    "ability":  "Strength",
+                                                    "consumption":  "while_active",
+                                                    "duration":  {
+                                                                     "type":  "minutes",
+                                                                     "value":  10
+                                                                 },
+                                                    "condition":  "caster_within_5_feet_of_pack",
+                                                    "notes":  "The caster has Advantage on Strength saving throws while within 5 feet of the spectral pack."
+                                                },
+                        "recurringMechanics":  [
+                                                   {
+                                                       "timing":  "on_entity_proximity",
+                                                       "frequency":  "first_per_turn",
+                                                       "saveType":  "Dexterity",
+                                                       "saveEffect":  "half",
+                                                       "damage":  {
+                                                                      "dice":  "3d10",
+                                                                      "type":  "Slashing"
+                                                                  },
+                                                       "failureOutcome":  "takes_damage",
+                                                       "notes":  "Whenever the pack moves within 10 feet of a visible creature, or a visible creature enters or ends its turn within 10 feet of the pack, the caster can force one Dexterity save per creature per turn. Failure deals Slashing damage; success takes half damage."
+                                                   }
+                                               ],
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Creates the summoned creature group as a persistent combat effect; form selection, creature count, and detailed command behavior are deferred to separate summoning work.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "placementEligibility":  {
+                                                     "initialPlacement":  "visible_unoccupied_space_within_range",
+                                                     "movementDestination":  "visible_unoccupied_space",
+                                                     "movementDistanceFeet":  30,
+                                                     "notes":  "When the caster moves, the pack can also move up to 30 feet to an unoccupied space the caster can see."
+                                                 }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Ask the caster to place the spectral pack and choose its animal form; while within 5 feet of the pack the caster has Advantage on Strength saves, and when the pack threatens visible creatures within 10 feet prompt the once-per-turn Dexterity save for Slashing damage.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You conjure nature spirits that appear as a Large pack of spectral, intangible animals in an unoccupied space you can see within range. The pack lasts for the duration, and you choose the spirits\u0027 animal form, such as wolves, serpents, or birds. You have Advantage on Strength saving throws while you\u0027re within 5 feet of the pack, and when you move on your turn, you can also move the pack up to 30 feet to an unoccupied space you can see. Whenever the pack moves within 10 feet of a creature you can see and whenever a creature you can see enters a space within 10 feet of the pack or ends its turn there, you can force that creature to make a Dexterity saving throw. On a failed save, the creature takes 3d10 Slashing damage. A creature makes this save only once per turn.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. The damage increases by 1d10 for each spell slot level above 3.",
+    "tags":  [
+                 "summoning",
+                 "controlled-entity",
+                 "concentration"
+             ]
 }

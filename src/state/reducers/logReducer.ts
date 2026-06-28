@@ -135,8 +135,16 @@ function hasDuplicateDiscoveryEntry(discoveryLog: DiscoveryEntry[], newEntry: Di
 
 export function logReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
-    case 'ADD_MESSAGE':
-      return { messages: [...state.messages, action.payload] };
+    case 'ADD_MESSAGE': {
+      // Adventure-log entries are stamped with the current in-game time (not the
+      // real-world wall clock) so the Log stays consistent with the HUD's
+      // date/time. Any wall-clock timestamp set by the message creator is
+      // overridden here, making this the single source of truth for log time.
+      const stamped = state.gameTime instanceof Date
+        ? { ...action.payload, timestamp: new Date(state.gameTime.getTime()) }
+        : action.payload;
+      return { messages: [...state.messages, stamped] };
+    }
 
     case 'ADD_GEMINI_LOG_ENTRY':
       return {

@@ -26,7 +26,7 @@ import {
   SIDEBAR_STEPS,
   STEP_GROUPS,
   StepGroup,
-  isStepCompleted,
+  isStepReachedAndComplete,
   SidebarStepConfig,
 } from './config/sidebarSteps';
 
@@ -79,7 +79,10 @@ const SidebarStepRow: React.FC<{
   onNavigate: (step: CreationStep) => void;
   index: number;
 }> = ({ config, currentStep, state, onNavigate, index }) => {
-  const isComplete = isStepCompleted(config.step, state);
+  // Use the same "reached AND complete" rule the footer count uses, so a green
+  // check never appears on a step the tally won't credit (e.g. a later step
+  // with defaults that the player hasn't visited yet).
+  const isComplete = isStepReachedAndComplete(config.step, currentStep, state);
   const isCurrent = currentStep === config.step;
   const isNested = config.parentStep !== undefined;
 
@@ -154,9 +157,11 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
   const visibleSteps = SIDEBAR_STEPS.filter(step => step.isVisible(state));
   // Progress should reflect the route the player has actually reached. Several
   // later steps have defaults, so counting every completed visible step makes
-  // one confirmed choice look like multiple choices were finished.
+  // one confirmed choice look like multiple choices were finished. This shares
+  // the exact predicate the green checkmarks use (isStepReachedAndComplete), so
+  // the footer tally and the number of checks can never disagree.
   const completedReachedSteps = visibleSteps.filter(stepConfig =>
-    stepConfig.step <= currentStep && isStepCompleted(stepConfig.step, state)
+    isStepReachedAndComplete(stepConfig.step, currentStep, state)
   ).length;
 
   // Two-click confirm for the destructive Start Over action. The armed state

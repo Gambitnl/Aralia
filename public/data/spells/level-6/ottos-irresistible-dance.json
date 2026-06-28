@@ -133,7 +133,16 @@
         },
         "requiresStatus": [],
         "saveModifiers": [],
-        "saveOutcomeOverrides": []
+        "saveOutcomeOverrides": [
+          {
+            "outcome": "success",
+            "effect": "The target dances until the end of its next turn and must spend all its movement dancing in place."
+          },
+          {
+            "outcome": "failure",
+            "effect": "The target is Charmed for the duration and suffers the dancing attack/save modifiers."
+          }
+        ]
       },
       "statusCondition": {
         "name": "Charmed",
@@ -212,6 +221,20 @@
         "saveOutcomeOverrides": []
       },
       "defenseType": "disadvantage_on_attacks",
+      "attackRollModifier": {
+        "type": "disadvantage",
+        "direction": "outgoing",
+        "appliesTo": "target_attack_rolls_while_charmed"
+      },
+      "savingThrowModifier": {
+        "type": "disadvantage",
+        "saveType": "Dexterity",
+        "appliesTo": "target_dexterity_saving_throws_while_charmed"
+      },
+      "incomingAttackModifier": {
+        "type": "advantage",
+        "appliesTo": "attack_rolls_against_target_while_charmed"
+      },
       "duration": {
         "type": "minutes",
         "value": 1
@@ -328,8 +351,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Resolve the initial Wisdom save. On success, track dancing-in-place movement lock until the end of the target's next turn. On failure, apply Charmed, all-movement dancing, Disadvantage on Dexterity saves and attack rolls, Advantage for attackers, and the target's action-based repeat Wisdom save.",
+    "playerInputRequired": true
   },
   "description": "One creature that you can see within range must make a Wisdom saving throw. On a successful save, the target dances comically until the end of its next turn, during which it must spend all its movement to dance in place. On a failed save, the target has the Charmed condition for the duration. While Charmed, the target dances comically, must use all its movement to dance in place, and has Disadvantage on Dexterity saving throws and attack rolls, and other creatures have Advantage on attack rolls against it. On each of its turns, the target can take an action to collect itself and repeat the save, ending the spell on itself on a success.",
   "higherLevels": "",

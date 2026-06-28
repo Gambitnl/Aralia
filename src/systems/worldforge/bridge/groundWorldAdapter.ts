@@ -48,16 +48,33 @@ const HEIGHT_DOMAIN_M =
 
 const FEET_TO_METERS = 0.3048;
 
-/** TerrainMaterial → world3d terrainColor palette id. */
+/**
+ * TerrainMaterial → world3d terrainColor palette id.
+ *
+ * The L2 LocalArtifact collapses the atlas biome into one of these 8 surface
+ * materials at generation time (generateLocal BIOME_PROFILES), so the richer
+ * biome distinction (forest vs grassland vs taiga, jungle vs savanna) is no
+ * longer recoverable HERE — every forested cell already arrived as `grass`,
+ * every taiga/tundra cell as `dirt`. We therefore map each material to its
+ * own faithful tint so the ground tint carries the variety the material DOES
+ * encode, instead of folding 8 materials into ~5 colors:
+ *   - grass → grassland (meadow green; distinct from the neutral plains fallback)
+ *   - dirt  → dirt      (warm packed-earth brown; was aliased to plains/grass)
+ *   - paved → paved     (cool stone grey; was a `mountain` stopgap)
+ *   - floor → floor     (interior boards; was plains)
+ * Restoring the full forest/jungle/tundra/swamp palette breadth needs the
+ * anchor biomeId threaded down from generateLocal/makeGroundWorld into this
+ * adapter (the artifact doesn't carry it today) — tracked as a follow-up.
+ */
 const MATERIAL_BIOME: Record<TerrainMaterial, string> = {
-  grass: "plains",
-  dirt: "plains",
+  grass: "grassland",
+  dirt: "dirt",
   rock: "mountain",
   sand: "desert",
   wetland: "wetland",
   water: "water",
-  paved: "mountain", // stone-grey reads as paving until a real material lands
-  floor: "plains",
+  paved: "paved",
+  floor: "floor",
 };
 
 /**

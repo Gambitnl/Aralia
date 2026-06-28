@@ -1,220 +1,269 @@
 {
-  "id": "galders-tower",
-  "name": "Galder's Tower",
-  "aliases": [],
-  "level": 3,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": true,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 10,
-    "unit": "minute",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 10,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a fragment of stone, wood, or other building material",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": false,
-    "value": 24,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "point",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "ground"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "creation",
-      "description": "Creates a two-story furnished tower at a point on the ground; each story is 10 feet tall and up to 100 square feet, with shape, materials, furnishings, doors, windows, warmth, and dryness chosen by the caster.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+1 story above 3rd-level slot",
-        "customFormula": "A 4th-level or higher slot adds one additional 10-foot-tall story for each spell slot level above 3rd."
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "createdObjects": [
-        {
-          "objectType": "structure",
-          "name": "Galder's Tower",
-          "count": 1,
-          "countUnit": "structure",
-          "appearsIn": "ground",
-          "shapeOptions": [
-            "round",
-            "square"
-          ],
-          "materialOptions": [
-            "stone",
-            "wood",
-            "similar sturdy building material"
-          ],
-          "levels": 2,
-          "levelScaling": {
-            "type": "slot_level",
-            "bonusPerLevel": 1
-          },
-          "levelHeightFeet": 10,
-          "areaPerLevelSquareFeet": 100,
-          "accessBetweenLevels": true,
-          "secureOpenings": true,
-          "furnished": true,
-          "weatherProtected": true,
-          "expiresWithSpell": true,
-          "shelfLife": "24 hours",
-          "notes": "The caster chooses a round or square tower made of stone, wood, or similar sturdy material. Each level is 10 feet tall and up to 100 square feet, with ladder-and-hatch access, barrable doors/windows, simple comfortable furnishings, warmth, and dryness."
-        }
-      ],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You conjure a two-story tower made of stone, wood, or other similar materials. The tower can be round or square in shape. Each level of the tower is 10 feet tall and has an area of up to 100 square feet. Access between levels is provided by a simple ladder and hatch. The tower has sturdy doors and windows that can be barred from the inside. You choose the furnishings and decorations of the tower, which are simple but comfortable. The tower is warm and dry, regardless of the weather outside. You can cast this spell again while it is active to maintain the tower's existence for another 24 hours. You can create a permanent tower by casting this spell in the same location and with the same configuration every day for one year.",
-  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, the tower can have one additional story for each slot level above 3rd.",
-  "tags": [
-    "creation",
-    "conjuration",
-    "ritual",
-    "structure"
-  ]
+    "id":  "galders-tower",
+    "name":  "Galder\u0027s Tower",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  true,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  10,
+                        "unit":  "minute",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  10,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a fragment of stone, wood, or other building material",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  false,
+                     "value":  24,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "ground"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "creation",
+                        "description":  "Creates a two-story furnished tower at a point on the ground; each story is 10 feet tall and up to 100 square feet, with shape, materials, furnishings, doors, windows, warmth, and dryness chosen by the caster.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+1 story above 3rd-level slot",
+                                        "customFormula":  "A 4th-level or higher slot adds one additional 10-foot-tall story for each spell slot level above 3rd."
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "structure",
+                                                   "name":  "Galder\u0027s Tower",
+                                                   "count":  1,
+                                                   "countUnit":  "structure",
+                                                   "appearsIn":  "ground",
+                                                   "shapeOptions":  [
+                                                                        "round",
+                                                                        "square"
+                                                                    ],
+                                                   "materialOptions":  [
+                                                                           "stone",
+                                                                           "wood",
+                                                                           "similar sturdy building material"
+                                                                       ],
+                                                   "levels":  2,
+                                                   "levelScaling":  {
+                                                                        "type":  "slot_level",
+                                                                        "bonusPerLevel":  1
+                                                                    },
+                                                   "levelHeightFeet":  10,
+                                                   "areaPerLevelSquareFeet":  100,
+                                                   "accessBetweenLevels":  true,
+                                                   "secureOpenings":  true,
+                                                   "furnished":  true,
+                                                   "weatherProtected":  true,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "24 hours",
+                                                   "notes":  "The caster chooses a round or square tower made of stone, wood, or similar sturdy material. Each level is 10 feet tall and up to 100 square feet, with ladder-and-hatch access, barrable doors/windows, simple comfortable furnishings, warmth, and dryness."
+                                               }
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "caster_recasts_while_tower_exists",
+                                                       "scope":  "duration",
+                                                       "description":  "Casting this spell again while the tower exists maintains the tower for another 24 hours."
+                                                   },
+                                                   {
+                                                       "trigger":  "same_location_and_configuration_daily_for_1_year",
+                                                       "scope":  "permanence",
+                                                       "description":  "Casting the spell in the same location and configuration every day for 1 year makes the tower permanent."
+                                                   }
+                                               ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You conjure a two-story tower made of stone, wood, or other similar materials. The tower can be round or square in shape. Each level of the tower is 10 feet tall and has an area of up to 100 square feet. Access between levels is provided by a simple ladder and hatch. The tower has sturdy doors and windows that can be barred from the inside. You choose the furnishings and decorations of the tower, which are simple but comfortable. The tower is warm and dry, regardless of the weather outside. You can cast this spell again while it is active to maintain the tower\u0027s existence for another 24 hours. You can create a permanent tower by casting this spell in the same location and with the same configuration every day for one year.",
+    "higherLevels":  "When you cast this spell using a spell slot of 4th level or higher, the tower can have one additional story for each slot level above 3rd.",
+    "tags":  [
+                 "creation",
+                 "conjuration",
+                 "ritual",
+                 "structure"
+             ]
 }

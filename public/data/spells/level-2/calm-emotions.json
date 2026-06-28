@@ -1,354 +1,446 @@
 {
-  "id": "calm-emotions",
-  "name": "Calm Emotions",
-  "aliases": [],
-  "level": 2,
-  "school": "Enchantment",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Cleric"
-  ],
-  "subClasses": [
-    "Warlock - Archfey Patron"
-  ],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "filter": {
-      "creatureTypes": [
-        "Humanoid"
-      ],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 20,
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "lineOfSight": true,
-    "maxTargets": 1
-  },
-  "effects": [
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Charisma",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [
-            "Humanoid"
-          ],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "defenseType": "immunity",
-      "duration": {
-        "type": "minutes",
-        "value": 1
-      },
-      "description": "Each Humanoid in a 20-foot-radius Sphere within 60 feet that fails the Charisma save can be chosen to gain immunity to Charmed and Frightened for up to 1 minute with concentration, suppressing any existing Charmed or Frightened condition for the same duration.",
-      "value": 0,
-      "baseACFormula": "",
-      "acMinimum": 0,
-      "damageType": [],
-      "conditionImmunity": [
-        "Charmed",
-        "Frightened"
-      ],
-      "conditionSuppression": [
-        "Charmed",
-        "Frightened"
-      ],
-      "savingThrow": [],
-      "attackerFilter": {
-        "creatureTypes": [],
-        "excludeCreatureTypes": [],
-        "sizes": [],
-        "alignments": [],
-        "hasCondition": [],
-        "isNativeToPlane": false,
-        "willing": "not_applicable",
-        "objectEligibility": {
-          "wornOrCarried": "not_applicable",
-          "magicalStatus": "not_applicable",
-          "fixedToSurface": "not_applicable",
-          "maxSize": "not_applicable",
-          "maxWeightPounds": "not_applicable",
-          "maxWeightScaling": "not_applicable"
-        },
-        "communicationPrerequisites": {
-          "canHearCaster": "not_applicable",
-          "canUnderstandCaster": "not_applicable",
-          "canSeeCaster": "not_applicable"
-        },
-        "abilityThreshold": {
-          "ability": "not_applicable",
-          "operator": "not_applicable",
-          "value": "not_applicable"
-        },
-        "selfRelation": "not_applicable"
-      },
-      "reactionTrigger": {
-        "event": "when_hit",
-        "includesSpells": []
-      },
-      "restrictions": {
-        "noArmor": false,
-        "noShield": false,
-        "targetSelf": false
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Charisma",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [
-            "Humanoid"
-          ],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "Each Humanoid in a 20-foot-radius Sphere within 60 feet that fails the Charisma save can instead become indifferent toward caster-chosen creatures it is hostile toward for up to 1 minute with concentration, ending early for that target if it takes damage or witnesses its allies taking damage.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "target_takes_damage_or_witnesses_allies_damaged",
-          "scope": "effect",
-          "description": "The indifference mode ends for the affected target if that target takes damage or witnesses its allies taking damage."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "Each Humanoid in a 20-foot-radius Sphere centered on a point you choose within range must succeed on a Charisma saving throw or be affected by one of the following effects (choose for each creature): The creature has Immunity to the Charmed and Frightened conditions until the spell ends. If the creature was already Charmed or Frightened, those conditions are suppressed for the duration. The creature becomes Indifferent about creatures of your choice that it's Hostile toward. This indifference ends if the target takes damage or witnesses its allies taking damage. When the spell ends, the creature's attitude returns to normal.",
-  "higherLevels": "",
-  "tags": [
-    "enchantment",
-    "control",
-    "concentration"
-  ],
-  "modeChoice": {
-    "type": "choose_one",
-    "timing": "on_cast",
-    "optionCount": 2,
-    "optionsSource": "effects",
-    "canDismissActive": false,
-    "options": [
-      {
-        "label": "Suppress Charmed and Frightened",
-        "summary": "A failed-save Humanoid gains immunity to Charmed and Frightened, suppressing either condition if already present.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "DEFENSIVE"
-        ],
-        "duration": "1 minute with concentration",
-        "notes": "The spell text says the caster chooses the effect for each failed-save creature, so runtime should allow per-target mode assignment."
-      },
-      {
-        "label": "Make Hostile Creature Indifferent",
-        "summary": "A failed-save Humanoid becomes Indifferent about caster-chosen creatures it is Hostile toward.",
-        "effectIndices": [
-          1
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "1 minute with concentration",
-        "notes": "This mode ends early for an affected target if it takes damage or witnesses allies taking damage."
-      }
-    ],
-    "notes": "Unlike most choose-one menus, Calm Emotions chooses the mode separately for each failed-save Humanoid in the area."
-  }
+    "id":  "calm-emotions",
+    "name":  "Calm Emotions",
+    "aliases":  [
+
+                ],
+    "level":  2,
+    "school":  "Enchantment",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Cleric"
+                ],
+    "subClasses":  [
+                       "Warlock - Archfey Patron"
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "filter":  {
+                                     "creatureTypes":  [
+                                                           "Humanoid"
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "areaOfEffect":  {
+                                           "shape":  "Sphere",
+                                           "size":  20,
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "lineOfSight":  true,
+                      "maxTargets":  1
+                  },
+    "effects":  [
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Charisma",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+                                                                                     "Humanoid"
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "defenseType":  "immunity",
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  1
+                                     },
+                        "description":  "Each Humanoid in a 20-foot-radius Sphere within 60 feet that fails the Charisma save can be chosen to gain immunity to Charmed and Frightened for up to 1 minute with concentration, suppressing any existing Charmed or Frightened condition for the same duration.",
+                        "value":  0,
+                        "baseACFormula":  "",
+                        "acMinimum":  0,
+                        "damageType":  [
+
+                                       ],
+                        "conditionImmunity":  [
+                                                  "Charmed",
+                                                  "Frightened"
+                                              ],
+                        "conditionSuppression":  [
+                                                     "Charmed",
+                                                     "Frightened"
+                                                 ],
+                        "savingThrow":  [
+
+                                        ],
+                        "attackerFilter":  {
+                                               "creatureTypes":  [
+
+                                                                 ],
+                                               "excludeCreatureTypes":  [
+
+                                                                        ],
+                                               "sizes":  [
+
+                                                         ],
+                                               "alignments":  [
+
+                                                              ],
+                                               "hasCondition":  [
+
+                                                                ],
+                                               "isNativeToPlane":  false,
+                                               "willing":  "not_applicable",
+                                               "objectEligibility":  {
+                                                                         "wornOrCarried":  "not_applicable",
+                                                                         "magicalStatus":  "not_applicable",
+                                                                         "fixedToSurface":  "not_applicable",
+                                                                         "maxSize":  "not_applicable",
+                                                                         "maxWeightPounds":  "not_applicable",
+                                                                         "maxWeightScaling":  "not_applicable"
+                                                                     },
+                                               "communicationPrerequisites":  {
+                                                                                  "canHearCaster":  "not_applicable",
+                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                  "canSeeCaster":  "not_applicable"
+                                                                              },
+                                               "abilityThreshold":  {
+                                                                        "ability":  "not_applicable",
+                                                                        "operator":  "not_applicable",
+                                                                        "value":  "not_applicable"
+                                                                    },
+                                               "selfRelation":  "not_applicable"
+                                           },
+                        "reactionTrigger":  {
+                                                "event":  "when_hit",
+                                                "includesSpells":  [
+
+                                                                   ]
+                                            },
+                        "restrictions":  {
+                                             "noArmor":  false,
+                                             "noShield":  false,
+                                             "targetSelf":  false
+                                         },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "socialEffect":  {
+                                             "grantsConditionImmunity":  [
+                                                                             "Charmed",
+                                                                             "Frightened"
+                                                                         ],
+                                             "suppressesExistingConditions":  [
+                                                                                  "Charmed",
+                                                                                  "Frightened"
+                                                                              ],
+                                             "duration":  "1 minute concentration",
+                                             "notes":  "One Calm Emotions mode makes affected Humanoids immune to Charmed and Frightened and suppresses those conditions for the duration."
+                                         }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Charisma",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+                                                                                     "Humanoid"
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "Each Humanoid in a 20-foot-radius Sphere within 60 feet that fails the Charisma save can instead become indifferent toward caster-chosen creatures it is hostile toward for up to 1 minute with concentration, ending early for that target if it takes damage or witnesses its allies taking damage.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "target_takes_damage_or_witnesses_allies_damaged",
+                                                       "scope":  "effect",
+                                                       "description":  "The indifference mode ends for the affected target if that target takes damage or witnesses its allies taking damage."
+                                                   }
+                                               ],
+                        "socialEffect":  {
+                                             "dispositionChange":  "indifferent",
+                                             "appliesToward":  "caster_chosen_creatures_the_target_is_hostile_toward",
+                                             "endsIfTargetTakesDamage":  true,
+                                             "endsIfTargetWitnessesAlliesDamaged":  true,
+                                             "notes":  "The indifference mode ends if the target takes damage or sees its allies take damage."
+                                         },
+                        "aftermathState":  {
+                                               "kind":  "attitude_restoration",
+                                               "when":  "spell_ends_or_indifference_breaks",
+                                               "consequence":  "creature_attitude_returns_to_normal",
+                                               "breakTriggers":  [
+                                                                     "target_takes_damage",
+                                                                     "target_witnesses_allies_taking_damage"
+                                                                 ]
+                                           }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "Each Humanoid in a 20-foot-radius Sphere centered on a point you choose within range must succeed on a Charisma saving throw or be affected by one of the following effects (choose for each creature): The creature has Immunity to the Charmed and Frightened conditions until the spell ends. If the creature was already Charmed or Frightened, those conditions are suppressed for the duration. The creature becomes Indifferent about creatures of your choice that it\u0027s Hostile toward. This indifference ends if the target takes damage or witnesses its allies taking damage. When the spell ends, the creature\u0027s attitude returns to normal.",
+    "higherLevels":  "",
+    "tags":  [
+                 "enchantment",
+                 "control",
+                 "concentration"
+             ],
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  2,
+                       "optionsSource":  "effects",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Suppress Charmed and Frightened",
+                                           "summary":  "A failed-save Humanoid gains immunity to Charmed and Frightened, suppressing either condition if already present.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DEFENSIVE"
+                                                           ],
+                                           "duration":  "1 minute with concentration",
+                                           "notes":  "The spell text says the caster chooses the effect for each failed-save creature, so runtime should allow per-target mode assignment."
+                                       },
+                                       {
+                                           "label":  "Make Hostile Creature Indifferent",
+                                           "summary":  "A failed-save Humanoid becomes Indifferent about caster-chosen creatures it is Hostile toward.",
+                                           "effectIndices":  [
+                                                                 1
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "1 minute with concentration",
+                                           "notes":  "This mode ends early for an affected target if it takes damage or witnesses allies taking damage."
+                                       }
+                                   ],
+                       "notes":  "Unlike most choose-one menus, Calm Emotions chooses the mode separately for each failed-save Humanoid in the area."
+                   }
 }

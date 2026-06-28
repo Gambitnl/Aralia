@@ -263,4 +263,22 @@ describe('logReducer', () => {
     expect(questContent).toContain('Update: Update 50');
     expect(state.unreadDiscoveryCount).toBe(1);
   });
+
+  it('stamps ADD_MESSAGE log entries with in-game time, overriding the real-world clock', () => {
+    // Adventure-log entries must reflect the in-game clock (consistent with the
+    // HUD date/time), not the real-world wall clock at which the message object
+    // happened to be constructed. The reducer is the single source of truth.
+    const inGameTime = new Date(Date.UTC(351, 0, 1, 7, 1, 0)); // 1 Deepwinter 351, 07:01
+    const state = createMockGameState({ gameTime: inGameTime, messages: [] });
+
+    const wallClock = new Date('2026-06-27T15:48:00.000Z'); // creator-set real-world stamp
+    const nextState = logReducer(state, {
+      type: 'ADD_MESSAGE',
+      payload: { id: 1, text: 'You head North.', sender: 'system', timestamp: wallClock },
+    } as AppAction);
+
+    const stamped = nextState.messages?.[nextState.messages.length - 1];
+    expect(new Date(stamped!.timestamp).getTime()).toBe(inGameTime.getTime());
+    expect(new Date(stamped!.timestamp).getTime()).not.toBe(wallClock.getTime());
+  });
 });

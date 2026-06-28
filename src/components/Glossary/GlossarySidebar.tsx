@@ -268,6 +268,20 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
      */
     const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
+    // Hide near-empty stub categories from the navigation. A category with a
+    // single entry (e.g. Crafting (1), Magic Items (1), Technology (1)) reads as
+    // unfinished content in a shipped reference (GL5). We only hide singletons,
+    // and never while a search is active (so a lone search hit is still findable),
+    // and never the currently-selected entry's category (so a deep-link/See-Also
+    // navigation target can't vanish from the tree).
+    const STUB_CATEGORY_THRESHOLD = 1;
+    const isSearching = !!searchTerm.trim();
+    const visibleCategories = sortedCategories.filter(category => {
+        if (isSearching) return true;
+        if (selectedEntry?.category === category) return true;
+        return (categoryCounts[category] || 0) > STUB_CATEGORY_THRESHOLD;
+    });
+
     // Determine if there are no entries to display (empty search results)
     const hasNoResults = Object.keys(groupedEntries).length === 0;
 
@@ -315,8 +329,8 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
                 <p className="text-gray-500 italic text-center py-4">No terms match your search.</p>
             )}
 
-            {/* Render each category with its entries */}
-            {sortedCategories.map(category => {
+            {/* Render each category with its entries (stub singletons hidden — GL5) */}
+            {visibleCategories.map(category => {
                 // Check if this category is currently expanded
                 const isExpanded = expandedCategories.has(category);
 

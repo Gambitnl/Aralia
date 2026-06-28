@@ -90,7 +90,8 @@ describe('useTurnManager repeat-save lifecycle', () => {
           timing: 'turn_start',
           saveType: 'Wisdom',
           successEnds: true,
-          useOriginalDC: true
+          useOriginalDC: true,
+          dc: 17
         }
       }]
     });
@@ -113,5 +114,9 @@ describe('useTurnManager repeat-save lifecycle', () => {
 
     expect(updatedTarget).toBeDefined();
     expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalled();
+    // The status command stores the original caster DC on repeat-save metadata.
+    // The turn engine must use that stored value; otherwise Blinding Smite-style
+    // turn-end saves silently fall back to the generic placeholder DC.
+    expect(vi.mocked(savingThrowUtils.rollSavingThrow).mock.calls[0][2]).toBe(17);
   });
 });

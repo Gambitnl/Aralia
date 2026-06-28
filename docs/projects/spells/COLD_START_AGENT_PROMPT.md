@@ -20,7 +20,7 @@ subprojects: docs/projects/spells/SUBPROJECTS.md
 ---
 # Spells Parent Routing Prompt
 
-Last updated: 2026-06-25
+Last updated: 2026-06-27
 
 You are entering the Spells parent scoped-dashboard. Do not treat this folder as a single executable spell-work pass. Your first job is to choose the child lane that owns the work, inspect the rendered dashboard handoff when available, then run the implementation or audit pass inside that child packet.
 
@@ -70,7 +70,12 @@ Route spell work through the correct child lane before coding. Update the parent
 
 ## Current Priority Signal
 
-The current highest-impact parent-visible lane is the created-object / persistent-structure mechanics stream. The rendered parent dashboard should recommend Mechanics Discovery Packages from `SUBPROJECTS.md` `highest_priority` and show `Registry proof: current`. Inspect that lane's details and handoff preview, then continue from `docs/projects/spells/subprojects/mechanics-discovery-packages/NORTH_STAR.md` unless the user overrides priority.
+The current highest-impact parent-visible lane is deferred reaction/timing closeout. The work is split across two child packets:
+
+- Structured Spell Execution owns Shining Smite, Blinding Smite, Lightning Arrow, and Counterspell proof through `docs/projects/spells/subprojects/structured-spell-execution/TRACKER.md`.
+- Summons Controlled Entities owns Find Familiar touch delivery and Summon Beast Flyby proof through `docs/projects/spells/subprojects/summons-controlled-entities/TRACKER.md`.
+
+Do not close parent `reaction_or_opportunity_restriction` rows from metadata presence alone. Run the focused executable proof named in the child tracker, then import only parent-visible routing or proof status back to this parent packet.
 
 ## Required End State For This Iteration
 

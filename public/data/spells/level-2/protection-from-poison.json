@@ -139,6 +139,16 @@
       "conditionRemoval": [
         "Poisoned"
       ],
+      "savingThrowModifier": {
+        "modifier": "advantage",
+        "appliesTo": "saving throws to avoid or end the Poisoned condition",
+        "consumption": "while_active",
+        "duration": {
+          "type": "hours",
+          "value": 1
+        },
+        "notes": "After the spell ends Poisoned on the target, the target has Advantage on later saving throws to avoid or end the Poisoned condition for the duration."
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -212,8 +222,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Ask the caster to choose the touched creature; immediately end Poisoned on it, then apply Advantage on saves to avoid or end Poisoned and Resistance to Poison damage for 1 hour.",
+    "playerInputRequired": true
   },
   "description": "You touch a creature and end the Poisoned condition on it. For the duration, the target has Advantage on saving throws to avoid or end the Poisoned condition, and it has Resistance to Poison damage.",
   "higherLevels": "",

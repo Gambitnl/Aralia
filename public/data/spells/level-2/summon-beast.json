@@ -79,7 +79,13 @@
         "operator": "not_applicable",
         "value": "not_applicable"
       },
-      "selfRelation": "not_applicable"
+      "selfRelation": "not_applicable",
+      "placementEligibility": {
+        "unoccupied": "required",
+        "surface": "not_applicable",
+        "destination": "visible_space_within_range",
+        "notes": "Summon Beast manifests the Bestial Spirit in an unoccupied space the caster can see within range."
+      }
     }
   },
   "effects": [
@@ -176,7 +182,11 @@
             "Darkvision 60 ft.",
             "Passive Perception 12"
           ],
-          "cr": "None"
+          "cr": "None",
+          "spellLevelScaling": {
+            "armorClass": "11 + spell slot level",
+            "hitPoints": "20 Air or 30 Land/Water + 5 per spell slot level above 2"
+          }
         },
         "formOptions": [
           "Air",
@@ -188,18 +198,91 @@
             "name": "Rend",
             "description": "Melee spell attack, reach 5 ft. Hit: 1d8 + 4 + the spell's level Piercing damage. The spirit makes a number of Rend attacks equal to half the spell's level, rounded down.",
             "cost": "action",
+            "attackRollBonus": "caster_spell_attack_modifier",
+            "reach": "5 ft",
+            "multiattackCount": "floor(spell_slot_level / 2)",
             "damage": {
               "dice": "1d8 + 4 + spell_level",
               "type": "piercing"
             }
           }
+        ],
+        "attackRollModifier": {
+          "modifier": "advantage",
+          "direction": "outgoing",
+          "attackKind": "Rend",
+          "consumption": "while_pack_tactics_applies",
+          "appliesToForms": [
+            "Land",
+            "Water"
+          ],
+          "condition": "At least one spirit ally is within 5 feet of the target and is not Incapacitated.",
+          "notes": "Land and Water forms use Pack Tactics to gain Advantage on Rend attack rolls when the ally-position condition is met."
+        },
+        "lifecycle": {
+          "hitPointEnding": "spirit_disappears_when_it_drops_to_0_hit_points",
+          "spellEnding": "spirit_disappears_when_the_spell_ends",
+          "statScaling": "AC equals 11 plus spell slot level; HP is 20 for Air or 30 for Land/Water plus 5 per spell slot level above 2"
+        },
+        "communication": {
+          "understandsCasterLanguages": true,
+          "languageEntry": "Understands the languages the caster knows",
+          "commandChannel": "verbal commands with no action required",
+          "noCommandBehavior": "Dodges and avoids danger when no command is given",
+          "notes": "Bestial Spirit understands but does not gain a speech channel from the spell data."
+        },
+        "actionPermissions": {
+          "canAttack": true,
+          "canDeliverTouchSpells": false,
+          "independentInitiative": false,
+          "obeysCasterCommands": true,
+          "notes": "The Bestial Spirit obeys verbal commands with no caster action and uses its own Rend action through the controlled-summon command cadence."
+        },
+        "formTraits": [
+          {
+            "name": "Flyby",
+            "appliesToForms": [
+              "Air"
+            ],
+            "opportunityAttackPolicy": "does_not_provoke_when_flying_out_of_reach",
+            "movementModeRequired": "fly",
+            "notes": "Air form movement leaving enemy reach does not provoke Opportunity Attacks."
+          },
+          {
+            "name": "Pack Tactics",
+            "appliesToForms": [
+              "Land",
+              "Water"
+            ],
+            "opportunityAttackPolicy": "normal",
+            "movementModeRequired": "any",
+            "notes": "Land and Water forms keep normal opportunity-attack exposure and use separate attack-roll modifier metadata for Pack Tactics."
+          }
         ]
+      },
+      "socialEffect": {
+        "relationship": "ally",
+        "alliedTo": [
+          "caster",
+          "caster_allies"
+        ],
+        "understandsCasterLanguages": true,
+        "sharesCasterInitiative": true,
+        "obeysCasterCommands": true,
+        "notes": "The summoned Bestial Spirit is an ally to the caster and allies, understands the caster languages, shares initiative, and follows commands."
+      },
+      "visionLightSound": {
+        "mode": "visible_manifested_summon",
+        "placement": "manifests in an unoccupied space the caster can see within range",
+        "visibleForm": "Bestial Spirit resembles an animal native to the chosen Air, Land, or Water environment",
+        "commandChannel": "obeys verbal commands; if no command is given, it dodges and avoids danger",
+        "soundPayload": "verbal command support only"
       }
     }
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "Choose the Bestial Spirit environment form: Air, Land, or Water.",
+    "prompt": "Choose the Bestial Spirit environment form and arrival space; use the caster's spell attack modifier for Rend, floor(slot level / 2) Rend attacks, and Pack Tactics Advantage for Land or Water forms when an ally is within 5 feet of the target and not Incapacitated.",
     "playerInputRequired": true
   },
   "modeChoice": {

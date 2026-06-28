@@ -1,7 +1,7 @@
 # Spells Parent Runbook
 
 Status: active
-Last updated: 2026-06-25
+Last updated: 2026-06-27
 
 Use this file for repeatable parent routing checks, safe child-lane onboarding, and recovery steps for the Spells scoped dashboard.
 
@@ -47,6 +47,16 @@ Use this file for repeatable parent routing checks, safe child-lane onboarding, 
 3. Open that child packet before editing code, data, validators, UI, or detailed audit material.
 4. Keep child-local pass status, proof, and local gap rows in the child packet.
 5. Return to the parent only when routing, ownership, dashboard state, or parent-visible gap import changes.
+
+## Current Deferred Reaction/Timing Closeout Route
+
+Use this route while the parent `reaction_or_opportunity_restriction` rows remain `implementation_unverified`:
+
+1. For Shining Smite, Blinding Smite, Lightning Arrow, and Counterspell, open `subprojects/structured-spell-execution/TRACKER.md`.
+2. For Find Familiar touch delivery and Summon Beast Flyby, open `subprojects/summons-controlled-entities/TRACKER.md`.
+3. Run or repair the focused proof named in the child closeout matrix; do not close parent rows from metadata presence alone.
+4. Record detailed proof in the child `AUDIT_OR_PROOF.md`, then import only concise parent-visible routing or proof status to the parent docs.
+5. Keep the parent scoped-dashboard role intact: the parent chooses and summarizes lanes, while child packets own executable proof and row closure evidence.
 
 ## Parent Maintenance Check
 

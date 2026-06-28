@@ -139,7 +139,16 @@
         },
         "requiresStatus": [],
         "saveModifiers": [],
-        "saveOutcomeOverrides": []
+        "saveOutcomeOverrides": [
+          {
+            "outcome": "success",
+            "effect": "The target takes half damage from red, orange, yellow, green, or blue rays."
+          },
+          {
+            "outcome": "failure",
+            "effect": "The target takes 12d6 damage of the rolled ray damage type."
+          }
+        ]
       },
       "damage": {
         "dice": "12d6",
@@ -151,6 +160,43 @@
         "customFormula": ""
       },
       "description": "Red, orange, yellow, green, and blue rays deal 12d6 damage of the rolled ray damage type on a failed Dexterity save, or half as much damage on a successful save.",
+      "rayDamageOptions": [
+        {
+          "ray": "Red",
+          "damage": {
+            "dice": "12d6",
+            "type": "Fire"
+          }
+        },
+        {
+          "ray": "Orange",
+          "damage": {
+            "dice": "12d6",
+            "type": "Acid"
+          }
+        },
+        {
+          "ray": "Yellow",
+          "damage": {
+            "dice": "12d6",
+            "type": "Lightning"
+          }
+        },
+        {
+          "ray": "Green",
+          "damage": {
+            "dice": "12d6",
+            "type": "Poison"
+          }
+        },
+        {
+          "ray": "Blue",
+          "damage": {
+            "dice": "12d6",
+            "type": "Cold"
+          }
+        }
+      ],
       "conditionalEndings": []
     },
     {
@@ -540,8 +586,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "For each creature in the 60-foot Cone, resolve its Dexterity save, roll 1d8 for the ray color, reroll 8s when the two-rays result is active, apply half damage on successful saves for red through blue rays, and track Indigo Constitution successes/failures or Violet start-of-next-turn Wisdom save when those rays occur.",
+    "playerInputRequired": true
   },
   "description": "Eight rays of light flash from you in a 60-foot Cone . Each creature in the Cone makes a Dexterity saving throw. For each target, roll 1d8 to determine which color ray affects it, consulting the Prismatic Rays table.",
   "higherLevels": "",

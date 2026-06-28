@@ -204,6 +204,17 @@
       },
       "utilityType": "control",
       "description": "The next attack roll against the target before the end of your next turn has Advantage.",
+      "attackRollModifier": {
+        "modifier": "advantage",
+        "direction": "incoming",
+        "attackKind": "any",
+        "consumption": "next_attack_roll",
+        "duration": {
+          "type": "rounds",
+          "value": 1
+        },
+        "notes": "Only the next attack roll made against the hit target before the end of the caster's next turn receives Advantage."
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -244,8 +255,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Ask the caster to choose one creature within 120 feet and make the ranged spell attack; on a hit, mark that target so the next attack roll against it before the end of the caster's next turn has Advantage.",
+    "playerInputRequired": true
   },
   "description": "You hurl a bolt of light toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes 4d6 Radiant damage, and the next attack roll made against it before the end of your next turn has Advantage.",
   "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 1.",

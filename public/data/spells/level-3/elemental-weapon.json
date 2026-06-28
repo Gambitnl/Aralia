@@ -1,224 +1,288 @@
-{
-  "id": "elemental-weapon",
-  "name": "Elemental Weapon",
-  "aliases": [],
-  "level": 3,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Artificer",
-    "Druid",
-    "Paladin",
-    "Ranger"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "hour",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "single",
-    "range": 0,
-    "validTargets": [
-      "objects"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "on_attack_hit",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "hit",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "1d4",
-        "type": "Acid/Cold/Fire/Lightning/Thunder"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "The touched weapon deals an extra 1d4 damage of the chosen Acid, Cold, Fire, Lightning, or Thunder type when it hits.",
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "Choose the extra damage type for the enchanted weapon: Acid, Cold, Fire, Lightning, or Thunder.",
-    "playerInputRequired": true
-  },
-  "modeChoice": {
-    "type": "choose_one",
-    "timing": "on_cast",
-    "optionCount": 5,
-    "optionsSource": "modeChoice.options",
-    "canDismissActive": false,
-    "options": [
-      {
-        "label": "Acid",
-        "summary": "The weapon deals extra Acid damage when it hits.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "DAMAGE"
-        ],
-        "duration": "1 hour with concentration"
-      },
-      {
-        "label": "Cold",
-        "summary": "The weapon deals extra Cold damage when it hits.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "DAMAGE"
-        ],
-        "duration": "1 hour with concentration"
-      },
-      {
-        "label": "Fire",
-        "summary": "The weapon deals extra Fire damage when it hits.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "DAMAGE"
-        ],
-        "duration": "1 hour with concentration"
-      },
-      {
-        "label": "Lightning",
-        "summary": "The weapon deals extra Lightning damage when it hits.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "DAMAGE"
-        ],
-        "duration": "1 hour with concentration"
-      },
-      {
-        "label": "Thunder",
-        "summary": "The weapon deals extra Thunder damage when it hits.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "DAMAGE"
-        ],
-        "duration": "1 hour with concentration"
-      }
-    ],
-    "notes": "The chosen damage type applies to the extra weapon damage; higher slots increase attack bonus and extra damage dice without changing the available type choices."
-  },
-  "description": "A nonmagical weapon you touch becomes a magic weapon. Choose one of the following damage types: Acid, Cold, Fire, Lightning, or Thunder. For the duration, the weapon has a +1 bonus to attack rolls and deals an extra 1d4 damage of the chosen type when it hits.",
-  "higherLevels": "Using a Higher-Level Spell Slot. If you use a level 5-6 spell slot, the bonus to attack rolls increases to +2, and the extra damage increases to 2d4. If you use a level 7+ spell slot, the bonus increases to +3, and the extra damage increases to 3d4.",
-  "tags": [
-    "concentration"
-  ]
+﻿{
+    "id":  "elemental-weapon",
+    "name":  "Elemental Weapon",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Artificer",
+                    "Druid",
+                    "Paladin",
+                    "Ranger"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "hour",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  0,
+                      "validTargets":  [
+                                           "objects"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "nonmagical",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable",
+                                                               "objectSubtype":  "weapon",
+                                                               "notes":  "Elemental Weapon can only be cast on a touched nonmagical weapon."
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "on_attack_hit",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "hit",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "nonmagical",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "1d4",
+                                       "type":  "Acid/Cold/Fire/Lightning/Thunder",
+                                       "damageTypeSource":  "chosen_damage_type",
+                                       "slotScaling":  {
+                                                           "3-4":  "1d4",
+                                                           "5-6":  "2d4",
+                                                           "7+":  "3d4"
+                                                       }
+                                   },
+                        "attackRollModifier":  {
+                                                   "modifier":  "bonus",
+                                                   "direction":  "outgoing",
+                                                   "attackKind":  "weapon",
+                                                   "consumption":  "while_active",
+                                                   "duration":  {
+                                                                    "type":  "hours",
+                                                                    "value":  1
+                                                                },
+                                                   "flat":  1,
+                                                   "slotScaling":  {
+                                                                       "3-4":  1,
+                                                                       "5-6":  2,
+                                                                       "7+":  3
+                                                                   },
+                                                   "notes":  "The enchanted weapon gains a +1 attack-roll bonus at slots 3-4, +2 at slots 5-6, and +3 at slots 7+."
+                                               },
+                        "weaponState":  {
+                                            "targetObjectState":  "magic_weapon",
+                                            "sourceRequirement":  "nonmagical_weapon",
+                                            "duration":  "1 hour with concentration",
+                                            "description":  "The touched nonmagical weapon becomes a magic weapon for the spell duration, carrying the slot-scaled attack bonus and chosen elemental extra damage."
+                                        },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "The touched weapon deals an extra 1d4 damage of the chosen Acid, Cold, Fire, Lightning, or Thunder type when it hits.",
+                        "conditionalEndings":  [
+
+                                               ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Ask the caster to choose the touched nonmagical weapon and Acid, Cold, Fire, Lightning, or Thunder; mark the weapon as magical for the duration, then apply the slot-scaled attack bonus and extra chosen-type damage on weapon hits.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  5,
+                       "optionsSource":  "modeChoice.options",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Acid",
+                                           "summary":  "The weapon deals extra Acid damage when it hits.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "1 hour with concentration"
+                                       },
+                                       {
+                                           "label":  "Cold",
+                                           "summary":  "The weapon deals extra Cold damage when it hits.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "1 hour with concentration"
+                                       },
+                                       {
+                                           "label":  "Fire",
+                                           "summary":  "The weapon deals extra Fire damage when it hits.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "1 hour with concentration"
+                                       },
+                                       {
+                                           "label":  "Lightning",
+                                           "summary":  "The weapon deals extra Lightning damage when it hits.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "1 hour with concentration"
+                                       },
+                                       {
+                                           "label":  "Thunder",
+                                           "summary":  "The weapon deals extra Thunder damage when it hits.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ],
+                                           "duration":  "1 hour with concentration"
+                                       }
+                                   ],
+                       "notes":  "The chosen damage type applies to the extra weapon damage; higher slots increase attack bonus and extra damage dice without changing the available type choices."
+                   },
+    "description":  "A nonmagical weapon you touch becomes a magic weapon. Choose one of the following damage types: Acid, Cold, Fire, Lightning, or Thunder. For the duration, the weapon has a +1 bonus to attack rolls and deals an extra 1d4 damage of the chosen type when it hits.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. If you use a level 5-6 spell slot, the bonus to attack rolls increases to +2, and the extra damage increases to 2d4. If you use a level 7+ spell slot, the bonus increases to +3, and the extra damage increases to 3d4.",
+    "tags":  [
+                 "concentration"
+             ]
 }
+

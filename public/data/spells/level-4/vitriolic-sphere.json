@@ -227,6 +227,7 @@
         "type": "Acid"
       },
       "description": "A creature that failed the initial Dexterity save takes 5d4 Acid damage at the end of its next turn.",
+      "delayedDamageCondition": "failed_initial_dexterity_save",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -237,8 +238,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose the explosion point; resolve each creature's Dexterity save in the 20-foot-radius Sphere, applying half initial Acid damage on success and scheduling the 5d4 end-of-next-turn Acid damage only for creatures that failed.",
+    "playerInputRequired": true
   },
   "description": "You point at a location within range, and a glowing, 1-foot-diameter ball of acid streaks there and explodes in a 20-foot-radius Sphere. Each creature in that area makes a Dexterity saving throw. On a failed save, a creature takes 10d4 Acid damage and another 5d4 Acid damage at the end of its next turn. On a successful save, a creature takes half the initial damage only.",
   "higherLevels": "Using a Higher-Level Spell Slot. The initial damage increases by 2d4 for each spell slot level above 4.",

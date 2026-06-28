@@ -1,193 +1,348 @@
 {
-  "id": "giant-insect",
-  "name": "Giant Insect",
-  "aliases": [],
-  "level": 4,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Druid"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "point",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Summons one chosen giant centipede, spider, or wasp in an unoccupied visible space; it is allied, shares the caster initiative, follows verbal commands for free, Dodges without commands, and disappears at 0 HP or spell end.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "stat block uses cast spell slot level",
-        "customFormula": "Use the spell slot level as the Giant Insect stat-block level: AC 11 + slot level, HP 30 + 10 per slot level above 4th, and Multiattack count equal to half the slot level rounded down."
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "created_entity_drops_to_0_hp",
-          "scope": "effect",
-          "description": "The summoned Giant Insect creature disappears when it drops to 0 Hit Points or when the spell ends."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You summon a giant centipede, spider, or wasp (chosen when you cast the spell). It manifests in an unoccupied space you can see within range and uses the Giant Insect stat block. The form you choose determines certain details in its stat block. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
-  "higherLevels": "Use the spell slot's level for the spell's level in the stat block. Large Beast, Unaligned AC 11 + the spell's level HP 30 + 10 for each spell level above 4 Speed 40 ft., Climb 40 ft., Fly 40 ft. (Wasp only) Senses Darkvision 60 ft., Passive Perception 12 Languages Understands the languages you know CR None (XP 0; PB equals your Proficiency Bonus) Spider Climb. The insect can climb difficult surfaces, including along ceilings, without needing to make an ability check. Multiattack. The insect makes a number of attacks equal to half this spell's level (round down). Poison Jab. Melee Attack Roll: Bonus equals your spell attack modifier, reach 10 ft. Hit: 1d6 + 3 plus the spell's level Piercing damage plus 1d4 Poison damage. Web Bolt (Spider Only). Ranged Attack Roll: Bonus equals your spell attack modifier, range 60 ft. Hit: 1d10 + 3 plus the spell's level Bludgeoning damage, and the target's Speed is reduced to 0 until the start of the insect's next turn. Venomous Spew (Centipede Only). Constitution Saving Throw: Your spell save DC, one creature the insect can see within 10 feet. Failure: The target has the Poisoned condition until the start of the insect's next turn.",
-  "tags": [
-    "conjuration",
-    "summoning",
-    "concentration"
-  ]
+    "id":  "giant-insect",
+    "name":  "Giant Insect",
+    "aliases":  [
+
+                ],
+    "level":  4,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Druid"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "requiresUnoccupiedSpace":  true,
+                                                                  "lineOfSightRequired":  true,
+                                                                  "rangeAnchor":  "within_spell_range",
+                                                                  "chosenBy":  "caster",
+                                                                  "summonForms":  [
+                                                                                      "giant_centipede",
+                                                                                      "giant_spider",
+                                                                                      "giant_wasp"
+                                                                                  ],
+                                                                  "notes":  "The Giant Insect spirit manifests in an unoccupied visible space within range."
+                                                              }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Summons one chosen giant centipede, spider, or wasp in an unoccupied visible space; it is allied, shares the caster initiative, follows verbal commands for free, Dodges without commands, and disappears at 0 HP or spell end.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "stat block uses cast spell slot level",
+                                        "customFormula":  "Use the spell slot level as the Giant Insect stat-block level: AC 11 + slot level, HP 30 + 10 per slot level above 4th, and Multiattack count equal to half the slot level rounded down."
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "free_command",
+                                                   "action":  "Verbally Command Giant Insect",
+                                                   "frequency":  "each_turn",
+                                                   "actor":  "caster",
+                                                   "notes":  "The summoned insect obeys verbal commands without requiring the caster\u0027s action; without commands it Dodges and avoids danger."
+                                               }
+                                           ],
+                        "attackAugments":  [
+                                               {
+                                                   "name":  "Summoned Insect Stat Block",
+                                                   "attackBonusSource":  "caster_spell_attack_modifier",
+                                                   "multiattack":  "half_spell_slot_level_rounded_down",
+                                                   "poisonJab":  "1d6 + 3 + spell slot level Piercing plus 1d4 Poison",
+                                                   "webBoltSpiderOnly":  "Ranged spell attack within 60 feet; on hit 1d10 + 3 + spell slot level Bludgeoning and target Speed becomes 0 until the start of the insect\u0027s next turn.",
+                                                   "venomousSpewCentipedeOnly":  "Constitution save against caster spell save DC within 10 feet; on failure Poisoned until the start of the insect\u0027s next turn.",
+                                                   "spiderClimb":  "Can climb difficult surfaces and ceilings without an ability check."
+                                               }
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "created_entity_drops_to_0_hp",
+                                                       "scope":  "effect",
+                                                       "description":  "The summoned Giant Insect creature disappears when it drops to 0 Hit Points or when the spell ends."
+                                                   }
+                                               ],
+                        "surfaceInteraction":  {
+                                                   "spiderClimb":  true,
+                                                   "canClimbDifficultSurfaces":  true,
+                                                   "canClimbCeilings":  true,
+                                                   "abilityCheckRequired":  false,
+                                                   "appliesToSummonedInsectForms":  true,
+                                                   "notes":  "The summoned insect can climb difficult surfaces, including ceilings, without an ability check."
+                                               },
+                        "socialEffect":  {
+                                             "relationship":  "ally",
+                                             "alliedTo":  [
+                                                              "caster",
+                                                              "caster_allies"
+                                                          ],
+                                             "understandsCasterLanguages":  true,
+                                             "sharesCasterInitiative":  true,
+                                             "followsVerbalCommands":  true,
+                                             "notes":  "The summoned giant insect is an ally, understands the caster languages, shares initiative, and follows verbal commands."
+                                         },
+                        "summonLifecycle":  {
+                                                "hitPointEnding":  "summoned giant insect disappears when it drops to 0 hit points",
+                                                "spellEnding":  "summoned giant insect disappears when the spell ends",
+                                                "armorClassScaling":  "AC 11 + spell slot level",
+                                                "hitPointScaling":  "30 + 10 per spell slot level above 4"
+                                            },
+                        "communicationDetails":  {
+                                                     "mode":  "summoned_insect_understands_caster_languages",
+                                                     "understandsCasterLanguages":  true,
+                                                     "commandChannel":  "verbal commands with no caster action",
+                                                     "noCommandBehavior":  "Dodges and avoids danger without commands",
+                                                     "notes":  "The summoned insect understands the languages the caster knows."
+                                                 },
+                        "summon":  {
+                                       "entityType":  "giant_insect",
+                                       "formOptions":  [
+                                                           "giant centipede",
+                                                           "giant spider",
+                                                           "giant wasp"
+                                                       ],
+                                       "count":  1,
+                                       "placement":  "visible unoccupied space",
+                                       "initiative":  "shares caster initiative",
+                                       "allegiance":  "ally",
+                                       "commandChannel":  "verbal commands with no caster action",
+                                       "noCommandBehavior":  "Dodge and avoid danger",
+                                       "lifecycle":  "disappears at 0 HP or spell end",
+                                       "statScaling":  "AC 11 + slot level; HP 30 + 10 per slot above 4"
+                                   }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the summoned Giant Insect form: Giant Centipede, Giant Spider, or Giant Wasp. The selected form determines the stat-block details and form-only actions.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  3,
+                       "optionsSource":  "modeChoice.options",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Giant Centipede",
+                                           "summary":  "Summon the centipede form; it uses the shared Giant Insect scaling and gains the Centipede-only Venomous Spew option.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "10 minutes, concentration"
+                                       },
+                                       {
+                                           "label":  "Giant Spider",
+                                           "summary":  "Summon the spider form; it uses the shared Giant Insect scaling and gains Spider Climb and the Spider-only Web Bolt option.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "10 minutes, concentration"
+                                       },
+                                       {
+                                           "label":  "Giant Wasp",
+                                           "summary":  "Summon the wasp form; it uses the shared Giant Insect scaling and gains the Wasp-only fly speed.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "10 minutes, concentration"
+                                       }
+                                   ],
+                       "notes":  "The selected form chooses which stat-block movement and form-only action details apply while the shared summon, command, initiative, scaling, and disappearance rules remain the same."
+                   },
+    "description":  "You summon a giant centipede, spider, or wasp (chosen when you cast the spell). It manifests in an unoccupied space you can see within range and uses the Giant Insect stat block. The form you choose determines certain details in its stat block. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don\u0027t issue any, it takes the Dodge action and uses its movement to avoid danger.",
+    "higherLevels":  "Use the spell slot\u0027s level for the spell\u0027s level in the stat block. Large Beast, Unaligned AC 11 + the spell\u0027s level HP 30 + 10 for each spell level above 4 Speed 40 ft., Climb 40 ft., Fly 40 ft. (Wasp only) Senses Darkvision 60 ft., Passive Perception 12 Languages Understands the languages you know CR None (XP 0; PB equals your Proficiency Bonus) Spider Climb. The insect can climb difficult surfaces, including along ceilings, without needing to make an ability check. Multiattack. The insect makes a number of attacks equal to half this spell\u0027s level (round down). Poison Jab. Melee Attack Roll: Bonus equals your spell attack modifier, reach 10 ft. Hit: 1d6 + 3 plus the spell\u0027s level Piercing damage plus 1d4 Poison damage. Web Bolt (Spider Only). Ranged Attack Roll: Bonus equals your spell attack modifier, range 60 ft. Hit: 1d10 + 3 plus the spell\u0027s level Bludgeoning damage, and the target\u0027s Speed is reduced to 0 until the start of the insect\u0027s next turn. Venomous Spew (Centipede Only). Constitution Saving Throw: Your spell save DC, one creature the insect can see within 10 feet. Failure: The target has the Poisoned condition until the start of the insect\u0027s next turn.",
+    "tags":  [
+                 "conjuration",
+                 "summoning",
+                 "concentration"
+             ]
 }

@@ -1,245 +1,409 @@
 {
-  "id": "soul-cage",
-  "name": "Soul Cage",
-  "aliases": [],
-  "level": 6,
-  "school": "Necromancy",
-  "legacy": false,
-  "classes": [
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "reaction",
-    "combatCost": {
-      "type": "reaction",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a tiny silver cage worth 100 gp",
-    "materialCost": 100,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": false,
-    "value": 8,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "HEALING",
-      "trigger": {
-        "type": "on_caster_action",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "bonus_action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "healing": {
-        "dice": "2d8",
-        "isTemporaryHp": false
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "Steal Life: the caster can use a Bonus Action to spend one trapped-soul use and regain 2d8 Hit Points.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Trap the soul of a Humanoid dying within 60 feet in the tiny cage component for up to 8 hours; the soul remains until the spell ends, the cage is destroyed, or the sixth exploitation releases it, the trapped soul can be exploited up to six times, and the dead Humanoid cannot be revived while its soul is trapped.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Steal Life",
-          "effect": "The caster can use a bonus action to regain 2d8 Hit Points by draining vigor from the soul."
-        },
-        {
-          "name": "Query Soul",
-          "effect": "The caster asks the soul a question without an action and receives a brief truthful telepathic answer understandable regardless of language."
-        },
-        {
-          "name": "Borrow Experience",
-          "effect": "The caster can use a bonus action to gain advantage on the next attack roll, ability check, or saving throw before the start of the caster's next turn."
-        },
-        {
-          "name": "Eyes of the Dead",
-          "effect": "The caster can use an action to create an invisible sensor in a place the humanoid saw in life on the caster's current plane, concentrating up to 10 minutes."
-        },
-        {
-          "name": "Six Uses",
-          "effect": "The trapped soul can be exploited up to six times, then it is released and the spell ends."
-        },
-        {
-          "name": "Prevent Revival",
-          "effect": "While the soul is trapped, the dead humanoid it came from cannot be revived."
-        },
-        {
-          "name": "Destroy Cage Ends Spell",
-          "effect": "Destroying the cage releases the soul and ends the spell."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "This spell snatches the soul of a humanoid as it dies and traps it inside the tiny cage you use for the material component. A stolen soul remains inside the cage until the spell ends or until you destroy the cage, which ends the spell. While you have a soul inside the cage, you can exploit it in any of the ways described below. You can use a trapped soul up to six times. Once you exploit a soul for the sixth time, it is released, and the spell ends. While a soul is trapped, the dead humanoid it came from can't be revived. Steal Life. You can use a bonus action to drain vigor from the soul and regain 2d8 hit points. Query Soul. You ask the soul a question (no action required) and receive a brief telepathic answer, which you can understand regardless of the language used. The soul knows only what it knew in life, but it must answer you truthfully and to the best of its ability. The answer is no more than a sentence or two and might be cryptic. Borrow Experience. You can use a bonus action to bolster yourself with the soul's life experience, making your next attack roll, ability check, or saving throw with advantage. If you don't use this benefit before the start of your next turn, it is lost. Eyes of the Dead. You can use an action to name a place the humanoid saw in life, which creates an invisible sensor somewhere in that place if it is on the plane of existence you're currently on. The sensor remains for as long as you concentrate, up to 10 minutes (as if you were concentrating on a spell). You receive visual and auditory information from the sensor as if you were in its space using your senses. A creature that can see the sensor (such as one using see invisibility or truesight) sees a translucent image of the tormented humanoid whose soul you caged. * - which you take when a humanoid you can see within 60 feet of you dies",
-  "higherLevels": "",
-  "tags": []
+    "id":  "soul-cage",
+    "name":  "Soul Cage",
+    "aliases":  [
+
+                ],
+    "level":  6,
+    "school":  "Necromancy",
+    "legacy":  false,
+    "classes":  [
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "reaction",
+                        "combatCost":  {
+                                           "type":  "reaction",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a tiny silver cage worth 100 gp",
+                       "materialCost":  100,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  false,
+                     "value":  8,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "deathTriggerEligibility":  {
+                                                                     "targetCreatureType":  "Humanoid",
+                                                                     "trigger":  "dies_within_range",
+                                                                     "rangeFeet":  60,
+                                                                     "materialContainer":  "tiny_cage_component",
+                                                                     "blocksRevivalWhileTrapped":  true,
+                                                                     "notes":  "Soul Cage snatches the soul of a Humanoid dying within 60 feet and prevents revival while that soul is trapped."
+                                                                 }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "HEALING",
+                        "trigger":  {
+                                        "type":  "on_caster_action",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "bonus_action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "healing":  {
+                                        "dice":  "2d8",
+                                        "isTemporaryHp":  false
+                                    },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Steal Life: the caster can use a Bonus Action to spend one trapped-soul use and regain 2d8 Hit Points.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "hitPointState":  {
+                                              "mode":  "spend_trapped_soul_use_to_heal",
+                                              "action":  "Bonus Action",
+                                              "healingFormula":  "2d8 Hit Points",
+                                              "isTemporaryHp":  false
+                                          }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Trap the soul of a Humanoid dying within 60 feet in the tiny cage component for up to 8 hours; the soul remains until the spell ends, the cage is destroyed, or the sixth exploitation releases it, the trapped soul can be exploited up to six times, and the dead Humanoid cannot be revived while its soul is trapped.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "name":  "Steal Life",
+                                                   "actionType":  "bonus_action",
+                                                   "cost":  "one_trapped_soul_use",
+                                                   "healing":  {
+                                                                   "dice":  "2d8",
+                                                                   "type":  "hit_points"
+                                                               },
+                                                   "description":  "Drain vigor from the trapped soul and regain 2d8 Hit Points."
+                                               },
+                                               {
+                                                   "name":  "Query Soul",
+                                                   "actionType":  "no_action",
+                                                   "cost":  "one_trapped_soul_use",
+                                                   "description":  "Ask the soul one question and receive a brief truthful telepathic answer that the caster understands regardless of language."
+                                               },
+                                               {
+                                                   "name":  "Borrow Experience",
+                                                   "actionType":  "bonus_action",
+                                                   "cost":  "one_trapped_soul_use",
+                                                   "rollModifier":  {
+                                                                        "type":  "advantage",
+                                                                        "appliesTo":  [
+                                                                                          "next_attack_roll",
+                                                                                          "next_ability_check",
+                                                                                          "next_saving_throw"
+                                                                                      ],
+                                                                        "expires":  "start_of_caster_next_turn"
+                                                                    },
+                                                   "description":  "Gain Advantage on the next attack roll, ability check, or saving throw before the start of the caster\u0027s next turn."
+                                               },
+                                               {
+                                                   "name":  "Eyes of the Dead",
+                                                   "actionType":  "action",
+                                                   "cost":  "one_trapped_soul_use",
+                                                   "sensor":  {
+                                                                  "locationRequirement":  "place_the_humanoid_saw_in_life_on_caster_current_plane",
+                                                                  "duration":  "concentration_up_to_10_minutes",
+                                                                  "visibleToSpecialSenses":  [
+                                                                                                 "See Invisibility",
+                                                                                                 "Truesight"
+                                                                                             ]
+                                                              },
+                                                   "description":  "Create an invisible sensor in a place the dead humanoid saw in life if that place is on the caster\u0027s current plane."
+                                               }
+                                           ],
+                        "usageLimit":  {
+                                           "maximumUses":  6,
+                                           "onSixthUse":  "The soul is released and the spell ends."
+                                       },
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Steal Life",
+                                                   "effect":  "The caster can use a bonus action to regain 2d8 Hit Points by draining vigor from the soul."
+                                               },
+                                               {
+                                                   "name":  "Query Soul",
+                                                   "effect":  "The caster asks the soul a question without an action and receives a brief truthful telepathic answer understandable regardless of language."
+                                               },
+                                               {
+                                                   "name":  "Borrow Experience",
+                                                   "effect":  "The caster can use a bonus action to gain advantage on the next attack roll, ability check, or saving throw before the start of the caster\u0027s next turn."
+                                               },
+                                               {
+                                                   "name":  "Eyes of the Dead",
+                                                   "effect":  "The caster can use an action to create an invisible sensor in a place the humanoid saw in life on the caster\u0027s current plane, concentrating up to 10 minutes."
+                                               },
+                                               {
+                                                   "name":  "Six Uses",
+                                                   "effect":  "The trapped soul can be exploited up to six times, then it is released and the spell ends."
+                                               },
+                                               {
+                                                   "name":  "Prevent Revival",
+                                                   "effect":  "While the soul is trapped, the dead humanoid it came from cannot be revived."
+                                               },
+                                               {
+                                                   "name":  "Destroy Cage Ends Spell",
+                                                   "effect":  "Destroying the cage releases the soul and ends the spell."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "cage_destroyed",
+                                                       "scope":  "spell",
+                                                       "description":  "Destroying the soul cage releases the trapped soul and ends the spell."
+                                                   },
+                                                   {
+                                                       "trigger":  "sixth_exploitation_used",
+                                                       "scope":  "spell",
+                                                       "description":  "Once the trapped soul is exploited for the sixth time, it is released and the spell ends."
+                                                   },
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "trapped_soul",
+                                                       "description":  "The trapped soul remains until the spell ends, the cage is destroyed, or the sixth use releases it."
+                                                   }
+                                               ],
+                        "knowledgeEffect":  {
+                                                "queryMode":  "Query Soul",
+                                                "answerLimit":  "one sentence or two",
+                                                "answerDelivery":  "brief telepathic answer understood regardless of language",
+                                                "truthRequirement":  "soul must answer truthfully and to the best of its ability",
+                                                "knowledgeLimit":  "soul knows only what it knew in life",
+                                                "crypticAllowed":  true,
+                                                "sensorMode":  "Eyes of the Dead creates invisible sight/hearing sensor in a place the humanoid saw in life on caster current plane",
+                                                "sensorVisibility":  "See Invisibility or Truesight sees a translucent image of the tormented humanoid",
+                                                "useLimit":  "six total soul exploits before release"
+                                            },
+                        "objectLifecycle":  {
+                                                "container":  "tiny cage component holding trapped soul",
+                                                "destroyedEnding":  "trapped soul is released if the cage is destroyed",
+                                                "useLimit":  "soul is released after sixth exploitation or when spell ends"
+                                            },
+                        "communicationDetails":  {
+                                                     "mode":  "query_soul_telepathic_answer",
+                                                     "actionCost":  "no action",
+                                                     "answerLength":  "brief, no more than a sentence or two",
+                                                     "understoodRegardlessOfLanguage":  true,
+                                                     "truth":  "soul must answer truthfully and to best of ability",
+                                                     "knowledgeLimit":  "soul knows only what it knew in life",
+                                                     "answerMayBeCryptic":  true
+                                                 },
+                        "planarMovement":  {
+                                               "mode":  "same_plane_remote_sensor_from_soul_memory",
+                                               "action":  "name a place the dead humanoid saw in life",
+                                               "planeLimit":  "place must be on caster current plane of existence",
+                                               "result":  "creates invisible sensor in that place",
+                                               "duration":  "concentration up to 10 minutes"
+                                           },
+                        "sensorState":  {
+                                            "kind":  "eyes_of_the_dead_sensor",
+                                            "cost":  "spend_one_trapped_soul_use",
+                                            "placement":  "somewhere_in_named_place_the_humanoid_saw_in_life_on_current_plane",
+                                            "duration":  "concentration_up_to_10_minutes",
+                                            "senses":  [
+                                                           "visual",
+                                                           "auditory"
+                                                       ],
+                                            "perspective":  "as_if_caster_were_in_sensor_space_using_own_senses",
+                                            "visibleTo":  "See_Invisibility_or_Truesight_as_translucent_tormented_humanoid_image"
+                                        }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "When a Humanoid dies within 60 feet, record the trapped soul, remaining uses out of six, and whether the cage is intact. For each exploit, choose Steal Life, Query Soul, Borrow Experience, or Eyes of the Dead, spend one use, and release the soul when the sixth use is spent or the cage is destroyed.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "This spell snatches the soul of a humanoid as it dies and traps it inside the tiny cage you use for the material component. A stolen soul remains inside the cage until the spell ends or until you destroy the cage, which ends the spell. While you have a soul inside the cage, you can exploit it in any of the ways described below. You can use a trapped soul up to six times. Once you exploit a soul for the sixth time, it is released, and the spell ends. While a soul is trapped, the dead humanoid it came from can\u0027t be revived. Steal Life. You can use a bonus action to drain vigor from the soul and regain 2d8 hit points. Query Soul. You ask the soul a question (no action required) and receive a brief telepathic answer, which you can understand regardless of the language used. The soul knows only what it knew in life, but it must answer you truthfully and to the best of its ability. The answer is no more than a sentence or two and might be cryptic. Borrow Experience. You can use a bonus action to bolster yourself with the soul\u0027s life experience, making your next attack roll, ability check, or saving throw with advantage. If you don\u0027t use this benefit before the start of your next turn, it is lost. Eyes of the Dead. You can use an action to name a place the humanoid saw in life, which creates an invisible sensor somewhere in that place if it is on the plane of existence you\u0027re currently on. The sensor remains for as long as you concentrate, up to 10 minutes (as if you were concentrating on a spell). You receive visual and auditory information from the sensor as if you were in its space using your senses. A creature that can see the sensor (such as one using see invisibility or truesight) sees a translucent image of the tormented humanoid whose soul you caged. * - which you take when a humanoid you can see within 60 feet of you dies",
+    "higherLevels":  "",
+    "tags":  [
+
+             ]
 }

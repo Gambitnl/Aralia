@@ -143,6 +143,20 @@
       },
       "utilityType": "control",
       "description": "On failed save, a target has a -10 penalty to Wisdom (Perception) checks and Passive Perception until the spell ends.",
+      "abilityCheckModifier": {
+        "appliesTo": "Wisdom (Perception) checks and Passive Perception",
+        "bonusDice": "",
+        "flatModifier": -10,
+        "skillSelection": "fixed_skill",
+        "skillChooser": "spell",
+        "skillPool": [
+          "Perception",
+          "Passive Perception"
+        ],
+        "frequency": "every_matching_check",
+        "durationScope": "while_active",
+        "notes": "Only targets that fail the Wisdom save take the -10 Perception and Passive Perception penalty; creatures fighting the caster or companions automatically succeed."
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -183,8 +197,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Ask the caster to choose visible creatures within 60 feet; creatures fighting the caster or companions automatically succeed, and failed Wisdom saves apply -10 to Wisdom (Perception) checks and Passive Perception.",
+    "playerInputRequired": true
   },
   "description": "You weave a distracting string of words, causing creatures of your choice that you can see within range to make a Wisdom saving throw. Any creature you or your companions are fighting automatically succeeds on this save. On a failed save, a target has a -10 penalty to Wisdom (Perception) checks and Passive Perception until the spell ends.",
   "higherLevels": "",

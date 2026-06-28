@@ -458,7 +458,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   }, [update, onPositionChangeOverride]);
 
   return (
-    <div style={{ width: '100%', height: '78vh', minHeight: '520px', flex: '1 1 auto', background: '#cdd9e6', borderRadius: '12px', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '100%', minHeight: '520px', flex: '1 1 auto', background: '#cdd9e6', borderRadius: '12px', overflow: 'hidden' }}>
       <ForgeAssetContext.Provider value={forgeAssetService}>
       <Canvas
         shadows={SHADOWS}

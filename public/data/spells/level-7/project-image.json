@@ -1,296 +1,408 @@
 {
-  "id": "project-image",
-  "name": "Project Image",
-  "aliases": [],
-  "level": 7,
-  "school": "Illusion",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 500,
-    "distanceUnit": "miles"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a statuette of yourself worth 5+ GP",
-    "materialCost": 5,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "day",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "point",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": false,
-    "range": 500,
-    "rangeUnit": "miles",
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "MOVEMENT",
-      "trigger": {
-        "type": "on_caster_action",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "movementType": "teleport",
-      "distance": 60,
-      "distanceUnit": "feet",
-      "duration": {
-        "type": "special",
-        "value": 0
-      },
-      "forcedMovement": {
-        "usesReaction": false,
-        "direction": "caster_choice",
-        "maxDistance": "60 ft"
-      },
-      "description": "As a Magic action, the caster can move the illusory image up to 60 feet and make it gesture, speak, and behave as chosen.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "Create a 1-day concentration illusory copy of the caster at a previously seen location within 500 miles, regardless of intervening obstacles, using the 5+ GP self-statuette component. The image looks and sounds like the caster but is intangible, disappears and ends the spell if damaged, lets the caster see and hear as if in its space, mimics caster mannerisms, and can be exposed by physical interaction or a Study action Intelligence (Investigation) check; discerning creatures see through it and hear its noise as hollow.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Seen Location Placement",
-          "effect": "The copy can appear at any location within range that you have seen before."
-        },
-        {
-          "name": "Ignores Obstacles",
-          "effect": "Intervening obstacles do not prevent the copy from appearing at the chosen location."
-        },
-        {
-          "name": "Looks And Sounds Like You",
-          "effect": "The illusion looks and sounds like you."
-        },
-        {
-          "name": "Intangible Image",
-          "effect": "The illusion is intangible and things can pass through it."
-        },
-        {
-          "name": "Damage Ends Spell",
-          "effect": "If the illusion takes any damage, it disappears and the spell ends."
-        },
-        {
-          "name": "See And Hear Through Image",
-          "effect": "You can see through the illusion's eyes and hear through its ears as if you were in its space."
-        },
-        {
-          "name": "Magic Action Control",
-          "effect": "As a Magic action, you can move the image up to 60 feet and make it gesture, speak, and behave as you choose."
-        },
-        {
-          "name": "Mimics Mannerisms",
-          "effect": "The image mimics your mannerisms perfectly."
-        },
-        {
-          "name": "Physical Interaction Reveals Illusion",
-          "effect": "Physical interaction reveals the image to be illusory because things pass through it."
-        },
-        {
-          "name": "Study Action Investigation",
-          "effect": "A creature using the Study action can identify the image as an illusion with a successful Intelligence (Investigation) check against your spell save DC."
-        },
-        {
-          "name": "Discerned Image Transparent And Hollow",
-          "effect": "A creature that discerns the illusion can see through it, and any noise it makes sounds hollow to that creature."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You create an illusory copy of yourself that lasts for the duration. The copy can appear at any location within range that you have seen before, regardless of intervening obstacles. The illusion looks and sounds like you, but it is intangible. If the illusion takes any damage, it disappears, and the spell ends. You can see through the illusion's eyes and hear through its ears as if you were in its space. As a Magic action, you can move it up to 60 feet and make it gesture, speak, and behave in whatever way you choose. It mimics your mannerisms perfectly. Physical interaction with the image reveals it to be illusory, since things can pass through it. A creature that takes the Study action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image, and any noise it makes sounds hollow to the creature.",
-  "higherLevels": "",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "project-image",
+    "name":  "Project Image",
+    "aliases":  [
+
+                ],
+    "level":  7,
+    "school":  "Illusion",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  500,
+                  "distanceUnit":  "miles"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a statuette of yourself worth 5+ GP",
+                       "materialCost":  5,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "day",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  false,
+                      "range":  500,
+                      "rangeUnit":  "miles",
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "MOVEMENT",
+                        "trigger":  {
+                                        "type":  "on_caster_action",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "movementType":  "teleport",
+                        "distance":  60,
+                        "distanceUnit":  "feet",
+                        "duration":  {
+                                         "type":  "special",
+                                         "value":  0
+                                     },
+                        "forcedMovement":  {
+                                               "usesReaction":  false,
+                                               "direction":  "caster_choice",
+                                               "maxDistance":  "60 ft"
+                                           },
+                        "description":  "As a Magic action, the caster can move the illusory image up to 60 feet and make it gesture, speak, and behave as chosen.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "illusion_takes_any_damage",
+                                                       "scope":  "spell",
+                                                       "description":  "If the illusion takes any damage, it disappears and the spell ends."
+                                                   }
+                                               ],
+                        "communicationDetails":  {
+                                                     "mode":  "remote_illusory_copy_expression",
+                                                     "action":  "Magic action moves image and makes it gesture, speak, and behave as caster chooses",
+                                                     "speechSource":  "image sounds like caster",
+                                                     "sensoryLink":  "caster can see/hear through image as if in its space",
+                                                     "hollowTell":  "creatures that discern illusion hear its noise as hollow"
+                                                 }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "Create a 1-day concentration illusory copy of the caster at a previously seen location within 500 miles, regardless of intervening obstacles, using the 5+ GP self-statuette component. The image looks and sounds like the caster but is intangible, disappears and ends the spell if damaged, lets the caster see and hear as if in its space, mimics caster mannerisms, and can be exposed by physical interaction or a Study action Intelligence (Investigation) check; discerning creatures see through it and hear its noise as hollow.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Seen Location Placement",
+                                                   "effect":  "The copy can appear at any location within range that you have seen before."
+                                               },
+                                               {
+                                                   "name":  "Ignores Obstacles",
+                                                   "effect":  "Intervening obstacles do not prevent the copy from appearing at the chosen location."
+                                               },
+                                               {
+                                                   "name":  "Looks And Sounds Like You",
+                                                   "effect":  "The illusion looks and sounds like you."
+                                               },
+                                               {
+                                                   "name":  "Intangible Image",
+                                                   "effect":  "The illusion is intangible and things can pass through it."
+                                               },
+                                               {
+                                                   "name":  "Damage Ends Spell",
+                                                   "effect":  "If the illusion takes any damage, it disappears and the spell ends."
+                                               },
+                                               {
+                                                   "name":  "See And Hear Through Image",
+                                                   "effect":  "You can see through the illusion\u0027s eyes and hear through its ears as if you were in its space."
+                                               },
+                                               {
+                                                   "name":  "Magic Action Control",
+                                                   "effect":  "As a Magic action, you can move the image up to 60 feet and make it gesture, speak, and behave as you choose."
+                                               },
+                                               {
+                                                   "name":  "Mimics Mannerisms",
+                                                   "effect":  "The image mimics your mannerisms perfectly."
+                                               },
+                                               {
+                                                   "name":  "Physical Interaction Reveals Illusion",
+                                                   "effect":  "Physical interaction reveals the image to be illusory because things pass through it."
+                                               },
+                                               {
+                                                   "name":  "Study Action Investigation",
+                                                   "effect":  "A creature using the Study action can identify the image as an illusion with a successful Intelligence (Investigation) check against your spell save DC."
+                                               },
+                                               {
+                                                   "name":  "Discerned Image Transparent And Hollow",
+                                                   "effect":  "A creature that discerns the illusion can see through it, and any noise it makes sounds hollow to that creature."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "illusion_takes_any_damage",
+                                                       "scope":  "spell",
+                                                       "description":  "If the illusion takes any damage, it disappears and the spell ends."
+                                                   }
+                                               ],
+                        "visionLightSound":  {
+                                                 "mode":  "remote_illusory_copy",
+                                                 "placement":  "previously seen location within 500 miles regardless of intervening obstacles",
+                                                 "appearance":  "looks and sounds like caster",
+                                                 "physicality":  "intangible, things pass through",
+                                                 "remoteSenses":  "caster sees through image eyes and hears through image ears as if in its space",
+                                                 "control":  "Magic action moves image up to 60 feet and chooses gesture, speech, behavior",
+                                                 "reveal":  "physical interaction or Study Investigation reveals illusion",
+                                                 "discerned":  "image becomes see-through and noise sounds hollow to discerning creature",
+                                                 "damageEnd":  "any damage makes image disappear and ends spell"
+                                             },
+                        "communicationDetails":  {
+                                                     "mode":  "remote_illusory_copy_expression",
+                                                     "action":  "Magic action moves image and makes it gesture, speak, and behave as caster chooses",
+                                                     "speechSource":  "image sounds like caster",
+                                                     "sensoryLink":  "caster can see/hear through image as if in its space",
+                                                     "hollowTell":  "creatures that discern illusion hear its noise as hollow"
+                                                 },
+                        "sensorState":  {
+                                            "kind":  "illusory_copy_remote_senses",
+                                            "channel":  [
+                                                            "see_through_image_eyes",
+                                                            "hear_through_image_ears"
+                                                        ],
+                                            "perspective":  "as_if_caster_were_in_image_space",
+                                            "placement":  "previously_seen_location_within_500_miles_regardless_of_obstacles",
+                                            "discernedObserverState":  "observer_can_see_through_image_and_hears_hollow_sound"
+                                        },
+                        "illusionState":  {
+                                              "kind":  "remote_illusory_copy",
+                                              "appearance":  "looks_and_sounds_like_caster",
+                                              "physicalState":  "intangible",
+                                              "placement":  "previously_seen_location_within_500_miles_regardless_of_obstacles",
+                                              "damage":  "any_damage_makes_image_disappear_and_spell_end",
+                                              "control":  "Magic_action_move_and_make_gesture_speak_behave",
+                                              "revealMethods":  [
+                                                                    "physical_interaction",
+                                                                    "Study_action_Intelligence_Investigation"
+                                                                ],
+                                              "afterRevealed":  "transparent_and_hollow_to_discerned_creature"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You create an illusory copy of yourself that lasts for the duration. The copy can appear at any location within range that you have seen before, regardless of intervening obstacles. The illusion looks and sounds like you, but it is intangible. If the illusion takes any damage, it disappears, and the spell ends. You can see through the illusion\u0027s eyes and hear through its ears as if you were in its space. As a Magic action, you can move it up to 60 feet and make it gesture, speak, and behave in whatever way you choose. It mimics your mannerisms perfectly. Physical interaction with the image reveals it to be illusory, since things can pass through it. A creature that takes the Study action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image, and any noise it makes sounds hollow to the creature.",
+    "higherLevels":  "",
+    "tags":  [
+                 "concentration"
+             ]
 }

@@ -1,12 +1,12 @@
 /**
  * @file interiorBuild.test.ts — `buildInterior` generates a plot's interior ONCE
  * and derives both the wall envelope and the 3D parts from it (the 3D bake used
- * to call generateInterior twice per plot). Behaviour must be identical to the
- * separate `interiorEnvelopeM` + `buildInteriorParts` calls.
+ * to call generateInterior twice per plot). The envelope must match the plan's
+ * dims and the parts must match a standalone `buildInteriorParts` call.
  */
 import { describe, it, expect } from 'vitest';
-import { buildInterior, buildInteriorParts, interiorEnvelopeM } from '../interiorParts';
-import { type InteriorPlotInput } from '../../interior/generateInterior';
+import { buildInterior, buildInteriorParts } from '../interiorParts';
+import { generateInterior, type InteriorPlotInput } from '../../interior/generateInterior';
 import type { InteriorPlan } from '../../interior/types';
 import { rootSeedPath } from '../../seedPath';
 
@@ -25,10 +25,11 @@ const plot = (): InteriorPlotInput => ({
 });
 
 describe('buildInterior', () => {
-  it('matches interiorEnvelopeM + buildInteriorParts (one generation, same result)', () => {
+  it('derives the envelope from the plan and matches a standalone parts build', () => {
     const h = 6;
+    const plan = generateInterior(plot(), SEED_PATH);
     const combined = buildInterior(plot(), SEED_PATH, h);
-    expect(combined.envelope).toEqual(interiorEnvelopeM(plot(), SEED_PATH));
+    expect(combined.envelope).toEqual({ wallWidthM: plan.widthFt * FT, wallDepthM: plan.depthFt * FT });
     expect(combined.parts).toEqual(buildInteriorParts(plot(), SEED_PATH, h));
   });
 });

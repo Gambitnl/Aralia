@@ -1,179 +1,233 @@
-{
-  "id": "cordon-of-arrows",
-  "name": "Cordon of Arrows",
-  "aliases": [],
-  "level": 2,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Ranger"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "four or more arrows or bolts",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 8,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "area",
-    "validTargets": [
-      "creatures"
-    ],
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 30,
-      "sizeUnit": "feet"
-    },
-    "instanceAllocation": {
-      "instanceType": "projectile",
-      "baseCount": 4,
-      "scalingRule": "slot_level_plus_two_per_level",
-      "assignment": "not_applicable",
-      "resolution": "sequential",
-      "notes": "The spell plants up to four nonmagical arrows or bolts; each triggering creature causes one planted ammunition piece to fly up, resolve its save/damage, and then be destroyed. Each slot level above 2 adds two planted ammunition pieces."
-    },
-    "lineOfSight": false,
-    "range": 0,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet"
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "on_enter_area",
-        "frequency": "once_per_creature",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Dexterity",
-        "saveEffect": "none",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "2d4",
-        "type": "Piercing"
-      },
-      "description": "One planted ammo piece strikes a creature that enters the area or ends its turn there; on a failed Dexterity save, it deals 2d4 Piercing damage and is destroyed.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+2 ammo pieces",
-        "customFormula": ""
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "all_target_instances_expended",
-          "scope": "spell",
-          "description": "The spell ends when none of the planted ammunition remains in the ground."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You touch up to four nonmagical Arrows or Bolts and plant them in the ground in your space. Until the spell ends, the ammunition can't be physically uprooted, and whenever a creature other than you enters a space within 30 feet of the ammunition for the first time on a turn or ends its turn there, one piece of ammunition flies up to strike it. The creature must succeed on a Dexterity saving throw or take 2d4 Piercing damage. The piece of ammunition is then destroyed. The spell ends when none of the ammunition remains planted in the ground. When you cast this spell, you can designate any creatures you choose, and the spell ignores them.",
-  "higherLevels": "Using a Higher-Level Spell Slot. The amount of ammunition that can be affected increases by two for each spell slot level above 2.",
-  "tags": [
-    "control",
-    "trap"
-  ]
+﻿{
+    "id":  "cordon-of-arrows",
+    "name":  "Cordon of Arrows",
+    "aliases":  [
+
+                ],
+    "level":  2,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Ranger"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "four or more arrows or bolts",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  8,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "areaOfEffect":  {
+                                           "shape":  "Sphere",
+                                           "size":  30,
+                                           "sizeUnit":  "feet"
+                                       },
+                      "instanceAllocation":  {
+                                                 "instanceType":  "projectile",
+                                                 "baseCount":  4,
+                                                 "scalingRule":  "slot_level_plus_two_per_level",
+                                                 "assignment":  "not_applicable",
+                                                 "resolution":  "sequential",
+                                                 "notes":  "The spell plants up to four nonmagical arrows or bolts; each triggering creature causes one planted ammunition piece to fly up, resolve its save/damage, and then be destroyed. Each slot level above 2 adds two planted ammunition pieces."
+                                             },
+                      "lineOfSight":  false,
+                      "range":  0,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet"
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "on_enter_area",
+                                        "frequency":  "once_per_creature",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Dexterity",
+                                          "saveEffect":  "none",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "2d4",
+                                       "type":  "Piercing"
+                                   },
+                        "description":  "One planted ammo piece strikes a creature that enters the area or ends its turn there; on a failed Dexterity save, it deals 2d4 Piercing damage and is destroyed.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+2 ammo pieces",
+                                        "customFormula":  ""
+                                    },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "all_target_instances_expended",
+                                                       "scope":  "spell",
+                                                       "description":  "The spell ends when none of the planted ammunition remains in the ground."
+                                                   }
+                                               ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "hazard_ammunition",
+                                                   "name":  "Planted Cordon Ammunition",
+                                                   "count":  4,
+                                                   "countUnit":  "item",
+                                                   "appearsIn":  "caster_space_ground",
+                                                   "placementRequirement":  "up_to_four_nonmagical_arrows_or_bolts_planted_in_ground",
+                                                   "manipulationOptions":  [
+                                                                               "cannot_be_physically_uprooted",
+                                                                               "strike_on_enter_first_time_per_turn",
+                                                                               "strike_on_end_turn",
+                                                                               "destroy_one_ammunition_after_strike",
+                                                                               "ignore_designated_creatures"
+                                                                           ],
+                                                   "hazardRadiusFeet":  30,
+                                                   "triggerFrequency":  "one_piece_per_trigger",
+                                                   "ammoDestroyedAfterStrike":  true,
+                                                   "endsWhenNoneRemain":  true,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "until spell ends or no ammunition remains planted",
+                                                   "notes":  "Cordon of Arrows plants up to four nonmagical arrows or bolts in the ground; each trigger launches and destroys one piece, and the spell ends when none remain."
+                                               }
+                                           ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You touch up to four nonmagical Arrows or Bolts and plant them in the ground in your space. Until the spell ends, the ammunition can\u0027t be physically uprooted, and whenever a creature other than you enters a space within 30 feet of the ammunition for the first time on a turn or ends its turn there, one piece of ammunition flies up to strike it. The creature must succeed on a Dexterity saving throw or take 2d4 Piercing damage. The piece of ammunition is then destroyed. The spell ends when none of the ammunition remains planted in the ground. When you cast this spell, you can designate any creatures you choose, and the spell ignores them.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. The amount of ammunition that can be affected increases by two for each spell slot level above 2.",
+    "tags":  [
+                 "control",
+                 "trap"
+             ]
 }

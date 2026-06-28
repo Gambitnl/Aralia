@@ -1,294 +1,405 @@
 {
-  "id": "snare",
-  "name": "Snare",
-  "aliases": [],
-  "level": 1,
-  "school": "Abjuration",
-  "legacy": false,
-  "classes": [
-    "Artificer",
-    "Druid",
-    "Ranger",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": false,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "25 feet of rope, which the spell consumes",
-    "isConsumed": true,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 8,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "area",
-    "range": 0,
-    "validTargets": [
-      "creatures"
-    ],
-    "areaOfEffect": {
-      "shape": "Circle",
-      "size": 5,
-      "sizeType": "radius",
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "on_enter_area",
-        "frequency": "once_per_creature",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Dexterity",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [
-            "Small",
-            "Medium",
-            "Large"
-          ],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Restrained",
-        "duration": {
-          "type": "minutes",
-          "value": 480
-        },
-        "escapeCheck": {
-          "ability": "Intelligence",
-          "skill": "Arcana",
-          "dc": "spell_save_dc",
-          "actionCost": "action",
-          "eligibleActors": [
-            "affected_creature",
-            "creature_that_can_reach_affected_creature"
-          ]
-        },
-        "level": 0,
-        "repeatSave": {
-          "timing": "turn_end",
-          "saveType": "Dexterity",
-          "successEnds": true,
-          "useOriginalDC": true
-        }
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "When a Small, Medium, or Large creature enters the 5-foot-radius snare area, it makes a Dexterity save or gains the Restrained condition for up to 8 hours, hanging upside down until the spell or restraint ends.",
-      "conditionalEndings": [
-        {
-          "trigger": "no_creature_restrained_by_spell_after_trigger",
-          "scope": "spell",
-          "description": "After the trap is triggered, the spell ends when no creature is restrained by it."
-        }
-      ],
-      "tags": [
-        "restrained",
-        "dexterity-save",
-        "trap"
-      ]
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "The snare is nearly invisible and can be found with an Intelligence (Investigation) check against the spell save DC; the Restrained creature or another creature that can reach it can use an action for an Intelligence (Arcana) check to end the restraint, and the target also repeats the Dexterity save at each turn end.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "As you cast this spell, you use the rope to create a circle with a 5-foot radius on the ground or the floor. When you finish casting, the rope disappears and the circle becomes a magic trap. This trap is nearly invisible, requiring a successful Intelligence (Investigation) check against your spell save DC to be discerned. The trap triggers when a Small, Medium, or Large creature moves onto the ground or the floor in the spell's radius. That creature must succeed on a Dexterity saving throw or be magically hoisted into the air, leaving it hanging upside down 3 feet above the ground or the floor. The creature is restrained there until the spell ends. A restrained creature can make a Dexterity saving throw at the end of each of its turns, ending the effect on itself on a success. Alternatively, the creature or someone else who can reach it can use an action to make an Intelligence (Arcana) check against your spell save DC. On a success, the restrained effect ends. After the trap is triggered, the spell ends when no creature is restrained by it.",
-  "higherLevels": "None",
-  "tags": [
-    "control",
-    "trap",
-    "abjuration"
-  ]
+    "id":  "snare",
+    "name":  "Snare",
+    "aliases":  [
+
+                ],
+    "level":  1,
+    "school":  "Abjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Artificer",
+                    "Druid",
+                    "Ranger",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  false,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "25 feet of rope, which the spell consumes",
+                       "isConsumed":  true,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  8,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  0,
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "areaOfEffect":  {
+                                           "shape":  "Circle",
+                                           "size":  5,
+                                           "sizeType":  "radius",
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "on_enter_area",
+                                        "frequency":  "once_per_creature",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Dexterity",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+                                                                             "Small",
+                                                                             "Medium",
+                                                                             "Large"
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Restrained",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  480
+                                                             },
+                                                "escapeCheck":  {
+                                                                    "ability":  "Intelligence",
+                                                                    "skill":  "Arcana",
+                                                                    "dc":  "spell_save_dc",
+                                                                    "actionCost":  "action",
+                                                                    "eligibleActors":  [
+                                                                                           "affected_creature",
+                                                                                           "creature_that_can_reach_affected_creature"
+                                                                                       ]
+                                                                },
+                                                "level":  0,
+                                                "repeatSave":  {
+                                                                   "timing":  "turn_end",
+                                                                   "saveType":  "Dexterity",
+                                                                   "successEnds":  true,
+                                                                   "useOriginalDC":  true
+                                                               }
+                                            },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "When a Small, Medium, or Large creature enters the 5-foot-radius snare area, it makes a Dexterity save or gains the Restrained condition for up to 8 hours, hanging upside down until the spell or restraint ends.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "no_creature_restrained_by_spell_after_trigger",
+                                                       "scope":  "spell",
+                                                       "description":  "After the trap is triggered, the spell ends when no creature is restrained by it."
+                                                   }
+                                               ],
+                        "tags":  [
+                                     "restrained",
+                                     "dexterity-save",
+                                     "trap"
+                                 ],
+                        "wardTrigger":  {
+                                            "kind":  "hidden_magic_trap",
+                                            "trigger":  "Small_Medium_or_Large_creature_moves_onto_ground_or_floor_in_5_foot_radius",
+                                            "save":  "Dexterity",
+                                            "failure":  "creature_is_hoisted_and_restrained",
+                                            "detection":  "Intelligence_Investigation_against_spell_save_DC",
+                                            "ending":  "after_trigger_spell_ends_when_no_creature_is_restrained"
+                                        }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "The snare is nearly invisible and can be found with an Intelligence (Investigation) check against the spell save DC; the Restrained creature or another creature that can reach it can use an action for an Intelligence (Arcana) check to end the restraint, and the target also repeats the Dexterity save at each turn end.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "trap",
+                                                   "name":  "Nearly Invisible Magic Snare",
+                                                   "count":  1,
+                                                   "countUnit":  "area",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Circle",
+                                                   "affectedVolumeSizeFeet":  5,
+                                                   "placementRequirement":  "rope_circle_on_ground_or_floor",
+                                                   "manipulationOptions":  [
+                                                                               "nearly_invisible_trap",
+                                                                               "trigger_on_small_medium_large_creature_entry",
+                                                                               "hoist_failed_save_target_three_feet",
+                                                                               "end_when_no_creature_restrained_after_trigger"
+                                                                           ],
+                                                   "detectionCheck":  {
+                                                                          "ability":  "Intelligence",
+                                                                          "skill":  "Investigation",
+                                                                          "dc":  "spell_save_dc"
+                                                                      },
+                                                   "triggerCreatureSizes":  [
+                                                                                "Small",
+                                                                                "Medium",
+                                                                                "Large"
+                                                                            ],
+                                                   "hoistHeightFeet":  3,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "up to 8 hours or until post-trigger no creature remains restrained",
+                                                   "notes":  "Snare turns the rope circle into a nearly invisible magical trap on the ground or floor; the existing status row handles Restrained and the utility row handles detection and Arcana escape."
+                                               }
+                                           ],
+                        "visionLightSound":  {
+                                                 "mode":  "nearly_invisible_trap",
+                                                 "visibility":  "nearly invisible magic trap",
+                                                 "detection":  "successful Intelligence (Investigation) check against spell save DC discerns trap",
+                                                 "placedAs":  "5-foot-radius rope circle on ground or floor",
+                                                 "triggerVisibility":  "not dependent on seeing target, triggers on Small/Medium/Large creature entering area",
+                                                 "hoistVisual":  "failed save target hangs upside down 3 feet above ground or floor",
+                                                 "soundPayload":  "none specified by spell"
+                                             },
+                        "wardTrigger":  {
+                                            "kind":  "hidden_magic_trap",
+                                            "trigger":  "Small_Medium_or_Large_creature_moves_onto_ground_or_floor_in_5_foot_radius",
+                                            "save":  "Dexterity",
+                                            "failure":  "creature_is_hoisted_and_restrained",
+                                            "detection":  "Intelligence_Investigation_against_spell_save_DC",
+                                            "ending":  "after_trigger_spell_ends_when_no_creature_is_restrained"
+                                        }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Place the 5-foot-radius rope trap. When a Small, Medium, or Large creature enters, resolve the Dexterity save; on failure, mark it Restrained, hanging upside down 3 feet above the ground, then track end-of-turn Dexterity saves, Intelligence (Arcana) escape actions, and the spell ending once no creature remains restrained after triggering.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "As you cast this spell, you use the rope to create a circle with a 5-foot radius on the ground or the floor. When you finish casting, the rope disappears and the circle becomes a magic trap. This trap is nearly invisible, requiring a successful Intelligence (Investigation) check against your spell save DC to be discerned. The trap triggers when a Small, Medium, or Large creature moves onto the ground or the floor in the spell\u0027s radius. That creature must succeed on a Dexterity saving throw or be magically hoisted into the air, leaving it hanging upside down 3 feet above the ground or the floor. The creature is restrained there until the spell ends. A restrained creature can make a Dexterity saving throw at the end of each of its turns, ending the effect on itself on a success. Alternatively, the creature or someone else who can reach it can use an action to make an Intelligence (Arcana) check against your spell save DC. On a success, the restrained effect ends. After the trap is triggered, the spell ends when no creature is restrained by it.",
+    "higherLevels":  "None",
+    "tags":  [
+                 "control",
+                 "trap",
+                 "abjuration"
+             ]
 }

@@ -1,337 +1,447 @@
 {
-  "id": "phantasmal-force",
-  "name": "Phantasmal Force",
-  "aliases": [],
-  "level": 2,
-  "school": "Illusion",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [
-    "Warlock - Archfey Patron",
-    "Warlock - Great Old One Patron"
-  ],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a bit of fleece",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "single",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 10,
-      "sizeUnit": "feet"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Intelligence",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "Create a persistent illusion in the target's mind on failed Intelligence save; the target can Study it with an Investigation check to end it.",
-      "statusCondition": {
-        "name": "Phantasmal Force",
-        "duration": {
-          "type": "minutes",
-          "value": 1
-        },
-        "escapeCheck": {
-          "ability": "Intelligence",
-          "skill": "Investigation",
-          "dc": "spell_save_dc",
-          "actionCost": "action",
-          "eligibleActors": [
-            "affected_creature"
-          ]
-        }
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "sensoryManifestation": {
-        "modeSource": "not_applicable",
-        "variants": [
-          {
-            "label": "Phantasm",
-            "allowedSenses": [
-              "sight",
-              "sound",
-              "other_sensory_effect"
-            ],
-            "excludedSenses": [],
-            "maxSize": {
-              "shape": "Cube",
-              "size": 10,
-              "unit": "feet"
-            },
-            "notes": "The phantasm includes sound, temperature, and other stimuli, but only in the mind of the target."
-          }
-        ]
-      },
-      "illusion": {
-        "revealScope": "per_creature",
-        "revealRules": [
-          {
-            "method": "study_action",
-            "actionCost": "action",
-            "ability": "Intelligence",
-            "skill": "Investigation",
-            "dc": "spell_save_dc",
-            "appliesTo": [
-              "Phantasm"
-            ],
-            "notes": "The target can use its Action to examine the phantasm."
-          }
-        ],
-        "discernedState": "not_applicable",
-        "phantasmalInteraction": {
-          "perceivedOnlyByTarget": true,
-          "targetTreatsAsReal": true,
-          "rationalizesIllogicalOutcomes": true,
-          "phenomenonOptions": [
-            "object",
-            "creature",
-            "phenomenon",
-            "bridge",
-            "dangerous creature",
-            "hazard"
-          ],
-          "hazardousPhantasm": {
-            "damageDice": "2d8",
-            "damageType": "Psychic",
-            "perceivedDamageTypeSource": "appropriate_to_illusion",
-            "damageTiming": "each_caster_turn",
-            "damageAreaCondition": "in_area_or_within_proximity",
-            "proximityFeet": 5
-          }
-        },
-        "notes": "If the check succeeds, the target realizes that the phantasm is an illusion, and the spell ends."
-      }
-    },
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "turn_start",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "2d8",
-        "type": "Psychic"
-      },
-      "description": "While the target remains affected, hazardous interactions with the illusion can deal 2d8 Psychic damage to it.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You attempt to craft an illusion in the mind of a creature you can see within range. The target makes an Intelligence saving throw. On a failed save, you create a phantasmal object, creature, or other phenomenon that is no larger than a 10-foot Cube and that is perceivable only to the target for the duration. The phantasm includes sound, temperature, and other stimuli. The target can take a Study action to examine the phantasm with an Intelligence (Investigation) check against your spell save DC. If the check succeeds, the target realizes that the phantasm is an illusion, and the spell ends. While affected by the spell, the target treats the phantasm as if it were real and rationalizes any illogical outcomes from interacting with it. For example, if the target steps through a phantasmal bridge and survives the fall, it believes the bridge exists and something else caused it to fall. An affected target can even take damage from the illusion if the phantasm represents a dangerous creature or hazard. On each of your turns, such a phantasm can deal 2d8 Psychic damage to the target if it is in the phantasm's area or within 5 feet of the phantasm. The target perceives the damage as a type appropriate to the illusion.",
-  "higherLevels": "",
-  "tags": [
-    "illusion",
-    "control",
-    "psychic",
-    "concentration"
-  ]
+    "id":  "phantasmal-force",
+    "name":  "Phantasmal Force",
+    "aliases":  [
+
+                ],
+    "level":  2,
+    "school":  "Illusion",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+                       "Warlock - Archfey Patron",
+                       "Warlock - Great Old One Patron"
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a bit of fleece",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  10,
+                                           "sizeUnit":  "feet"
+                                       }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Intelligence",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "Create a persistent illusion in the target\u0027s mind on failed Intelligence save; the target can Study it with an Investigation check to end it.",
+                        "statusCondition":  {
+                                                "name":  "Phantasmal Force",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  1
+                                                             },
+                                                "escapeCheck":  {
+                                                                    "ability":  "Intelligence",
+                                                                    "skill":  "Investigation",
+                                                                    "dc":  "spell_save_dc",
+                                                                    "actionCost":  "action",
+                                                                    "eligibleActors":  [
+                                                                                           "affected_creature"
+                                                                                       ]
+                                                                }
+                                            },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "sensoryManifestation":  {
+                                                     "modeSource":  "not_applicable",
+                                                     "variants":  [
+                                                                      {
+                                                                          "label":  "Phantasm",
+                                                                          "allowedSenses":  [
+                                                                                                "sight",
+                                                                                                "sound",
+                                                                                                "other_sensory_effect"
+                                                                                            ],
+                                                                          "excludedSenses":  [
+
+                                                                                             ],
+                                                                          "maxSize":  {
+                                                                                          "shape":  "Cube",
+                                                                                          "size":  10,
+                                                                                          "unit":  "feet"
+                                                                                      },
+                                                                          "notes":  "The phantasm includes sound, temperature, and other stimuli, but only in the mind of the target."
+                                                                      }
+                                                                  ]
+                                                 },
+                        "illusion":  {
+                                         "revealScope":  "per_creature",
+                                         "revealRules":  [
+                                                             {
+                                                                 "method":  "study_action",
+                                                                 "actionCost":  "action",
+                                                                 "ability":  "Intelligence",
+                                                                 "skill":  "Investigation",
+                                                                 "dc":  "spell_save_dc",
+                                                                 "appliesTo":  [
+                                                                                   "Phantasm"
+                                                                               ],
+                                                                 "notes":  "The target can use its Action to examine the phantasm."
+                                                             }
+                                                         ],
+                                         "discernedState":  "not_applicable",
+                                         "phantasmalInteraction":  {
+                                                                       "perceivedOnlyByTarget":  true,
+                                                                       "targetTreatsAsReal":  true,
+                                                                       "rationalizesIllogicalOutcomes":  true,
+                                                                       "phenomenonOptions":  [
+                                                                                                 "object",
+                                                                                                 "creature",
+                                                                                                 "phenomenon",
+                                                                                                 "bridge",
+                                                                                                 "dangerous creature",
+                                                                                                 "hazard"
+                                                                                             ],
+                                                                       "hazardousPhantasm":  {
+                                                                                                 "damageDice":  "2d8",
+                                                                                                 "damageType":  "Psychic",
+                                                                                                 "perceivedDamageTypeSource":  "appropriate_to_illusion",
+                                                                                                 "damageTiming":  "each_caster_turn",
+                                                                                                 "damageAreaCondition":  "in_area_or_within_proximity",
+                                                                                                 "proximityFeet":  5
+                                                                                             }
+                                                                   },
+                                         "notes":  "If the check succeeds, the target realizes that the phantasm is an illusion, and the spell ends."
+                                     },
+                        "knowledgeEffect":  {
+                                                "targetRationalizesContradictions":  true,
+                                                "example":  "surviving_a_fall_through_a_phantasmal_bridge_is_explained_away_by_the_target",
+                                                "studyCanRevealIllusion":  true,
+                                                "notes":  "The affected target treats the phantasm as real and rationalizes impossible outcomes until it succeeds on the Study/Investigation ending check."
+                                            },
+                        "perceptionState":  {
+                                                "kind":  "target_only_illusion_perception",
+                                                "targetRationalizesIllusion":  true,
+                                                "studyCheck":  "Intelligence_Investigation_against_spell_save_DC_ends_on_success",
+                                                "perceivedDamageType":  "appropriate_to_illusion"
+                                            },
+                        "illusionState":  {
+                                              "kind":  "target_mind_phantasm",
+                                              "maxSize":  "10_foot_cube",
+                                              "senses":  [
+                                                             "sound",
+                                                             "temperature",
+                                                             "other_stimuli"
+                                                         ],
+                                              "scope":  "perceivable_only_to_target",
+                                              "targetBehavior":  "treats_phantasm_as_real_and_rationalizes_illogical_outcomes",
+                                              "reveal":  "target_Study_action_Intelligence_Investigation_success_ends_spell"
+                                          }
+                    },
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "turn_start",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "2d8",
+                                       "type":  "Psychic"
+                                   },
+                        "description":  "While the target remains affected, hazardous interactions with the illusion can deal 2d8 Psychic damage to it.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "surfaceInteraction":  {
+                                                   "illusionCanRepresentHazard":  true,
+                                                   "hazardExamples":  [
+                                                                          "dangerous_creature",
+                                                                          "dangerous_surface",
+                                                                          "dangerous_area"
+                                                                      ],
+                                                   "damageType":  "Psychic",
+                                                   "notes":  "If the target rationalizes the phantasm as a dangerous hazard or surface, the existing damage row can resolve that apparent terrain interaction as Psychic damage."
+                                               },
+                        "perceptionState":  {
+                                                "kind":  "illusion_damage_perception",
+                                                "damageType":  "Psychic",
+                                                "targetPerceivesDamageAs":  "type_appropriate_to_illusion"
+                                            },
+                        "sustainAction":  {
+                                              "cost":  "none_explicit_for_caster_each_turn",
+                                              "frequency":  "on_each_caster_turn",
+                                              "condition":  "target_is_in_phantasm_area_or_within_5_feet_of_phantasm",
+                                              "use":  "phantasm_can_deal_2d8_Psychic_damage",
+                                              "escape":  "target_Study_action_Investigation_success_ends_spell"
+                                          },
+                        "illusionState":  {
+                                              "kind":  "phantasm_hazard_damage",
+                                              "trigger":  "target_in_phantasm_area_or_within_5_feet_on_each_caster_turn",
+                                              "damage":  "2d8_Psychic",
+                                              "perceivedDamageType":  "appropriate_to_illusion"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You attempt to craft an illusion in the mind of a creature you can see within range. The target makes an Intelligence saving throw. On a failed save, you create a phantasmal object, creature, or other phenomenon that is no larger than a 10-foot Cube and that is perceivable only to the target for the duration. The phantasm includes sound, temperature, and other stimuli. The target can take a Study action to examine the phantasm with an Intelligence (Investigation) check against your spell save DC. If the check succeeds, the target realizes that the phantasm is an illusion, and the spell ends. While affected by the spell, the target treats the phantasm as if it were real and rationalizes any illogical outcomes from interacting with it. For example, if the target steps through a phantasmal bridge and survives the fall, it believes the bridge exists and something else caused it to fall. An affected target can even take damage from the illusion if the phantasm represents a dangerous creature or hazard. On each of your turns, such a phantasm can deal 2d8 Psychic damage to the target if it is in the phantasm\u0027s area or within 5 feet of the phantasm. The target perceives the damage as a type appropriate to the illusion.",
+    "higherLevels":  "",
+    "tags":  [
+                 "illusion",
+                 "control",
+                 "psychic",
+                 "concentration"
+             ]
 }

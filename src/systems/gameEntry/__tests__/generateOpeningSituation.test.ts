@@ -16,6 +16,8 @@ import { describe, it, expect } from 'vitest';
 import {
     generateOpeningSituation,
     buildOpeningSituationPrompt,
+    joinNarrationFragments,
+    composeOpeningNarration,
     OpeningSituationUnavailableError,
     OpeningSituationParseError,
 } from '../generateOpeningSituation';
@@ -94,7 +96,10 @@ describe('generateOpeningSituation', () => {
             idFactory: () => `npc-${n++}`,
         });
 
-        expect(situation.setting.place).toBe('the rain-slick market steps');
+        // G5: the displayed place is ANCHORED to the authoritative start location
+        // (here 'Aralia Town Center'), NOT the model's free-text place — this is
+        // what stops a chosen capital city being narrated as an "ancient forest".
+        expect(situation.setting.place).toBe('Aralia Town Center');
         expect(situation.predicament).toContain('toll collector');
         expect(situation.npcs).toHaveLength(2);
         // Ids are assigned by the generator, not the model.
@@ -132,6 +137,42 @@ describe('generateOpeningSituation', () => {
         }));
         await expect(generateOpeningSituation(CHARACTER, LOCATION, { client })).rejects.toBeInstanceOf(
             OpeningSituationParseError,
+        );
+    });
+});
+
+describe('opening-narration glue normalisation (G4/X4)', () => {
+    it('joins fragments without comma-before-capital or doubled-period artifacts', () => {
+        // The exact shape from the bug report: a capitalised, period-terminated
+        // weather sentence glued after a time-of-day word, then the predicament.
+        const text = composeOpeningNarration(
+            { place: 'Sih', timeOfDay: 'Day', weather: 'The air is biting cold. The sun is high.' },
+            'Testius Maximus blocks the gate.',
+        );
+        expect(text).toBe(
+            'Sih — Day. The air is biting cold. The sun is high. Testius Maximus blocks the gate.',
+        );
+        // Regression guards for the two specific artifacts.
+        expect(text).not.toContain('..');
+        expect(text).not.toMatch(/,\s+[A-Z]/u); // no comma before a capitalised sentence
+    });
+
+    it('uses a comma boundary for lower-case continuation fragments', () => {
+        expect(joinNarrationFragments(['a quiet square', 'cold drizzle'])).toBe(
+            'a quiet square, cold drizzle.',
+        );
+    });
+
+    it('preserves terminal sentence punctuation and drops empty fragments', () => {
+        expect(joinNarrationFragments(['Dawn', undefined, '', 'Something stirs!'])).toBe(
+            'Dawn. Something stirs!',
+        );
+        expect(joinNarrationFragments([])).toBe('');
+    });
+
+    it('builds the Place — Time header even when weather is absent', () => {
+        expect(composeOpeningNarration({ place: 'Sih', timeOfDay: 'Day' }, 'A scream.')).toBe(
+            'Sih — Day. A scream.',
         );
     });
 });

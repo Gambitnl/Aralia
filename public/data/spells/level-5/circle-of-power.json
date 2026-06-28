@@ -141,7 +141,19 @@
         "saveOutcomeOverrides": []
       },
       "defenseType": "advantage_on_saves",
-      "savingThrow": [],
+      "savingThrow": [
+        "spells",
+        "magical_effects"
+      ],
+      "savingThrowModifier": {
+        "modifier": "advantage",
+        "condition": "against_spells_or_magical_effects",
+        "consumption": "while_in_area",
+        "duration": {
+          "type": "minutes",
+          "value": 10
+        }
+      },
       "duration": {
         "type": "minutes",
         "value": 10
@@ -206,6 +218,11 @@
       },
       "utilityType": "other",
       "description": "When a protected friendly creature succeeds on a save against a spell or magical effect that normally deals half damage on success, it takes no damage instead.",
+      "saveOutcomeOverride": {
+        "trigger": "successful_save_against_spell_or_magical_effect_half_damage",
+        "newOutcome": "no_damage",
+        "scope": "friendly_creature_in_area"
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -251,8 +268,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Maintain the caster-centered 30-foot sphere; friendly creatures in it gain Advantage on saves against spells and magical effects, and successful half-damage saves against those effects become no damage.",
+    "playerInputRequired": true
   },
   "description": "Divine energy radiates from you, distorting and diffusing magical energy within 30 feet of you. Until the spell ends, the sphere moves with you, centered on you. For the duration, each friendly creature in the area (including you) has advantage on saving throws against spells and other magical effects. Additionally, when an affected creature succeeds on a saving throw made against a spell or magical effect that allows it to make a saving throw to take only half damage, it instead takes no damage if it succeeds on the saving throws.",
   "higherLevels": "",

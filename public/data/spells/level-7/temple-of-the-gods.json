@@ -1,557 +1,708 @@
 {
-  "id": "temple-of-the-gods",
-  "name": "Temple of the Gods",
-  "aliases": [],
-  "level": 7,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Cleric"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "hour",
-    "explorationCost": {
-      "value": 1,
-      "unit": "hour"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a holy symbol worth at least 5 gp",
-    "materialCost": 5,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": false,
-    "value": 24,
-    "unit": "hour"
-  },
-  "targeting": {
-    "type": "area",
-    "range": 120,
-    "validTargets": [
-      "ground",
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 120,
-      "height": 0,
-      "sizeType": "edge",
-      "sizeUnit": "feet"
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Temple Footprint",
-          "shape": "Cube",
-          "size": 120,
-          "sizeType": "edge",
-          "sizeUnit": "feet",
-          "notes": "The temple must fit within this cube of space."
-        }
-      ]
-    }
-  },
-  "effects": [
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "on_enter_area",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Charisma",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Entry Blocked",
-        "duration": {
-          "type": "special",
-          "value": 0
-        },
-        "breakTriggers": [
-          "duration_expires"
-        ],
-        "aftermath": "On a failed save, a chosen-type creature cannot enter the temple for 24 hours."
-      },
-      "description": "A chosen-type creature attempting to enter must make a Charisma save; on a failed save it cannot enter the temple for 24 hours.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "ATTACK_ROLL_MODIFIER",
-      "trigger": {
-        "type": "on_enter_area",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "attackRollModifier": {
-        "modifier": "penalty",
-        "direction": "outgoing",
-        "attackKind": "any",
-        "consumption": "while_active",
-        "duration": {
-          "type": "special",
-          "value": 0
-        },
-        "notes": "Chosen-type creatures inside subtract 1d4 from attack rolls, ability checks, and saving throws."
-      },
-      "description": "Chosen-type creatures that can enter subtract 1d4 from attack rolls, ability checks, and saving throws inside the temple.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "HEALING",
-      "trigger": {
-        "type": "after_primary",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "healing": {
-        "dice": "Wisdom modifier minimum 1",
-        "isTemporaryHp": false
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "Whenever a creature in the temple regains hit points from a spell of 1st level or higher, it regains additional hit points equal to the caster Wisdom modifier, minimum 1.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "creation",
-      "description": "After a 1-hour casting, create a dedicated temple on visible ground within 120 feet that fits in an unoccupied 120-foot cube. The caster chooses its appearance, floor, walls, roof, one controllable door, optional windows, idol or altar, bright or dim illumination, incense, and mild temperature. Its opaque magical-force exterior blocks Ethereal travel and physical passage, blocks Divination sensors and targeting inside, ignores Dispel Magic and Antimagic Field, can be destroyed by Disintegrate, and becomes permanent after year-long daily same-spot casting.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Temple Creation",
-          "effect": "A temple shimmers into existence on visible ground and must fit within an unoccupied cube up to 120 feet on each side."
-        },
-        {
-          "name": "Dedicated By Holy Symbol",
-          "effect": "The temple is dedicated to the god, pantheon, or philosophy represented by the holy symbol used in casting."
-        },
-        {
-          "name": "Appearance Choices",
-          "effect": "You make all decisions about the temple's appearance."
-        },
-        {
-          "name": "Door And Windows",
-          "effect": "The temple has floor, walls, roof, one door, and as many windows as you wish."
-        },
-        {
-          "name": "Designated Door Control",
-          "effect": "Only you and creatures you designate when casting can open or close the door."
-        },
-        {
-          "name": "Interior Idol Or Altar",
-          "effect": "The interior is an open space with an idol or altar at one end."
-        },
-        {
-          "name": "Illumination Choice",
-          "effect": "You decide whether the temple is illuminated, and whether that illumination is bright light or dim light."
-        },
-        {
-          "name": "Incense And Mild Temperature",
-          "effect": "Burning incense fills the air within, and the temperature is mild."
-        },
-        {
-          "name": "Opposed Creature Types",
-          "effect": "Choose one or more opposed types from celestials, elementals, fey, fiends, or undead."
-        },
-        {
-          "name": "Opposed Creature Entry Save",
-          "effect": "A chosen-type creature attempting to enter must make a Charisma save; on a failed save it cannot enter for 24 hours."
-        },
-        {
-          "name": "Opposed Creature D4 Penalty",
-          "effect": "Chosen-type creatures that can enter subtract 1d4 from attack rolls, ability checks, and saving throws made inside the temple."
-        },
-        {
-          "name": "Divination Sensor Block",
-          "effect": "Sensors created by divination spells cannot appear inside the temple."
-        },
-        {
-          "name": "Divination Targeting Block",
-          "effect": "Creatures within cannot be targeted by Divination spells."
-        },
-        {
-          "name": "Healing Bonus",
-          "effect": "Whenever a creature in the temple regains hit points from a spell of 1st level or higher, it regains additional hit points equal to your Wisdom modifier, minimum 1."
-        },
-        {
-          "name": "Opaque Magical Force",
-          "effect": "The temple is made from opaque magical force."
-        },
-        {
-          "name": "Ethereal Travel Block",
-          "effect": "The magical force extends into the Ethereal Plane and blocks ethereal travel into the temple interior."
-        },
-        {
-          "name": "Physical Passage Block",
-          "effect": "Nothing can physically pass through the temple exterior."
-        },
-        {
-          "name": "Dispel Magic Immune",
-          "effect": "The temple cannot be dispelled by Dispel Magic."
-        },
-        {
-          "name": "Antimagic Field Immune",
-          "effect": "Antimagic Field has no effect on the temple."
-        },
-        {
-          "name": "Disintegrate Or Permanent",
-          "effect": "A Disintegrate spell destroys the temple instantly; casting this spell on the same spot every day for a year makes the effect permanent."
-        }
-      ],
-      "createdObjects": [
-        {
-          "objectType": "structure",
-          "name": "Temple of the Gods",
-          "count": 1,
-          "countUnit": "structure",
-          "appearsIn": "ground",
-          "shapeOptions": [
-            "caster_chosen_temple_appearance"
-          ],
-          "materialOptions": [
-            "opaque magical force"
-          ],
-          "maxCreatedObjectCubeFeet": 120,
-          "dedicationSource": "holy_symbol_used_in_casting",
-          "appearanceChosenByCaster": true,
-          "doorCount": 1,
-          "doorControlledByCasterAndDesignates": true,
-          "windowsCasterChoice": true,
-          "interiorFeatures": [
-            "floor",
-            "walls",
-            "roof",
-            "open interior",
-            "idol or altar"
-          ],
-          "illuminationOptions": [
-            "bright",
-            "dim"
-          ],
-          "ambientScent": "burning incense",
-          "ambientTemperature": "mild",
-          "blocksPhysicalPassage": true,
-          "blocksLineOfSight": true,
-          "blocksEtherealTravel": true,
-          "blocksDivinationSensorsInside": true,
-          "blocksDivinationTargetingInside": true,
-          "immuneToDispelMagic": true,
-          "immuneToAntimagicField": true,
-          "destroyedBySpells": [
-            "disintegrate"
-          ],
-          "opposedCreatureTypeOptions": [
-            "celestial",
-            "elemental",
-            "fey",
-            "fiend",
-            "undead"
-          ],
-          "opposedCreatureEntrySaveType": "Charisma",
-          "opposedCreatureEntryBlockedDurationHours": 24,
-          "opposedCreaturePenaltyDice": "1d4",
-          "healingBonusAbilityModifier": "Wisdom",
-          "healingBonusMinimum": 1,
-          "healingBonusTrigger": "spell_healing_level_1_or_higher",
-          "expiresWithSpell": true,
-          "shelfLife": "24 hours",
-          "permanenceRequiresDailyCasts": 365,
-          "permanenceSameLocationRequired": true
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [
-        {
-          "trigger": "disintegrate_targets_effect",
-          "scope": "spell",
-          "description": "A Disintegrate spell destroys the temple instantly."
-        }
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You cause a temple to shimmer into existence on ground you can see within range. The temple must fit within an unoccupied cube of space, up to 120 feet on each side. The temple remains until the spell ends. It is dedicated to whatever god, pantheon, or philosophy is represented by the holy symbol used in the casting. You make all decisions about the temple's appearance. The interior is enclosed by a floor, walls, and a roof, with one door granting access to the interior and as many windows as you wish. Only you and any creatures you designate when you cast the spell can open or close the door. The temple's interior is an open space with an idol or altar at one end. You decide whether the temple is illuminated and whether that illumination is bright light or dim light. The smell of burning incense fills the air within, and the temperature is mild. The temple opposes types of creatures you choose when you cast this spell. Choose one or more of the following: celestials, elementals, fey, fiends, or undead. If a creature of the chosen type attempts to enter the temple, that creature must make a Charisma saving throw. On a failed save, it can't enter the temple for 24 hours. Even if the creature can enter the temple, the magic there hinders it; whenever it makes an attack roll, an ability check, or a saving throw inside the temple, it must roll a d4 and subtract the number rolled from the d20 roll. In addition, the sensors created by divination spells can't appear inside the temple, and creatures within can't be targeted by divination spells. Finally, whenever any creature in the temple regains hit points from a spell of 1st level or higher, the creature regains additional hit points equal to your Wisdom modifier (minimum 1 hit point). The temple is made from opaque magical force that extends into the Ethereal Plane, thus blocking ethereal travel into the temple's interior. Nothing can physically pass through the temple's exterior. It can't be dispelled by dispel magic, and antimagic field has no effect on it. A disintegrate spell destroys the temple instantly. Casting this spell on the same spot every day for a year makes this effect permanent.",
-  "higherLevels": "",
-  "durationProgression": [
-    {
-      "trigger": "repeated_casts",
-      "requiredCasts": 365,
-      "cadence": "daily",
-      "sameTargetRequired": "not_applicable",
-      "sameLocationRequired": true,
-      "sameConfigurationRequired": "not_applicable",
-      "requiresFullConcentration": "not_applicable",
-      "outcomeDuration": "permanent",
-      "dispellable": false,
-      "notes": "Casting Temple of the Gods on the same spot every day for a year makes the effect permanent."
-    }
-  ],
-  "tags": []
+    "id":  "temple-of-the-gods",
+    "name":  "Temple of the Gods",
+    "aliases":  [
+
+                ],
+    "level":  7,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Cleric"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "hour",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "hour"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a holy symbol worth at least 5 gp",
+                       "materialCost":  5,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  false,
+                     "value":  24,
+                     "unit":  "hour"
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  120,
+                      "validTargets":  [
+                                           "ground",
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  120,
+                                           "height":  0,
+                                           "sizeType":  "edge",
+                                           "sizeUnit":  "feet"
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet",
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Temple Footprint",
+                                                               "shape":  "Cube",
+                                                               "size":  120,
+                                                               "sizeType":  "edge",
+                                                               "sizeUnit":  "feet",
+                                                               "notes":  "The temple must fit within this cube of space."
+                                                           }
+                                                       ]
+                                         }
+                  },
+    "effects":  [
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "on_enter_area",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Charisma",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+                                                                       {
+                                                                           "outcome":  "failure",
+                                                                           "effect":  "The chosen-type creature cannot enter the temple for 24 hours."
+                                                                       },
+                                                                       {
+                                                                           "outcome":  "success",
+                                                                           "effect":  "The chosen-type creature can enter, but temple hindrance still applies while inside."
+                                                                       }
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Entry Blocked",
+                                                "duration":  {
+                                                                 "type":  "special",
+                                                                 "value":  0
+                                                             },
+                                                "breakTriggers":  [
+                                                                      "duration_expires"
+                                                                  ],
+                                                "aftermath":  "On a failed save, a chosen-type creature cannot enter the temple for 24 hours."
+                                            },
+                        "description":  "A chosen-type creature attempting to enter must make a Charisma save; on a failed save it cannot enter the temple for 24 hours.",
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "ATTACK_ROLL_MODIFIER",
+                        "trigger":  {
+                                        "type":  "on_enter_area",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "attackRollModifier":  {
+                                                   "modifier":  "penalty",
+                                                   "direction":  "outgoing",
+                                                   "attackKind":  "any",
+                                                   "consumption":  "while_active",
+                                                   "duration":  {
+                                                                    "type":  "special",
+                                                                    "value":  0
+                                                                },
+                                                   "notes":  "Chosen-type creatures inside subtract 1d4 from attack rolls, ability checks, and saving throws."
+                                               },
+                        "abilityCheckModifier":  {
+                                                     "dice":  "-1d4",
+                                                     "appliesTo":  "chosen_type_creature_ability_checks_inside_temple"
+                                                 },
+                        "savingThrowModifier":  {
+                                                    "dice":  "-1d4",
+                                                    "appliesTo":  "chosen_type_creature_saving_throws_inside_temple"
+                                                },
+                        "description":  "Chosen-type creatures that can enter subtract 1d4 from attack rolls, ability checks, and saving throws inside the temple.",
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "HEALING",
+                        "trigger":  {
+                                        "type":  "after_primary",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "healing":  {
+                                        "dice":  "Wisdom modifier minimum 1",
+                                        "isTemporaryHp":  false
+                                    },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Whenever a creature in the temple regains hit points from a spell of 1st level or higher, it regains additional hit points equal to the caster Wisdom modifier, minimum 1.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "hitPointState":  {
+                                              "mode":  "bonus_healing_inside_temple",
+                                              "trigger":  "creature in temple regains hit points from a spell of 1st level or higher",
+                                              "bonus":  "caster Wisdom modifier, minimum 1",
+                                              "isTemporaryHp":  false
+                                          }
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "creation",
+                        "description":  "After a 1-hour casting, create a dedicated temple on visible ground within 120 feet that fits in an unoccupied 120-foot cube. The caster chooses its appearance, floor, walls, roof, one controllable door, optional windows, idol or altar, bright or dim illumination, incense, and mild temperature. Its opaque magical-force exterior blocks Ethereal travel and physical passage, blocks Divination sensors and targeting inside, ignores Dispel Magic and Antimagic Field, can be destroyed by Disintegrate, and becomes permanent after year-long daily same-spot casting.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Temple Creation",
+                                                   "effect":  "A temple shimmers into existence on visible ground and must fit within an unoccupied cube up to 120 feet on each side."
+                                               },
+                                               {
+                                                   "name":  "Dedicated By Holy Symbol",
+                                                   "effect":  "The temple is dedicated to the god, pantheon, or philosophy represented by the holy symbol used in casting."
+                                               },
+                                               {
+                                                   "name":  "Appearance Choices",
+                                                   "effect":  "You make all decisions about the temple\u0027s appearance."
+                                               },
+                                               {
+                                                   "name":  "Door And Windows",
+                                                   "effect":  "The temple has floor, walls, roof, one door, and as many windows as you wish."
+                                               },
+                                               {
+                                                   "name":  "Designated Door Control",
+                                                   "effect":  "Only you and creatures you designate when casting can open or close the door."
+                                               },
+                                               {
+                                                   "name":  "Interior Idol Or Altar",
+                                                   "effect":  "The interior is an open space with an idol or altar at one end."
+                                               },
+                                               {
+                                                   "name":  "Illumination Choice",
+                                                   "effect":  "You decide whether the temple is illuminated, and whether that illumination is bright light or dim light."
+                                               },
+                                               {
+                                                   "name":  "Incense And Mild Temperature",
+                                                   "effect":  "Burning incense fills the air within, and the temperature is mild."
+                                               },
+                                               {
+                                                   "name":  "Opposed Creature Types",
+                                                   "effect":  "Choose one or more opposed types from celestials, elementals, fey, fiends, or undead."
+                                               },
+                                               {
+                                                   "name":  "Opposed Creature Entry Save",
+                                                   "effect":  "A chosen-type creature attempting to enter must make a Charisma save; on a failed save it cannot enter for 24 hours."
+                                               },
+                                               {
+                                                   "name":  "Opposed Creature D4 Penalty",
+                                                   "effect":  "Chosen-type creatures that can enter subtract 1d4 from attack rolls, ability checks, and saving throws made inside the temple."
+                                               },
+                                               {
+                                                   "name":  "Divination Sensor Block",
+                                                   "effect":  "Sensors created by divination spells cannot appear inside the temple."
+                                               },
+                                               {
+                                                   "name":  "Divination Targeting Block",
+                                                   "effect":  "Creatures within cannot be targeted by Divination spells."
+                                               },
+                                               {
+                                                   "name":  "Healing Bonus",
+                                                   "effect":  "Whenever a creature in the temple regains hit points from a spell of 1st level or higher, it regains additional hit points equal to your Wisdom modifier, minimum 1."
+                                               },
+                                               {
+                                                   "name":  "Opaque Magical Force",
+                                                   "effect":  "The temple is made from opaque magical force."
+                                               },
+                                               {
+                                                   "name":  "Ethereal Travel Block",
+                                                   "effect":  "The magical force extends into the Ethereal Plane and blocks ethereal travel into the temple interior."
+                                               },
+                                               {
+                                                   "name":  "Physical Passage Block",
+                                                   "effect":  "Nothing can physically pass through the temple exterior."
+                                               },
+                                               {
+                                                   "name":  "Dispel Magic Immune",
+                                                   "effect":  "The temple cannot be dispelled by Dispel Magic."
+                                               },
+                                               {
+                                                   "name":  "Antimagic Field Immune",
+                                                   "effect":  "Antimagic Field has no effect on the temple."
+                                               },
+                                               {
+                                                   "name":  "Disintegrate Or Permanent",
+                                                   "effect":  "A Disintegrate spell destroys the temple instantly; casting this spell on the same spot every day for a year makes the effect permanent."
+                                               }
+                                           ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "structure",
+                                                   "name":  "Temple of the Gods",
+                                                   "count":  1,
+                                                   "countUnit":  "structure",
+                                                   "appearsIn":  "ground",
+                                                   "shapeOptions":  [
+                                                                        "caster_chosen_temple_appearance"
+                                                                    ],
+                                                   "materialOptions":  [
+                                                                           "opaque magical force"
+                                                                       ],
+                                                   "maxCreatedObjectCubeFeet":  120,
+                                                   "dedicationSource":  "holy_symbol_used_in_casting",
+                                                   "appearanceChosenByCaster":  true,
+                                                   "doorCount":  1,
+                                                   "doorControlledByCasterAndDesignates":  true,
+                                                   "windowsCasterChoice":  true,
+                                                   "interiorFeatures":  [
+                                                                            "floor",
+                                                                            "walls",
+                                                                            "roof",
+                                                                            "open interior",
+                                                                            "idol or altar"
+                                                                        ],
+                                                   "illuminationOptions":  [
+                                                                               "bright",
+                                                                               "dim"
+                                                                           ],
+                                                   "ambientScent":  "burning incense",
+                                                   "ambientTemperature":  "mild",
+                                                   "blocksPhysicalPassage":  true,
+                                                   "blocksLineOfSight":  true,
+                                                   "blocksEtherealTravel":  true,
+                                                   "blocksDivinationSensorsInside":  true,
+                                                   "blocksDivinationTargetingInside":  true,
+                                                   "immuneToDispelMagic":  true,
+                                                   "immuneToAntimagicField":  true,
+                                                   "destroyedBySpells":  [
+                                                                             "disintegrate"
+                                                                         ],
+                                                   "opposedCreatureTypeOptions":  [
+                                                                                      "celestial",
+                                                                                      "elemental",
+                                                                                      "fey",
+                                                                                      "fiend",
+                                                                                      "undead"
+                                                                                  ],
+                                                   "opposedCreatureEntrySaveType":  "Charisma",
+                                                   "opposedCreatureEntryBlockedDurationHours":  24,
+                                                   "opposedCreaturePenaltyDice":  "1d4",
+                                                   "healingBonusAbilityModifier":  "Wisdom",
+                                                   "healingBonusMinimum":  1,
+                                                   "healingBonusTrigger":  "spell_healing_level_1_or_higher",
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "24 hours",
+                                                   "permanenceRequiresDailyCasts":  365,
+                                                   "permanenceSameLocationRequired":  true
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "disintegrate_targets_effect",
+                                                       "scope":  "spell",
+                                                       "description":  "A Disintegrate spell destroys the temple instantly."
+                                                   }
+                                               ],
+                        "visionLightSound":  {
+                                                 "mode":  "created_temple_appearance_illumination_and_blocks",
+                                                 "appearance":  "caster chooses temple appearance, door, windows, idol or altar",
+                                                 "illumination":  "caster chooses no illumination, bright light, or dim light",
+                                                 "scent":  "burning incense fills interior air",
+                                                 "temperature":  "mild",
+                                                 "exterior":  "opaque magical force blocks line of sight and physical passage",
+                                                 "divinationBlock":  "Divination sensors cannot appear inside and creatures inside cannot be targeted by Divination",
+                                                 "etherealTravelBlocked":  true,
+                                                 "antimagicAndDispel":  "unaffected by Antimagic Field and Dispel Magic",
+                                                 "destroyedBy":  "Disintegrate"
+                                             },
+                        "objectDestruction":  {
+                                                  "structure":  "opaque magical-force temple",
+                                                  "physicalPassage":  "nothing can physically pass through exterior",
+                                                  "immuneTo":  "Dispel Magic and Antimagic Field",
+                                                  "destroyedBy":  "Disintegrate destroys the temple instantly"
+                                              },
+                        "planarMovement":  {
+                                               "mode":  "ethereal_travel_blocking_structure",
+                                               "material":  "opaque magical force",
+                                               "extendsInto":  "Ethereal Plane",
+                                               "blocks":  "ethereal travel into temple interior",
+                                               "physicalPassage":  "nothing can physically pass through exterior",
+                                               "immuneTo":  [
+                                                                "Dispel Magic",
+                                                                "Antimagic Field"
+                                                            ]
+                                           },
+                        "sensorState":  {
+                                            "kind":  "temple_divination_block",
+                                            "blocks":  [
+                                                           "divination_sensors_appearing_inside_temple",
+                                                           "creatures_inside_being_targeted_by_divination_spells"
+                                                       ],
+                                            "area":  "temple_interior",
+                                            "pairedWith":  "opaque_magical_force_and_ethereal_travel_block"
+                                        }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the temple footprint, appearance, door designates, illumination, and opposed creature types. For opposed creatures attempting entry, resolve the Charisma save and 24-hour entry block on failure; for opposed creatures inside, subtract 1d4 from attack rolls, ability checks, and saving throws.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You cause a temple to shimmer into existence on ground you can see within range. The temple must fit within an unoccupied cube of space, up to 120 feet on each side. The temple remains until the spell ends. It is dedicated to whatever god, pantheon, or philosophy is represented by the holy symbol used in the casting. You make all decisions about the temple\u0027s appearance. The interior is enclosed by a floor, walls, and a roof, with one door granting access to the interior and as many windows as you wish. Only you and any creatures you designate when you cast the spell can open or close the door. The temple\u0027s interior is an open space with an idol or altar at one end. You decide whether the temple is illuminated and whether that illumination is bright light or dim light. The smell of burning incense fills the air within, and the temperature is mild. The temple opposes types of creatures you choose when you cast this spell. Choose one or more of the following: celestials, elementals, fey, fiends, or undead. If a creature of the chosen type attempts to enter the temple, that creature must make a Charisma saving throw. On a failed save, it can\u0027t enter the temple for 24 hours. Even if the creature can enter the temple, the magic there hinders it; whenever it makes an attack roll, an ability check, or a saving throw inside the temple, it must roll a d4 and subtract the number rolled from the d20 roll. In addition, the sensors created by divination spells can\u0027t appear inside the temple, and creatures within can\u0027t be targeted by divination spells. Finally, whenever any creature in the temple regains hit points from a spell of 1st level or higher, the creature regains additional hit points equal to your Wisdom modifier (minimum 1 hit point). The temple is made from opaque magical force that extends into the Ethereal Plane, thus blocking ethereal travel into the temple\u0027s interior. Nothing can physically pass through the temple\u0027s exterior. It can\u0027t be dispelled by dispel magic, and antimagic field has no effect on it. A disintegrate spell destroys the temple instantly. Casting this spell on the same spot every day for a year makes this effect permanent.",
+    "higherLevels":  "",
+    "durationProgression":  [
+                                {
+                                    "trigger":  "repeated_casts",
+                                    "requiredCasts":  365,
+                                    "cadence":  "daily",
+                                    "sameTargetRequired":  "not_applicable",
+                                    "sameLocationRequired":  true,
+                                    "sameConfigurationRequired":  "not_applicable",
+                                    "requiresFullConcentration":  "not_applicable",
+                                    "outcomeDuration":  "permanent",
+                                    "dispellable":  false,
+                                    "notes":  "Casting Temple of the Gods on the same spot every day for a year makes the effect permanent."
+                                }
+                            ],
+    "tags":  [
+
+             ]
 }

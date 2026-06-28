@@ -63,4 +63,26 @@ describe('companionReducer', () => {
         expect(newState.archivedBanters?.[0].id).toBe('m2');
         expect(newState.archivedBanters?.[1].id).toBe('m1');
     });
+
+    it('stamps companion-reaction log messages with in-game time, not the real clock', () => {
+        // Direct-push log messages (those that build the messages array inside a
+        // reducer rather than dispatching ADD_MESSAGE) must also reflect the
+        // in-game clock so the adventure Log stays consistent with the HUD.
+        const inGameTime = new Date(Date.UTC(351, 0, 1, 7, 0, 0)); // 1 Deepwinter 351, 07:00
+        const state = {
+            ...mockInitialState,
+            gameTime: inGameTime,
+            companions: { c1: { id: 'c1', identity: { name: 'Veldrin' } } },
+        } as unknown as GameState;
+
+        const action = {
+            type: 'ADD_COMPANION_REACTION',
+            payload: { companionId: 'c1', reaction: 'Well met.' },
+        } as any;
+
+        const newState = companionReducer(state, action);
+        const msg = newState.messages?.[newState.messages.length - 1];
+        expect(new Date(msg!.timestamp).getTime()).toBe(inGameTime.getTime());
+        expect(new Date(msg!.timestamp).getTime()).not.toBe(Date.now());
+    });
 });

@@ -22,6 +22,7 @@
  * warnings.
  */
 import type { SpellVisualSpec } from './visuals';
+export type { ConditionBreakTrigger } from './spellStatusMetadata';
 /**
  * Represents a D&D 5e spell with a complete mechanical definition, designed
  * for a component-based, machine-readable system.
@@ -42,6 +43,9 @@ export interface Spell {
     rarity?: SpellRarity;
     attackType?: SpellAttackType;
     castingTime: CastingTime;
+    castingTrigger?: SpellCastingTrigger;
+    interruptionState?: SpellInterruptionState;
+    pendingAttackTrigger?: PendingAttackTrigger;
     range: Range;
     components: Components;
     duration: Duration;
@@ -90,16 +94,56 @@ export type SpellAttackType = "melee" | "ranged" | "none";
  */
 export interface CastingTime {
     value: number;
-    unit: "action" | "bonus_action" | "reaction" | "minute" | "hour" | "special";
+    unit: "action" | "bonus_action" | "reaction" | "free" | "minute" | "hour" | "special";
     reactionCondition?: string;
     combatCost?: {
-        type: "action" | "bonus_action" | "reaction";
+        type: "action" | "bonus_action" | "reaction" | "free";
         condition?: string;
     };
     explorationCost?: {
         value: number;
         unit: "minute" | "hour";
     };
+}
+/** Describes the combat event that permits a spell cast. */
+export interface SpellCastingTrigger {
+    type: "after_attack_hit" | "when_visible_creature_casts_spell";
+    timing: "immediate_after_event" | "during_event";
+    requiredCost: "reaction" | "bonus_action" | "action" | "free";
+    attackFilter?: {
+        attackType?: "weapon" | "spell" | "unarmed" | "any";
+        weaponType?: "melee" | "ranged" | "melee_weapon" | "ranged_weapon" | "unarmed" | "any";
+        includesUnarmedStrike?: boolean;
+    };
+    targetBinding: "triggering_attack_target" | "triggering_spell_caster";
+    maxRangeFeet?: number;
+    notes?: string;
+}
+/** Describes what an interruption spell does to the spell it is answering. */
+export interface SpellInterruptionState {
+    event: "visible_creature_casts_spell";
+    saveType: SavingThrowAbility;
+    failureOutcome?: "spell_has_no_effect";
+    failedSaveOutcome: "interrupted_spell_has_no_effect_and_casting_action_is_wasted";
+    slotPolicy: "interrupted_spell_slot_is_not_expended";
+    preservesInterruptedSlot?: boolean;
+    actionPolicy: "interrupted_casting_action_bonus_action_or_reaction_is_wasted";
+    visibilityRequired: boolean;
+    rangeFeet: number;
+    runtimeBoundary?: string;
+}
+/** Describes a spell that waits for a later attack instead of resolving now. */
+export interface PendingAttackTrigger {
+    type: "next_attack";
+    attackFilter: {
+        attackType: "weapon" | "spell" | "unarmed" | "any";
+        weaponType: "melee" | "ranged" | "melee_weapon" | "ranged_weapon" | "unarmed" | "any";
+    };
+    resolvesOn: "hit" | "hit_or_miss";
+    primaryTargetBinding: "attack_target";
+    consumption: "first_matching_attack";
+    missResolution?: "half_primary_damage" | "no_primary_damage";
+    notes?: string;
 }
 /**
  * Defines the spell's effective range.
@@ -267,7 +311,7 @@ export interface HybridTargeting extends BaseTargeting {
     secondary: AreaTargeting;
 }
 /** A discriminated union representing all possible spell effects. */
-export type SpellEffect = DamageEffect | HealingEffect | StatusConditionEffect | MovementEffect | SummoningEffect | TerrainEffect | UtilityEffect | DefensiveEffect | ReactiveEffect;
+export type SpellEffect = DamageEffect | HealingEffect | StatusConditionEffect | AttackRollModifierEffect | MovementEffect | SummoningEffect | TerrainEffect | UtilityEffect | DefensiveEffect | ReactiveEffect;
 /** The six primary ability scores used for saving throws. */
 export type SavingThrowAbility = "Strength" | "Dexterity" | "Constitution" | "Intelligence" | "Wisdom" | "Charisma";
 /**
@@ -321,8 +365,8 @@ export interface EffectTrigger {
      * For rider effects, filters which attacks trigger the effect.
      */
     attackFilter?: {
-        weaponType?: "melee" | "ranged" | "any";
-        attackType?: "weapon" | "spell" | "any";
+        weaponType?: "melee" | "ranged" | "melee_weapon" | "ranged_weapon" | "unarmed" | "any";
+        attackType?: "weapon" | "spell" | "unarmed" | "any";
     };
     /**
      * For on_target_move triggers, specifies if it triggers on willing or forced movement.
@@ -422,6 +466,7 @@ export interface BaseEffect {
 export interface DamageEffect extends BaseEffect {
     type: "DAMAGE";
     damage: DamageData;
+    missDamageMultiplier?: number;
 }
 /** Contains the details of the damage dealt. */
 export interface DamageData {
@@ -453,12 +498,72 @@ export interface StatusConditionEffect extends BaseEffect {
     type: "STATUS_CONDITION";
     statusCondition: StatusCondition;
 }
+/**
+ * A spell effect that changes how an attack roll is made without treating the
+ * change as a named condition.
+ */
+export interface AttackRollModifierEffect extends BaseEffect {
+    type: "ATTACK_ROLL_MODIFIER";
+    attackRollModifier?: {
+        modifier: "advantage" | "disadvantage" | "bonus" | "penalty";
+        direction: "incoming" | "outgoing";
+        attackKind: "any" | "weapon" | "melee_weapon" | "ranged_weapon" | "spell";
+        consumption: "next_attack" | "first_attack" | "while_active";
+        duration: EffectDuration;
+        dice?: string;
+        value?: number;
+        attackerFilter?: TargetConditionFilter;
+        notes?: string;
+    };
+    savingThrowModifier?: {
+        modifier: "advantage" | "disadvantage" | "bonus" | "penalty";
+        consumption: "next_save" | "while_active";
+        duration: EffectDuration;
+        dice?: string;
+        value?: number;
+        ability?: SavingThrowAbility;
+        notes?: string;
+    };
+    damage?: DamageData;
+    statusCondition?: StatusCondition;
+    /**
+     * Optional light emitted by the affected creature while the rider is active.
+     * Shining Smite uses this to attach bright light to the hit target on the
+     * same shared rider path that grants advantage and suppresses Invisible.
+     */
+    light?: {
+        brightRadius: number;
+        dimRadius?: number;
+        attachedTo?: "caster" | "target" | "point";
+        color?: string;
+        colorChoice?: "caster_choice" | "fixed" | "not_applicable";
+        opaqueCoverBlocks?: boolean | "not_applicable";
+        emitsHeat?: boolean | "not_applicable";
+        ignitesObjects?: boolean | "not_applicable";
+        consumesFuel?: boolean | "not_applicable";
+        canBeCoveredOrHidden?: boolean | "not_applicable";
+        canBeSmotheredOrQuenched?: boolean | "not_applicable";
+    };
+    /**
+     * Optional condition-benefit suppression carried by rider spells.
+     * Shining Smite uses this to stop Invisible from helping the shining target
+     * while keeping the condition record itself intact.
+     */
+    invisibilitySuppression?: {
+        suppressesConditionBenefit: "Invisible" | string;
+        scope?: "target" | "caster" | "area" | string;
+        duration?: string;
+        description?: string;
+    };
+}
 /** Defines the applied status condition and its duration. */
 export interface StatusCondition {
     name: ConditionName;
     duration: EffectDuration;
     level?: number;
+    repeatSave?: RepeatSave;
     escapeCheck?: EscapeCheck;
+    breakTriggers?: ConditionBreakTrigger[];
     /**
      * Optional mechanical effect associated with this status.
      * Allows encapsulating numeric modifiers (e.g. Speed -10) directly within the condition object.
@@ -481,6 +586,37 @@ export interface EscapeCheck {
     skill?: string;
     dc: number | "spell_save_dc";
     actionCost: "action" | "bonus_action";
+}
+/** Timings that can ask an affected target to repeat a saving throw or check. */
+export type RepeatSaveTiming = "turn_end" | "turn_start" | "on_damage" | "on_action" | "after_forced_movement";
+/** Modifiers that only apply to repeat-save attempts, not the initial save. */
+export interface RepeatSaveModifiers {
+    advantageOnDamage?: boolean;
+    sizeAdvantage?: string[];
+    sizeDisadvantage?: string[];
+}
+/** Tracks repeat-save counters such as Flesh to Stone and Contagion. */
+export interface RepeatSaveProgression {
+    successThreshold?: number;
+    failureThreshold?: number;
+    consecutiveRequired?: boolean;
+    successOutcome?: "ends_spell" | "ends_condition" | "not_restrained" | "not_applicable" | string;
+    failureOutcome?: "condition_becomes_persistent" | "apply_condition" | "repeat_damage" | "not_applicable" | string;
+}
+/** Preconditions that must be true before a repeat save can be attempted. */
+export type RepeatSavePrerequisite = "no_line_of_sight_to_caster";
+/** Defines recurring save/check attempts that can end, continue, or transform a status. */
+export interface RepeatSave {
+    timing: RepeatSaveTiming;
+    additionalTimings?: RepeatSaveTiming[];
+    saveType: SavingThrowAbility | "strength_check" | "wisdom_check";
+    successEnds: boolean;
+    useOriginalDC: boolean;
+    /** Runtime DC copied from the caster when `useOriginalDC` is true. */
+    dc?: number;
+    prerequisites?: RepeatSavePrerequisite[];
+    modifiers?: RepeatSaveModifiers;
+    progression?: RepeatSaveProgression;
 }
 /** A temporary or permanent modification to a character's stats. */
 export interface StatModifier {
@@ -514,12 +650,55 @@ export interface MovementEffect extends BaseEffect {
 /** An effect that summons creatures or objects. */
 export interface SummoningEffect extends BaseEffect {
     type: "SUMMONING";
-    summonType: "creature" | "object";
+    summonType?: "creature" | "object";
     creatureId?: string;
     objectDescription?: string;
-    count: number;
+    count?: number;
     duration: EffectDuration;
     familiarContract?: FamiliarContract;
+    summon?: {
+        entityType: "familiar" | "servant" | "construct" | "creature" | "undead" | "mount" | "object";
+        persistent?: boolean;
+        dismissAction?: "action" | "bonus_action" | "free" | "none";
+        count?: number;
+        countByCR?: Record<string, number>;
+        formOptions?: string[];
+        statBlock?: unknown;
+        objectDescription?: string;
+        commandCost?: "action" | "bonus_action" | "free" | "none";
+        commandsPerTurn?: number;
+        initiative?: "immediate" | "rolled" | "shared";
+        followDistance?: number;
+        hoverHeight?: number;
+        telepathyRange?: number;
+        sharedSenses?: boolean;
+        sharedSensesCost?: "action" | "bonus_action" | "free" | "none";
+        actionPermissions?: {
+            canAttack?: boolean;
+            canDeliverTouchSpells?: boolean;
+            touchDeliveryRangeFeet?: number;
+            touchDeliveryCost?: "reaction" | "action" | "bonus_action" | "free" | "none";
+            independentInitiative?: boolean;
+            obeysCasterCommands?: boolean;
+            notes?: string;
+        };
+        formTraits?: Array<{
+            name: string;
+            appliesToForms?: string[];
+            opportunityAttackPolicy?: "does_not_provoke_when_flying_out_of_reach" | "normal";
+            movementModeRequired?: "fly" | "walk" | "swim" | "climb" | "any";
+            notes?: string;
+        }>;
+        specialActions?: Array<{
+            name: string;
+            description: string;
+            cost: "action" | "bonus_action" | "reaction" | "free";
+            damage?: {
+                dice: string;
+                type: string;
+            };
+        }>;
+    };
 }
 /** Structured terrain manipulation for spells like Mold Earth */
 export interface TerrainManipulation {
@@ -564,7 +743,7 @@ export interface TerrainEffect extends BaseEffect {
 /** A non-combat or miscellaneous effect (e.g., creating light, communicating). */
 export interface UtilityEffect extends BaseEffect {
     type: "UTILITY";
-    utilityType: "light" | "communication" | "creation" | "information" | "control" | "sensory" | "other";
+    utilityType: "light" | "communication" | "creation" | "information" | "control" | "sensory" | "transformation" | "other";
     description: string;
     grantedActions?: GrantedAction[];
     attackAugments?: AttackAugment[];
@@ -991,6 +1170,8 @@ export declare function isDamageEffect(effect: SpellEffect): effect is DamageEff
 export declare function isHealingEffect(effect: SpellEffect): effect is HealingEffect;
 /** A type guard to check if a `SpellEffect` is a `StatusConditionEffect`. */
 export declare function isStatusConditionEffect(effect: SpellEffect): effect is StatusConditionEffect;
+/** A type guard to check if a `SpellEffect` is an attack-roll rider. */
+export declare function isAttackRollModifierEffect(effect: SpellEffect): effect is AttackRollModifierEffect;
 /** A type guard to check if a `SpellEffect` is a `MovementEffect`. */
 export declare function isMovementEffect(effect: SpellEffect): effect is MovementEffect;
 /** A type guard to check if a `SpellEffect` is a `SummoningEffect`. */

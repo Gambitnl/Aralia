@@ -39,6 +39,12 @@ export interface OpportunityAttackResult {
   reason?: string; // Why it failed (debug/log)
 }
 
+type MovementMode = 'fly' | 'walk' | 'swim' | 'climb' | 'any';
+
+export interface OpportunityAttackCheckOptions {
+  movementMode?: MovementMode;
+}
+
 export class OpportunityAttackSystem {
   /**
    * Checks if a specific movement step triggers an Opportunity Attack.
@@ -55,12 +61,16 @@ export class OpportunityAttackSystem {
     fromPos: Position,
     toPos: Position,
     potentialAttackers: CombatCharacter[],
-    mapData?: BattleMapData | null
+    mapData?: BattleMapData | null,
+    options: OpportunityAttackCheckOptions = {}
   ): OpportunityAttackResult[] {
     const results: OpportunityAttackResult[] = [];
 
     // 1. Check if mover is immune
     if (this.isDisengaged(mover)) {
+      return [];
+    }
+    if (this.hasSummonOpportunitySuppression(mover, options.movementMode)) {
       return [];
     }
     // Note: Teleportation and Forced Movement checks are handled by the caller
@@ -115,6 +125,29 @@ export class OpportunityAttackSystem {
 
   private isDisengaged(character: CombatCharacter): boolean {
     return character.statusEffects.some(e => e.id === 'disengage' || e.name === 'Disengage');
+  }
+
+  private hasSummonOpportunitySuppression(character: CombatCharacter, explicitMovementMode?: MovementMode): boolean {
+    const traits = character.summonMetadata?.formTraits ?? [];
+
+    // Summon Beast's Air form has Flyby: leaving enemy reach while flying does
+    // not provoke opportunity attacks. The summoned actor carries the trait
+    // from spell JSON so the opportunity system can enforce it without knowing
+    // which spell created the creature. The movement caller must pass the
+    // actual movement mode; otherwise a selected Air form would become immune
+    // to Opportunity Attacks even when a non-map or future caller did not prove
+    // that the movement was flight.
+    if (!explicitMovementMode) {
+      return false;
+    }
+
+    return traits.some(trait =>
+      trait.opportunityAttackPolicy === 'does_not_provoke_when_flying_out_of_reach' &&
+      (!trait.appliesToForms?.length || trait.appliesToForms.includes(character.summonMetadata?.formName ?? '')) &&
+      (trait.movementModeRequired === undefined ||
+        trait.movementModeRequired === 'any' ||
+        explicitMovementMode === trait.movementModeRequired)
+    );
   }
 
   private getThreatenedReaches(character: CombatCharacter): number[] {

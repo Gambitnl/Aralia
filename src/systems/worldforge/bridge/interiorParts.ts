@@ -130,24 +130,12 @@ export interface OccupantFigure {
 }
 
 /**
- * Wall envelope of a plot's interior in METERS — the footprint the renderer
- * must fit roofs/floors to (the plot footprint is up to 5 ft larger per
- * axis; sizing roofs to it caused the floating-sombrero look, shots 1–2 of
- * Remy's 2026-06-12 review).
- */
-export function interiorEnvelopeM(
-  plot: InteriorPlotInput,
-  seedPath: SeedPath,
-): { wallWidthM: number; wallDepthM: number } {
-  const plan = generateInterior(plot, seedPath);
-  return { wallWidthM: plan.widthFt * FT, wallDepthM: plan.depthFt * FT };
-}
-
-/**
- * Wall envelope AND interior parts from a SINGLE interior generation. The 3D
- * bake needs both per plot; calling `interiorEnvelopeM` + `buildInteriorParts`
- * separately would regenerate the (deterministic) interior twice. Identical
- * output to those two calls — just one `generateInterior`.
+ * Wall envelope (in METERS — the footprint the renderer must fit roofs/floors
+ * to; the plot footprint is up to 5 ft larger per axis, and sizing roofs to it
+ * caused the floating-sombrero look, shots 1–2 of Remy's 2026-06-12 review)
+ * AND interior parts, from a SINGLE interior generation. The 3D bake needs both
+ * per plot; generating the (deterministic) interior once and reusing it here
+ * avoids regenerating it — significant for large capitals (~650 plots).
  */
 export function buildInterior(
   plot: InteriorPlotInput,

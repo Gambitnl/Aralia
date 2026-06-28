@@ -181,6 +181,25 @@
       },
       "utilityType": "creation",
       "description": "Creates a straight or ringed water wall whose space is Difficult Terrain, imposes Disadvantage on ranged weapon attacks crossing it, halves Fire damage crossing it, and can freeze into destructible 5-foot sections when Cold spells pass through.",
+      "attackRollModifier": {
+        "modifier": "disadvantage",
+        "direction": "incoming",
+        "attackKind": "ranged_weapon",
+        "condition": "attack_enters_wall_space",
+        "duration": {
+          "type": "minutes",
+          "value": 10
+        }
+      },
+      "damageModifier": {
+        "modifier": "half_damage",
+        "damageType": "Fire",
+        "condition": "fire_effect_passes_through_wall_to_target",
+        "duration": {
+          "type": "minutes",
+          "value": 10
+        }
+      },
       "createdObjects": [
         {
           "objectType": "hazard",
@@ -265,8 +284,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose straight wall or ring shape; while the wall lasts, mark its space as difficult terrain, give ranged weapon attacks Disadvantage when they enter the wall, halve Fire damage that passes through it, and track Cold-damage frozen sections.",
+    "playerInputRequired": true
   },
   "description": "You create a wall of water on the ground at a point you can see within range. You can make the wall up to 30 feet long, 10 feet high, and 1 foot thick, or you can make a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick. The wall vanishes when the spell ends. The wall's space is difficult terrain. Any ranged weapon attack that enters the wall's space has disadvantage on the attack roll, and fire damage is halved if the fire effect passes through the wall to reach its target. Spells that deal cold damage that pass through the wall cause the area of the wall they pass through to freeze solid (at least a 5-foot-square section is frozen). Each 5-foot-square frozen section has AC 5 and 15 hit points. Reducing a frozen section to 0 hit points destroys it. When a section is destroyed, the wall's water doesn't fill it.",
   "higherLevels": "",

@@ -28,28 +28,61 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
 }) => {
   const baseClasses = `${BTN_BASE} ${BTN_SIZE_LG}`;
 
-  // RALPH: Visual Semantics.
-  // Color-codes actions by "Impact" and "Category" to help players build muscle memory.
-  // Green = Social/Party, Yellow = Save, Red = Danger/Exit, Teal = Gemini AI.
-  let colorClasses = "btn-primary";
+  // Semantic color system (replaces the former per-action-type rainbow).
+  //
+  // Instead of mapping every action.type to its own saturated hue (which gave
+  // every button a different colour with no shared meaning), buttons fall into a
+  // small set of meaningful categories. The category is data-driven via
+  // ACTION_CATEGORY below, and each category maps to one style:
+  //
+  //   neutral  -> ordinary actions (the default; most buttons)
+  //   primary  -> the signature / most-common action the player reaches for
+  //   ai       -> AI-generated / oracle actions (a distinct affordance)
+  //   danger   -> destructive / exit actions ONLY (reserved for red)
+  //
+  // This keeps the in-game action grid and the menu visually consistent while
+  // still calling out the one primary action and the exit.
+  type ActionCategory = 'neutral' | 'primary' | 'ai' | 'danger';
 
-  // Determine color based on action type
-  if (action.type === 'toggle_party_overlay') colorClasses = "btn-green";
-  else if (action.type === 'save_game') colorClasses = "btn-yellow";
-  else if (action.type === 'toggle_auto_save') colorClasses = "btn-yellow";
-  else if (action.type === 'go_to_main_menu') colorClasses = "btn-red";
-  else if (action.type === 'toggle_dev_menu') colorClasses = "btn-orange";
-  else if (action.type === 'gemini_custom_action') colorClasses = "btn-teal";
-  else if (action.type === 'ask_oracle' || (action.type === 'custom' && action.label?.toLowerCase().includes('oracle'))) colorClasses = "btn-purple";
-  else if (action.type === 'ANALYZE_SITUATION') colorClasses = "btn-indigo";
-  else if (action.type === 'TOGGLE_DISCOVERY_LOG') colorClasses = "btn-lime";
-  else if (action.type === 'TOGGLE_LOGBOOK') colorClasses = "btn-amber";
-  else if (action.type === 'TOGGLE_GLOSSARY_VISIBILITY') colorClasses = "btn-indigo-dark";
-  else if (action.type === 'TOGGLE_GAME_GUIDE') colorClasses = "btn-blue";
+  // category -> button style class. The neutral default is composed from raw
+  // slate utilities (already used elsewhere in the app) so no new global CSS
+  // class is required; the others reuse existing `.btn-*` component classes.
+  const CATEGORY_STYLE: Record<ActionCategory, string> = {
+    neutral: 'bg-slate-700 hover:bg-slate-600 text-gray-100 focus:ring-slate-500',
+    primary: 'btn-primary',
+    ai: 'btn-teal',
+    danger: 'btn-red',
+  };
 
-  if (isGeminiAction && action.type !== 'gemini_custom_action') {
-    colorClasses = "btn-teal";
+  // Explicit, data-driven action.type -> semantic category map. Anything not
+  // listed here is `neutral` (the default), so ordinary actions stay quiet.
+  const ACTION_CATEGORY: Record<string, ActionCategory> = {
+    // Signature / most-common action: surveying & analysing the situation.
+    ANALYZE_SITUATION: 'primary',
+    // AI-generated actions.
+    gemini_custom_action: 'ai',
+    ask_oracle: 'ai',
+    // Destructive / exit — the ONLY red.
+    go_to_main_menu: 'danger',
+  };
+
+  let category: ActionCategory = ACTION_CATEGORY[action.type] ?? 'neutral';
+
+  // Oracle actions may arrive as generic `custom` actions identified by label.
+  if (
+    category === 'neutral' &&
+    action.type === 'custom' &&
+    action.label?.toLowerCase().includes('oracle')
+  ) {
+    category = 'ai';
   }
+
+  // Any Gemini/AI action (flagged by the caller) reads as the AI affordance.
+  if (isGeminiAction) {
+    category = 'ai';
+  }
+
+  const colorClasses = CATEGORY_STYLE[category];
 
   const handleClick = () => {
     // Move actions now arrive with string target ids from the generator layer.

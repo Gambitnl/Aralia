@@ -218,6 +218,38 @@ export interface Spell {
 
   // --- Core Mechanics ---
   castingTime: CastingTime;
+  /**
+   * Structured event that makes this spell castable only after another combat
+   * fact has happened.
+   *
+   * Why this exists:
+   * smite-style spells and interruption spells are not ordinary "press the
+   * spell button now" effects. They need the combat runtime to keep the
+   * triggering hit, caster, target, and reaction timing together so the spell
+   * payload lands on the correct event instead of becoming an immediate effect.
+   */
+  castingTrigger?: SpellCastingTrigger;
+  /**
+   * Structured result of a spell-cast interruption.
+   *
+   * Why this exists:
+   * Counterspell is not merely "a reaction spell." It changes whether another
+   * spell's effects run, whether the casting action is wasted, and whether the
+   * target's spell slot is preserved. Keeping those outcomes in structured
+   * spell data lets the shared interruption hook reason about them without
+   * embedding Counterspell-specific prose checks.
+   */
+  interruptionState?: SpellInterruptionState;
+  /**
+   * Structured event that stores spell power until a later attack resolves.
+   *
+   * Why this exists:
+   * Lightning Arrow-style spells are cast before the weapon attack, then wait
+   * for the next matching attack to hit or miss. This field keeps that pending
+   * attack contract visible to both data validators and the shared rider
+   * runtime instead of hiding the timing rule in prose.
+   */
+  pendingAttackTrigger?: PendingAttackTrigger;
   range: Range;
   components: Components;
   duration: Duration;
@@ -272,13 +304,75 @@ export interface Spell {
  */
 export interface CastingTime {
   value: number;
-  unit: "action" | "bonus_action" | "reaction" | "minute" | "hour" | "special";
+  unit: "action" | "bonus_action" | "reaction" | "free" | "minute" | "hour" | "special";
   reactionCondition?: string; // e.g., "which you take when you are hit by an attack"
   combatCost?: {
-    type: "action" | "bonus_action" | "reaction";
+    type: "action" | "bonus_action" | "reaction" | "free";
     condition?: string;
   };
   explorationCost?: { value: number; unit: "minute" | "hour" };
+}
+
+/**
+ * Describes the combat event that permits a spell cast.
+ *
+ * This is deliberately spell-owned metadata, not a replacement for the combat
+ * event bus. The event bus proves that something happened; this contract tells
+ * the spell command layer which event is eligible to become the spell's cast.
+ */
+export interface SpellCastingTrigger {
+  type: "after_attack_hit" | "when_visible_creature_casts_spell";
+  timing: "immediate_after_event" | "during_event";
+  requiredCost: "reaction" | "bonus_action" | "action" | "free";
+  attackFilter?: {
+    attackType?: "weapon" | "spell" | "unarmed" | "any";
+    weaponType?: "melee" | "ranged" | "melee_weapon" | "ranged_weapon" | "unarmed" | "any";
+    includesUnarmedStrike?: boolean;
+  };
+  targetBinding: "triggering_attack_target" | "triggering_spell_caster";
+  maxRangeFeet?: number;
+  notes?: string;
+}
+
+/**
+ * Describes what an interruption spell does to the spell it is answering.
+ *
+ * The runtime hook can use this to stop original command execution while later
+ * resource-accounting slices finish exact action-waste and slot-preservation
+ * behavior for each spellcasting surface.
+ */
+export interface SpellInterruptionState {
+  event: "visible_creature_casts_spell";
+  saveType: SavingThrowAbility;
+  failureOutcome?: "spell_has_no_effect";
+  failedSaveOutcome: "interrupted_spell_has_no_effect_and_casting_action_is_wasted";
+  slotPolicy: "interrupted_spell_slot_is_not_expended";
+  preservesInterruptedSlot?: boolean;
+  actionPolicy: "interrupted_casting_action_bonus_action_or_reaction_is_wasted";
+  visibilityRequired: boolean;
+  rangeFeet: number;
+  runtimeBoundary?: string;
+}
+
+/**
+ * Describes a spell that waits for a later attack instead of resolving now.
+ *
+ * The existing rider system can already store hit-based damage and status
+ * payloads. This metadata adds the missing spell-level timing contract so
+ * later slices can finish miss handling and splash targeting without inventing
+ * Lightning Arrow-specific branches.
+ */
+export interface PendingAttackTrigger {
+  type: "next_attack";
+  attackFilter: {
+    attackType: "weapon" | "spell" | "unarmed" | "any";
+    weaponType: "melee" | "ranged" | "melee_weapon" | "ranged_weapon" | "unarmed" | "any";
+  };
+  resolvesOn: "hit" | "hit_or_miss";
+  primaryTargetBinding: "attack_target";
+  consumption: "first_matching_attack";
+  missResolution?: "half_primary_damage" | "no_primary_damage";
+  notes?: string;
 }
 
 //==============================================================================
@@ -392,6 +486,8 @@ export interface RepeatSave {
   saveType: SavingThrowAbility | "strength_check" | "wisdom_check";
   successEnds: boolean;
   useOriginalDC: boolean;
+  /** Runtime DC copied from the caster when `useOriginalDC` is true. */
+  dc?: number;
   /** Optional gates such as Fear's no-line-of-sight requirement. */
   prerequisites?: RepeatSavePrerequisite[];
   modifiers?: RepeatSaveModifiers;
@@ -447,8 +543,8 @@ export interface EffectTrigger {
    * For rider effects, filters which attacks trigger the effect.
    */
   attackFilter?: {
-    weaponType?: "melee" | "ranged" | "any";
-    attackType?: "weapon" | "spell" | "any";
+    weaponType?: "melee" | "ranged" | "melee_weapon" | "ranged_weapon" | "unarmed" | "any";
+    attackType?: "weapon" | "spell" | "unarmed" | "any";
   };
   /**
    * For on_target_move triggers, specifies if it triggers on willing or forced movement.
@@ -626,6 +722,16 @@ export interface BaseEffect {
 export interface DamageEffect extends BaseEffect {
   type: "DAMAGE";
   damage: DamageData;
+  /**
+   * Damage multiplier used when an attack-bound rider resolves on a miss.
+   *
+   * Why this exists:
+   * Lightning Arrow is cast before the attack and still deals half primary
+   * damage if that later attack misses. The attack-rider runtime needs this
+   * fact on the damage effect itself so miss behavior is data-driven instead
+   * of hard-coded to one spell id.
+   */
+  missDamageMultiplier?: number;
 }
 
 /** Contains the details of the damage dealt. */
@@ -736,6 +842,38 @@ export interface AttackRollModifierEffect extends BaseEffect {
    * Optional bundled status condition to apply if the save fails.
    */
   statusCondition?: StatusCondition;
+  /**
+   * Optional light emitted by the affected creature while the rider is active.
+   *
+   * Shining Smite uses this to attach bright light to the hit target on the
+   * same shared rider path that grants advantage and suppresses Invisible.
+   */
+  light?: {
+    brightRadius: number;
+    dimRadius?: number;
+    attachedTo?: "caster" | "target" | "point";
+    color?: string;
+    colorChoice?: "caster_choice" | "fixed" | "not_applicable";
+    opaqueCoverBlocks?: boolean | "not_applicable";
+    emitsHeat?: boolean | "not_applicable";
+    ignitesObjects?: boolean | "not_applicable";
+    consumesFuel?: boolean | "not_applicable";
+    canBeCoveredOrHidden?: boolean | "not_applicable";
+    canBeSmotheredOrQuenched?: boolean | "not_applicable";
+  };
+  /**
+   * Optional condition-benefit suppression carried by rider spells.
+   *
+   * Shining Smite is the current shared use: the target can still have the
+   * Invisible condition record, but it does not get Invisible's combat benefit
+   * while the smite rider remains active.
+   */
+  invisibilitySuppression?: {
+    suppressesConditionBenefit: "Invisible" | string;
+    scope?: "target" | "caster" | "area" | string;
+    duration?: string;
+    description?: string;
+  };
 }
 
 /** Defines the applied status condition and its duration. */
@@ -870,6 +1008,24 @@ export interface SummoningEffect extends BaseEffect {
     telepathyRange?: number;
     sharedSenses?: boolean;
     sharedSensesCost?: "action" | "bonus_action" | "free" | "none";
+    /** Explicit permissions the spell-created actor can or cannot use. */
+    actionPermissions?: {
+      canAttack?: boolean;
+      canDeliverTouchSpells?: boolean;
+      touchDeliveryRangeFeet?: number;
+      touchDeliveryCost?: "reaction" | "action" | "bonus_action" | "free" | "none";
+      independentInitiative?: boolean;
+      obeysCasterCommands?: boolean;
+      notes?: string;
+    };
+    /** Movement/combat traits that should travel with the summoned actor. */
+    formTraits?: Array<{
+      name: string;
+      appliesToForms?: string[];
+      opportunityAttackPolicy?: "does_not_provoke_when_flying_out_of_reach" | "normal";
+      movementModeRequired?: "fly" | "walk" | "swim" | "climb" | "any";
+      notes?: string;
+    }>;
     specialActions?: Array<{
       name: string;
       description: string;
@@ -945,6 +1101,7 @@ export interface UtilityEffect extends BaseEffect {
   | "information"
   | "control"
   | "sensory"
+  | "transformation"
   | "other";
   description: string;
   attackAugments?: AttackAugment[];

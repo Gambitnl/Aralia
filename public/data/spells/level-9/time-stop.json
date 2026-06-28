@@ -133,6 +133,12 @@
       },
       "utilityType": "control",
       "description": "Gives the caster 1d4 + 1 consecutive turns while time is stopped for other creatures, ending early if the caster affects another creature or another creature's worn or carried object.",
+      "extraTurnMechanic": {
+        "turns": "1d4 + 1",
+        "actor": "caster",
+        "otherCreaturesTimePasses": false,
+        "canUseActionsAndMoveNormally": true
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -202,8 +208,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Roll 1d4 + 1 for the number of consecutive caster turns. During those turns, no time passes for other creatures; end the spell early if the caster affects another creature, affects an object worn or carried by another creature, or moves more than 1,000 feet from the casting location.",
+    "playerInputRequired": true
   },
   "description": "You briefly stop the flow of time for everyone but yourself. No time passes for other creatures, while you take 1d4 + 1 turns in a row, during which you can use actions and move as normal. This spell ends if one of the actions you use during this period, or any effects that you create during it, affects a creature other than you or an object being worn or carried by someone other than you. In addition, the spell ends if you move to a place more than 1,000 feet from the location where you cast it.",
   "higherLevels": "",

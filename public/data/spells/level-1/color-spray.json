@@ -174,8 +174,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Ask the caster to choose the 15-foot cone direction; each creature in that cone makes the Constitution save or becomes Blinded until the end of the caster's next turn.",
+    "playerInputRequired": true
   },
   "description": "You launch a dazzling array of flashing, colorful light. Each creature in a 15-foot Cone originating from you must succeed on a Constitution saving throw or have the Blinded condition until the end of your next turn.",
   "higherLevels": "",

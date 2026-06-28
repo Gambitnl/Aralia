@@ -628,6 +628,21 @@ function dockCapForTypology(t: TownTypology | undefined): number {
 }
 
 /**
+ * Max bridges by settlement size. `findBridges` can over-generate where a river
+ * snakes along a ward boundary. A real town has 1-3 principal crossings.
+ */
+function bridgeCapForTypology(t: TownTypology | undefined): number {
+  switch (t) {
+    case 'hamlet':
+    case 'village': return 1;
+    case 'walled town': return 2;
+    case 'city': return 3;
+    case 'capital': return 4;
+    default: return 2;
+  }
+}
+
+/**
  * SP-T: parent cell → organic town CORE inside it → Voronoi wards (via the SP1
  * engine) → party-wall frontage plots + civic anatomy + walls; the ring between
  * the core and the cell edge becomes farmland/pasture/scrub outskirts. The town
@@ -772,7 +787,42 @@ export function generateTownPlan(
   }
 
   // Bridges where a river crosses between wards (#4).
-  for (const bp of findBridges(water, wardPolys, fpSpan / 140)) {
+  const bridgeCap = bridgeCapForTypology(profile?.typology);
+  let potentialBridges = findBridges(water, wardPolys, fpSpan / 140);
+
+  // Merge bridge candidates that are too close to each other into a single point.
+  if (potentialBridges.length > 0) {
+    const merged: Pt[] = [];
+    // Bridges within one wardSpan of each other are clustered into one.
+    const bridgeMergeDist2 = wardSpan * wardSpan;
+    let candidates = [...potentialBridges];
+    while (candidates.length > 0) {
+      const seed = candidates.shift()!;
+      const cluster = [seed];
+      const remaining: Pt[] = [];
+      for (const pt of candidates) {
+        if (dist2(seed, pt) < bridgeMergeDist2) {
+          cluster.push(pt);
+        } else {
+          remaining.push(pt);
+        }
+      }
+      candidates = remaining;
+      merged.push(polygonCentroid(cluster));
+    }
+    potentialBridges = merged;
+  }
+
+  // If we still have too many, keep the ones closest to the town center.
+  if (potentialBridges.length > bridgeCap) {
+    potentialBridges = potentialBridges
+      .map((p) => ({ p, d2: dist2(p, townCenter) }))
+      .sort((a, b) => a.d2 - b.d2)
+      .slice(0, bridgeCap)
+      .map((item) => item.p);
+  }
+
+  for (const bp of potentialBridges) {
     civic.push({ kind: 'bridge', polygon: squareAt(bp, fpSpan * 0.02), wardIndex: -1 });
   }
 

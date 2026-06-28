@@ -54,6 +54,7 @@ import { Shield, Zap, BookOpen } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { GlossaryIcon } from '../Glossary/IconRegistry';
 import { getClassIcon } from '../../utils/classIcons';
+import { getAgeAdjustmentSummary } from './hooks/useCharacterAssembly';
 import type { PortraitGenerationStatus } from './state/characterCreatorState';
 
 interface NameAndReviewProps {
@@ -212,6 +213,13 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
   const selectedGnomeSubraceId = racialSelections?.['gnome']?.choiceId;
   const gnomeSubraceDetails = selectedGnomeSubraceId ? RACES_DATA['gnome']?.gnomeSubraces?.find(sr => sr.id === selectedGnomeSubraceId) : null;
 
+  // The displayed ability scores are already age-adjusted, but earlier steps
+  // (the sidebar) show the pre-age numbers. Surface the age modifier here so a
+  // player isn't surprised by silently-changed stats (C10).
+  const ageAdjustment = characterPreview.age != null
+    ? getAgeAdjustmentSummary(characterPreview.race.id, characterPreview.age)
+    : null;
+
   return (
     <CreationStepLayout
       title="Finalize Legend"
@@ -298,13 +306,8 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                     {!isGeneratingPortrait && !characterPreview.portraitUrl && (
                       <p className="text-[10px] text-amber-200/80 leading-tight">
                         Optional: If you continue without a portrait, your character will use the class icon above.
-                        (You cannot generate a portrait later in this version.)
                       </p>
                     )}
-
-                    <p className="text-[10px] text-gray-500 leading-tight">
-                      Uses local AI tooling (Stitch). If it fails, Stitch may need authentication (gcloud application-default login).
-                    </p>
                   </div>
                 )}
               </div>
@@ -415,6 +418,27 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                       </div>
                     ))}
                   </div>
+
+                  {ageAdjustment && (ageAdjustment.statPenalty !== 0 || ageAdjustment.sizeModifier) && (
+                    <p className="mt-2 text-[11px] leading-tight text-amber-300/80">
+                      {ageAdjustment.statPenalty !== 0 && (
+                        <>
+                          These scores include a{' '}
+                          <span className="font-semibold">
+                            {ageAdjustment.statPenalty > 0 ? '+' : ''}{ageAdjustment.statPenalty}
+                          </span>{' '}
+                          {ageAdjustment.band} age {ageAdjustment.statPenalty < 0 ? 'penalty' : 'bonus'} to every
+                          ability score (age {characterPreview.age}).
+                        </>
+                      )}
+                      {ageAdjustment.sizeModifier && (
+                        <>
+                          {ageAdjustment.statPenalty !== 0 ? ' ' : `As a ${ageAdjustment.band} (age ${characterPreview.age}), `}
+                          {ageAdjustment.statPenalty !== 0 ? 'Your' : 'your'} size is reduced to {ageAdjustment.sizeModifier}.
+                        </>
+                      )}
+                    </p>
+                  )}
 
                   <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mt-6 mb-3 flex items-center gap-2">
                     <Zap size={14} /> Proficiencies

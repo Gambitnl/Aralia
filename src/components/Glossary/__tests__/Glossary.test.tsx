@@ -44,8 +44,12 @@ vi.mock('../../../utils/networkUtils', () => ({
 
 const fetchWithTimeoutMock = vi.mocked(fetchWithTimeout);
 
+// Note: the glossary now hides singleton stub categories (GL5). Each category
+// below therefore has 2+ entries so it stays visible in the sidebar without
+// relying on the selected-category visibility exception.
 const entries: GlossaryEntry[] = [
   { id: 'entry-a', title: 'Entry A', category: 'Alpha', filePath: '/alpha.md', seeAlso: ['entry-b-1'] },
+  { id: 'entry-a2', title: 'Entry A2', category: 'Alpha', filePath: '/alpha2.md' },
   {
     id: 'entry-b',
     title: 'Entry B',
@@ -54,6 +58,7 @@ const entries: GlossaryEntry[] = [
     subEntries: [{ id: 'entry-b-1', title: 'Entry B Child', category: 'Beta', filePath: '/beta/child.md' }],
   },
   { id: 'spell-entry', title: 'Spell Entry', category: 'Spells', filePath: '/spells/spell-entry.md' },
+  { id: 'spell-entry-2', title: 'Spell Entry Two', category: 'Spells', filePath: '/spells/spell-entry-2.md' },
 ];
 
 const renderGlossary = (props?: Partial<React.ComponentProps<typeof Glossary>>, providedEntries = entries) => {
@@ -76,8 +81,8 @@ describe('Glossary', () => {
   it('renders categories, selects the first entry, and allows selecting another', async () => {
     renderGlossary({ isDevModeEnabled: true });
 
-    expect(screen.getByText('Game Glossary')).toBeInTheDocument();
-    expect(screen.getByText('Alpha (1)')).toBeInTheDocument();
+    expect(screen.getByText('Lore & Rules')).toBeInTheDocument();
+    expect(screen.getByText('Alpha (2)')).toBeInTheDocument();
     expect(screen.getByText('Beta (2)')).toBeInTheDocument();
     expect(screen.getByTestId('full-entry')).toHaveTextContent('Entry A');
 
@@ -139,7 +144,7 @@ describe('Glossary', () => {
     renderGlossary({ isDevModeEnabled: true });
 
     fireEvent.click(screen.getByRole('button', { name: /show spell gate checks/i }));
-    fireEvent.click(screen.getByText('Spells (1)'));
+    fireEvent.click(screen.getByText('Spells (2)'));
     fireEvent.click(screen.getByText('Spell Entry'));
 
     expect(screen.getByText(/Marked as a gap/)).toBeInTheDocument();
@@ -161,7 +166,7 @@ describe('Glossary', () => {
     };
     renderGlossary({ isDevModeEnabled: true });
 
-    fireEvent.click(screen.getByText('Spells (1)'));
+    fireEvent.click(screen.getByText('Spells (2)'));
     fireEvent.click(screen.getByText('Spell Entry'));
 
     expect(screen.queryByText(/Spell Gate Checks/)).not.toBeInTheDocument();

@@ -2642,6 +2642,7 @@
         "information",
         "control",
         "sensory",
+        "transformation",
         "other"
       ],
       "structuredLabel": "Utility Type",
@@ -2661,6 +2662,7 @@
         "information": "Allowed value for effects[].utilityType; use only when the canonical spell text supports this exact mechanic.",
         "control": "Allowed value for effects[].utilityType; use only when the canonical spell text supports this exact mechanic.",
         "sensory": "Allowed value for effects[].utilityType; use only when the canonical spell text supports this exact mechanic.",
+        "transformation": "Allowed value for effects[].utilityType when the spell changes a creature or object into another form, stat block, or physical state.",
         "other": "Allowed value for effects[].utilityType; use only when the canonical spell text supports this exact mechanic."
       }
     },

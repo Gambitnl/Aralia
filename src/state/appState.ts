@@ -36,7 +36,7 @@ import { DEITIES } from '../data/deities';
 import { TEMPLES } from '../data/temples';
 import { canUseDevTools } from '../utils/permissions';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
-import { getGameDay } from '../utils/core';
+import { getGameDay, inGameTimestamp } from '../utils/core';
 import { gridWorldDimensions } from '../utils/worldCoords';
 import * as SaveLoadService from '../services/saveLoadService';
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
@@ -115,7 +115,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return { ...state, autoSaveEnabled: action.payload };
         }
         case 'SET_WORLD_SEED': {
-            return { ...state, worldSeed: action.payload };
+            // Reset naval.knownPorts so a mid-session seed change repopulates for
+            // the new world (useKnownPortsSync re-fires when knownPorts is empty).
+            return { ...state, worldSeed: action.payload, naval: { ...state.naval, knownPorts: [] } };
         }
         case 'SET_GAME_PHASE': {
             // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
@@ -372,8 +374,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 currentLocationId: STARTING_LOCATION_ID,
                 subMapCoordinates: { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) },
                 messages: [
-                    { id: Date.now(), text: `A new party of adventurers emerges!`, sender: 'system', timestamp: new Date() },
-                    { id: Date.now() + 1, text: initialLocation.baseDescription, sender: 'system', timestamp: new Date() }
+                    { id: Date.now(), text: `A new party of adventurers emerges!`, sender: 'system', timestamp: new Date(initialGameState.gameTime.getTime()) },
+                    { id: Date.now() + 1, text: initialLocation.baseDescription, sender: 'system', timestamp: new Date(initialGameState.gameTime.getTime()) }
                 ],
                 mapData: state.mapData,
                 dynamicLocationItemIds: state.dynamicLocationItemIds,
@@ -427,8 +429,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 currentLocationId: STARTING_LOCATION_ID,
                 subMapCoordinates: { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) },
                 messages: [
-                    { id: Date.now(), text: `Welcome, ${generatedParty[0].name} and party! Your adventure begins (Dev Mode).`, sender: 'system', timestamp: new Date() },
-                    { id: Date.now() + 1, text: initialDummyLocation.baseDescription, sender: 'system', timestamp: new Date() }
+                    { id: Date.now(), text: `Welcome, ${generatedParty[0].name} and party! Your adventure begins (Dev Mode).`, sender: 'system', timestamp: new Date(initialGameState.gameTime.getTime()) },
+                    { id: Date.now() + 1, text: initialDummyLocation.baseDescription, sender: 'system', timestamp: new Date(initialGameState.gameTime.getTime()) }
                 ],
                 mapData: mapData,
                 dynamicLocationItemIds: dynamicLocationItemIds,
@@ -725,8 +727,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...state,
                 worldSeed: action.payload.worldSeed,
                 messages: [
-                    { id: Date.now() + Math.random(), text: `Welcome, ${state.party[0]!.name} and party! Your adventure begins (Dev Mode - Auto Start).`, sender: 'system', timestamp: new Date() },
-                    { id: Date.now() + Math.random() + 1, text: action.payload.initialLocationDescription, sender: 'system', timestamp: new Date() }
+                    { id: Date.now() + Math.random(), text: `Welcome, ${state.party[0]!.name} and party! Your adventure begins (Dev Mode - Auto Start).`, sender: 'system', timestamp: new Date(dummyGameTime.getTime()) },
+                    { id: Date.now() + Math.random() + 1, text: action.payload.initialLocationDescription, sender: 'system', timestamp: new Date(dummyGameTime.getTime()) }
                 ],
                 subMapCoordinates: action.payload.initialSubMapCoordinates,
                 isLoading: false, loadingMessage: null, isImageLoading: false,
@@ -828,7 +830,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                             id: Date.now() + index + 1,
                             text: `${member.name} reached level ${safeLevel}!`,
                             sender: 'system',
-                            timestamp: new Date()
+                            timestamp: inGameTimestamp(state.gameTime)
                         };
                     });
 
@@ -846,7 +848,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                             id: Date.now() + index + 200,
                             text: prompt,
                             sender: 'system',
-                            timestamp: new Date()
+                            timestamp: inGameTimestamp(state.gameTime)
                         };
                     })
                     .filter((message): message is GameState['messages'][number] => message !== null);
@@ -860,7 +862,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     id: Date.now(),
                     text: `Victory! The party gained ${rewards.xp} XP and ${rewards.gold || 0} gold. ${itemsFoundMessage}`,
                     sender: 'system',
-                    timestamp: new Date()
+                    timestamp: inGameTimestamp(state.gameTime)
                 };
 
                 newState = {
@@ -880,7 +882,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     id: Date.now(),
                     text: `The battle ends.`,
                     sender: 'system',
-                    timestamp: new Date()
+                    timestamp: inGameTimestamp(state.gameTime)
                 };
                 newState = {
                     ...newState,

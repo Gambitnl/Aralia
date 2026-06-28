@@ -136,6 +136,41 @@
         "saveOutcomeOverrides": []
       },
       "description": "On a failed Constitution save, the target becomes Enfeebled for up to 1 minute: it has Disadvantage on Strength-based D20 Tests, subtracts 1d8 from damage rolls, and repeats the Constitution save at the end of each turn, ending the effect on a success. On a successful initial save, it only has Disadvantage on its next attack roll until the start of your next turn.",
+      "attackRollModifier": {
+        "modifier": "disadvantage",
+        "direction": "outgoing",
+        "attackKind": "any",
+        "consumption": "next_attack_roll",
+        "duration": {
+          "type": "rounds",
+          "value": 1
+        },
+        "appliesOn": "successful_initial_save",
+        "notes": "If the target succeeds on the initial Constitution save, it has Disadvantage on the next attack roll it makes until the start of the caster's next turn."
+      },
+      "abilityCheckModifier": {
+        "appliesTo": "Strength-based D20 Tests",
+        "bonusDice": "",
+        "flatModifier": "disadvantage",
+        "skillSelection": "strength_based_d20_tests",
+        "skillChooser": "spell",
+        "skillPool": [
+          "Strength"
+        ],
+        "frequency": "every_matching_check",
+        "durationScope": "while_enfeebled",
+        "notes": "On a failed Constitution save, the target has Disadvantage on Strength-based D20 Tests for the spell duration."
+      },
+      "damageRollModifier": {
+        "modifier": "penalty",
+        "dice": "1d8",
+        "appliesTo": "all_damage_rolls",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "notes": "On a failed Constitution save, the target subtracts 1d8 from all damage rolls until the spell ends."
+      },
       "statusCondition": {
         "name": "Enfeebled",
         "duration": {
@@ -189,8 +224,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Ask the caster to choose one creature within 60 feet; prompt the Constitution save, apply next-attack Disadvantage on success, or Enfeebled Strength-test Disadvantage and -1d8 damage rolls on failure with end-turn repeat saves.",
+    "playerInputRequired": true
   },
   "description": "A beam of enervating energy shoots from you toward a creature within range. The target must make a Constitution saving throw. On a successful save, the target has Disadvantage on the next attack roll it makes until the start of your next turn. On a failed save, the target has Disadvantage on Strength-based D20 Tests for the duration. During that time, it also subtracts 1d8 from all its damage rolls. The target repeats the save at the end of each of its turns, ending the spell on a success.",
   "higherLevels": "",

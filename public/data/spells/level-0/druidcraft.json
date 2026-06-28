@@ -1,262 +1,389 @@
 {
-  "id": "druidcraft",
-  "name": "Druidcraft",
-  "aliases": [],
-  "level": 0,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Druid"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "point",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point",
-      "objects"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "modeChoice": {
-    "type": "choose_one",
-    "timing": "on_cast",
-    "optionCount": 4,
-    "optionsSource": "controlOptions",
-    "maxActiveNonInstantaneous": "not_applicable",
-    "canDismissActive": "not_applicable",
-    "options": [
-      {
-        "label": "Weather Sensor",
-        "summary": "Create a Tiny harmless sensory effect that predicts local weather for the next 24 hours and persists for 1 round.",
-        "controlOptionIndices": [
-          0
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "1 round"
-      },
-      {
-        "label": "Bloom",
-        "summary": "Instantly make a flower blossom, seed pod open, or leaf bud bloom.",
-        "controlOptionIndices": [
-          1
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "instantaneous"
-      },
-      {
-        "label": "Sensory Effect",
-        "summary": "Create a harmless sensory effect that fits in a 5-foot Cube.",
-        "controlOptionIndices": [
-          2
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "instantaneous"
-      },
-      {
-        "label": "Fire Play",
-        "summary": "Light or snuff out a candle, torch, or campfire.",
-        "controlOptionIndices": [
-          3
-        ],
-        "effectTypes": [
-          "UTILITY"
-        ],
-        "duration": "instantaneous"
-      }
-    ],
-    "notes": "The caster chooses exactly one listed Druidcraft effect when the spell resolves."
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Creates minor nature-themed effects, predicts weather, or lights/snuffs small fires.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Weather Sensor",
-          "effect": "Create a Tiny harmless sensory effect that predicts local weather for the next 24 hours.",
-          "details": "The effect can manifest as a golden orb, cloud, falling snowflakes, or similar omen and persists for 1 round."
-        },
-        {
-          "name": "Bloom",
-          "effect": "Instantly make a flower blossom, seed pod open, or leaf bud bloom."
-        },
-        {
-          "name": "Sensory Effect",
-          "effect": "Create a harmless sensory effect such as falling leaves, spectral fairies, a breeze, animal sound, or faint odor.",
-          "details": "The sensory effect must fit in a 5-foot Cube."
-        },
-        {
-          "name": "Fire Play",
-          "effect": "Light or snuff out a candle, torch, or campfire."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "Choose one Druidcraft option before casting: Weather Sensor, Bloom, Sensory Effect, or Fire Play.",
-    "playerInputRequired": true
-  },
-  "description": "Whispering to the spirits of nature, you create one of the following effects within range. Weather Sensor. You create a Tiny, harmless sensory effect that predicts what the weather will be at your location for the next 24 hours. The effect might manifest as a golden orb for clear skies, a cloud for rain, falling snowflakes for snow, and so on. This effect persists for 1 round. Bloom. You instantly make a flower blossom, a seed pod open, or a leaf bud bloom. Sensory Effect. You create a harmless sensory effect, such as falling leaves, spectral dancing fairies, a gentle breeze, the sound of an animal, or the faint odor of skunk. The effect must fit in a 5-foot Cube. Fire Play. You light or snuff out a candle, a torch, or a campfire.",
-  "higherLevels": "",
-  "tags": [
-    "utility",
-    "nature",
-    "cantrip"
-  ]
+    "id":  "druidcraft",
+    "name":  "Druidcraft",
+    "aliases":  [
+
+                ],
+    "level":  0,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Druid"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "instantaneous",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point",
+                                           "objects"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  4,
+                       "optionsSource":  "controlOptions",
+                       "maxActiveNonInstantaneous":  "not_applicable",
+                       "canDismissActive":  "not_applicable",
+                       "options":  [
+                                       {
+                                           "label":  "Weather Sensor",
+                                           "summary":  "Create a Tiny harmless sensory effect that predicts local weather for the next 24 hours and persists for 1 round.",
+                                           "controlOptionIndices":  [
+                                                                        0
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "1 round"
+                                       },
+                                       {
+                                           "label":  "Bloom",
+                                           "summary":  "Instantly make a flower blossom, seed pod open, or leaf bud bloom.",
+                                           "controlOptionIndices":  [
+                                                                        1
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "instantaneous"
+                                       },
+                                       {
+                                           "label":  "Sensory Effect",
+                                           "summary":  "Create a harmless sensory effect that fits in a 5-foot Cube.",
+                                           "controlOptionIndices":  [
+                                                                        2
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "instantaneous"
+                                       },
+                                       {
+                                           "label":  "Fire Play",
+                                           "summary":  "Light or snuff out a candle, torch, or campfire.",
+                                           "controlOptionIndices":  [
+                                                                        3
+                                                                    ],
+                                           "effectTypes":  [
+                                                               "UTILITY"
+                                                           ],
+                                           "duration":  "instantaneous"
+                                       }
+                                   ],
+                       "notes":  "The caster chooses exactly one listed Druidcraft effect when the spell resolves."
+                   },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Creates minor nature-themed effects, predicts weather, or lights/snuffs small fires.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Weather Sensor",
+                                                   "effect":  "Create a Tiny harmless sensory effect that predicts local weather for the next 24 hours.",
+                                                   "details":  "The effect can manifest as a golden orb, cloud, falling snowflakes, or similar omen and persists for 1 round."
+                                               },
+                                               {
+                                                   "name":  "Bloom",
+                                                   "effect":  "Instantly make a flower blossom, seed pod open, or leaf bud bloom."
+                                               },
+                                               {
+                                                   "name":  "Sensory Effect",
+                                                   "effect":  "Create a harmless sensory effect such as falling leaves, spectral fairies, a breeze, animal sound, or faint odor.",
+                                                   "details":  "The sensory effect must fit in a 5-foot Cube."
+                                               },
+                                               {
+                                                   "name":  "Fire Play",
+                                                   "effect":  "Light or snuff out a candle, torch, or campfire."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "sensory_effect",
+                                                   "name":  "Weather Omen",
+                                                   "count":  1,
+                                                   "countUnit":  "item",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Tiny",
+                                                   "affectedVolumeSizeFeet":  0,
+                                                   "manipulationOptions":  [
+                                                                               "predict_local_weather_next_24_hours",
+                                                                               "manifest_weather_symbol"
+                                                                           ],
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "1 round",
+                                                   "notes":  "Weather Sensor creates a Tiny harmless sensory omen that predicts local weather for the next 24 hours."
+                                               },
+                                               {
+                                                   "objectType":  "plant_effect",
+                                                   "name":  "Bloomed Plant Part",
+                                                   "count":  1,
+                                                   "countUnit":  "item",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "not_applicable",
+                                                   "affectedVolumeSizeFeet":  0,
+                                                   "manipulationOptions":  [
+                                                                               "flower_blossoms",
+                                                                               "seed_pod_opens",
+                                                                               "leaf_bud_blooms"
+                                                                           ],
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "instantaneous",
+                                                   "notes":  "Bloom instantly changes a small plant feature without creating a combat hazard."
+                                               },
+                                               {
+                                                   "objectType":  "sensory_effect",
+                                                   "name":  "Harmless Nature Sensory Effect",
+                                                   "count":  125,
+                                                   "countUnit":  "cubic_foot",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Cube",
+                                                   "affectedVolumeSizeFeet":  5,
+                                                   "manipulationOptions":  [
+                                                                               "falling_leaves",
+                                                                               "spectral_fairies",
+                                                                               "gentle_breeze",
+                                                                               "animal_sound",
+                                                                               "faint_odor"
+                                                                           ],
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "instantaneous",
+                                                   "notes":  "Sensory Effect creates a harmless effect that fits in a 5-foot Cube."
+                                               },
+                                               {
+                                                   "objectType":  "fire_state_change",
+                                                   "name":  "Small Flame Toggle",
+                                                   "count":  1,
+                                                   "countUnit":  "item",
+                                                   "appearsIn":  "target_object",
+                                                   "affectedVolumeShape":  "not_applicable",
+                                                   "affectedVolumeSizeFeet":  0,
+                                                   "manipulationOptions":  [
+                                                                               "light_candle",
+                                                                               "light_torch",
+                                                                               "light_campfire",
+                                                                               "snuff_candle",
+                                                                               "snuff_torch",
+                                                                               "snuff_campfire"
+                                                                           ],
+                                                   "ignitesTouchedObjects":  true,
+                                                   "expiresWithSpell":  false,
+                                                   "shelfLife":  "instantaneous",
+                                                   "notes":  "Fire Play lights or snuffs a candle, torch, or campfire."
+                                               }
+                                           ],
+                        "sensorState":  {
+                                            "kind":  "local_weather_prediction",
+                                            "mode":  "Weather Sensor",
+                                            "predicts":  "weather_at_caster_location_for_next_24_hours",
+                                            "manifestation":  "tiny_harmless_sensory_effect",
+                                            "remoteSensor":  false
+                                        },
+                        "aftermathState":  {
+                                               "kind":  "weather_prediction_output",
+                                               "when":  "spell_resolves",
+                                               "predicts":  "local_weather_for_next_24_hours",
+                                               "persistence":  "tiny_sensory_sign_last_1_round_if_using_weather_sensor_mode",
+                                               "memory":  "caster_observes_prediction_as_spell_output"
+                                           }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose one Druidcraft option before casting: Weather Sensor, Bloom, Sensory Effect, or Fire Play.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "Whispering to the spirits of nature, you create one of the following effects within range. Weather Sensor. You create a Tiny, harmless sensory effect that predicts what the weather will be at your location for the next 24 hours. The effect might manifest as a golden orb for clear skies, a cloud for rain, falling snowflakes for snow, and so on. This effect persists for 1 round. Bloom. You instantly make a flower blossom, a seed pod open, or a leaf bud bloom. Sensory Effect. You create a harmless sensory effect, such as falling leaves, spectral dancing fairies, a gentle breeze, the sound of an animal, or the faint odor of skunk. The effect must fit in a 5-foot Cube. Fire Play. You light or snuff out a candle, a torch, or a campfire.",
+    "higherLevels":  "",
+    "tags":  [
+                 "utility",
+                 "nature",
+                 "cantrip"
+             ]
 }

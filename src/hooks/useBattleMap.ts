@@ -34,7 +34,7 @@
  * - No batched state updates for multiple simultaneous changes
  */
 import React, { useState, useCallback, useMemo } from 'react';
-import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition, AbilityCost } from '../types/combat';
+import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition, AbilityCost, CombatAction } from '../types/combat';
 import { useTurnManager } from './combat/useTurnManager';
 import { useAbilitySystem } from './useAbilitySystem';
 import { useGridMovement } from './combat/useGridMovement';
@@ -50,6 +50,26 @@ interface UseBattleMapReturn {
   setActionMode: React.Dispatch<React.SetStateAction<'move' | 'ability' | null>>;
   handleTileClick: (tile: BattleMapTile) => void;
   handleCharacterClick: (character: CombatCharacter) => void;
+}
+
+export function inferMovementModeForAction(character: CombatCharacter): CombatAction['movementMode'] | undefined {
+  const selectedForm = character.summonMetadata?.formName ?? '';
+  const matchingTraits = character.summonMetadata?.formTraits?.filter(trait =>
+    !trait.appliesToForms?.length || trait.appliesToForms.includes(selectedForm)
+  ) ?? [];
+
+  // Spell-created actors can carry form-specific movement rules in their
+  // summon metadata. When the map click creates a movement action, this helper
+  // gives the shared opportunity-attack runtime a movement mode to inspect
+  // without hardcoding any one spell into the movement executor. Summon Beast's
+  // Air form currently uses this to mark normal map movement as flying so
+  // Flyby can mean "while flying out of reach."
+  return matchingTraits.find(trait =>
+    trait.opportunityAttackPolicy &&
+    trait.opportunityAttackPolicy !== 'normal' &&
+    trait.movementModeRequired &&
+    trait.movementModeRequired !== 'any'
+  )?.movementModeRequired;
 }
 
 export function useBattleMap(
@@ -183,6 +203,7 @@ export function useBattleMap(
           type: 'move',
           cost: moveActionCost,
           targetPosition: tile.coordinates,
+          movementMode: inferMovementModeForAction(character),
           // Preserve the exact path found by the map click so spell zones that
           // react to movement through an area can count walked tiles instead of
           // only seeing the start and destination squares.

@@ -7,13 +7,19 @@
  * movement does not masquerade as a weapon attack.
  */
 import { describe, expect, it, vi } from 'vitest';
-import { Ability } from '../../../types/combat';
+import { Ability, ActiveRider, CombatState } from '../../../types/combat';
 import { GameState } from '../../../types';
 import { createMockCombatCharacter } from '../../../utils/factories';
 import { AbilityCommandFactory, WeaponAttackCommand } from '../AbilityCommandFactory';
+import { SpellCommandFactory } from '../SpellCommandFactory';
 import { combatEvents } from '../../../systems/events/CombatEvents';
 import { DismissFamiliarToPocketCommand, RecallFamiliarFromPocketCommand } from '../../effects/FamiliarPocketCommands';
 import { CommandedSummonCommand } from '../../effects/CommandedSummonCommand';
+import { RegisterRiderCommand } from '../../effects/RegisterRiderCommand';
+import type { Spell } from '../../../types/spells';
+import shiningSmite from '../../../../public/data/spells/level-2/shining-smite.json';
+import blindingSmite from '../../../../public/data/spells/level-3/blinding-smite.json';
+import lightningArrow from '../../../../public/data/spells/level-3/lightning-arrow.json';
 
 // ============================================================================
 // Ability Translation
@@ -273,6 +279,140 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
     }
   });
 
+  it('emits explicit unarmed attack metadata for Unarmed Strike actions', async () => {
+    // Smites and other after-hit reactions need to distinguish a held weapon
+    // from an Unarmed Strike. The command event is the shared source of that
+    // attack fact, so a real Unarmed Strike button must publish it directly.
+    combatEvents.clearForTest();
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.95);
+
+    try {
+      const attacker = createMockCombatCharacter({
+        id: 'monk',
+        name: 'Monk',
+        stats: {
+          baseInitiative: 0,
+          speed: 30,
+          cr: '0',
+          strength: 16,
+          dexterity: 10,
+          constitution: 10,
+          intelligence: 10,
+          wisdom: 10,
+          charisma: 10
+        }
+      });
+      const target = createMockCombatCharacter({
+        id: 'target',
+        name: 'Target',
+        armorClass: 10
+      });
+      const unarmedStrike: Ability = {
+        id: 'unarmed_strike',
+        name: 'Unarmed Strike',
+        description: 'A real unarmed strike action used to prove attack metadata.',
+        type: 'attack',
+        cost: { type: 'action' },
+        targeting: 'single_enemy',
+        range: 1,
+        isProficient: true,
+        effects: [{ type: 'damage', value: 4, damageType: 'bludgeoning' }]
+      };
+
+      const command = new WeaponAttackCommand(unarmedStrike, attacker, [target], {
+        spellId: unarmedStrike.id,
+        spellName: unarmedStrike.name,
+        castAtLevel: 0,
+        caster: attacker,
+        targets: [target],
+        gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
+      });
+
+      await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+
+      expect(combatEvents.getDispatchLog()).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          type: 'unit_attack',
+          attackerId: attacker.id,
+          targetId: target.id,
+          attackType: 'unarmed',
+          weaponType: 'unarmed'
+        })
+      ]));
+    } finally {
+      randomSpy.mockRestore();
+      combatEvents.clearForTest();
+    }
+  });
+
+  it('honors explicit unarmed attack metadata even when the button is not named Unarmed Strike', async () => {
+    // Future generated buttons may know they are unarmed attacks without using
+    // the literal Unarmed Strike name. The first-class Ability.attackType field
+    // should publish that combat fact directly so smite prompts can opt into
+    // unarmed hits without depending on text matching.
+    combatEvents.clearForTest();
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.95);
+
+    try {
+      const attacker = createMockCombatCharacter({
+        id: 'brawler',
+        name: 'Brawler',
+        stats: {
+          baseInitiative: 0,
+          speed: 30,
+          cr: '0',
+          strength: 16,
+          dexterity: 10,
+          constitution: 10,
+          intelligence: 10,
+          wisdom: 10,
+          charisma: 10
+        }
+      });
+      const target = createMockCombatCharacter({
+        id: 'target',
+        name: 'Target',
+        armorClass: 10
+      });
+      const structuredUnarmedAttack: Ability = {
+        id: 'martial_arts_blow',
+        name: 'Martial Arts Blow',
+        description: 'A structured unarmed attack whose name does not carry the legacy trigger text.',
+        type: 'attack',
+        attackType: 'unarmed',
+        cost: { type: 'action' },
+        targeting: 'single_enemy',
+        range: 1,
+        isProficient: true,
+        effects: [{ type: 'damage', value: 4, damageType: 'bludgeoning' }]
+      };
+
+      const command = new WeaponAttackCommand(structuredUnarmedAttack, attacker, [target], {
+        spellId: structuredUnarmedAttack.id,
+        spellName: structuredUnarmedAttack.name,
+        castAtLevel: 0,
+        caster: attacker,
+        targets: [target],
+        gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
+      });
+
+      await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+
+      expect(combatEvents.getDispatchLog()).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          type: 'unit_attack',
+          attackerId: attacker.id,
+          targetId: target.id,
+          attackType: 'unarmed',
+          weaponType: 'unarmed'
+        })
+      ]));
+    } finally {
+      randomSpy.mockRestore();
+      combatEvents.clearForTest();
+    }
+  });
+
   it('omits proficiency bonus when attacking with a non-proficient weapon', async () => {
     const attacker = createMockCombatCharacter({
       id: 'attacker',
@@ -440,6 +580,818 @@ describe('Active Effect Riders (Bless/Bane)', () => {
 
     const logMessage = newState.combatLog[0].message;
     expect(logMessage).toMatch(/Mods: -\d+ \[Bane\]/);
+  });
+});
+
+// ============================================================================
+// After-Hit Smite Data Contracts
+// ============================================================================
+// These checks protect the spell-data side of the after-hit runtime bridge.
+// Blinding Smite's extra upcast damage must live on the damage rider because
+// that is the effect the shared weapon-hit path sends through DamageCommand.
+// The Blinded condition row owns repeat saves, not extra damage scaling.
+// ============================================================================
+
+describe('after-hit smite data contracts', () => {
+  it('keeps Shining Smite on the shared after-hit reaction rider lane', () => {
+    const damageEffect = shiningSmite.effects.find(effect => effect.type === 'DAMAGE');
+    const modifierEffect = shiningSmite.effects.find(effect => effect.type === 'ATTACK_ROLL_MODIFIER');
+
+    // Shining Smite should wake up from the same after-hit reaction prompt as
+    // the other modern smites. The target binding keeps the selected reaction
+    // pointed at the creature that was already hit instead of asking for a new
+    // target after the attack has resolved.
+    expect(shiningSmite.castingTrigger).toEqual(expect.objectContaining({
+      type: 'after_attack_hit',
+      requiredCost: 'reaction',
+      targetBinding: 'triggering_attack_target',
+      attackFilter: expect.objectContaining({
+        attackType: 'weapon',
+        weaponType: 'any',
+        includesUnarmedStrike: true
+      })
+    }));
+    expect(shiningSmite.aiContext.playerInputRequired).toBe(false);
+
+    // Both payload rows must stay hit-bound so the shared after-hit
+    // materialization step can apply damage, advantage, light, and Invisible
+    // suppression to the triggering hit target immediately.
+    expect(damageEffect?.trigger).toEqual(expect.objectContaining({
+      type: 'on_attack_hit',
+      consumption: 'first_hit'
+    }));
+    expect(damageEffect?.damage).toEqual(expect.objectContaining({
+      dice: '2d6',
+      type: 'Radiant'
+    }));
+    expect(damageEffect?.scaling).toEqual(expect.objectContaining({
+      type: 'slot_level',
+      bonusPerLevel: '+1d6'
+    }));
+    expect(modifierEffect?.trigger).toEqual(expect.objectContaining({
+      type: 'on_attack_hit',
+      consumption: 'first_hit'
+    }));
+    expect(modifierEffect?.attackRollModifier).toEqual(expect.objectContaining({
+      modifier: 'advantage',
+      direction: 'incoming',
+      consumption: 'while_active'
+    }));
+    expect(modifierEffect?.light).toEqual(expect.objectContaining({
+      brightRadius: 5,
+      attachedTo: 'target'
+    }));
+    expect(modifierEffect?.invisibilitySuppression).toEqual(expect.objectContaining({
+      suppressesConditionBenefit: 'Invisible',
+      scope: 'target'
+    }));
+  });
+
+  it('keeps Blinding Smite slot scaling on the executable damage rider', () => {
+    const damageEffect = blindingSmite.effects.find(effect => effect.type === 'DAMAGE');
+    const statusEffect = blindingSmite.effects.find(effect => effect.type === 'STATUS_CONDITION');
+
+    // Blinding Smite is the melee-only pair to Shining Smite's broader weapon
+    // trigger. This live-data guard keeps its reaction prompt, target binding,
+    // and unarmed-strike opt-in aligned with the shared after-hit bridge.
+    expect(blindingSmite.castingTrigger).toEqual(expect.objectContaining({
+      type: 'after_attack_hit',
+      requiredCost: 'reaction',
+      targetBinding: 'triggering_attack_target',
+      attackFilter: expect.objectContaining({
+        attackType: 'weapon',
+        weaponType: 'melee',
+        includesUnarmedStrike: true
+      })
+    }));
+    expect(blindingSmite.aiContext.playerInputRequired).toBe(false);
+
+    // The damage row is the only row that should own extra damage and slot
+    // scaling because the shared hit-rider path sends it through DamageCommand.
+    expect(damageEffect?.trigger).toEqual(expect.objectContaining({
+      type: 'on_attack_hit',
+      consumption: 'first_hit',
+      attackFilter: expect.objectContaining({
+        attackType: 'weapon',
+        weaponType: 'melee'
+      })
+    }));
+    expect(damageEffect?.damage).toEqual(expect.objectContaining({
+      dice: '3d8',
+      type: 'Radiant'
+    }));
+    expect(damageEffect?.scaling).toEqual(expect.objectContaining({
+      type: 'slot_level',
+      bonusPerLevel: '+1d8'
+    }));
+
+    // The status row owns Blinded and its turn-end Constitution repeat save,
+    // but it must not carry the upcast damage increment.
+    expect(statusEffect?.trigger).toEqual(expect.objectContaining({
+      type: 'on_attack_hit',
+      consumption: 'first_hit',
+      attackFilter: expect.objectContaining({
+        attackType: 'weapon',
+        weaponType: 'melee'
+      })
+    }));
+    expect(statusEffect?.statusCondition).toEqual(expect.objectContaining({
+      name: 'Blinded',
+      repeatSave: expect.objectContaining({
+        timing: 'turn_end',
+        saveType: 'Constitution',
+        successEnds: true,
+        useOriginalDC: true
+      })
+    }));
+    expect(statusEffect?.scaling?.bonusPerLevel ?? '').toBe('');
+  });
+
+  it('keeps live smite spell casts on the shared after-hit reaction contract', async () => {
+    const paladin = createMockCombatCharacter({
+      id: 'paladin',
+      name: 'Paladin',
+      position: { x: 0, y: 0 }
+    });
+    const alreadyHitTarget = createMockCombatCharacter({
+      id: 'already-hit-target',
+      name: 'Already Hit Target',
+      position: { x: 1, y: 0 }
+    });
+
+    // The hook-side after-hit tests prove when the prompt appears. This
+    // live-data factory guard proves the real smite packets still enter that
+    // shared reaction lane with a declared reaction cost and with executable
+    // hit-bound payload rows ready for the command layer.
+    for (const smiteSpell of [shiningSmite, blindingSmite]) {
+      const commands = await SpellCommandFactory.createCommands(
+        smiteSpell as unknown as Spell,
+        paladin,
+        [alreadyHitTarget],
+        smiteSpell.level,
+        {} as GameState
+      );
+      const riderCommands = commands.filter((command): command is RegisterRiderCommand =>
+        command instanceof RegisterRiderCommand
+      );
+      const state: CombatState = {
+        characters: [paladin],
+        currentTurn: 1,
+        round: 1,
+        combatLog: []
+      } as CombatState;
+      const stateWithRiders = riderCommands.reduce(
+        (nextState, command) => command.execute(nextState),
+        state
+      );
+      const updatedPaladin = stateWithRiders.characters.find(character => character.id === paladin.id);
+
+      expect(smiteSpell.castingTrigger).toEqual(expect.objectContaining({
+        type: 'after_attack_hit',
+        requiredCost: 'reaction',
+        targetBinding: 'triggering_attack_target'
+      }));
+      expect(riderCommands.length).toBeGreaterThan(0);
+      expect(riderCommands.every(command => command.description.includes(smiteSpell.name))).toBe(true);
+      expect(updatedPaladin?.riders?.length).toBe(riderCommands.length);
+      expect(updatedPaladin?.riders?.every(rider =>
+        rider.duration.type === 'minutes' &&
+        rider.duration.value === smiteSpell.duration.value
+      )).toBe(true);
+      if (smiteSpell.id === shiningSmite.id) {
+        expect(updatedPaladin?.riders?.map(rider => rider.effect.type)).toEqual([
+          'DAMAGE',
+          'ATTACK_ROLL_MODIFIER'
+        ]);
+        expect(updatedPaladin?.riders?.[1].effect).toEqual(expect.objectContaining({
+          attackRollModifier: expect.objectContaining({
+            modifier: 'advantage',
+            direction: 'incoming'
+          }),
+          light: expect.objectContaining({
+            brightRadius: 5,
+            attachedTo: 'target'
+          })
+        }));
+      }
+      if (smiteSpell.id === blindingSmite.id) {
+        expect(updatedPaladin?.riders?.map(rider => rider.effect.type)).toEqual([
+          'DAMAGE',
+          'STATUS_CONDITION'
+        ]);
+        expect(updatedPaladin?.riders?.[1].effect).toEqual(expect.objectContaining({
+          statusCondition: expect.objectContaining({
+            name: 'Blinded',
+            repeatSave: expect.objectContaining({
+              timing: 'turn_end',
+              saveType: 'Constitution',
+              successEnds: true
+            })
+          })
+        }));
+      }
+    }
+  });
+});
+
+// ============================================================================
+// Next-Attack Rider Data Contracts
+// ============================================================================
+// Lightning Arrow has two damage riders with different save rules. The primary
+// attack target takes transformed-weapon damage directly on a hit, or half on a
+// miss through the shared miss multiplier. The nearby burst targets are the ones
+// that make Dexterity saves. Keeping this split in live data prevents the
+// shared DamageCommand path from asking the primary target for a save it should
+// not get.
+// ============================================================================
+
+describe('next-attack rider data contracts', () => {
+  it('keeps Lightning Arrow primary damage non-save while the burst uses a Dexterity save', () => {
+    const [primaryDamage, burstDamage] = lightningArrow.effects;
+
+    expect(primaryDamage.condition).toEqual(expect.objectContaining({
+      type: 'always'
+    }));
+    expect(primaryDamage).toEqual(expect.objectContaining({
+      missDamageMultiplier: 0.5
+    }));
+    expect(burstDamage.condition).toEqual(expect.objectContaining({
+      type: 'save',
+      saveType: 'Dexterity',
+      saveEffect: 'half'
+    }));
+    expect(burstDamage.areaOfEffect).toEqual(expect.objectContaining({
+      shape: 'Sphere',
+      size: 10
+    }));
+  });
+
+  it('registers Lightning Arrow riders with the live one-minute concentration window', async () => {
+    const ranger = createMockCombatCharacter({
+      id: 'ranger',
+      name: 'Ranger',
+      position: { x: 0, y: 0 }
+    });
+    const state: CombatState = {
+      characters: [ranger],
+      currentTurn: 1,
+      round: 1,
+      combatLog: []
+    } as CombatState;
+
+    // The hand-built hit/miss tests below prove rider behavior after the
+    // riders exist. This live-data guard proves the actual spell-cast factory
+    // registers those pending riders with Lightning Arrow's 1-minute duration
+    // instead of a stale instantaneous or one-round window.
+    const commands = await SpellCommandFactory.createCommands(
+      lightningArrow as unknown as Spell,
+      ranger,
+      [ranger],
+      3,
+      {} as GameState
+    );
+    const riderCommands = commands.filter((command): command is RegisterRiderCommand =>
+      command instanceof RegisterRiderCommand
+    );
+
+    const stateWithRiders = riderCommands.reduce(
+      (nextState, command) => command.execute(nextState),
+      state
+    );
+    const updatedRanger = stateWithRiders.characters.find(character => character.id === ranger.id);
+
+    expect(riderCommands).toHaveLength(2);
+    expect(updatedRanger?.riders?.map(rider => rider.duration)).toEqual([
+      { type: 'minutes', value: 1 },
+      { type: 'minutes', value: 1 }
+    ]);
+    expect(updatedRanger?.riders?.map(rider => rider.consumption)).toEqual([
+      'per_instance_hit_or_miss',
+      'per_instance_hit_or_miss'
+    ]);
+    expect(updatedRanger?.riders?.map(rider => rider.attackFilter)).toEqual([
+      expect.objectContaining({ attackType: 'weapon', weaponType: 'ranged' }),
+      expect.objectContaining({ attackType: 'weapon', weaponType: 'ranged' })
+    ]);
+    // The registered primary rider should stay focused on the attacked creature.
+    // If it accidentally gains the burst area, the main target would be routed
+    // through the wrong save-style splash path.
+    const primaryRiderEffect = updatedRanger?.riders?.[0].effect;
+    expect(primaryRiderEffect).toEqual(expect.objectContaining({
+      missDamageMultiplier: 0.5,
+      objectTransformation: expect.objectContaining({
+        sourceObject: 'weapon_or_ammunition_used_for_attack'
+      })
+    }));
+    expect(primaryRiderEffect).not.toHaveProperty('areaOfEffect');
+
+    // The registered burst rider should stay separate from the primary
+    // transformed-weapon hit/miss payload. If it inherits the miss multiplier,
+    // missed weapon attacks would incorrectly halve the splash instead of using
+    // the Dexterity-save half-damage rule.
+    const burstRiderEffect = updatedRanger?.riders?.[1].effect;
+    expect(burstRiderEffect).toEqual(expect.objectContaining({
+      areaOfEffect: expect.objectContaining({
+        shape: 'Sphere',
+        size: 10
+      }),
+      condition: expect.objectContaining({
+        type: 'save',
+        saveType: 'Dexterity',
+        saveEffect: 'half'
+      })
+    }));
+    expect(burstRiderEffect).not.toHaveProperty('missDamageMultiplier');
+  });
+});
+
+// ============================================================================
+// Hit-Or-Miss Attack Riders
+// ============================================================================
+// Lightning Arrow is not a normal "extra damage on hit" rider. It spends the
+// next matching ranged weapon attack whether that attack hits or misses, applies
+// half primary damage on a miss, and still creates the secondary burst around
+// the attack target. These tests protect that shared rider behavior so future
+// next-attack spells can reuse it instead of becoming one-off weapon code.
+// ============================================================================
+
+describe('WeaponAttackCommand: Lightning Arrow-style hit-or-miss riders', () => {
+  const createLightningArrowRiders = (casterId: string): ActiveRider[] => [
+    {
+      id: 'lightning-arrow-primary',
+      spellId: 'lightning-arrow',
+      casterId,
+      sourceName: 'Lightning Arrow',
+      effect: {
+        type: 'DAMAGE',
+        trigger: {
+          type: 'on_attack_hit',
+          frequency: 'every_time',
+          consumption: 'per_instance_hit_or_miss',
+          attackFilter: {
+            weaponType: 'ranged',
+            attackType: 'weapon'
+          }
+        },
+        condition: {
+          type: 'save',
+          saveType: 'Dexterity',
+          saveEffect: 'half'
+        },
+        damage: {
+          dice: '4d8',
+          type: 'Lightning'
+        },
+        objectTransformation: {
+          sourceObject: 'weapon_or_ammunition_used_for_attack',
+          temporaryForm: 'lightning_bolt',
+          trigger: 'attack_hits_or_misses',
+          returnsToNormalForm: true,
+          description: 'The weapon or ammunition becomes the Lightning Arrow payload instead of dealing normal weapon damage.'
+        },
+        missDamageMultiplier: 0.5
+      },
+      consumption: 'per_instance_hit_or_miss',
+      attackFilter: {
+        weaponType: 'ranged',
+        attackType: 'weapon'
+      },
+      usedThisTurn: false,
+      duration: { type: 'minutes', value: 1 }
+    } as ActiveRider,
+    {
+      id: 'lightning-arrow-burst',
+      spellId: 'lightning-arrow',
+      casterId,
+      sourceName: 'Lightning Arrow',
+      effect: {
+        type: 'DAMAGE',
+        trigger: {
+          type: 'on_attack_hit',
+          frequency: 'every_time',
+          consumption: 'per_instance_hit_or_miss',
+          attackFilter: {
+            weaponType: 'ranged',
+            attackType: 'weapon'
+          }
+        },
+        condition: {
+          type: 'save',
+          saveType: 'Dexterity',
+          saveEffect: 'half'
+        },
+        damage: {
+          dice: '2d8',
+          type: 'Lightning'
+        },
+        areaOfEffect: {
+          shape: 'Sphere',
+          size: 10,
+          height: 0
+        }
+      },
+      consumption: 'per_instance_hit_or_miss',
+      attackFilter: {
+        weaponType: 'ranged',
+        attackType: 'weapon'
+      },
+      usedThisTurn: false,
+      duration: { type: 'minutes', value: 1 }
+    } as ActiveRider
+  ];
+
+  const rangedAttack: Ability = {
+    id: 'longbow_attack',
+    name: 'Longbow Attack',
+    description: 'A ranged weapon attack used to spend Lightning Arrow.',
+    type: 'attack',
+    cost: { type: 'action' },
+    targeting: 'single_enemy',
+    range: 12,
+    isProficient: true,
+    attackBonus: 99,
+    effects: []
+  };
+
+  it('applies primary and burst rider payloads on a ranged weapon hit, then consumes the riders', async () => {
+    const ranger = createMockCombatCharacter({
+      id: 'ranger',
+      name: 'Ranger',
+      position: { x: 0, y: 0 },
+      riders: createLightningArrowRiders('ranger')
+    });
+    const primaryTarget = createMockCombatCharacter({
+      id: 'primary-target',
+      name: 'Primary Target',
+      position: { x: 4, y: 0 },
+      currentHP: 100,
+      maxHP: 100,
+      armorClass: 10
+    });
+    const nearbyTarget = createMockCombatCharacter({
+      id: 'nearby-target',
+      name: 'Nearby Target',
+      position: { x: 5, y: 0 },
+      currentHP: 100,
+      maxHP: 100
+    });
+    const farTarget = createMockCombatCharacter({
+      id: 'far-target',
+      name: 'Far Target',
+      position: { x: 8, y: 0 },
+      currentHP: 100,
+      maxHP: 100
+    });
+    const command = new WeaponAttackCommand(rangedAttack, ranger, [primaryTarget], {
+      spellId: rangedAttack.id,
+      spellName: rangedAttack.name,
+      castAtLevel: 0,
+      caster: ranger,
+      targets: [primaryTarget],
+      gameState: { characters: [ranger, primaryTarget, nearbyTarget, farTarget], combatLog: [] } as unknown as GameState
+    });
+
+    const newState = await command.execute({
+      characters: [ranger, primaryTarget, nearbyTarget, farTarget],
+      combatLog: []
+    } as any);
+
+    const updatedRanger = newState.characters.find(character => character.id === ranger.id);
+    const updatedPrimary = newState.characters.find(character => character.id === primaryTarget.id);
+    const updatedNearby = newState.characters.find(character => character.id === nearbyTarget.id);
+    const updatedFar = newState.characters.find(character => character.id === farTarget.id);
+
+    // A hit spends both Lightning Arrow riders. The primary target receives
+    // only the transformed-weapon primary damage, and nearby secondary
+    // creatures receive the shared burst payload. A creature outside 10 feet of
+    // the attacked target is not included in the burst.
+    expect(updatedRanger?.riders ?? []).toHaveLength(0);
+    expect(updatedPrimary?.currentHP).toBeLessThan(100);
+    expect(updatedNearby?.currentHP).toBeLessThan(100);
+    expect(updatedFar?.currentHP).toBe(100);
+    expect(newState.combatLog.filter(entry =>
+      entry.type === 'damage' &&
+      entry.targetIds?.includes(primaryTarget.id)
+    )).toHaveLength(1);
+    expect(newState.combatLog.some(entry =>
+      entry.type === 'damage' &&
+      entry.targetIds?.includes(nearbyTarget.id)
+    )).toBe(true);
+    // Damage logs are player-facing proof of which spell or attack caused an
+    // effect. Hit riders must identify the rider spell, not the longbow button
+    // that delivered the shot, so Lightning Arrow remains traceable in combat
+    // history and downstream proof.
+    expect(newState.combatLog.some(entry =>
+      entry.type === 'damage' &&
+      entry.message.includes('with Lightning Arrow')
+    )).toBe(true);
+  });
+
+  it('replaces normal weapon payloads when the Lightning Arrow rider transforms the ammunition', async () => {
+    const ranger = createMockCombatCharacter({
+      id: 'ranger',
+      name: 'Ranger',
+      position: { x: 0, y: 0 },
+      riders: createLightningArrowRiders('ranger')
+    });
+    const primaryTarget = createMockCombatCharacter({
+      id: 'primary-target',
+      name: 'Primary Target',
+      position: { x: 4, y: 0 },
+      currentHP: 500,
+      maxHP: 500,
+      armorClass: 10
+    });
+    const heavyBowAttack: Ability = {
+      ...rangedAttack,
+      effects: [{
+        type: 'damage',
+        value: 300,
+        damageType: 'piercing'
+      }]
+    };
+    const command = new WeaponAttackCommand(heavyBowAttack, ranger, [primaryTarget], {
+      spellId: heavyBowAttack.id,
+      spellName: heavyBowAttack.name,
+      castAtLevel: 0,
+      caster: ranger,
+      targets: [primaryTarget],
+      gameState: { characters: [ranger, primaryTarget], combatLog: [] } as unknown as GameState
+    });
+
+    const newState = await command.execute({
+      characters: [ranger, primaryTarget],
+      combatLog: []
+    } as any);
+
+    const updatedPrimary = newState.characters.find(character => character.id === primaryTarget.id);
+
+    // The bow's deliberately huge 300-damage payload would dwarf Lightning
+    // Arrow's 4d8 primary and 2d8 burst rider. If normal weapon damage leaked
+    // through, the target would fall far below this threshold. Staying above
+    // it proves the spell rider replaced the attack payload instead of stacking
+    // on top of it.
+    expect(updatedPrimary?.currentHP ?? 0).toBeGreaterThan(350);
+  });
+
+  it('applies miss half-damage and burst payloads on a ranged weapon miss, then consumes the riders', async () => {
+    const ranger = createMockCombatCharacter({
+      id: 'ranger',
+      name: 'Ranger',
+      position: { x: 0, y: 0 },
+      riders: createLightningArrowRiders('ranger')
+    });
+    const primaryTarget = createMockCombatCharacter({
+      id: 'primary-target',
+      name: 'Primary Target',
+      position: { x: 4, y: 0 },
+      currentHP: 100,
+      maxHP: 100,
+      armorClass: 200
+    });
+    const nearbyTarget = createMockCombatCharacter({
+      id: 'nearby-target',
+      name: 'Nearby Target',
+      position: { x: 5, y: 0 },
+      currentHP: 100,
+      maxHP: 100
+    });
+    const farTarget = createMockCombatCharacter({
+      id: 'far-target',
+      name: 'Far Target',
+      position: { x: 8, y: 0 },
+      currentHP: 100,
+      maxHP: 100
+    });
+    const missingRangedAttack: Ability = {
+      ...rangedAttack,
+      attackBonus: -99
+    };
+    const command = new WeaponAttackCommand(missingRangedAttack, ranger, [primaryTarget], {
+      spellId: missingRangedAttack.id,
+      spellName: missingRangedAttack.name,
+      castAtLevel: 0,
+      caster: ranger,
+      targets: [primaryTarget],
+      gameState: { characters: [ranger, primaryTarget, nearbyTarget, farTarget], combatLog: [] } as unknown as GameState
+    });
+
+    const newState = await command.execute({
+      characters: [ranger, primaryTarget, nearbyTarget, farTarget],
+      combatLog: []
+    } as any);
+
+    const updatedRanger = newState.characters.find(character => character.id === ranger.id);
+    const updatedPrimary = newState.characters.find(character => character.id === primaryTarget.id);
+    const updatedNearby = newState.characters.find(character => character.id === nearbyTarget.id);
+    const updatedFar = newState.characters.find(character => character.id === farTarget.id);
+
+    // A miss still spends the next-attack rider. The primary target receives
+    // the miss multiplier damage, and the burst still resolves around that
+    // same attacked target through the shared DamageCommand route.
+    expect(updatedRanger?.riders ?? []).toHaveLength(0);
+    expect(updatedPrimary?.currentHP).toBeLessThan(100);
+    expect(updatedNearby?.currentHP).toBeLessThan(100);
+    expect(updatedFar?.currentHP).toBe(100);
+    expect(newState.combatLog.filter(entry =>
+      entry.type === 'damage' &&
+      entry.targetIds?.includes(primaryTarget.id)
+    )).toHaveLength(1);
+    expect(newState.combatLog.some(entry =>
+      entry.type === 'damage' &&
+      entry.targetIds?.includes(nearbyTarget.id)
+    )).toBe(true);
+    // The miss branch uses a separate half-damage command before the burst.
+    // It still needs to preserve the spell rider source so combat history does
+    // not describe the transformed lightning payload as ordinary bow damage.
+    expect(newState.combatLog.some(entry =>
+      entry.type === 'damage' &&
+      entry.message.includes('with Lightning Arrow')
+    )).toBe(true);
+  });
+
+  it('does not reuse Lightning Arrow riders on a later ranged weapon attack', async () => {
+    const ranger = createMockCombatCharacter({
+      id: 'ranger',
+      name: 'Ranger',
+      position: { x: 0, y: 0 },
+      riders: createLightningArrowRiders('ranger')
+    });
+    const primaryTarget = createMockCombatCharacter({
+      id: 'primary-target',
+      name: 'Primary Target',
+      position: { x: 4, y: 0 },
+      currentHP: 100,
+      maxHP: 100,
+      armorClass: 10
+    });
+    const nearbyTarget = createMockCombatCharacter({
+      id: 'nearby-target',
+      name: 'Nearby Target',
+      position: { x: 5, y: 0 },
+      currentHP: 100,
+      maxHP: 100
+    });
+    const firstCommand = new WeaponAttackCommand(rangedAttack, ranger, [primaryTarget], {
+      spellId: rangedAttack.id,
+      spellName: rangedAttack.name,
+      castAtLevel: 0,
+      caster: ranger,
+      targets: [primaryTarget],
+      gameState: { characters: [ranger, primaryTarget, nearbyTarget], combatLog: [] } as unknown as GameState
+    });
+
+    const stateAfterFirstAttack = await firstCommand.execute({
+      characters: [ranger, primaryTarget, nearbyTarget],
+      combatLog: []
+    } as any);
+    const rangerAfterFirstAttack = stateAfterFirstAttack.characters.find(character => character.id === ranger.id)!;
+    const primaryAfterFirstAttack = stateAfterFirstAttack.characters.find(character => character.id === primaryTarget.id)!;
+    const nearbyAfterFirstAttack = stateAfterFirstAttack.characters.find(character => character.id === nearbyTarget.id)!;
+    const secondCommand = new WeaponAttackCommand(rangedAttack, rangerAfterFirstAttack, [primaryAfterFirstAttack], {
+      spellId: rangedAttack.id,
+      spellName: rangedAttack.name,
+      castAtLevel: 0,
+      caster: rangerAfterFirstAttack,
+      targets: [primaryAfterFirstAttack],
+      gameState: { characters: [rangerAfterFirstAttack, primaryAfterFirstAttack, nearbyAfterFirstAttack], combatLog: [] } as unknown as GameState
+    });
+
+    const stateAfterSecondAttack = await secondCommand.execute({
+      characters: [rangerAfterFirstAttack, primaryAfterFirstAttack, nearbyAfterFirstAttack],
+      combatLog: []
+    } as any);
+    const primaryAfterSecondAttack = stateAfterSecondAttack.characters.find(character => character.id === primaryTarget.id);
+    const nearbyAfterSecondAttack = stateAfterSecondAttack.characters.find(character => character.id === nearbyTarget.id);
+
+    // Lightning Arrow is consumed by the first matching attack. Because this
+    // test attack has no ordinary weapon-damage effect, the second attack is a
+    // clean guard: if either target loses more HP, the one-shot rider leaked.
+    expect(rangerAfterFirstAttack.riders ?? []).toHaveLength(0);
+    expect(primaryAfterSecondAttack?.currentHP).toBe(primaryAfterFirstAttack.currentHP);
+    expect(nearbyAfterSecondAttack?.currentHP).toBe(nearbyAfterFirstAttack.currentHP);
+  });
+
+  it('does not spend Lightning Arrow riders on a melee weapon attack', async () => {
+    const ranger = createMockCombatCharacter({
+      id: 'ranger',
+      name: 'Ranger',
+      position: { x: 0, y: 0 },
+      riders: createLightningArrowRiders('ranger')
+    });
+    const primaryTarget = createMockCombatCharacter({
+      id: 'primary-target',
+      name: 'Primary Target',
+      position: { x: 1, y: 0 },
+      currentHP: 100,
+      maxHP: 100,
+      armorClass: 10
+    });
+    const meleeAttack: Ability = {
+      id: 'shortsword_attack',
+      name: 'Shortsword Attack',
+      description: 'A melee weapon attack that should not spend Lightning Arrow.',
+      type: 'attack',
+      cost: { type: 'action' },
+      targeting: 'single_enemy',
+      range: 1,
+      isProficient: true,
+      attackBonus: 99,
+      effects: []
+    };
+    const command = new WeaponAttackCommand(meleeAttack, ranger, [primaryTarget], {
+      spellId: meleeAttack.id,
+      spellName: meleeAttack.name,
+      castAtLevel: 0,
+      caster: ranger,
+      targets: [primaryTarget],
+      gameState: { characters: [ranger, primaryTarget], combatLog: [] } as unknown as GameState
+    });
+
+    const newState = await command.execute({
+      characters: [ranger, primaryTarget],
+      combatLog: []
+    } as any);
+
+    const updatedRanger = newState.characters.find(character => character.id === ranger.id);
+    const updatedPrimary = newState.characters.find(character => character.id === primaryTarget.id);
+
+    // Lightning Arrow waits for a ranged weapon attack. A melee hit can still
+    // happen while the spell is pending, but it must not transform the weapon,
+    // consume the pending riders, or create lightning damage.
+    expect(updatedRanger?.riders ?? []).toHaveLength(2);
+    expect(updatedPrimary?.currentHP).toBe(100);
+    expect(newState.combatLog.some(entry =>
+      entry.type === 'damage' &&
+      entry.message.includes('with Lightning Arrow')
+    )).toBe(false);
+  });
+
+  it('does not spend Lightning Arrow riders on a spell attack', async () => {
+    const ranger = createMockCombatCharacter({
+      id: 'ranger',
+      name: 'Ranger',
+      position: { x: 0, y: 0 },
+      riders: createLightningArrowRiders('ranger')
+    });
+    const primaryTarget = createMockCombatCharacter({
+      id: 'primary-target',
+      name: 'Primary Target',
+      position: { x: 4, y: 0 },
+      currentHP: 100,
+      maxHP: 100,
+      armorClass: 10
+    });
+    const spellAttack: Ability = {
+      id: 'ranged_spell_attack',
+      name: 'Ranged Spell Attack',
+      description: 'A spell attack that should not spend Lightning Arrow.',
+      type: 'attack',
+      cost: { type: 'action' },
+      targeting: 'single_enemy',
+      range: 12,
+      isProficient: true,
+      attackBonus: 99,
+      effects: [],
+      attackType: 'spell'
+    } as unknown as Ability;
+    const command = new WeaponAttackCommand(spellAttack, ranger, [primaryTarget], {
+      spellId: spellAttack.id,
+      spellName: spellAttack.name,
+      castAtLevel: 0,
+      caster: ranger,
+      targets: [primaryTarget],
+      gameState: { characters: [ranger, primaryTarget], combatLog: [] } as unknown as GameState
+    });
+
+    const newState = await command.execute({
+      characters: [ranger, primaryTarget],
+      combatLog: []
+    } as any);
+
+    const updatedRanger = newState.characters.find(character => character.id === ranger.id);
+    const updatedPrimary = newState.characters.find(character => character.id === primaryTarget.id);
+
+    // Lightning Arrow belongs to ranged weapon attacks, not all ranged attack
+    // rolls. A spell attack can be ranged and still must leave the pending
+    // transformed-ammunition riders untouched.
+    expect(updatedRanger?.riders ?? []).toHaveLength(2);
+    expect(updatedPrimary?.currentHP).toBe(100);
+    expect(newState.combatLog.some(entry =>
+      entry.type === 'damage' &&
+      entry.message.includes('with Lightning Arrow')
+    )).toBe(false);
+  });
+
+  it('keeps Lightning Arrow riders on the spell duration window before they are spent', () => {
+    const [primaryRider, burstRider] = createLightningArrowRiders('ranger');
+
+    // Lightning Arrow waits for the next qualifying ranged weapon attack for
+    // up to 1 minute with concentration. The active rider fixtures mirror that
+    // pending window so the hit/miss tests do not silently prove a stale
+    // 1-round or instantaneous rider model.
+    expect(primaryRider.duration).toEqual({ type: 'minutes', value: 1 });
+    expect(burstRider.duration).toEqual({ type: 'minutes', value: 1 });
   });
 });
 

@@ -1,222 +1,337 @@
 {
-  "id": "find-steed",
-  "name": "Find Steed",
-  "aliases": [],
-  "level": 2,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Paladin"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "point",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "SUMMONING",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "summon": {
-        "entityType": "mount",
-        "persistent": true,
-        "count": 1,
-        "dismissAction": "action",
-        "formOptions": [
-          "Horse",
-          "Camel",
-          "Dire Wolf",
-          "Elk"
-        ],
-        "objectDescription": "Persistent loyal otherworldly steed that shares the caster's initiative, functions as a controlled mount while ridden, and communicates telepathically within 1 mile.",
-        "initiative": "shared",
-        "statBlock": {
-          "type": "Celestial/Fey/Fiend",
-          "size": "Large",
-          "hp": 25,
-          "ac": 12,
-          "speed": 60
-        },
-        "telepathyRange": 5280,
-        "commandCost": "none"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "Summon a persistent loyal steed companion in an unoccupied space within 30 feet, choosing Horse, Camel, Dire Wolf, or Elk appearance and Celestial, Fey, or Fiend creature type. The steed is allied, shares your Initiative count, functions as a controlled mount while ridden, acts independently after your turn to protect you if you are Incapacitated, communicates telepathically with you within 1 mile, disappears at 0 Hit Points or if you die, can be replaced or resummoned by recasting, and uses the spell slot level for AC, Hit Points, Hit Dice, flight at slot level 4+, attack damage, and Celestial, Fey, or Fiend traits.",
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You summon an otherworldly being that appears as a loyal steed in an unoccupied space of your choice within range. This creature uses the Otherworldly Steed stat block. If you already have a steed from this spell, the steed is replaced by the new one. The steed resembles a Large, rideable animal of your choice, such as a horse, a camel, a dire wolf, or an elk. Whenever you cast the spell, choose the steed's creature type-Celestial, Fey, or Fiend-which determines certain traits in the stat block. Combat. The steed is an ally to you and your allies. In combat, it shares your Initiative count, and it functions as a controlled mount while you ride it (as defined in the rules on mounted combat). If you have the Incapacitated condition, the steed takes its turn immediately after yours and acts independently, focusing on protecting you. Disappearance of the Steed. The steed disappears if it drops to 0 Hit Points or if you die. When it disappears, it leaves behind anything it was wearing or carrying. If you cast this spell again, you decide whether you summon the steed that disappeared or a different one.",
-  "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. Large Celestial, Fey, or Fiend (Your Choice), Neutral AC 10 + 1 per spell level HP 5 + 10 per spell level (the steed has a number of Hit Dice [d10s] equal to the spell's level) Speed 60 ft., Fly 60 ft. (requires level 4+ spell) Senses Passive Perception 11 Languages Telepathy 1 mile (works only with you) CR None (XP 0; PB equals your Proficiency Bonus) Life Bond. When you regain Hit Points from a level 1+ spell, the steed regains the same number of Hit Points if you're within 5 feet of it. Otherworldly Slam. Melee Attack Roll: Bonus equals your spell attack modifier, reach 5 ft. Hit: 1d8 plus the spell's level of Radiant (Celestial), Psychic (Fey), or Necrotic (Fiend) damage. Fell Glare (Fiend Only; Recharges after a Long Rest). Wisdom Saving Throw: DC equals your spell save DC, one creature within 60 feet the steed can see. Failure: The target has the Frightened condition until the end of your next turn. Fey Step (Fey Only; Recharges after a Long Rest). The steed teleports, along with its rider, to an unoccupied space of your choice up to 60 feet away from itself. Healing Touch (Celestial Only; Recharges after a Long Rest). One creature within 5 feet of the steed regains a number of Hit Points equal to 2d8 plus the spell's level.",
-  "tags": [
-    "summoning",
-    "mount",
-    "utility"
-  ],
-  "modeChoice": {
-    "type": "choose_one",
-    "timing": "on_cast",
-    "optionCount": 3,
-    "optionsSource": "modeChoice.options",
-    "canDismissActive": false,
-    "options": [
-      {
-        "label": "Celestial",
-        "summary": "The steed is Celestial, uses Radiant damage for Otherworldly Slam, and gains the Celestial Healing Touch trait.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "SUMMONING"
-        ],
-        "duration": "persistent until replaced, dismissed, reduced to 0 Hit Points, or caster dies"
-      },
-      {
-        "label": "Fey",
-        "summary": "The steed is Fey, uses Psychic damage for Otherworldly Slam, and gains the Fey Step teleport trait.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "SUMMONING"
-        ],
-        "duration": "persistent until replaced, dismissed, reduced to 0 Hit Points, or caster dies"
-      },
-      {
-        "label": "Fiend",
-        "summary": "The steed is Fiend, uses Necrotic damage for Otherworldly Slam, and gains the Fiend Fell Glare trait.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "SUMMONING"
-        ],
-        "duration": "persistent until replaced, dismissed, reduced to 0 Hit Points, or caster dies"
-      }
-    ],
-    "notes": "The summon.formOptions list carries the separate appearance choice. This mode menu captures the creature-type choice that changes damage type and type-specific traits."
-  }
+    "id":  "find-steed",
+    "name":  "Find Steed",
+    "aliases":  [
+
+                ],
+    "level":  2,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Paladin"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "instantaneous",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "unoccupied":  "required",
+                                                                  "surface":  "not_applicable",
+                                                                  "destination":  "caster_choice_visible_within_range",
+                                                                  "notes":  "Find Steed manifests the steed in an unoccupied space of the caster choice within range."
+                                                              }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "SUMMONING",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "summon":  {
+                                       "entityType":  "mount",
+                                       "persistent":  true,
+                                       "count":  1,
+                                       "dismissAction":  "action",
+                                       "formOptions":  [
+                                                           "Horse",
+                                                           "Camel",
+                                                           "Dire Wolf",
+                                                           "Elk"
+                                                       ],
+                                       "objectDescription":  "Persistent loyal otherworldly steed that shares the caster\u0027s initiative, functions as a controlled mount while ridden, and communicates telepathically within 1 mile.",
+                                       "initiative":  "shared",
+                                       "statBlock":  {
+                                                         "type":  "Celestial/Fey/Fiend",
+                                                         "size":  "Large",
+                                                         "hp":  25,
+                                                         "ac":  12,
+                                                         "speed":  60,
+                                                         "proficiencyBonus":  "caster_proficiency_bonus",
+                                                         "spellLevelScaling":  {
+                                                                                   "armorClass":  "10 + spell slot level",
+                                                                                   "hitPoints":  "5 + 10 per spell slot level",
+                                                                                   "hitDice":  "d10 count equals spell slot level",
+                                                                                   "flySpeed":  "60 ft. when cast with a level 4+ spell slot"
+                                                                               },
+                                                         "attacks":  [
+                                                                         {
+                                                                             "name":  "Otherworldly Slam",
+                                                                             "attackRollBonus":  "caster_spell_attack_modifier",
+                                                                             "reach":  "5 ft",
+                                                                             "damage":  "1d8 + spell slot level",
+                                                                             "damageTypeSource":  "chosen_creature_type",
+                                                                             "damageTypes":  {
+                                                                                                 "Celestial":  "Radiant",
+                                                                                                 "Fey":  "Psychic",
+                                                                                                 "Fiend":  "Necrotic"
+                                                                                             }
+                                                                         }
+                                                                     ],
+                                                         "savingThrowActions":  [
+                                                                                    {
+                                                                                        "name":  "Fell Glare",
+                                                                                        "creatureTypeRequired":  "Fiend",
+                                                                                        "recharge":  "long_rest",
+                                                                                        "saveType":  "Wisdom",
+                                                                                        "saveDC":  "caster_spell_save_dc",
+                                                                                        "range":  60,
+                                                                                        "failure":  "Frightened until the end of the caster\u0027s next turn"
+                                                                                    }
+                                                                                ]
+                                                     },
+                                       "telepathyRange":  5280,
+                                       "commandCost":  "none",
+                                       "stateResponses":  [
+                                                              {
+                                                                  "trigger":  "caster_has_incapacitated_condition",
+                                                                  "response":  "steed_takes_turn_immediately_after_caster_and_acts_independently_to_protect_caster"
+                                                              },
+                                                              {
+                                                                  "trigger":  "fiend_fell_glare_failed_wisdom_save",
+                                                                  "condition":  "Frightened",
+                                                                  "duration":  "until_end_of_caster_next_turn"
+                                                              }
+                                                          ],
+                                       "lifecycle":  {
+                                                         "hitPointEnding":  "steed_disappears_if_it_drops_to_0_hit_points",
+                                                         "casterDeathEnding":  "steed_disappears_if_caster_dies",
+                                                         "resummonState":  "persistent bond can return the steed on later casting according to spell persistence rules"
+                                                     },
+                                       "communication":  {
+                                                             "mode":  "telepathy",
+                                                             "rangeFeet":  5280,
+                                                             "participants":  "caster and steed only",
+                                                             "languageEntry":  "Telepathy 1 mile, works only with caster",
+                                                             "notes":  "The steed understands telepathic communication through the bonded mount link."
+                                                         },
+                                       "travelDetails":  {
+                                                             "mode":  "fey_step",
+                                                             "formRequired":  "Fey only",
+                                                             "recharge":  "Long Rest",
+                                                             "teleportDistanceFeet":  60,
+                                                             "includesRider":  true,
+                                                             "destination":  "unoccupied space of caster choice up to 60 feet from steed",
+                                                             "notes":  "Steed teleports itself and rider."
+                                                         }
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Summon a persistent loyal steed companion in an unoccupied space within 30 feet, choosing Horse, Camel, Dire Wolf, or Elk appearance and Celestial, Fey, or Fiend creature type. The steed is allied, shares your Initiative count, functions as a controlled mount while ridden, acts independently after your turn to protect you if you are Incapacitated, communicates telepathically with you within 1 mile, disappears at 0 Hit Points or if you die, can be replaced or resummoned by recasting, and uses the spell slot level for AC, Hit Points, Hit Dice, flight at slot level 4+, attack damage, and Celestial, Fey, or Fiend traits.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "healingSupport":  {
+                                               "lifeBond":  "When the caster regains Hit Points from a level 1 or higher spell, the steed regains the same number of Hit Points if it is within 5 feet.",
+                                               "celestialHealingTouch":  "Celestial steed can heal one creature within 5 feet for 2d8 plus the spell level once per long rest.",
+                                               "scope":  "summoned_steed_stat_block"
+                                           },
+                        "resourceLimit":  {
+                                              "steedRechargeOptions":  [
+                                                                           "Fell Glare recharges after Long Rest for Fiend steed",
+                                                                           "Fey Step recharges after Long Rest for Fey steed",
+                                                                           "Healing Touch recharges after Long Rest for Celestial steed"
+                                                                       ],
+                                              "scope":  "summoned_steed_stat_block"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Ask the caster to choose the unoccupied arrival space, steed appearance, and Celestial, Fey, or Fiend type; use the spell slot level for AC, Hit Points, Hit Dice, flight at level 4+, Otherworldly Slam damage, and type-specific action.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You summon an otherworldly being that appears as a loyal steed in an unoccupied space of your choice within range. This creature uses the Otherworldly Steed stat block. If you already have a steed from this spell, the steed is replaced by the new one. The steed resembles a Large, rideable animal of your choice, such as a horse, a camel, a dire wolf, or an elk. Whenever you cast the spell, choose the steed\u0027s creature type-Celestial, Fey, or Fiend-which determines certain traits in the stat block. Combat. The steed is an ally to you and your allies. In combat, it shares your Initiative count, and it functions as a controlled mount while you ride it (as defined in the rules on mounted combat). If you have the Incapacitated condition, the steed takes its turn immediately after yours and acts independently, focusing on protecting you. Disappearance of the Steed. The steed disappears if it drops to 0 Hit Points or if you die. When it disappears, it leaves behind anything it was wearing or carrying. If you cast this spell again, you decide whether you summon the steed that disappeared or a different one.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. Use the spell slot\u0027s level for the spell\u0027s level in the stat block. Large Celestial, Fey, or Fiend (Your Choice), Neutral AC 10 + 1 per spell level HP 5 + 10 per spell level (the steed has a number of Hit Dice [d10s] equal to the spell\u0027s level) Speed 60 ft., Fly 60 ft. (requires level 4+ spell) Senses Passive Perception 11 Languages Telepathy 1 mile (works only with you) CR None (XP 0; PB equals your Proficiency Bonus) Life Bond. When you regain Hit Points from a level 1+ spell, the steed regains the same number of Hit Points if you\u0027re within 5 feet of it. Otherworldly Slam. Melee Attack Roll: Bonus equals your spell attack modifier, reach 5 ft. Hit: 1d8 plus the spell\u0027s level of Radiant (Celestial), Psychic (Fey), or Necrotic (Fiend) damage. Fell Glare (Fiend Only; Recharges after a Long Rest). Wisdom Saving Throw: DC equals your spell save DC, one creature within 60 feet the steed can see. Failure: The target has the Frightened condition until the end of your next turn. Fey Step (Fey Only; Recharges after a Long Rest). The steed teleports, along with its rider, to an unoccupied space of your choice up to 60 feet away from itself. Healing Touch (Celestial Only; Recharges after a Long Rest). One creature within 5 feet of the steed regains a number of Hit Points equal to 2d8 plus the spell\u0027s level.",
+    "tags":  [
+                 "summoning",
+                 "mount",
+                 "utility"
+             ],
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  3,
+                       "optionsSource":  "modeChoice.options",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Celestial",
+                                           "summary":  "The steed is Celestial, uses Radiant damage for Otherworldly Slam, and gains the Celestial Healing Touch trait.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "SUMMONING"
+                                                           ],
+                                           "duration":  "persistent until replaced, dismissed, reduced to 0 Hit Points, or caster dies"
+                                       },
+                                       {
+                                           "label":  "Fey",
+                                           "summary":  "The steed is Fey, uses Psychic damage for Otherworldly Slam, and gains the Fey Step teleport trait.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "SUMMONING"
+                                                           ],
+                                           "duration":  "persistent until replaced, dismissed, reduced to 0 Hit Points, or caster dies"
+                                       },
+                                       {
+                                           "label":  "Fiend",
+                                           "summary":  "The steed is Fiend, uses Necrotic damage for Otherworldly Slam, and gains the Fiend Fell Glare trait.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "SUMMONING"
+                                                           ],
+                                           "duration":  "persistent until replaced, dismissed, reduced to 0 Hit Points, or caster dies"
+                                       }
+                                   ],
+                       "notes":  "The summon.formOptions list carries the separate appearance choice. This mode menu captures the creature-type choice that changes damage type and type-specific traits."
+                   }
 }

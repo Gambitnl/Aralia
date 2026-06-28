@@ -53,6 +53,15 @@ export interface LockpickResult {
     triggeredTrap: boolean;
     trapEffect?: TrapEffect;
 }
+/**
+ * Key unlocks report only the lock/key comparison outcome.
+ * Inventory systems decide which key ids are available before calling the puzzle runtime.
+ */
+export interface KeyUnlockResult {
+    success: boolean;
+    matchedKeyId?: string;
+    reason: 'already_unlocked' | 'no_key_required' | 'matching_key' | 'missing_key';
+}
 export interface BreakResult {
     success: boolean;
     margin: number;

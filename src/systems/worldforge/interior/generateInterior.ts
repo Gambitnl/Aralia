@@ -211,6 +211,16 @@ function buildFloor(
   return { rooms, doorways, furnishings: clearFurnishings, anchorRoomId };
 }
 
+// generateInterior is pure and deterministic but called repeatedly for the SAME
+// plot — the roster generates it to count bedrooms, the 3D bake generates it for
+// the wall envelope + parts, and chunk reloads regenerate it. Memoize per
+// (seedPath, plot.id, role, storeys, dims): the interior path encodes (seedPath,
+// plot.id) and the rest complete the key. Callers treat the result as read-only,
+// so sharing the cached instance is safe. Soft cap guards against unbounded
+// growth across a long session (regeneration is cheap + deterministic).
+const interiorMemo = new Map<string, InteriorPlan>();
+const INTERIOR_MEMO_CAP = 50_000;
+
 export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): InteriorPlan {
   const interiorPath = childSeedPath(seedPath, `interior:${plot.id}`);
 
@@ -218,6 +228,12 @@ export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): I
   const [c0, c1, , c3] = plot.footprint;
   const widthFt = Math.max(MIN_ROOM_FT, snapDown(Math.hypot(c1[0] - c0[0], c1[1] - c0[1])));
   const depthFt = Math.max(MIN_ROOM_FT, snapDown(Math.hypot(c3[0] - c0[0], c3[1] - c0[1])));
+  const storeys = Math.max(1, Math.floor(plot.storeys || 1));
+
+  const memoKey = `${interiorPath}|${plot.role}|${storeys}|${widthFt}|${depthFt}`;
+  const cached = interiorMemo.get(memoKey);
+  if (cached) return cached;
+
   const isMarket = plot.role === 'market';
 
   // Ground floor — seeded by the interior path, so it reproduces byte-for-byte.
@@ -226,7 +242,6 @@ export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): I
   // Multi-storey: a single vertical stair shaft at the ground entry room's
   // centroid (interior, clear of the wall doorways), repeated up each gap. Each
   // upper floor packs the same envelope (sleeping quarters), reached at the stair.
-  const storeys = Math.max(1, Math.floor(plot.storeys || 1));
   const upperFloors: InteriorFloor[] = [];
   const stairs: InteriorStair[] = [];
   if (storeys > 1) {
@@ -244,7 +259,7 @@ export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): I
     }
   }
 
-  return {
+  const result: InteriorPlan = {
     plotId: plot.id,
     widthFt,
     depthFt,
@@ -255,6 +270,9 @@ export function generateInterior(plot: InteriorPlotInput, seedPath: SeedPath): I
     upperFloors,
     stairs,
   };
+  if (interiorMemo.size >= INTERIOR_MEMO_CAP) interiorMemo.clear();
+  interiorMemo.set(memoKey, result);
+  return result;
 }
 
 /** One props pass per room. Positions are room-interior feet, wall-snapped. */

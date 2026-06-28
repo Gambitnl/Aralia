@@ -300,7 +300,27 @@
           "rangeLimit": 30
         }
       ],
-      "attackAugments": [],
+      "attackAugments": [
+        {
+          "name": "Blade melee spell attacks",
+          "attackType": "melee_spell_attack",
+          "attacksPerActivation": 2,
+          "reachFeet": 5,
+          "validTargets": [
+            "creature",
+            "loose_object",
+            "structure"
+          ]
+        },
+        {
+          "name": "Critical threshold",
+          "criticalHitThreshold": 18,
+          "criticalDamage": {
+            "dice": "8d12",
+            "type": "Force"
+          }
+        }
+      ],
       "controlOptions": [
         {
           "name": "Planar blade",
@@ -446,8 +466,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose an unoccupied visible space within 60 feet for the blade. On cast and after each Bonus Action movement up to 30 feet, make up to two melee spell attacks against creatures, loose objects, or structures within 5 feet of the blade; treat 18+ on the d20 as a critical hit and add the extra Force damage.",
+    "playerInputRequired": true
   },
   "description": "You create a blade-shaped planar rift about 3 feet long in an unoccupied space you can see within range. The blade lasts for the duration. When you cast this spell, you can make up to two melee spell attacks with the blade, each one against a creature, loose object, or structure within 5 feet of the blade. On a hit, the target takes 4d12 force damage. This attack scores a critical hit if the number on the d20 is 18 or higher. On a critical hit, the blade deals an extra 8d12 force damage (for a total of 12d12 force damage). As a bonus action on your turn, you can move the blade up to 30 feet to an unoccupied space you can see and then make up to two melee spell attacks with it again. The blade can harmlessly pass through any barrier, including a Wall of Force.",
   "higherLevels": "",

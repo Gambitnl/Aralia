@@ -165,7 +165,7 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                             key={msg.id}
                             className={`conversation-message ${isPlayer ? 'player' : 'companion'}`}
                         >
-                            <span className="message-speaker">{speakerName}:</span>
+                            {speakerName && <span className="message-speaker">{speakerName}:</span>}
                             <span className="message-text">{msg.text}</span>
                         </div>
                     );

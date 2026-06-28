@@ -120,6 +120,21 @@ export const isStepCompleted = (step: CreationStep, state: CharacterCreationStat
 };
 
 /**
+ * A step counts toward visible progress (green check + the footer tally) only
+ * once the player has actually reached it. Without the "reached" gate, steps
+ * with defaults (e.g. Appearance) read as complete before they are visited,
+ * so the sidebar showed a green check the footer count refused to credit
+ * ("3 checks / 2 complete"). Gating the checkmark and the count through this
+ * single predicate keeps the two in lock-step. The current step counts as
+ * reached so confirming it never lags the displayed tally.
+ */
+export const isStepReachedAndComplete = (
+  step: CreationStep,
+  currentStep: CreationStep,
+  state: CharacterCreationState,
+): boolean => step <= currentStep && isStepCompleted(step, state);
+
+/**
  * Group display configuration
  */
 export const STEP_GROUPS: Record<StepGroup, { label: string; order: number }> = {
@@ -179,7 +194,7 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
 
   // === ABILITIES GROUP ===
   // NOTE: This sequence mirrors the wizard's actual traversal order
-  // (Ability Scores → Skillful → Skills → Class Features → Weapon Mastery →
+  // (Ability Scores → Skill Proficiency → Skills → Class Features → Weapon Mastery →
   // Origin Feat → Racial Feat). Keep it in sync with the step-advance logic in
   // characterCreatorState.ts so the numbered list never jumps backwards (GAPS.md G9).
   {
@@ -196,7 +211,7 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
   // Deprecated sidebar step removed: RacialSpellAbilityChoice - now handled inline in RaceDetailPane
   {
     step: CreationStep.HumanSkillChoice,
-    label: 'Skillful',
+    label: 'Skill Proficiency',
     group: 'abilities',
     getSelectionSummary: (state) => {
       const raceKey = state.selectedRace?.id ?? 'human';

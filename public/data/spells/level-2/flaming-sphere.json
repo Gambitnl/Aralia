@@ -1,422 +1,503 @@
-{
-  "id": "flaming-sphere",
-  "name": "Flaming Sphere",
-  "aliases": [],
-  "level": 2,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a ball of wax",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "range": 60,
-    "validTargets": [
-      "point"
-    ],
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 5,
-      "height": 0,
-      "sizeType": "diameter",
-      "sizeUnit": "feet"
-    },
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Flaming Sphere",
-          "shape": "Sphere",
-          "size": 5,
-          "sizeType": "diameter",
-          "sizeUnit": "feet",
-          "notes": "Created sphere size."
-        }
-      ],
-      "measuredDetails": [
-        {
-          "label": "Heat Radius",
-          "kind": "distance",
-          "value": 5,
-          "unit": "feet",
-          "notes": "Creatures ending their turn within this distance save."
-        },
-        {
-          "label": "Move Distance",
-          "kind": "distance",
-          "value": 30,
-          "unit": "feet",
-          "notes": "As a Bonus Action, you can roll the sphere this far."
-        },
-        {
-          "label": "Barrier Height",
-          "kind": "distance",
-          "value": 5,
-          "unit": "feet",
-          "notes": "The sphere can be directed over barriers up to this height."
-        },
-        {
-          "label": "Pit Width",
-          "kind": "distance",
-          "value": 10,
-          "unit": "feet",
-          "notes": "The sphere can jump pits up to this width."
-        },
-        {
-          "label": "Bright Light Radius",
-          "kind": "distance",
-          "value": 20,
-          "unit": "feet"
-        },
-        {
-          "label": "Dim Light Radius",
-          "kind": "distance",
-          "value": 20,
-          "unit": "feet",
-          "qualifier": "additional"
-        }
-      ]
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "turn_end",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Dexterity",
-        "saveEffect": "half",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "2d6",
-        "type": "Fire"
-      },
-      "description": "A creature that ends its turn within 5 feet of the sphere makes a Dexterity save, taking 2d6 Fire damage on a failed save or half as much on a success.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+1d6",
-        "customFormula": ""
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "on_caster_action",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Dexterity",
-        "saveEffect": "half",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "2d6",
-        "type": "Fire"
-      },
-      "description": "As a Bonus Action, the caster can move the sphere up to 30 feet; if it enters a creature's space, that creature makes a Dexterity save against 2d6 Fire damage and the sphere stops moving for the turn.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+1d6",
-        "customFormula": ""
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "creation",
-      "description": "You can move the sphere up to 30 feet, rolling it along the ground.",
-      "createdObjects": [
-        {
-          "objectType": "hazard",
-          "name": "Flaming Sphere",
-          "count": 1,
-          "countUnit": "item",
-          "appearsIn": "unoccupied_space",
-          "diameterFeet": 5,
-          "moveDistanceFeet": 30,
-          "barrierHeightFeet": 5,
-          "pitJumpWidthFeet": 10,
-          "hazardRadiusFeet": 5,
-          "flammable": false,
-          "ignitesTouchedObjects": true,
-          "expiresWithSpell": true,
-          "shelfLife": "1 minute",
-          "burnDamage": {
-            "dice": "2d6",
-            "type": "Fire"
-          },
-          "notes": "A 5-foot-diameter sphere of fire appears in an unoccupied ground space, can be moved 30 feet as a bonus action, crosses 5-foot barriers, jumps 10-foot pits, damages creatures near it, and ignites unattended flammable objects it touches."
-        }
-      ],
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [
-        {
-          "type": "bonus_action",
-          "action": "Move Sphere",
-          "frequency": "each_turn",
-          "actor": "caster",
-          "actionKind": "bonus_action",
-          "areaShape": "Sphere",
-          "areaSize": 5,
-          "areaSizeUnit": "feet",
-          "rangeLimit": 30,
-          "damage": {
-            "dice": "2d6",
-            "type": "Fire"
-          },
-          "saveType": "Dexterity",
-          "saveEffect": "half",
-          "notes": "Move the sphere up to 30 feet, rolling it along the ground. If it enters a creature's space, that creature makes a Dexterity save against the sphere's Fire damage and the sphere stops moving for the turn."
-        }
-      ],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 20,
-        "dimRadius": 20,
-        "attachedTo": "point",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": true,
-        "ignitesObjects": true,
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You create a 5-foot-diameter sphere of fire in an unoccupied space on the ground within range. It lasts for the duration. Any creature that ends its turn within 5 feet of the sphere makes a Dexterity saving throw, taking 2d6 Fire damage on a failed save or half as much damage on a successful one. As a Bonus Action, you can move the sphere up to 30 feet, rolling it along the ground. If you move the sphere into a creature's space, that creature makes the save against the sphere, and the sphere stops moving for the turn. When you move the sphere, you can direct it over barriers up to 5 feet tall and jump it across pits up to 10 feet wide. Flammable objects that aren't being worn or carried start burning if touched by the sphere, and it sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet.",
-  "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 2.",
-  "tags": [
-    "damage",
-    "fire",
-    "area",
-    "concentration"
-  ]
+﻿{
+    "id":  "flaming-sphere",
+    "name":  "Flaming Sphere",
+    "aliases":  [
+
+                ],
+    "level":  2,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a ball of wax",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  60,
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "areaOfEffect":  {
+                                           "shape":  "Sphere",
+                                           "size":  5,
+                                           "height":  0,
+                                           "sizeType":  "diameter",
+                                           "sizeUnit":  "feet"
+                                       },
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "unoccupied":  "required",
+                                                                  "surface":  "ground",
+                                                                  "destination":  "caster_choice_visible_within_range",
+                                                                  "notes":  "Flaming Sphere appears in an unoccupied space on the ground within range."
+                                                              }
+                                 },
+                      "rangeUnit":  "feet",
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Flaming Sphere",
+                                                               "shape":  "Sphere",
+                                                               "size":  5,
+                                                               "sizeType":  "diameter",
+                                                               "sizeUnit":  "feet",
+                                                               "notes":  "Created sphere size."
+                                                           }
+                                                       ],
+                                             "measuredDetails":  [
+                                                                     {
+                                                                         "label":  "Heat Radius",
+                                                                         "kind":  "distance",
+                                                                         "value":  5,
+                                                                         "unit":  "feet",
+                                                                         "notes":  "Creatures ending their turn within this distance save."
+                                                                     },
+                                                                     {
+                                                                         "label":  "Move Distance",
+                                                                         "kind":  "distance",
+                                                                         "value":  30,
+                                                                         "unit":  "feet",
+                                                                         "notes":  "As a Bonus Action, you can roll the sphere this far."
+                                                                     },
+                                                                     {
+                                                                         "label":  "Barrier Height",
+                                                                         "kind":  "distance",
+                                                                         "value":  5,
+                                                                         "unit":  "feet",
+                                                                         "notes":  "The sphere can be directed over barriers up to this height."
+                                                                     },
+                                                                     {
+                                                                         "label":  "Pit Width",
+                                                                         "kind":  "distance",
+                                                                         "value":  10,
+                                                                         "unit":  "feet",
+                                                                         "notes":  "The sphere can jump pits up to this width."
+                                                                     },
+                                                                     {
+                                                                         "label":  "Bright Light Radius",
+                                                                         "kind":  "distance",
+                                                                         "value":  20,
+                                                                         "unit":  "feet"
+                                                                     },
+                                                                     {
+                                                                         "label":  "Dim Light Radius",
+                                                                         "kind":  "distance",
+                                                                         "value":  20,
+                                                                         "unit":  "feet",
+                                                                         "qualifier":  "additional"
+                                                                     }
+                                                                 ]
+                                         }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "turn_end",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Dexterity",
+                                          "saveEffect":  "half",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "2d6",
+                                       "type":  "Fire"
+                                   },
+                        "description":  "A creature that ends its turn within 5 feet of the sphere makes a Dexterity save, taking 2d6 Fire damage on a failed save or half as much on a success.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+1d6",
+                                        "customFormula":  ""
+                                    },
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "on_caster_action",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Dexterity",
+                                          "saveEffect":  "half",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "2d6",
+                                       "type":  "Fire"
+                                   },
+                        "description":  "As a Bonus Action, the caster can move the sphere up to 30 feet; if it enters a creature\u0027s space, that creature makes a Dexterity save against 2d6 Fire damage and the sphere stops moving for the turn.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "+1d6",
+                                        "customFormula":  ""
+                                    },
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "creation",
+                        "description":  "You can move the sphere up to 30 feet, rolling it along the ground.",
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "hazard",
+                                                   "name":  "Flaming Sphere",
+                                                   "count":  1,
+                                                   "countUnit":  "item",
+                                                   "appearsIn":  "unoccupied_space",
+                                                   "diameterFeet":  5,
+                                                   "moveDistanceFeet":  30,
+                                                   "barrierHeightFeet":  5,
+                                                   "pitJumpWidthFeet":  10,
+                                                   "hazardRadiusFeet":  5,
+                                                   "flammable":  false,
+                                                   "ignitesTouchedObjects":  true,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "1 minute",
+                                                   "burnDamage":  {
+                                                                      "dice":  "2d6",
+                                                                      "type":  "Fire"
+                                                                  },
+                                                   "notes":  "A 5-foot-diameter sphere of fire appears in an unoccupied ground space, can be moved 30 feet as a bonus action, crosses 5-foot barriers, jumps 10-foot pits, damages creatures near it, and ignites unattended flammable objects it touches.",
+                                                   "excludesWornOrCarriedObjects":  true
+                                               }
+                                           ],
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "bonus_action",
+                                                   "action":  "Move Sphere",
+                                                   "frequency":  "each_turn",
+                                                   "actor":  "caster",
+                                                   "actionKind":  "bonus_action",
+                                                   "areaShape":  "Sphere",
+                                                   "areaSize":  5,
+                                                   "areaSizeUnit":  "feet",
+                                                   "rangeLimit":  30,
+                                                   "damage":  {
+                                                                  "dice":  "2d6",
+                                                                  "type":  "Fire"
+                                                              },
+                                                   "saveType":  "Dexterity",
+                                                   "saveEffect":  "half",
+                                                   "notes":  "Move the sphere up to 30 feet, rolling it along the ground. If it enters a creature\u0027s space, that creature makes a Dexterity save against the sphere\u0027s Fire damage and the sphere stops moving for the turn."
+                                               }
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  20,
+                                      "dimRadius":  20,
+                                      "attachedTo":  "point",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  true,
+                                      "ignitesObjects":  true,
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You create a 5-foot-diameter sphere of fire in an unoccupied space on the ground within range. It lasts for the duration. Any creature that ends its turn within 5 feet of the sphere makes a Dexterity saving throw, taking 2d6 Fire damage on a failed save or half as much damage on a successful one. As a Bonus Action, you can move the sphere up to 30 feet, rolling it along the ground. If you move the sphere into a creature\u0027s space, that creature makes the save against the sphere, and the sphere stops moving for the turn. When you move the sphere, you can direct it over barriers up to 5 feet tall and jump it across pits up to 10 feet wide. Flammable objects that aren\u0027t being worn or carried start burning if touched by the sphere, and it sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet.",
+    "higherLevels":  "Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 2.",
+    "tags":  [
+                 "damage",
+                 "fire",
+                 "area",
+                 "concentration"
+             ]
 }

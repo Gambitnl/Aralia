@@ -1,7 +1,7 @@
 {
   "schemaKind": "spell-json-schema",
   "part": "20-effect-payloads",
-  "definitionCount": 9,
+  "definitionCount": 10,
   "definitions": {
     "DamageEffect": {
       "type": "object",
@@ -193,6 +193,9 @@
           "required": [
             "type"
           ]
+        },
+        "missDamageMultiplier": {
+          "type": "number"
         }
       },
       "required": [
@@ -233,6 +236,82 @@
       "required": [
         "type",
         "healing"
+      ]
+    },
+    "AttackRollModifierEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "ATTACK_ROLL_MODIFIER"
+        },
+        "attackRollModifier": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "condition": {
+              "type": "string"
+            },
+            "duration": {
+              "type": "string"
+            }
+          }
+        },
+        "savingThrowModifier": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "condition": {
+              "type": "string"
+            },
+            "duration": {
+              "type": "string"
+            }
+          }
+        },
+        "damage": {
+          "type": "object",
+          "properties": {
+            "dice": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            }
+          }
+        },
+        "statusCondition": {
+          "type": "object"
+        },
+        "light": {
+          "type": "object"
+        },
+        "invisibilitySuppression": {
+          "type": "object",
+          "properties": {
+            "suppressesConditionBenefit": {
+              "type": "string"
+            },
+            "scope": {
+              "type": "string"
+            },
+            "duration": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "suppressesConditionBenefit"
+          ]
+        }
+      },
+      "required": [
+        "type"
       ]
     },
     "StatusConditionEffect": {
@@ -523,6 +602,97 @@
         },
         "trigger": {
           "$ref": "#/definitions/EffectTrigger"
+        },
+        "summon": {
+          "type": "object",
+          "properties": {
+            "actionPermissions": {
+              "type": "object",
+              "properties": {
+                "canAttack": {
+                  "type": "boolean"
+                },
+                "canDeliverTouchSpells": {
+                  "type": "boolean"
+                },
+                "touchDeliveryRangeFeet": {
+                  "type": "number"
+                },
+                "touchDeliveryCost": {
+                  "type": "string",
+                  "enum": [
+                    "action",
+                    "bonus_action",
+                    "reaction",
+                    "free",
+                    "none"
+                  ]
+                },
+                "independentInitiative": {
+                  "type": "boolean"
+                },
+                "obeysCasterCommands": {
+                  "type": "boolean"
+                },
+                "commandCost": {
+                  "type": "string",
+                  "enum": [
+                    "action",
+                    "bonus_action",
+                    "reaction",
+                    "free",
+                    "none"
+                  ]
+                },
+                "defaultUncommandedAction": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                }
+              }
+            },
+            "formTraits": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "appliesToForms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "opportunityAttackPolicy": {
+                    "type": "string",
+                    "enum": [
+                      "does_not_provoke_when_flying_out_of_reach",
+                      "normal"
+                    ]
+                  },
+                  "movementModeRequired": {
+                    "type": "string",
+                    "enum": [
+                      "fly",
+                      "walk",
+                      "swim",
+                      "climb",
+                      "any"
+                    ]
+                  },
+                  "notes": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
         }
       },
       "required": [
@@ -2250,3 +2420,4 @@
     }
   }
 }
+

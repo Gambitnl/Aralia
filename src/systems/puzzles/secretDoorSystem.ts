@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 27/06/2026, 02:18:23
+ * Dependents: None (Orphan)
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -9,16 +25,8 @@
 import { PlayerCharacter } from '../../types/character';
 import { rollDice } from '../../utils/combatUtils';
 import { getAbilityModifierValue } from '../../utils/statUtils';
+import { getPuzzleCharacterStats } from './characterAbilityBridge';
 import { SecretDoor, SecretDoorResult } from './types';
-
-const getLegacyStats = (character: PlayerCharacter) => ({
-  strength: character.stats?.strength ?? character.finalAbilityScores?.Strength ?? character.abilityScores.Strength,
-  dexterity: character.stats?.dexterity ?? character.finalAbilityScores?.Dexterity ?? character.abilityScores.Dexterity,
-  constitution: character.stats?.constitution ?? character.finalAbilityScores?.Constitution ?? character.abilityScores.Constitution,
-  intelligence: character.stats?.intelligence ?? character.finalAbilityScores?.Intelligence ?? character.abilityScores.Intelligence,
-  wisdom: character.stats?.wisdom ?? character.finalAbilityScores?.Wisdom ?? character.abilityScores.Wisdom,
-  charisma: character.stats?.charisma ?? character.finalAbilityScores?.Charisma ?? character.abilityScores.Charisma,
-});
 
 const getClasses = (character: PlayerCharacter) => character.classes ?? (character.class ? [character.class] : []);
 
@@ -39,7 +47,7 @@ export function searchForSecretDoor(
     };
   }
 
-  const stats = getLegacyStats(character);
+  const stats = getPuzzleCharacterStats(character);
   const wisMod = getAbilityModifierValue(stats.wisdom); // Perception
 
   // Proficiency Check (Simplified)
@@ -97,7 +105,7 @@ export function investigateMechanism(
   // If the mechanism is "obvious" (DC 0 or very low), auto-succeed?
   // Or maybe this function is only called if the player tries to *use* it.
 
-  const stats = getLegacyStats(character);
+  const stats = getPuzzleCharacterStats(character);
   const intMod = getAbilityModifierValue(stats.intelligence); // Investigation
 
   // Proficiency Check (Simplified)

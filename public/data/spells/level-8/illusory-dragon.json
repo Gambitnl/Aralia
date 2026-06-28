@@ -1,451 +1,587 @@
 {
-  "id": "illusory-dragon",
-  "name": "Illusory Dragon",
-  "aliases": [],
-  "level": 8,
-  "school": "Illusion",
-  "legacy": false,
-  "classes": [
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": false,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 1,
-    "unit": "minute"
-  },
-  "targeting": {
-    "type": "point",
-    "range": 120,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "Create a Huge tangible shadow-dragon illusion in an unoccupied visible space within 120 feet for up to 1 minute with concentration, choosing acid, cold, fire, lightning, necrotic, or poison for its breath. The caster controls its bonus-action move-and-breath sequence, attacks miss it, it succeeds on saves, it is immune to damage and conditions, and creatures can use an Intelligence (Investigation) action to discern the illusion.",
-      "utilityType": "other",
-      "grantedActions": [
-        {
-          "type": "bonus_action",
-          "action": "Move the illusory dragon up to 60 feet and optionally exhale its breath during the movement.",
-          "frequency": "each_turn"
-        }
-      ],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Dragon illusion",
-          "effect": "Creates a Huge shadowy dragon in an unoccupied visible space; it occupies its space as if it were a creature."
-        },
-        {
-          "name": "Fear appearance",
-          "effect": "Enemies that can see the illusion when it appears make a Wisdom save or become Frightened of it for 1 minute."
-        },
-        {
-          "name": "Bonus-action movement",
-          "effect": "As a Bonus Action, the caster can move the illusion up to 60 feet."
-        },
-        {
-          "name": "Breath damage type",
-          "effect": "When creating the dragon, choose acid, cold, fire, lightning, necrotic, or poison for the breath damage type."
-        },
-        {
-          "name": "Tangible illusion defenses",
-          "effect": "Attacks miss the illusion automatically; it succeeds on all saving throws and is immune to all damage and conditions."
-        },
-        {
-          "name": "Study to discern",
-          "effect": "A creature can use an action for an Intelligence (Investigation) check against the spell save DC to identify the illusion."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveType": "Wisdom",
-        "saveEffect": "negates_condition",
-        "saveOutcomeOverrides": []
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "When the Huge shadow-dragon illusion appears in an unoccupied visible space within 120 feet, enemies that can see it must make a Wisdom save or become Frightened for 1 minute, repeating the save at end of turn if they no longer have line of sight.",
-      "statusCondition": {
-        "name": "Frightened",
-        "duration": {
-          "type": "special"
-        },
-        "repeatSave": {
-          "timing": "turn_end",
-          "saveType": "Wisdom",
-          "successEnds": true,
-          "useOriginalDC": true
-        }
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "on_caster_action",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [
-          {
-            "type": "advantage",
-            "appliesTo": {
-              "creatureTypes": [],
-              "excludeCreatureTypes": [],
-              "sizes": [],
-              "alignments": [],
-              "hasCondition": [
-                "Discerned Illusion"
-              ],
-              "isNativeToPlane": false,
-              "willing": "not_applicable",
-              "objectEligibility": {
-                "wornOrCarried": "not_applicable",
-                "magicalStatus": "not_applicable",
-                "fixedToSurface": "not_applicable",
-                "maxSize": "not_applicable",
-                "maxWeightPounds": "not_applicable",
-                "maxWeightScaling": "not_applicable"
+    "id":  "illusory-dragon",
+    "name":  "Illusory Dragon",
+    "aliases":  [
+
+                ],
+    "level":  8,
+    "school":  "Illusion",
+    "legacy":  false,
+    "classes":  [
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
               },
-              "communicationPrerequisites": {
-                "canHearCaster": "not_applicable",
-                "canUnderstandCaster": "not_applicable",
-                "canSeeCaster": "not_applicable"
-              },
-              "abilityThreshold": {
-                "ability": "not_applicable",
-                "operator": "not_applicable",
-                "value": "not_applicable"
-              },
-              "selfRelation": "not_applicable"
-            },
-            "reason": "A creature that discerns the illusion can see through it and has Advantage on saving throws against its breath."
-          }
-        ],
-        "saveType": "Intelligence",
-        "saveEffect": "half",
-        "saveOutcomeOverrides": []
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "During the bonus-action movement, the illusory dragon can exhale a 60-foot cone from its space; creatures in the cone make an Intelligence save, taking 7d6 of the chosen Acid, Cold, Fire, Lightning, Necrotic, or Poison damage on a failed save or half as much on a success, with Advantage for creatures that have discerned the illusion.",
-      "damage": {
-        "dice": "7d6",
-        "type": "acid, cold, fire, lightning, necrotic, or poison"
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "MOVEMENT",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "As a Bonus Action during the 1-minute concentration duration, the caster can move the tangible dragon illusion up to 60 feet and can trigger its 60-foot cone breath at any point during that movement.",
-      "movementType": "speed_change",
-      "distance": 60,
-      "duration": {
-        "type": "minutes",
-        "value": 1
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "Ask the caster to choose the dragon breath damage type: acid, cold, fire, lightning, necrotic, or poison.",
-    "playerInputRequired": true
-  },
-  "description": "By gathering threads of shadow material from the Shadowfell, you create a Huge shadowy dragon in an unoccupied space that you can see within range. The illusion lasts for the spell's duration and occupies its space, as if it were a creature. When the illusion appears, any of your enemies that can see it must succeed on a Wisdom saving throw or become frightened of it for 1 minute. If a frightened creature ends its turn in a location where it doesn't have line of sight to the illusion, it can repeat the saving throw, ending the effect on itself on a success. As a bonus action on your turn, you can move the illusion up to 60 feet. At any point during its movement, you can cause it to exhale a blast of energy in a 60-foot cone originating from its space. When you create the dragon, choose a damage type: acid, cold, fire, lightning, necrotic, or poison. Each creature in the cone must make an Intelligence saving throw, taking 7d6 damage of the chosen damage type on a failed save, or half as much damage on a successful one. The illusion is tangible because of the shadow stuff used to create it, but attacks miss it automatically, it succeeds on all saving throws, and it is immune to all damage and conditions. A creature that uses an action to examine the dragon can determine that it is an illusion by succeeding on an Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through it and has advantage on saving throws against its breath.",
-  "higherLevels": "",
-  "tags": [
-    "concentration"
-  ]
+    "components":  {
+                       "verbal":  false,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  1,
+                     "unit":  "minute"
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  120,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Create a Huge tangible shadow-dragon illusion in an unoccupied visible space within 120 feet for up to 1 minute with concentration, choosing acid, cold, fire, lightning, necrotic, or poison for its breath. The caster controls its bonus-action move-and-breath sequence, attacks miss it, it succeeds on saves, it is immune to damage and conditions, and creatures can use an Intelligence (Investigation) action to discern the illusion.",
+                        "utilityType":  "other",
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "bonus_action",
+                                                   "action":  "Move the illusory dragon up to 60 feet and optionally exhale its breath during the movement.",
+                                                   "frequency":  "each_turn"
+                                               }
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Dragon illusion",
+                                                   "effect":  "Creates a Huge shadowy dragon in an unoccupied visible space; it occupies its space as if it were a creature."
+                                               },
+                                               {
+                                                   "name":  "Fear appearance",
+                                                   "effect":  "Enemies that can see the illusion when it appears make a Wisdom save or become Frightened of it for 1 minute."
+                                               },
+                                               {
+                                                   "name":  "Bonus-action movement",
+                                                   "effect":  "As a Bonus Action, the caster can move the illusion up to 60 feet."
+                                               },
+                                               {
+                                                   "name":  "Breath damage type",
+                                                   "effect":  "When creating the dragon, choose acid, cold, fire, lightning, necrotic, or poison for the breath damage type."
+                                               },
+                                               {
+                                                   "name":  "Tangible illusion defenses",
+                                                   "effect":  "Attacks miss the illusion automatically; it succeeds on all saving throws and is immune to all damage and conditions."
+                                               },
+                                               {
+                                                   "name":  "Study to discern",
+                                                   "effect":  "A creature can use an action for an Intelligence (Investigation) check against the spell save DC to identify the illusion."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "illusionState":  {
+                                              "kind":  "tangible_shadow_dragon_illusion",
+                                              "size":  "Huge",
+                                              "occupancy":  "occupies_space_as_if_creature",
+                                              "defenses":  "attacks_miss_automatically_succeeds_saves_immune_damage_conditions",
+                                              "fear":  "enemies_that_see_appearance_save_or_Frightened",
+                                              "movement":  "Bonus_Action_move_up_to_60_feet",
+                                              "breath":  "60_foot_cone_from_illusion_space_during_movement",
+                                              "discerned":  "creature_that_discerns_can_see_through_and_has_Advantage_on_breath_saves"
+                                          }
+                    },
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "negates_condition",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "When the Huge shadow-dragon illusion appears in an unoccupied visible space within 120 feet, enemies that can see it must make a Wisdom save or become Frightened for 1 minute, repeating the save at end of turn if they no longer have line of sight.",
+                        "statusCondition":  {
+                                                "name":  "Frightened",
+                                                "duration":  {
+                                                                 "type":  "special"
+                                                             },
+                                                "repeatSave":  {
+                                                                   "timing":  "turn_end",
+                                                                   "saveType":  "Wisdom",
+                                                                   "successEnds":  true,
+                                                                   "useOriginalDC":  true
+                                                               }
+                                            },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "illusionState":  {
+                                              "kind":  "tangible_shadow_dragon_illusion",
+                                              "size":  "Huge",
+                                              "occupancy":  "occupies_space_as_if_creature",
+                                              "defenses":  "attacks_miss_automatically_succeeds_saves_immune_damage_conditions",
+                                              "fear":  "enemies_that_see_appearance_save_or_Frightened",
+                                              "movement":  "Bonus_Action_move_up_to_60_feet",
+                                              "breath":  "60_foot_cone_from_illusion_space_during_movement",
+                                              "discerned":  "creature_that_discerns_can_see_through_and_has_Advantage_on_breath_saves"
+                                          }
+                    },
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "on_caster_action",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+                                                                {
+                                                                    "type":  "advantage",
+                                                                    "appliesTo":  {
+                                                                                      "creatureTypes":  [
+
+                                                                                                        ],
+                                                                                      "excludeCreatureTypes":  [
+
+                                                                                                               ],
+                                                                                      "sizes":  [
+
+                                                                                                ],
+                                                                                      "alignments":  [
+
+                                                                                                     ],
+                                                                                      "hasCondition":  [
+                                                                                                           "Discerned Illusion"
+                                                                                                       ],
+                                                                                      "isNativeToPlane":  false,
+                                                                                      "willing":  "not_applicable",
+                                                                                      "objectEligibility":  {
+                                                                                                                "wornOrCarried":  "not_applicable",
+                                                                                                                "magicalStatus":  "not_applicable",
+                                                                                                                "fixedToSurface":  "not_applicable",
+                                                                                                                "maxSize":  "not_applicable",
+                                                                                                                "maxWeightPounds":  "not_applicable",
+                                                                                                                "maxWeightScaling":  "not_applicable"
+                                                                                                            },
+                                                                                      "communicationPrerequisites":  {
+                                                                                                                         "canHearCaster":  "not_applicable",
+                                                                                                                         "canUnderstandCaster":  "not_applicable",
+                                                                                                                         "canSeeCaster":  "not_applicable"
+                                                                                                                     },
+                                                                                      "abilityThreshold":  {
+                                                                                                               "ability":  "not_applicable",
+                                                                                                               "operator":  "not_applicable",
+                                                                                                               "value":  "not_applicable"
+                                                                                                           },
+                                                                                      "selfRelation":  "not_applicable"
+                                                                                  },
+                                                                    "reason":  "A creature that discerns the illusion can see through it and has Advantage on saving throws against its breath."
+                                                                }
+                                                            ],
+                                          "saveType":  "Intelligence",
+                                          "saveEffect":  "half",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "During the bonus-action movement, the illusory dragon can exhale a 60-foot cone from its space; creatures in the cone make an Intelligence save, taking 7d6 of the chosen Acid, Cold, Fire, Lightning, Necrotic, or Poison damage on a failed save or half as much on a success, with Advantage for creatures that have discerned the illusion.",
+                        "damage":  {
+                                       "dice":  "7d6",
+                                       "type":  "acid, cold, fire, lightning, necrotic, or poison"
+                                   },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "illusionState":  {
+                                              "kind":  "tangible_shadow_dragon_illusion",
+                                              "size":  "Huge",
+                                              "occupancy":  "occupies_space_as_if_creature",
+                                              "defenses":  "attacks_miss_automatically_succeeds_saves_immune_damage_conditions",
+                                              "fear":  "enemies_that_see_appearance_save_or_Frightened",
+                                              "movement":  "Bonus_Action_move_up_to_60_feet",
+                                              "breath":  "60_foot_cone_from_illusion_space_during_movement",
+                                              "discerned":  "creature_that_discerns_can_see_through_and_has_Advantage_on_breath_saves"
+                                          }
+                    },
+                    {
+                        "type":  "MOVEMENT",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "As a Bonus Action during the 1-minute concentration duration, the caster can move the tangible dragon illusion up to 60 feet and can trigger its 60-foot cone breath at any point during that movement.",
+                        "movementType":  "speed_change",
+                        "distance":  60,
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  1
+                                     },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "illusionState":  {
+                                              "kind":  "tangible_shadow_dragon_illusion",
+                                              "size":  "Huge",
+                                              "occupancy":  "occupies_space_as_if_creature",
+                                              "defenses":  "attacks_miss_automatically_succeeds_saves_immune_damage_conditions",
+                                              "fear":  "enemies_that_see_appearance_save_or_Frightened",
+                                              "movement":  "Bonus_Action_move_up_to_60_feet",
+                                              "breath":  "60_foot_cone_from_illusion_space_during_movement",
+                                              "discerned":  "creature_that_discerns_can_see_through_and_has_Advantage_on_breath_saves"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Ask the caster to choose the dragon breath damage type: acid, cold, fire, lightning, necrotic, or poison.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "By gathering threads of shadow material from the Shadowfell, you create a Huge shadowy dragon in an unoccupied space that you can see within range. The illusion lasts for the spell\u0027s duration and occupies its space, as if it were a creature. When the illusion appears, any of your enemies that can see it must succeed on a Wisdom saving throw or become frightened of it for 1 minute. If a frightened creature ends its turn in a location where it doesn\u0027t have line of sight to the illusion, it can repeat the saving throw, ending the effect on itself on a success. As a bonus action on your turn, you can move the illusion up to 60 feet. At any point during its movement, you can cause it to exhale a blast of energy in a 60-foot cone originating from its space. When you create the dragon, choose a damage type: acid, cold, fire, lightning, necrotic, or poison. Each creature in the cone must make an Intelligence saving throw, taking 7d6 damage of the chosen damage type on a failed save, or half as much damage on a successful one. The illusion is tangible because of the shadow stuff used to create it, but attacks miss it automatically, it succeeds on all saving throws, and it is immune to all damage and conditions. A creature that uses an action to examine the dragon can determine that it is an illusion by succeeding on an Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through it and has advantage on saving throws against its breath.",
+    "higherLevels":  "",
+    "tags":  [
+                 "concentration"
+             ]
 }

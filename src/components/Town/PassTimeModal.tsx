@@ -17,6 +17,21 @@ interface TimeInputState {
   years: number;
 }
 
+/**
+ * Sensible upper bounds per time unit. Negatives are clamped to 0 in
+ * handleInputChange; these caps prevent absurd jumps (e.g. 999999 years).
+ * Smaller units cap at their natural roll-over point so larger spans are
+ * expressed via the larger-unit fields instead.
+ */
+const TIME_MAX: Record<keyof TimeInputState, number> = {
+  minutes: 59,
+  hours: 23,
+  days: 30,
+  weeks: 3,
+  months: 11,
+  years: 100,
+};
+
 interface PassTimeModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -48,9 +63,11 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    const key = name as keyof TimeInputState;
+    const cap = TIME_MAX[key] ?? Number.MAX_SAFE_INTEGER;
     setTime(prev => ({
       ...prev,
-      [name]: Math.max(0, parseInt(value, 10) || 0),
+      [key]: Math.min(cap, Math.max(0, parseInt(value, 10) || 0)),
     }));
   };
 
@@ -143,6 +160,7 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
                         value={time[unit]}
                         onChange={handleInputChange}
                         min="0"
+                        max={TIME_MAX[unit]}
                         className="mt-1 w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md text-gray-200 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 outline-none"
                     />
                 </div>

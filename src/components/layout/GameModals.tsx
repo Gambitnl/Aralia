@@ -39,7 +39,8 @@
  * quick-start action should appear instead of the main menu rendering a separate
  * developer-only launch button.
  */
-import React, { lazy, Suspense, useEffect, useCallback } from 'react';
+import React, { lazy, Suspense, useEffect, useCallback, useMemo } from 'react';
+import { getAbilityModifierValue } from '../../utils/character/statUtils';
 import { AnimatePresence } from 'framer-motion';
 import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
@@ -48,6 +49,8 @@ import { canUseDevTools } from '../../utils/permissions';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { useDialogueSystem } from '../../hooks/useDialogueSystem';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useKnownPortsSync } from '../../hooks/useKnownPortsSync';
+import { useVoyageArrival } from '../../hooks/useVoyageArrival';
 
 import ErrorBoundary from '../ui/ErrorBoundary';
 
@@ -95,7 +98,7 @@ interface GameModalsProps {
     gameState: GameState;
     dispatch: React.Dispatch<AppAction>;
     onAction: (action: Action) => void;
-    onTileClick: (x: number, y: number, tile: MapTile, travelMeta?: { seconds: number; encounterMessage?: string | null }) => void;
+    onTileClick: (x: number, y: number, tile: MapTile, travelMeta?: import('../../types/travelMeta').TravelMeta) => void;
     onEnter3DAtCell?: (x: number, y: number, tile: MapTile) => void;
     playerWorldPos?: GameState['playerWorldPos'];
     allow3DEntry?: boolean;
@@ -166,6 +169,19 @@ const GameModals: React.FC<GameModalsProps> = ({
 
     const { generateResponse, handleTopicOutcome } = useDialogueSystem(gameState, dispatch);
 
+    // Naval: populate knownPorts from the FMG world pack once per seed.
+    // Idempotent — does nothing if knownPorts is already populated.
+    useKnownPortsSync(gameState.worldSeed, gameState.naval.knownPorts, dispatch);
+
+    // Naval: relocate the player to the destination port tile when a voyage docks.
+    // Idempotent — clears currentVoyage after dispatch so it cannot re-fire.
+    useVoyageArrival({
+      worldSeed: gameState.worldSeed,
+      mapData: gameState.mapData,
+      currentVoyage: gameState.naval.currentVoyage,
+      dispatch,
+    });
+
     // G8 fix: Fallback Escape handler for modals that don't bind their own close key.
     // When a child modal's useFocusTrap or own handler calls preventDefault() on the
     // Escape event, this handler sees defaultPrevented and does nothing — preserving
@@ -188,6 +204,20 @@ const GameModals: React.FC<GameModalsProps> = ({
         if (gameState.isEconomyLedgerVisible) { dispatch({ type: 'TOGGLE_ECONOMY_LEDGER' }); return; }
         if (gameState.isMapVisible) { onAction({ type: 'toggle_map', label: 'Close Map' }); return; }
     }, [gameState, missingChoiceModal, dispatch, onAction, onCloseMissingChoice, handleOpenGlossary]);
+
+    // Best forager's Survival modifier (Wis mod + proficiency bonus if the party
+    // member lists Survival among their proficient skills) — drives the travel
+    // "Forage en route" biome-yield roll. Max across the party (best forager leads).
+    const partySurvivalModifier = useMemo(() => {
+        let best = 0;
+        for (const pc of gameState.party) {
+            const wisMod = getAbilityModifierValue(pc.finalAbilityScores?.Wisdom ?? pc.abilityScores?.Wisdom ?? 10);
+            const proficient = pc.skills?.some(s => s.id === 'survival') ?? false;
+            const mod = wisMod + (proficient ? (pc.proficiencyBonus ?? 2) : 0);
+            if (mod > best) best = mod;
+        }
+        return best;
+    }, [gameState.party]);
 
     const isMapModalOpen = Boolean(gameState.isMapVisible && gameState.mapData);
     const isQuestLogModalOpen = gameState.isQuestLogVisible;
@@ -248,6 +278,25 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 onRegenerateWorld={onRegenerateWorldMap}
                                 provisionInventory={gameState.inventory}
                                 partySize={gameState.party.length}
+                                partySurvivalModifier={partySurvivalModifier}
+                                activeShip={
+                                    gameState.naval.playerShips.find(
+                                        s => s.id === gameState.naval.activeShipId
+                                    ) ?? null
+                                }
+                                onSetSail={(destinationBurgId, seaMiles) => {
+                                    // Don't start a new voyage while one is already at sea —
+                                    // a double-click or re-navigation must not overwrite it.
+                                    if (gameState.naval.currentVoyage) return;
+                                    dispatch({
+                                        type: 'NAVAL_START_VOYAGE',
+                                        payload: {
+                                            destinationId: String(destinationBurgId),
+                                            distance: seaMiles,
+                                        },
+                                    });
+                                    dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' });
+                                }}
                             />
                         </ErrorBoundary>
                     </Suspense>

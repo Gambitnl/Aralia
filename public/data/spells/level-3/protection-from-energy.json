@@ -219,8 +219,83 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose the protected damage type: Acid, Cold, Fire, Lightning, or Thunder.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 5,
+    "optionsSource": "modeChoice.options",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Acid",
+        "summary": "The willing touched creature gains Resistance to Acid damage.",
+        "effectIndices": [
+          0,
+          1
+        ],
+        "effectTypes": [
+          "UTILITY",
+          "DEFENSIVE"
+        ],
+        "duration": "1 hour with concentration"
+      },
+      {
+        "label": "Cold",
+        "summary": "The willing touched creature gains Resistance to Cold damage.",
+        "effectIndices": [
+          0,
+          1
+        ],
+        "effectTypes": [
+          "UTILITY",
+          "DEFENSIVE"
+        ],
+        "duration": "1 hour with concentration"
+      },
+      {
+        "label": "Fire",
+        "summary": "The willing touched creature gains Resistance to Fire damage.",
+        "effectIndices": [
+          0,
+          1
+        ],
+        "effectTypes": [
+          "UTILITY",
+          "DEFENSIVE"
+        ],
+        "duration": "1 hour with concentration"
+      },
+      {
+        "label": "Lightning",
+        "summary": "The willing touched creature gains Resistance to Lightning damage.",
+        "effectIndices": [
+          0,
+          1
+        ],
+        "effectTypes": [
+          "UTILITY",
+          "DEFENSIVE"
+        ],
+        "duration": "1 hour with concentration"
+      },
+      {
+        "label": "Thunder",
+        "summary": "The willing touched creature gains Resistance to Thunder damage.",
+        "effectIndices": [
+          0,
+          1
+        ],
+        "effectTypes": [
+          "UTILITY",
+          "DEFENSIVE"
+        ],
+        "duration": "1 hour with concentration"
+      }
+    ],
+    "notes": "The existing defensive effect lists all eligible damage types; this mode choice records which one the caster selects for the active resistance."
   },
   "description": "For the duration, the willing creature you touch has Resistance to one damage type of your choice: Acid, Cold, Fire, Lightning, or Thunder.",
   "higherLevels": "",

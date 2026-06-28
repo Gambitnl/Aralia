@@ -18,6 +18,7 @@ import { GameState, DeityAction, DivineFavor, ReligionState } from '../../types'
 import { AppAction } from '../actionTypes';
 import { calculateFavorChange, getDeity, evaluateAction, grantBlessing, resolveBlessingDefinition } from '../../utils/religionUtils';
 import { DEITIES } from '../../data/deities';
+import { inGameTimestamp } from '../../utils/core/timeUtils';
 
 // Keep the canonical religion slice and the legacy flat favor map in one
 // place during the migration. The helper reads both shapes, prefers the
@@ -114,7 +115,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                         id: Date.now(),
                         text: `You pray to ${deity.name}. Your faith is noticed.`,
                         sender: 'system' as const,
-                        timestamp: new Date()
+                        timestamp: inGameTimestamp(state.gameTime)
                     }
                 ]
             };
@@ -142,7 +143,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                             id: timestamp + Math.random(),
                             text: `${deity.name} ${changeText}: ${deityAction.description}`,
                             sender: 'system' as const,
-                            timestamp: new Date(timestamp)
+                            timestamp: inGameTimestamp(state.gameTime)
                         });
                     }
                 }
@@ -186,7 +187,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     id: timestamp,
                     text: 'The divine light washes over the party, restoring all health.',
                     sender: 'system',
-                    timestamp: new Date(timestamp)
+                    timestamp: inGameTimestamp(state.gameTime)
                 });
             } else if (effectId === 'heal_20_hp') {
                 party = party.map(char => ({
@@ -197,7 +198,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     id: timestamp,
                     text: 'A soothing warmth heals your wounds.',
                     sender: 'system',
-                    timestamp: new Date(timestamp)
+                    timestamp: inGameTimestamp(state.gameTime)
                 });
             } else if (effectId === 'remove_condition_poisoned') {
                 party = party.map(char => ({
@@ -211,7 +212,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     id: timestamp,
                     text: 'The purification ritual cleanses toxins from your bodies.',
                     sender: 'system',
-                    timestamp: new Date(timestamp)
+                    timestamp: inGameTimestamp(state.gameTime)
                 });
             } else if (effectId === 'remove_curse') {
                 party = party.map(char => ({
@@ -222,7 +223,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     id: timestamp,
                     text: 'A heavy weight lifts as the curse is broken.',
                     sender: 'system',
-                    timestamp: new Date(timestamp)
+                    timestamp: inGameTimestamp(state.gameTime)
                 });
             } else if (effectId === 'grant_favor_small' && deityId) {
                 const existing = favorUpdates[deityId] || getFavorRecord(religionState, state.divineFavor, deityId);
@@ -231,7 +232,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     id: timestamp,
                     text: 'You feel a sense of approval from the deity.',
                     sender: 'system',
-                    timestamp: new Date(timestamp)
+                    timestamp: inGameTimestamp(state.gameTime)
                 });
             } else if (effectId === 'grant_favor_large' && deityId) {
                 const existing = favorUpdates[deityId] || getFavorRecord(religionState, state.divineFavor, deityId);
@@ -240,7 +241,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     id: timestamp,
                     text: 'The very air hums with divine gratitude.',
                     sender: 'system',
-                    timestamp: new Date(timestamp)
+                    timestamp: inGameTimestamp(state.gameTime)
                 });
             } else if (effectId.startsWith('grant_blessing_') && deityId) {
                 const blessingIdFragment = effectId.slice(15); // 'grant_blessing_'.length === 15
@@ -276,7 +277,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                         id: timestamp,
                         text: `You receive the blessing: ${name}.`,
                         sender: 'system',
-                        timestamp: new Date(timestamp)
+                        timestamp: inGameTimestamp(state.gameTime)
                     });
                 }
             }

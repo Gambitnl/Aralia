@@ -691,7 +691,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
         <div
           style={{
             width: '100%',
-            height: '78vh',
+            height: '100%',
             minHeight: '520px',
             display: 'flex',
             alignItems: 'center',

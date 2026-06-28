@@ -19,7 +19,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AtlasSvgView from './AtlasSvgView';
 import type { CellTraits } from './atlasSvg';
-import { generateFmgWorld } from '../../systems/worldforge/fmg/generateWorld';
+import type { FmgWorldResult } from '../../systems/worldforge/fmg/generateWorld';
+import { getBridgeAtlas } from '../../systems/worldforge/bridge/legacySubmapBridge';
 import { listSelectableTowns, groupTownsByState, type SelectableTown } from '../../systems/worldforge/local/startTowns';
 
 export interface StartPointSelectionProps {
@@ -36,6 +37,14 @@ export interface StartPointSelectionProps {
 const ALL_REGIONS = '__all__';
 /** Cap the rendered rows so an unfiltered 700+ town world stays responsive. */
 const MAX_VISIBLE_TOWNS = 150;
+/**
+ * S3: the world atlas is a fixed 16:9 (960×540) image. The left pane at common
+ * desktop sizes (e.g. 1440×900 → ~1060×900) is taller than 16:9, so handing the
+ * whole pane to the atlas letterboxes the map and shows large dark-blue bands
+ * above/below. Instead we fit a 16:9 box to the pane and let the atlas fill it
+ * exactly — no wasted vertical space. Mirrors the world's FMG dimensions.
+ */
+const MAP_ASPECT = 960 / 540;
 
 function formatPopulation(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -45,7 +54,7 @@ function formatPopulation(n: number): string {
 
 /** Nearest town to a clicked atlas cell, by graph-space distance to its site. */
 function nearestTown(
-  world: ReturnType<typeof generateFmgWorld>,
+  world: FmgWorldResult,
   towns: SelectableTown[],
   cellIndex: number,
 ): SelectableTown | null {
@@ -63,7 +72,13 @@ function nearestTown(
 }
 
 const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, onConfirm, onBack, characterName }) => {
-  const world = useMemo(() => generateFmgWorld(String(worldSeed)), [worldSeed]);
+  // WM1: the start-selection world MUST be the SAME world the player plays in.
+  // `getBridgeAtlas(worldSeed)` is the single canonical world — the same atlas the
+  // in-game MapPane, town tiles, spawn resolver, and 3D bake all consume (seed
+  // string "aralia-<seed>" + the fixed 960×540/10k/continents options). Using the
+  // bare `generateFmgWorld(String(seed))` here produced a DIFFERENT world, so the
+  // town the player picked did not exist in the world they spawned into.
+  const world = useMemo(() => getBridgeAtlas(worldSeed), [worldSeed]);
   const towns = useMemo(() => listSelectableTowns(world), [world]);
   const regions = useMemo(() => groupTownsByState(towns), [towns]);
 
@@ -117,9 +132,9 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
     }
   }, [world, towns]);
 
-  // Size the atlas to fill its column.
+  // Size the atlas to a 16:9 box fitted inside its column (S3: no letterbox).
   const mapRef = useRef<HTMLDivElement>(null);
-  const [mapSize, setMapSize] = useState({ width: 800, height: 600 });
+  const [mapSize, setMapSize] = useState({ width: 800, height: 450 });
   useEffect(() => {
     const el = mapRef.current;
     if (!el || typeof ResizeObserver === 'undefined') return;
@@ -127,7 +142,13 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
     // atlas yields a degenerate fit (k = 0/0 = NaN) for a frame.
     const measure = () => {
       const w = el.clientWidth, h = el.clientHeight;
-      if (w > 0 && h > 0) setMapSize({ width: w, height: h });
+      if (w <= 0 || h <= 0) return;
+      // Fit the map's 16:9 aspect inside the available pane: constrain by
+      // whichever axis is the tighter fit so the atlas fills its box edge-to-edge
+      // with no dark letterbox margins. The pane itself centers the box.
+      const fitW = Math.min(w, h * MAP_ASPECT);
+      const fitH = fitW / MAP_ASPECT;
+      setMapSize({ width: Math.round(fitW), height: Math.round(fitH) });
     };
     const ro = new ResizeObserver(measure);
     ro.observe(el);
@@ -170,9 +191,16 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', background: '#0b1220', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}>
-      {/* Atlas */}
-      <div ref={mapRef} style={{ flex: 1, position: 'relative', minWidth: 0 }} data-testid="start-select-map">
-        {atlasElement}
+      {/* Atlas — the 16:9 map box is centered in the pane so the atlas fills it
+          edge-to-edge instead of letterboxing with dark-blue margins (S3). */}
+      <div
+        ref={mapRef}
+        style={{ flex: 1, position: 'relative', minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        data-testid="start-select-map"
+      >
+        <div style={{ width: mapSize.width, height: mapSize.height, position: 'relative' }} data-testid="start-select-map-box">
+          {atlasElement}
+        </div>
       </div>
 
       {/* Selection panel */}
@@ -211,6 +239,20 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
             ))}
           </select>
         </label>
+
+        {/* Marker legend (S2): the ★/⚓ icons in the town rows are otherwise
+            unexplained — ★ for capitals, ⚓ for coastal ports. */}
+        <div
+          data-testid="start-marker-legend"
+          style={{ display: 'flex', gap: 16, fontSize: 12, color: '#94a3b8', alignItems: 'center', marginTop: -4 }}
+        >
+          <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <span style={{ color: '#fbbf24' }}>★</span> capital
+          </span>
+          <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <span>⚓</span> port
+          </span>
+        </div>
 
         {/* Town list */}
         <div data-testid="start-town-list" style={{ flex: 1, minHeight: 120, overflowY: 'auto', border: '1px solid #1e293b', borderRadius: 8 }}>

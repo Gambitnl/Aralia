@@ -1,344 +1,434 @@
 {
-  "id": "control-water",
-  "name": "Control Water",
-  "aliases": [],
-  "level": 4,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Cleric",
-    "Druid",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 300,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a mixture of water and dust",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "range": 300,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Cube",
-      "size": 100,
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "Control water in a 100-foot cube within 300 feet for up to 10 minutes with concentration, choosing one active mode at a time: Flood, Part Water, Redirect Flow, or Whirlpool; later Magic actions can repeat or switch modes, and those modes carry the wave, trench, flow, pull, damage, escape, and vehicle-handling rules.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "createdObjects": [
-        {
-          "objectType": "water",
-          "name": "Controlled Flood Water",
-          "count": 1,
-          "countUnit": "not_applicable",
-          "appearsIn": "spell_area",
-          "affectedVolumeShape": "Cube",
-          "affectedVolumeSizeFeet": 100,
-          "manipulationOptions": [
-            "flood",
-            "raise_water_level",
-            "create_traveling_wave"
-          ],
-          "waterLevelChangeFeet": 20,
-          "waveHeightFeet": 20,
-          "maxAffectedVehicleSize": "Huge",
-          "vehicleCapsizeChancePercent": 25,
-          "repeatsOnCasterTurn": true,
-          "expiresWithSpell": true,
-          "shelfLife": "10 minutes concentration or until another Control Water option is chosen",
-          "notes": "Flood raises standing water by up to 20 feet. In a large body of water it creates a 20-foot-tall wave that travels across the area, carries Huge-or-smaller vehicles, gives struck Huge-or-smaller vehicles a 25 percent capsize chance, and repeats at the start of the caster's next turn while Flood remains active."
-        },
-        {
-          "objectType": "water",
-          "name": "Parted Water Trench",
-          "count": 1,
-          "countUnit": "not_applicable",
-          "appearsIn": "spell_area",
-          "affectedVolumeShape": "Cube",
-          "affectedVolumeSizeFeet": 100,
-          "manipulationOptions": [
-            "part_water",
-            "create_trench",
-            "create_water_walls"
-          ],
-          "wallLengthFeet": 100,
-          "blocksPhysicalPassage": false,
-          "expiresWithSpell": true,
-          "shelfLife": "10 minutes concentration or until another Control Water option is chosen",
-          "notes": "Part Water creates a trench through the spell area and leaves separated water as walls to either side. When the mode ends, water slowly fills the trench over the next round."
-        },
-        {
-          "objectType": "water",
-          "name": "Redirected Flow",
-          "count": 1,
-          "countUnit": "not_applicable",
-          "appearsIn": "spell_area",
-          "affectedVolumeShape": "Cube",
-          "affectedVolumeSizeFeet": 100,
-          "manipulationOptions": [
-            "redirect_flow",
-            "flow_over_obstacles",
-            "flow_up_walls"
-          ],
-          "expiresWithSpell": true,
-          "shelfLife": "10 minutes concentration or until another Control Water option is chosen",
-          "notes": "Redirect Flow makes flowing water inside the spell area move in a caster-chosen direction, including over obstacles or up walls. Water resumes terrain-based flow after leaving the spell area."
-        },
-        {
-          "objectType": "hazard",
-          "name": "Control Water Whirlpool",
-          "count": 1,
-          "countUnit": "structure",
-          "appearsIn": "spell_area",
-          "affectedVolumeShape": "Cube",
-          "affectedVolumeSizeFeet": 100,
-          "diameterFeet": 50,
-          "depthFeet": 25,
-          "hazardRadiusFeet": 25,
-          "pullDistanceFeet": 10,
-          "hazardTriggers": [
-            "enter",
-            "end_turn_inside"
-          ],
-          "burnDamage": {
-            "dice": "2d8",
-            "type": "Bludgeoning"
-          },
-          "escapeCheck": "Strength (Athletics) against spell save DC",
-          "expiresWithSpell": true,
-          "shelfLife": "10 minutes concentration or until another Control Water option is chosen",
-          "notes": "Whirlpool requires water at least 50 feet square and 25 feet deep. It forms in the center of the area, is 5 feet wide at the base, up to 50 feet wide at the top, and 25 feet tall. Creatures in water within 25 feet are pulled 10 feet toward it; entering or ending a turn there calls for a Strength save against 2d8 Bludgeoning damage, and swimming away requires an action plus a Strength (Athletics) check against the spell save DC."
-        }
-      ],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "Until the spell ends, you control any water inside an area you choose that is a Cube up to 100 feet on a side, using one of the following effects. As a Magic action on your later turns, you can repeat the same effect or choose a different one. Flood. You cause the water level of all standing water in the area to rise by as much as 20 feet. If you choose an area in a large body of water, you instead create a 20-foot tall wave that travels from one side of the area to the other and then crashes. Any Huge or smaller vehicles in the wave's path are carried with it to the other side. Any Huge or smaller vehicles struck by the wave have a 25 percent chance of capsizing. The water level remains elevated until the spell ends or you choose a different effect. If this effect produced a wave, the wave repeats on the start of your next turn while the flood effect lasts. Part Water. You part water in the area and create a trench. The trench extends across the spell's area, and the separated water forms a wall to either side. The trench remains until the spell ends or you choose a different effect. The water then slowly fills in the trench over the course of the next round until the normal water level is restored. Redirect Flow. You cause flowing water in the area to move in a direction you choose, even if the water has to flow over obstacles, up walls, or in other unlikely directions. The water in the area moves as you direct it, but once it moves beyond the spell's area, it resumes its flow based on the terrain. The water continues to move in the direction you chose until the spell ends or you choose a different effect. Whirlpool. You cause a whirlpool to form in the center of the area, which must be at least 50 feet square and 25 feet deep. The whirlpool lasts until you choose a different effect or the spell ends. The whirlpool is 5 feet wide at the base, up to 50 feet wide at the top, and 25 feet tall. Any creature in the water and within 25 feet of the whirlpool is pulled 10 feet toward it. When a creature enters the whirlpool for the first time on a turn or ends its turn there, it makes a Strength saving throw. On a failed save, the creature takes 2d8 Bludgeoning damage. On a successful save, the creature takes half as much damage. A creature can swim away from the whirlpool only if it first takes an action to pull away and succeeds on a Strength (Athletics) check against your spell save DC.",
-  "higherLevels": "",
-  "tags": [
-    "transmutation",
-    "control",
-    "water",
-    "concentration"
-  ],
-  "modeChoice": {
-    "type": "choose_one",
-    "timing": "on_cast_or_later_action",
-    "optionCount": 4,
-    "optionsSource": "modeChoice.options",
-    "maxActiveNonInstantaneous": 1,
-    "canDismissActive": "not_applicable",
-    "options": [
-      {
-        "label": "Flood",
-        "summary": "Raise standing water up to 20 feet or create a 20-foot wave across a large body of water, including vehicle carry/capsize risk.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "water_control",
-          "terrain",
-          "wave"
-        ],
-        "duration": "until spell ends or another option is chosen"
-      },
-      {
-        "label": "Part Water",
-        "summary": "Create a trench through water in the area, with water walls on either side until the spell ends or another option is chosen.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "water_control",
-          "terrain",
-          "passage"
-        ],
-        "duration": "until spell ends or another option is chosen"
-      },
-      {
-        "label": "Redirect Flow",
-        "summary": "Redirect flowing water inside the area in a chosen direction until it leaves the spell area or another option is chosen.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "water_control",
-          "terrain",
-          "movement"
-        ],
-        "duration": "until spell ends or another option is chosen"
-      },
-      {
-        "label": "Whirlpool",
-        "summary": "Create a whirlpool in sufficiently deep water that pulls nearby creatures and forces Strength saves for bludgeoning damage.",
-        "effectIndices": [
-          0
-        ],
-        "effectTypes": [
-          "water_control",
-          "terrain",
-          "damage"
-        ],
-        "duration": "until spell ends or another option is chosen"
-      }
-    ],
-    "notes": "The spell lets the caster repeat the same water-control option or choose a different option as a later Magic action."
-  }
+    "id":  "control-water",
+    "name":  "Control Water",
+    "aliases":  [
+
+                ],
+    "level":  4,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Cleric",
+                    "Druid",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  300,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a mixture of water and dust",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  300,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Cube",
+                                           "size":  100,
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "Control water in a 100-foot cube within 300 feet for up to 10 minutes with concentration, choosing one active mode at a time: Flood, Part Water, Redirect Flow, or Whirlpool; later Magic actions can repeat or switch modes, and those modes carry the wave, trench, flow, pull, damage, escape, and vehicle-handling rules.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "action",
+                                                   "action":  "Repeat or Change Control Water Effect",
+                                                   "frequency":  "each_turn",
+                                                   "actor":  "caster",
+                                                   "actionKind":  "magic_action",
+                                                   "notes":  "On later turns, the caster can repeat the same water-control effect or choose a different Control Water mode."
+                                               }
+                                           ],
+                        "recurringMechanics":  [
+                                                   {
+                                                       "mode":  "Whirlpool",
+                                                       "timing":  "enters_whirlpool_first_time_on_turn_or_ends_turn_there",
+                                                       "saveType":  "Strength",
+                                                       "saveEffect":  "half",
+                                                       "damage":  {
+                                                                      "dice":  "2d8",
+                                                                      "type":  "Bludgeoning"
+                                                                  },
+                                                       "escapeCheck":  "Strength (Athletics) against spell save DC"
+                                                   }
+                                               ],
+                        "attackAugments":  [
+
+                                           ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "water",
+                                                   "name":  "Controlled Flood Water",
+                                                   "count":  1,
+                                                   "countUnit":  "not_applicable",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Cube",
+                                                   "affectedVolumeSizeFeet":  100,
+                                                   "manipulationOptions":  [
+                                                                               "flood",
+                                                                               "raise_water_level",
+                                                                               "create_traveling_wave"
+                                                                           ],
+                                                   "waterLevelChangeFeet":  20,
+                                                   "waveHeightFeet":  20,
+                                                   "maxAffectedVehicleSize":  "Huge",
+                                                   "vehicleCapsizeChancePercent":  25,
+                                                   "repeatsOnCasterTurn":  true,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "10 minutes concentration or until another Control Water option is chosen",
+                                                   "notes":  "Flood raises standing water by up to 20 feet. In a large body of water it creates a 20-foot-tall wave that travels across the area, carries Huge-or-smaller vehicles, gives struck Huge-or-smaller vehicles a 25 percent capsize chance, and repeats at the start of the caster\u0027s next turn while Flood remains active."
+                                               },
+                                               {
+                                                   "objectType":  "water",
+                                                   "name":  "Parted Water Trench",
+                                                   "count":  1,
+                                                   "countUnit":  "not_applicable",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Cube",
+                                                   "affectedVolumeSizeFeet":  100,
+                                                   "manipulationOptions":  [
+                                                                               "part_water",
+                                                                               "create_trench",
+                                                                               "create_water_walls"
+                                                                           ],
+                                                   "wallLengthFeet":  100,
+                                                   "blocksPhysicalPassage":  false,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "10 minutes concentration or until another Control Water option is chosen",
+                                                   "notes":  "Part Water creates a trench through the spell area and leaves separated water as walls to either side. When the mode ends, water slowly fills the trench over the next round."
+                                               },
+                                               {
+                                                   "objectType":  "water",
+                                                   "name":  "Redirected Flow",
+                                                   "count":  1,
+                                                   "countUnit":  "not_applicable",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Cube",
+                                                   "affectedVolumeSizeFeet":  100,
+                                                   "manipulationOptions":  [
+                                                                               "redirect_flow",
+                                                                               "flow_over_obstacles",
+                                                                               "flow_up_walls"
+                                                                           ],
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "10 minutes concentration or until another Control Water option is chosen",
+                                                   "notes":  "Redirect Flow makes flowing water inside the spell area move in a caster-chosen direction, including over obstacles or up walls. Water resumes terrain-based flow after leaving the spell area."
+                                               },
+                                               {
+                                                   "objectType":  "hazard",
+                                                   "name":  "Control Water Whirlpool",
+                                                   "count":  1,
+                                                   "countUnit":  "structure",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Cube",
+                                                   "affectedVolumeSizeFeet":  100,
+                                                   "diameterFeet":  50,
+                                                   "depthFeet":  25,
+                                                   "hazardRadiusFeet":  25,
+                                                   "pullDistanceFeet":  10,
+                                                   "hazardTriggers":  [
+                                                                          "enter",
+                                                                          "end_turn_inside"
+                                                                      ],
+                                                   "burnDamage":  {
+                                                                      "dice":  "2d8",
+                                                                      "type":  "Bludgeoning"
+                                                                  },
+                                                   "escapeCheck":  "Strength (Athletics) against spell save DC",
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "10 minutes concentration or until another Control Water option is chosen",
+                                                   "notes":  "Whirlpool requires water at least 50 feet square and 25 feet deep. It forms in the center of the area, is 5 feet wide at the base, up to 50 feet wide at the top, and 25 feet tall. Creatures in water within 25 feet are pulled 10 feet toward it; entering or ending a turn there calls for a Strength save against 2d8 Bludgeoning damage, and swimming away requires an action plus a Strength (Athletics) check against the spell save DC."
+                                               }
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "caster_chooses_different_effect",
+                                                       "scope":  "current_mode",
+                                                       "description":  "The current Flood, Part Water, Redirect Flow, or Whirlpool mode ends/replaces when the caster chooses a different effect."
+                                                   },
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "current_mode",
+                                                       "description":  "The active water-control mode ends when the spell ends."
+                                                   }
+                                               ],
+                        "wardTrigger":  {
+                                            "kind":  "selected_water_mode_trigger",
+                                            "activeModes":  [
+                                                                "Flood",
+                                                                "Part Water",
+                                                                "Redirect Flow",
+                                                                "Whirlpool"
+                                                            ],
+                                            "repeat":  "caster_can_choose_same_or_different_mode_on_later_turns",
+                                            "whirlpoolTrigger":  "creature_enters_or_starts_turn_in_whirlpool_area",
+                                            "modeReplacement":  "new_mode_replaces_prior_active_mode"
+                                        },
+                        "forcedMovementState":  {
+                                                    "kind":  "whirlpool_pull",
+                                                    "mode":  "Whirlpool",
+                                                    "target":  "creature_in_water_within_25_feet_of_whirlpool",
+                                                    "distance":  "10_feet",
+                                                    "direction":  "toward_whirlpool",
+                                                    "escape":  "action_plus_Strength_Athletics_check_against_spell_save_DC_to_swim_away",
+                                                    "vehicleWave":  "Huge_or_smaller_vehicles_carried_with_flood_wave_and_25_percent_capsize_chance"
+                                                }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose Flood, Part Water, Redirect Flow, or Whirlpool for the controlled water; later Magic actions can repeat the current effect or choose a different one.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "Until the spell ends, you control any water inside an area you choose that is a Cube up to 100 feet on a side, using one of the following effects. As a Magic action on your later turns, you can repeat the same effect or choose a different one. Flood. You cause the water level of all standing water in the area to rise by as much as 20 feet. If you choose an area in a large body of water, you instead create a 20-foot tall wave that travels from one side of the area to the other and then crashes. Any Huge or smaller vehicles in the wave\u0027s path are carried with it to the other side. Any Huge or smaller vehicles struck by the wave have a 25 percent chance of capsizing. The water level remains elevated until the spell ends or you choose a different effect. If this effect produced a wave, the wave repeats on the start of your next turn while the flood effect lasts. Part Water. You part water in the area and create a trench. The trench extends across the spell\u0027s area, and the separated water forms a wall to either side. The trench remains until the spell ends or you choose a different effect. The water then slowly fills in the trench over the course of the next round until the normal water level is restored. Redirect Flow. You cause flowing water in the area to move in a direction you choose, even if the water has to flow over obstacles, up walls, or in other unlikely directions. The water in the area moves as you direct it, but once it moves beyond the spell\u0027s area, it resumes its flow based on the terrain. The water continues to move in the direction you chose until the spell ends or you choose a different effect. Whirlpool. You cause a whirlpool to form in the center of the area, which must be at least 50 feet square and 25 feet deep. The whirlpool lasts until you choose a different effect or the spell ends. The whirlpool is 5 feet wide at the base, up to 50 feet wide at the top, and 25 feet tall. Any creature in the water and within 25 feet of the whirlpool is pulled 10 feet toward it. When a creature enters the whirlpool for the first time on a turn or ends its turn there, it makes a Strength saving throw. On a failed save, the creature takes 2d8 Bludgeoning damage. On a successful save, the creature takes half as much damage. A creature can swim away from the whirlpool only if it first takes an action to pull away and succeeds on a Strength (Athletics) check against your spell save DC.",
+    "higherLevels":  "",
+    "tags":  [
+                 "transmutation",
+                 "control",
+                 "water",
+                 "concentration"
+             ],
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast_or_later_action",
+                       "optionCount":  4,
+                       "optionsSource":  "modeChoice.options",
+                       "maxActiveNonInstantaneous":  1,
+                       "canDismissActive":  "not_applicable",
+                       "options":  [
+                                       {
+                                           "label":  "Flood",
+                                           "summary":  "Raise standing water up to 20 feet or create a 20-foot wave across a large body of water, including vehicle carry/capsize risk.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "water_control",
+                                                               "terrain",
+                                                               "wave"
+                                                           ],
+                                           "duration":  "until spell ends or another option is chosen"
+                                       },
+                                       {
+                                           "label":  "Part Water",
+                                           "summary":  "Create a trench through water in the area, with water walls on either side until the spell ends or another option is chosen.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "water_control",
+                                                               "terrain",
+                                                               "passage"
+                                                           ],
+                                           "duration":  "until spell ends or another option is chosen"
+                                       },
+                                       {
+                                           "label":  "Redirect Flow",
+                                           "summary":  "Redirect flowing water inside the area in a chosen direction until it leaves the spell area or another option is chosen.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "water_control",
+                                                               "terrain",
+                                                               "movement"
+                                                           ],
+                                           "duration":  "until spell ends or another option is chosen"
+                                       },
+                                       {
+                                           "label":  "Whirlpool",
+                                           "summary":  "Create a whirlpool in sufficiently deep water that pulls nearby creatures and forces Strength saves for bludgeoning damage.",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "water_control",
+                                                               "terrain",
+                                                               "damage"
+                                                           ],
+                                           "duration":  "until spell ends or another option is chosen"
+                                       }
+                                   ],
+                       "notes":  "The spell lets the caster repeat the same water-control option or choose a different option as a later Magic action."
+                   }
 }

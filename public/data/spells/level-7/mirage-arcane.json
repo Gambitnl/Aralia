@@ -1,332 +1,438 @@
 {
-  "id": "mirage-arcane",
-  "name": "Mirage Arcane",
-  "aliases": [],
-  "level": 7,
-  "school": "Illusion",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Druid",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 10,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 10,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "sight",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "day",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "area",
-    "validTargets": [
-      "ground"
-    ],
-    "lineOfSight": true,
-    "range": 0,
-    "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Square",
-      "size": 1,
-      "sizeType": "side",
-      "sizeUnit": "miles",
-      "height": 0
-    },
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "TERRAIN",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "terrainType": "difficult",
-      "areaOfEffect": {
-        "shape": "Square",
-        "size": 1,
-        "sizeType": "side",
-        "sizeUnit": "miles",
-        "height": 0,
-        "heightUnit": "feet"
-      },
-      "duration": {
-        "type": "special",
-        "value": 0
-      },
-      "description": "For 10 days, the terrain illusion can turn clear ground into Difficult Terrain or reverse Difficult Terrain into clear ground, and can otherwise impede movement through the affected area.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "sensory",
-      "description": "Transform up to 1 square mile of visible terrain for 10 days with audible, visual, tactile, and olfactory illusion elements; the illusion can make terrain resemble other terrain, alter or add structures, but cannot disguise, conceal, or add creatures, removed illusion pieces disappear immediately, and Truesight reveals the true terrain while leaving other illusion elements physically interactive.",
-      "illusion": {
-        "revealScope": "per_creature",
-        "revealRules": [
-          {
-            "method": "physical_interaction",
-            "appliesTo": [
-              "Mirage Arcane terrain"
-            ],
-            "notes": "Creatures with Truesight can see through the illusion to the terrain's true form."
-          }
-        ],
-        "discernedState": "not_applicable",
-        "terrainIllusion": {
-          "areaShape": "Square",
-          "areaSize": 1,
-          "areaUnit": "miles",
-          "sensoryElements": [
-            "sight",
-            "sound",
-            "smell",
-            "other_sensory_effect"
-          ],
-          "terrainAppearanceOptions": [
-            "swamp",
-            "hill",
-            "crevasse",
-            "rough terrain",
-            "impassable terrain",
-            "grassy meadow",
-            "gentle slope",
-            "wide smooth road"
-          ],
-          "canAlterStructures": true,
-          "canAddStructures": true,
-          "cannotDisguiseConcealOrAddCreatures": true,
-          "canChangeDifficultTerrain": true,
-          "canOtherwiseImpedeMovement": true,
-          "removedPiecesDisappearImmediately": true,
-          "truesightRevealsTrueTerrain": true,
-          "truesightStillPhysicallyInteracts": true
-        },
-        "notes": "Truesight reveals the true terrain, but the remaining illusion elements still physically interact with the creature."
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Multisensory Terrain Illusion",
-          "effect": "The terrain can look, sound, smell, and feel like another sort of terrain."
-        },
-        {
-          "name": "Terrain Appearance Choices",
-          "effect": "Open fields, roads, ponds, precipices, and similar terrain can be made to resemble other terrain types."
-        },
-        {
-          "name": "Alter Or Add Structures",
-          "effect": "The spell can alter the appearance of structures or add structures where none are present."
-        },
-        {
-          "name": "Does Not Add Creatures",
-          "effect": "The spell does not disguise, conceal, or add creatures."
-        },
-        {
-          "name": "Difficult Terrain Change",
-          "effect": "The illusion can turn clear ground into Difficult Terrain or vice versa, or otherwise impede movement."
-        },
-        {
-          "name": "Removed Illusory Pieces Disappear",
-          "effect": "Any piece of illusory terrain removed from the spell area disappears immediately."
-        },
-        {
-          "name": "Truesight Reveals True Terrain",
-          "effect": "Creatures with Truesight can see through the illusion to the terrain's true form."
-        },
-        {
-          "name": "Truesight Still Physically Interacts",
-          "effect": "Other illusion elements remain for a creature with Truesight, so the creature can still physically interact with the illusion."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You make terrain in an area up to 1 mile square look, sound, smell, and even feel like some other sort of terrain. Open fields or a road could be made to resemble a swamp, hill, crevasse, or some other rough or impassable terrain. A pond can be made to seem like a grassy meadow, a precipice like a gentle slope, or a rock-strewn gully like a wide and smooth road. Similarly, you can alter the appearance of structures or add them where none are present. The spell doesn't disguise, conceal, or add creatures. The illusion includes audible, visual, tactile, and olfactory elements, so it can turn clear ground into Difficult Terrain (or vice versa) or otherwise impede movement through the area. Any piece of the illusory terrain (such as a rock or stick) that is removed from the spell's area disappears immediately. Creatures with Truesight can see through the illusion to the terrain's true form; however, all other elements of the illusion remain, so while the creature is aware of the illusion's presence, the creature can still physically interact with the illusion.",
-  "higherLevels": "",
-  "tags": []
+    "id":  "mirage-arcane",
+    "name":  "Mirage Arcane",
+    "aliases":  [
+
+                ],
+    "level":  7,
+    "school":  "Illusion",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Druid",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  10,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  10,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "sight",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "day",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "validTargets":  [
+                                           "ground"
+                                       ],
+                      "lineOfSight":  true,
+                      "range":  0,
+                      "maxTargets":  1,
+                      "areaOfEffect":  {
+                                           "shape":  "Square",
+                                           "size":  1,
+                                           "sizeType":  "side",
+                                           "sizeUnit":  "miles",
+                                           "height":  0
+                                       },
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "TERRAIN",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "terrainType":  "difficult",
+                        "areaOfEffect":  {
+                                             "shape":  "Square",
+                                             "size":  1,
+                                             "sizeType":  "side",
+                                             "sizeUnit":  "miles",
+                                             "height":  0,
+                                             "heightUnit":  "feet"
+                                         },
+                        "duration":  {
+                                         "type":  "special",
+                                         "value":  0
+                                     },
+                        "description":  "For 10 days, the terrain illusion can turn clear ground into Difficult Terrain or reverse Difficult Terrain into clear ground, and can otherwise impede movement through the affected area.",
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "sensory",
+                        "description":  "Transform up to 1 square mile of visible terrain for 10 days with audible, visual, tactile, and olfactory illusion elements; the illusion can make terrain resemble other terrain, alter or add structures, but cannot disguise, conceal, or add creatures, removed illusion pieces disappear immediately, and Truesight reveals the true terrain while leaving other illusion elements physically interactive.",
+                        "illusion":  {
+                                         "revealScope":  "per_creature",
+                                         "revealRules":  [
+                                                             {
+                                                                 "method":  "physical_interaction",
+                                                                 "appliesTo":  [
+                                                                                   "Mirage Arcane terrain"
+                                                                               ],
+                                                                 "notes":  "Creatures with Truesight can see through the illusion to the terrain\u0027s true form."
+                                                             }
+                                                         ],
+                                         "discernedState":  "not_applicable",
+                                         "terrainIllusion":  {
+                                                                 "areaShape":  "Square",
+                                                                 "areaSize":  1,
+                                                                 "areaUnit":  "miles",
+                                                                 "sensoryElements":  [
+                                                                                         "sight",
+                                                                                         "sound",
+                                                                                         "smell",
+                                                                                         "other_sensory_effect"
+                                                                                     ],
+                                                                 "terrainAppearanceOptions":  [
+                                                                                                  "swamp",
+                                                                                                  "hill",
+                                                                                                  "crevasse",
+                                                                                                  "rough terrain",
+                                                                                                  "impassable terrain",
+                                                                                                  "grassy meadow",
+                                                                                                  "gentle slope",
+                                                                                                  "wide smooth road"
+                                                                                              ],
+                                                                 "canAlterStructures":  true,
+                                                                 "canAddStructures":  true,
+                                                                 "cannotDisguiseConcealOrAddCreatures":  true,
+                                                                 "canChangeDifficultTerrain":  true,
+                                                                 "canOtherwiseImpedeMovement":  true,
+                                                                 "removedPiecesDisappearImmediately":  true,
+                                                                 "truesightRevealsTrueTerrain":  true,
+                                                                 "truesightStillPhysicallyInteracts":  true
+                                                             },
+                                         "notes":  "Truesight reveals the true terrain, but the remaining illusion elements still physically interact with the creature."
+                                     },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Multisensory Terrain Illusion",
+                                                   "effect":  "The terrain can look, sound, smell, and feel like another sort of terrain."
+                                               },
+                                               {
+                                                   "name":  "Terrain Appearance Choices",
+                                                   "effect":  "Open fields, roads, ponds, precipices, and similar terrain can be made to resemble other terrain types."
+                                               },
+                                               {
+                                                   "name":  "Alter Or Add Structures",
+                                                   "effect":  "The spell can alter the appearance of structures or add structures where none are present."
+                                               },
+                                               {
+                                                   "name":  "Does Not Add Creatures",
+                                                   "effect":  "The spell does not disguise, conceal, or add creatures."
+                                               },
+                                               {
+                                                   "name":  "Difficult Terrain Change",
+                                                   "effect":  "The illusion can turn clear ground into Difficult Terrain or vice versa, or otherwise impede movement."
+                                               },
+                                               {
+                                                   "name":  "Removed Illusory Pieces Disappear",
+                                                   "effect":  "Any piece of illusory terrain removed from the spell area disappears immediately."
+                                               },
+                                               {
+                                                   "name":  "Truesight Reveals True Terrain",
+                                                   "effect":  "Creatures with Truesight can see through the illusion to the terrain\u0027s true form."
+                                               },
+                                               {
+                                                   "name":  "Truesight Still Physically Interacts",
+                                                   "effect":  "Other illusion elements remain for a creature with Truesight, so the creature can still physically interact with the illusion."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "visionLightSound":  {
+                                                 "mode":  "multisensory_terrain_illusion",
+                                                 "area":  "up to 1 mile square",
+                                                 "senses":  [
+                                                                "sight",
+                                                                "sound",
+                                                                "smell",
+                                                                "touch"
+                                                            ],
+                                                 "examples":  [
+                                                                  "pond can seem like meadow",
+                                                                  "precipice can seem like gentle slope",
+                                                                  "gully can seem like smooth road"
+                                                              ],
+                                                 "structures":  "can alter appearance of structures or add structures",
+                                                 "creatureLimit":  "does not disguise, conceal, or add creatures",
+                                                 "truesight":  "reveals true terrain but other illusion elements remain physically interactive",
+                                                 "removedPieces":  "removed illusory terrain pieces disappear immediately"
+                                             },
+                        "perceptionState":  {
+                                                "kind":  "truesight_terrain_reveal",
+                                                "truesightSees":  "true_terrain_form",
+                                                "illusionStillPresent":  true,
+                                                "physicalInteractionStillUsesIllusion":  true,
+                                                "nonTruesight":  "multisensory_terrain_illusion_remains_fully_apparent"
+                                            },
+                        "illusionState":  {
+                                              "kind":  "multisensory_terrain_illusion",
+                                              "area":  "up_to_1_square_mile",
+                                              "senses":  [
+                                                             "audible",
+                                                             "visual",
+                                                             "tactile",
+                                                             "olfactory"
+                                                         ],
+                                              "canAlter":  [
+                                                               "terrain_appearance",
+                                                               "structures",
+                                                               "difficult_terrain"
+                                                           ],
+                                              "cannot":  [
+                                                             "disguise_creatures",
+                                                             "conceal_creatures",
+                                                             "add_creatures"
+                                                         ],
+                                              "removedPieces":  "illusory_pieces_removed_from_area_disappear",
+                                              "truesight":  "reveals_true_terrain_but_other_elements_remain_physically_interactive"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You make terrain in an area up to 1 mile square look, sound, smell, and even feel like some other sort of terrain. Open fields or a road could be made to resemble a swamp, hill, crevasse, or some other rough or impassable terrain. A pond can be made to seem like a grassy meadow, a precipice like a gentle slope, or a rock-strewn gully like a wide and smooth road. Similarly, you can alter the appearance of structures or add them where none are present. The spell doesn\u0027t disguise, conceal, or add creatures. The illusion includes audible, visual, tactile, and olfactory elements, so it can turn clear ground into Difficult Terrain (or vice versa) or otherwise impede movement through the area. Any piece of the illusory terrain (such as a rock or stick) that is removed from the spell\u0027s area disappears immediately. Creatures with Truesight can see through the illusion to the terrain\u0027s true form; however, all other elements of the illusion remain, so while the creature is aware of the illusion\u0027s presence, the creature can still physically interact with the illusion.",
+    "higherLevels":  "",
+    "tags":  [
+
+             ]
 }

@@ -155,8 +155,8 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
         onClick={onToggleBanterPause}
         className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded border whitespace-nowrap transition-colors hover:brightness-125 cursor-pointer ${badgeColors}`}
         title={isBanterPaused
-          ? 'DEV: ambient auto-banter is DISABLED — click to enable'
-          : 'DEV: ambient auto-banter is ENABLED — click to disable'}
+          ? 'Ambient party banter is paused — click to resume'
+          : 'Ambient party banter is on — click to pause'}
       >
         {badgeLabel}
       </button>
@@ -165,8 +165,8 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
         data-testid="banter-mode-indicator"
         className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded border whitespace-nowrap ${badgeColors}`}
         title={isBanterPaused
-          ? 'DEV: ambient auto-banter is DISABLED'
-          : 'DEV: ambient auto-banter is ENABLED'}
+          ? 'Ambient party banter is paused'
+          : 'Ambient party banter is on'}
       >
         {badgeLabel}
       </span>
@@ -212,8 +212,14 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
 
       {/* History Area */}
       <div className="flex-grow overflow-y-auto mb-4 space-y-3 p-2 custom-scrollbar">
+        {/* Empty state. Show a single sensible message rather than stacking the
+            live "Conversation starting…" placeholder with the inactive
+            "Conversation ended." footer (which previously rendered together when
+            banter was off with no history — read as a glitch). */}
         {history.length === 0 && (
-          <div className="text-gray-500 text-sm italic text-center mt-4">Conversation starting...</div>
+          <div className="text-gray-500 text-sm italic text-center mt-4">
+            {isActive ? 'Conversation starting…' : 'No party banter yet.'}
+          </div>
         )}
         {history.map((line, idx) => {
           const isPlayer = line.speakerId === 'player';
@@ -305,7 +311,9 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
           </button>
         </form>
       )}
-      {!isActive && (
+      {/* Only show the "ended" footer when a conversation actually took place.
+          With no history this would otherwise contradict the empty-state above. */}
+      {!isActive && history.length > 0 && (
         <div className="mt-auto text-center text-gray-500 text-xs italic p-2 border-t border-gray-800">
           Conversation ended.
         </div>

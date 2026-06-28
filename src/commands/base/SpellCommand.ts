@@ -174,6 +174,18 @@ export interface CommandContext {
   conditionalEndings?: ConditionalEnding[]
   /** Tracks if this execution is a critical hit (5e: doubles damage dice) */
   isCritical?: boolean
+  /**
+   * Optional damage multiplier applied after the damage dice are rolled and
+   * before resistance, immunity, damage prevention, temporary HP, and
+   * concentration checks run.
+   *
+   * Why this exists:
+   * Lightning Arrow-style attack riders still deal a fraction of their primary
+   * damage when the triggering attack misses. Keeping that fraction in the
+   * command context lets the shared damage command handle the rest of the
+   * damage lifecycle instead of letting a miss branch subtract HP by hand.
+   */
+  damageMultiplier?: number
   /** The plane where the spell is being cast. */
   currentPlane?: Plane
   /**

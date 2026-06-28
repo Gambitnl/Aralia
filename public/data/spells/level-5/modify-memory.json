@@ -1,331 +1,579 @@
 {
-  "id": "modify-memory",
-  "name": "Modify Memory",
-  "aliases": [],
-  "level": 5,
-  "school": "Enchantment",
-  "legacy": true,
-  "classes": [
-    "Bard",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 1,
-    "unit": "minute"
-  },
-  "targeting": {
-    "type": "single",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "information",
-      "description": "Choose one visible creature within 30 feet; on a failed Wisdom save, with Advantage if it is fighting you, it is Charmed and Incapacitated for up to 1 minute with concentration while you describe a memory change for an event from the last 24 hours lasting no more than 10 minutes. Damage, another spell targeting it, ending before the description is complete, or the target being unable to understand your language prevents modification; Remove Curse or Greater Restoration restores the true memory, and higher slots extend the lookback window.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Wisdom",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [
-          {
-            "type": "advantage",
-            "reason": "The target has advantage on the Wisdom save if you are fighting it."
-          }
-        ],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Charmed",
-        "duration": {
-          "type": "minutes",
-          "value": 1
-        }
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "On a failed Wisdom save, the target is Charmed for up to 1 minute with concentration, has Advantage on the save if it is fighting you, must be able to understand your language for the modified memory to take root, and can have the true memory restored by Remove Curse or Greater Restoration.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Wisdom",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [
-          {
-            "type": "advantage",
-            "reason": "The target has advantage on the Wisdom save if you are fighting it."
-          }
-        ],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Incapacitated",
-        "duration": {
-          "type": "minutes",
-          "value": 1
-        }
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "On a failed Wisdom save, the Charmed target is Incapacitated and unaware of its surroundings while still able to hear you; this nested state supports the memory-description window and ends without modifying memory if the spell ends before the description is complete.",
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You attempt to reshape another creature's memories. One creature that you can see must make a Wisdom saving throw. If you are fighting the creature, it has advantage on the saving throw. On a failed save, the target becomes charmed by you for the duration. The charmed target is incapacitated and unaware of its surroundings, though it can still hear you. If it takes any damage or is targeted by another spell, this spell ends, and none of the target's memories are modified. While this charm lasts, you can affect the target's memory of an event that it experienced within the last 24 hours and that lasted no more than 10 minutes. You can permanently eliminate all memory of the event, allow the target to recall the event with perfect clarity and exacting detail, change its memory of the details of the event, or create a memory of some other event. You must speak to the target to describe how its memories are affected, and it must be able to understand your language for the modified memories to take root. Its mind fills in any gaps in the details of your description. If the spell ends before you have finished describing the modified memories, the creature's memory isn't altered. Otherwise, the modified memories take hold when the spell ends. A modified memory doesn't necessarily affect how a creature behaves, particularly if the memory contradicts the creature's natural inclinations, alignment, or beliefs. An illogical modified memory, such as implanting a memory of how much the creature enjoyed dousing itself in acid, is dismissed, perhaps as a bad dream. The GM might deem a modified memory too nonsensical to affect a creature in a significant manner. A remove curse or greater restoration spell cast on the target restores the creature's true memory.",
-  "higherLevels": "If you cast this spell using a spell slot of 6th level or higher, you can alter the target's memories of an event that took place up to 7 days ago (6th level), 30 days ago (7th level), 1 year ago (8th level), or any time in the creature's past (9th level).",
-  "tags": [
-    "legacy",
-    "concentration"
-  ]
+    "id":  "modify-memory",
+    "name":  "Modify Memory",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Enchantment",
+    "legacy":  true,
+    "classes":  [
+                    "Bard",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  1,
+                     "unit":  "minute"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "information",
+                        "description":  "Choose one visible creature within 30 feet; on a failed Wisdom save, with Advantage if it is fighting you, it is Charmed and Incapacitated for up to 1 minute with concentration while you describe a memory change for an event from the last 24 hours lasting no more than 10 minutes. Damage, another spell targeting it, ending before the description is complete, or the target being unable to understand your language prevents modification; Remove Curse or Greater Restoration restores the true memory, and higher slots extend the lookback window.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "target_takes_damage",
+                                                       "scope":  "spell",
+                                                       "description":  "If the target takes any damage, the spell ends and no memories are modified."
+                                                   },
+                                                   {
+                                                       "trigger":  "targeted_by_another_spell",
+                                                       "scope":  "spell",
+                                                       "description":  "If the target is targeted by another spell, this spell ends and no memories are modified."
+                                                   },
+                                                   {
+                                                       "trigger":  "memory_description_incomplete_when_spell_ends",
+                                                       "scope":  "memory_change",
+                                                       "description":  "If the spell ends before the caster finishes describing modified memories, the creature memory is not altered."
+                                                   },
+                                                   {
+                                                       "trigger":  "normal_spell_end_after_complete_description",
+                                                       "scope":  "memory_change",
+                                                       "description":  "If the description is completed, the modified memories take hold when the spell ends."
+                                                   }
+                                               ],
+                        "socialEffect":  {
+                                             "status":  "Charmed and Incapacitated on failed Wisdom save",
+                                             "saveAdvantageWhen":  "target is fighting caster",
+                                             "awareness":  "target is unaware of surroundings but can still hear caster",
+                                             "breakTriggers":  [
+                                                                   "target takes any damage",
+                                                                   "target is targeted by another spell"
+                                                               ],
+                                             "languageRequirement":  "target must understand caster language for modified memory to take root",
+                                             "memoryWindow":  "event within last 24 hours lasting no more than 10 minutes, extended by higher slots",
+                                             "behaviorCaveat":  "nonsensical or contradictory memories may be dismissed or fail to affect behavior"
+                                         },
+                        "knowledgeEffect":  {
+                                                "memoryOperations":  [
+                                                                         "eliminate memory",
+                                                                         "perfectly recall memory",
+                                                                         "change details",
+                                                                         "create memory of another event"
+                                                                     ],
+                                                "completionRule":  "memory changes only if spell lasts until caster finishes describing modified memory",
+                                                "restoration":  "Remove Curse or Greater Restoration restores true memory",
+                                                "higherSlotLookback":  "6th 7 days, 7th 30 days, 8th 1 year, 9th any time in target past"
+                                            },
+                        "communicationDetails":  {
+                                                     "mode":  "spoken_memory_description",
+                                                     "targetMustHear":  true,
+                                                     "targetMustUnderstandCasterLanguage":  true,
+                                                     "memoryTakesRoot":  "only if caster finishes describing the modified memory before spell ends",
+                                                     "incompleteDescription":  "memory is not altered",
+                                                     "notes":  "The target is Incapacitated but can hear the caster during the description window."
+                                                 },
+                        "restorationDetails":  {
+                                                   "memoryRestoredBy":  [
+                                                                            "remove_curse",
+                                                                            "greater_restoration"
+                                                                        ],
+                                                   "result":  "target_true_memory_is_restored",
+                                                   "appliesTo":  "modified_memory_after_spell_takes_hold"
+                                               },
+                        "memoryState":  {
+                                            "kind":  "memory_rewrite_takes_hold",
+                                            "when":  "spell_ends_after_description_completed",
+                                            "failure":  "if_spell_ends_before_description_finished_or_target_takes_damage_or_is_targeted_by_another_spell_memory_is_not_altered",
+                                            "options":  [
+                                                            "eliminate_memory",
+                                                            "perfect_recall",
+                                                            "change_details",
+                                                            "create_memory"
+                                                        ],
+                                            "restoration":  [
+                                                                "remove_curse",
+                                                                "greater_restoration"
+                                                            ],
+                                            "slotScaling":  "higher_slots_extend_editable_memory_age"
+                                        }
+                    },
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+                                                                {
+                                                                    "type":  "advantage",
+                                                                    "reason":  "The target has advantage on the Wisdom save if you are fighting it."
+                                                                }
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Charmed",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  1
+                                                             }
+                                            },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "On a failed Wisdom save, the target is Charmed for up to 1 minute with concentration, has Advantage on the save if it is fighting you, must be able to understand your language for the modified memory to take root, and can have the true memory restored by Remove Curse or Greater Restoration.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "target_takes_damage",
+                                                       "scope":  "spell",
+                                                       "description":  "If the target takes any damage, the spell ends and no memories are modified."
+                                                   },
+                                                   {
+                                                       "trigger":  "targeted_by_another_spell",
+                                                       "scope":  "spell",
+                                                       "description":  "If the target is targeted by another spell, this spell ends and no memories are modified."
+                                                   },
+                                                   {
+                                                       "trigger":  "memory_description_incomplete_when_spell_ends",
+                                                       "scope":  "memory_change",
+                                                       "description":  "If the spell ends before the caster finishes describing modified memories, the creature memory is not altered."
+                                                   },
+                                                   {
+                                                       "trigger":  "normal_spell_end_after_complete_description",
+                                                       "scope":  "memory_change",
+                                                       "description":  "If the description is completed, the modified memories take hold when the spell ends."
+                                                   }
+                                               ],
+                        "communicationDetails":  {
+                                                     "mode":  "spoken_memory_description",
+                                                     "targetMustHear":  true,
+                                                     "targetMustUnderstandCasterLanguage":  true,
+                                                     "memoryTakesRoot":  "only if caster finishes describing the modified memory before spell ends",
+                                                     "incompleteDescription":  "memory is not altered",
+                                                     "notes":  "The target is Incapacitated but can hear the caster during the description window."
+                                                 },
+                        "restorationDetails":  {
+                                                   "memoryRestoredBy":  [
+                                                                            "remove_curse",
+                                                                            "greater_restoration"
+                                                                        ],
+                                                   "result":  "target_true_memory_is_restored",
+                                                   "appliesTo":  "modified_memory_after_spell_takes_hold"
+                                               },
+                        "memoryState":  {
+                                            "kind":  "memory_rewrite_takes_hold",
+                                            "when":  "spell_ends_after_description_completed",
+                                            "failure":  "if_spell_ends_before_description_finished_or_target_takes_damage_or_is_targeted_by_another_spell_memory_is_not_altered",
+                                            "options":  [
+                                                            "eliminate_memory",
+                                                            "perfect_recall",
+                                                            "change_details",
+                                                            "create_memory"
+                                                        ],
+                                            "restoration":  [
+                                                                "remove_curse",
+                                                                "greater_restoration"
+                                                            ],
+                                            "slotScaling":  "higher_slots_extend_editable_memory_age"
+                                        }
+                    },
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Wisdom",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+                                                                {
+                                                                    "type":  "advantage",
+                                                                    "reason":  "The target has advantage on the Wisdom save if you are fighting it."
+                                                                }
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Incapacitated",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  1
+                                                             }
+                                            },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "On a failed Wisdom save, the Charmed target is Incapacitated and unaware of its surroundings while still able to hear you; this nested state supports the memory-description window and ends without modifying memory if the spell ends before the description is complete.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "target_takes_damage",
+                                                       "scope":  "spell",
+                                                       "description":  "If the target takes any damage, the spell ends and no memories are modified."
+                                                   },
+                                                   {
+                                                       "trigger":  "targeted_by_another_spell",
+                                                       "scope":  "spell",
+                                                       "description":  "If the target is targeted by another spell, this spell ends and no memories are modified."
+                                                   },
+                                                   {
+                                                       "trigger":  "memory_description_incomplete_when_spell_ends",
+                                                       "scope":  "memory_change",
+                                                       "description":  "If the spell ends before the caster finishes describing modified memories, the creature memory is not altered."
+                                                   },
+                                                   {
+                                                       "trigger":  "normal_spell_end_after_complete_description",
+                                                       "scope":  "memory_change",
+                                                       "description":  "If the description is completed, the modified memories take hold when the spell ends."
+                                                   }
+                                               ],
+                        "communicationDetails":  {
+                                                     "mode":  "spoken_memory_description",
+                                                     "targetMustHear":  true,
+                                                     "targetMustUnderstandCasterLanguage":  true,
+                                                     "memoryTakesRoot":  "only if caster finishes describing the modified memory before spell ends",
+                                                     "incompleteDescription":  "memory is not altered",
+                                                     "notes":  "The target is Incapacitated but can hear the caster during the description window."
+                                                 },
+                        "restorationDetails":  {
+                                                   "memoryRestoredBy":  [
+                                                                            "remove_curse",
+                                                                            "greater_restoration"
+                                                                        ],
+                                                   "result":  "target_true_memory_is_restored",
+                                                   "appliesTo":  "modified_memory_after_spell_takes_hold"
+                                               },
+                        "memoryState":  {
+                                            "kind":  "memory_rewrite_takes_hold",
+                                            "when":  "spell_ends_after_description_completed",
+                                            "failure":  "if_spell_ends_before_description_finished_or_target_takes_damage_or_is_targeted_by_another_spell_memory_is_not_altered",
+                                            "options":  [
+                                                            "eliminate_memory",
+                                                            "perfect_recall",
+                                                            "change_details",
+                                                            "create_memory"
+                                                        ],
+                                            "restoration":  [
+                                                                "remove_curse",
+                                                                "greater_restoration"
+                                                            ],
+                                            "slotScaling":  "higher_slots_extend_editable_memory_age"
+                                        }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You attempt to reshape another creature\u0027s memories. One creature that you can see must make a Wisdom saving throw. If you are fighting the creature, it has advantage on the saving throw. On a failed save, the target becomes charmed by you for the duration. The charmed target is incapacitated and unaware of its surroundings, though it can still hear you. If it takes any damage or is targeted by another spell, this spell ends, and none of the target\u0027s memories are modified. While this charm lasts, you can affect the target\u0027s memory of an event that it experienced within the last 24 hours and that lasted no more than 10 minutes. You can permanently eliminate all memory of the event, allow the target to recall the event with perfect clarity and exacting detail, change its memory of the details of the event, or create a memory of some other event. You must speak to the target to describe how its memories are affected, and it must be able to understand your language for the modified memories to take root. Its mind fills in any gaps in the details of your description. If the spell ends before you have finished describing the modified memories, the creature\u0027s memory isn\u0027t altered. Otherwise, the modified memories take hold when the spell ends. A modified memory doesn\u0027t necessarily affect how a creature behaves, particularly if the memory contradicts the creature\u0027s natural inclinations, alignment, or beliefs. An illogical modified memory, such as implanting a memory of how much the creature enjoyed dousing itself in acid, is dismissed, perhaps as a bad dream. The GM might deem a modified memory too nonsensical to affect a creature in a significant manner. A remove curse or greater restoration spell cast on the target restores the creature\u0027s true memory.",
+    "higherLevels":  "If you cast this spell using a spell slot of 6th level or higher, you can alter the target\u0027s memories of an event that took place up to 7 days ago (6th level), 30 days ago (7th level), 1 year ago (8th level), or any time in the creature\u0027s past (9th level).",
+    "tags":  [
+                 "legacy",
+                 "concentration"
+             ]
 }

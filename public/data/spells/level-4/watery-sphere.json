@@ -1,294 +1,422 @@
 {
-  "id": "watery-sphere",
-  "name": "Watery Sphere",
-  "aliases": [],
-  "level": 4,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 90,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a droplet of water",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 1,
-    "unit": "minute"
-  },
-  "targeting": {
-    "type": "area",
-    "range": 90,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 5,
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "creation",
-      "description": "Create the movable sphere of water so map and combat systems can track its hover limit, movement, occupant capacity, ejection rules, flame extinguish radius, and spell-end disappearance.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "createdObjects": [
-        {
-          "objectType": "water",
-          "name": "Watery Sphere",
-          "count": 1,
-          "countUnit": "structure",
-          "appearsIn": "spell_area",
-          "affectedVolumeShape": "Sphere",
-          "affectedVolumeSizeFeet": 5,
-          "diameterFeet": 10,
-          "moveDistanceFeet": 30,
-          "hoverMaxHeightFeet": 10,
-          "safelyDescendsOverDrops": true,
-          "capacityMediumOrSmallerCreatures": 4,
-          "capacityLargeCreatures": 1,
-          "occupantsMoveWithObject": true,
-          "overflowEjectionRule": "random_existing_occupant",
-          "successfulSaveEjectsCreature": true,
-          "ejectionDistanceFeet": 5,
-          "occupantsProneOnEnd": true,
-          "extinguishesUnprotectedFlamesRadiusFeet": 30,
-          "vanishesAfterEffect": true,
-          "expiresWithSpell": true,
-          "shelfLife": "1 minute concentration",
-          "notes": "The sphere can hover up to 10 feet off the ground, move 30 feet in a straight line as an action, carry restrained occupants with it, eject overflow occupants at random, knock occupants prone when it falls at spell end, extinguish normal flames within 30 feet, and then vanish. The existing STATUS_CONDITION row owns the Strength save and Restrained application."
-        }
-      ],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Strength",
-        "saveEffect": "negates_condition",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Restrained",
-        "duration": {
-          "type": "minutes",
-          "value": 1
-        },
-        "level": 0,
-        "repeatSave": {
-          "timing": "turn_end",
-          "saveType": "Strength",
-          "successEnds": true,
-          "useOriginalDC": true
-        }
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "A Large or smaller creature in the 5-foot-radius water Sphere within 90 feet can choose to fail the Strength save; on a failed save it is Restrained and engulfed for up to 1 minute with concentration, moves with the sphere, repeats the Strength save at the end of each turn to escape, and is knocked Prone where the sphere falls when the spell ends. Huge or larger creatures automatically succeed.",
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You conjure up a sphere of water with a 5-foot radius at a point you can see within range. The sphere can hover but no more than 10 feet off the ground. The sphere remains for the spell's duration. Any creature in the sphere's space must make a Strength saving throw. On a successful save, a creature is ejected from that space to the nearest unoccupied space of the creature's choice outside the sphere. A Huge or larger creature succeeds on the saving throw automatically, and a Large or smaller creature can choose to fail it. On a failed save, a creature is restrained by the sphere and is engulfed by the water. At the end of each of its turns, a restrained target can repeat the saving throw, ending the effect on itself on a success. The sphere can restrain as many as four Medium or smaller creatures or one Large creature. If the sphere restrains a creature that causes it to exceed this capacity, a random creature that was already restrained by the sphere falls out of it and lands prone in a space within 5 feet of it. As an action, you can move the sphere up to 30 feet in a straight line. If it moves over a pit, a cliff, or other drop-off, it safely descends until it is hovering 10 feet above the ground. Any creature restrained by the sphere moves with it. You can ram the sphere into creatures, forcing them to make the saving throw. When the spell ends, the sphere falls to the ground and extinguishes all normal flames within 30 feet of it. Any creature restrained by the sphere is knocked prone in the space where it falls. The water then vanishes.",
-  "higherLevels": "",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "watery-sphere",
+    "name":  "Watery Sphere",
+    "aliases":  [
+
+                ],
+    "level":  4,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  90,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a droplet of water",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  1,
+                     "unit":  "minute"
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  90,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Sphere",
+                                           "size":  5,
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "creation",
+                        "description":  "Create the movable sphere of water so map and combat systems can track its hover limit, movement, occupant capacity, ejection rules, flame extinguish radius, and spell-end disappearance.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "action",
+                                                   "action":  "Move or Ram Watery Sphere",
+                                                   "frequency":  "each_turn",
+                                                   "actor":  "caster",
+                                                   "distance":  30,
+                                                   "distanceUnit":  "feet",
+                                                   "notes":  "Move the sphere up to 30 feet in a straight line; if it rams creatures, force the same Strength save."
+                                               }
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "water",
+                                                   "name":  "Watery Sphere",
+                                                   "count":  1,
+                                                   "countUnit":  "structure",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Sphere",
+                                                   "affectedVolumeSizeFeet":  5,
+                                                   "diameterFeet":  10,
+                                                   "moveDistanceFeet":  30,
+                                                   "hoverMaxHeightFeet":  10,
+                                                   "safelyDescendsOverDrops":  true,
+                                                   "capacityMediumOrSmallerCreatures":  4,
+                                                   "capacityLargeCreatures":  1,
+                                                   "occupantsMoveWithObject":  true,
+                                                   "overflowEjectionRule":  "random_existing_occupant",
+                                                   "successfulSaveEjectsCreature":  true,
+                                                   "ejectionDistanceFeet":  5,
+                                                   "occupantsProneOnEnd":  true,
+                                                   "extinguishesUnprotectedFlamesRadiusFeet":  30,
+                                                   "vanishesAfterEffect":  true,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "1 minute concentration",
+                                                   "notes":  "The sphere can hover up to 10 feet off the ground, move 30 feet in a straight line as an action, carry restrained occupants with it, eject overflow occupants at random, knock occupants prone when it falls at spell end, extinguish normal flames within 30 feet, and then vanish. The existing STATUS_CONDITION row owns the Strength save and Restrained application."
+                                               }
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "sphere_cleanup",
+                                                       "description":  "When the spell ends, the sphere falls, extinguishes normal flames within 30 feet, knocks restrained creatures prone where it falls, and the water vanishes."
+                                                   }
+                                               ],
+                        "sustainAction":  {
+                                              "cost":  "Magic Action",
+                                              "frequency":  "on_later_turns",
+                                              "use":  "move_sphere_up_to_30_feet_in_straight_line",
+                                              "movementEffect":  "creatures_engulfed_move_with_sphere",
+                                              "ejection":  "can_eject_creatures_into_spaces_within_5_feet_at_end_of_movement"
+                                          },
+                        "aftermathState":  {
+                                               "kind":  "sphere_falls_and_extinguishes",
+                                               "when":  "spell_ends",
+                                               "consequence":  [
+                                                                   "sphere_falls_to_ground",
+                                                                   "normal_flames_within_30_feet_are_extinguished",
+                                                                   "conjured_water_vanishes_after_resolution"
+                                                               ]
+                                           },
+                        "forcedMovementState":  {
+                                                    "kind":  "moving_water_sphere",
+                                                    "cost":  "Magic Action",
+                                                    "movement":  "move_sphere_up_to_30_feet_in_straight_line",
+                                                    "carriedTargets":  "restrained_engulfed_creatures_move_with_sphere",
+                                                    "ejection":  "creatures_can_be_ejected_into_spaces_within_5_feet",
+                                                    "end":  "sphere_falls_and_restrained_creatures_fall_prone_where_they_land"
+                                                },
+                        "movementState":  {
+                                              "kind":  "hovering_movable_water_sphere",
+                                              "hoverLimit":  "no_more_than_10_feet_off_ground",
+                                              "moveCost":  "Magic Action",
+                                              "moveDistance":  "up_to_30_feet_in_straight_line",
+                                              "dropOff":  "safely_descends_until_hovering_10_feet_above_ground",
+                                              "restrainedCreatures":  "move_with_sphere",
+                                              "ram":  "can_ram_sphere_into_creatures_for_save"
+                                          }
+                    },
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Strength",
+                                          "saveEffect":  "negates_condition",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+                                                                       {
+                                                                           "outcome":  "auto_success",
+                                                                           "condition":  "target_size_huge_or_larger",
+                                                                           "reason":  "Huge or larger creatures automatically succeed on the Watery Sphere Strength save."
+                                                                       },
+                                                                       {
+                                                                           "outcome":  "voluntary_failure_allowed",
+                                                                           "condition":  "target_size_large_or_smaller",
+                                                                           "reason":  "Large or smaller creatures can choose to fail the Watery Sphere Strength save."
+                                                                       }
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Restrained",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  1
+                                                             },
+                                                "level":  0,
+                                                "repeatSave":  {
+                                                                   "timing":  "turn_end",
+                                                                   "saveType":  "Strength",
+                                                                   "successEnds":  true,
+                                                                   "useOriginalDC":  true
+                                                               }
+                                            },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "A Large or smaller creature in the 5-foot-radius water Sphere within 90 feet can choose to fail the Strength save; on a failed save it is Restrained and engulfed for up to 1 minute with concentration, moves with the sphere, repeats the Strength save at the end of each turn to escape, and is knocked Prone where the sphere falls when the spell ends. Huge or larger creatures automatically succeed.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "spell_ends",
+                                                       "scope":  "sphere_cleanup",
+                                                       "description":  "When the spell ends, the sphere falls, extinguishes normal flames within 30 feet, knocks restrained creatures prone where it falls, and the water vanishes."
+                                                   }
+                                               ],
+                        "ejectionDestinationEligibility":  {
+                                                               "trigger":  "successful_save_against_sphere_entry",
+                                                               "destinationPreference":  "nearest_unoccupied_space_of_creature_choice_outside_sphere",
+                                                               "requiresUnoccupiedSpace":  true,
+                                                               "chooser":  "ejected_creature",
+                                                               "notes":  "A creature that saves against entering the sphere is ejected to the nearest unoccupied outside space of its choice."
+                                                           },
+                        "forcedMovementState":  {
+                                                    "kind":  "restrained_creature_fall_on_end",
+                                                    "trigger":  "spell_ends_or_creature_released_from_sphere_fall",
+                                                    "consequence":  "creature_knocked_Prone_in_space_where_it_falls"
+                                                }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the sphere\u0027s origin point. For each affected creature, record whether it is Huge or larger and automatically succeeds, whether a Large or smaller creature chooses to fail, and where a successful creature chooses to be ejected outside the sphere.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You conjure up a sphere of water with a 5-foot radius at a point you can see within range. The sphere can hover but no more than 10 feet off the ground. The sphere remains for the spell\u0027s duration. Any creature in the sphere\u0027s space must make a Strength saving throw. On a successful save, a creature is ejected from that space to the nearest unoccupied space of the creature\u0027s choice outside the sphere. A Huge or larger creature succeeds on the saving throw automatically, and a Large or smaller creature can choose to fail it. On a failed save, a creature is restrained by the sphere and is engulfed by the water. At the end of each of its turns, a restrained target can repeat the saving throw, ending the effect on itself on a success. The sphere can restrain as many as four Medium or smaller creatures or one Large creature. If the sphere restrains a creature that causes it to exceed this capacity, a random creature that was already restrained by the sphere falls out of it and lands prone in a space within 5 feet of it. As an action, you can move the sphere up to 30 feet in a straight line. If it moves over a pit, a cliff, or other drop-off, it safely descends until it is hovering 10 feet above the ground. Any creature restrained by the sphere moves with it. You can ram the sphere into creatures, forcing them to make the saving throw. When the spell ends, the sphere falls to the ground and extinguishes all normal flames within 30 feet of it. Any creature restrained by the sphere is knocked prone in the space where it falls. The water then vanishes.",
+    "higherLevels":  "",
+    "tags":  [
+                 "concentration"
+             ]
 }

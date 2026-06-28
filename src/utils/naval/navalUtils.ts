@@ -176,19 +176,26 @@ export function addCrewMember(ship: Ship, member: CrewMember): Ship {
 }
 
 /**
- * Calculates travel time in hours for a given distance in miles.
- * Takes into account ship speed (which is roughly ft/round / 10 in mph).
+ * The one authoritative conversion from a ship's base speed (`ShipStats.speed`,
+ * in ft/round) to miles per hour. Centralizing this removes ambiguity about what
+ * the raw stat means at call sites (it is ft/round, NOT hexes/day).
  *
  * D&D 5e standard:
  * Speed 30 ft/round = 3 mph
  * Speed 20 ft/round = 2 mph
  * So mph = speed / 10
  */
-export function calculateTravelTime(ship: Ship, distanceMiles: number, windFactor: number = 1.0): number {
-  const stats = calculateShipStats(ship);
+export function shipSpeedMph(ship: Ship): number {
+  return calculateShipStats(ship).speed / 10;
+}
 
-  // Base speed in mph
-  const speedMph = stats.speed / 10;
+/**
+ * Calculates travel time in hours for a given distance in miles.
+ * Takes into account ship speed (see {@link shipSpeedMph}).
+ */
+export function calculateTravelTime(ship: Ship, distanceMiles: number, windFactor: number = 1.0): number {
+  // Base speed in mph (authoritative conversion).
+  const speedMph = shipSpeedMph(ship);
 
   // Adjusted speed cannot be less than 0.5 mph unless ship is wrecked
   const adjustedSpeed = Math.max(0.5, speedMph * windFactor);

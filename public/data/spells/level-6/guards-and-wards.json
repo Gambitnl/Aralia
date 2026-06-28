@@ -1,190 +1,370 @@
 {
-  "id": "guards-and-wards",
-  "name": "Guards and Wards",
-  "aliases": [],
-  "level": 6,
-  "school": "Abjuration",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "hour",
-    "explorationCost": {
-      "value": 1,
-      "unit": "hour"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a silver rod worth 10+ GP",
-    "materialCost": 10,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 24,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "melee",
-    "range": 0,
-    "validTargets": [
-      "creatures",
-      "objects"
-    ],
-    "lineOfSight": false,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "areaOfEffect": {
-      "shape": "Square",
-      "size": 2500,
-      "sizeUnit": "feet",
-      "sizeType": "square"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-    "description": "Create a 24-hour ward over up to 2,500 square feet of floor space, up to 20 feet tall and shapeable across contiguous areas the caster can walk through during casting; the caster can exempt specified individuals from any or all chosen effects, define a spoken password that grants immunity, and then apply the Guards and Wards effect package inside the warded area.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You create a ward that protects up to 2,500 square feet of floor space. The warded area can be up to 20 feet tall, and you shape it as one 50-foot square, one hundred 5-foot squares that are contiguous, or twenty-five 10-foot squares that are contiguous. When you cast this spell, you can specify individuals that are unaffected by the spell's effects. You can also specify a password that, when spoken aloud within 5 feet of the warded area, makes the speaker immune to its effects. The spell creates the effects below within the warded area. Dispel Magic has no effect on Guards and Wards itself, but each of the following effects can be dispelled. If all four are dispelled, Guards and Wards ends. If you cast the spell every day for 365 days on the same area, the spell thereafter lasts until all its effects are dispelled. Corridors. Fog fills all the warded corridors, making them Heavily Obscured . In addition, at each intersection or branching passage offering a choice of direction, there is a 50 percent chance that a creature other than you believes it is going in the opposite direction from the one it chooses. Doors. All doors in the warded area are magically locked, as if sealed by the Arcane Lock spell. In addition, you can cover up to ten doors with an illusion to make them appear as plain sections of wall. Stairs. Webs fill all stairs in the warded area from top to bottom, as in the Web spell. These strands regrow in 10 minutes if they are destroyed while Guards and Wards lasts. Other Spell Effect. Place one of the following magical effects within the warded area:",
-  "higherLevels": "",
-  "tags": []
+    "id":  "guards-and-wards",
+    "name":  "Guards and Wards",
+    "aliases":  [
+
+                ],
+    "level":  6,
+    "school":  "Abjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "hour",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "hour"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a silver rod worth 10+ GP",
+                       "materialCost":  10,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  24,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "melee",
+                      "range":  0,
+                      "validTargets":  [
+                                           "creatures",
+                                           "objects"
+                                       ],
+                      "lineOfSight":  false,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet",
+                      "areaOfEffect":  {
+                                           "shape":  "Square",
+                                           "size":  2500,
+                                           "sizeUnit":  "feet",
+                                           "sizeType":  "square"
+                                       }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "Create a 24-hour ward over up to 2,500 square feet of floor space, up to 20 feet tall and shapeable across contiguous areas the caster can walk through during casting; the caster can exempt specified individuals from any or all chosen effects, define a spoken password that grants immunity, and then apply the Guards and Wards effect package inside the warded area.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Ward Shape",
+                                                   "effect":  "The caster chooses one 50-foot square, one hundred contiguous 5-foot squares, or twenty-five contiguous 10-foot squares, up to 20 feet tall."
+                                               },
+                                               {
+                                                   "name":  "Unaffected Individuals",
+                                                   "effect":  "The caster chooses individuals unaffected by any or all of the ward\u0027s effects."
+                                               },
+                                               {
+                                                   "name":  "Password Immunity",
+                                                   "effect":  "The caster can define a password that grants immunity when spoken within 5 feet of the warded area."
+                                               },
+                                               {
+                                                   "name":  "Door Illusions",
+                                                   "effect":  "The caster chooses up to ten warded doors to appear as plain wall sections."
+                                               },
+                                               {
+                                                   "name":  "Other Spell Effect",
+                                                   "effect":  "The caster chooses the additional magical effect placed within the warded area."
+                                               },
+                                               {
+                                                   "name":  "Dispel One Effect",
+                                                   "effect":  "Each ward effect can be dispelled separately; Guards and Wards ends only when all four effects are gone."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "warded_structure_area",
+                                                   "name":  "Guards And Wards Area",
+                                                   "count":  1,
+                                                   "countUnit":  "area",
+                                                   "appearsIn":  "warded_floor_space",
+                                                   "maxFloorAreaSquareFeet":  2500,
+                                                   "maxHeightFeet":  20,
+                                                   "shapeOptions":  [
+                                                                        "one_50_foot_square",
+                                                                        "one_hundred_contiguous_5_foot_squares",
+                                                                        "twenty_five_contiguous_10_foot_squares"
+                                                                    ],
+                                                   "manipulationOptions":  [
+                                                                               "fog_corridors",
+                                                                               "misdirect_intersections",
+                                                                               "arcane_lock_doors",
+                                                                               "illusory_wall_doors",
+                                                                               "web_stairs",
+                                                                               "regrow_stair_webs",
+                                                                               "place_other_spell_effect",
+                                                                               "password_or_individual_immunity",
+                                                                               "separate_effect_dispels"
+                                                                           ],
+                                                   "corridorFog":  {
+                                                                       "heavilyObscured":  true,
+                                                                       "intersectionsMisdirectChancePercent":  50
+                                                                   },
+                                                   "doors":  {
+                                                                 "magicallyLockedAs":  "Arcane Lock",
+                                                                 "maxIllusoryWallDoors":  10
+                                                             },
+                                                   "stairs":  {
+                                                                  "filledWith":  "Web",
+                                                                  "regrowsAfterMinutes":  10
+                                                              },
+                                                   "otherSpellEffects":  [
+                                                                             "Dancing Lights",
+                                                                             "Magic Mouth",
+                                                                             "Stinking Cloud",
+                                                                             "Gust of Wind",
+                                                                             "Suggestion"
+                                                                         ],
+                                                   "dispelMagicCannotRemoveWholeWard":  true,
+                                                   "effectsCanBeDispelledIndividually":  true,
+                                                   "endsWhenAllEffectsDispelled":  true,
+                                                   "permanentAfterDailyCastsForDays":  365,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "24 hours, or until all effects are dispelled after 365 daily same-area casts",
+                                                   "notes":  "Guards and Wards creates a configurable protected area with fogged corridors, locked/illusory doors, Web-filled stairs that regrow, one extra spell effect, immunity routing, and separate effect dispels."
+                                               }
+                                           ],
+                        "knowledgeEffect":  {
+                                                "affectedNavigators":  "creatures other than caster at each intersection or branching passage",
+                                                "misdirectionChancePercent":  50,
+                                                "falseBelief":  "creature believes it is going in the opposite direction from the one it chooses",
+                                                "exceptions":  "specified individuals or password speakers can be immune to any or all ward effects",
+                                                "relatedSensoryEffects":  [
+                                                                              "corridor fog heavily obscures",
+                                                                              "door illusions make up to ten doors appear as plain wall sections"
+                                                                          ]
+                                            },
+                        "objectLifecycle":  {
+                                                "createdFeature":  "web strands filling stairs",
+                                                "destruction":  "web strands can be destroyed as Web spell material",
+                                                "regrowth":  "destroyed stair webs regrow in 10 minutes while Guards and Wards lasts",
+                                                "dispelModel":  "individual spell effects can be dispelled, but Dispel Magic has no effect on Guards and Wards itself"
+                                            },
+                        "communicationDetails":  {
+                                                     "mode":  "spoken_password_ward_immunity",
+                                                     "passwordSpecifiedAtCast":  true,
+                                                     "rangeFeet":  5,
+                                                     "result":  "speaker becomes immune to Guards and Wards effects",
+                                                     "notes":  "Password must be spoken aloud within 5 feet of the warded area."
+                                                 },
+                        "wardTrigger":  {
+                                            "kind":  "building_ward_package",
+                                            "trigger":  "creature_moves_through_warded_area_or_interacts_with_warded_doors_stairs_corridors_or_selected_spell_effect",
+                                            "area":  "up_to_2500_square_feet_floor_space_20_feet_tall",
+                                            "effects":  [
+                                                            "corridor_fog",
+                                                            "direction_misdirection",
+                                                            "arcane_locked_doors",
+                                                            "illusory_doors",
+                                                            "webbed_stairs",
+                                                            "selected_spell_effect"
+                                                        ],
+                                            "permanence":  "daily_casting_for_365_days_makes_until_dispelled"
+                                        },
+                        "illusionState":  {
+                                              "kind":  "warded_door_illusion",
+                                              "count":  "up_to_ten_doors",
+                                              "effect":  "doors_appear_as_plain_sections_of_wall",
+                                              "dispel":  "individual_effects_can_be_dispelled_and_all_four_removed_ends_guards_and_wards",
+                                              "pairedWard":  "arcane_locked_doors"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Ask the caster to choose the ward shape, unaffected individuals and effect coverage, optional password, up to ten doors disguised as walls, and the Other Spell Effect; later dispels must choose which ward effect is removed.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "selectionType":  "choose_one",
+                       "options":  [
+                                       "Dancing Lights",
+                                       "Magic Mouth",
+                                       "Stinking Cloud",
+                                       "Gust of Wind",
+                                       "Suggestion"
+                                   ],
+                       "secondaryChoices":  [
+                                                "ward shape",
+                                                "unaffected individuals",
+                                                "password",
+                                                "illusory doors",
+                                                "dispelled effect"
+                                            ],
+                       "notes":  "The Other Spell Effect is a required casting branch, while the secondary choices capture the persistent ward layout and exception rules."
+                   },
+    "description":  "You create a ward that protects up to 2,500 square feet of floor space. The warded area can be up to 20 feet tall, and you shape it as one 50-foot square, one hundred 5-foot squares that are contiguous, or twenty-five 10-foot squares that are contiguous. When you cast this spell, you can specify individuals that are unaffected by the spell\u0027s effects. You can also specify a password that, when spoken aloud within 5 feet of the warded area, makes the speaker immune to its effects. The spell creates the effects below within the warded area. Dispel Magic has no effect on Guards and Wards itself, but each of the following effects can be dispelled. If all four are dispelled, Guards and Wards ends. If you cast the spell every day for 365 days on the same area, the spell thereafter lasts until all its effects are dispelled. Corridors. Fog fills all the warded corridors, making them Heavily Obscured . In addition, at each intersection or branching passage offering a choice of direction, there is a 50 percent chance that a creature other than you believes it is going in the opposite direction from the one it chooses. Doors. All doors in the warded area are magically locked, as if sealed by the Arcane Lock spell. In addition, you can cover up to ten doors with an illusion to make them appear as plain sections of wall. Stairs. Webs fill all stairs in the warded area from top to bottom, as in the Web spell. These strands regrow in 10 minutes if they are destroyed while Guards and Wards lasts. Other Spell Effect. Place one of the following magical effects within the warded area:",
+    "higherLevels":  "",
+    "tags":  [
+
+             ]
 }

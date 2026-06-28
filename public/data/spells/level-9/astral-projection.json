@@ -1,332 +1,394 @@
 {
-  "id": "astral-projection",
-  "name": "Astral Projection",
-  "aliases": [],
-  "level": 9,
-  "school": "Necromancy",
-  "legacy": false,
-  "classes": [
-    "Cleric",
-    "Warlock",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "hour",
-    "explorationCost": {
-      "value": 1,
-      "unit": "hour"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 10,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "for each of the spell's targets, one jacinth worth 1,000+ GP and one silver bar worth 100+ GP, all of which the spell consumes",
-    "materialCost": 1100,
-    "isConsumed": true
-  },
-  "duration": {
-    "type": "until_dispelled",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "multi",
-    "range": 10,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 9,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "Project the caster and up to eight willing creatures into the Astral Plane unless the caster is already there. Each astral form travels by silver cord, cord-cutting kills both forms, body and astral-form damage stay separate, leaving the Astral Plane pulls the body and possessions to the new plane, either form dropping to 0 Hit Points ends the spell for that target, and the caster can dismiss the spell for all targets with a Magic action.",
-      "utilityType": "other",
-      "grantedActions": [
-        {
-          "type": "action",
-          "action": "Take a Magic action to dismiss Astral Projection for all targets.",
-          "frequency": "while_active",
-          "notes": "The current granted-action schema cannot name the Magic action subtype separately from a normal action."
-        }
-      ],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Astral projection",
-          "effect": "The caster and up to eight willing creatures project astral bodies into the Astral Plane; the spell ends instantly if the caster is already there."
-        },
-        {
-          "name": "Suspended body",
-          "effect": "Each target body is left behind Unconscious, needs no food or air, and does not age."
-        },
-        {
-          "name": "Silver cord",
-          "effect": "The astral form has a silvery cord; if an effect explicitly cuts it, both body and astral form die."
-        },
-        {
-          "name": "Planar re-entry",
-          "effect": "When an astral form leaves the Astral Plane, the body and possessions travel along the cord and the target re-enters its body on the new plane."
-        },
-        {
-          "name": "Damage separation",
-          "effect": "Damage and other effects on an astral form do not affect the body, and damage and effects on the body do not affect the astral form."
-        },
-        {
-          "name": "Magic-action dismissal",
-          "effect": "The caster can take a Magic action to dismiss the spell for all targets; a target also returns when the spell ends for it while it is not dead."
-        }
-      ],
-      "createdObjects": [
-        {
-          "objectType": "other",
-          "name": "Suspended Original Body",
-          "count": 1,
-          "countUnit": "per target body",
-          "appearsIn": "target_space",
-          "shapeOptions": [
-            "target_original_body"
-          ],
-          "materialOptions": [
-            "target body"
-          ],
-          "createdEntityKind": "suspended_body",
-          "needsFoodOrAir": false,
-          "agesWhileSuspended": false,
-          "linkedToCounterpartForm": true,
-          "silverCordLink": true,
-          "damageSharedWithCounterpart": false,
-          "effectsSharedWithCounterpart": false,
-          "endsWhenBodyOrFormDropsToZeroHp": true,
-          "returnsToBodyOnEndIfAlive": true,
-          "expiresWithSpell": true,
-          "notes": "The body is left behind Unconscious in suspended animation until the spell ends for that target, unless the target dies."
-        },
-        {
-          "objectType": "other",
-          "name": "Astral Form",
-          "count": 1,
-          "countUnit": "per target form",
-          "appearsIn": "Astral Plane",
-          "shapeOptions": [
-            "astral duplicate of target"
-          ],
-          "materialOptions": [
-            "astral body"
-          ],
-          "createdEntityKind": "astral_form",
-          "linkedToCounterpartForm": true,
-          "silverCordLink": true,
-          "silverCordVisibleDistanceFeet": 1,
-          "silverCordCutEffect": "body_and_astral_form_die",
-          "damageSharedWithCounterpart": false,
-          "effectsSharedWithCounterpart": false,
-          "planarExitTransfersBodyAndPossessions": true,
-          "endsWhenBodyOrFormDropsToZeroHp": true,
-          "returnsToBodyOnEndIfAlive": true,
-          "expiresWithSpell": true,
-          "notes": "The astral form replicates the target's statistics and possessions, travels through the Astral Plane, and pulls the body and possessions along the silver cord when leaving that plane."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "Each target body left behind by Astral Projection is suspended with the Unconscious condition, needs no food or air, does not age, and exits suspended animation when the spell ends for that target while it is not dead.",
-      "statusCondition": {
-        "name": "Unconscious",
-        "duration": {
-          "type": "special"
-        }
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You and up to eight willing creatures within range project your astral bodies into the Astral Plane (the spell ends instantly if you are already on that plane). Each target's body is left behind in a state of suspended animation; it has the Unconscious condition, doesn't need food or air, and doesn't age. A target's astral form resembles its body in almost every way, replicating its game statistics and possessions. The principal difference is the addition of a silvery cord that trails from between the shoulder blades of the astral form. The cord fades from view after 1 foot. If the cord is cut-which happens only when an effect states that it does so-the target's body and astral form both die. A target's astral form can travel through the Astral Plane. The moment an astral form leaves that plane, the target's body and possessions travel along the silver cord, causing the target to re-enter its body on the new plane. Any damage or other effects that apply to an astral form have no effect on the target's body and vice versa. If a target's body or astral form drops to 0 Hit Points, the spell ends for that target. The spell ends for all the targets if you take a Magic action to dismiss it. When the spell ends for a target who isn't dead, the target reappears in its body and exits the state of suspended animation.",
-  "higherLevels": "",
-  "tags": []
+    "id":  "astral-projection",
+    "name":  "Astral Projection",
+    "aliases":  [
+
+                ],
+    "level":  9,
+    "school":  "Necromancy",
+    "legacy":  false,
+    "classes":  [
+                    "Cleric",
+                    "Warlock",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "hour",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "hour"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  10,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "for each of the spell\u0027s targets, one jacinth worth 1,000+ GP and one silver bar worth 100+ GP, all of which the spell consumes",
+                       "materialCost":  1100,
+                       "isConsumed":  true
+                   },
+    "duration":  {
+                     "type":  "until_dispelled",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "multi",
+                      "range":  10,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  9,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Project the caster and up to eight willing creatures into the Astral Plane unless the caster is already there. Each astral form travels by silver cord, cord-cutting kills both forms, body and astral-form damage stay separate, leaving the Astral Plane pulls the body and possessions to the new plane, either form dropping to 0 Hit Points ends the spell for that target, and the caster can dismiss the spell for all targets with a Magic action.",
+                        "utilityType":  "other",
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "action",
+                                                   "action":  "Take a Magic action to dismiss Astral Projection for all targets.",
+                                                   "frequency":  "while_active",
+                                                   "notes":  "The current granted-action schema cannot name the Magic action subtype separately from a normal action."
+                                               }
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Astral projection",
+                                                   "effect":  "The caster and up to eight willing creatures project astral bodies into the Astral Plane; the spell ends instantly if the caster is already there."
+                                               },
+                                               {
+                                                   "name":  "Suspended body",
+                                                   "effect":  "Each target body is left behind Unconscious, needs no food or air, and does not age."
+                                               },
+                                               {
+                                                   "name":  "Silver cord",
+                                                   "effect":  "The astral form has a silvery cord; if an effect explicitly cuts it, both body and astral form die."
+                                               },
+                                               {
+                                                   "name":  "Planar re-entry",
+                                                   "effect":  "When an astral form leaves the Astral Plane, the body and possessions travel along the cord and the target re-enters its body on the new plane."
+                                               },
+                                               {
+                                                   "name":  "Damage separation",
+                                                   "effect":  "Damage and other effects on an astral form do not affect the body, and damage and effects on the body do not affect the astral form."
+                                               },
+                                               {
+                                                   "name":  "Magic-action dismissal",
+                                                   "effect":  "The caster can take a Magic action to dismiss the spell for all targets; a target also returns when the spell ends for it while it is not dead."
+                                               }
+                                           ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "other",
+                                                   "name":  "Suspended Original Body",
+                                                   "count":  1,
+                                                   "countUnit":  "per target body",
+                                                   "appearsIn":  "target_space",
+                                                   "shapeOptions":  [
+                                                                        "target_original_body"
+                                                                    ],
+                                                   "materialOptions":  [
+                                                                           "target body"
+                                                                       ],
+                                                   "createdEntityKind":  "suspended_body",
+                                                   "needsFoodOrAir":  false,
+                                                   "agesWhileSuspended":  false,
+                                                   "linkedToCounterpartForm":  true,
+                                                   "silverCordLink":  true,
+                                                   "damageSharedWithCounterpart":  false,
+                                                   "effectsSharedWithCounterpart":  false,
+                                                   "endsWhenBodyOrFormDropsToZeroHp":  true,
+                                                   "returnsToBodyOnEndIfAlive":  true,
+                                                   "expiresWithSpell":  true,
+                                                   "notes":  "The body is left behind Unconscious in suspended animation until the spell ends for that target, unless the target dies."
+                                               },
+                                               {
+                                                   "objectType":  "other",
+                                                   "name":  "Astral Form",
+                                                   "count":  1,
+                                                   "countUnit":  "per target form",
+                                                   "appearsIn":  "Astral Plane",
+                                                   "shapeOptions":  [
+                                                                        "astral duplicate of target"
+                                                                    ],
+                                                   "materialOptions":  [
+                                                                           "astral body"
+                                                                       ],
+                                                   "createdEntityKind":  "astral_form",
+                                                   "linkedToCounterpartForm":  true,
+                                                   "silverCordLink":  true,
+                                                   "silverCordVisibleDistanceFeet":  1,
+                                                   "silverCordCutEffect":  "body_and_astral_form_die",
+                                                   "damageSharedWithCounterpart":  false,
+                                                   "effectsSharedWithCounterpart":  false,
+                                                   "planarExitTransfersBodyAndPossessions":  true,
+                                                   "endsWhenBodyOrFormDropsToZeroHp":  true,
+                                                   "returnsToBodyOnEndIfAlive":  true,
+                                                   "expiresWithSpell":  true,
+                                                   "notes":  "The astral form replicates the target\u0027s statistics and possessions, travels through the Astral Plane, and pulls the body and possessions along the silver cord when leaving that plane."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "hitPointState":  {
+                                              "mode":  "separate_body_and_astral_form_damage",
+                                              "bodyAndAstralDamageSeparate":  true,
+                                              "zeroHpEnding":  "spell ends for a target if its body or astral form drops to 0 Hit Points",
+                                              "silverCordCut":  "target dies if silver cord is cut"
+                                          }
+                    },
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Each target body left behind by Astral Projection is suspended with the Unconscious condition, needs no food or air, does not age, and exits suspended animation when the spell ends for that target while it is not dead.",
+                        "statusCondition":  {
+                                                "name":  "Unconscious",
+                                                "duration":  {
+                                                                 "type":  "special"
+                                                             }
+                                            },
+                        "conditionalEndings":  [
+
+                                               ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You and up to eight willing creatures within range project your astral bodies into the Astral Plane (the spell ends instantly if you are already on that plane). Each target\u0027s body is left behind in a state of suspended animation; it has the Unconscious condition, doesn\u0027t need food or air, and doesn\u0027t age. A target\u0027s astral form resembles its body in almost every way, replicating its game statistics and possessions. The principal difference is the addition of a silvery cord that trails from between the shoulder blades of the astral form. The cord fades from view after 1 foot. If the cord is cut-which happens only when an effect states that it does so-the target\u0027s body and astral form both die. A target\u0027s astral form can travel through the Astral Plane. The moment an astral form leaves that plane, the target\u0027s body and possessions travel along the silver cord, causing the target to re-enter its body on the new plane. Any damage or other effects that apply to an astral form have no effect on the target\u0027s body and vice versa. If a target\u0027s body or astral form drops to 0 Hit Points, the spell ends for that target. The spell ends for all the targets if you take a Magic action to dismiss it. When the spell ends for a target who isn\u0027t dead, the target reappears in its body and exits the state of suspended animation.",
+    "higherLevels":  "",
+    "tags":  [
+
+             ]
 }

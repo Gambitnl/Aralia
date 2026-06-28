@@ -32,10 +32,11 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { DamageCommand } from './DamageCommand';
 import { StatusConditionCommand } from './StatusConditionCommand';
-import { CombatState, ActiveEffect } from '../../types/combat';
+import { CombatState, ActiveEffect, LightSource } from '../../types/combat';
 import { DamageEffect, StatusConditionEffect, isAttackRollModifierEffect } from '../../types/spells';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
+import { generateId } from '../../utils/idGenerator';
 
 // ============================================================================
 // Attack Roll Riders
@@ -151,6 +152,11 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
       const attackRollEffect = this.createAttackRollActiveEffect(target.id, currentState.turnState.currentTurn);
       currentState = this.applyAttackRollActiveEffect(currentState, target.id, attackRollEffect);
 
+      // Shining Smite-style riders also make the hit creature shed light. Keep
+      // that visual/mechanical map artifact on the same shared rider path so
+      // after-hit spells do not need a separate one-off utility command.
+      currentState = this.applyAttackRollLightSource(currentState, target.id);
+
       currentState = this.addLogEntry(currentState, {
         type: 'status',
         message: `${target.name} is affected by ${this.describeRider()}`,
@@ -200,6 +206,13 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
           attackRollDice: attackMod.dice,
           attackerFilter: attackMod.attackerFilter,
         } : {}),
+        ...(this.effect.invisibilitySuppression ? {
+          // Shining Smite-style riders do more than grant advantage: they also
+          // turn off the target's benefit from being Invisible. Store that as a
+          // generic suppressed-condition benefit so the attack factory can
+          // enforce it without knowing which spell created the rider.
+          suppressedConditionBenefit: this.effect.invisibilitySuppression.suppressesConditionBenefit
+        } : {}),
         ...(saveMod ? {
           savingThrowModifier: saveMod.modifier,
           savingThrowConsumption: saveMod.consumption,
@@ -209,6 +222,72 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
         } : {})
       }
     };
+  }
+
+  private applyAttackRollLightSource(state: CombatState, targetId: string): CombatState {
+    if (!isAttackRollModifierEffect(this.effect) || !this.effect.light) {
+      return state;
+    }
+
+    const target = state.characters.find(c => c.id === targetId);
+    if (!target) return state;
+
+    const lightConfig = this.effect.light;
+    const duration = this.effect.attackRollModifier?.duration || this.context.effectDuration;
+
+    // Timed rider lights need the same cleanup boundary as ordinary utility
+    // lights. Concentration cleanup can still remove them earlier through the
+    // spell id, but this round marker prevents stale light from surviving a
+    // non-concentration rider duration.
+    const expiresAtRound = duration?.type === 'rounds' && typeof duration.value === 'number'
+      ? state.turnState.currentTurn + duration.value
+      : undefined;
+
+    const attachedTo = lightConfig.attachedTo ?? 'target';
+    const attachedToCharacterId = attachedTo === 'caster'
+      ? this.context.caster.id
+      : attachedTo === 'target'
+        ? target.id
+        : undefined;
+
+    const lightSource: LightSource = {
+      id: generateId(),
+      sourceSpellId: this.context.spellId || 'unknown',
+      casterId: this.context.caster.id,
+      brightRadius: lightConfig.brightRadius,
+      dimRadius: lightConfig.dimRadius ?? 0,
+      attachedTo,
+      attachedToCharacterId,
+      position: attachedTo === 'point' ? target.position : undefined,
+      color: lightConfig.color,
+      createdTurn: state.turnState.currentTurn,
+      expiresAtRound
+    };
+
+    // Replace any previous light from the same rider on the same creature.
+    // Recasting or refreshing the smite should move the light forward rather
+    // than leaving duplicate glow records attached to the target.
+    const retainedLights = (state.activeLightSources || []).filter(existingLight =>
+      !(
+        existingLight.sourceSpellId === lightSource.sourceSpellId &&
+        existingLight.casterId === lightSource.casterId &&
+        existingLight.attachedToCharacterId === lightSource.attachedToCharacterId
+      )
+    );
+
+    let nextState: CombatState = {
+      ...state,
+      activeLightSources: [...retainedLights, lightSource]
+    };
+
+    nextState = this.addLogEntry(nextState, {
+      type: 'status',
+      message: `${target.name} sheds ${lightConfig.brightRadius} ft bright light from ${this.context.spellName}`,
+      characterId: target.id,
+      data: { lightSource }
+    });
+
+    return nextState;
   }
 
   private applyAttackRollActiveEffect(state: CombatState, targetId: string, effect: ActiveEffect): CombatState {

@@ -420,3 +420,27 @@ describe('generateTownPlan — dock capping (#4 quality)', () => {
     });
   });
 });
+
+describe('generateTownPlan — bridge capping (TG1 fix)', () => {
+  const bigFp: Pt[] = [[0, 0], [1000, 0], [1000, 1000], [0, 1000]];
+  // A river that snakes back and forth across the town center, producing many crossings.
+  const snakingWater: Pt[][] = [
+    [[500, -10], [500, 200], [200, 400], [800, 600], [200, 800], [500, 1010]],
+  ];
+  const bridgeCount = (plan: ReturnType<typeof generateTownPlan>): number =>
+    plan.civic.filter((c) => c.kind === 'bridge').length;
+
+  it('caps bridges to a few principal crossings for a city (not one per ward crossing)', () => {
+    const plan = generateTownPlan(bigFp, rootSeedPath(8), { population: 15000, water: snakingWater, wardCount: 30 });
+    const bridges = bridgeCount(plan);
+    expect(bridges).toBeGreaterThan(0);
+    expect(bridges).toBeLessThanOrEqual(3); // city cap
+  });
+
+  it('a small town gets fewer bridges than a city', () => {
+    const townBridges = bridgeCount(generateTownPlan(bigFp, rootSeedPath(8), { population: 800, water: snakingWater, wardCount: 10 }));
+    const cityBridges = bridgeCount(generateTownPlan(bigFp, rootSeedPath(8), { population: 15000, water: snakingWater, wardCount: 30 }));
+    expect(townBridges).toBeLessThanOrEqual(1); // village cap
+    expect(cityBridges).toBeGreaterThan(townBridges);
+  });
+});

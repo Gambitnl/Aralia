@@ -1,206 +1,308 @@
 {
-  "id": "dominate-person",
-  "name": "Dominate Person",
-  "aliases": [],
-  "level": 5,
-  "school": "Enchantment",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [
-    "Cleric - Trickery Domain",
-    "Warlock - Archfey Patron"
-  ],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "concentration": true,
-    "value": 1,
-    "unit": "minute"
-  },
-  "targeting": {
-    "type": "single",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "range": 60,
-    "rangeUnit": "feet",
-    "filter": {
-      "creatureTypes": [
-        "Humanoid"
-      ],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "maxTargets": 1
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [
-            "Humanoid"
-          ],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "control",
-      "description": "On a failed Wisdom save, one visible Humanoid within 60 feet is Charmed for up to 1 minute with concentration, linked telepathically while on the same plane, obeys no-action commands on your turn, repeats the save whenever it takes damage, and can be commanded to take a Reaction if you spend your Reaction. Higher slots extend the concentration duration.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": "Concentration lasts up to 10 minutes with a 6th-level slot, 1 hour with a 7th-level slot, or 8 hours with an 8th-level or higher slot."
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "tags": [
-        "charmed",
-        "mind-control",
-        "humanoid-only",
-        "repeat-save",
-        "duration-scaling"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "One Humanoid you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn't receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.",
-  "higherLevels": "Your Concentration can last longer with a spell slot of level 6 (up to 10 minutes), 7 (up to 1 hour), or 8+ (up to 8 hours).",
-  "tags": [
-    "enchantment",
-    "control",
-    "charmed",
-    "humanoid-only",
-    "concentration",
-    "duration-scaling"
-  ]
+    "id":  "dominate-person",
+    "name":  "Dominate Person",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Enchantment",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+                       "Cleric - Trickery Domain",
+                       "Warlock - Archfey Patron"
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "concentration":  true,
+                     "value":  1,
+                     "unit":  "minute"
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "filter":  {
+                                     "creatureTypes":  [
+                                                           "Humanoid"
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "maxTargets":  1
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+                                                                                     "Humanoid"
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+                                                                {
+                                                                    "type":  "advantage",
+                                                                    "appliesTo":  "initial_wisdom_save",
+                                                                    "condition":  "The target has Advantage on the save if the caster or the caster\u0027s allies are fighting it."
+                                                                }
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+                                                                       {
+                                                                           "outcome":  "failure",
+                                                                           "effect":  "The target gains the Charmed condition and becomes linked for commands while on the same plane."
+                                                                       }
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "On a failed Wisdom save, one visible Humanoid within 60 feet is Charmed for up to 1 minute with concentration, linked telepathically while on the same plane, obeys no-action commands on your turn, repeats the save whenever it takes damage, and can be commanded to take a Reaction if you spend your Reaction. Higher slots extend the concentration duration.",
+                        "statusCondition":  {
+                                                "condition":  "Charmed",
+                                                "appliesOn":  "failed_wisdom_save",
+                                                "duration":  "until_spell_ends_or_repeat_save_succeeds"
+                                            },
+                        "recurringMechanics":  [
+                                                   {
+                                                       "type":  "repeat_save",
+                                                       "trigger":  "target_takes_damage",
+                                                       "saveType":  "Wisdom",
+                                                       "success":  "Spell ends on that target."
+                                                   }
+                                               ],
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  "Concentration lasts up to 10 minutes with a 6th-level slot, 1 hour with a 7th-level slot, or 8 hours with an 8th-level or higher slot."
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "name":  "Issue Telepathic Command",
+                                                   "actionType":  "no_action",
+                                                   "timing":  "on_caster_turn",
+                                                   "target":  "charmed_target_on_same_plane",
+                                                   "description":  "Issue a simple command such as attacking, moving, fetching, or otherwise directing the dominated humanoid."
+                                               },
+                                               {
+                                                   "name":  "Command Target Reaction",
+                                                   "actionType":  "reaction",
+                                                   "timing":  "when_commanding_the_charmed_target_to_react",
+                                                   "target":  "charmed_target_on_same_plane",
+                                                   "description":  "Spend the caster\u0027s Reaction to command the dominated target to take a Reaction."
+                                               }
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "tags":  [
+                                     "charmed",
+                                     "mind-control",
+                                     "humanoid-only",
+                                     "repeat-save",
+                                     "duration-scaling"
+                                 ],
+                        "socialEffect":  {
+                                             "status":  "Charmed",
+                                             "targetType":  "Humanoid",
+                                             "saveAdvantageWhen":  "target is fighting caster or caster allies",
+                                             "commandLink":  "telepathic link while caster and target are on the same plane",
+                                             "commandTiming":  "no action on caster turn for simple commands",
+                                             "reactionCommandCost":  "caster reaction",
+                                             "repeatSave":  "Wisdom save whenever target takes damage; success ends spell for that target",
+                                             "autonomyWhenIdle":  "target protects itself if it completes an order and receives no further direction",
+                                             "durationScaling":  "6th slot 10 minutes, 7th slot 1 hour, 8th+ slot 8 hours"
+                                         },
+                        "communicationDetails":  {
+                                                     "mode":  "same_plane_telepathic_command_link",
+                                                     "participants":  "caster and Charmed Humanoid target",
+                                                     "planeLimit":  "works while both are on the same plane of existence",
+                                                     "commandChannel":  "caster can issue no-action commands through the telepathic link",
+                                                     "notes":  "Telepathy and control are tied to the Charmed domination state."
+                                                 },
+                        "summonControl":  {
+                                              "entityType":  "dominated_humanoid_target",
+                                              "summonsNewEntity":  false,
+                                              "controlChannel":  "same-plane telepathic link",
+                                              "commandAction":  "no action on caster turn",
+                                              "obedience":  "target does its best to obey on its turn",
+                                              "idleBehavior":  "acts and moves as it likes, focusing on self-protection, after completing command",
+                                              "reactionCommand":  "caster can command Reaction by spending caster Reaction"
+                                          },
+                        "reactionState":  {
+                                              "kind":  "domination_reaction_command",
+                                              "command":  "caster_can_command_target_to_take_a_Reaction",
+                                              "cost":  "caster_must_spend_own_Reaction",
+                                              "target":  "dominated_Humanoid",
+                                              "link":  "telepathic_link_same_plane",
+                                              "scope":  "while_target_is_Charmed_by_this_spell"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Track whether the target is fighting the caster or allies for Advantage on the initial Wisdom save, record commands issued through the telepathic link, and prompt a repeat Wisdom save whenever the target takes damage.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "One Humanoid you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn\u0027t receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.",
+    "higherLevels":  "Your Concentration can last longer with a spell slot of level 6 (up to 10 minutes), 7 (up to 1 hour), or 8+ (up to 8 hours).",
+    "tags":  [
+                 "enchantment",
+                 "control",
+                 "charmed",
+                 "humanoid-only",
+                 "concentration",
+                 "duration-scaling"
+             ]
 }

@@ -1,347 +1,438 @@
 {
-  "id": "wind-walk",
-  "name": "Wind Walk",
-  "aliases": [],
-  "level": 6,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Druid"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 1,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a candle",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 8,
-    "unit": "hour",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "multi",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 11,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "MOVEMENT",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "movementType": "speed_change",
-      "speedChange": {
-        "stat": "speed",
-        "value": 300,
-        "unit": "feet"
-      },
-      "duration": {
-        "type": "special",
-        "value": 0
-      },
-      "distance": 0,
-      "forcedMovement": {
-        "usesReaction": false,
-        "direction": "caster_choice",
-        "maxDistance": ""
-      },
-      "description": "In cloud form, each Wind Walk target has a 300-foot Fly Speed, can hover, can only Dash or use Magic to begin reverting, and if still flying when the spell ends descends safely 60 feet per round for 1 minute before falling any remaining distance.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "on_caster_action",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "statusCondition": {
-        "name": "Stunned",
-        "duration": {
-          "type": "minutes",
-          "value": 1
-        },
-        "level": 0
-      },
-      "description": "A Wind Walk target that uses Magic to revert to normal form is Stunned during the 1-minute transformation, and returning to cloud form later uses the same Magic action plus 1-minute transformation timing.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "defenseType": "resistance",
-      "damageType": [
-        "Bludgeoning",
-        "Piercing",
-        "Slashing"
-      ],
-      "duration": {
-        "type": "special",
-        "value": 0
-      },
-      "description": "In cloud form, a target has Resistance to Bludgeoning, Piercing, and Slashing damage.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "defenseType": "immunity",
-      "damageType": [],
-      "conditionImmunity": [
-        "Prone"
-      ],
-      "duration": {
-        "type": "special",
-        "value": 0
-      },
-      "description": "In cloud form, a target has Immunity to the Prone condition.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Transform the caster and up to ten willing creatures within 30 feet into cloud forms for up to 8 hours. In cloud form, a target can only Dash or use a Magic action to begin reverting, can later use the same Magic-action process to return to cloud form, and if flying when the spell ends descends 60 feet per round for 1 minute before falling any remaining distance.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Gaseous Cloud Form",
-          "effect": "Targets assume gaseous cloud form for the duration."
-        },
-        {
-          "name": "Fly Speed And Hover",
-          "effect": "In cloud form, a target has a Fly Speed of 300 feet and can hover."
-        },
-        {
-          "name": "Prone Immunity",
-          "effect": "In cloud form, a target has Immunity to the Prone condition."
-        },
-        {
-          "name": "Only Dash Or Revert",
-          "effect": "In cloud form, the only actions a target can take are Dash or a Magic action to begin reverting."
-        },
-        {
-          "name": "Revert To Normal Form",
-          "effect": "Reverting to normal form takes 1 minute and Stuns the target during the transformation."
-        },
-        {
-          "name": "Revert To Cloud Form",
-          "effect": "Until the spell ends, the target can use a Magic action and 1-minute transformation to return to cloud form."
-        },
-        {
-          "name": "Safe Descent Then Fall",
-          "effect": "If the effect ends while a target is flying in cloud form, it descends 60 feet per round for 1 minute, then falls any remaining distance if it cannot land."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You and up to ten willing creatures of your choice within range assume gaseous forms for the duration, appearing as wisps of cloud. While in this cloud form, a target has a Fly Speed of 300 feet and can hover; it has Immunity to the Prone condition; and it has Resistance to Bludgeoning, Piercing, and Slashing damage. The only actions a target can take in this form are the Dash action or a Magic action to begin reverting to its normal form. Reverting takes 1 minute, during which the target has the Stunned condition. Until the spell ends, the target can revert to cloud form, which also requires a Magic action followed by a 1-minute transformation. If a target is in cloud form and flying when the effect ends, the target descends 60 feet per round for 1 minute until it lands, which it does safely. If it can't land after 1 minute, it falls the remaining distance.",
-  "higherLevels": "",
-  "tags": []
+    "id":  "wind-walk",
+    "name":  "Wind Walk",
+    "aliases":  [
+
+                ],
+    "level":  6,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Druid"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  1,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a candle",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  8,
+                     "unit":  "hour",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "multi",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  11,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "MOVEMENT",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "movementType":  "speed_change",
+                        "speedChange":  {
+                                            "stat":  "speed",
+                                            "value":  300,
+                                            "unit":  "feet"
+                                        },
+                        "duration":  {
+                                         "type":  "special",
+                                         "value":  0
+                                     },
+                        "distance":  0,
+                        "forcedMovement":  {
+                                               "usesReaction":  false,
+                                               "direction":  "caster_choice",
+                                               "maxDistance":  ""
+                                           },
+                        "description":  "In cloud form, each Wind Walk target has a 300-foot Fly Speed, can hover, can only Dash or use Magic to begin reverting, and if still flying when the spell ends descends safely 60 feet per round for 1 minute before falling any remaining distance.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "spell_ends_while_target_in_cloud_form_and_flying",
+                                                       "scope":  "target_descent",
+                                                       "description":  "If a cloud-form target is flying when the effect ends, it descends safely 60 feet per round for 1 minute until it lands."
+                                                   }
+                                               ],
+                        "movementState":  {
+                                              "kind":  "cloud_form_mobility",
+                                              "targets":  "caster_and_up_to_ten_willing_creatures",
+                                              "flySpeed":  "300_feet",
+                                              "hover":  true,
+                                              "allowedActionsInCloudForm":  [
+                                                                                "Dash",
+                                                                                "Magic_action_begin_reverting"
+                                                                            ],
+                                              "revert":  "Magic_action_then_1_minute_transformation_with_Stunned",
+                                              "cloudReturn":  "can_revert_to_cloud_form_until_spell_ends",
+                                              "end":  "safe_descent_60_feet_per_round_for_1_minute_then_fall_remaining_distance_if_not_landed"
+                                          }
+                    },
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "on_caster_action",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "statusCondition":  {
+                                                "name":  "Stunned",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  1
+                                                             },
+                                                "level":  0
+                                            },
+                        "description":  "A Wind Walk target that uses Magic to revert to normal form is Stunned during the 1-minute transformation, and returning to cloud form later uses the same Magic action plus 1-minute transformation timing.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "spell_ends_while_target_in_cloud_form_and_flying",
+                                                       "scope":  "target_descent",
+                                                       "description":  "If a cloud-form target is flying when the effect ends, it descends safely 60 feet per round for 1 minute until it lands."
+                                                   }
+                                               ]
+                    },
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "defenseType":  "resistance",
+                        "damageType":  [
+                                           "Bludgeoning",
+                                           "Piercing",
+                                           "Slashing"
+                                       ],
+                        "duration":  {
+                                         "type":  "special",
+                                         "value":  0
+                                     },
+                        "description":  "In cloud form, a target has Resistance to Bludgeoning, Piercing, and Slashing damage.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "spell_ends_while_target_in_cloud_form_and_flying",
+                                                       "scope":  "target_descent",
+                                                       "description":  "If a cloud-form target is flying when the effect ends, it descends safely 60 feet per round for 1 minute until it lands."
+                                                   }
+                                               ]
+                    },
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "defenseType":  "immunity",
+                        "damageType":  [
+
+                                       ],
+                        "conditionImmunity":  [
+                                                  "Prone"
+                                              ],
+                        "duration":  {
+                                         "type":  "special",
+                                         "value":  0
+                                     },
+                        "description":  "In cloud form, a target has Immunity to the Prone condition.",
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "spell_ends_while_target_in_cloud_form_and_flying",
+                                                       "scope":  "target_descent",
+                                                       "description":  "If a cloud-form target is flying when the effect ends, it descends safely 60 feet per round for 1 minute until it lands."
+                                                   }
+                                               ]
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Transform the caster and up to ten willing creatures within 30 feet into cloud forms for up to 8 hours. In cloud form, a target can only Dash or use a Magic action to begin reverting, can later use the same Magic-action process to return to cloud form, and if flying when the spell ends descends 60 feet per round for 1 minute before falling any remaining distance.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Gaseous Cloud Form",
+                                                   "effect":  "Targets assume gaseous cloud form for the duration."
+                                               },
+                                               {
+                                                   "name":  "Fly Speed And Hover",
+                                                   "effect":  "In cloud form, a target has a Fly Speed of 300 feet and can hover."
+                                               },
+                                               {
+                                                   "name":  "Prone Immunity",
+                                                   "effect":  "In cloud form, a target has Immunity to the Prone condition."
+                                               },
+                                               {
+                                                   "name":  "Only Dash Or Revert",
+                                                   "effect":  "In cloud form, the only actions a target can take are Dash or a Magic action to begin reverting."
+                                               },
+                                               {
+                                                   "name":  "Revert To Normal Form",
+                                                   "effect":  "Reverting to normal form takes 1 minute and Stuns the target during the transformation."
+                                               },
+                                               {
+                                                   "name":  "Revert To Cloud Form",
+                                                   "effect":  "Until the spell ends, the target can use a Magic action and 1-minute transformation to return to cloud form."
+                                               },
+                                               {
+                                                   "name":  "Safe Descent Then Fall",
+                                                   "effect":  "If the effect ends while a target is flying in cloud form, it descends 60 feet per round for 1 minute, then falls any remaining distance if it cannot land."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+                                                   {
+                                                       "trigger":  "spell_ends_while_target_in_cloud_form_and_flying",
+                                                       "scope":  "target_descent",
+                                                       "description":  "If a cloud-form target is flying when the effect ends, it descends safely 60 feet per round for 1 minute until it lands."
+                                                   }
+                                               ]
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "You and up to ten willing creatures of your choice within range assume gaseous forms for the duration, appearing as wisps of cloud. While in this cloud form, a target has a Fly Speed of 300 feet and can hover; it has Immunity to the Prone condition; and it has Resistance to Bludgeoning, Piercing, and Slashing damage. The only actions a target can take in this form are the Dash action or a Magic action to begin reverting to its normal form. Reverting takes 1 minute, during which the target has the Stunned condition. Until the spell ends, the target can revert to cloud form, which also requires a Magic action followed by a 1-minute transformation. If a target is in cloud form and flying when the effect ends, the target descends 60 feet per round for 1 minute until it lands, which it does safely. If it can\u0027t land after 1 minute, it falls the remaining distance.",
+    "higherLevels":  "",
+    "tags":  [
+
+             ]
 }

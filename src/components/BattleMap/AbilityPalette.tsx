@@ -61,6 +61,21 @@ const AbilityPalette: React.FC<AbilityPaletteProps> = ({ character, onSelectAbil
     };
   };
 
+  const toGrantedActionAbilityAttackType = (grantedAction: NonNullable<Ability['grantedActions']>[number]): Ability['attackType'] | undefined => {
+    // Granted actions such as Wall of Light's beam are still routed through
+    // GrantedActionCommand, but the generated combat button should advertise
+    // that it is a spell attack. Shared rider and preview systems can then
+    // distinguish it from a ranged weapon attack without reparsing the payload.
+    if (
+      grantedAction.attackType === 'ranged_spell_attack' ||
+      grantedAction.attackType === 'melee_spell_attack'
+    ) {
+      return 'spell';
+    }
+
+    return undefined;
+  };
+
   const abilitiesWithGrantedActions = character.abilities.flatMap(ability => {
     const grantedActionAbilities = (ability.grantedActions ?? []).map((grantedAction, index): Ability => {
       const areaOfEffect = toGrantedActionAreaOfEffect(grantedAction);
@@ -86,6 +101,7 @@ const AbilityPalette: React.FC<AbilityPaletteProps> = ({ character, onSelectAbil
         areaShape: areaOfEffect?.shape,
         areaSize: areaOfEffect?.size,
         areaOfEffect,
+        attackType: toGrantedActionAbilityAttackType(grantedAction),
         effects: [{
           type: 'granted_action',
           grantedActionLabel: grantedAction.action,

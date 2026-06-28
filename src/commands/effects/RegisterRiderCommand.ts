@@ -4,9 +4,10 @@
  */
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CommandContext } from '../base/SpellCommand';
-import { SpellEffect, isDamageEffect } from '@/types/spells';
+import { SpellEffect } from '@/types/spells';
 import { CombatState, ActiveRider } from '@/types/combat';
 import { AttackRiderSystem } from '../../systems/combat/AttackRiderSystem';
+import { generateId } from '../../utils/core/idGenerator';
 
 /**
  * Command that registers a "Rider" effect on a character.
@@ -41,23 +42,26 @@ export class RegisterRiderCommand extends BaseEffectCommand {
     /**
      * Executes the command to register the rider.
      *
-     * Validates that the effect is a damage effect (currently the only supported rider type),
-     * creates an {@link ActiveRider} object, and updates the combat state.
+     * Creates an {@link ActiveRider} object and updates the combat state.
+     *
+     * Earlier versions only accepted damage riders. Smite-style spells also
+     * need status and attack-roll payloads to wait for the same triggering hit,
+     * so this command now stores the full spell effect and lets the attack
+     * runtime decide which executable command can consume it.
      *
      * @param state - The current combat state.
      * @returns The updated combat state with the new rider registered.
      */
     execute(state: CombatState): CombatState {
-        if (!isDamageEffect(this.effect)) {
-            // Warning: Rider registered for non-damage effect. 
-            // For now we only support Damage Riders properly.
-            // If we want to support generic effects trigger on hit, we'd need to expand logic.
-            return state;
-        }
-
-        // Create the rider object
+        // Create the rider object. ActiveRider already stores `SpellEffect`, so
+        // the shared rider path can carry damage, status, and attack-roll
+        // modifier payloads without creating one-off smite command branches.
+        // Multi-payload spells such as Lightning Arrow register primary and
+        // burst riders during the same cast. Use the shared id generator rather
+        // than a timestamp-only id so same-millisecond rider registration cannot
+        // give both payloads the same consumption key.
         const rider: ActiveRider = {
-            id: `rider-${this.context.spellId}-${Date.now()}`,
+            id: `rider-${this.context.spellId}-${generateId()}`,
             spellId: this.context.spellId,
             casterId: this.context.caster.id,
             sourceName: this.context.spellName,
@@ -67,8 +71,8 @@ export class RegisterRiderCommand extends BaseEffectCommand {
             attackFilter: this.effect.trigger.attackFilter || {},
             usedThisTurn: false,
             duration: {
-                type: 'minutes',
-                value: 1 // Default duration, ideally should come from context/spell
+                type: this.context.effectDuration?.type ?? 'minutes',
+                value: this.context.effectDuration?.value ?? 1
             }
         };
 

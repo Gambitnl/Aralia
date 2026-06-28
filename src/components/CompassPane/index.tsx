@@ -150,7 +150,7 @@ const CompassPane: React.FC<CompassPaneProps> = ({
                     rounded-md transition-colors duration-150
                     ${!isDisabledBySystem
                       ? 'bg-sky-600 hover:bg-sky-500 text-white focus:ring-2 focus:ring-sky-400'
-                      : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-600 text-gray-200 cursor-not-allowed'
                     }
                     ${point.label === '◎' ? 'text-xl' : ''}
                     focus:outline-none
@@ -163,33 +163,44 @@ const CompassPane: React.FC<CompassPaneProps> = ({
               );
             })}
           </div>
-          <div className="mt-3 flex justify-center items-center gap-3">
+          <div className="mt-3 flex justify-center items-start gap-4">
             {/* These view toggles are the player's quick exits from the compass into larger navigation surfaces. */}
-            <Tooltip content="Open World Map">
-              <motion.button
-                onClick={() => onAction({ type: 'toggle_map', label: 'Toggle World Map' })}
-                disabled={disabled}
-                whileTap={!disabled ? { scale: 0.9 } : undefined}
-                whileHover={!disabled ? { scale: 1.1 } : undefined}
-                className="p-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-colors text-xl"
-                aria-label="Toggle World Map"
-              >
-                🌍
-              </motion.button>
+            {/* Each toggle pairs its glyph with a small visible label so the icon's purpose is discoverable
+                (the emoji alone is cryptic). Labels use text-gray-200 to stay above WCAG AA (4.5:1) on the
+                dark gray-800 card; the accessible name is set unconditionally via both title and aria-label. */}
+            <Tooltip content="Open the world map">
+              <div className="flex flex-col items-center gap-1">
+                <motion.button
+                  onClick={() => onAction({ type: 'toggle_map', label: 'Toggle World Map' })}
+                  disabled={disabled}
+                  whileTap={!disabled ? { scale: 0.9 } : undefined}
+                  whileHover={!disabled ? { scale: 1.1 } : undefined}
+                  className="p-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white disabled:bg-gray-600 disabled:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-colors text-xl"
+                  aria-label="Open the world map"
+                  title="Open the world map"
+                >
+                  🌍
+                </motion.button>
+                <span className="text-xs font-semibold text-gray-200 leading-none select-none">Map</span>
+              </div>
             </Tooltip>
             {/* The old "Open Submap" (SM) button was retired with SubmapPane —
                 its `toggle_submap_visibility` action has no handler. */}
-            <Tooltip content="Enter 3D World">
-              <motion.button
-                onClick={() => onAction({ type: 'toggle_three_d', label: 'Enter 3D' })}
-                disabled={disabled}
-                whileTap={!disabled ? { scale: 0.9 } : undefined}
-                whileHover={!disabled ? { scale: 1.1 } : undefined}
-                className="p-2 rounded-full bg-sky-700 hover:bg-sky-600 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 transition-colors text-xl"
-                aria-label="Enter 3D World"
-              >
-                🎥
-              </motion.button>
+            <Tooltip content="Enter the 3D world view">
+              <div className="flex flex-col items-center gap-1">
+                <motion.button
+                  onClick={() => onAction({ type: 'toggle_three_d', label: 'Enter 3D' })}
+                  disabled={disabled}
+                  whileTap={!disabled ? { scale: 0.9 } : undefined}
+                  whileHover={!disabled ? { scale: 1.1 } : undefined}
+                  className="p-2 rounded-full bg-sky-700 hover:bg-sky-600 text-white disabled:bg-gray-600 disabled:text-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-400 transition-colors text-xl"
+                  aria-label="Enter the 3D world view"
+                  title="Enter the 3D world view"
+                >
+                  🎥
+                </motion.button>
+                <span className="text-xs font-semibold text-gray-200 leading-none select-none">3D View</span>
+              </div>
             </Tooltip>
           </div>
         </div>

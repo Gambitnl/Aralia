@@ -140,6 +140,12 @@
       },
       "utilityType": "other",
     "description": "Touch a corpse or other remains for 10 days; the target is protected from decay, cannot become Undead, and days spent under this spell do not count against time limits for raising the target from the dead.",
+      "preservationState": {
+        "duration": "10_days",
+        "preventsDecay": true,
+        "preventsBecomingUndead": true,
+        "suspendsRaiseDeadTimeLimit": true
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -180,8 +186,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Confirm the touched target is a corpse or other remains. For 10 days, mark it protected from decay, unable to become Undead, and excluded from elapsed-day limits for resurrection magic such as Raise Dead.",
+    "playerInputRequired": true
   },
   "description": "You touch a corpse or other remains. For the duration, the target is protected from decay and can't become Undead. The spell also effectively extends the time limit on raising the target from the dead, since days spent under the influence of this spell don't count against the time limit of spells such as Raise Dead .",
   "higherLevels": "",

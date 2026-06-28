@@ -858,6 +858,8 @@ export type AppAction = {
         ports: string[];
     };
 } | {
+    type: 'NAVAL_CLEAR_VOYAGE';
+} | {
     type: 'TOGGLE_NAVAL_DASHBOARD';
 } | {
     type: 'TOGGLE_TRADE_ROUTE_DASHBOARD';

@@ -1,164 +1,282 @@
 {
-  "id": "forbiddance",
-  "name": "Forbiddance",
-  "aliases": [],
-  "level": 6,
-  "school": "Abjuration",
-  "legacy": false,
-  "classes": [
-    "Cleric"
-  ],
-  "subClasses": [],
-  "ritual": true,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 10,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 10,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "ruby dust worth 1,000+ GP",
-    "materialCost": 1000,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "day",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "melee",
-    "range": 0,
-    "validTargets": [
-      "creatures",
-      "objects"
-    ],
-    "lineOfSight": false,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "areaOfEffect": {
-      "shape": "Square",
-      "size": 40000,
-      "sizeUnit": "feet",
-      "sizeType": "square"
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "5d10",
-        "type": "Radiant"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "Ward up to 40,000 square feet for 1 day so Aberrations, Celestials, Elementals, Fey, Fiends, and Undead take 5d10 Radiant damage when they enter the warded area or start their turn there.",
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You create a ward against magical travel that protects up to 40,000 square feet of floor space to a height of 30 feet above the floor. For the duration, creatures can't teleport into the area or use portals, such as those created by the Gate spell, to enter the area. The spell proofs the area against planar travel, and therefore prevents creatures from accessing the area by way of the Astral Plane, the Ethereal Plane, the Feywild, the Shadowfell, or the Plane Shift spell. In addition, the spell damages types of creatures that you choose when you cast it. Choose one or more of the following: Aberrations, Celestials, Elementals, Fey, Fiends, and Undead. When a creature of a chosen type enters the spell's area for the first time on a turn or ends its turn there, the creature takes 5d10 Radiant or Necrotic damage (your choice when you cast this spell). You can designate a password when you cast the spell. A creature that speaks the password as it enters the area takes no damage from the spell. The spell's area can't overlap with the area of another Forbiddance spell. If you cast Forbiddance every day for 30 days in the same location, the spell lasts until it is dispelled, and the Material components are consumed on the last casting.",
-  "higherLevels": "",
-  "tags": [
-    "ritual"
-  ]
+    "id":  "forbiddance",
+    "name":  "Forbiddance",
+    "aliases":  [
+
+                ],
+    "level":  6,
+    "school":  "Abjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Cleric"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  true,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  10,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  10,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "ruby dust worth 1,000+ GP",
+                       "materialCost":  1000,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "day",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "melee",
+                      "range":  0,
+                      "validTargets":  [
+                                           "creatures",
+                                           "objects"
+                                       ],
+                      "lineOfSight":  false,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet",
+                      "areaOfEffect":  {
+                                           "shape":  "Square",
+                                           "size":  40000,
+                                           "sizeUnit":  "feet",
+                                           "sizeType":  "square"
+                                       }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "5d10",
+                                       "type":  "Radiant or Necrotic"
+                                   },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "Ward up to 40,000 square feet for 1 day so chosen Aberrations, Celestials, Elementals, Fey, Fiends, or Undead take 5d10 Radiant or Necrotic damage, chosen at cast time, when they enter the warded area or start their turn there unless protected by the chosen password.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "surfaceInteraction":  {
+                                                   "protectedFloorAreaSquareFeet":  40000,
+                                                   "protectedHeightFeet":  30,
+                                                   "anchorSurface":  "floor_space",
+                                                   "notes":  "Forbiddance protects up to 40,000 square feet of floor space and the volume 30 feet above that floor."
+                                               },
+                        "communicationDetails":  {
+                                                     "mode":  "spoken_password_damage_bypass",
+                                                     "passwordSpecifiedAtCast":  true,
+                                                     "trigger":  "creature speaks password as it enters the area",
+                                                     "result":  "creature takes no damage from the spell",
+                                                     "notes":  "Password is an audible entry exemption, not telepathy."
+                                                 },
+                        "planarMovement":  {
+                                               "mode":  "ward_against_magical_travel",
+                                               "area":  "up to 40000 square feet, 30 feet high",
+                                               "blocks":  [
+                                                              "teleport into area",
+                                                              "portal entry such as Gate",
+                                                              "Astral access",
+                                                              "Ethereal access",
+                                                              "Feywild access",
+                                                              "Shadowfell access",
+                                                              "Plane Shift access"
+                                                          ],
+                                               "overlapLimit":  "area cannot overlap another Forbiddance",
+                                               "permanence":  "daily casting for 30 days in same location makes duration until dispelled"
+                                           },
+                        "wardTrigger":  {
+                                            "kind":  "planar_and_creature_type_ward",
+                                            "trigger":  "chosen_creature_type_enters_area_for_first_time_on_turn_or_starts_turn_there",
+                                            "response":  "5d10_radiant_or_necrotic_damage",
+                                            "travelBlock":  "prevents_teleportation_and_planar_travel_into_area",
+                                            "password":  "caster_can_set_password_to_exempt_creatures"
+                                        },
+                        "componentRequirement":  {
+                                                     "material":  "rare_incense_and_powdered_ruby",
+                                                     "materialCostGp":  1000,
+                                                     "baseConsumed":  false,
+                                                     "conditionalConsumption":  "components_are_consumed_on_last_casting_if_cast_every_day_for_30_days_in_same_location",
+                                                     "permanence":  "after_30_daily_castings_area_lasts_until_dispelled"
+                                                 }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the warded floor area, one or more affected creature types, Radiant or Necrotic damage, and an optional password that prevents the damage for creatures that speak it on entry. Record whether this casting continues the same-location 30-day permanent ward sequence.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  2,
+                       "optionsSource":  "modeChoice.options",
+                       "canDismissActive":  false,
+                       "options":  [
+                                       {
+                                           "label":  "Radiant",
+                                           "summary":  "Chosen creature types take 5d10 Radiant damage in the warded area.",
+                                           "damageType":  "Radiant",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ]
+                                       },
+                                       {
+                                           "label":  "Necrotic",
+                                           "summary":  "Chosen creature types take 5d10 Necrotic damage in the warded area.",
+                                           "damageType":  "Necrotic",
+                                           "effectIndices":  [
+                                                                 0
+                                                             ],
+                                           "effectTypes":  [
+                                                               "DAMAGE"
+                                                           ]
+                                       }
+                                   ],
+                       "secondaryChoices":  {
+                                                "creatureTypeOptions":  [
+                                                                            "Aberration",
+                                                                            "Celestial",
+                                                                            "Elemental",
+                                                                            "Fey",
+                                                                            "Fiend",
+                                                                            "Undead"
+                                                                        ],
+                                                "chooseOneOrMoreCreatureTypes":  true,
+                                                "passwordOptional":  true
+                                            },
+                       "notes":  "The damage type mode and chosen creature-type set define which creatures are harmed by the ward."
+                   },
+    "description":  "You create a ward against magical travel that protects up to 40,000 square feet of floor space to a height of 30 feet above the floor. For the duration, creatures can\u0027t teleport into the area or use portals, such as those created by the Gate spell, to enter the area. The spell proofs the area against planar travel, and therefore prevents creatures from accessing the area by way of the Astral Plane, the Ethereal Plane, the Feywild, the Shadowfell, or the Plane Shift spell. In addition, the spell damages types of creatures that you choose when you cast it. Choose one or more of the following: Aberrations, Celestials, Elementals, Fey, Fiends, and Undead. When a creature of a chosen type enters the spell\u0027s area for the first time on a turn or ends its turn there, the creature takes 5d10 Radiant or Necrotic damage (your choice when you cast this spell). You can designate a password when you cast the spell. A creature that speaks the password as it enters the area takes no damage from the spell. The spell\u0027s area can\u0027t overlap with the area of another Forbiddance spell. If you cast Forbiddance every day for 30 days in the same location, the spell lasts until it is dispelled, and the Material components are consumed on the last casting.",
+    "higherLevels":  "",
+    "tags":  [
+                 "ritual"
+             ]
 }

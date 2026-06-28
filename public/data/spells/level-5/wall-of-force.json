@@ -1,289 +1,360 @@
 {
-  "id": "wall-of-force",
-  "name": "Wall of Force",
-  "aliases": [],
-  "level": 5,
-  "school": "Evocation",
-  "legacy": false,
-  "classes": [
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a shard of glass",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "range": 120,
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Wall",
-      "size": 100,
-      "height": 10,
-      "sizeType": "length",
-      "sizeUnit": "feet",
-      "heightUnit": "feet",
-      "thickness": 0.25,
-      "thicknessUnit": "inches"
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Hemisphere",
-          "shape": "Hemisphere",
-          "size": 10,
-          "sizeType": "radius",
-          "sizeUnit": "feet",
-          "thickness": 0.25,
-          "thicknessUnit": "inches",
-          "notes": "A hemispherical dome with a 10-foot radius."
-        },
-        {
-          "label": "Globe",
-          "shape": "Sphere",
-          "size": 10,
-          "sizeType": "radius",
-          "sizeUnit": "feet",
-          "thickness": 0.25,
-          "thicknessUnit": "inches",
-          "notes": "A spherical globe with a 10-foot radius."
-        },
-        {
-          "label": "Flat Surface",
-          "shape": "Wall",
-          "size": 100,
-          "sizeType": "length",
-          "sizeUnit": "feet",
-          "height": 10,
-          "heightUnit": "feet",
-          "thickness": 0.25,
-          "thicknessUnit": "inches",
-          "segmentCount": 10,
-          "segmentWidth": 10,
-          "segmentWidthUnit": "feet",
-          "segmentHeight": 10,
-          "segmentHeightUnit": "feet",
-          "notes": "Made of contiguous panels."
-        }
-      ]
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "creation",
-      "description": "Create an invisible magical-force barrier for up to 10 minutes with concentration as a 10-foot-radius dome or globe, or as up to ten contiguous 10-foot panels. If the wall cuts through a creature space when it appears, the caster chooses which side the creature is pushed to; nothing physically passes through the wall, it is immune to damage and Dispel Magic, Disintegrate destroys it, and it blocks Ethereal travel.",
-      "createdObjects": [
-        {
-          "objectType": "hazard",
-          "name": "Wall of Force",
-          "count": 1,
-          "countUnit": "structure",
-          "appearsIn": "spell_area",
-          "shapeOptions": [
-            "hemispherical_dome",
-            "globe",
-            "flat_contiguous_panels"
-          ],
-          "wallLengthFeet": 100,
-          "wallHeightFeet": 10,
-          "wallThickness": 0.25,
-          "wallThicknessUnit": "inches",
-          "panelCount": 10,
-          "panelWidthFeet": 10,
-          "panelHeightFeet": 10,
-          "panelContiguityRequired": true,
-          "diameterFeet": 20,
-          "orientationOptions": [
-            "horizontal",
-            "vertical",
-            "diagonal",
-            "angled",
-            "caster_choice"
-          ],
-          "freeFloating": true,
-          "blocksPhysicalPassage": true,
-          "blocksEtherealTravel": true,
-          "blocksCrossBoundaryEffects": false,
-          "immuneToDamage": true,
-          "immuneToDispelMagic": true,
-          "destroyedBySpells": [
-            "disintegrate"
-          ],
-          "pushesCreaturesToChosenSide": true,
-          "expiresWithSpell": true,
-          "shelfLife": "10 minutes",
-          "notes": "Invisible magical force barrier. It may be a 10-foot-radius dome or globe, or up to ten contiguous 10-by-10-foot panels; nothing physically passes through it, it blocks Ethereal travel, ignores damage and Dispel Magic, and Disintegrate destroys it."
-        }
-      ],
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": [],
-      "tags": [
-        "barrier",
-        "force",
-        "wall",
-        "damage-immune"
-      ]
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "An Invisible wall of force springs into existence at a point you choose within range. The wall appears in any orientation you choose, as a horizontal or vertical barrier or at an angle. It can be free floating or resting on a solid surface. You can form it into a hemispherical dome or a globe with a radius of up to 10 feet, or you can shape a flat surface made up of ten 10-foot-by-10-foot panels. Each panel must be contiguous with another panel. In any form, the wall is 1/4 inch thick and lasts for the duration. If the wall cuts through a creature's space when it appears, the creature is pushed to one side of the wall (you choose which side). Nothing can physically pass through the wall. It is immune to all damage and can't be dispelled by Dispel Magic. A Disintegrate spell destroys the wall instantly, however. The wall also extends into the Ethereal Plane and blocks ethereal travel through the wall.",
-  "higherLevels": "",
-  "tags": [
-    "evocation",
-    "barrier",
-    "force",
-    "wall",
-    "concentration"
-  ]
+    "id":  "wall-of-force",
+    "name":  "Wall of Force",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Evocation",
+    "legacy":  false,
+    "classes":  [
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a shard of glass",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  120,
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Wall",
+                                           "size":  100,
+                                           "height":  10,
+                                           "sizeType":  "length",
+                                           "sizeUnit":  "feet",
+                                           "heightUnit":  "feet",
+                                           "thickness":  0.25,
+                                           "thicknessUnit":  "inches"
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet",
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Hemisphere",
+                                                               "shape":  "Hemisphere",
+                                                               "size":  10,
+                                                               "sizeType":  "radius",
+                                                               "sizeUnit":  "feet",
+                                                               "thickness":  0.25,
+                                                               "thicknessUnit":  "inches",
+                                                               "notes":  "A hemispherical dome with a 10-foot radius."
+                                                           },
+                                                           {
+                                                               "label":  "Globe",
+                                                               "shape":  "Sphere",
+                                                               "size":  10,
+                                                               "sizeType":  "radius",
+                                                               "sizeUnit":  "feet",
+                                                               "thickness":  0.25,
+                                                               "thicknessUnit":  "inches",
+                                                               "notes":  "A spherical globe with a 10-foot radius."
+                                                           },
+                                                           {
+                                                               "label":  "Flat Surface",
+                                                               "shape":  "Wall",
+                                                               "size":  100,
+                                                               "sizeType":  "length",
+                                                               "sizeUnit":  "feet",
+                                                               "height":  10,
+                                                               "heightUnit":  "feet",
+                                                               "thickness":  0.25,
+                                                               "thicknessUnit":  "inches",
+                                                               "segmentCount":  10,
+                                                               "segmentWidth":  10,
+                                                               "segmentWidthUnit":  "feet",
+                                                               "segmentHeight":  10,
+                                                               "segmentHeightUnit":  "feet",
+                                                               "notes":  "Made of contiguous panels."
+                                                           }
+                                                       ]
+                                         }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "creation",
+                        "description":  "Create an invisible magical-force barrier for up to 10 minutes with concentration as a 10-foot-radius dome or globe, or as up to ten contiguous 10-foot panels. If the wall cuts through a creature space when it appears, the caster chooses which side the creature is pushed to; nothing physically passes through the wall, it is immune to damage and Dispel Magic, Disintegrate destroys it, and it blocks Ethereal travel.",
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "hazard",
+                                                   "name":  "Wall of Force",
+                                                   "count":  1,
+                                                   "countUnit":  "structure",
+                                                   "appearsIn":  "spell_area",
+                                                   "shapeOptions":  [
+                                                                        "hemispherical_dome",
+                                                                        "globe",
+                                                                        "flat_contiguous_panels"
+                                                                    ],
+                                                   "wallLengthFeet":  100,
+                                                   "wallHeightFeet":  10,
+                                                   "wallThickness":  0.25,
+                                                   "wallThicknessUnit":  "inches",
+                                                   "panelCount":  10,
+                                                   "panelWidthFeet":  10,
+                                                   "panelHeightFeet":  10,
+                                                   "panelContiguityRequired":  true,
+                                                   "diameterFeet":  20,
+                                                   "orientationOptions":  [
+                                                                              "horizontal",
+                                                                              "vertical",
+                                                                              "diagonal",
+                                                                              "angled",
+                                                                              "caster_choice"
+                                                                          ],
+                                                   "freeFloating":  true,
+                                                   "blocksPhysicalPassage":  true,
+                                                   "blocksEtherealTravel":  true,
+                                                   "blocksCrossBoundaryEffects":  false,
+                                                   "immuneToDamage":  true,
+                                                   "immuneToDispelMagic":  true,
+                                                   "destroyedBySpells":  [
+                                                                             "disintegrate"
+                                                                         ],
+                                                   "pushesCreaturesToChosenSide":  true,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "10 minutes",
+                                                   "notes":  "Invisible magical force barrier. It may be a 10-foot-radius dome or globe, or up to ten contiguous 10-by-10-foot panels; nothing physically passes through it, it blocks Ethereal travel, ignores damage and Dispel Magic, and Disintegrate destroys it."
+                                               }
+                                           ],
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "tags":  [
+                                     "barrier",
+                                     "force",
+                                     "wall",
+                                     "damage-immune"
+                                 ],
+                        "visionLightSound":  {
+                                                 "mode":  "invisible_force_barrier",
+                                                 "wallVisibility":  "Invisible",
+                                                 "forms":  [
+                                                               "hemispherical dome",
+                                                               "globe",
+                                                               "flat contiguous panels"
+                                                           ],
+                                                 "lineOfSightBlock":  "not explicitly blocked by spell because wall is invisible",
+                                                 "physicalPassageBlocked":  true,
+                                                 "etherealTravelBlocked":  true,
+                                                 "damageImmune":  true,
+                                                 "dispelMagicImmune":  true,
+                                                 "destroyedBy":  "Disintegrate",
+                                                 "soundPayload":  "none specified by spell"
+                                             },
+                        "planarMovement":  {
+                                               "mode":  "ethereal_barrier_extension",
+                                               "extendsInto":  "Ethereal Plane",
+                                               "blocksEtherealTravel":  true,
+                                               "blocksPhysicalPassage":  true,
+                                               "notes":  "Wall of Force prevents Ethereal bypass as well as normal physical crossing."
+                                           },
+                        "forcedMovementState":  {
+                                                    "kind":  "wall_placement_push",
+                                                    "trigger":  "wall_cuts_through_creature_space_when_appearing",
+                                                    "distance":  "to_one_side_of_wall",
+                                                    "direction":  "caster_choice",
+                                                    "save":  "none_listed",
+                                                    "barrier":  "creature_cannot_remain_in_wall_space"
+                                                }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "An Invisible wall of force springs into existence at a point you choose within range. The wall appears in any orientation you choose, as a horizontal or vertical barrier or at an angle. It can be free floating or resting on a solid surface. You can form it into a hemispherical dome or a globe with a radius of up to 10 feet, or you can shape a flat surface made up of ten 10-foot-by-10-foot panels. Each panel must be contiguous with another panel. In any form, the wall is 1/4 inch thick and lasts for the duration. If the wall cuts through a creature\u0027s space when it appears, the creature is pushed to one side of the wall (you choose which side). Nothing can physically pass through the wall. It is immune to all damage and can\u0027t be dispelled by Dispel Magic. A Disintegrate spell destroys the wall instantly, however. The wall also extends into the Ethereal Plane and blocks ethereal travel through the wall.",
+    "higherLevels":  "",
+    "tags":  [
+                 "evocation",
+                 "barrier",
+                 "force",
+                 "wall",
+                 "concentration"
+             ]
 }

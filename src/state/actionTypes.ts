@@ -205,8 +205,13 @@ export type AppAction =
   | { type: 'ACCEPT_QUEST'; payload: Quest }
   | { type: 'UPDATE_QUEST_OBJECTIVE'; payload: { questId: string; objectiveId: string; isCompleted: boolean } }
   | { type: 'COMPLETE_QUEST'; payload: { questId: string } }
+  // Travel-provisioning conditions (e.g. 'starving', 'fatigued') applied party-wide
+  | { type: 'SET_PARTY_CONDITION'; payload: { condition: string } }
+  | { type: 'CLEAR_PARTY_CONDITION'; payload: { condition: string } }
   // Companion Actions
   | { type: 'UPDATE_COMPANION_APPROVAL'; payload: { companionId: string; change: number; reason: string; source?: string } }
+  | { type: 'ADJUST_COMPANION_LOYALTY'; payload: { companionId: string; delta: number } }
+  | { type: 'COMPANION_DESERT'; payload: { companionId: string; reason?: string } }
   | { type: 'ADD_COMPANION_REACTION'; payload: { companionId: string; reaction: string } }
   | { type: 'ADD_COMPANION_MEMORY'; payload: { companionId: string; memory: import('../types/companions.js').CompanionMemory } }
   | { type: 'ADD_DISCOVERED_FACT'; payload: { companionId: string; fact: import('../types/companions.js').DiscoveredFact } }
@@ -287,6 +292,7 @@ export type AppAction =
   | { type: 'NAVAL_REPAIR_SHIP'; payload: { amount: number; cost: number } }
   | { type: 'NAVAL_SET_ACTIVE_SHIP'; payload: { shipId: string } }
   | { type: 'NAVAL_SET_KNOWN_PORTS'; payload: { ports: string[] } }
+  | { type: 'NAVAL_CLEAR_VOYAGE' }
   | { type: 'TOGGLE_NAVAL_DASHBOARD' }
   | { type: 'TOGGLE_TRADE_ROUTE_DASHBOARD' }
   | { type: 'TOGGLE_INVESTMENT_BOARD' }

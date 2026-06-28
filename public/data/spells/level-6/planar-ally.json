@@ -1,278 +1,412 @@
 {
-  "id": "planar-ally",
-  "name": "Planar Ally",
-  "aliases": [],
-  "level": 6,
-  "school": "Conjuration",
-  "legacy": false,
-  "classes": [
-    "Cleric"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 10,
-    "unit": "minute",
-    "explorationCost": {
-      "value": 10,
-      "unit": "minute"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "point",
-    "range": 60,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "creatures",
-      "objects",
-      "point"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "SUMMONING",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "saveOutcomeOverrides": []
-      },
-      "summon": {
-        "entityType": "creature",
-        "persistent": false,
-        "count": 1,
-        "formOptions": [
-          "Celestial",
-          "Elemental",
-          "Fiend",
-          "Specific named creature requested by the caster, though a different creature might arrive"
-        ],
-        "statBlock": {
-          "name": "Planar Ally",
-          "type": "Celestial, Elemental, or Fiend",
-          "size": "Medium"
-        },
-        "commandCost": "none",
-        "commandsPerTurn": 0,
-        "initiative": "rolled",
-        "objectDescription": "Planar ally sent by a known cosmic power; it appears nearby but is not compelled to obey until a separate bargain for service is accepted.",
-        "specialActions": []
-      },
-      "description": "A known cosmic power sends one Celestial, Elemental, or Fiend ally, or a requested named creature if allowed, to an unoccupied space within 60 feet. The creature is loyal to that entity, is not compelled to obey or agree to serve you, and must be bargained with separately before it performs a task.",
-      "conditionalEndings": []
-    },
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "You must communicate with the planar ally to bargain for service. Typical payment is 100 GP per minute, 1,000 GP per hour, or 10,000 GP per day for up to 10 days, adjusted by task alignment, hazard, and danger; suicidal tasks are rarely accepted, and the creature returns home when service is complete, the agreed duration expires, or no price is agreed.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Known Cosmic Power",
-          "effect": "The being asked for aid must be known to the caster."
-        },
-        {
-          "name": "Request Named Creature",
-          "effect": "The caster can request a specific creature by speaking its name, though a different creature might arrive."
-        },
-        {
-          "name": "Bargain For Service",
-          "effect": "The caster must be able to communicate with the creature to bargain for its services, and the creature is not compelled to agree."
-        },
-        {
-          "name": "Payment By Minutes",
-          "effect": "A task measured in minutes requires payment worth 100 GP per minute."
-        },
-        {
-          "name": "Payment By Hours",
-          "effect": "A task measured in hours requires payment worth 1,000 GP per hour."
-        },
-        {
-          "name": "Payment By Days",
-          "effect": "A task measured in days, up to 10 days, requires payment worth 10,000 GP per day."
-        },
-        {
-          "name": "Task Alignment Discount",
-          "effect": "If the task is aligned with the creature's ethos, payment might be halved or waived."
-        },
-        {
-          "name": "Nonhazardous Discount",
-          "effect": "Nonhazardous tasks typically require only half the suggested payment."
-        },
-        {
-          "name": "Dangerous Task Greater Gift",
-          "effect": "Especially dangerous tasks might require a greater gift."
-        },
-        {
-          "name": "Suicidal Task Refusal",
-          "effect": "Creatures rarely accept tasks that seem suicidal."
-        },
-        {
-          "name": "Return Home Plane",
-          "effect": "The creature returns to its home plane when the task is complete, service duration expires, or no price is agreed."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You beseech an otherworldly entity for aid. The being must be known to you: a god, a demon prince, or some other being of cosmic power. That entity sends a Celestial, an Elemental, or a Fiend loyal to it to aid you, making the creature appear in an unoccupied space within range. If you know a specific creature's name, you can speak that name when you cast this spell to request that creature, though you might get a different creature anyway (DM's choice). When the creature appears, it is under no compulsion to behave a particular way. You can ask it to perform a service in exchange for payment, but it isn't obliged to do so. The requested task could range from simple (fly us across the chasm, or help us fight a battle) to complex (spy on our enemies, or protect us during our foray into the dungeon). You must be able to communicate with the creature to bargain for its services. Payment can take a variety of forms. A Celestial might require a sizable donation of gold or magic items to an allied temple, while a Fiend might demand a living sacrifice or a gift of treasure. Some creatures might exchange their service for a quest undertaken by you. A task that can be measured in minutes requires a payment worth 100 GP per minute. A task measured in hours requires 1,000 GP per hour. And a task measured in days (up to 10 days) requires 10,000 GP per day. The DM can adjust these payments based on the circumstances under which you cast the spell. If the task is aligned with the creature's ethos, the payment might be halved or even waived. Nonhazardous tasks typically require only half the suggested payment, while especially dangerous tasks might require a greater gift. Creatures rarely accept tasks that seem suicidal. After the creature completes the task, or when the agreed-upon duration of service expires, the creature returns to its home plane after reporting back to you if possible. If you are unable to agree on a price for the creature's service, the creature immediately returns to its home plane.",
-  "higherLevels": "",
-  "tags": [
-    "summoning",
-    "negotiated-service",
-    "deferred-control"
-  ]
+    "id":  "planar-ally",
+    "name":  "Planar Ally",
+    "aliases":  [
+
+                ],
+    "level":  6,
+    "school":  "Conjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Cleric"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  10,
+                        "unit":  "minute",
+                        "explorationCost":  {
+                                                "value":  10,
+                                                "unit":  "minute"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "instantaneous",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  60,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable",
+                                     "placementEligibility":  {
+                                                                  "requiresUnoccupiedSpace":  true,
+                                                                  "rangeAnchor":  "within_spell_range",
+                                                                  "summonedCreatureTypes":  [
+                                                                                                "Celestial",
+                                                                                                "Elemental",
+                                                                                                "Fiend"
+                                                                                            ],
+                                                                  "sentByCalledPower":  true,
+                                                                  "notes":  "The assisting Celestial, Elemental, or Fiend appears in an unoccupied space within 60 feet."
+                                                              }
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "SUMMONING",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "summon":  {
+                                       "entityType":  "creature",
+                                       "persistent":  false,
+                                       "count":  1,
+                                       "formOptions":  [
+                                                           "Celestial",
+                                                           "Elemental",
+                                                           "Fiend",
+                                                           "Specific named creature requested by the caster, though a different creature might arrive"
+                                                       ],
+                                       "statBlock":  {
+                                                         "name":  "Planar Ally",
+                                                         "type":  "Celestial, Elemental, or Fiend",
+                                                         "size":  "Medium"
+                                                     },
+                                       "commandCost":  "none",
+                                       "commandsPerTurn":  0,
+                                       "initiative":  "rolled",
+                                       "objectDescription":  "Planar ally sent by a known cosmic power; it appears nearby but is not compelled to obey until a separate bargain for service is accepted.",
+                                       "specialActions":  [
+
+                                                          ],
+                                       "communication":  {
+                                                             "requestNamedCreature":  "caster can speak a specific creature name while casting to request it, though another creature may arrive",
+                                                             "bargainingRequired":  true,
+                                                             "notes":  "Arrival does not compel service; communication is required to negotiate."
+                                                         },
+                                       "travelDetails":  {
+                                                             "mode":  "ally_arrival_and_home_return",
+                                                             "arrival":  "entity sends Celestial, Elemental, or Fiend to unoccupied space within 60 feet",
+                                                             "returnOn":  "task complete, service duration expires, or no price agreed",
+                                                             "report":  "returns to home plane after reporting back if possible",
+                                                             "noAgreement":  "immediately returns to home plane"
+                                                         },
+                                       "control":  {
+                                                       "entityType":  "planar_ally",
+                                                       "allegiance":  "loyal to sending cosmic power, not automatically caster-controlled",
+                                                       "bargainingRequired":  true,
+                                                       "noCompulsion":  true,
+                                                       "serviceLimit":  "agreed task or duration up to 10 days",
+                                                       "return":  "returns home when task complete, duration expires, or no price is agreed"
+                                                   }
+                                   },
+                        "description":  "A known cosmic power sends one Celestial, Elemental, or Fiend ally, or a requested named creature if allowed, to an unoccupied space within 60 feet. The creature is loyal to that entity, is not compelled to obey or agree to serve you, and must be bargained with separately before it performs a task.",
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "You must communicate with the planar ally to bargain for service. Typical payment is 100 GP per minute, 1,000 GP per hour, or 10,000 GP per day for up to 10 days, adjusted by task alignment, hazard, and danger; suicidal tasks are rarely accepted, and the creature returns home when service is complete, the agreed duration expires, or no price is agreed.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Known Cosmic Power",
+                                                   "effect":  "The being asked for aid must be known to the caster."
+                                               },
+                                               {
+                                                   "name":  "Request Named Creature",
+                                                   "effect":  "The caster can request a specific creature by speaking its name, though a different creature might arrive."
+                                               },
+                                               {
+                                                   "name":  "Bargain For Service",
+                                                   "effect":  "The caster must be able to communicate with the creature to bargain for its services, and the creature is not compelled to agree."
+                                               },
+                                               {
+                                                   "name":  "Payment By Minutes",
+                                                   "effect":  "A task measured in minutes requires payment worth 100 GP per minute."
+                                               },
+                                               {
+                                                   "name":  "Payment By Hours",
+                                                   "effect":  "A task measured in hours requires payment worth 1,000 GP per hour."
+                                               },
+                                               {
+                                                   "name":  "Payment By Days",
+                                                   "effect":  "A task measured in days, up to 10 days, requires payment worth 10,000 GP per day."
+                                               },
+                                               {
+                                                   "name":  "Task Alignment Discount",
+                                                   "effect":  "If the task is aligned with the creature\u0027s ethos, payment might be halved or waived."
+                                               },
+                                               {
+                                                   "name":  "Nonhazardous Discount",
+                                                   "effect":  "Nonhazardous tasks typically require only half the suggested payment."
+                                               },
+                                               {
+                                                   "name":  "Dangerous Task Greater Gift",
+                                                   "effect":  "Especially dangerous tasks might require a greater gift."
+                                               },
+                                               {
+                                                   "name":  "Suicidal Task Refusal",
+                                                   "effect":  "Creatures rarely accept tasks that seem suicidal."
+                                               },
+                                               {
+                                                   "name":  "Return Home Plane",
+                                                   "effect":  "The creature returns to its home plane when the task is complete, service duration expires, or no price is agreed."
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "socialEffect":  {
+                                             "requestedPower":  "known god, demon prince, or other cosmic power",
+                                             "arrival":  "power sends Celestial, Elemental, Fiend, or requested named creature if allowed",
+                                             "loyalty":  "creature is loyal to sending power, not compelled by caster",
+                                             "negotiationRequired":  true,
+                                             "communicationRequired":  "caster must communicate with creature to bargain for service",
+                                             "paymentGuidelines":  "100 GP per minute, 1,000 GP per hour, or 10,000 GP per day up to 10 days, adjusted by ethos/hazard/danger",
+                                             "refusalRisk":  "suicidal tasks are rarely accepted and no agreed price sends creature home",
+                                             "returnHome":  "after service completion, duration expiry, or failed bargain"
+                                         },
+                        "communicationDetails":  {
+                                                     "mode":  "planar_ally_bargaining",
+                                                     "mustCommunicateWithCreature":  true,
+                                                     "paymentExamples":  "100 GP/minute, 1,000 GP/hour, or 10,000 GP/day, adjusted by task",
+                                                     "refusal":  "creature can refuse or demand different payment; suicidal tasks may end negotiation",
+                                                     "notes":  "Service depends on negotiated communication, not automatic control."
+                                                 },
+                        "travelDetails":  {
+                                              "mode":  "ally_arrival_and_home_return",
+                                              "arrival":  "entity sends Celestial, Elemental, or Fiend to unoccupied space within 60 feet",
+                                              "returnOn":  "task complete, service duration expires, or no price agreed",
+                                              "report":  "returns to home plane after reporting back if possible",
+                                              "noAgreement":  "immediately returns to home plane"
+                                          },
+                        "resourceState":  {
+                                              "kind":  "negotiated_service_payment",
+                                              "typicalRates":  [
+                                                                   {
+                                                                       "unit":  "minute",
+                                                                       "gp":  100
+                                                                   },
+                                                                   {
+                                                                       "unit":  "hour",
+                                                                       "gp":  1000
+                                                                   },
+                                                                   {
+                                                                       "unit":  "day",
+                                                                       "gp":  10000,
+                                                                       "maxDays":  10
+                                                                   }
+                                                               ],
+                                              "adjustedBy":  "task_nature_and_planar_ally_alignment_to_cosmic_power",
+                                              "paymentRequiredFor":  "measured_service_after_bargain"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Ask the caster which known cosmic power they beseech, whether they request a named creature or a creature type, where the ally appears within 60 feet, and what service/payment bargain they propose once the ally arrives.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "selectionType":  "choose_one",
+                       "options":  [
+                                       "Celestial",
+                                       "Elemental",
+                                       "Fiend",
+                                       "Specific named creature"
+                                   ],
+                       "secondaryChoices":  [
+                                                "known cosmic power",
+                                                "arrival space within range",
+                                                "requested service",
+                                                "offered payment or quest",
+                                                "service duration"
+                                            ],
+                       "notes":  "The arrival type or named creature request is chosen at casting, while the service and payment are negotiated after the ally appears because the creature is not compelled to agree."
+                   },
+    "description":  "You beseech an otherworldly entity for aid. The being must be known to you: a god, a demon prince, or some other being of cosmic power. That entity sends a Celestial, an Elemental, or a Fiend loyal to it to aid you, making the creature appear in an unoccupied space within range. If you know a specific creature\u0027s name, you can speak that name when you cast this spell to request that creature, though you might get a different creature anyway (DM\u0027s choice). When the creature appears, it is under no compulsion to behave a particular way. You can ask it to perform a service in exchange for payment, but it isn\u0027t obliged to do so. The requested task could range from simple (fly us across the chasm, or help us fight a battle) to complex (spy on our enemies, or protect us during our foray into the dungeon). You must be able to communicate with the creature to bargain for its services. Payment can take a variety of forms. A Celestial might require a sizable donation of gold or magic items to an allied temple, while a Fiend might demand a living sacrifice or a gift of treasure. Some creatures might exchange their service for a quest undertaken by you. A task that can be measured in minutes requires a payment worth 100 GP per minute. A task measured in hours requires 1,000 GP per hour. And a task measured in days (up to 10 days) requires 10,000 GP per day. The DM can adjust these payments based on the circumstances under which you cast the spell. If the task is aligned with the creature\u0027s ethos, the payment might be halved or even waived. Nonhazardous tasks typically require only half the suggested payment, while especially dangerous tasks might require a greater gift. Creatures rarely accept tasks that seem suicidal. After the creature completes the task, or when the agreed-upon duration of service expires, the creature returns to its home plane after reporting back to you if possible. If you are unable to agree on a price for the creature\u0027s service, the creature immediately returns to its home plane.",
+    "higherLevels":  "",
+    "tags":  [
+                 "summoning",
+                 "negotiated-service",
+                 "deferred-control"
+             ]
 }

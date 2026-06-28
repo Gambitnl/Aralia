@@ -1,286 +1,392 @@
 {
-  "id": "spike-growth",
-  "name": "Spike Growth",
-  "aliases": [],
-  "level": 2,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Druid",
-    "Ranger"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 150,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "seven thorns",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "area",
-    "range": 150,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "point"
-    ],
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 20,
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "TERRAIN",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "terrainType": "damaging",
-      "areaOfEffect": {
-        "shape": "Sphere",
-        "size": 20,
-        "height": 0
-      },
-      "duration": {
-        "type": "minutes",
-        "value": 10
-      },
-      "damage": {
-        "dice": "2d4",
-        "type": "Piercing"
-      },
-      "description": "For up to 10 minutes with concentration, create a camouflaged 20-foot-radius Sphere centered on a point within 150 feet; a creature takes 2d4 Piercing damage for every 5 feet it travels through the damaging Difficult Terrain.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "wallProperties": {
-        "hp": 0,
-        "ac": 0
-      },
-      "dispersedByStrongWind": false,
-      "manipulation": {
-        "type": "cosmetic",
-        "volume": {
-          "shape": "Cube",
-          "size": 0,
-          "depth": 0
-        },
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        },
-        "depositDistance": 0
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "TERRAIN",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "terrainType": "difficult",
-      "areaOfEffect": {
-        "shape": "Sphere",
-        "size": 20,
-        "height": 0
-      },
-      "duration": {
-        "type": "minutes",
-        "value": 10
-      },
-      "damage": {
-        "dice": "",
-        "type": ""
-      },
-      "description": "The 20-foot-radius Sphere is Difficult Terrain for up to 10 minutes with concentration, and a creature that could not see the area when the spell was cast must Search and succeed on a Wisdom (Perception or Survival) check against the spell save DC to recognize the hazard before entering.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "wallProperties": {
-        "hp": 0,
-        "ac": 0
-      },
-      "dispersedByStrongWind": false,
-      "manipulation": {
-        "type": "cosmetic",
-        "volume": {
-          "shape": "Cube",
-          "size": 0,
-          "depth": 0
-        },
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        },
-        "depositDistance": 0
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "The ground in a 20-foot-radius Sphere centered on a point within range sprouts hard spikes and thorns. The area becomes Difficult Terrain for the duration. When a creature moves into or within the area, it takes 2d4 Piercing damage for every 5 feet it travels. The transformation of the ground is camouflaged to look natural. Any creature that can't see the area when the spell is cast must take a Search action and succeed on a Wisdom (Perception or Survival) check against your spell save DC to recognize the terrain as hazardous before entering it.",
-  "higherLevels": "",
-  "tags": [
-    "control",
-    "terrain",
-    "damage",
-    "concentration"
-  ]
+    "id":  "spike-growth",
+    "name":  "Spike Growth",
+    "aliases":  [
+
+                ],
+    "level":  2,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Druid",
+                    "Ranger"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  150,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "seven thorns",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  150,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "areaOfEffect":  {
+                                           "shape":  "Sphere",
+                                           "size":  20,
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "TERRAIN",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "terrainType":  "damaging",
+                        "areaOfEffect":  {
+                                             "shape":  "Sphere",
+                                             "size":  20,
+                                             "height":  0
+                                         },
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  10
+                                     },
+                        "damage":  {
+                                       "dice":  "2d4",
+                                       "type":  "Piercing"
+                                   },
+                        "description":  "For up to 10 minutes with concentration, create a camouflaged 20-foot-radius Sphere centered on a point within 150 feet; a creature takes 2d4 Piercing damage for every 5 feet it travels through the damaging Difficult Terrain.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "wallProperties":  {
+                                               "hp":  0,
+                                               "ac":  0
+                                           },
+                        "dispersedByStrongWind":  false,
+                        "manipulation":  {
+                                             "type":  "cosmetic",
+                                             "volume":  {
+                                                            "shape":  "Cube",
+                                                            "size":  0,
+                                                            "depth":  0
+                                                        },
+                                             "duration":  {
+                                                              "type":  "rounds",
+                                                              "value":  0
+                                                          },
+                                             "depositDistance":  0
+                                         },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "hazard_terrain",
+                                                   "name":  "Camouflaged Spikes And Thorns",
+                                                   "count":  1,
+                                                   "countUnit":  "area",
+                                                   "appearsIn":  "spell_area",
+                                                   "affectedVolumeShape":  "Sphere",
+                                                   "affectedVolumeSizeFeet":  20,
+                                                   "manipulationOptions":  [
+                                                                               "sprout_hard_spikes_and_thorns",
+                                                                               "create_difficult_terrain",
+                                                                               "damage_per_five_feet_traveled",
+                                                                               "camouflage_as_natural_ground"
+                                                                           ],
+                                                   "createsDifficultTerrain":  true,
+                                                   "camouflaged":  true,
+                                                   "recognitionCheck":  {
+                                                                            "action":  "Search",
+                                                                            "ability":  "Wisdom",
+                                                                            "skills":  [
+                                                                                           "Perception",
+                                                                                           "Survival"
+                                                                                       ],
+                                                                            "dc":  "spell_save_dc",
+                                                                            "requiredWhen":  "creature_could_not_see_area_when_spell_was_cast"
+                                                                        },
+                                                   "movementDamage":  {
+                                                                          "dice":  "2d4",
+                                                                          "type":  "Piercing",
+                                                                          "perDistanceFeet":  5
+                                                                      },
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "up to 10 minutes with concentration",
+                                                   "notes":  "Spike Growth changes the ground into camouflaged damaging Difficult Terrain; the existing terrain rows carry the area, duration, and damage timing."
+                                               }
+                                           ],
+                        "wardTrigger":  {
+                                            "kind":  "camouflaged_hazard_area",
+                                            "trigger":  "creature_travels_through_area",
+                                            "response":  "2d4_piercing_damage_per_5_feet_moved",
+                                            "detection":  "creature_that_could_not_see_casting_area_must_Search_and_succeed_to_notice_hazard"
+                                        }
+                    },
+                    {
+                        "type":  "TERRAIN",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "terrainType":  "difficult",
+                        "areaOfEffect":  {
+                                             "shape":  "Sphere",
+                                             "size":  20,
+                                             "height":  0
+                                         },
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  10
+                                     },
+                        "damage":  {
+                                       "dice":  "",
+                                       "type":  ""
+                                   },
+                        "description":  "The 20-foot-radius Sphere is Difficult Terrain for up to 10 minutes with concentration, and a creature that could not see the area when the spell was cast must Search and succeed on a Wisdom (Perception or Survival) check against the spell save DC to recognize the hazard before entering.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "wallProperties":  {
+                                               "hp":  0,
+                                               "ac":  0
+                                           },
+                        "dispersedByStrongWind":  false,
+                        "manipulation":  {
+                                             "type":  "cosmetic",
+                                             "volume":  {
+                                                            "shape":  "Cube",
+                                                            "size":  0,
+                                                            "depth":  0
+                                                        },
+                                             "duration":  {
+                                                              "type":  "rounds",
+                                                              "value":  0
+                                                          },
+                                             "depositDistance":  0
+                                         },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "visionLightSound":  {
+                                                 "mode":  "camouflaged_visible_hazard",
+                                                 "visualState":  "spikes and thorns are camouflaged to look natural",
+                                                 "recognitionGate":  "creatures that could not see the area when cast must Search and pass Wisdom (Perception or Survival) against spell save DC before entering to recognize the hazard",
+                                                 "affectsMovementAwareness":  "the terrain can be dangerous before a creature identifies it visually",
+                                                 "soundPayload":  "none"
+                                             },
+                        "wardTrigger":  {
+                                            "kind":  "camouflaged_hazard_area",
+                                            "trigger":  "creature_travels_through_area",
+                                            "response":  "2d4_piercing_damage_per_5_feet_moved",
+                                            "detection":  "creature_that_could_not_see_casting_area_must_Search_and_succeed_to_notice_hazard"
+                                        }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "",
+                      "playerInputRequired":  false
+                  },
+    "description":  "The ground in a 20-foot-radius Sphere centered on a point within range sprouts hard spikes and thorns. The area becomes Difficult Terrain for the duration. When a creature moves into or within the area, it takes 2d4 Piercing damage for every 5 feet it travels. The transformation of the ground is camouflaged to look natural. Any creature that can\u0027t see the area when the spell is cast must take a Search action and succeed on a Wisdom (Perception or Survival) check against your spell save DC to recognize the terrain as hazardous before entering it.",
+    "higherLevels":  "",
+    "tags":  [
+                 "control",
+                 "terrain",
+                 "damage",
+                 "concentration"
+             ]
 }

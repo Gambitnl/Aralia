@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 27/06/2026, 02:18:23
+ * Dependents: None (Orphan)
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -14,16 +30,8 @@ import { getAbilityModifierValue } from '../../utils/statUtils';
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { PressurePlate, PressurePlateResult, PressurePlateJamResult, SizeCategory, Trap, TrapEffect as _TrapEffect } from './types';
+import { getPuzzleCharacterStats } from './characterAbilityBridge';
 import { hasTool, hasToolProficiency } from './lockSystem';
-
-const getLegacyStats = (character: PlayerCharacter) => ({
-  strength: character.stats?.strength ?? character.finalAbilityScores?.Strength ?? character.abilityScores.Strength,
-  dexterity: character.stats?.dexterity ?? character.finalAbilityScores?.Dexterity ?? character.abilityScores.Dexterity,
-  constitution: character.stats?.constitution ?? character.finalAbilityScores?.Constitution ?? character.abilityScores.Constitution,
-  intelligence: character.stats?.intelligence ?? character.finalAbilityScores?.Intelligence ?? character.abilityScores.Intelligence,
-  wisdom: character.stats?.wisdom ?? character.finalAbilityScores?.Wisdom ?? character.abilityScores.Wisdom,
-  charisma: character.stats?.charisma ?? character.finalAbilityScores?.Charisma ?? character.abilityScores.Charisma,
-});
 
 const SIZE_VALUES: Record<SizeCategory, number> = {
   'Tiny': 0,
@@ -121,7 +129,7 @@ export function detectPressurePlate(
       return { detected: true, message: 'The pressure plate is plainly visible.' };
   }
 
-  const stats = getLegacyStats(character);
+  const stats = getPuzzleCharacterStats(character);
   const wisMod = getAbilityModifierValue(stats.wisdom); // Perception
   const d20 = rollDice('1d20');
   const total = d20 + wisMod; // Add proficiency if we had skill lists accessible easily
@@ -157,7 +165,7 @@ export function jamPressurePlate(
   const hasThievesTools = hasTool(character, 'thieves-tools', inventory);
 
   // Roll logic
-  const stats = getLegacyStats(character);
+  const stats = getPuzzleCharacterStats(character);
   const dexMod = getAbilityModifierValue(stats.dexterity);
   const intMod = getAbilityModifierValue(stats.intelligence);
 

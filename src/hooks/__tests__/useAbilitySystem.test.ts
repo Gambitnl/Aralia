@@ -1,12 +1,28 @@
 // TODO(lint-intent): 'waitFor' is unused in this test; use it in the assertion path or remove it.
 import { renderHook, act, waitFor as _waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useAbilitySystem } from '../useAbilitySystem';
+import { materializeAfterHitReactionSpell, useAbilitySystem } from '../useAbilitySystem';
 import { CombatCharacter, Ability, BattleMapData, LightSource, SelectedSpellTarget } from '../../types/combat';
 import { Spell } from '../../types/spells';
 import { Item } from '../../types';
 import * as savingThrowUtils from '../../utils/savingThrowUtils';
 import { combatEvents } from '../../systems/events/CombatEvents';
+import * as combatUtils from '../../utils/combatUtils';
+import shiningSmite from '../../../public/data/spells/level-2/shining-smite.json';
+import blindingSmite from '../../../public/data/spells/level-3/blinding-smite.json';
+
+/**
+ * This file checks the combat ability hook from the player's point of view.
+ *
+ * The hook is the place where spell buttons, target picks, action costs, reaction
+ * prompts, visuals, and command execution meet. These tests keep important spell
+ * wiring from silently falling back to prose-only behavior when a spell needs a
+ * real combat system behind it.
+ *
+ * Called by: focused Vitest runs for spell and combat hook behavior.
+ * Depends on: mocked command execution, combat distance helpers, and representative
+ * spell/character fixtures in this file.
+ */
 
 // Mock dependencies
 vi.mock('../combat/useTargeting', async () => {
@@ -70,8 +86,8 @@ vi.mock('../../commands', () => ({
 }));
 
 vi.mock('../../utils/combatUtils', () => ({
-    getDistance: () => 5,
-    getCharacterDistance: () => 5,
+    getDistance: vi.fn(() => 5),
+    getCharacterDistance: vi.fn(() => 5),
     // useTargetValidator asks for every occupied tile so large tokens and
     // future multi-cell creatures stay blocked consistently. Tests use single
     // tile characters, so the mock mirrors that smallest legal footprint.
@@ -92,6 +108,15 @@ beforeEach(() => {
     // call history before each test keeps command-path assertions about "not
     // called yet" focused on the current interaction instead of earlier casts.
     vi.clearAllMocks();
+    // Most tests in this file only need a stable generic grid distance. Tests
+    // that prove familiar delivery can override this per case without leaking
+    // their custom geometry into later spell-hook checks.
+    vi.mocked(combatUtils.getDistance).mockReturnValue(5);
+    vi.mocked(combatUtils.getCharacterDistance).mockReturnValue(5);
+    // Counterspell and other save-gated hook tests sometimes force a failed
+    // save for one interaction. Reset the default here so a failed interruption
+    // proof cannot leak into later spell execution tests.
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({ total: 18, success: true, modifiersApplied: [] });
 });
 
 // Mock Data Setup
@@ -311,6 +336,1712 @@ describe('useAbilitySystem - Reactions', () => {
         }));
 
         combatEvents.clearForTest();
+    });
+
+    it('prompts and materializes after-hit reaction spells from shared attack-result metadata', async () => {
+        const { CommandExecutor, SpellCommandFactory } = await import('../../commands');
+        combatEvents.clearForTest();
+        const smiteSpell: Spell = {
+            id: 'shining-smite-like',
+            name: 'Shining Smite Like',
+            level: 2,
+            school: 'Transmutation',
+            classes: ['Paladin'],
+            description: 'A metadata-driven after-hit reaction smite.',
+            castingTime: { value: 1, unit: 'reaction' },
+            castingTrigger: {
+                type: 'after_attack_hit',
+                targetBinding: 'triggering_attack_target',
+                attackFilter: {
+                    attackType: 'weapon',
+                    weaponType: 'melee'
+                }
+            },
+            range: { type: 'self' },
+            components: { verbal: true, somatic: false, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: [{
+                type: 'DAMAGE',
+                damage: { dice: '2d6', type: 'radiant' },
+                trigger: {
+                    type: 'on_attack_hit',
+                    frequency: 'once',
+                    consumption: 'first_hit',
+                    attackFilter: {
+                        attackType: 'weapon',
+                        weaponType: 'melee'
+                    }
+                },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once compact reaction-spell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const smitingAttacker: CombatCharacter = {
+            ...attacker,
+            id: 'smiting-attacker',
+            name: 'Smiting Attacker',
+            team: 'player',
+            abilities: [{
+                id: 'shining-smite-like-ability',
+                name: 'Shining Smite Like',
+                type: 'spell',
+                spell: smiteSpell
+            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
+            } as unknown as Ability],
+            actionEconomy: {
+                ...attacker.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            },
+            spellSlots: {
+                level_2: { current: 1, max: 1 }
+            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            } as unknown as CombatCharacter['spellSlots']
+        };
+        const hitTarget: CombatCharacter = {
+            ...defender,
+            id: 'smite-target',
+            name: 'Smite Target',
+            team: 'enemy'
+        };
+        const onCharacterUpdate = vi.fn();
+
+        // The first command execution represents the weapon attack. It emits
+        // the resolved hit event that the shared after-hit reaction bridge
+        // consumes after command execution completes.
+        vi.mocked(CommandExecutor.execute).mockImplementationOnce(() => {
+            combatEvents.emit({
+                type: 'unit_attack',
+                attackerId: smitingAttacker.id,
+                targetId: hitTarget.id,
+                isHit: true,
+                isCrit: false,
+                attackType: 'weapon',
+                weaponType: 'melee'
+            });
+
+            return {
+                success: true,
+                finalState: {
+                    characters: [smitingAttacker, hitTarget],
+                    combatLog: [],
+                    reactiveTriggers: [],
+                    activeLightSources: []
+                }
+            // TODO(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
+            } as any;
+        });
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [smitingAttacker, hitTarget],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate,
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        let executionPromise: Promise<void>;
+        await act(async () => {
+            executionPromise = (result.current.executeAbility as any)(
+                basicAttack,
+                smitingAttacker,
+                hitTarget.position,
+                [hitTarget.id]
+            );
+        });
+
+        await _waitFor(() => expect(result.current.pendingReaction).toEqual(expect.objectContaining({
+            triggerType: 'on_hit',
+            attackerId: smitingAttacker.id,
+            targetId: hitTarget.id,
+            reactionSpells: [expect.objectContaining({ id: smiteSpell.id })]
+        })));
+
+        act(() => {
+            result.current.pendingReaction?.onResolve(smiteSpell.id);
+        });
+
+        await executionPromise!;
+
+        expect(onCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            id: smitingAttacker.id,
+            actionEconomy: expect.objectContaining({
+                reaction: expect.objectContaining({ used: true })
+            }),
+            spellSlots: expect.objectContaining({
+                level_2: expect.objectContaining({ current: 0 })
+            })
+        }));
+
+        const smiteSpellPassedToFactory = vi.mocked(SpellCommandFactory.createCommands).mock.calls
+            .map(call => call[0] as Spell)
+            .find(spell => spell.id === smiteSpell.id);
+        const smiteTargetsPassedToFactory = vi.mocked(SpellCommandFactory.createCommands).mock.calls
+            .find(call => (call[0] as Spell).id === smiteSpell.id)?.[2] as CombatCharacter[] | undefined;
+
+        expect(smiteSpellPassedToFactory?.effects[0]).toEqual(expect.objectContaining({
+            trigger: expect.objectContaining({ type: 'immediate' })
+        }));
+        expect(smiteTargetsPassedToFactory).toEqual([hitTarget]);
+
+        combatEvents.clearForTest();
+    });
+
+    it('does not prompt an after-hit reaction spell for nonmatching attack metadata', async () => {
+        const { CommandExecutor, SpellCommandFactory } = await import('../../commands');
+        combatEvents.clearForTest();
+        const meleeOnlySmite: Spell = {
+            id: 'blinding-smite-like',
+            name: 'Blinding Smite Like',
+            level: 3,
+            school: 'Evocation',
+            classes: ['Paladin'],
+            description: 'A melee-only after-hit reaction smite used to prove nonmatching attacks stay quiet.',
+            castingTime: { value: 1, unit: 'reaction' },
+            castingTrigger: {
+                type: 'after_attack_hit',
+                targetBinding: 'triggering_attack_target',
+                attackFilter: {
+                    attackType: 'weapon',
+                    weaponType: 'melee'
+                }
+            },
+            range: { type: 'self' },
+            components: { verbal: true, somatic: false, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: [{
+                type: 'STATUS_CONDITION',
+                conditionName: 'Blinded',
+                trigger: {
+                    type: 'on_attack_hit',
+                    frequency: 'once',
+                    consumption: 'first_hit',
+                    attackFilter: {
+                        attackType: 'weapon',
+                        weaponType: 'melee'
+                    }
+                },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once compact reaction-spell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const smitingAttacker: CombatCharacter = {
+            ...attacker,
+            id: 'ranged-smite-attacker',
+            name: 'Ranged Smite Attacker',
+            team: 'player',
+            abilities: [{
+                id: 'blinding-smite-like-ability',
+                name: 'Blinding Smite Like',
+                type: 'spell',
+                spell: meleeOnlySmite
+            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
+            } as unknown as Ability],
+            actionEconomy: {
+                ...attacker.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            },
+            spellSlots: {
+                level_3: { current: 1, max: 1 }
+            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            } as unknown as CombatCharacter['spellSlots']
+        };
+        const hitTarget: CombatCharacter = {
+            ...defender,
+            id: 'ranged-smite-target',
+            name: 'Ranged Smite Target',
+            team: 'enemy'
+        };
+
+        // The attack hits, but it is explicitly a ranged weapon hit. That is
+        // close enough to look tempting, yet it must not wake a melee-only
+        // smite because Shining/Blinding-style closure depends on strict
+        // attack-filter matching rather than any-hit prompting.
+        vi.mocked(CommandExecutor.execute).mockImplementationOnce(() => {
+            combatEvents.emit({
+                type: 'unit_attack',
+                attackerId: smitingAttacker.id,
+                targetId: hitTarget.id,
+                isHit: true,
+                isCrit: false,
+                attackType: 'weapon',
+                weaponType: 'ranged'
+            });
+
+            return {
+                success: true,
+                finalState: {
+                    characters: [smitingAttacker, hitTarget],
+                    combatLog: [],
+                    reactiveTriggers: [],
+                    activeLightSources: []
+                }
+            // TODO(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
+            } as any;
+        });
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [smitingAttacker, hitTarget],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                basicAttack,
+                smitingAttacker,
+                hitTarget.position,
+                [hitTarget.id]
+            );
+        });
+
+        expect(result.current.pendingReaction).toBeNull();
+        expect(SpellCommandFactory.createCommands).not.toHaveBeenCalledWith(
+            expect.objectContaining({ id: meleeOnlySmite.id }),
+            expect.anything(),
+            expect.anything(),
+            expect.anything(),
+            expect.anything()
+        );
+
+        combatEvents.clearForTest();
+    });
+
+    it('prompts an after-hit smite when legacy melee-weapon metadata meets a compact melee hit event', async () => {
+        const { CommandExecutor } = await import('../../commands');
+        combatEvents.clearForTest();
+        const legacyMeleeSmite: Spell = {
+            id: 'legacy-melee-smite-like',
+            name: 'Legacy Melee Smite Like',
+            level: 2,
+            school: 'Evocation',
+            classes: ['Paladin'],
+            description: 'A smite fixture that keeps the older melee_weapon attack filter label.',
+            castingTime: { value: 1, unit: 'reaction' },
+            castingTrigger: {
+                type: 'after_attack_hit',
+                targetBinding: 'triggering_attack_target',
+                attackFilter: {
+                    attackType: 'weapon',
+                    weaponType: 'melee_weapon'
+                }
+            },
+            range: { type: 'self' },
+            components: { verbal: true, somatic: false, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: [{
+                type: 'DAMAGE',
+                damage: { dice: '2d6', type: 'radiant' },
+                trigger: {
+                    type: 'on_attack_hit',
+                    frequency: 'once',
+                    consumption: 'first_hit',
+                    attackFilter: {
+                        attackType: 'weapon',
+                        weaponType: 'melee_weapon'
+                    }
+                },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once compact reaction-spell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const smitingAttacker: CombatCharacter = {
+            ...attacker,
+            id: 'legacy-melee-smite-attacker',
+            name: 'Legacy Melee Smite Attacker',
+            team: 'player',
+            abilities: [{
+                id: 'legacy-melee-smite-like-ability',
+                name: 'Legacy Melee Smite Like',
+                type: 'spell',
+                spell: legacyMeleeSmite
+            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
+            } as unknown as Ability],
+            actionEconomy: {
+                ...attacker.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            },
+            spellSlots: {
+                level_2: { current: 1, max: 1 }
+            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            } as unknown as CombatCharacter['spellSlots']
+        };
+        const hitTarget: CombatCharacter = {
+            ...defender,
+            id: 'legacy-melee-smite-target',
+            name: 'Legacy Melee Smite Target',
+            team: 'enemy'
+        };
+
+        // The attack event is the modern compact melee shape. The spell filter
+        // deliberately uses the older `melee_weapon` label so this guard proves
+        // the prompt bridge normalizes migration-era spell metadata instead of
+        // silently dropping the after-hit option.
+        vi.mocked(CommandExecutor.execute).mockImplementationOnce(() => {
+            combatEvents.emit({
+                type: 'unit_attack',
+                attackerId: smitingAttacker.id,
+                targetId: hitTarget.id,
+                isHit: true,
+                isCrit: false,
+                attackType: 'weapon',
+                weaponType: 'melee'
+            });
+
+            return {
+                success: true,
+                finalState: {
+                    characters: [smitingAttacker, hitTarget],
+                    combatLog: [],
+                    reactiveTriggers: [],
+                    activeLightSources: []
+                }
+            // TODO(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
+            } as any;
+        });
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [smitingAttacker, hitTarget],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        let executionPromise: Promise<void>;
+        await act(async () => {
+            executionPromise = (result.current.executeAbility as any)(
+                basicAttack,
+                smitingAttacker,
+                hitTarget.position,
+                [hitTarget.id]
+            );
+        });
+
+        await _waitFor(() => expect(result.current.pendingReaction).toEqual(expect.objectContaining({
+            triggerType: 'on_hit',
+            attackerId: smitingAttacker.id,
+            targetId: hitTarget.id,
+            reactionSpells: [expect.objectContaining({ id: legacyMeleeSmite.id })]
+        })));
+
+        act(() => {
+            result.current.pendingReaction?.onResolve(null);
+        });
+
+        await executionPromise!;
+
+        combatEvents.clearForTest();
+    });
+
+    it('prompts an after-hit smite when the spell explicitly includes Unarmed Strike', async () => {
+        const { CommandExecutor } = await import('../../commands');
+        combatEvents.clearForTest();
+        const unarmedSmite: Spell = {
+            id: 'shining-smite-unarmed-like',
+            name: 'Shining Smite Unarmed Like',
+            level: 2,
+            school: 'Transmutation',
+            classes: ['Paladin'],
+            description: 'A smite fixture that allows weapon hits and Unarmed Strike hits.',
+            castingTime: { value: 1, unit: 'reaction' },
+            castingTrigger: {
+                type: 'after_attack_hit',
+                targetBinding: 'triggering_attack_target',
+                attackFilter: {
+                    attackType: 'weapon',
+                    weaponType: 'any',
+                    includesUnarmedStrike: true
+                }
+            },
+            range: { type: 'self' },
+            components: { verbal: true, somatic: false, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: [{
+                type: 'DAMAGE',
+                damage: { dice: '2d6', type: 'radiant' },
+                trigger: {
+                    type: 'on_attack_hit',
+                    frequency: 'once',
+                    consumption: 'first_hit',
+                    attackFilter: {
+                        attackType: 'weapon',
+                        weaponType: 'any'
+                    }
+                },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once compact reaction-spell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const smitingAttacker: CombatCharacter = {
+            ...attacker,
+            id: 'unarmed-smite-attacker',
+            name: 'Unarmed Smite Attacker',
+            team: 'player',
+            abilities: [{
+                id: 'shining-smite-unarmed-like-ability',
+                name: 'Shining Smite Unarmed Like',
+                type: 'spell',
+                spell: unarmedSmite
+            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
+            } as unknown as Ability],
+            actionEconomy: {
+                ...attacker.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            },
+            spellSlots: {
+                level_2: { current: 1, max: 1 }
+            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            } as unknown as CombatCharacter['spellSlots']
+        };
+        const hitTarget: CombatCharacter = {
+            ...defender,
+            id: 'unarmed-smite-target',
+            name: 'Unarmed Smite Target',
+            team: 'enemy'
+        };
+
+        // The attack event uses explicit unarmed metadata. The hook should not
+        // rely on ordinary weapon matching here; it should honor the spell's
+        // includesUnarmedStrike opt-in and offer the same after-hit prompt.
+        vi.mocked(CommandExecutor.execute).mockImplementationOnce(() => {
+            combatEvents.emit({
+                type: 'unit_attack',
+                attackerId: smitingAttacker.id,
+                targetId: hitTarget.id,
+                isHit: true,
+                isCrit: false,
+                attackType: 'unarmed',
+                weaponType: 'unarmed'
+            });
+
+            return {
+                success: true,
+                finalState: {
+                    characters: [smitingAttacker, hitTarget],
+                    combatLog: [],
+                    reactiveTriggers: [],
+                    activeLightSources: []
+                }
+            // TODO(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
+            } as any;
+        });
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [smitingAttacker, hitTarget],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        let executionPromise: Promise<void>;
+        await act(async () => {
+            executionPromise = (result.current.executeAbility as any)(
+                basicAttack,
+                smitingAttacker,
+                hitTarget.position,
+                [hitTarget.id]
+            );
+        });
+
+        await _waitFor(() => expect(result.current.pendingReaction).toEqual(expect.objectContaining({
+            triggerType: 'on_hit',
+            attackerId: smitingAttacker.id,
+            targetId: hitTarget.id,
+            reactionSpells: [expect.objectContaining({ id: unarmedSmite.id })]
+        })));
+
+        act(() => {
+            result.current.pendingReaction?.onResolve(null);
+        });
+
+        await executionPromise!;
+
+        combatEvents.clearForTest();
+    });
+
+    it('allows one bounded Counterspell response to a Counterspell before the original spell resolves', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+        const originalSpell: Spell = {
+            id: 'fireball-like',
+            name: 'Fireball Like',
+            level: 3,
+            school: 'Evocation',
+            classes: ['Wizard'],
+            description: 'A normal spell that can be interrupted.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 150 },
+            components: { verbal: true, somatic: true, material: true },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'area', validTargets: ['point'] },
+            effects: [{
+                type: 'DAMAGE',
+                damage: { dice: '8d6', type: 'fire' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const enemyCounterspell: Spell = {
+            id: 'enemy-counterspell',
+            name: 'Enemy Counterspell',
+            level: 3,
+            school: 'Abjuration',
+            classes: ['Wizard'],
+            description: 'Interrupts another spell.',
+            castingTime: { value: 1, unit: 'reaction' },
+            castingTrigger: {
+                type: 'when_visible_creature_casts_spell',
+                requiredCost: 'reaction',
+                maxRangeFeet: 60
+            },
+            interruptionState: {
+                saveType: 'Constitution',
+                failureOutcome: 'spell_has_no_effect',
+                preservesInterruptedSlot: true
+            },
+            range: { type: 'ranged', distance: 60 },
+            components: { verbal: false, somatic: true, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['creatures'] },
+            effects: []
+        // TODO(lint-intent): Replace this cast once compact Counterspell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const playerCounterspell: Spell = {
+            ...enemyCounterspell,
+            id: 'player-counterspell',
+            name: 'Player Counterspell'
+        };
+        const originalCaster: CombatCharacter = {
+            ...defender,
+            id: 'original-caster',
+            name: 'Original Caster',
+            team: 'player',
+            abilities: [{
+                id: 'player-counterspell-ability',
+                name: 'Player Counterspell',
+                type: 'spell',
+                spell: playerCounterspell
+            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
+            } as unknown as Ability],
+            actionEconomy: {
+                ...defender.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            },
+            spellSlots: {
+                level_3: { current: 2, max: 2 }
+            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            } as unknown as CombatCharacter['spellSlots']
+        };
+        const enemyReactor: CombatCharacter = {
+            ...attacker,
+            id: 'enemy-reactor',
+            name: 'Enemy Reactor',
+            team: 'enemy',
+            abilities: [{
+                id: 'enemy-counterspell-ability',
+                name: 'Enemy Counterspell',
+                type: 'spell',
+                spell: enemyCounterspell
+            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
+            } as unknown as Ability],
+            actionEconomy: {
+                ...attacker.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            },
+            spellSlots: {
+                level_3: { current: 1, max: 1 }
+            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            } as unknown as CombatCharacter['spellSlots']
+        };
+
+        vi.mocked(combatUtils.getDistance).mockReturnValue(5);
+        vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+            total: 20,
+            success: true,
+            modifiersApplied: []
+        });
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [originalCaster, enemyReactor],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        let executionPromise: Promise<void>;
+        await act(async () => {
+            executionPromise = result.current.executeSpell(
+                originalSpell,
+                originalCaster,
+                [enemyReactor],
+                originalSpell.level
+            );
+        });
+
+        await _waitFor(() => expect(result.current.pendingReaction).toEqual(expect.objectContaining({
+            triggerType: 'on_cast',
+            attackerId: originalCaster.id,
+            targetId: enemyReactor.id,
+            reactionSpells: [expect.objectContaining({ id: enemyCounterspell.id })]
+        })));
+
+        act(() => {
+            result.current.pendingReaction?.onResolve(enemyCounterspell.id);
+        });
+
+        await _waitFor(() => expect(result.current.pendingReaction).toEqual(expect.objectContaining({
+            triggerType: 'on_cast',
+            attackerId: enemyReactor.id,
+            targetId: originalCaster.id,
+            reactionSpells: [expect.objectContaining({ id: playerCounterspell.id })]
+        })));
+
+        act(() => {
+            result.current.pendingReaction?.onResolve(playerCounterspell.id);
+        });
+
+        await executionPromise!;
+
+        const spellIdsPassedToFactory = vi.mocked(SpellCommandFactory.createCommands).mock.calls
+            .map(call => (call[0] as Spell).id);
+
+        expect(spellIdsPassedToFactory).toContain(enemyCounterspell.id);
+        expect(spellIdsPassedToFactory).toContain(playerCounterspell.id);
+        expect(spellIdsPassedToFactory).toContain(originalSpell.id);
+        expect(spellIdsPassedToFactory.filter(id => id.includes('counterspell'))).toHaveLength(2);
+    });
+
+    it('wastes the interrupted action while restoring only the interrupted spell slot on failed Counterspell', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+        const originalSpell: Spell = {
+            id: 'fireball-like',
+            name: 'Fireball Like',
+            level: 3,
+            school: 'Evocation',
+            classes: ['Wizard'],
+            description: 'A normal spell that should lose its action but keep its slot when interrupted.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 150 },
+            components: { verbal: true, somatic: true, material: true },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'area', validTargets: ['point'] },
+            effects: [{
+                type: 'DAMAGE',
+                damage: { dice: '8d6', type: 'fire' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const enemyCounterspell: Spell = {
+            id: 'enemy-counterspell',
+            name: 'Enemy Counterspell',
+            level: 3,
+            school: 'Abjuration',
+            classes: ['Wizard'],
+            description: 'Interrupts another spell.',
+            castingTime: { value: 1, unit: 'reaction' },
+            castingTrigger: {
+                type: 'when_visible_creature_casts_spell',
+                requiredCost: 'reaction',
+                maxRangeFeet: 60
+            },
+            interruptionState: {
+                saveType: 'Constitution',
+                failureOutcome: 'spell_has_no_effect',
+                preservesInterruptedSlot: true
+            },
+            range: { type: 'ranged', distance: 60 },
+            components: { verbal: false, somatic: true, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['creatures'] },
+            effects: []
+        // TODO(lint-intent): Replace this cast once compact Counterspell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const originalCaster: CombatCharacter = {
+            ...defender,
+            id: 'interrupted-caster',
+            name: 'Interrupted Caster',
+            team: 'player',
+            abilities: [],
+            actionEconomy: {
+                ...defender.actionEconomy,
+                action: { used: false, remaining: 1 },
+                reaction: { used: false, remaining: 1 }
+            },
+            spellSlots: {
+                level_3: { current: 1, max: 1 }
+            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            } as unknown as CombatCharacter['spellSlots']
+        };
+        const enemyReactor: CombatCharacter = {
+            ...attacker,
+            id: 'counterspell-reactor',
+            name: 'Counterspell Reactor',
+            team: 'enemy',
+            abilities: [{
+                id: 'enemy-counterspell-ability',
+                name: 'Enemy Counterspell',
+                type: 'spell',
+                spell: enemyCounterspell
+            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
+            } as unknown as Ability],
+            actionEconomy: {
+                ...attacker.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            },
+            spellSlots: {
+                level_3: { current: 1, max: 1 }
+            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            } as unknown as CombatCharacter['spellSlots']
+        };
+        const fireballAbility: Ability = {
+            id: 'fireball-like-ability',
+            name: 'Fireball Like',
+            description: 'A spell ability used to prove Counterspell slot preservation.',
+            type: 'spell',
+            cost: { type: 'action', spellSlotLevel: 3 },
+            targeting: 'single_enemy',
+            range: 30,
+            effects: [],
+            spell: originalSpell
+        // TODO(lint-intent): Replace this broad ability cast once spell-backed abilities have a compact shared test builder.
+        } as unknown as Ability;
+        const onCharacterUpdate = vi.fn();
+
+        vi.mocked(combatUtils.getDistance).mockReturnValue(5);
+        vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+            total: 5,
+            success: false,
+            modifiersApplied: []
+        });
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [originalCaster, enemyReactor],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate,
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        let executionPromise: Promise<void>;
+        await act(async () => {
+            executionPromise = (result.current.executeAbility as any)(
+                fireballAbility,
+                originalCaster,
+                enemyReactor.position,
+                [enemyReactor.id]
+            );
+        });
+
+        await _waitFor(() => expect(result.current.pendingReaction).toEqual(expect.objectContaining({
+            triggerType: 'on_cast',
+            attackerId: originalCaster.id,
+            targetId: enemyReactor.id,
+            reactionSpells: [expect.objectContaining({ id: enemyCounterspell.id })]
+        })));
+
+        act(() => {
+            result.current.pendingReaction?.onResolve(enemyCounterspell.id);
+        });
+
+        await executionPromise!;
+
+        expect(onCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            id: enemyReactor.id,
+            actionEconomy: expect.objectContaining({
+                reaction: expect.objectContaining({ used: true })
+            }),
+            spellSlots: expect.objectContaining({
+                level_3: expect.objectContaining({ current: 0 })
+            })
+        }));
+        expect(onCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            id: originalCaster.id,
+            actionEconomy: expect.objectContaining({
+                action: expect.objectContaining({ used: true })
+            }),
+            spellSlots: expect.objectContaining({
+                level_3: expect.objectContaining({ current: 1 })
+            })
+        }));
+        expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls
+            .map(call => (call[0] as Spell).id)).not.toContain(originalSpell.id);
+    });
+
+    it('allows the original spell command to continue when the Counterspell save succeeds', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+        const originalSpell: Spell = {
+            id: 'fireball-success-path',
+            name: 'Fireball Success Path',
+            level: 3,
+            school: 'Evocation',
+            classes: ['Wizard'],
+            description: 'A normal spell that should continue when the interruption save succeeds.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 150 },
+            components: { verbal: true, somatic: true, material: true },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'area', validTargets: ['point'] },
+            effects: [{
+                type: 'DAMAGE',
+                damage: { dice: '8d6', type: 'fire' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const enemyCounterspell: Spell = {
+            id: 'enemy-counterspell-success-path',
+            name: 'Enemy Counterspell Success Path',
+            level: 3,
+            school: 'Abjuration',
+            classes: ['Wizard'],
+            description: 'Interrupts another spell unless the caster succeeds on the save.',
+            castingTime: { value: 1, unit: 'reaction' },
+            castingTrigger: {
+                type: 'when_visible_creature_casts_spell',
+                requiredCost: 'reaction',
+                maxRangeFeet: 60
+            },
+            interruptionState: {
+                saveType: 'Constitution',
+                failureOutcome: 'spell_has_no_effect',
+                preservesInterruptedSlot: true
+            },
+            range: { type: 'ranged', distance: 60 },
+            components: { verbal: false, somatic: true, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['creatures'] },
+            effects: []
+        // TODO(lint-intent): Replace this cast once compact Counterspell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const originalCaster: CombatCharacter = {
+            ...defender,
+            id: 'successful-save-caster',
+            name: 'Successful Save Caster',
+            team: 'player',
+            abilities: [],
+            actionEconomy: {
+                ...defender.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            },
+            spellSlots: {
+                level_3: { current: 1, max: 1 }
+            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            } as unknown as CombatCharacter['spellSlots']
+        };
+        const enemyReactor: CombatCharacter = {
+            ...attacker,
+            id: 'success-counterspell-reactor',
+            name: 'Success Counterspell Reactor',
+            team: 'enemy',
+            abilities: [{
+                id: 'enemy-counterspell-success-ability',
+                name: 'Enemy Counterspell Success Path',
+                type: 'spell',
+                spell: enemyCounterspell
+            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
+            } as unknown as Ability],
+            actionEconomy: {
+                ...attacker.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            },
+            spellSlots: {
+                level_3: { current: 1, max: 1 }
+            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            } as unknown as CombatCharacter['spellSlots']
+        };
+
+        vi.mocked(combatUtils.getDistance).mockReturnValue(5);
+        vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+            total: 22,
+            success: true,
+            modifiersApplied: []
+        });
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [originalCaster, enemyReactor],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        let executionPromise: Promise<void>;
+        await act(async () => {
+            executionPromise = result.current.executeSpell(
+                originalSpell,
+                originalCaster,
+                [enemyReactor],
+                originalSpell.level
+            );
+        });
+
+        await _waitFor(() => expect(result.current.pendingReaction).toEqual(expect.objectContaining({
+            triggerType: 'on_cast',
+            attackerId: originalCaster.id,
+            targetId: enemyReactor.id,
+            reactionSpells: [expect.objectContaining({ id: enemyCounterspell.id })]
+        })));
+
+        act(() => {
+            result.current.pendingReaction?.onResolve(enemyCounterspell.id);
+        });
+
+        await executionPromise!;
+
+        const spellIdsPassedToFactory = vi.mocked(SpellCommandFactory.createCommands).mock.calls
+            .map(call => (call[0] as Spell).id);
+
+        // A successful save means Counterspell did not stop the cast. The
+        // selected reaction spell still runs and spends resources, but the
+        // original spell must reach command creation afterward.
+        expect(spellIdsPassedToFactory).toContain(enemyCounterspell.id);
+        expect(spellIdsPassedToFactory).toContain(originalSpell.id);
+    });
+
+    it('does not offer Counterspell when the visible caster is outside the declared interruption range', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+        const originalSpell: Spell = {
+            id: 'fireball-out-of-counterspell-range',
+            name: 'Fireball Out Of Counterspell Range',
+            level: 3,
+            school: 'Evocation',
+            classes: ['Wizard'],
+            description: 'A normal spell used to prove Counterspell range gating.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 150 },
+            components: { verbal: true, somatic: true, material: true },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'area', validTargets: ['point'] },
+            effects: [{
+                type: 'DAMAGE',
+                damage: { dice: '8d6', type: 'fire' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const enemyCounterspell: Spell = {
+            id: 'enemy-counterspell-out-of-range',
+            name: 'Enemy Counterspell Out Of Range',
+            level: 3,
+            school: 'Abjuration',
+            classes: ['Wizard'],
+            description: 'Interrupts another spell only within its trigger range.',
+            castingTime: { value: 1, unit: 'reaction' },
+            castingTrigger: {
+                type: 'when_visible_creature_casts_spell',
+                requiredCost: 'reaction',
+                maxRangeFeet: 60
+            },
+            interruptionState: {
+                saveType: 'Constitution',
+                failureOutcome: 'spell_has_no_effect',
+                preservesInterruptedSlot: true
+            },
+            range: { type: 'ranged', distance: 60 },
+            components: { verbal: false, somatic: true, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['creatures'] },
+            effects: []
+        // TODO(lint-intent): Replace this cast once compact Counterspell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const originalCaster: CombatCharacter = {
+            ...defender,
+            id: 'out-of-range-original-caster',
+            name: 'Out Of Range Original Caster',
+            team: 'player',
+            abilities: [],
+            actionEconomy: {
+                ...defender.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            },
+            spellSlots: {
+                level_3: { current: 1, max: 1 }
+            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            } as unknown as CombatCharacter['spellSlots']
+        };
+        const enemyReactor: CombatCharacter = {
+            ...attacker,
+            id: 'out-of-range-counterspell-reactor',
+            name: 'Out Of Range Counterspell Reactor',
+            team: 'enemy',
+            abilities: [{
+                id: 'enemy-counterspell-out-of-range-ability',
+                name: 'Enemy Counterspell Out Of Range',
+                type: 'spell',
+                spell: enemyCounterspell
+            // TODO(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
+            } as unknown as Ability],
+            actionEconomy: {
+                ...attacker.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            },
+            spellSlots: {
+                level_3: { current: 1, max: 1 }
+            // TODO(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
+            } as unknown as CombatCharacter['spellSlots']
+        };
+
+        // The reactor can see the caster, but the shared interruption trigger
+        // must still respect Counterspell's 60-foot range. Returning 65 feet
+        // proves the prompt gate rejects a too-distant reaction spell instead
+        // of offering it just because visibility and resources are valid.
+        vi.mocked(combatUtils.getDistance).mockReturnValue(65);
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [originalCaster, enemyReactor],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        await act(async () => {
+            await result.current.executeSpell(
+                originalSpell,
+                originalCaster,
+                [enemyReactor],
+                originalSpell.level
+            );
+        });
+
+        const spellIdsPassedToFactory = vi.mocked(SpellCommandFactory.createCommands).mock.calls
+            .map(call => (call[0] as Spell).id);
+
+        expect(result.current.pendingReaction).toBeNull();
+        expect(spellIdsPassedToFactory).toContain(originalSpell.id);
+        expect(spellIdsPassedToFactory).not.toContain(enemyCounterspell.id);
+    });
+
+    it('spends the familiar reaction when a touch spell is delivered through Find Familiar', async () => {
+        const { CommandExecutor } = await import('../../commands');
+        const familiarCaster: CombatCharacter = {
+            ...defender,
+            id: 'familiar-caster',
+            name: 'Familiar Caster',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        };
+        const touchTarget: CombatCharacter = {
+            ...attacker,
+            id: 'touch-target',
+            name: 'Touch Target',
+            team: 'enemy',
+            position: { x: 3, y: 0 }
+        };
+        const familiar: CombatCharacter = {
+            ...defender,
+            id: 'owl-familiar',
+            name: 'Owl Familiar',
+            team: 'player',
+            position: { x: 2, y: 0 },
+            isSummon: true,
+            summonMetadata: {
+                casterId: 'familiar-caster',
+                spellId: 'find-familiar',
+                entityType: 'familiar',
+                sourceName: 'Find Familiar',
+                actionPermissions: {
+                    canDeliverTouchSpells: true,
+                    touchDeliveryRangeFeet: 100,
+                    touchDeliveryCost: 'reaction'
+                },
+                dismissable: true
+            },
+            actionEconomy: {
+                ...defender.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            }
+        };
+        const touchSpell: Spell = {
+            id: 'inflict-wounds-like',
+            name: 'Inflict Wounds Like',
+            level: 1,
+            school: 'Necromancy',
+            classes: ['Cleric'],
+            description: 'A touch spell for familiar delivery proof.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'touch', distance: 5 },
+            components: { verbal: true, somatic: true, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: []
+        } as unknown as Spell;
+        const touchAbility: Ability = {
+            id: 'inflict-wounds-like-ability',
+            name: 'Inflict Wounds Like',
+            description: 'A touch spell for familiar delivery proof.',
+            type: 'spell',
+            range: 1,
+            targeting: 'single_enemy',
+            cost: { type: 'action' },
+            effects: [],
+            spell: touchSpell
+        } as unknown as Ability;
+        const onCharacterUpdate = vi.fn();
+        const onAddSpellDeliveryVisual = vi.fn();
+
+        // The caster is too far to touch the target directly, but the familiar
+        // is within the 100-foot bond and adjacent to the target. This forces
+        // the hook through the Find Familiar delivery path rather than ordinary
+        // self-origin touch targeting.
+        vi.mocked(combatUtils.getCharacterDistance).mockImplementation((first, second) => {
+            const ids = new Set([first.id, second.id]);
+            if (ids.has('familiar-caster') && ids.has('touch-target')) return 3;
+            if (ids.has('familiar-caster') && ids.has('owl-familiar')) return 2;
+            if (ids.has('owl-familiar') && ids.has('touch-target')) return 1;
+            return 5;
+        });
+        vi.mocked(CommandExecutor.execute).mockReturnValueOnce({
+            success: true,
+            finalState: {
+                characters: [familiarCaster, touchTarget, familiar],
+                combatLog: [],
+                reactiveTriggers: [],
+                activeLightSources: []
+            }
+        } as any);
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [familiarCaster, touchTarget, familiar],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate,
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn(),
+            onAddSpellDeliveryVisual
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                touchAbility,
+                familiarCaster,
+                touchTarget.position,
+                [touchTarget.id]
+            );
+        });
+
+        expect(onCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            id: familiar.id,
+            actionEconomy: expect.objectContaining({
+                reaction: expect.objectContaining({
+                    used: true,
+                    remaining: 0
+                })
+            })
+        }));
+        expect(onAddSpellDeliveryVisual).toHaveBeenCalledWith(expect.objectContaining({
+            spellId: touchSpell.id,
+            casterId: familiarCaster.id,
+            deliveryActorId: familiar.id,
+            familiarId: familiar.id,
+            targetId: touchTarget.id,
+            label: 'TOUCH DELIVERY'
+        }));
+    });
+
+    it('spends a familiar action when touch delivery declares an action cost', async () => {
+        const { CommandExecutor } = await import('../../commands');
+        const familiarCaster: CombatCharacter = {
+            ...defender,
+            id: 'action-cost-familiar-caster',
+            name: 'Action-Cost Familiar Caster',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        };
+        const touchTarget: CombatCharacter = {
+            ...attacker,
+            id: 'action-cost-touch-target',
+            name: 'Action-Cost Touch Target',
+            team: 'enemy',
+            position: { x: 3, y: 0 }
+        };
+        const familiar: CombatCharacter = {
+            ...defender,
+            id: 'action-cost-familiar',
+            name: 'Action-Cost Familiar',
+            team: 'player',
+            position: { x: 2, y: 0 },
+            isSummon: true,
+            summonMetadata: {
+                casterId: 'action-cost-familiar-caster',
+                spellId: 'future-touch-delivery-summon',
+                entityType: 'familiar',
+                sourceName: 'Future Touch Delivery Summon',
+                actionPermissions: {
+                    canDeliverTouchSpells: true,
+                    touchDeliveryRangeFeet: 100,
+                    touchDeliveryCost: 'action'
+                },
+                dismissable: true
+            },
+            actionEconomy: {
+                ...defender.actionEconomy,
+                action: { used: false, remaining: 1 },
+                reaction: { used: false, remaining: 1 }
+            }
+        };
+        const touchSpell: Spell = {
+            id: 'action-cost-touch-spell',
+            name: 'Action-Cost Touch Spell',
+            level: 1,
+            school: 'Necromancy',
+            classes: ['Cleric'],
+            description: 'A touch spell for non-reaction familiar delivery proof.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'touch', distance: 5 },
+            components: { verbal: true, somatic: true, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: []
+        } as unknown as Spell;
+        const touchAbility: Ability = {
+            id: 'action-cost-touch-ability',
+            name: 'Action-Cost Touch Spell',
+            description: 'A touch spell for non-reaction familiar delivery proof.',
+            type: 'spell',
+            range: 1,
+            targeting: 'single_enemy',
+            cost: { type: 'action' },
+            effects: [],
+            spell: touchSpell
+        } as unknown as Ability;
+        const onCharacterUpdate = vi.fn();
+
+        // This distance setup forces the normal spell to be delivered through the
+        // permissioned summoned actor. The caster cannot touch the target directly,
+        // while the familiar is close enough to both the caster and target.
+        vi.mocked(combatUtils.getCharacterDistance).mockImplementation((first, second) => {
+            const ids = new Set([first.id, second.id]);
+            if (ids.has('action-cost-familiar-caster') && ids.has('action-cost-touch-target')) return 3;
+            if (ids.has('action-cost-familiar-caster') && ids.has('action-cost-familiar')) return 2;
+            if (ids.has('action-cost-familiar') && ids.has('action-cost-touch-target')) return 1;
+            return 5;
+        });
+        vi.mocked(CommandExecutor.execute).mockReturnValueOnce({
+            success: true,
+            finalState: {
+                characters: [familiarCaster, touchTarget, familiar],
+                combatLog: [],
+                reactiveTriggers: [],
+                activeLightSources: []
+            }
+        } as any);
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [familiarCaster, touchTarget, familiar],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate,
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                touchAbility,
+                familiarCaster,
+                touchTarget.position,
+                [touchTarget.id]
+            );
+        });
+
+        expect(onCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            id: familiar.id,
+            actionEconomy: expect.objectContaining({
+                action: expect.objectContaining({
+                    used: true,
+                    remaining: 0
+                }),
+                reaction: expect.objectContaining({
+                    used: false,
+                    remaining: 1
+                })
+            })
+        }));
+    });
+
+    it('spends a familiar bonus action when touch delivery declares a bonus-action cost', async () => {
+        const { CommandExecutor } = await import('../../commands');
+        const familiarCaster: CombatCharacter = {
+            ...defender,
+            id: 'bonus-cost-familiar-caster',
+            name: 'Bonus-Cost Familiar Caster',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        };
+        const touchTarget: CombatCharacter = {
+            ...attacker,
+            id: 'bonus-cost-touch-target',
+            name: 'Bonus-Cost Touch Target',
+            team: 'enemy',
+            position: { x: 3, y: 0 }
+        };
+        const familiar: CombatCharacter = {
+            ...defender,
+            id: 'bonus-cost-familiar',
+            name: 'Bonus-Cost Familiar',
+            team: 'player',
+            position: { x: 2, y: 0 },
+            isSummon: true,
+            summonMetadata: {
+                casterId: 'bonus-cost-familiar-caster',
+                spellId: 'future-bonus-touch-delivery-summon',
+                entityType: 'familiar',
+                sourceName: 'Future Bonus Touch Delivery Summon',
+                actionPermissions: {
+                    canDeliverTouchSpells: true,
+                    touchDeliveryRangeFeet: 100,
+                    touchDeliveryCost: 'bonus_action'
+                },
+                dismissable: true
+            },
+            actionEconomy: {
+                ...defender.actionEconomy,
+                action: { used: false, remaining: 1 },
+                bonusAction: { used: false, remaining: 1 },
+                reaction: { used: false, remaining: 1 }
+            }
+        };
+        const touchSpell: Spell = {
+            id: 'bonus-cost-touch-spell',
+            name: 'Bonus-Cost Touch Spell',
+            level: 1,
+            school: 'Necromancy',
+            classes: ['Cleric'],
+            description: 'A touch spell for bonus-action familiar delivery proof.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'touch', distance: 5 },
+            components: { verbal: true, somatic: true, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: []
+        } as unknown as Spell;
+        const touchAbility: Ability = {
+            id: 'bonus-cost-touch-ability',
+            name: 'Bonus-Cost Touch Spell',
+            description: 'A touch spell for bonus-action familiar delivery proof.',
+            type: 'spell',
+            range: 1,
+            targeting: 'single_enemy',
+            cost: { type: 'action' },
+            effects: [],
+            spell: touchSpell
+        } as unknown as Ability;
+        const onCharacterUpdate = vi.fn();
+
+        // This distance setup again forces summoned-actor delivery, but this time
+        // the cost bridge must spend the actor's Bonus Action instead of the
+        // Find Familiar default Reaction.
+        vi.mocked(combatUtils.getCharacterDistance).mockImplementation((first, second) => {
+            const ids = new Set([first.id, second.id]);
+            if (ids.has('bonus-cost-familiar-caster') && ids.has('bonus-cost-touch-target')) return 3;
+            if (ids.has('bonus-cost-familiar-caster') && ids.has('bonus-cost-familiar')) return 2;
+            if (ids.has('bonus-cost-familiar') && ids.has('bonus-cost-touch-target')) return 1;
+            return 5;
+        });
+        vi.mocked(CommandExecutor.execute).mockReturnValueOnce({
+            success: true,
+            finalState: {
+                characters: [familiarCaster, touchTarget, familiar],
+                combatLog: [],
+                reactiveTriggers: [],
+                activeLightSources: []
+            }
+        } as any);
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [familiarCaster, touchTarget, familiar],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate,
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                touchAbility,
+                familiarCaster,
+                touchTarget.position,
+                [touchTarget.id]
+            );
+        });
+
+        expect(onCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            id: familiar.id,
+            actionEconomy: expect.objectContaining({
+                action: expect.objectContaining({
+                    used: false,
+                    remaining: 1
+                }),
+                bonusAction: expect.objectContaining({
+                    used: true,
+                    remaining: 0
+                }),
+                reaction: expect.objectContaining({
+                    used: false,
+                    remaining: 1
+                })
+            })
+        }));
+    });
+
+    it('spends a familiar free action when touch delivery declares a limited free cost', async () => {
+        const { CommandExecutor } = await import('../../commands');
+        const familiarCaster: CombatCharacter = {
+            ...defender,
+            id: 'free-cost-familiar-caster',
+            name: 'Free-Cost Familiar Caster',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        };
+        const touchTarget: CombatCharacter = {
+            ...attacker,
+            id: 'free-cost-touch-target',
+            name: 'Free-Cost Touch Target',
+            team: 'enemy',
+            position: { x: 3, y: 0 }
+        };
+        const familiar: CombatCharacter = {
+            ...defender,
+            id: 'free-cost-familiar',
+            name: 'Free-Cost Familiar',
+            team: 'player',
+            position: { x: 2, y: 0 },
+            isSummon: true,
+            summonMetadata: {
+                casterId: 'free-cost-familiar-caster',
+                spellId: 'future-free-touch-delivery-summon',
+                entityType: 'familiar',
+                sourceName: 'Future Free Touch Delivery Summon',
+                actionPermissions: {
+                    canDeliverTouchSpells: true,
+                    touchDeliveryRangeFeet: 100,
+                    touchDeliveryCost: 'free'
+                },
+                dismissable: true
+            },
+            actionEconomy: {
+                ...defender.actionEconomy,
+                action: { used: false, remaining: 1 },
+                reaction: { used: false, remaining: 1 },
+                freeActions: 1
+            }
+        };
+        const touchSpell: Spell = {
+            id: 'free-cost-touch-spell',
+            name: 'Free-Cost Touch Spell',
+            level: 1,
+            school: 'Necromancy',
+            classes: ['Cleric'],
+            description: 'A touch spell for limited-free familiar delivery proof.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'touch', distance: 5 },
+            components: { verbal: true, somatic: true, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: []
+        } as unknown as Spell;
+        const touchAbility: Ability = {
+            id: 'free-cost-touch-ability',
+            name: 'Free-Cost Touch Spell',
+            description: 'A touch spell for limited-free familiar delivery proof.',
+            type: 'spell',
+            range: 1,
+            targeting: 'single_enemy',
+            cost: { type: 'action' },
+            effects: [],
+            spell: touchSpell
+        } as unknown as Ability;
+        const onCharacterUpdate = vi.fn();
+
+        // The free-cost path is still a limited economy spend. This fixture keeps
+        // action and reaction available so the assertion can prove only the free
+        // action pool changed.
+        vi.mocked(combatUtils.getCharacterDistance).mockImplementation((first, second) => {
+            const ids = new Set([first.id, second.id]);
+            if (ids.has('free-cost-familiar-caster') && ids.has('free-cost-touch-target')) return 3;
+            if (ids.has('free-cost-familiar-caster') && ids.has('free-cost-familiar')) return 2;
+            if (ids.has('free-cost-familiar') && ids.has('free-cost-touch-target')) return 1;
+            return 5;
+        });
+        vi.mocked(CommandExecutor.execute).mockReturnValueOnce({
+            success: true,
+            finalState: {
+                characters: [familiarCaster, touchTarget, familiar],
+                combatLog: [],
+                reactiveTriggers: [],
+                activeLightSources: []
+            }
+        } as any);
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [familiarCaster, touchTarget, familiar],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate,
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                touchAbility,
+                familiarCaster,
+                touchTarget.position,
+                [touchTarget.id]
+            );
+        });
+
+        expect(onCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            id: familiar.id,
+            actionEconomy: expect.objectContaining({
+                action: expect.objectContaining({
+                    used: false,
+                    remaining: 1
+                }),
+                reaction: expect.objectContaining({
+                    used: false,
+                    remaining: 1
+                }),
+                freeActions: 0
+            })
+        }));
+    });
+
+    it('does not spend delivery-actor economy when touch delivery declares no cost', async () => {
+        const { CommandExecutor } = await import('../../commands');
+        const familiarCaster: CombatCharacter = {
+            ...defender,
+            id: 'none-cost-familiar-caster',
+            name: 'No-Cost Familiar Caster',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        };
+        const touchTarget: CombatCharacter = {
+            ...attacker,
+            id: 'none-cost-touch-target',
+            name: 'No-Cost Touch Target',
+            team: 'enemy',
+            position: { x: 3, y: 0 }
+        };
+        const familiar: CombatCharacter = {
+            ...defender,
+            id: 'none-cost-familiar',
+            name: 'No-Cost Familiar',
+            team: 'player',
+            position: { x: 2, y: 0 },
+            isSummon: true,
+            summonMetadata: {
+                casterId: 'none-cost-familiar-caster',
+                spellId: 'future-none-touch-delivery-summon',
+                entityType: 'familiar',
+                sourceName: 'Future No-Cost Touch Delivery Summon',
+                actionPermissions: {
+                    canDeliverTouchSpells: true,
+                    touchDeliveryRangeFeet: 100,
+                    touchDeliveryCost: 'none'
+                },
+                dismissable: true
+            },
+            actionEconomy: {
+                ...defender.actionEconomy,
+                action: { used: true, remaining: 0 },
+                bonusAction: { used: true, remaining: 0 },
+                reaction: { used: true, remaining: 0 },
+                freeActions: 0
+            }
+        };
+        const touchSpell: Spell = {
+            id: 'none-cost-touch-spell',
+            name: 'No-Cost Touch Spell',
+            level: 1,
+            school: 'Necromancy',
+            classes: ['Cleric'],
+            description: 'A touch spell for no-cost familiar delivery proof.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'touch', distance: 5 },
+            components: { verbal: true, somatic: true, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: []
+        } as unknown as Spell;
+        const touchAbility: Ability = {
+            id: 'none-cost-touch-ability',
+            name: 'No-Cost Touch Spell',
+            description: 'A touch spell for no-cost familiar delivery proof.',
+            type: 'spell',
+            range: 1,
+            targeting: 'single_enemy',
+            cost: { type: 'action' },
+            effects: [],
+            spell: touchSpell
+        } as unknown as Ability;
+        const onCharacterUpdate = vi.fn();
+
+        // A true no-cost delivery permission should not be confused with a
+        // limited free-action cost. The actor starts with every economy bucket
+        // spent, and the spell should still resolve because the permission says
+        // delivery itself has no actor-side cost.
+        vi.mocked(combatUtils.getCharacterDistance).mockImplementation((first, second) => {
+            const ids = new Set([first.id, second.id]);
+            if (ids.has('none-cost-familiar-caster') && ids.has('none-cost-touch-target')) return 3;
+            if (ids.has('none-cost-familiar-caster') && ids.has('none-cost-familiar')) return 2;
+            if (ids.has('none-cost-familiar') && ids.has('none-cost-touch-target')) return 1;
+            return 5;
+        });
+        vi.mocked(CommandExecutor.execute).mockReturnValueOnce({
+            success: true,
+            finalState: {
+                characters: [familiarCaster, touchTarget, familiar],
+                combatLog: [],
+                reactiveTriggers: [],
+                activeLightSources: []
+            }
+        } as any);
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [familiarCaster, touchTarget, familiar],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate,
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                touchAbility,
+                familiarCaster,
+                touchTarget.position,
+                [touchTarget.id]
+            );
+        });
+
+        expect(CommandExecutor.execute).toHaveBeenCalled();
+        expect(onCharacterUpdate).not.toHaveBeenCalledWith(expect.objectContaining({
+            id: familiar.id
+        }));
     });
 
     it('should log why a selected target cannot be used instead of failing silently', async () => {
@@ -1976,5 +3707,202 @@ describe('useAbilitySystem - free-form player input target bridge', () => {
         // argument. Keeping the exact array proves the input callback did not
         // drop object/point target context while waiting for the modal.
         expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[8]).toBe(selectedSpellTargets);
+    });
+});
+
+describe('Counterspell nested interruption outcome', () => {
+    it('lets the original spell continue when the selected Counterspell is itself interrupted', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+        const originalSpell: Spell = {
+            id: 'original-spell-after-counter-counterspell',
+            name: 'Original Spell After Counter-Counterspell',
+            level: 3,
+            school: 'Evocation',
+            classes: ['Wizard'],
+            description: 'A spell that should continue if the attempted Counterspell is stopped first.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 150 },
+            components: { verbal: true, somatic: true, material: true },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['creatures'] },
+            effects: [{
+                type: 'DAMAGE',
+                damage: { dice: '8d6', type: 'fire' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const counterspellFixture: Spell = {
+            id: 'counterspell-fixture',
+            name: 'Counterspell Fixture',
+            level: 3,
+            school: 'Abjuration',
+            classes: ['Wizard'],
+            description: 'Interrupts another spell unless it is interrupted first.',
+            castingTime: { value: 1, unit: 'reaction' },
+            castingTrigger: {
+                type: 'when_visible_creature_casts_spell',
+                requiredCost: 'reaction',
+                maxRangeFeet: 60
+            },
+            interruptionState: {
+                saveType: 'Constitution',
+                failureOutcome: 'spell_has_no_effect',
+                preservesInterruptedSlot: true
+            },
+            range: { type: 'ranged', distance: 60 },
+            components: { verbal: false, somatic: true, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'single', validTargets: ['creatures'] },
+            effects: []
+        // TODO(lint-intent): Replace this cast once compact Counterspell fixtures expose the full migrated spell union.
+        } as unknown as Spell;
+        const enemyCounterspell: Spell = {
+            ...counterspellFixture,
+            id: 'enemy-counterspell-stopped-by-player',
+            name: 'Enemy Counterspell Stopped By Player'
+        };
+        const playerCounterspell: Spell = {
+            ...counterspellFixture,
+            id: 'player-counterspell-stops-enemy',
+            name: 'Player Counterspell Stops Enemy'
+        };
+        const originalCaster = {
+            id: 'nested-original-caster',
+            name: 'Nested Original Caster',
+            team: 'player',
+            position: { x: 0, y: 0 },
+            currentHP: 30,
+            maxHP: 30,
+            abilities: [{
+                id: 'player-counterspell-ability',
+                name: 'Player Counterspell',
+                type: 'spell',
+                spell: playerCounterspell
+            } as unknown as Ability],
+            actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, movement: { used: 0, total: 30 } },
+            spellSlots: { level_3: { current: 2, max: 2 } }
+        } as unknown as CombatCharacter;
+        const enemyReactor = {
+            id: 'nested-enemy-reactor',
+            name: 'Nested Enemy Reactor',
+            team: 'enemy',
+            position: { x: 1, y: 0 },
+            currentHP: 30,
+            maxHP: 30,
+            abilities: [{
+                id: 'enemy-counterspell-ability',
+                name: 'Enemy Counterspell',
+                type: 'spell',
+                spell: enemyCounterspell
+            } as unknown as Ability],
+            actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, movement: { used: 0, total: 30 } },
+            spellSlots: { level_3: { current: 1, max: 1 } }
+        } as unknown as CombatCharacter;
+        const target = {
+            id: 'nested-original-target',
+            name: 'Nested Original Target',
+            team: 'enemy',
+            position: { x: 2, y: 0 },
+            currentHP: 30,
+            maxHP: 30,
+            actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, movement: { used: 0, total: 30 } }
+        } as unknown as CombatCharacter;
+        const originalAbility = {
+            id: 'original-spell-after-counter-counterspell-ability',
+            name: originalSpell.name,
+            description: originalSpell.description,
+            type: 'spell',
+            cost: { type: 'action', spellSlotLevel: 3 },
+            targeting: 'single_enemy',
+            range: 30,
+            effects: [],
+            spell: originalSpell
+        } as unknown as Ability;
+
+        vi.mocked(combatUtils.getDistance).mockReturnValue(5);
+        // Both interruption saves fail: the enemy Counterspell would stop the
+        // original spell, but the player's nested Counterspell stops that enemy
+        // reaction before its stale save can be applied to the original cast.
+        vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+            total: 5,
+            success: false,
+            modifiersApplied: []
+        });
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [originalCaster, enemyReactor, target],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        let executionPromise: Promise<void>;
+        await act(async () => {
+            executionPromise = (result.current.executeAbility as any)(
+                originalAbility,
+                originalCaster,
+                target.position,
+                [target.id]
+            );
+        });
+
+        await _waitFor(() => expect(result.current.pendingReaction).toEqual(expect.objectContaining({
+            triggerType: 'on_cast',
+            attackerId: originalCaster.id,
+            targetId: enemyReactor.id,
+            reactionSpells: [expect.objectContaining({ id: enemyCounterspell.id })]
+        })));
+
+        act(() => {
+            result.current.pendingReaction?.onResolve(enemyCounterspell.id);
+        });
+
+        await _waitFor(() => expect(result.current.pendingReaction).toEqual(expect.objectContaining({
+            triggerType: 'on_cast',
+            attackerId: enemyReactor.id,
+            targetId: originalCaster.id,
+            reactionSpells: [expect.objectContaining({ id: playerCounterspell.id })]
+        })));
+
+        act(() => {
+            result.current.pendingReaction?.onResolve(playerCounterspell.id);
+        });
+
+        await executionPromise!;
+
+        const spellIdsPassedToFactory = vi.mocked(SpellCommandFactory.createCommands).mock.calls
+            .map(call => (call[0] as Spell).id);
+
+        expect(spellIdsPassedToFactory).toContain(enemyCounterspell.id);
+        expect(spellIdsPassedToFactory).toContain(playerCounterspell.id);
+        expect(spellIdsPassedToFactory).toContain(originalSpell.id);
+        expect(spellIdsPassedToFactory.slice(-1)[0]).toBe(originalSpell.id);
+    });
+});
+
+describe('after-hit reaction materialization', () => {
+    it('turns live smite hit-bound payloads into immediate effects for the triggering hit', () => {
+        for (const liveSmite of [shiningSmite, blindingSmite]) {
+            const smiteSpell = liveSmite as Spell;
+            const materializedSmite = materializeAfterHitReactionSpell(smiteSpell);
+
+            // Live smite data stays hit-bound so validation, auditing, and
+            // rider-family code know which timing family owns the spell. The
+            // after-hit reaction bridge then materializes those rows for the
+            // target that was already hit, preventing Shining/Blinding Smite
+            // from registering a rider that waits for the paladin's next hit.
+            expect(smiteSpell.castingTrigger).toEqual(expect.objectContaining({
+                type: 'after_attack_hit',
+                targetBinding: 'triggering_attack_target'
+            }));
+            expect(smiteSpell.effects.filter(effect => effect.trigger?.type === 'on_attack_hit').length).toBeGreaterThan(0);
+            expect(materializedSmite.effects.filter(effect => effect.trigger?.type === 'on_attack_hit')).toHaveLength(0);
+            expect(materializedSmite.effects.filter(effect => effect.trigger?.type === 'immediate').length).toBeGreaterThan(0);
+            expect(materializedSmite.effects.map(effect => effect.type)).toEqual(smiteSpell.effects.map(effect => effect.type));
+        }
     });
 });

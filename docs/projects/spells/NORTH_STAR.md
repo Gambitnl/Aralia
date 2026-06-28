@@ -9,13 +9,13 @@ main_category: Game & Simulation
 subcategory: Spell Runtime And Data
 tracker_group: Spells
 status: active
-last_updated: 2026-06-25
+last_updated: 2026-06-27
 iteration: 0
 confidence: medium
 evidence: docs/projects/spells
 gap_signal: "Parent imports 5 active spell-domain gaps after lane ownership is chosen; child packets own execution proof."
 protocol: living project doc set
-next_step: "Choose the highest-impact child lane from SUBPROJECTS.md, run the executable pass in that child packet, then import only parent-visible routing or product gaps back here."
+next_step: "Continue deferred reaction/timing closeout in structured-spell-execution and summons-controlled-entities child packets; run executable proof there before importing only parent-visible routing or product gaps back here."
 project_mode: parent_with_subprojects
 subproject_tracker: docs/projects/spells/SUBPROJECTS.md
 subproject_count: 8
@@ -57,7 +57,7 @@ source_path: docs/projects/spells/NORTH_STAR.md
 # Spells Parent North Star
 
 status: active
-Last updated: 2026-06-25
+Last updated: 2026-06-27
 
 ## Why This Project Exists
 
@@ -85,8 +85,8 @@ Keep the spell project family coherent while the spell runtime, data corpus, val
 - The Spells project is already a `parent_with_subprojects` routing surface.
 - The parent registry is `docs/projects/spells/SUBPROJECTS.md`.
 - The current registry tracks seven owned Spells lanes and one linked support project.
-- The highest-priority parent route is the created-object / persistent-structure mechanics stream, which belongs to the Mechanics Discovery Packages child lane until a narrower runtime/data owner is selected.
-- The rendered parent dashboard now surfaces that route as a recommended lane with registry proof freshness, in-place lane details, setup-packet links, and copyable/previewable child-lane handoffs.
+- The highest-priority parent route is currently deferred reaction/timing closeout, split between Structured Spell Execution for Shining Smite, Blinding Smite, Lightning Arrow, and Counterspell, and Summons Controlled Entities for Find Familiar and Summon Beast.
+- The rendered parent dashboard should surface those proof-bearing child lanes through `SUBPROJECTS.md`; parent work should only import routing/proof status after the child focused suites execute.
 - Parent gaps are import/routing signals only. Child packets own executable work, proof, pass telemetry, and lane-local gap detail.
 
 ## Parent Scope
@@ -131,7 +131,11 @@ Do not copy every child TODO upward. The parent should stay useful as a routing 
 
 ## Highest-Impact Resume Path
 
-Start with `SUBPROJECTS.md`, then choose the child lane that owns the next concrete work. As of this parent refresh, the highest-impact imported lane is the created-object / persistent-structure mechanics stream currently represented by parent gap G15 and the Mechanics Discovery Packages lane.
+Start with `SUBPROJECTS.md`, then choose the child lane that owns the next concrete work. As of this parent refresh, the highest-impact imported route is deferred reaction/timing closeout:
+
+- Use `subprojects/structured-spell-execution/TRACKER.md` for Shining Smite, Blinding Smite, Lightning Arrow, and Counterspell.
+- Use `subprojects/summons-controlled-entities/TRACKER.md` for Find Familiar touch delivery and Summon Beast Flyby.
+- Do not close the parent `reaction_or_opportunity_restriction` rows from metadata presence alone; the named focused proof must execute first.
 
 A normal resume should be:
 
@@ -177,7 +181,7 @@ A normal resume should be:
 | ID | Status | Task | Owner | Last updated | Acceptance criteria | Next action | Next proof |
 |---|---|---|---|---|---|---|---|
 | SP-PARENT-T1 | done | Keep the Spells parent aligned with the parent-with-subprojects layout. | Codex | 2026-06-25 | Parent `NORTH_STAR.md` has template-aligned sections; `SUBPROJECTS.md` uses canonical count keys; `misc/project_tracker.html` and `misc/project_tracker.js` now render the parent scoped child-lane dashboard inside the project detail overlay. | Keep this current when the parent template or project detail overlay changes. | Rendered `misc/project_tracker.html`, filtered to `spells`, opened the Spells parent, and observed the `Subproject Dashboard`, 8 child lanes, 7 active lanes, 7 owned lanes, 1 linked support lane, scoped filters, and all child setup packet rows. |
-| SP-PARENT-T2 | active | Route the next executable pass through the highest-impact child lane. | Codex | 2026-06-25 | The chosen child packet owns pass telemetry, tracker updates, gap detail, and proof. Parent updates only routing/imported gap summary if needed. Mechanics Discovery Packages is selected by the dashboard recommended-lane callout, and Package 19 PR #1145 is the active created-object/structure pass. | Continue from the Mechanics Discovery Packages child packet and PR #1145; use the rendered handoff preview/copy action before launching another agent, and do not relaunch the same slice from the parent. | Rendered parent dashboard shows one recommended lane, registry proof freshness, in-place lane details, setup-packet link, handoff preview/copy parity, and child tracker/proof update only after child work changes parent-visible state. |
+| SP-PARENT-T2 | active | Route the next executable pass through the highest-impact child lane. | Codex | 2026-06-27 | The chosen child packet owns pass telemetry, tracker updates, gap detail, and proof. Parent updates only routing/imported gap summary if needed. Deferred reaction/timing closeout is split between Structured Spell Execution and Summons Controlled Entities; both child trackers now name live-data proof paths and focused closeout commands. | Continue from the relevant child tracker: Structured Spell Execution for smites, Lightning Arrow, and Counterspell; Summons Controlled Entities for Find Familiar and Summon Beast. Do not relaunch or close from the parent. | Parent routing files point to the proof-bearing child lanes; child tracker/proof rows remain `implementation_unverified` until focused executable proof is run and imported. |
 
 ## Resume Path
 

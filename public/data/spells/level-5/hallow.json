@@ -1,211 +1,408 @@
 {
-  "id": "hallow",
-  "name": "Hallow",
-  "aliases": [],
-  "level": 5,
-  "school": "Abjuration",
-  "legacy": false,
-  "classes": [
-    "Cleric"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 24,
-    "unit": "hour",
-    "explorationCost": {
-      "value": 24,
-      "unit": "hour"
-    },
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    }
-  },
-  "range": {
-    "type": "touch",
-    "distance": 0
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "incense worth 1,000+ GP, which the spell consumes",
-    "materialCost": 1000,
-    "isConsumed": true
-  },
-  "duration": {
-    "type": "until_dispelled",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "area",
-    "range": 0,
-    "validTargets": [
-      "point"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 60,
-      "sizeUnit": "feet",
-      "height": 0
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Infuse a point with holy or unholy power to create an until-dispelled area up to a 60-foot radius; the spell fails if the area overlaps another Hallow. The ward can block chosen Aberration, Celestial, Elemental, Fey, Fiend, or Undead creatures from willingly entering and suppress possession, Charmed, and Frightened effects caused by them, with chosen types optionally excluded. The caster also binds one extra area effect, chosen from the spell options or a DM option; affected creatures can be filtered by creature kind, deity, or leader, and can make the listed Charisma save when entering or starting there to ignore that extra effect until they leave.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "damageInteraction": {
-        "modes": [
-          "resistance",
-          "vulnerability"
-        ],
-        "damageType": [
-          "Acid",
-          "Bludgeoning",
-          "Cold",
-          "Fire",
-          "Force",
-          "Lightning",
-          "Necrotic",
-          "Piercing",
-          "Poison",
-          "Psychic",
-          "Radiant",
-          "Slashing",
-          "Thunder"
-        ],
-        "damageTypeSource": "chosen_damage_type",
-        "subjectScope": "chosen_creature_types",
-        "durationScope": "while_in_area"
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You touch a point and infuse an area around it with holy or unholy power. The area can have a radius up to 60 feet, and the spell fails if the radius includes an area already under the effect of Hallow. The affected area has the following effects. Hallowed Ward. Choose any of these creature types: Aberration, Celestial, Elemental, Fey, Fiend, or Undead. Creatures of the chosen types can't willingly enter the area, and any creature that is possessed by or that has the Charmed or Frightened condition from such creatures isn't possessed, Charmed, or Frightened by them while in the area. Extra Effect. You bind an extra effect to the area from the list below: Courage. Creatures of any types you choose can't gain the Frightened condition while in the area. Darkness. Darkness fills the area. Normal light, as well as magical light created by spells of a level lower than this spell, can't illuminate the area. Daylight. Bright light fills the area. Magical Darkness created by spells of a level lower than this spell can't extinguish the light. Peaceful Rest. Dead bodies interred in the area can't be turned into Undead. Extradimensional Interference. Creatures of any types you choose can't enter or exit the area using teleportation or interplanar travel. Fear. Creatures of any types you choose have the Frightened condition while in the area. Resistance. Creatures of any types you choose have Resistance to one damage type of your choice while in the area. Silence. No sound can emanate from within the area, and no sound can reach into it. Tongues. Creatures of any types you choose can communicate with any other creature in the area even if they don't share a common language. Vulnerability. Creatures of any types you choose have Vulnerability to one damage type of your choice while in the area.",
-  "higherLevels": "",
-  "tags": []
+    "id":  "hallow",
+    "name":  "Hallow",
+    "aliases":  [
+
+                ],
+    "level":  5,
+    "school":  "Abjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Cleric"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  24,
+                        "unit":  "hour",
+                        "explorationCost":  {
+                                                "value":  24,
+                                                "unit":  "hour"
+                                            },
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       }
+                    },
+    "range":  {
+                  "type":  "touch",
+                  "distance":  0
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "incense worth 1,000+ GP, which the spell consumes",
+                       "materialCost":  1000,
+                       "isConsumed":  true
+                   },
+    "duration":  {
+                     "type":  "until_dispelled",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "area",
+                      "range":  0,
+                      "validTargets":  [
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Sphere",
+                                           "size":  60,
+                                           "sizeUnit":  "feet",
+                                           "height":  0
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "utilityType":  "control",
+                        "description":  "Infuse a point with holy or unholy power to create an until-dispelled area up to a 60-foot radius; the spell fails if the area overlaps another Hallow. The ward can block chosen Aberration, Celestial, Elemental, Fey, Fiend, or Undead creatures from willingly entering and suppress possession, Charmed, and Frightened effects caused by them, with chosen types optionally excluded. The caster also binds one extra area effect, chosen from the spell options or a DM option; affected creatures can be filtered by creature kind, deity, or leader, and can make the listed Charisma save when entering or starting there to ignore that extra effect until they leave.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Courage",
+                                                   "effect":  "prevent_frightened",
+                                                   "details":  "Chosen creature types cannot gain the Frightened condition while in the area."
+                                               },
+                                               {
+                                                   "name":  "Darkness",
+                                                   "effect":  "area_darkness",
+                                                   "details":  "Darkness fills the area, and normal light or lower-level magical light cannot illuminate it."
+                                               },
+                                               {
+                                                   "name":  "Daylight",
+                                                   "effect":  "area_daylight",
+                                                   "details":  "Bright light fills the area, and lower-level magical Darkness cannot extinguish it."
+                                               },
+                                               {
+                                                   "name":  "Peaceful Rest",
+                                                   "effect":  "block_undead_creation",
+                                                   "details":  "Dead bodies interred in the area cannot be turned into Undead."
+                                               },
+                                               {
+                                                   "name":  "Extradimensional Interference",
+                                                   "effect":  "block_teleport_planar_travel",
+                                                   "details":  "Chosen creature types cannot enter or exit the area using teleportation or interplanar travel."
+                                               },
+                                               {
+                                                   "name":  "Fear",
+                                                   "effect":  "apply_frightened",
+                                                   "details":  "Chosen creature types have the Frightened condition while in the area."
+                                               },
+                                               {
+                                                   "name":  "Resistance",
+                                                   "effect":  "grant_damage_resistance",
+                                                   "details":  "Chosen creature types have Resistance to one chosen damage type while in the area."
+                                               },
+                                               {
+                                                   "name":  "Silence",
+                                                   "effect":  "block_sound",
+                                                   "details":  "No sound can emanate from within the area, and no sound can reach into it."
+                                               },
+                                               {
+                                                   "name":  "Tongues",
+                                                   "effect":  "universal_communication",
+                                                   "details":  "Chosen creature types can communicate with any other creature in the area even without a shared language."
+                                               },
+                                               {
+                                                   "name":  "Vulnerability",
+                                                   "effect":  "grant_damage_vulnerability",
+                                                   "details":  "Chosen creature types have Vulnerability to one chosen damage type while in the area."
+                                               }
+                                           ],
+                        "hallowedWardState":  {
+                                                  "creatureTypeOptions":  [
+                                                                              "Aberration",
+                                                                              "Celestial",
+                                                                              "Elemental",
+                                                                              "Fey",
+                                                                              "Fiend",
+                                                                              "Undead"
+                                                                          ],
+                                                  "blocksWillingEntryForChosenTypes":  true,
+                                                  "suppressesStatesFromChosenTypes":  [
+                                                                                          "possessed",
+                                                                                          "Charmed",
+                                                                                          "Frightened"
+                                                                                      ],
+                                                  "extraEffectStateOptions":  [
+                                                                                  {
+                                                                                      "name":  "Courage",
+                                                                                      "state":  "chosen_creatures_cannot_gain_frightened"
+                                                                                  },
+                                                                                  {
+                                                                                      "name":  "Peaceful Rest",
+                                                                                      "state":  "dead_bodies_cannot_become_undead"
+                                                                                  },
+                                                                                  {
+                                                                                      "name":  "Fear",
+                                                                                      "state":  "chosen_creatures_have_frightened"
+                                                                                  }
+                                                                              ],
+                                                  "notes":  "This captures the status/state-changing parts of Hallow separately from light, silence, travel, resistance, and vulnerability options already listed in control options."
+                                              },
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  0,
+                                      "dimRadius":  0,
+                                      "attachedTo":  "caster",
+                                      "color":  "",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "damageInteraction":  {
+                                                  "modes":  [
+                                                                "resistance",
+                                                                "vulnerability"
+                                                            ],
+                                                  "damageType":  [
+                                                                     "Acid",
+                                                                     "Bludgeoning",
+                                                                     "Cold",
+                                                                     "Fire",
+                                                                     "Force",
+                                                                     "Lightning",
+                                                                     "Necrotic",
+                                                                     "Piercing",
+                                                                     "Poison",
+                                                                     "Psychic",
+                                                                     "Radiant",
+                                                                     "Slashing",
+                                                                     "Thunder"
+                                                                 ],
+                                                  "damageTypeSource":  "chosen_damage_type",
+                                                  "subjectScope":  "chosen_creature_types",
+                                                  "durationScope":  "while_in_area"
+                                              },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "socialEffect":  {
+                                             "hallowedWardTypes":  [
+                                                                       "Aberration",
+                                                                       "Celestial",
+                                                                       "Elemental",
+                                                                       "Fey",
+                                                                       "Fiend",
+                                                                       "Undead"
+                                                                   ],
+                                             "entryRule":  "chosen types cannot willingly enter the area",
+                                             "conditionProtection":  "creatures in area are not possessed, Charmed, or Frightened by chosen types",
+                                             "extraEffectFilters":  "extra effect can affect chosen creature types, deity followers, or leader followers",
+                                             "communicationOption":  "Tongues option lets chosen creatures communicate with any other creature in area without shared language",
+                                             "saveRoute":  "listed Charisma save can ignore an extra effect until leaving where applicable"
+                                         },
+                        "visionLightSound":  {
+                                                 "mode":  "chosen_area_light_or_silence_option",
+                                                 "darknessOption":  "Darkness fills the area; normal light and lower-level magical light cannot illuminate it",
+                                                 "daylightOption":  "Bright light fills the area; lower-level magical Darkness cannot extinguish it",
+                                                 "silenceOption":  "No sound can emanate from within the area and no sound can reach into it",
+                                                 "tonguesOption":  "chosen creatures can communicate in the area without shared language",
+                                                 "optionScope":  "one extra Hallow effect chosen at casting in addition to Hallowed Ward",
+                                                 "duration":  "until dispelled"
+                                             },
+                        "communicationDetails":  {
+                                                     "mode":  "hallow_tongues_extra_effect",
+                                                     "optionName":  "Tongues",
+                                                     "affectedCreatures":  "creatures of chosen types in the Hallow area",
+                                                     "effect":  "can communicate with any other creature in the area even without a shared language",
+                                                     "silenceConflict":  "Silence option prevents sound separately if chosen",
+                                                     "notes":  "Communication is one selectable Hallow extra effect."
+                                                 },
+                        "planarMovement":  {
+                                               "mode":  "extradimensional_interference_option",
+                                               "affectedCreatures":  "chosen creature types",
+                                               "blocks":  [
+                                                              "teleportation entry",
+                                                              "teleportation exit",
+                                                              "interplanar travel entry",
+                                                              "interplanar travel exit"
+                                                          ],
+                                               "area":  "Hallow area",
+                                               "notes":  "Selectable Hallow extra effect."
+                                           },
+                        "wardTrigger":  {
+                                            "kind":  "hallowed_area_ward",
+                                            "trigger":  "affected_creature_enters_or_starts_in_area_or_attempts_blocked_travel",
+                                            "overlapFailure":  "spell_fails_if_area_overlaps_existing_hallow",
+                                            "creatureTypeGate":  "chosen_aberrations_celestials_elementals_fey_fiends_or_undead",
+                                            "optionalExtraEffect":  "one_selected_hallow_extra_effect_attaches_to_area"
+                                        }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose the hallowed area\u0027s radius up to 60 feet, the Hallowed Ward creature types, and one extra effect. For extra effects that filter creatures, choose the affected creature types or other allowed filter; for Resistance or Vulnerability, choose the damage type.",
+                      "playerInputRequired":  true
+                  },
+    "modeChoice":  {
+                       "type":  "choose_one",
+                       "timing":  "on_cast",
+                       "optionCount":  10,
+                       "optionsSource":  "effects[0].controlOptions",
+                       "canDismissActive":  false,
+                       "secondaryChoices":  {
+                                                "hallowedWardCreatureTypeOptions":  [
+                                                                                        "Aberration",
+                                                                                        "Celestial",
+                                                                                        "Elemental",
+                                                                                        "Fey",
+                                                                                        "Fiend",
+                                                                                        "Undead"
+                                                                                    ],
+                                                "extraEffectCreatureTypeChoiceRequired":  true,
+                                                "damageTypeChoiceRequiredFor":  [
+                                                                                    "Resistance",
+                                                                                    "Vulnerability"
+                                                                                ],
+                                                "notes":  "Hallowed Ward and the chosen extra effect have separate creature-type filters. Resistance and Vulnerability additionally require one damage type."
+                                            },
+                       "notes":  "The selected option is the one extra effect bound to the Hallow area; the Hallowed Ward creature-type choice always applies in addition to that extra effect."
+                   },
+    "description":  "You touch a point and infuse an area around it with holy or unholy power. The area can have a radius up to 60 feet, and the spell fails if the radius includes an area already under the effect of Hallow. The affected area has the following effects. Hallowed Ward. Choose any of these creature types: Aberration, Celestial, Elemental, Fey, Fiend, or Undead. Creatures of the chosen types can\u0027t willingly enter the area, and any creature that is possessed by or that has the Charmed or Frightened condition from such creatures isn\u0027t possessed, Charmed, or Frightened by them while in the area. Extra Effect. You bind an extra effect to the area from the list below: Courage. Creatures of any types you choose can\u0027t gain the Frightened condition while in the area. Darkness. Darkness fills the area. Normal light, as well as magical light created by spells of a level lower than this spell, can\u0027t illuminate the area. Daylight. Bright light fills the area. Magical Darkness created by spells of a level lower than this spell can\u0027t extinguish the light. Peaceful Rest. Dead bodies interred in the area can\u0027t be turned into Undead. Extradimensional Interference. Creatures of any types you choose can\u0027t enter or exit the area using teleportation or interplanar travel. Fear. Creatures of any types you choose have the Frightened condition while in the area. Resistance. Creatures of any types you choose have Resistance to one damage type of your choice while in the area. Silence. No sound can emanate from within the area, and no sound can reach into it. Tongues. Creatures of any types you choose can communicate with any other creature in the area even if they don\u0027t share a common language. Vulnerability. Creatures of any types you choose have Vulnerability to one damage type of your choice while in the area.",
+    "higherLevels":  "",
+    "tags":  [
+
+             ]
 }

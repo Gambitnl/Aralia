@@ -1,206 +1,323 @@
 {
-  "id": "haste",
-  "name": "Haste",
-  "aliases": [],
-  "level": 3,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Artificer",
-    "Sorcerer",
-    "Wizard"
-  ],
-  "subClasses": [
-    "Paladin - Oath of Glory",
-    "Paladin - Oath of Vengeance"
-  ],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 30,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": true,
-    "materialDescription": "a shaving of licorice root",
-    "isConsumed": false,
-    "materialCost": 0
-  },
-  "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
-    "concentration": true
-  },
-  "targeting": {
-    "type": "single",
-    "range": 30,
-    "rangeUnit": "feet",
-    "validTargets": [
-      "allies"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "required",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    }
-  },
-  "effects": [
-    {
-      "type": "DEFENSIVE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "defenseType": "ac_bonus",
-      "value": 2,
-      "duration": {
-        "type": "minutes",
-        "value": 1
-      },
-      "description": "Choose one willing creature within 30 feet for up to 1 minute with concentration. While Haste lasts, the target has doubled Speed, +2 Armor Class, Advantage on Dexterity saves, and one limited extra action each turn; when the spell ends, the target is Incapacitated with Speed 0 until the end of its next turn.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "baseACFormula": "",
-      "acMinimum": 0,
-      "damageType": [],
-      "savingThrow": [],
-      "attackerFilter": {
-        "creatureTypes": [],
-        "excludeCreatureTypes": [],
-        "sizes": [],
-        "alignments": [],
-        "hasCondition": [],
-        "isNativeToPlane": false,
-        "willing": "not_applicable",
-        "objectEligibility": {
-          "wornOrCarried": "not_applicable",
-          "magicalStatus": "not_applicable",
-          "fixedToSurface": "not_applicable",
-          "maxSize": "not_applicable",
-          "maxWeightPounds": "not_applicable",
-          "maxWeightScaling": "not_applicable"
-        },
-        "communicationPrerequisites": {
-          "canHearCaster": "not_applicable",
-          "canUnderstandCaster": "not_applicable",
-          "canSeeCaster": "not_applicable"
-        },
-        "abilityThreshold": {
-          "ability": "not_applicable",
-          "operator": "not_applicable",
-          "value": "not_applicable"
-        },
-        "selfRelation": "not_applicable"
-      },
-      "reactionTrigger": {
-        "event": "when_hit",
-        "includesSpells": []
-      },
-      "restrictions": {
-        "noArmor": false,
-        "noShield": false,
-        "targetSelf": false
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "Choose a willing creature that you can see within range. Until the spell ends, the target's Speed is doubled, it gains a +2 bonus to Armor Class, it has Advantage on Dexterity saving throws, and it gains an additional action on each of its turns. That action can be used to take only the Attack (one attack only), Dash , Disengage , Hide , or Utilize action. When the spell ends, the target is Incapacitated and has a Speed of 0 until the end of its next turn, as a wave of lethargy washes over it.",
-  "higherLevels": "",
-  "tags": [
-    "concentration"
-  ]
+    "id":  "haste",
+    "name":  "Haste",
+    "aliases":  [
+
+                ],
+    "level":  3,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Artificer",
+                    "Sorcerer",
+                    "Wizard"
+                ],
+    "subClasses":  [
+                       "Paladin - Oath of Glory",
+                       "Paladin - Oath of Vengeance"
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  30,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  true,
+                       "materialDescription":  "a shaving of licorice root",
+                       "isConsumed":  false,
+                       "materialCost":  0
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  1,
+                     "unit":  "minute",
+                     "concentration":  true
+                 },
+    "targeting":  {
+                      "type":  "single",
+                      "range":  30,
+                      "rangeUnit":  "feet",
+                      "validTargets":  [
+                                           "allies"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "required",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DEFENSIVE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "defenseType":  "ac_bonus",
+                        "value":  2,
+                        "speedChange":  {
+                                            "multiplier":  2,
+                                            "movementTypes":  [
+                                                                  "all"
+                                                              ],
+                                            "duration":  {
+                                                             "type":  "minutes",
+                                                             "value":  1
+                                                         }
+                                        },
+                        "savingThrowModifier":  {
+                                                    "modifier":  "advantage",
+                                                    "stats":  [
+                                                                  "Dexterity"
+                                                              ],
+                                                    "consumption":  "while_active",
+                                                    "duration":  {
+                                                                     "type":  "minutes",
+                                                                     "value":  1
+                                                                 }
+                                                },
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  1
+                                     },
+                        "description":  "Choose one willing creature within 30 feet for up to 1 minute with concentration. While Haste lasts, the target has doubled Speed, +2 Armor Class, Advantage on Dexterity saves, and one limited extra action each turn; when the spell ends, the target is Incapacitated with Speed 0 until the end of its next turn.",
+                        "postSpellState":  {
+                                               "trigger":  "spell_ends",
+                                               "duration":  "until_end_of_target_next_turn",
+                                               "statusConditions":  [
+                                                                        "Incapacitated"
+                                                                    ],
+                                               "speedOverride":  0,
+                                               "description":  "When Haste ends, the target is Incapacitated and has Speed 0 until the end of its next turn."
+                                           },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+                                               {
+                                                   "type":  "action",
+                                                   "action":  "Haste Action",
+                                                   "frequency":  "each_turn",
+                                                   "actor":  "target",
+                                                   "actionKind":  "limited_action",
+                                                   "allowedActions":  [
+                                                                          "Attack (one attack only)",
+                                                                          "Dash",
+                                                                          "Disengage",
+                                                                          "Hide",
+                                                                          "Utilize"
+                                                                      ],
+                                                   "notes":  "The hasted target gains one extra action on each of its turns, limited to Attack with one attack only, Dash, Disengage, Hide, or Utilize."
+                                               }
+                                           ],
+                        "baseACFormula":  "",
+                        "acMinimum":  0,
+                        "damageType":  [
+
+                                       ],
+                        "savingThrow":  [
+
+                                        ],
+                        "attackerFilter":  {
+                                               "creatureTypes":  [
+
+                                                                 ],
+                                               "excludeCreatureTypes":  [
+
+                                                                        ],
+                                               "sizes":  [
+
+                                                         ],
+                                               "alignments":  [
+
+                                                              ],
+                                               "hasCondition":  [
+
+                                                                ],
+                                               "isNativeToPlane":  false,
+                                               "willing":  "not_applicable",
+                                               "objectEligibility":  {
+                                                                         "wornOrCarried":  "not_applicable",
+                                                                         "magicalStatus":  "not_applicable",
+                                                                         "fixedToSurface":  "not_applicable",
+                                                                         "maxSize":  "not_applicable",
+                                                                         "maxWeightPounds":  "not_applicable",
+                                                                         "maxWeightScaling":  "not_applicable"
+                                                                     },
+                                               "communicationPrerequisites":  {
+                                                                                  "canHearCaster":  "not_applicable",
+                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                  "canSeeCaster":  "not_applicable"
+                                                                              },
+                                               "abilityThreshold":  {
+                                                                        "ability":  "not_applicable",
+                                                                        "operator":  "not_applicable",
+                                                                        "value":  "not_applicable"
+                                                                    },
+                                               "selfRelation":  "not_applicable"
+                                           },
+                        "reactionTrigger":  {
+                                                "event":  "when_hit",
+                                                "includesSpells":  [
+
+                                                                   ]
+                                            },
+                        "restrictions":  {
+                                             "noArmor":  false,
+                                             "noShield":  false,
+                                             "targetSelf":  false
+                                         },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "aftermathState":  {
+                                               "kind":  "lethargy_after_haste",
+                                               "when":  "spell_ends",
+                                               "consequence":  [
+                                                                   "target_Incapacitated",
+                                                                   "target_Speed_0"
+                                                               ],
+                                               "duration":  "until_end_of_target_next_turn",
+                                               "cause":  "wave_of_lethargy"
+                                           },
+                        "movementState":  {
+                                              "kind":  "speed_multiplier_and_limited_extra_action",
+                                              "target":  "willing_creature",
+                                              "speedMultiplier":  "double",
+                                              "extraAction":  "one_additional_action_on_each_turn",
+                                              "extraActionAllowedUses":  [
+                                                                             "Attack_one_attack_only",
+                                                                             "Dash",
+                                                                             "Disengage",
+                                                                             "Hide",
+                                                                             "Utilize"
+                                                                         ],
+                                              "aftermath":  "lethargy_when_spell_ends"
+                                          }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Apply doubled Speed, +2 AC, Advantage on Dexterity saves, and one limited extra action each turn; when Haste ends, mark the target Incapacitated with Speed 0 until the end of its next turn.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "Choose a willing creature that you can see within range. Until the spell ends, the target\u0027s Speed is doubled, it gains a +2 bonus to Armor Class, it has Advantage on Dexterity saving throws, and it gains an additional action on each of its turns. That action can be used to take only the Attack (one attack only), Dash , Disengage , Hide , or Utilize action. When the spell ends, the target is Incapacitated and has a Speed of 0 until the end of its next turn, as a wave of lethargy washes over it.",
+    "higherLevels":  "",
+    "tags":  [
+                 "concentration"
+             ]
 }

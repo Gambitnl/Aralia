@@ -134,7 +134,16 @@
         },
         "requiresStatus": [],
         "saveModifiers": [],
-        "saveOutcomeOverrides": []
+        "saveOutcomeOverrides": [
+          {
+            "outcome": "failure",
+            "effect": "The Fiend or Undead attacker is Blinded until the end of its next turn."
+          },
+          {
+            "outcome": "success",
+            "effect": "The attacker is not Blinded."
+          }
+        ]
       },
       "scaling": {
         "type": "slot_level",
@@ -380,7 +389,8 @@
       "statusCondition": {
         "name": "Blinded",
         "duration": {
-          "type": "special"
+          "type": "turn_end",
+          "value": 1
         }
       },
       "conditionalEndings": []
@@ -388,8 +398,8 @@
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Choose which creatures in the 30-foot Emanation are protected. While protected, apply Advantage on all saving throws and incoming attack Disadvantage; when a Fiend or Undead hits a protected creature with a melee attack, resolve the attacker's Constitution save or Blinded-until-end-of-next-turn rider.",
+    "playerInputRequired": true
   },
   "description": "For the duration, you emit an aura in a 30-foot Emanation . While in the aura, creatures of your choice have Advantage on all saving throws, and other creatures have Disadvantage on attack rolls against them. In addition, when a Fiend or an Undead hits an affected creature with a melee attack roll, the attacker must succeed on a Constitution saving throw or have the Blinded condition until the end of its next turn.",
   "higherLevels": "",

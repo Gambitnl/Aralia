@@ -114,7 +114,7 @@ interface BattleMapOverlayProps {
   lineOfSightOriginCharacterId?: string | null;
   /** Resolved forced-movement and teleport cues created by structured spell payloads. */
   spellMovementVisuals?: SpellMovementVisual[];
-  /** Familiar-origin touch spell delivery cues. */
+  /** Controlled-entity touch spell delivery cues. */
   spellDeliveryVisuals?: SpellDeliveryVisual[];
   aoePreview?: { center: { x: number; y: number }; affectedTiles: { x: number; y: number }[]; ability: Ability } | null;
   /** Active teleport destination-pick state; labels which creature the blue destination tiles belong to. */
@@ -478,7 +478,7 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
         </div>
       ))}
 
-      {/* Familiar touch-delivery cues */}
+      {/* Controlled-entity touch-delivery cues */}
       {spellDeliveryVisuals.map((visual) => {
         const fromX = visual.from.x * TILE_SIZE_PX + TILE_SIZE_PX / 2;
         const fromY = visual.from.y * TILE_SIZE_PX + TILE_SIZE_PX / 2;
@@ -493,7 +493,7 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
           <React.Fragment key={visual.id}>
             <div
               className="absolute"
-              title={`${visual.spellName} delivered through familiar`}
+              title={`${visual.spellName} delivered through touch-delivery actor`}
               style={{
                 left: fromX,
                 top: fromY,
@@ -515,7 +515,8 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
               }}
             >
               {/* This is a delivery-origin cue, not movement. It tells the
-                  player that the spell traveled through the familiar's space. */}
+                  player that the spell traveled through the permissioned
+                  delivery actor's space. */}
               {visual.label}
             </div>
           </React.Fragment>

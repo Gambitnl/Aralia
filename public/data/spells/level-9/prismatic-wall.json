@@ -1,452 +1,564 @@
 {
-  "id": "prismatic-wall",
-  "name": "Prismatic Wall",
-  "aliases": [],
-  "level": 9,
-  "school": "Abjuration",
-  "legacy": false,
-  "classes": [
-    "Bard",
-    "Wizard"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 60,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "timed",
-    "value": 10,
-    "unit": "minute",
-    "concentration": false
-  },
-  "targeting": {
-    "type": "point",
-    "range": 60,
-    "validTargets": [
-      "creatures",
-      "objects",
-      "point"
-    ],
-    "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Wall",
-      "size": 90,
-      "height": 30,
-      "sizeType": "length",
-      "sizeUnit": "feet",
-      "heightUnit": "feet",
-      "thickness": 1,
-      "thicknessUnit": "inches"
-    },
-    "maxTargets": 1,
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Prismatic Wall",
-          "shape": "Wall",
-          "size": 90,
-          "sizeType": "length",
-          "sizeUnit": "feet",
-          "height": 30,
-          "heightUnit": "feet",
-          "thickness": 1,
-          "thicknessUnit": "inches"
-        },
-        {
-          "label": "Prismatic Globe",
-          "shape": "Globe",
-          "size": 30,
-          "sizeType": "diameter",
-          "sizeUnit": "feet"
-        }
-      ],
-      "measuredDetails": [
-        {
-          "label": "Hazard Radius",
-          "kind": "distance",
-          "value": 20,
-          "unit": "feet",
-          "notes": "Creatures that move within this distance or start their turn there are affected."
-        }
-      ]
-    }
-  },
-  "effects": [
-    {
-      "type": "UTILITY",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "utilityType": "other",
-      "description": "Create either a 90-foot-long, 30-foot-high opaque wall or a 30-foot-diameter globe for 10 minutes, ending with no effect if placed in an occupied space. The multicolored wall sheds bright and dim light, lets the caster and designated creatures pass through and remain near it safely, and keeps seven colored layers with ordered destruction plus Antimagic Field immunity and violet-only Dispel Magic interaction.",
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [
-        {
-          "name": "Wall or globe",
-          "effect": "The caster creates either a vertical opaque wall or a 30-foot-diameter globe."
-        },
-        {
-          "name": "Occupied-space failure",
-          "effect": "If the wall is positioned in a space occupied by a creature, the spell ends instantly without effect."
-        },
-        {
-          "name": "Light emission",
-          "effect": "The wall sheds Bright Light within 100 feet and Dim Light for an additional 100 feet."
-        },
-        {
-          "name": "Designated safe creatures",
-          "effect": "The caster and creatures designated when the spell is cast can pass through and be near the wall without harm."
-        },
-        {
-          "name": "Near-wall blinding",
-          "effect": "Another creature that can see the wall and moves within 20 feet or starts its turn there makes a Constitution save or is Blinded for 1 minute."
-        },
-        {
-          "name": "Seven layers",
-          "effect": "The wall has seven colored layers, and creatures reach into or pass through them one layer at a time."
-        },
-        {
-          "name": "Layer destruction order",
-          "effect": "The wall has AC 10 and can be destroyed one layer at a time in order from red to violet by layer-specific means."
-        },
-        {
-          "name": "Magic interaction",
-          "effect": "Antimagic Field has no effect on the wall, and Dispel Magic can affect only the violet layer."
-        }
-      ],
-      "createdObjects": [
-        {
-          "objectType": "structure",
-          "name": "Prismatic Wall",
-          "count": 1,
-          "countUnit": "wall or globe",
-          "appearsIn": "point",
-          "shapeOptions": [
-            "vertical wall",
-            "globe"
-          ],
-          "materialOptions": [
-            "multicolored magical light"
-          ],
-          "wallLengthFeet": 90,
-          "wallHeightFeet": 30,
-          "wallThickness": 1,
-          "wallThicknessUnit": "inches",
-          "diameterFeet": 30,
-          "orientationOptions": [
-            "vertical",
-            "caster_choice"
-          ],
-          "blocksPhysicalPassage": true,
-          "blocksLineOfSight": true,
-          "blocksSpellEffects": true,
-          "blocksEnergyEffects": true,
-          "objectArmorClass": 10,
-          "immuneToAntimagicField": true,
-          "dispelMagicAffectsOnlyLayer": "violet",
-          "failsIfPlacedInOccupiedSpace": true,
-          "safePassageAllowedFor": [
-            "caster",
-            "creatures designated when cast"
-          ],
-          "proximityTriggerRadiusFeet": 20,
-          "layerCount": 7,
-          "layerOrder": [
-            "red",
-            "orange",
-            "yellow",
-            "green",
-            "blue",
-            "indigo",
-            "violet"
-          ],
-          "layersDestroyedInOrder": true,
-          "destroyedLayersRemainGone": true,
-          "requiresLayerEffectTable": true,
-          "expiresWithSpell": true,
-          "shelfLife": "10 minutes",
-          "notes": "The wall sheds Bright Light within 100 feet and Dim Light for another 100 feet through the utility light payload. Layer-specific saves and destruction methods remain table-driven."
-        }
-      ],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 100,
-        "dimRadius": 100,
-        "attachedTo": "point",
-        "color": "multicolored",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "STATUS_CONDITION",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveType": "Constitution",
-        "saveEffect": "negates_condition",
-        "saveOutcomeOverrides": []
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "A creature other than the caster or designated safe creatures that can see the wall makes a Constitution save when it moves within 20 feet of the wall or starts its turn there; on a failed save, it is Blinded for 1 minute.",
-      "statusCondition": {
-        "name": "Blinded",
-        "duration": {
-          "type": "special"
-        }
-      },
-      "conditionalEndings": []
-    },
-    {
-      "type": "TERRAIN",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "always",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "The prismatic wall is an opaque blocking wall or globe with seven ordered colored layers, AC 10, layer-by-layer destruction from red to violet, Antimagic Field immunity, and violet-only Dispel Magic interaction.",
-      "terrainType": "wall",
-      "areaOfEffect": {
-        "shape": "Square",
-        "size": 90,
-        "height": 30
-      },
-      "duration": {
-        "type": "minutes",
-        "value": 10
-      },
-      "wallProperties": {
-        "hp": 0,
-        "ac": 10
-      },
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "Ask the caster whether the spell is a wall or globe, where it is centered, and which creatures are designated safe when cast. Prismatic layer-specific saves and destruction methods require the prismatic layer table.",
-    "playerInputRequired": true
-  },
-  "description": "A shimmering, multicolored plane of light forms a vertical opaque wall-up to 90 feet long, 30 feet high, and 1 inch thick-centered on a point within range. Alternatively, you shape the wall into a globe up to 30 feet in diameter centered on a point within range. The wall lasts for the duration. If you position the wall in a space occupied by a creature, the spell ends instantly without effect. The wall sheds Bright Light within 100 feet and Dim Light for an additional 100 feet. You and creatures you designate when you cast the spell can pass through and be near the wall without harm. If another creature that can see the wall moves within 20 feet of it or starts its turn there, the creature must succeed on a Constitution saving throw or have the Blinded condition for 1 minute. The wall consists of seven layers, each with a different color. When a creature reaches into or passes through the wall, it does so one layer at a time through all the layers. Each layer forces the creature to make a Dexterity saving throw or be affected by that layer's properties as described in the Prismatic Layers table. The wall, which has AC 10, can be destroyed one layer at a time, in order from red to violet, by means specific to each layer. If a layer is destroyed, it is gone for the duration. Antimagic Field has no effect on the wall, and Dispel Magic can affect only the violet layer.",
-  "higherLevels": "",
-  "tags": []
+    "id":  "prismatic-wall",
+    "name":  "Prismatic Wall",
+    "aliases":  [
+
+                ],
+    "level":  9,
+    "school":  "Abjuration",
+    "legacy":  false,
+    "classes":  [
+                    "Bard",
+                    "Wizard"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  60,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "timed",
+                     "value":  10,
+                     "unit":  "minute",
+                     "concentration":  false
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  60,
+                      "validTargets":  [
+                                           "creatures",
+                                           "objects",
+                                           "point"
+                                       ],
+                      "lineOfSight":  true,
+                      "areaOfEffect":  {
+                                           "shape":  "Wall",
+                                           "size":  90,
+                                           "height":  30,
+                                           "sizeType":  "length",
+                                           "sizeUnit":  "feet",
+                                           "heightUnit":  "feet",
+                                           "thickness":  1,
+                                           "thicknessUnit":  "inches"
+                                       },
+                      "maxTargets":  1,
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet",
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Prismatic Wall",
+                                                               "shape":  "Wall",
+                                                               "size":  90,
+                                                               "sizeType":  "length",
+                                                               "sizeUnit":  "feet",
+                                                               "height":  30,
+                                                               "heightUnit":  "feet",
+                                                               "thickness":  1,
+                                                               "thicknessUnit":  "inches"
+                                                           },
+                                                           {
+                                                               "label":  "Prismatic Globe",
+                                                               "shape":  "Globe",
+                                                               "size":  30,
+                                                               "sizeType":  "diameter",
+                                                               "sizeUnit":  "feet"
+                                                           }
+                                                       ],
+                                             "measuredDetails":  [
+                                                                     {
+                                                                         "label":  "Hazard Radius",
+                                                                         "kind":  "distance",
+                                                                         "value":  20,
+                                                                         "unit":  "feet",
+                                                                         "notes":  "Creatures that move within this distance or start their turn there are affected."
+                                                                     }
+                                                                 ]
+                                         }
+                  },
+    "effects":  [
+                    {
+                        "type":  "UTILITY",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+                                                                       {
+                                                                           "outcome":  "failure",
+                                                                           "effect":  "The creature is Blinded for 1 minute."
+                                                                       },
+                                                                       {
+                                                                           "outcome":  "success",
+                                                                           "effect":  "The creature is not Blinded."
+                                                                       }
+                                                                   ]
+                                      },
+                        "utilityType":  "other",
+                        "description":  "Create either a 90-foot-long, 30-foot-high opaque wall or a 30-foot-diameter globe for 10 minutes, ending with no effect if placed in an occupied space. The multicolored wall sheds bright and dim light, lets the caster and designated creatures pass through and remain near it safely, and keeps seven colored layers with ordered destruction plus Antimagic Field immunity and violet-only Dispel Magic interaction.",
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "grantedActions":  [
+
+                                           ],
+                        "attackAugments":  [
+
+                                           ],
+                        "controlOptions":  [
+                                               {
+                                                   "name":  "Wall or globe",
+                                                   "effect":  "The caster creates either a vertical opaque wall or a 30-foot-diameter globe."
+                                               },
+                                               {
+                                                   "name":  "Occupied-space failure",
+                                                   "effect":  "If the wall is positioned in a space occupied by a creature, the spell ends instantly without effect."
+                                               },
+                                               {
+                                                   "name":  "Light emission",
+                                                   "effect":  "The wall sheds Bright Light within 100 feet and Dim Light for an additional 100 feet."
+                                               },
+                                               {
+                                                   "name":  "Designated safe creatures",
+                                                   "effect":  "The caster and creatures designated when the spell is cast can pass through and be near the wall without harm."
+                                               },
+                                               {
+                                                   "name":  "Near-wall blinding",
+                                                   "effect":  "Another creature that can see the wall and moves within 20 feet or starts its turn there makes a Constitution save or is Blinded for 1 minute."
+                                               },
+                                               {
+                                                   "name":  "Seven layers",
+                                                   "effect":  "The wall has seven colored layers, and creatures reach into or pass through them one layer at a time."
+                                               },
+                                               {
+                                                   "name":  "Layer destruction order",
+                                                   "effect":  "The wall has AC 10 and can be destroyed one layer at a time in order from red to violet by layer-specific means."
+                                               },
+                                               {
+                                                   "name":  "Magic interaction",
+                                                   "effect":  "Antimagic Field has no effect on the wall, and Dispel Magic can affect only the violet layer."
+                                               }
+                                           ],
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "structure",
+                                                   "name":  "Prismatic Wall",
+                                                   "count":  1,
+                                                   "countUnit":  "wall or globe",
+                                                   "appearsIn":  "point",
+                                                   "shapeOptions":  [
+                                                                        "vertical wall",
+                                                                        "globe"
+                                                                    ],
+                                                   "materialOptions":  [
+                                                                           "multicolored magical light"
+                                                                       ],
+                                                   "wallLengthFeet":  90,
+                                                   "wallHeightFeet":  30,
+                                                   "wallThickness":  1,
+                                                   "wallThicknessUnit":  "inches",
+                                                   "diameterFeet":  30,
+                                                   "orientationOptions":  [
+                                                                              "vertical",
+                                                                              "caster_choice"
+                                                                          ],
+                                                   "blocksPhysicalPassage":  true,
+                                                   "blocksLineOfSight":  true,
+                                                   "blocksSpellEffects":  true,
+                                                   "blocksEnergyEffects":  true,
+                                                   "objectArmorClass":  10,
+                                                   "immuneToAntimagicField":  true,
+                                                   "dispelMagicAffectsOnlyLayer":  "violet",
+                                                   "failsIfPlacedInOccupiedSpace":  true,
+                                                   "safePassageAllowedFor":  [
+                                                                                 "caster",
+                                                                                 "creatures designated when cast"
+                                                                             ],
+                                                   "proximityTriggerRadiusFeet":  20,
+                                                   "layerCount":  7,
+                                                   "layerOrder":  [
+                                                                      "red",
+                                                                      "orange",
+                                                                      "yellow",
+                                                                      "green",
+                                                                      "blue",
+                                                                      "indigo",
+                                                                      "violet"
+                                                                  ],
+                                                   "layersDestroyedInOrder":  true,
+                                                   "destroyedLayersRemainGone":  true,
+                                                   "requiresLayerEffectTable":  true,
+                                                   "expiresWithSpell":  true,
+                                                   "shelfLife":  "10 minutes",
+                                                   "notes":  "The wall sheds Bright Light within 100 feet and Dim Light for another 100 feet through the utility light payload. Layer-specific saves and destruction methods remain table-driven.",
+                                                   "durability":  {
+                                                                      "objectArmorClass":  10,
+                                                                      "layerDestruction":  "wall is destroyed one layer at a time in red-to-violet order by layer-specific means",
+                                                                      "destroyedLayerState":  "destroyed layer is gone for the spell duration",
+                                                                      "antimagicInteraction":  "Antimagic Field has no effect on the wall",
+                                                                      "dispelInteraction":  "Dispel Magic works only against the violet layer as specified"
+                                                                  }
+                                               }
+                                           ],
+                        "taunt":  {
+                                      "disadvantageAgainstOthers":  false,
+                                      "leashRangeFeet":  0,
+                                      "breakConditions":  [
+
+                                                          ]
+                                  },
+                        "savePenalty":  {
+                                            "dice":  "",
+                                            "flat":  0,
+                                            "applies":  "next_save",
+                                            "duration":  {
+                                                             "type":  "rounds",
+                                                             "value":  0
+                                                         }
+                                        },
+                        "light":  {
+                                      "brightRadius":  100,
+                                      "dimRadius":  100,
+                                      "attachedTo":  "point",
+                                      "color":  "multicolored",
+                                      "colorChoice":  "not_applicable",
+                                      "opaqueCoverBlocks":  "not_applicable",
+                                      "emitsHeat":  "not_applicable",
+                                      "ignitesObjects":  "not_applicable",
+                                      "consumesFuel":  "not_applicable",
+                                      "canBeCoveredOrHidden":  "not_applicable",
+                                      "canBeSmotheredOrQuenched":  "not_applicable"
+                                  },
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "STATUS_CONDITION",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveType":  "Constitution",
+                                          "saveEffect":  "negates_condition",
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "A creature other than the caster or designated safe creatures that can see the wall makes a Constitution save when it moves within 20 feet of the wall or starts its turn there; on a failed save, it is Blinded for 1 minute.",
+                        "statusCondition":  {
+                                                "name":  "Blinded",
+                                                "duration":  {
+                                                                 "type":  "minutes",
+                                                                 "value":  1
+                                                             }
+                                            },
+                        "conditionalEndings":  [
+
+                                               ]
+                    },
+                    {
+                        "type":  "TERRAIN",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "always",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+
+                                                                   ]
+                                      },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "The prismatic wall is an opaque blocking wall or globe with seven ordered colored layers, AC 10, layer-by-layer destruction from red to violet, Antimagic Field immunity, and violet-only Dispel Magic interaction.",
+                        "layerSave":  {
+                                          "saveType":  "Dexterity",
+                                          "trigger":  "creature_reaches_into_or_passes_through_each_layer",
+                                          "resolution":  "Resolve each colored layer one at a time using the Prismatic Layers table.",
+                                          "layerOrder":  [
+                                                             "red",
+                                                             "orange",
+                                                             "yellow",
+                                                             "green",
+                                                             "blue",
+                                                             "indigo",
+                                                             "violet"
+                                                         ]
+                                      },
+                        "terrainType":  "wall",
+                        "areaOfEffect":  {
+                                             "shape":  "Square",
+                                             "size":  90,
+                                             "height":  30
+                                         },
+                        "duration":  {
+                                         "type":  "minutes",
+                                         "value":  10
+                                     },
+                        "wallProperties":  {
+                                               "hp":  0,
+                                               "ac":  10
+                                           },
+                        "conditionalEndings":  [
+
+                                               ],
+                        "objectDestruction":  {
+                                                  "objectArmorClass":  10,
+                                                  "layerDestruction":  "wall is destroyed one layer at a time in red-to-violet order by layer-specific means",
+                                                  "destroyedLayerState":  "destroyed layer is gone for the spell duration",
+                                                  "antimagicInteraction":  "Antimagic Field has no effect on the wall",
+                                                  "dispelInteraction":  "Dispel Magic works only against the violet layer as specified"
+                                              }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Ask the caster whether the spell is a wall or globe, where it is centered, and which creatures are designated safe when cast. Resolve the 20-foot proximity Constitution save for non-designated creatures that can see the wall, and when a creature reaches into or passes through the wall, resolve Dexterity saves for each colored layer in red-to-violet order using the Prismatic Layers table.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "A shimmering, multicolored plane of light forms a vertical opaque wall-up to 90 feet long, 30 feet high, and 1 inch thick-centered on a point within range. Alternatively, you shape the wall into a globe up to 30 feet in diameter centered on a point within range. The wall lasts for the duration. If you position the wall in a space occupied by a creature, the spell ends instantly without effect. The wall sheds Bright Light within 100 feet and Dim Light for an additional 100 feet. You and creatures you designate when you cast the spell can pass through and be near the wall without harm. If another creature that can see the wall moves within 20 feet of it or starts its turn there, the creature must succeed on a Constitution saving throw or have the Blinded condition for 1 minute. The wall consists of seven layers, each with a different color. When a creature reaches into or passes through the wall, it does so one layer at a time through all the layers. Each layer forces the creature to make a Dexterity saving throw or be affected by that layer\u0027s properties as described in the Prismatic Layers table. The wall, which has AC 10, can be destroyed one layer at a time, in order from red to violet, by means specific to each layer. If a layer is destroyed, it is gone for the duration. Antimagic Field has no effect on the wall, and Dispel Magic can affect only the violet layer.",
+    "higherLevels":  "",
+    "tags":  [
+
+             ]
 }

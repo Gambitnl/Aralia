@@ -7,13 +7,17 @@ main_category: "Game & Simulation"
 subcategory: Core Sim Systems
 status: active
 last_updated: 2026-06-27
-iteration: 7
+iteration: 9
 confidence: medium
 evidence: docs/projects/puzzles
-gap_signal: "4 open gaps; PZ-007 runtime surface closed 2026-06-27; PZ-003 key path is next"
+gap_signal: "2 open gaps; PZ-004 runtime stat bridge closed 2026-06-27; map/content follow-ups remain"
 protocol: living project doc set
-next_step: Continue with PZ-003 key-based lock progression path.
-agent_comments: PZ-007 Required Review Brief resolved 2026-06-10 (Option A) and implemented 2026-06-27 with a puzzle-owned runtime modal caller.
+next_step: Continue with PZ-005 map/BattleMap integration or PZ-006 skill challenge host ownership, keeping content registry work separate.
+agent_comments: PZ-004 resolved by a runtime stat bridge that prefers finalAbilityScores, then abilityScores, then legacy stats.
+active_agent: Codex / GPT-5 application agent
+agent_pass_status: finished
+agent_pass_started_at: "2026-06-27T02:15:01+02:00"
+agent_pass_ended_at: "2026-06-27T02:23:41+02:00"
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -34,8 +38,8 @@ completed_verification:
   - scoped_tests
   - docs_consistency
   - git_diff_check
-last_proof: 2026-06-09
-workflow_gaps_reviewed: 2026-06-09
+last_proof: 2026-06-27
+workflow_gaps_reviewed: 2026-06-27
 compaction_status: needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -45,7 +49,7 @@ human_decision_required: "no"
 ---
 # Puzzles System North Star
 
-Status: active (PZ-007 runtime surface complete; PZ-003 key path next)
+Status: active (PZ-004 character stat bridge complete; project remains active)
 Last updated: 2026-06-27
 
 ## Why This Project Exists
@@ -57,13 +61,16 @@ Create a documentation-first cold-start pack for Puzzles System that preserves w
 ## Current State
 
 This project has a living-project doc set in place, a live puzzle hint helper,
-and a first puzzle-owned runtime surface that can own a `Puzzle` object in
-gameplay.
+a first puzzle-owned runtime surface that can own a `Puzzle` object in
+gameplay, a deterministic lock/key runtime contract, and a modern-first
+character ability bridge for puzzle checks.
 
 ### Implemented Runtime
 
 - `src/systems/puzzles/lockSystem.ts`
-  - lockpick, break, detect trap, and disarm trap flows.
+  - lockpick, key unlock, break, detect trap, and disarm trap flows.
+- `src/systems/puzzles/characterAbilityBridge.ts`
+  - shared stat bridge for puzzle checks: `finalAbilityScores` first, `abilityScores` second, legacy `character.stats` last.
 - `src/systems/puzzles/pressurePlateSystem.ts`
   - plate trigger, hidden detection, jam, and reset behavior.
 - `src/systems/puzzles/secretDoorSystem.ts`
@@ -122,7 +129,7 @@ Proof after decision: A focused runtime caller test plus the chosen caller wirin
 Outcome: **Option A Ã¢â‚¬â€ approve a dedicated puzzle-facing runtime surface** and wire the first gameplay `getPuzzleHint` caller there with a focused test. The Puzzles project owns the runtime `Puzzle` instance and the hint UI contract; no adapter through another project's surface is needed.
 Decider: Remy (project owner), batched decision session.
 Record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D13).
-Effect: the PZ-007 review gate was lifted. The implementation landed 2026-06-27 with a puzzle-owned runtime surface, a real `puzzle` location feature, a rendered hint caller, focused tests, and after screenshot proof. PZ-003 (key path) continues next.
+Effect: the PZ-007 review gate was lifted. The implementation landed 2026-06-27 with a puzzle-owned runtime surface, a real `puzzle` location feature, a rendered hint caller, focused tests, and after screenshot proof. PZ-003 later closed the puzzle-runtime key matching contract; inventory or modal consumption remains separate.
 
 ### Test Coverage
 
@@ -141,12 +148,12 @@ Effect: the PZ-007 review gate was lifted. The implementation landed 2026-06-27 
 Project: Puzzles System
 Slug: puzzles
 Category: Gameplay Systems
-Status: active (PZ-007 runtime surface complete; PZ-003 key path next)
+Status: active (PZ-004 character stat bridge complete; map/content follow-ups remain)
 Confidence: medium
 Evidence: docs/projects/puzzles
-Gap signal: 4 open project gaps; PZ-007 complete 2026-06-27
+Gap signal: 2 open project gaps; PZ-004 complete 2026-06-27
 Protocol: living project doc set
-Next step: Continue with PZ-003 key-based lock progression path.
+Next step: Continue with PZ-005 map/BattleMap integration or PZ-006 skill challenge host ownership; keep content registry work separate.
 Required verification: scoped_tests, docs_consistency, git_diff_check
 Completed verification: scoped_tests, docs_consistency, git_diff_check
 Last proof: 2026-06-09
@@ -156,13 +163,13 @@ Workflow gaps reviewed: 2026-06-09
 
 | Field | Value |
 |---|---|
-| Task | Continue with PZ-003 key-based lock progression path after PZ-007 completion. |
-| Acceptance criteria | Decide key matching ownership, implement deterministic key unlock behavior, and prove both pick and key paths with production-oriented tests. |
-| Allowed boundaries | `src/systems/puzzles/`, `src/components/puzzles/`, the modal/state wiring files already in the file map, nearby tests, and `docs/projects/puzzles/`. |
-| Stop condition | Stop after the first gameplay hint caller and its focused test land; do not widen into map-integration follow-ups (PZ-005) in the same slice. |
-| Verification | Focused key path tests plus docs aligned with the new state. |
+| Task | PZ-004 legacy character fallback migration target is complete; continue with the next active puzzle gap. |
+| Acceptance criteria | Do not reintroduce legacy-first puzzle stat checks. Preserve the rule that puzzle runtime checks prefer `finalAbilityScores`, fall back to `abilityScores`, and use `character.stats` only for compatibility. |
+| Allowed boundaries | `src/systems/puzzles/`, nearby tests, and `docs/projects/puzzles/` unless a future slice proves a UI/caller file is required. |
+| Stop condition | Stop before widening this bridge into full character-model cleanup, inventory/economy sourcing, or BattleMap/Submap integration. |
+| Verification | Focused runtime tests passed 2026-06-27; future caller slices need their own focused tests. |
 | Owner | Worker A (decision: Remy 2026-06-10) |
-| Next action | Resolve `Lock.keyId` ownership and implement the first deterministic key unlock path. |
+| Next action | Pick up PZ-005 or PZ-006 as the next bounded integration slice, or PZ-006/PZ-005 ordering per coordinator priority. |
 
 ## Scope and Boundaries
 
@@ -175,6 +182,7 @@ Adjacent but not in this slice:
 - Puzzle content authoring data feed (world tile, item, and NPC generation).
 - Quest/ritual system sequencing and overall progression math.
 - Full key registry or item economy rules.
+- Visible inventory/modal key-use consumption, unless a future slice explicitly chooses to wire `attemptKeyUnlock` into a caller.
 
 Out of scope:
 - Runtime behavior refactors in any file not owned by this project docs update.
@@ -184,16 +192,16 @@ Out of scope:
 
 - The puzzle domain is broader than one lock mechanic: lock, glyph, pressure plate, mechanism, secret door, and challenge systems are all active in code.
 - Modal behavior is state-driven and relies on persisted fields in app state.
-- Several systems intentionally use compatibility paths (`character.stats`) with explicit TODOs in source and type files.
+- Puzzle runtime checks intentionally preserve `character.stats` only inside `getPuzzleCharacterStats`; new puzzle checks should use that bridge or modern ability data directly instead of copying a legacy-first shim.
 
 ## Known Gaps And Follow-Ups
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| `getPuzzleHint` is live and now has a puzzle-owned runtime caller. | done | Worker A | `src/systems/puzzles/puzzleRuntime.ts`, `src/components/puzzles/PuzzleRuntimeModal.tsx`, `src/components/ActionPane/useActionGeneration.ts`, `src/data/world/locations.ts`, focused tests, `.agent/scratch/proof/puzzles/runtime-surface/after/puzzle-runtime-modal-after.png` | Closed 2026-06-27; continue with `PZ-003`. |
+| `getPuzzleHint` is live and now has a puzzle-owned runtime caller. | done | Worker A | `src/systems/puzzles/puzzleRuntime.ts`, `src/components/puzzles/PuzzleRuntimeModal.tsx`, `src/components/ActionPane/useActionGeneration.ts`, `src/data/world/locations.ts`, focused tests, `.agent/scratch/proof/puzzles/runtime-surface/after/puzzle-runtime-modal-after.png` | Closed 2026-06-27. |
 | Lockpicking modal has only dev entry (`test_lockpicking`) for state dispatch. | done | Worker A | `src/data/world/locations.ts`, `src/components/ActionPane/useActionGeneration.ts`, `src/hooks/actions/actionHandlers.ts` | Production path now routes a cave location lock interaction through `OPEN_LOCKPICKING_MODAL`. |
-| `Lock.keyId` exists in the type model but is not consumed by lock resolution logic. | in_scope_now | Worker A | `src/systems/puzzles/types.ts`, `src/systems/puzzles/lockSystem.ts`, `src/components/puzzles/LockpickingModal.tsx` | Clarify key ownership and the unlock path before any lock-key progression work. |
-| Legacy character fallback flow spans many puzzle modules and tests. | support_needed_now | Worker A | `src/systems/puzzles/*.ts`, `src/types/character.ts` | Preserve shim behavior and define the migration target before expanding puzzle checks. |
+| `Lock.keyId` is now consumed by `attemptKeyUnlock` using caller-supplied key ids. | done | Worker A | `src/systems/puzzles/types.ts`, `src/systems/puzzles/lockSystem.ts`, `src/systems/puzzles/__tests__/lockSystem.test.ts` | Closed 2026-06-27; inventory or modal callers may consume this in a future bounded slice. |
+| Legacy character fallback flow spans many puzzle modules and tests. | done | Worker A | `src/systems/puzzles/characterAbilityBridge.ts`, changed runtime callers, `src/systems/puzzles/__tests__/lockSystem.test.ts` | Closed 2026-06-27; runtime checks now prefer modern scores and keep legacy stats only as compatibility fallback. |
 | No runtime puzzle-to-map integration is proven from entity/encounter data yet. | support_needed_now | Worker A | `src/systems/puzzles/*.ts` tests only, TODO markers in runtime files | Add one evidence-backed production path from a dungeon object to puzzle invocation. |
 | Multiple TODOs point to BattleMap/Submap integration (mechanism, secret doors, pressure plates, arcane glyph spells). | adjacent_follow_up | Worker A | `src/systems/puzzles/mechanism.ts`, `src/systems/puzzles/secretDoorSystem.ts`, `src/systems/puzzles/pressurePlateSystem.ts`, `src/systems/puzzles/arcaneGlyphSystem.ts` | Route this to a separate integration slice unless lock progression needs it immediately. |
 
@@ -202,6 +210,8 @@ Out of scope:
 | Evidence | What it proves | Location |
 |---|---|---|
 | `src/systems/puzzles/*` | Runtime modules are implemented and cover lock, trap, puzzle, and mechanism behavior. | `src/systems/puzzles/` |
+| `src/systems/puzzles/characterAbilityBridge.ts` and `src/systems/puzzles/__tests__/lockSystem.test.ts` | Puzzle runtime checks now resolve character abilities through one modern-first bridge while retaining legacy fallback behavior for old fixtures. | `src/systems/puzzles/` |
+| `src/systems/puzzles/lockSystem.ts` and `src/systems/puzzles/__tests__/lockSystem.test.ts` | `attemptKeyUnlock` deterministically accepts caller-supplied key ids and unlocks only when one matches `Lock.keyId`, while the lockpick path still passes. | `src/systems/puzzles/` |
 | `src/systems/puzzles/puzzleSystem.ts` and `src/systems/puzzles/__tests__/puzzleSystem.test.ts` | `getPuzzleHint` now resolves a live Intelligence check and a deterministic test proves a hint can be returned. | `src/systems/puzzles/` |
 | `src/systems/puzzles/puzzleRuntime.ts` and `src/systems/puzzles/__tests__/puzzleRuntime.test.ts` | Gameplay callers now use a puzzle-owned runtime envelope around `getPuzzleHint`. | `src/systems/puzzles/` |
 | `src/systems/puzzles/__tests__/*` | Each implemented puzzle module has targeted unit tests. | `src/systems/puzzles/__tests__/` |

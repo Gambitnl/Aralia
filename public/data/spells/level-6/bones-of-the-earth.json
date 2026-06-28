@@ -1,208 +1,292 @@
-{
-  "id": "bones-of-the-earth",
-  "name": "Bones of the Earth",
-  "aliases": [],
-  "level": 6,
-  "school": "Transmutation",
-  "legacy": false,
-  "classes": [
-    "Druid"
-  ],
-  "subClasses": [],
-  "ritual": false,
-  "rarity": "common",
-  "attackType": "",
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-      "type": "action",
-      "condition": ""
-    },
-    "explorationCost": {
-      "value": 0,
-      "unit": "minute"
-    }
-  },
-  "range": {
-    "type": "ranged",
-    "distance": 120,
-    "distanceUnit": "feet"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": "",
-    "materialCost": 0,
-    "isConsumed": false
-  },
-  "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
-  },
-  "targeting": {
-    "type": "point",
-    "range": 120,
-    "validTargets": [
-      "creatures"
-    ],
-    "lineOfSight": true,
-    "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Cylinder",
-      "size": 5,
-      "height": 30,
-      "sizeType": "diameter",
-      "sizeUnit": "feet",
-      "heightUnit": "feet"
-    },
-    "filter": {
-      "creatureTypes": [],
-      "excludeCreatureTypes": [],
-      "sizes": [],
-      "alignments": [],
-      "hasCondition": [],
-      "isNativeToPlane": false,
-      "willing": "not_applicable",
-      "objectEligibility": {
-        "wornOrCarried": "not_applicable",
-        "magicalStatus": "not_applicable",
-        "fixedToSurface": "not_applicable",
-        "maxSize": "not_applicable",
-        "maxWeightPounds": "not_applicable",
-        "maxWeightScaling": "not_applicable"
-      },
-      "communicationPrerequisites": {
-        "canHearCaster": "not_applicable",
-        "canUnderstandCaster": "not_applicable",
-        "canSeeCaster": "not_applicable"
-      },
-      "abilityThreshold": {
-        "ability": "not_applicable",
-        "operator": "not_applicable",
-        "value": "not_applicable"
-      },
-      "selfRelation": "not_applicable"
-    },
-    "rangeUnit": "feet",
-    "spatialDetails": {
-      "forms": [
-        {
-          "label": "Stone Pillar",
-          "shape": "Cylinder",
-          "size": 5,
-          "sizeType": "diameter",
-          "sizeUnit": "feet",
-          "height": 30,
-          "heightUnit": "feet",
-          "notes": "Up to six pillars can appear."
-        }
-      ],
-      "measuredDetails": [
-        {
-          "label": "Pillar Count",
-          "kind": "count",
-          "value": 6,
-          "qualifier": "up to"
-        },
-        {
-          "label": "Rubble Radius",
-          "kind": "distance",
-          "value": 10,
-          "unit": "feet",
-          "notes": "A destroyed pillar leaves difficult terrain in this radius."
-        },
-        {
-          "label": "Rubble Clear Segment",
-          "kind": "diameter",
-          "value": 5,
-          "unit": "feet"
-        },
-        {
-          "label": "Rubble Clear Time",
-          "kind": "time",
-          "value": 1,
-          "unit": "minutes",
-          "qualifier": "per 5-foot-diameter portion"
-        }
-      ]
-    }
-  },
-  "effects": [
-    {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Dexterity",
-        "saveEffect": "none",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false,
-          "willing": "not_applicable",
-          "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
-            "fixedToSurface": "not_applicable",
-            "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
-          },
-          "communicationPrerequisites": {
-            "canHearCaster": "not_applicable",
-            "canUnderstandCaster": "not_applicable",
-            "canSeeCaster": "not_applicable"
-          },
-          "abilityThreshold": {
-            "ability": "not_applicable",
-            "operator": "not_applicable",
-            "value": "not_applicable"
-          },
-          "selfRelation": "not_applicable"
-        },
-        "requiresStatus": [],
-        "saveModifiers": [],
-        "saveOutcomeOverrides": []
-      },
-      "damage": {
-        "dice": "6d6",
-        "type": "Bludgeoning"
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "If a pillar is blocked by a ceiling or other obstacle, a creature on the pillar makes a Dexterity save, taking 6d6 Bludgeoning damage on a failed save or no damage on a success.",
-      "conditionalEndings": []
-    }
-  ],
-  "arbitrationType": "mechanical",
-  "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
-  },
-  "description": "You cause up to six pillars of stone to burst from places on the ground that you can see within range. Each pillar is a cylinder that has a diameter of 5 feet and a height of up to 30 feet. The ground where a pillar appears must be wide enough for its diameter, and you can target the ground under a creature if that creature is Medium or smaller. Each pillar has AC 5 and 30 hit points. When reduced to 0 hit points, a pillar crumbles into rubble, which creates an area of difficult terrain with a 10-foot radius that lasts until the rubble is cleared. Each 5-foot-diameter portion of the area requires at least 1 minute to clear by hand. If a pillar is created under a creature, that creature must succeed on a Dexterity saving throw or be lifted by the pillar. A creature can choose to fail the save. If a pillar is prevented from reaching its full height because of a ceiling or other obstacle, a creature on the pillar takes 6d6 bludgeoning damage and is restrained, pinched between the pillar and the obstacle. The restrained creature can use an action to make a Strength or Dexterity check (the creature's choice) against the spell's save DC. On a success, the creature is no longer restrained and must either move off the pillar or fall off it.",
-  "higherLevels": "When you cast this spell using a spell slot of 7th level or higher, you can create two additional pillars for each slot level above 6th.",
-  "tags": []
+﻿{
+    "id":  "bones-of-the-earth",
+    "name":  "Bones of the Earth",
+    "aliases":  [
+
+                ],
+    "level":  6,
+    "school":  "Transmutation",
+    "legacy":  false,
+    "classes":  [
+                    "Druid"
+                ],
+    "subClasses":  [
+
+                   ],
+    "ritual":  false,
+    "rarity":  "common",
+    "attackType":  "",
+    "castingTime":  {
+                        "value":  1,
+                        "unit":  "action",
+                        "combatCost":  {
+                                           "type":  "action",
+                                           "condition":  ""
+                                       },
+                        "explorationCost":  {
+                                                "value":  0,
+                                                "unit":  "minute"
+                                            }
+                    },
+    "range":  {
+                  "type":  "ranged",
+                  "distance":  120,
+                  "distanceUnit":  "feet"
+              },
+    "components":  {
+                       "verbal":  true,
+                       "somatic":  true,
+                       "material":  false,
+                       "materialDescription":  "",
+                       "materialCost":  0,
+                       "isConsumed":  false
+                   },
+    "duration":  {
+                     "type":  "instantaneous",
+                     "concentration":  false,
+                     "value":  0,
+                     "unit":  "round"
+                 },
+    "targeting":  {
+                      "type":  "point",
+                      "range":  120,
+                      "validTargets":  [
+                                           "creatures"
+                                       ],
+                      "lineOfSight":  true,
+                      "maxTargets":  1,
+                      "areaOfEffect":  {
+                                           "shape":  "Cylinder",
+                                           "size":  5,
+                                           "height":  30,
+                                           "sizeType":  "diameter",
+                                           "sizeUnit":  "feet",
+                                           "heightUnit":  "feet"
+                                       },
+                      "filter":  {
+                                     "creatureTypes":  [
+
+                                                       ],
+                                     "excludeCreatureTypes":  [
+
+                                                              ],
+                                     "sizes":  [
+
+                                               ],
+                                     "alignments":  [
+
+                                                    ],
+                                     "hasCondition":  [
+
+                                                      ],
+                                     "isNativeToPlane":  false,
+                                     "willing":  "not_applicable",
+                                     "objectEligibility":  {
+                                                               "wornOrCarried":  "not_applicable",
+                                                               "magicalStatus":  "not_applicable",
+                                                               "fixedToSurface":  "not_applicable",
+                                                               "maxSize":  "not_applicable",
+                                                               "maxWeightPounds":  "not_applicable",
+                                                               "maxWeightScaling":  "not_applicable"
+                                                           },
+                                     "communicationPrerequisites":  {
+                                                                        "canHearCaster":  "not_applicable",
+                                                                        "canUnderstandCaster":  "not_applicable",
+                                                                        "canSeeCaster":  "not_applicable"
+                                                                    },
+                                     "abilityThreshold":  {
+                                                              "ability":  "not_applicable",
+                                                              "operator":  "not_applicable",
+                                                              "value":  "not_applicable"
+                                                          },
+                                     "selfRelation":  "not_applicable"
+                                 },
+                      "rangeUnit":  "feet",
+                      "spatialDetails":  {
+                                             "forms":  [
+                                                           {
+                                                               "label":  "Stone Pillar",
+                                                               "shape":  "Cylinder",
+                                                               "size":  5,
+                                                               "sizeType":  "diameter",
+                                                               "sizeUnit":  "feet",
+                                                               "height":  30,
+                                                               "heightUnit":  "feet",
+                                                               "notes":  "Up to six pillars can appear."
+                                                           }
+                                                       ],
+                                             "measuredDetails":  [
+                                                                     {
+                                                                         "label":  "Pillar Count",
+                                                                         "kind":  "count",
+                                                                         "value":  6,
+                                                                         "qualifier":  "up to"
+                                                                     },
+                                                                     {
+                                                                         "label":  "Rubble Radius",
+                                                                         "kind":  "distance",
+                                                                         "value":  10,
+                                                                         "unit":  "feet",
+                                                                         "notes":  "A destroyed pillar leaves difficult terrain in this radius."
+                                                                     },
+                                                                     {
+                                                                         "label":  "Rubble Clear Segment",
+                                                                         "kind":  "diameter",
+                                                                         "value":  5,
+                                                                         "unit":  "feet"
+                                                                     },
+                                                                     {
+                                                                         "label":  "Rubble Clear Time",
+                                                                         "kind":  "time",
+                                                                         "value":  1,
+                                                                         "unit":  "minutes",
+                                                                         "qualifier":  "per 5-foot-diameter portion"
+                                                                     }
+                                                                 ]
+                                         }
+                  },
+    "effects":  [
+                    {
+                        "type":  "DAMAGE",
+                        "trigger":  {
+                                        "type":  "immediate",
+                                        "frequency":  "every_time",
+                                        "consumption":  "unlimited",
+                                        "attackFilter":  {
+                                                             "weaponType":  "any",
+                                                             "attackType":  "any"
+                                                         },
+                                        "movementType":  "any",
+                                        "sustainCost":  {
+                                                            "actionType":  "action",
+                                                            "optional":  false
+                                                        }
+                                    },
+                        "condition":  {
+                                          "type":  "save",
+                                          "saveType":  "Dexterity",
+                                          "saveEffect":  "none",
+                                          "targetFilter":  {
+                                                               "creatureTypes":  [
+
+                                                                                 ],
+                                                               "excludeCreatureTypes":  [
+
+                                                                                        ],
+                                                               "sizes":  [
+
+                                                                         ],
+                                                               "alignments":  [
+
+                                                                              ],
+                                                               "hasCondition":  [
+
+                                                                                ],
+                                                               "isNativeToPlane":  false,
+                                                               "willing":  "not_applicable",
+                                                               "objectEligibility":  {
+                                                                                         "wornOrCarried":  "not_applicable",
+                                                                                         "magicalStatus":  "not_applicable",
+                                                                                         "fixedToSurface":  "not_applicable",
+                                                                                         "maxSize":  "not_applicable",
+                                                                                         "maxWeightPounds":  "not_applicable",
+                                                                                         "maxWeightScaling":  "not_applicable"
+                                                                                     },
+                                                               "communicationPrerequisites":  {
+                                                                                                  "canHearCaster":  "not_applicable",
+                                                                                                  "canUnderstandCaster":  "not_applicable",
+                                                                                                  "canSeeCaster":  "not_applicable"
+                                                                                              },
+                                                               "abilityThreshold":  {
+                                                                                        "ability":  "not_applicable",
+                                                                                        "operator":  "not_applicable",
+                                                                                        "value":  "not_applicable"
+                                                                                    },
+                                                               "selfRelation":  "not_applicable"
+                                                           },
+                                          "requiresStatus":  [
+
+                                                             ],
+                                          "saveModifiers":  [
+                                                                {
+                                                                    "type":  "voluntary_failure",
+                                                                    "appliesTo":  "creature_under_new_pillar",
+                                                                    "condition":  "A creature can choose to fail the Dexterity save to be lifted by the pillar."
+                                                                }
+                                                            ],
+                                          "saveOutcomeOverrides":  [
+                                                                       {
+                                                                           "outcome":  "failure",
+                                                                           "effect":  "The creature is lifted by the pillar."
+                                                                       },
+                                                                       {
+                                                                           "outcome":  "blocked_pillar",
+                                                                           "effect":  "If the pillar cannot reach full height, the creature takes 6d6 Bludgeoning damage and is Restrained until it escapes."
+                                                                       }
+                                                                   ]
+                                      },
+                        "damage":  {
+                                       "dice":  "6d6",
+                                       "type":  "Bludgeoning"
+                                   },
+                        "createdObjects":  [
+                                               {
+                                                   "objectType":  "structure",
+                                                   "name":  "Stone Pillar",
+                                                   "count":  6,
+                                                   "countUnit":  "pillars",
+                                                   "diameterFeet":  5,
+                                                   "maxHeightFeet":  30,
+                                                   "objectArmorClass":  5,
+                                                   "hitPoints":  30,
+                                                   "destroyedTerrain":  {
+                                                                            "type":  "difficult_terrain",
+                                                                            "radiusFeet":  10,
+                                                                            "clearTime":  "1 minute per 5-foot-diameter portion"
+                                                                        }
+                                               }
+                                           ],
+                        "statusCondition":  {
+                                                "name":  "Restrained",
+                                                "appliesWhen":  "pillar_blocked_by_ceiling_or_obstacle",
+                                                "escapeCheck":  {
+                                                                    "abilityOptions":  [
+                                                                                           "Strength",
+                                                                                           "Dexterity"
+                                                                                       ],
+                                                                    "dc":  "caster_spell_save_dc",
+                                                                    "actionCost":  "action"
+                                                                }
+                                            },
+                        "scaling":  {
+                                        "type":  "slot_level",
+                                        "bonusPerLevel":  "",
+                                        "customFormula":  ""
+                                    },
+                        "description":  "If a pillar is blocked by a ceiling or other obstacle, a creature on the pillar makes a Dexterity save, taking 6d6 Bludgeoning damage on a failed save or no damage on a success.",
+                        "conditionalEndings":  [
+
+                                               ],
+                        "surfaceInteraction":  {
+                                                   "pillarOrigin":  "ground",
+                                                   "maxPillars":  6,
+                                                   "pillarDiameterFeet":  5,
+                                                   "requiresGroundWideEnoughForDiameter":  true,
+                                                   "canTargetGroundUnderMediumOrSmallerCreature":  true,
+                                                   "destroyedPillarCreatesDifficultTerrain":  true,
+                                                   "notes":  "Each stone pillar bursts from a visible ground place wide enough for its 5-foot diameter; destroyed pillars leave difficult terrain rubble."
+                                               }
+                    }
+                ],
+    "arbitrationType":  "mechanical",
+    "aiContext":  {
+                      "prompt":  "Choose up to six valid ground points for stone pillars. For each Medium or smaller creature on a pillar point, record whether it voluntarily fails the Dexterity save; if a creature is restrained by a blocked pillar, choose whether its escape action uses Strength or Dexterity.",
+                      "playerInputRequired":  true
+                  },
+    "description":  "You cause up to six pillars of stone to burst from places on the ground that you can see within range. Each pillar is a cylinder that has a diameter of 5 feet and a height of up to 30 feet. The ground where a pillar appears must be wide enough for its diameter, and you can target the ground under a creature if that creature is Medium or smaller. Each pillar has AC 5 and 30 hit points. When reduced to 0 hit points, a pillar crumbles into rubble, which creates an area of difficult terrain with a 10-foot radius that lasts until the rubble is cleared. Each 5-foot-diameter portion of the area requires at least 1 minute to clear by hand. If a pillar is created under a creature, that creature must succeed on a Dexterity saving throw or be lifted by the pillar. A creature can choose to fail the save. If a pillar is prevented from reaching its full height because of a ceiling or other obstacle, a creature on the pillar takes 6d6 bludgeoning damage and is restrained, pinched between the pillar and the obstacle. The restrained creature can use an action to make a Strength or Dexterity check (the creature\u0027s choice) against the spell\u0027s save DC. On a success, the creature is no longer restrained and must either move off the pillar or fall off it.",
+    "higherLevels":  "When you cast this spell using a spell slot of 7th level or higher, you can create two additional pillars for each slot level above 6th.",
+    "tags":  [
+
+             ]
 }
+
