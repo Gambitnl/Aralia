@@ -258,6 +258,41 @@ describe('navalReducer', () => {
     expect(newState.naval.currentVoyage).toBeNull();
   });
 
+  // ============================================================================
+  // NAVAL_PURCHASE_STARTER_SHIP — the in-game ship-acquisition entry point
+  // ============================================================================
+
+  it('NAVAL_PURCHASE_STARTER_SHIP creates a ship, deducts gold, and sets activeShipId', () => {
+    const state = createMockGameState({ worldSeed: 12345, gold: 1000 });
+    const newState = navalReducer(state, { type: 'NAVAL_PURCHASE_STARTER_SHIP', payload: { cost: 500 } });
+
+    expect(newState.naval.playerShips).toHaveLength(1);
+    expect(newState.naval.activeShipId).toBe(newState.naval.playerShips[0].id);
+    expect(newState.gold).toBe(500);
+  });
+
+  it('NAVAL_PURCHASE_STARTER_SHIP is a no-op when a ship already exists (no double charge)', () => {
+    let state = createMockGameState({ worldSeed: 12345, gold: 5000 });
+    state = navalReducer(state, { type: 'NAVAL_PURCHASE_STARTER_SHIP', payload: { cost: 500 } });
+    const goldAfterFirst = state.gold;
+    const firstShipId = state.naval.playerShips[0].id;
+
+    state = navalReducer(state, { type: 'NAVAL_PURCHASE_STARTER_SHIP', payload: { cost: 500 } });
+
+    expect(state.naval.playerShips).toHaveLength(1);
+    expect(state.naval.playerShips[0].id).toBe(firstShipId);
+    expect(state.gold).toBe(goldAfterFirst);
+  });
+
+  it('NAVAL_PURCHASE_STARTER_SHIP is a no-op when gold is insufficient', () => {
+    const state = createMockGameState({ worldSeed: 12345, gold: 10 });
+    const newState = navalReducer(state, { type: 'NAVAL_PURCHASE_STARTER_SHIP', payload: { cost: 500 } });
+
+    expect(newState.naval.playerShips).toHaveLength(0);
+    expect(newState.naval.activeShipId).toBeNull();
+    expect(newState.gold).toBe(10);
+  });
+
   it('should advance voyages deterministically for identical seeded states', () => {
     const baseStateA = createMockGameState({ worldSeed: 24680 });
     const baseStateB = createMockGameState({ worldSeed: 24680 });

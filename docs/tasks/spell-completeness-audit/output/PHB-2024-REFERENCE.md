@@ -7,6 +7,9 @@
 
 This file preserves the exact PHB-reference packet used during the late-2025 completeness audit.
 Do not treat it as proof that the local-vs-PHB comparison has been freshly rerun.
+Use `docs/projects/spells/subprojects/spell-completeness-audit/SPELL_COMPLETENESS_COVERAGE_SNAPSHOT.md`
+for the current local corpus counts and source/proof gate status; regenerate that
+snapshot with `npm run spells:completeness`.
 
 ## Verified Current Use
 

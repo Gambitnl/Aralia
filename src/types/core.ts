@@ -72,6 +72,15 @@ export enum GamePhase {
    * indexes save-compatible. URL slug: 'startselect'.
    */
   START_POINT_SELECTION,
+  /**
+   * Living-world town sim preview (?phase=livingworld). Standalone harness that
+   * generates a demo town, tags its key NPCs, and ages it N years — rendering the
+   * resulting Town Chronicle (births/deaths/inheritance/succession) and current
+   * institution-holders. The play-and-eyeball surface for the multi-day sim,
+   * reachable without a playing session. Appended LAST (save-index compatible).
+   * URL slug: 'livingworld'.
+   */
+  LIVING_WORLD_PREVIEW,
 }
 
 // Core D&D attributes

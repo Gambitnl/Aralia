@@ -1,17 +1,29 @@
 // TODO(lint-intent): 'useRef' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import React, { useEffect, useState, useContext, useRef as _useRef } from 'react';
+import React, { useEffect, useMemo, useState, useContext } from 'react';
 // Dedicated modal for showing a single glossary entry with navigation controls
-// TODO(lint-intent): 'GlossaryEntry' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { GlossaryEntry as _GlossaryEntry } from '../../types';
+import { GlossaryEntry } from '../../types';
 import GlossaryContext from '../../context/GlossaryContext';
 import { FullEntryDisplay } from './FullEntryDisplay';
+import SpellCardTemplate, { SpellData } from './SpellCardTemplate';
 import { AnimatePresence, motion, MotionProps } from 'framer-motion';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { findGlossaryEntryAndPath } from '../../utils/glossaryUtils';
+import { fetchWithTimeout } from '../../utils/networkUtils';
+import { assetUrl } from '../../config/env';
+
+/**
+ * Spell glossary entries are manifest-driven: their content lives in a per-spell
+ * JSON file (`data/spells/level-{n}/{id}.json`), not at a glossary `filePath`.
+ * The level is encoded as a `level N` tag on the entry. Returns null when the
+ * entry carries no recognizable level tag.
+ */
+const resolveSpellJsonLevelFromEntry = (entry: GlossaryEntry): number | null => {
+  const levelTag = entry.tags?.find((tag) => /^level\s+\d+$/i.test(tag.trim()));
+  const levelText = levelTag?.trim().match(/^level\s+(\d+)$/i)?.[1];
+  return levelText ? Number.parseInt(levelText, 10) : null;
+};
 
 interface SingleGlossaryEntryModalProps {
   isOpen: boolean;
@@ -61,9 +73,47 @@ const SingleGlossaryEntryModal: React.FC<SingleGlossaryEntryModalProps> = ({ isO
     setCurrentTermId(newTermId);
   };
 
-  if (!isOpen) return null;
+  const currentEntry = useMemo<GlossaryEntry | null>(
+    () => (currentTermId && allEntries ? findGlossaryEntryAndPath(currentTermId, allEntries).entry : null),
+    [currentTermId, allEntries]
+  );
 
-  const { entry: currentEntry } = currentTermId && allEntries ? findGlossaryEntryAndPath(currentTermId, allEntries) : { entry: null };
+  const isSpellEntry = currentEntry?.category === 'Spells';
+  const spellLevel = isSpellEntry && currentEntry ? resolveSpellJsonLevelFromEntry(currentEntry) : null;
+
+  const [spellJsonData, setSpellJsonData] = useState<SpellData | null>(null);
+  const [spellJsonLoading, setSpellJsonLoading] = useState(false);
+
+  // Load the per-spell JSON when the active entry is a spell. Mirrors the main
+  // glossary's loader so spell links opened in this single-entry modal render a
+  // full spell card instead of failing (spell entries carry no `filePath`).
+  useEffect(() => {
+    if (!isSpellEntry || !currentEntry || spellLevel === null) {
+      setSpellJsonData(null);
+      setSpellJsonLoading(false);
+      return;
+    }
+    const controller = new AbortController();
+    const spellId = currentEntry.id;
+    setSpellJsonLoading(true);
+    fetchWithTimeout<SpellData>(
+      assetUrl(`data/spells/level-${spellLevel}/${spellId}.json`),
+      { signal: controller.signal }
+    )
+      .then((data) => {
+        setSpellJsonData(data);
+        setSpellJsonLoading(false);
+      })
+      .catch((fetchError: Error) => {
+        if (fetchError.name !== 'AbortError') {
+          setSpellJsonData(null);
+          setSpellJsonLoading(false);
+        }
+      });
+    return () => controller.abort();
+  }, [isSpellEntry, currentEntry, spellLevel]);
+
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -97,7 +147,17 @@ const SingleGlossaryEntryModal: React.FC<SingleGlossaryEntryModalProps> = ({ isO
                 </button>
               </div>
               <div className="glossary-entry-modal-body scrollable-content">
-                <FullEntryDisplay entry={currentEntry} onNavigate={handleInternalNavigation} />
+                {isSpellEntry ? (
+                  spellJsonLoading ? (
+                    <p className="text-gray-400 italic">Loading spell data...</p>
+                  ) : spellJsonData ? (
+                    <SpellCardTemplate spell={spellJsonData} onNavigateToGlossary={handleInternalNavigation} />
+                  ) : (
+                    <p className="text-red-400">Failed to load spell data for this entry.</p>
+                  )
+                ) : (
+                  <FullEntryDisplay entry={currentEntry} onNavigate={handleInternalNavigation} />
+                )}
               </div>
               <div className="glossary-entry-modal-footer">
                  <button

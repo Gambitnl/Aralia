@@ -21,6 +21,12 @@ const EMPTY: ChunkGeometryArrays = {
 };
 
 export function buildWallMesh(data: ChunkData): ChunkGeometryArrays {
+  // Each entry is an OPEN polyline run: consecutive points become wall segments
+  // and NO closing segment is added. A walled town arrives either as one closed
+  // run (first point repeated) or, where a river crosses the ring, as several
+  // open runs that leave a gap around each water-gate (TG7, split upstream in
+  // groundChunkLoader). The gap reads as an arch/portcullis break so the river
+  // passes through a gate instead of clipping solid stone.
   const rings = (data.walls ?? []).filter((r) => r.points.length >= 2);
   if (rings.length === 0) return EMPTY;
 

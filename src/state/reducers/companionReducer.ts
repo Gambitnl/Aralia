@@ -26,9 +26,107 @@ import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
 import { RelationshipManager } from '../../systems/companions/RelationshipManager';
 import { inGameTimestamp } from '../../utils/core/timeUtils';
+import { isOverSoftCap } from '../../systems/party/partyConstants';
 
 export function companionReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
+    // Recruit an NPC (or promote an authored companion) into the party.
+    //
+    // Membership spans TWO unlinked stores (see DISCOVERY §1): the playable
+    // roster `state.party: PlayerCharacter[]` and the relationship layer
+    // `state.companions`. A correct join writes BOTH under one shared id
+    // (`payload.character.id === payload.companion.id`). This membership-pair
+    // mutation is deliberately consolidated HERE rather than split across
+    // characterReducer.ts, so the two halves never drift out of sync.
+    //
+    // DESIGN §5.1: there is NO hard cap — recruiting is never blocked by size.
+    // The soft cap is only a UI hint; we surface a non-blocking notice when the
+    // party grows past it, but the recruit always succeeds.
+    case 'RECRUIT_COMPANION': {
+      const { character, companion } = action.payload;
+
+      // Idempotency / safety: if this id is already an active party member,
+      // don't double-append. (Re-recruiting a former member is fine: they were
+      // removed from `party` on leave, so this path adds them back.)
+      const alreadyInParty = state.party.some(member => member.id === character.id);
+      const nextParty = alreadyInParty ? state.party : [...state.party, character];
+
+      const messages = [...state.messages];
+      messages.push({
+        id: Date.now(),
+        text: `${companion.identity.name} joins the party.`,
+        sender: 'system',
+        timestamp: inGameTimestamp(state.gameTime),
+      });
+
+      // Soft-cap notice only — never blocks the recruit (DESIGN §5.1).
+      if (isOverSoftCap(nextParty)) {
+        messages.push({
+          id: Date.now() + 1,
+          text: 'Your party has grown quite large — managing this many companions may be unwieldy.',
+          sender: 'system',
+          timestamp: inGameTimestamp(state.gameTime),
+        });
+      }
+
+      return {
+        party: nextParty,
+        companions: {
+          ...state.companions,
+          [companion.id]: { ...companion, inParty: true },
+        },
+        messages,
+      };
+    }
+
+    // Player-initiated removal of a party member. Mirrors COMPANION_DESERT's
+    // dual-store removal but without the loyalty/abandonment framing.
+    //
+    // DESIGN §5: the party leader (index 0, or the `player` id) CANNOT be
+    // dismissed. The Companion record is KEPT and marked `inParty:false` so the
+    // relationship persists and the character is re-recruitable.
+    case 'DISMISS_PARTY_MEMBER': {
+      const { memberId } = action.payload;
+
+      const leaderId = state.party[0]?.id;
+      if (memberId === 'player' || memberId === leaderId) {
+        return {
+          messages: [
+            ...state.messages,
+            {
+              id: Date.now(),
+              text: 'The party leader cannot be dismissed.',
+              sender: 'system',
+              timestamp: inGameTimestamp(state.gameTime),
+            },
+          ],
+        };
+      }
+
+      const nextParty = state.party.filter(member => member.id !== memberId);
+      const companion = state.companions[memberId];
+
+      const result: Partial<GameState> = { party: nextParty };
+
+      if (companion) {
+        result.companions = {
+          ...state.companions,
+          [memberId]: { ...companion, inParty: false },
+        };
+        result.messages = [
+          ...state.messages,
+          {
+            id: Date.now(),
+            text: `${companion.identity.name} leaves the party.`,
+            sender: 'system',
+            timestamp: inGameTimestamp(state.gameTime),
+          },
+        ];
+      }
+
+      return result;
+    }
+
     case 'UPDATE_COMPANION_APPROVAL': {
       // `source` stays in the payload as provenance for upstream routing, but this reducer
       // still resolves the approval delta through the player-targeted relationship path.
@@ -113,14 +211,22 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
     }
 
     // A companion abandons the party (e.g. marched too long while starving).
-    // Removes them from the roster and announces the departure.
+    // Removes them from BOTH stores' active membership and announces it.
+    //
+    // DESIGN §5: like dismiss, this KEEPS the Companion record (marked
+    // `inParty:false`) so the relationship/loyalty persists and they remain
+    // re-recruitable, AND it drops the matching `state.party` entry so the
+    // playable roster stays consistent with the relationship layer.
     case 'COMPANION_DESERT': {
       const { companionId } = action.payload;
       const companion = state.companions[companionId];
       if (!companion) return {};
-      const { [companionId]: _gone, ...remaining } = state.companions;
       return {
-        companions: remaining,
+        party: state.party.filter(member => member.id !== companionId),
+        companions: {
+          ...state.companions,
+          [companionId]: { ...companion, inParty: false },
+        },
         messages: [
           ...state.messages,
           {

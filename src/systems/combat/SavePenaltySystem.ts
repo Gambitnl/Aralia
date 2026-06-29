@@ -213,15 +213,29 @@ export class SavePenaltySystem {
             }
 
             const remainingRiders = character.savePenaltyRiders.filter(rider => {
-                // next_save riders are consumed, not expired by duration (though they might have a fallback)
-                if (rider.applies === 'next_save') return true;
-
-                // If this rider depends on the caster's turn cycle
+                // Caster-owned round riders only tick down when that caster's
+                // own turn is ending. Other turns should not shorten Mind
+                // Sliver or similar caster-relative save penalties.
                 if (rider.casterId === endingCharacterId && rider.duration.type === 'rounds') {
                     const currentTurn = state.turnState.currentTurn;
-                    const turnsElapsed = Math.floor((currentTurn - rider.appliedTurn) / state.characters.length);
-                    // For "next turn" (value 1), it expires when turnsElapsed reaches 1 (cycle completed)
-                    return turnsElapsed < (rider.duration.value || 0);
+                    const roundsElapsed = currentTurn - rider.appliedTurn;
+
+                    // Mind Sliver stores "before the end of your next turn" as
+                    // a two-round window because the current caster turn counts
+                    // as the first round. The rider is still consumed earlier
+                    // by the next save roll, but if no save happens it expires
+                    // at the next caster turn boundary instead of surviving for
+                    // two full rounds in larger combats.
+                    if (rider.applies === 'next_save') {
+                        const casterTurnBoundary = Math.max((rider.duration.value || 1) - 1, 0);
+                        return roundsElapsed < casterTurnBoundary;
+                    }
+
+                    // Other duration-based save penalties keep the existing
+                    // round-count interpretation: a value of 2 lasts through
+                    // one elapsed round and falls off when the second elapsed
+                    // round is reached.
+                    return roundsElapsed < (rider.duration.value || 0);
                 }
 
                 // special duration or other caster - keep for now

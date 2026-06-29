@@ -157,7 +157,7 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-400 text-sm">Points Available</span>
                   <span className={`text-2xl font-bold ${pointsRemaining < 0 ? 'text-red-400' : 'text-amber-400'}`}>
-                    {pointsRemaining} <span className="text-sm text-gray-500 font-normal">/ {POINT_BUY_TOTAL_POINTS}</span>
+                    {pointsRemaining} <span className="text-sm text-gray-400 font-normal">/ {POINT_BUY_TOTAL_POINTS}</span>
                   </span>
                 </div>
                 

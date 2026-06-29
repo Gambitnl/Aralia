@@ -253,7 +253,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
           {/* Left Pane: Entry List */}
           <div ref={listContainerRef} data-testid="discovery-log-entry-list" className="md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-hidden flex-shrink-0 flex flex-col min-h-0">
             {filteredAndSortedEntries.length === 0 ? (
-              <p className="text-gray-500 italic text-center py-4">No entries match your criteria.</p>
+              <p className="text-gray-400 italic text-center py-4">No entries match your criteria.</p>
             ) : (
               <>
                 <ul className="space-y-1 flex-grow overflow-y-auto scrollable-content min-h-0">
@@ -272,7 +272,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                           )}
                           <span className={`flex-grow truncate ${!entry.isRead ? 'font-semibold' : ''}`}>{entry.title}</span>
                         </div>
-                        <span className="text-xs text-gray-500 block mt-0.5">{entry.type} - {formatGameDate(new Date(entry.timestamp))}</span>
+                        <span className="text-xs text-gray-400 block mt-0.5">{entry.type} - {formatGameDate(new Date(entry.timestamp))}</span>
                       </button>
                     </li>
                   ))}
@@ -307,13 +307,13 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
             {selectedEntry ? (
               <article>
                 <h3 className="text-2xl font-semibold text-amber-300 mb-2 font-cinzel tracking-wide">{selectedEntry.title}</h3>
-                <div className="text-xs text-gray-500 mb-3 space-x-3">
+                <div className="text-xs text-gray-400 mb-3 space-x-3">
                   <span><strong className="text-gray-400">Type:</strong> {selectedEntry.type}</span>
                   <span><strong className="text-gray-400">Logged:</strong> {formatGameDateTime(new Date(selectedEntry.timestamp))}</span>
                   <span><strong className="text-gray-400">In-Game Time:</strong> {selectedEntry.gameTime}</span>
                 </div>
                 {selectedEntry.source && (
-                  <p className="text-xs text-gray-500 mb-3">
+                  <p className="text-xs text-gray-400 mb-3">
                     <strong className="text-gray-400">Source:</strong> {selectedEntry.source.type}
                     {selectedEntry.source.name && ` - ${selectedEntry.source.name}`}
                     {selectedEntry.source.id && ` (ID: ${selectedEntry.source.id})`}
@@ -347,7 +347,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                       {consequences.map(({ npc, fact }) => (
                         <li key={fact.id}>
                           <strong>{npc.name}</strong> learned that: <em>&quot;{fact.text}&quot;</em>
-                          <span className="text-xs text-gray-500 ml-2">
+                          <span className="text-xs text-gray-400 ml-2">
                             ({fact.source === 'gossip' ? `Heard from ${allNpcs[fact.sourceNpcId!]?.name || 'a traveler'}` : 'Learned directly'})
                           </span>
                         </li>
@@ -357,7 +357,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                 )}
               </article>
             ) : (
-              <p className="text-gray-500 italic text-center py-10">Select an entry to view its details.</p>
+              <p className="text-gray-400 italic text-center py-10">Select an entry to view its details.</p>
             )}
           </div>
         </div>

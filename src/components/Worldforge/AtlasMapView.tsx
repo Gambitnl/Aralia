@@ -703,7 +703,7 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
         <div className="text-xs text-gray-400 font-mono">
           Seed: <span className="text-white font-bold">{atlas.seed}</span>
         </div>
-        <div className="text-[10px] text-gray-500 font-mono mt-0.5">
+        <div className="text-[10px] text-gray-400 font-mono mt-0.5">
           Cells: {atlas.pack.cells.h.length} | Rivers: {atlas.pack.rivers?.length ?? 0}
         </div>
       </div>

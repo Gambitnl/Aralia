@@ -3,11 +3,13 @@
  * Reusable traits table component for character creator steps.
  * Uses the spell progression table style (TRAIT | DESCRIPTION columns).
  */
-import React, { useMemo } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { GlossarySpellsOfTheMarkTable } from '../../Glossary/GlossarySpellsOfTheMarkTable';
 import { GlossaryContentRenderer } from '../../Glossary/GlossaryContentRenderer';
 import { GlossaryIcon } from '../../Glossary/IconRegistry';
 import { getTraitIcon } from '../../../utils/traits/traitIcons';
+import GlossaryContext from '../../../context/GlossaryContext';
+import { findGlossaryEntryAndPath } from '../../../utils/visuals/glossaryUtils';
 
 interface BaseTraits {
     type?: string;
@@ -87,6 +89,24 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
     onSpellClick,
     spellsOfTheMark
 }) => {
+    const glossaryEntries = useContext(GlossaryContext);
+
+    /**
+     * A spell link is "broken" when clicking it would open the glossary modal
+     * but produce no content. Two valid content sources exist:
+     *  - spell entries render from their bundled `data/spells/.../{id}.json`
+     *    (flagged by `hasSpellJson`, no `filePath`),
+     *  - every other entry renders from its glossary `filePath`.
+     * An entry with neither — or no entry at all — is broken and shown in red.
+     */
+    const isSpellLinkBroken = useCallback((spellId: string): boolean => {
+        if (!glossaryEntries) return false; // glossary still loading — assume valid
+        const { entry } = findGlossaryEntryAndPath(spellId, glossaryEntries);
+        if (!entry) return true;
+        if (entry.category === 'Spells') return !entry.hasSpellJson;
+        return !entry.filePath;
+    }, [glossaryEntries]);
+
     // Determine vision text
     const visionText = useMemo(() => {
         if (baseTraits?.darkvision && baseTraits.darkvision > 0) {
@@ -222,14 +242,22 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
                                                         <tr key={spellIndex} className="border-b border-gray-700/30 last:border-0">
                                                             <td className="py-2 px-3 text-amber-400">{spell.level}</td>
                                                             <td className="py-2 px-3">
-                                                                {onSpellClick ? (
-                                                                    <button
-                                                                        onClick={() => onSpellClick(toKebabCase(spell.name))}
-                                                                        className="text-sky-400 hover:text-sky-200 underline transition-colors"
-                                                                    >
-                                                                        {spell.name}
-                                                                    </button>
-                                                                ) : (
+                                                                {onSpellClick ? (() => {
+                                                                    const broken = isSpellLinkBroken(toKebabCase(spell.name));
+                                                                    return (
+                                                                        <button
+                                                                            onClick={() => onSpellClick(toKebabCase(spell.name))}
+                                                                            title={broken ? 'Glossary entry unavailable' : undefined}
+                                                                            className={`underline transition-colors ${
+                                                                                broken
+                                                                                    ? 'text-red-400 hover:text-red-300'
+                                                                                    : 'text-sky-400 hover:text-sky-200'
+                                                                            }`}
+                                                                        >
+                                                                            {spell.name}
+                                                                        </button>
+                                                                    );
+                                                                })() : (
                                                                     <span className="text-sky-400">{spell.name}</span>
                                                                 )}
                                                             </td>

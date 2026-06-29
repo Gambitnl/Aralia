@@ -49,7 +49,7 @@ const QuestLog: React.FC<QuestLogProps> = ({ isOpen, onClose, quests }) => {
 
           {(completedQuests.length > 0 || failedQuests.length > 0) && (
             <section>
-              <h3 className="text-xl font-semibold mb-4 text-gray-500">History</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-400">History</h3>
               <div className="space-y-3 opacity-90">
                 {completedQuests.map(quest => (
                   <QuestHistoryRow key={quest.id} quest={quest} />

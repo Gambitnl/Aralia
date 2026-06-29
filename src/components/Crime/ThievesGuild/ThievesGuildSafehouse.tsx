@@ -25,7 +25,7 @@ export const ThievesGuildSafehouse: React.FC<ThievesGuildSafehouseProps> = ({
                         <p className="text-gray-400 text-sm">Sanctuary for the initiated.</p>
                     </div>
                     <div className="text-right">
-                        <div className="text-xs uppercase text-gray-500">Rank</div>
+                        <div className="text-xs uppercase text-gray-400">Rank</div>
                         <div className="text-xl font-bold text-white">Rank {membership.rank}</div>
                     </div>
                 </div>

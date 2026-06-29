@@ -50,6 +50,12 @@ interface PartyOverlayProps {
     shortRestTracker?: ShortRestTracker;
     /** Whether active enemies are present in the current combat state */
     isCombatActive?: boolean;
+    /**
+     * Optional dismiss handler threaded down to PartyPane and each member card.
+     * The card omits the control for the party leader (`player` id), so the
+     * leader can never be dismissed even when this is provided.
+     */
+    onDismissMember?: (id: string) => void;
 }
 
 // -----------------------------------------------------------------------------
@@ -137,7 +143,8 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
     onLongRest,
     onShortRest,
     shortRestTracker,
-    isCombatActive = false
+    isCombatActive = false,
+    onDismissMember
 }) => {
     // Don't render anything if not open
     if (!isOpen) return null;
@@ -173,6 +180,7 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
                         companions={companions}
                         onViewCharacterSheet={onViewCharacterSheet}
                         onFixMissingChoice={onFixMissingChoice}
+                        onDismissMember={onDismissMember}
                     />
                 </div>
 

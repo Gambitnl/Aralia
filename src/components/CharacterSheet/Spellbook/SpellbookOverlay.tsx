@@ -174,7 +174,7 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
               </h3>
 
               {spellsToDisplay.length === 0 ? (
-                <p className="text-slate-500 italic text-sm px-1">No spells at this level.</p>
+                <p className="text-slate-400 italic text-sm px-1">No spells at this level.</p>
               ) : (
                 <div className="space-y-1">
                     {spellsToDisplay.map(spell => {
@@ -283,13 +283,13 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
                   onNavigate={(termId) => setSelectedSpellId(termId)}
                 />
               ) : selectedSpellId ? (
-                <div className="flex flex-col items-center justify-center h-full text-slate-500">
+                <div className="flex flex-col items-center justify-center h-full text-slate-400">
                   <span className="material-symbols-outlined text-4xl mb-2">search_off</span>
                   <p>Spell details not found in glossary.</p>
                   <p className="text-sm">ID: {selectedSpellId}</p>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-slate-500">
+                <div className="flex flex-col items-center justify-center h-full text-slate-400">
                   <span className="material-symbols-outlined text-4xl mb-2">touch_app</span>
                   <p>Select a spell to view details</p>
                 </div>

@@ -47,6 +47,16 @@ interface InWorldHUDProps {
   isGroundMode?: boolean;
   /** Callback to toggle between Ground and Continent views. */
   onToggleGroundMode?: () => void;
+  /**
+   * Pull the camera up to an overhead "Town Cell" framing of the whole town,
+   * staying in 3D. Only provided in ground mode (otherwise the button hides).
+   */
+  onFrameTownCell?: () => void;
+  /**
+   * Open the 2D Voronoi world map (modal over the 3D view) centered on the
+   * player's town cell. Only provided in ground mode (otherwise hides).
+   */
+  onOpenCellMap?: () => void;
 }
 
 const InWorldHUD: React.FC<InWorldHUDProps> = ({
@@ -61,6 +71,8 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
   onExitToMenu,
   isGroundMode = false,
   onToggleGroundMode,
+  onFrameTownCell,
+  onOpenCellMap,
 }) => {
   return (
     <div
@@ -123,6 +135,68 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           pointerEvents: 'auto',
         }}
       >
+        {isGroundMode && onFrameTownCell && (
+          <button
+            type="button"
+            data-testid="hud-frame-town-cell"
+            onClick={onFrameTownCell}
+            title="Zoom out to the town cell — overhead view of the whole town, stays in 3D"
+            style={{
+              padding: '6px 12px',
+              fontSize: '12px',
+              fontFamily: 'Outfit, sans-serif',
+              fontWeight: 600,
+              color: 'var(--text-primary, #e8e8e8)',
+              backgroundColor: 'var(--bg-surface-alt, #1e2e3e)',
+              border: '1px solid var(--border-color, #3a4a5a)',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--bg-active, #3a5a7a)';
+              e.currentTarget.style.borderColor = 'var(--text-secondary, #8a9aaa)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--bg-surface-alt, #1e2e3e)';
+              e.currentTarget.style.borderColor = 'var(--border-color, #3a4a5a)';
+            }}
+          >
+            ⤢ Town Cell
+          </button>
+        )}
+        {isGroundMode && onOpenCellMap && (
+          <button
+            type="button"
+            data-testid="hud-open-cell-map"
+            onClick={onOpenCellMap}
+            title="Open the 2D world map centered on this town's cell — overlays the 3D view"
+            style={{
+              padding: '6px 12px',
+              fontSize: '12px',
+              fontFamily: 'Outfit, sans-serif',
+              fontWeight: 600,
+              color: 'var(--text-primary, #e8e8e8)',
+              backgroundColor: 'var(--bg-surface-alt, #1e2e3e)',
+              border: '1px solid var(--border-color, #3a4a5a)',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--bg-active, #3a5a7a)';
+              e.currentTarget.style.borderColor = 'var(--text-secondary, #8a9aaa)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--bg-surface-alt, #1e2e3e)';
+              e.currentTarget.style.borderColor = 'var(--border-color, #3a4a5a)';
+            }}
+          >
+            🗺 Cell Map
+          </button>
+        )}
         {onToggleGroundMode && (
           <button
             type="button"

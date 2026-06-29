@@ -459,7 +459,31 @@ const LABEL_FONT: Record<LabelKind, number> = { state: 14, capital: 11, town: 9 
 const LABEL_PRIORITY: Record<LabelKind, number> = { state: 0, capital: 1, town: 2 };
 
 export interface DeclutterView { k: number; x: number; y: number }
-export interface DeclutterOptions { capitalMinScale?: number; townMinScale?: number }
+export interface DeclutterOptions {
+  capitalMinScale?: number;
+  townMinScale?: number;
+  /**
+   * Visible viewport size (screen space). When supplied, each placed label is
+   * clamped so its text bbox stays fully inside `[0,width] × [0,height]` — a
+   * label whose anchor sits near (or past) an edge is nudged inward instead of
+   * being clipped ("…epiet Empire" at the left edge, WM4). Omit to keep the
+   * original un-clamped behaviour (used by the unit tests).
+   */
+  bounds?: { width: number; height: number };
+  /**
+   * Extra padding (screen px) added around every label's collision box, so
+   * labels are spaced apart rather than allowed to touch. Defaults to 2.
+   */
+  pad?: number;
+}
+
+/**
+ * Vertical gap (screen px) between a non-state label's anchor and its rendered
+ * baseline. Burg names are drawn BELOW their point (the glyph sits above the
+ * name) — the renderer applies this same offset, so the collision box must use
+ * it too or two near-vertical burgs collide on paper but overlap on screen.
+ */
+const LABEL_RENDER_DY: Record<LabelKind, number> = { state: 0, capital: 15, town: 15 };
 
 /**
  * Zoom-threshold + greedy bbox-collision declutter (SP0 T5c). State labels
@@ -467,6 +491,10 @@ export interface DeclutterOptions { capitalMinScale?: number; townMinScale?: num
  * `townMinScale`. Higher-priority labels (state > capital > town) claim space
  * first; overlapping lower-priority labels are dropped. Screen-space (constant
  * text size), so positions use the live view transform.
+ *
+ * The collision box mirrors the renderer's vertical offset and adds a small pad
+ * so labels read with breathing room, and (when `bounds` is given) every kept
+ * label is clamped inside the viewport so none clip at the map edges (WM4).
  */
 export function declutterLabels(
   labels: AtlasSvgLabel[],
@@ -475,6 +503,8 @@ export function declutterLabels(
 ): PlacedLabel[] {
   const capMin = opts.capitalMinScale ?? 1.2;
   const townMin = opts.townMinScale ?? 2.0;
+  const pad = opts.pad ?? 2;
+  const bounds = opts.bounds;
   const visible = labels.filter((l) =>
     l.kind === 'state'
     || (l.kind === 'capital' && view.k >= capMin)
@@ -484,12 +514,35 @@ export function declutterLabels(
   const placed: Array<{ x: number; y: number; w: number; h: number }> = [];
   const out: PlacedLabel[] = [];
   for (const l of visible) {
-    const sx = l.x * view.k + view.x;
-    const sy = l.y * view.k + view.y;
     const fontSize = LABEL_FONT[l.kind];
     const w = l.text.length * fontSize * 0.55;
     const h = fontSize;
-    const box = { x: sx - w / 2, y: sy - h / 2, w, h };
+    // Anchor, then clamp the CENTER so the (half-width, half-height) bbox — at
+    // the rendered baseline (LABEL_RENDER_DY) — stays inside the viewport.
+    let sx = l.x * view.k + view.x;
+    let sy = l.y * view.k + view.y;
+    const renderDy = LABEL_RENDER_DY[l.kind];
+    if (bounds) {
+      const halfW = w / 2;
+      // Only clamp when the label actually fits; for a label wider than the
+      // viewport, left-align it so the start is readable rather than centering
+      // it off both edges.
+      if (w <= bounds.width) {
+        sx = Math.min(Math.max(sx, halfW + pad), bounds.width - halfW - pad);
+      } else {
+        sx = halfW + pad;
+      }
+      const top = renderDy - h;        // baseline-relative top of the glyph box
+      const bottom = renderDy;          // ~baseline
+      sy = Math.min(Math.max(sy, pad - top), bounds.height - pad - bottom);
+    }
+    // Collision box at the RENDERED position (includes the baseline offset + pad).
+    const box = {
+      x: sx - w / 2 - pad,
+      y: sy + renderDy - h - pad,
+      w: w + pad * 2,
+      h: h + pad * 2,
+    };
     const hit = placed.some((p) =>
       !(box.x + box.w < p.x || p.x + p.w < box.x || box.y + box.h < p.y || p.y + p.h < box.y),
     );

@@ -71,6 +71,34 @@ export interface OpeningSituation {
 export type GameEntryStatus = 'idle' | 'generating' | 'in-situation' | 'model-unavailable';
 
 /**
+ * Lifecycle of the opening-scene illustration request (parallels the portrait
+ * pattern). The image is generated asynchronously after the situation resolves;
+ * it never blocks the conversation.
+ * - `idle`       — not requested (e.g. flag off, or a non-opening entry).
+ * - `generating` — request in flight; show a non-blocking placeholder.
+ * - `ready`      — `url` holds a locally served image to display.
+ * - `error`      — generation failed; show an honest "unavailable" note (NO FALLBACK).
+ */
+export type SceneImageStatus = 'idle' | 'generating' | 'ready' | 'error';
+
+/**
+ * Async state for the opening-scenario establishing illustration.
+ */
+export interface SceneImageState {
+    status: SceneImageStatus;
+    /** Raw URL returned by /api/scenes/generate (run through assetUrl before use); null until ready. */
+    url: string | null;
+    /** Honest error string when status is `error`; null otherwise. */
+    error: string | null;
+}
+
+export const INITIAL_SCENE_IMAGE_STATE: SceneImageState = {
+    status: 'idle',
+    url: null,
+    error: null,
+};
+
+/**
  * The slice of GameState that tracks opening-situation entry.
  */
 export interface GameEntryState {
@@ -79,12 +107,15 @@ export interface GameEntryState {
     situation: OpeningSituation | null;
     /** Honest error string when status is `model-unavailable`; null otherwise. */
     error: string | null;
+    /** The establishing scene illustration for this opening (async, optional enrichment). */
+    sceneImage: SceneImageState;
 }
 
 export const INITIAL_GAME_ENTRY_STATE: GameEntryState = {
     status: 'idle',
     situation: null,
     error: null,
+    sceneImage: INITIAL_SCENE_IMAGE_STATE,
 };
 
 /**

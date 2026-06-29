@@ -12,7 +12,7 @@ import { describe, it, expect } from 'vitest';
 import { gameEntryReducer } from '../gameEntryReducer';
 import { conversationReducer } from '../conversationReducer';
 import { createMockGameState } from '../../../utils/factories';
-import { INITIAL_GAME_ENTRY_STATE, type OpeningSituation } from '../../../systems/gameEntry/types';
+import { INITIAL_GAME_ENTRY_STATE, INITIAL_SCENE_IMAGE_STATE, type OpeningSituation } from '../../../systems/gameEntry/types';
 import type { ConversationMessage, ConversationNpcParticipant } from '../../../types/conversation';
 
 const SITUATION: OpeningSituation = {
@@ -48,7 +48,7 @@ describe('gameEntryReducer', () => {
 
     it('BEGIN after a failure RETRIES back into generating', () => {
         const state = createMockGameState();
-        const failed = { gameEntry: { status: 'model-unavailable' as const, situation: null, error: 'NO_MODEL' } };
+        const failed = { gameEntry: { status: 'model-unavailable' as const, situation: null, error: 'NO_MODEL', sceneImage: INITIAL_SCENE_IMAGE_STATE } };
         const retried = gameEntryReducer({ ...state, ...failed }, { type: 'BEGIN_OPENING_SITUATION' });
         expect(retried.gameEntry?.status).toBe('generating');
         expect(retried.gameEntry?.error).toBeNull();
@@ -56,7 +56,7 @@ describe('gameEntryReducer', () => {
 
     it('SKIP after a failure dismisses the opening gate without inventing a situation', () => {
         const state = createMockGameState();
-        const failed = { gameEntry: { status: 'model-unavailable' as const, situation: null, error: 'NO_MODEL' } };
+        const failed = { gameEntry: { status: 'model-unavailable' as const, situation: null, error: 'NO_MODEL', sceneImage: INITIAL_SCENE_IMAGE_STATE } };
 
         // This is the player's escape hatch when Ollama is unavailable: the
         // failed entry gate clears, and no generated or canned situation appears.
@@ -94,6 +94,44 @@ describe('gameEntryReducer', () => {
             { type: 'SET_CONVERSATION_PENDING', payload: true } as never,
         );
         expect(next).toEqual({});
+    });
+
+    // Scene-illustration lifecycle: orthogonal to the entry status (the picture is
+    // optional enrichment), so these only touch sceneImage and leave status intact.
+    const inSituation = () => ({ ...INITIAL_GAME_ENTRY_STATE, status: 'in-situation' as const, situation: SITUATION });
+
+    it('SCENE_IMAGE_REQUEST_START marks the scene generating without touching status', () => {
+        const state = createMockGameState();
+        const next = gameEntryReducer({ ...state, gameEntry: inSituation() }, { type: 'SCENE_IMAGE_REQUEST_START' });
+        expect(next.gameEntry?.sceneImage).toEqual({ status: 'generating', url: null, error: null });
+        expect(next.gameEntry?.status).toBe('in-situation');
+        expect(next.gameEntry?.situation).toEqual(SITUATION);
+    });
+
+    it('SCENE_IMAGE_REQUEST_SUCCESS stores the url and marks the scene ready', () => {
+        const state = createMockGameState();
+        const next = gameEntryReducer(
+            { ...state, gameEntry: inSituation() },
+            { type: 'SCENE_IMAGE_REQUEST_SUCCESS', payload: { url: 'assets/images/scenes/generated/opening_1.png' } },
+        );
+        expect(next.gameEntry?.sceneImage).toEqual({
+            status: 'ready',
+            url: 'assets/images/scenes/generated/opening_1.png',
+            error: null,
+        });
+    });
+
+    it('SCENE_IMAGE_REQUEST_ERROR records an honest error and no fallback url', () => {
+        const state = createMockGameState();
+        const next = gameEntryReducer(
+            { ...state, gameEntry: inSituation() },
+            { type: 'SCENE_IMAGE_REQUEST_ERROR', payload: { error: 'Scene illustration unavailable.' } },
+        );
+        expect(next.gameEntry?.sceneImage).toEqual({
+            status: 'error',
+            url: null,
+            error: 'Scene illustration unavailable.',
+        });
     });
 });
 

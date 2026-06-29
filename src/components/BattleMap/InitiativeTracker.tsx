@@ -63,7 +63,7 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
               aria-label={`${char.name}, turn ${index + 1}${canSkip ? ', click to skip here' : ''}`}
             >
               {/* Position number */}
-              <span className={`text-[9px] leading-none font-bold ${isCurrent ? 'text-amber-400' : 'text-gray-500'}`}>
+              <span className={`text-[9px] leading-none font-bold ${isCurrent ? 'text-amber-400' : 'text-gray-400'}`}>
                 {index + 1}
               </span>
 

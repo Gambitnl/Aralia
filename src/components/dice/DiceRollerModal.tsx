@@ -248,7 +248,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                                 <div className="flex gap-2 items-center flex-1">
                                     <div className="relative flex-1 min-w-[80px]">
                                         <div className="w-full px-2 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white text-center text-sm min-h-[38px] flex items-center justify-center">
-                                            {poolNotation || <span className="text-gray-500 italic">Click dice to add</span>}
+                                            {poolNotation || <span className="text-gray-400 italic">Click dice to add</span>}
                                         </div>
                                         <span className="absolute -top-2 left-1 bg-gray-800 px-1 text-[9px] text-gray-400 uppercase font-bold">Pool</span>
                                     </div>
@@ -277,8 +277,8 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                                             <span className="text-2xl font-bold text-amber-400">{lastResult.total}</span>
                                             {modifier !== 0 && (
                                                 <>
-                                                    <span className="text-base text-gray-500">{modifier > 0 ? '+' : ''}{modifier}</span>
-                                                    <span className="text-base text-gray-500">=</span>
+                                                    <span className="text-base text-gray-400">{modifier > 0 ? '+' : ''}{modifier}</span>
+                                                    <span className="text-base text-gray-400">=</span>
                                                     <span className="text-2xl font-bold text-green-400">{finalTotal}</span>
                                                 </>
                                             )}

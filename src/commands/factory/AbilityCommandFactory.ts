@@ -41,7 +41,7 @@ import { MovementCommand } from '../effects/MovementCommand';
 import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import { AttackRollModifierCommand } from '../effects/AttackRollModifierCommand';
 import { AbilityEffectMapper } from './AbilityEffectMapper';
-import { generateId, calculateCover, resolveAttack, getDistance, rollD20 } from '@/utils/combatUtils';
+import { generateId, calculateCover, resolveAttack, getDistance, rollD20, rollDice } from '@/utils/combatUtils';
 import { SpellEffect, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, isMovementEffect, isStatusConditionEffect } from '@/types/spells';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
 import { VisibilitySystem } from '@/systems/visibility';

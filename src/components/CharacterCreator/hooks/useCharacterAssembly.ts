@@ -33,6 +33,7 @@ import {
 import { WEAPONS_DATA, RACES_DATA, TIEFLING_LEGACIES } from '../../../constants';
 import { SKILLS_DATA } from '../../../data/skills';
 import { BACKGROUNDS } from '../../../data/backgrounds';
+import { ITEMS } from '../../../data/items';
 import { getRacialSpellCastingAbilityChoicesForRace } from '../../../data/races';
 import { CharacterCreationState } from '../state/characterCreatorState';
 import {
@@ -63,8 +64,12 @@ interface AgeData {
   };
 }
 
-function assembleSelectedFeats(state: CharacterCreationState) {
-  return [state.backgroundFeatId, state.racialFeatId].filter((id): id is string => !!id);
+export function assembleSelectedFeats(state: CharacterCreationState): string[] {
+  const ids = [state.backgroundFeatId, state.racialFeatId].filter((id): id is string => !!id);
+  // Defense-in-depth: a character can never legitimately hold the same feat twice.
+  // The creation UI already prevents picking a feat in both the origin and racial
+  // slots, but dedupe here so no assembly path can produce an invalid character.
+  return [...new Set(ids)];
 }
 
 // Age ranges and categories for different races (mechanical effects)
@@ -676,9 +681,13 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
   const assembleAndSubmitCharacter = useCallback((currentState: CharacterCreationState, name: string): boolean => {
     const character = generatePreviewCharacter(currentState, name);
     if (character) {
-      const startingInventory: Item[] = currentState.selectedWeaponMasteries
-        ?.map(id => WEAPONS_DATA[id])
-        .filter((item): item is Item => !!item) || [];
+      const startingInventory: Item[] = [
+        ...(currentState.selectedWeaponMasteries
+          ?.map(id => WEAPONS_DATA[id])
+          .filter((item): item is Item => !!item) || []),
+        { ...ITEMS['rations'], quantity: 5 },
+        { ...ITEMS['water-day'], quantity: 5 },
+      ];
 
       onCharacterCreate(character, startingInventory);
       return true;

@@ -37,6 +37,14 @@ interface PartyMemberCardProps {
     onMoreClick: () => void;
     /** Callback when missing choice warning is clicked */
     onMissingChoiceClick: (char: PlayerCharacter, missing: MissingChoice) => void;
+    /**
+     * Optional dismiss handler. When provided, renders a "Dismiss" control that
+     * calls back with the member's id. Intentionally NOT rendered for the party
+     * leader (`player` id) — see {@link PartyMemberCard} guard below.
+     */
+    onDismiss?: (id: string) => void;
+    /** True for the party leader (roster index 0). The leader can never be dismissed. */
+    isLeader?: boolean;
 }
 
 // -----------------------------------------------------------------------------
@@ -60,7 +68,7 @@ const StatBox: React.FC<StatBoxProps> = ({ label, value, valueColor = 'text-whit
     const content = (
         <div className="flex flex-col items-center">
             {/* Label - small uppercase text */}
-            <span className="text-gray-500 text-[10px] uppercase tracking-wide">{label}</span>
+            <span className="text-gray-400 text-[10px] uppercase tracking-wide">{label}</span>
             {/* Value - bold number */}
             <span className={`${valueColor} font-bold text-sm`}>{value}</span>
         </div>
@@ -270,7 +278,9 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
     character,
     companion,
     onMoreClick,
-    onMissingChoiceClick
+    onMissingChoiceClick,
+    onDismiss,
+    isLeader
 }) => {
     // Calculate HP percentage for the health bar
     const healthPercentage = Math.max(0, Math.min(100, (character.hp / character.maxHp) * 100));
@@ -302,6 +312,12 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
     const hasSpellSlots = character.spellSlots &&
         Object.values(character.spellSlots).some(slot => slot.max > 0);
 
+    // The party leader (the `player` id) cannot be dismissed by the player.
+    // Only render a Dismiss control for non-leader members when a handler is wired.
+    // The leader can never be dismissed — keyed on roster position (index 0), matching
+    // the reducer's party[0] guard, since a save's leader id isn't always the literal 'player'.
+    const canDismiss = Boolean(onDismiss) && !isLeader && character.id !== 'player';
+
     return (
         <div className="group relative flex flex-col md:flex-row items-start gap-4 p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-700/50 border border-amber-500/10 hover:border-amber-500/40 transition-all shadow-lg hover:shadow-amber-500/5">
             {/* ============================================================
@@ -314,7 +330,7 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                     title={`Portrait of ${character.name}`}
                 >
                     {/* Placeholder icon - first letter of name */}
-                    <span className="text-2xl font-bold text-gray-500">
+                    <span className="text-2xl font-bold text-gray-400">
                         {character.name.charAt(0).toUpperCase()}
                     </span>
                 </div>
@@ -367,7 +383,7 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                         </span>
                         {companion && (
                             <div className="flex items-center gap-1.5 mt-1 text-[10px]">
-                                <span className="text-gray-500">Relationship:</span>
+                                <span className="text-gray-400">Relationship:</span>
                                 <span className={`${LEVEL_COLORS[companion.relationships['player']?.level || 'stranger'] || 'text-gray-400'} font-bold uppercase tracking-wider`}>
                                     {companion.relationships['player']?.level || 'stranger'}
                                 </span>
@@ -443,7 +459,7 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
 
                 {/* Row 2: Attack Bonuses */}
                 <div className="flex items-center gap-3">
-                    <span className="text-[10px] text-gray-500 uppercase">Attack</span>
+                    <span className="text-[10px] text-gray-400 uppercase">Attack</span>
                     {attackBonuses.melee && (
                         <AttackBonusDisplay
                             iconName={attackBonuses.melee.iconName}
@@ -538,6 +554,24 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                         </svg>
                     </button>
                 </Tooltip>
+
+                {/* Dismiss control - never shown for the party leader (`player`) */}
+                {canDismiss && (
+                    <Tooltip content={`Dismiss ${character.name} from the party`}>
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onDismiss?.(character.id);
+                            }}
+                            className="inline-flex items-center gap-1 rounded border border-red-500/40 bg-red-950/70 px-2 py-0.5 text-[11px] font-semibold text-red-100 hover:border-red-300 hover:bg-red-900/80 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
+                            aria-label={`Dismiss ${character.name} from the party`}
+                        >
+                            Dismiss
+                        </button>
+                    </Tooltip>
+                )}
             </div>
         </div>
     );

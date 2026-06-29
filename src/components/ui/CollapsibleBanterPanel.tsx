@@ -217,7 +217,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
             "Conversation ended." footer (which previously rendered together when
             banter was off with no history — read as a glitch). */}
         {history.length === 0 && (
-          <div className="text-gray-500 text-sm italic text-center mt-4">
+          <div className="text-gray-400 text-sm italic text-center mt-4">
             {isActive ? 'Conversation starting…' : 'No party banter yet.'}
           </div>
         )}
@@ -314,7 +314,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
       {/* Only show the "ended" footer when a conversation actually took place.
           With no history this would otherwise contradict the empty-state above. */}
       {!isActive && history.length > 0 && (
-        <div className="mt-auto text-center text-gray-500 text-xs italic p-2 border-t border-gray-800">
+        <div className="mt-auto text-center text-gray-400 text-xs italic p-2 border-t border-gray-800">
           Conversation ended.
         </div>
       )}
@@ -334,7 +334,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
             ← Back to List
           </button>
           <div className="flex-grow overflow-y-auto space-y-3 p-2 custom-scrollbar">
-            <div className="text-xs text-gray-500 mb-4 text-center">
+            <div className="text-xs text-gray-400 mb-4 text-center">
               {new Date(moment.timestamp).toLocaleString()} • {moment.locationId}
             </div>
             {moment.lines.map((line, idx) => (
@@ -361,7 +361,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
     return (
       <div className="flex flex-col h-full overflow-y-auto custom-scrollbar">
         {(!archivedBanters || archivedBanters.length === 0) && (
-          <div className="text-gray-500 text-sm italic text-center mt-8">No memories archived yet.</div>
+          <div className="text-gray-400 text-sm italic text-center mt-8">No memories archived yet.</div>
         )}
         <div className="space-y-2">
           {archivedBanters?.map(moment => (
@@ -374,7 +374,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
                 <span className="text-amber-500 text-xs font-medium">
                   {new Date(moment.timestamp).toLocaleDateString()}
                 </span>
-                <span className="text-gray-500 text-[10px]">{moment.locationId}</span>
+                <span className="text-gray-400 text-[10px]">{moment.locationId}</span>
               </div>
               <div className="text-gray-300 text-sm line-clamp-2">
                 <span className="text-amber-500/80 mr-1">
@@ -395,7 +395,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
       <div className="flex border-b border-gray-700 mb-2">
         <button
           onClick={() => { setActiveTab('LIVE'); setSelectedMomentId(null); }}
-          className={`flex-1 py-2 text-sm font-medium transition-colors ${activeTab === 'LIVE' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-500 hover:text-gray-300'}`}
+          className={`flex-1 py-2 text-sm font-medium transition-colors ${activeTab === 'LIVE' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-400 hover:text-gray-300'}`}
         >
           Live Chat{' '}
           {isActive && (
@@ -404,7 +404,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
         </button>
         <button
           onClick={() => setActiveTab('MEMORIES')}
-          className={`flex-1 py-2 text-sm font-medium transition-colors ${activeTab === 'MEMORIES' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-500 hover:text-gray-300'}`}
+          className={`flex-1 py-2 text-sm font-medium transition-colors ${activeTab === 'MEMORIES' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-400 hover:text-gray-300'}`}
         >
           Memories
         </button>
@@ -516,7 +516,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
             <span className="text-[10px] text-amber-500 tabular-nums">{secondsRemaining}s</span>
           )}
           {!isActive && (
-            <span className="text-[10px] text-gray-500">History</span>
+            <span className="text-[10px] text-gray-400">History</span>
           )}
         </div>
         {/* Pulsing response countdown badge on the tab */}

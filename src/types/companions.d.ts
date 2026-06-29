@@ -173,4 +173,5 @@ export interface Companion {
     questline?: CompanionQuestline;
     progression?: RelationshipUnlock[];
     reactionRules: CompanionReactionRule[];
+    inParty?: boolean;
 }

@@ -213,12 +213,18 @@ export function buildTerrainMesh(data: ChunkData, opts: { skirtDepth?: number } 
   const totalVerts = core.positions.length / 3;
   const colors = new Float32Array(totalVerts * 3);
 
-  // Base-grid colors: precomputed blend when available, else per-vertex biome color.
+  // Base-grid colors: precomputed blend when available, else per-vertex biome
+  // color. In the per-vertex path we also blend toward rock on steep faces:
+  // slope01 = 1 - n·up, read straight off the already-computed vertex normal
+  // (normals[o+1] is the up-component of the unit normal), so a near-vertical
+  // cliff tints as exposed rock while flat ground keeps its biome tint.
   if (data.biomeColors && data.biomeColors.length === baseVertCount * 3) {
     colors.set(data.biomeColors);
   } else {
     for (let v = 0; v < baseVertCount; v++) {
-      const [r, g, b] = biomeColor(data.biomeIds[v] ?? 'plains', data.heights[v] ?? 0);
+      const ny = core.normals[v * 3 + 1]; // up-component of the unit surface normal
+      const slope01 = Math.max(0, Math.min(1, 1 - ny));
+      const [r, g, b] = biomeColor(data.biomeIds[v] ?? 'plains', data.heights[v] ?? 0, slope01);
       colors[v * 3] = r;
       colors[v * 3 + 1] = g;
       colors[v * 3 + 2] = b;

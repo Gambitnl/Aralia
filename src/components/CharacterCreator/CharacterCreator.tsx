@@ -301,6 +301,21 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
 
   const hasEligibleFeats = useMemo(() => featOptions.some(option => option.isEligible), [featOptions]);
 
+  // A character gets two feats (origin + racial), and 5e forbids taking the same feat
+  // twice. Each slot must therefore exclude the feat already chosen in the OTHER slot,
+  // otherwise both slots could pick the same feat and assemble an invalid character.
+  const featOptionsExcluding = useCallback(
+    (excludeFeatId: string | null | undefined) =>
+      !excludeFeatId
+        ? featOptions
+        : featOptions.map(option =>
+            option.id === excludeFeatId
+              ? { ...option, isEligible: false, unmet: [...option.unmet, 'Already taken as your other feat'] }
+              : option
+          ),
+    [featOptions]
+  );
+
   // Handlers (kept same as before)
   const handleRaceSelect = useCallback((raceId: string, choices?: RacialChoiceData) => {
     dispatch({ type: 'SELECT_RACE', payload: RACES_DATA[raceId] });
@@ -535,7 +550,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         return (
           <FeatSelection
             title={backgroundName ? `Origin Feat — ${backgroundName}` : 'Origin Feat'}
-            availableFeats={featOptions}
+            availableFeats={featOptionsExcluding(state.racialFeatId)}
             selectedFeatId={state.backgroundFeatId || undefined}
             featChoices={state.featChoices}
             onSelectFeat={handleBackgroundFeatSelect}
@@ -560,7 +575,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         return (
           <FeatSelection
             title={state.selectedRace ? `Racial Feat — ${state.selectedRace.name}` : 'Racial Feat'}
-            availableFeats={featOptions}
+            availableFeats={featOptionsExcluding(state.backgroundFeatId)}
             selectedFeatId={state.racialFeatId || undefined}
             featChoices={state.featChoices}
             onSelectFeat={handleRacialFeatSelect}

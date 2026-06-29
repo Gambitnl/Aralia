@@ -24,6 +24,12 @@ import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { calculateEncounterParameters, processAndValidateEncounter } from '../../utils/encounterUtils';
 import { simpleHash } from '../../utils/core/hashUtils';
+import type { RichNPC } from '../../types/world';
+// Shared recruitment building blocks — the SAME converter/consent modules used
+// by the dialogue (P6) and tavern (P-tavern) triggers, so the rescue path never
+// duplicates conversion or consent logic (DISCOVERY §6, decision #2).
+import { evaluateRecruitOffer } from '../../systems/party/recruitConsent';
+import { npcToPartyMember } from '../../systems/party/npcToPartyMember';
 
 interface HandleGenerateEncounterProps {
     gameState: GameState;
@@ -105,6 +111,75 @@ export async function handleStartBattleMapEncounter(dispatch: React.Dispatch<App
     dispatch({ type: 'START_BATTLE_MAP_ENCOUNTER', payload: { startBattleMapEncounterData: { ...payload, combatants } } });
 }
 
-export function handleEndBattle(dispatch: React.Dispatch<AppAction>, rewards?: { gold: number; items: Item[]; xp: number }): void {
+/**
+ * Optional rescue context for {@link handleEndBattle}.
+ *
+ * When an encounter resolves on a RESCUE branch — the party freed a captive /
+ * saved an NPC during the fight — that grateful rescuee may auto-join the party.
+ * The caller passes the rescued NPC plus a read-only snapshot of game state so
+ * the additive recruit step can run consent → convert → dispatch.
+ */
+export interface EndBattleRescueOptions {
+    /** The NPC the party rescued during this encounter. Triggers the auto-join. */
+    rescuedNpc?: RichNPC;
+    /**
+     * Read-only game state, required to evaluate consent. Consent is
+     * auto-accepted for a grateful rescuee (see below), but `evaluateRecruitOffer`
+     * still needs the state to build its verdict.
+     */
+    gameState?: GameState;
+}
+
+/**
+ * Resolve a finished battle.
+ *
+ * Base behaviour (UNCHANGED): dispatch `END_BATTLE` with any rewards. Every
+ * existing caller — e.g. `actionHandlers.END_BATTLE` — keeps working with the
+ * two-arg form.
+ *
+ * ADDITIVE rescue branch: when `rescue.rescuedNpc` (and `rescue.gameState`) are
+ * supplied, after ending the battle we auto-join the rescued NPC. A rescuee who
+ * owes the party their life consents automatically, so we call
+ * {@link evaluateRecruitOffer} with `{ autoAccept: true }` to BYPASS the normal
+ * disposition/relationship gate, convert the NPC into a `{ character, companion }`
+ * pair via {@link npcToPartyMember} (`source: 'rescue'`), dispatch
+ * `RECRUIT_COMPANION`, and post a join message. The recruit reducer (P3) writes
+ * both the `party` and `companions` stores under the shared id.
+ *
+ * This branch ONLY fires when a rescuee is passed; the normal battle-end flow is
+ * never disturbed.
+ */
+export function handleEndBattle(
+    dispatch: React.Dispatch<AppAction>,
+    rewards?: { gold: number; items: Item[]; xp: number },
+    rescue?: EndBattleRescueOptions,
+): void {
     dispatch({ type: 'END_BATTLE', payload: { rewards } });
+
+    // Additive rescue auto-join. No rescuee → nothing else happens.
+    const rescuedNpc = rescue?.rescuedNpc;
+    if (!rescuedNpc || !rescue?.gameState) {
+        return;
+    }
+
+    // A grateful rescuee bypasses the disposition gate (consent auto-accepted).
+    const verdict = evaluateRecruitOffer(rescuedNpc, rescue.gameState, { autoAccept: true });
+    if (!verdict.willJoin) {
+        // autoAccept always yields willJoin:true, but honour the verdict defensively.
+        return;
+    }
+
+    const payload = npcToPartyMember(rescuedNpc, 'rescue');
+    dispatch({ type: 'RECRUIT_COMPANION', payload });
+
+    dispatch({
+        type: 'ADD_MESSAGE',
+        payload: {
+            id: Date.now(),
+            text: verdict.reason,
+            sender: 'system',
+            timestamp: new Date(),
+            metadata: { companionId: payload.companion.id, type: 'recruit', source: 'rescue' },
+        },
+    });
 }

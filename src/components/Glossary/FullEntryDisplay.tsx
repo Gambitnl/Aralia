@@ -119,22 +119,30 @@ const shouldAppendReferencedBySpells = (filePath: string | null | undefined, mar
 };
 
 /**
- * Render the backlink section as markdown so existing glossary link shorthand can be reused.
+ * Render the backlink section as a COLLAPSED `<details>` block so a short rules
+ * entry isn't dominated by a long list of spell links. It's emitted as raw HTML
+ * (which marked passes through) and picks up the existing
+ * `.prose details:not(.feature-card)` styling — caret, amber rule, yellow summary.
+ * The `[[id|Name]]` tokens are still expanded (and loadability-colored) by
+ * `expandGlossaryShorthand`, which runs over the whole string before marked.
  */
 const buildReferencedBySpellsMarkdown = (referencedByRule: ReferencedRuleLookupRecord): string => {
-  const lines = [
-    '',
-    '---',
-    '## Referenced By Spells',
-    '',
-    ...referencedByRule.spells
-      .slice()
-      .sort((a, b) => a.spellName.localeCompare(b.spellName))
-      .map((spell) => `- [[${spell.spellId}|${spell.spellName}]]`),
-    '',
-  ];
+  const spells = referencedByRule.spells
+    .slice()
+    .sort((a, b) => a.spellName.localeCompare(b.spellName));
 
-  return lines.join('\n');
+  // Keep this a single HTML block (no blank lines inside) so marked emits it
+  // verbatim instead of re-parsing the inner list.
+  return [
+    '',
+    '<details>',
+    `<summary>Referenced By Spells (${spells.length})</summary>`,
+    '<ul>',
+    ...spells.map((spell) => `<li>[[${spell.spellId}|${spell.spellName}]]</li>`),
+    '</ul>',
+    '</details>',
+    '',
+  ].join('\n');
 };
 
 type GlossaryEntryFileJson = {

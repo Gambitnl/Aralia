@@ -46,7 +46,7 @@ export const BodyText: React.FC<TextProps> = ({ className = '', children, ...pro
  * Font: Sans, Uppercase, Tracking-wider, Small, Gray-400/500.
  */
 export const Label: React.FC<TextProps> = ({ className = '', children, ...props }) => (
-  <span className={`text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1 ${className}`} {...props}>
+  <span className={`text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1 ${className}`} {...props}>
     {children}
   </span>
 );
@@ -57,7 +57,7 @@ export const Label: React.FC<TextProps> = ({ className = '', children, ...props 
  * Font: Sans, Italic, Gray-500.
  */
 export const Description: React.FC<TextProps> = ({ className = '', children, ...props }) => (
-  <p className={`text-xs text-gray-500 italic ${className}`} {...props}>
+  <p className={`text-xs text-gray-400 italic ${className}`} {...props}>
     {children}
   </p>
 );

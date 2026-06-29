@@ -105,6 +105,7 @@ export type ActionType =
   | 'OPEN_LOCKPICKING_MODAL'
   | 'OPEN_PUZZLE_RUNTIME'
   | 'HARVEST_RESOURCE' // New
+  | 'SEARCH_AREA' // Wilderness forage on procedural coord_ tiles
   | 'BARTER_ITEMS' // New
   | 'HAGGLE_ITEM' // New
   | 'ANALYZE_SITUATION'
@@ -301,6 +302,11 @@ export interface StartGameSuccessPayload {
   mapData: import('./world.js').MapData;
   dynamicLocationItemIds: Record<string, string[]>;
   initialLocationDescription: string;
+  // The logical location id the player spawns at — the WF-derived spawn tile's
+  // own `locationId`, or its `coord_<x>_<y>` id. Lets the engine report where the
+  // player actually stands (matching the relocated world marker) instead of the
+  // generic legacy 'clearing'. Omitted by dev/skip flows ⇒ falls back to it.
+  initialLocationId?: string;
   initialSubMapCoordinates: { x: number; y: number };
   initialActiveDynamicNpcIds: string[] | null;
   startingInventory: Item[];
@@ -313,12 +319,16 @@ export interface StartGameSuccessPayload {
   // opening scene + home town reflect the choice. Omitted by dev/skip flows.
   startTownName?: string;
   startTownRegion?: string;
+  // Cell-native 3D entry anchor (chosen burg's cell + pixel position), set
+  // atomically with the spawn so the first 3D entry frames the town. Null/omitted
+  // ⇒ no exact anchor (dev/skip flows fall back to the legacy tile entry).
+  entry3DAnchor?: import('./state.js').Entry3DAnchor | null;
 }
 
 export type Action =
   | { type: 'move'; payload: { query?: string; geminiPrompt?: string }; label?: string; targetId?: string }
   | { type: 'look_around'; payload?: { query?: string }; label?: string }
-  | { type: 'talk'; payload: { targetNpcId?: string; query?: string; isEgregious?: boolean; questOffer?: QuestOffer }; label?: string; targetId?: string }
+  | { type: 'talk'; payload: { targetNpcId?: string; query?: string; isEgregious?: boolean; questOffer?: QuestOffer; recruitOffer?: { targetNpcId: string; autoAccept?: boolean } }; label?: string; targetId?: string }
   | { type: 'take_item'; payload: { itemId: string }; label?: string; targetId?: string }
   // Keep item-use actions on the reducer-facing uppercase contract used by the item state flow.
   | { type: 'USE_ITEM'; payload: UseItemPayload; label?: string }
@@ -371,13 +381,14 @@ export type Action =
   | { type: 'SELL_ITEM'; payload: MerchantActionPayload; label?: string }
   | { type: 'BARTER_ITEMS'; payload: MerchantActionPayload; label?: string }
   | { type: 'HAGGLE_ITEM'; payload: MerchantActionPayload; label?: string }
-  | { type: 'OPEN_DYNAMIC_MERCHANT'; payload: { merchantType: string; villageContext?: VillageActionContext; buildingId?: string; seedKey?: string }; label?: string }
+  | { type: 'OPEN_DYNAMIC_MERCHANT'; payload: { merchantType: string; villageContext?: VillageActionContext; buildingId?: string; seedKey?: string; hire?: boolean }; label?: string }
   | { type: 'OPEN_TEMPLE'; payload: { villageContext: VillageActionContext }; label?: string }
   | { type: 'CLOSE_TEMPLE'; payload?: never; label?: string }
   | { type: 'USE_TEMPLE_SERVICE'; payload: { templeId: string; deityId: string; cost: number; effect: unknown }; label?: string }
   | { type: 'OPEN_LOCKPICKING_MODAL'; payload: Lock; label?: string }
   | { type: 'OPEN_PUZZLE_RUNTIME'; payload: Puzzle; label?: string }
   | { type: 'HARVEST_RESOURCE'; payload: { harvestContext?: string; skillCheck?: { skill: string; dc: number } }; label?: string }
+  | { type: 'SEARCH_AREA'; payload?: never; label?: string }
   | { type: 'ANALYZE_SITUATION'; payload?: never; label?: string }
   | { type: 'wait'; payload?: { seconds?: number }; label?: string }
   | { type: 'TOGGLE_GAME_GUIDE'; payload?: never; label?: string }

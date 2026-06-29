@@ -33,6 +33,10 @@ import { ConversationMessage } from '../../types/conversation';
 import { getWeatherSummary } from '../../types/environment';
 import { INITIAL_QUESTS } from '../../data/quests';
 import type { QuestOffer } from '../../types/actions';
+import type { RichNPC } from '../../types/world';
+import { evaluateRecruitOffer } from '../../systems/party/recruitConsent';
+import { npcToPartyMember, promoteCompanionToMember } from '../../systems/party/npcToPartyMember';
+import { isInParty } from '../../systems/party/recruitTypes';
 
 interface BanterContext {
     locationName: string;
@@ -104,6 +108,109 @@ function acceptDialogueQuestOffer(
     if (!quest || alreadyKnownQuest) return;
 
     dispatch({ type: 'ACCEPT_QUEST', payload: quest });
+}
+
+// ============================================================================
+// Recruit Offer Helpers ("Invite to party" dialogue outcome)
+// ============================================================================
+// Mirrors the quest-offer bridge above: a dialogue outcome can carry a minimal
+// "invite to party" offer naming the target NPC, and this handler runs the
+// shared recruit pipeline — consent gate (P5) -> NPC->member converter (P4) ->
+// RECRUIT_COMPANION reducer (P3) — without duplicating any of that logic here.
+// The NPC consents (or declines) via evaluateRecruitOffer; on yes we convert and
+// dispatch, on no we surface the refusal reason as a system message.
+// ============================================================================
+
+/**
+ * Minimal dialogue-to-recruit handoff payload. Like {@link QuestOffer}, the
+ * dialogue layer only names the NPC it is inviting (and may flag an auto-accept
+ * for narrative join moments, e.g. a grateful rescuee). The target NPC is
+ * resolved against the runtime registries before the recruit pipeline runs, so
+ * NPC payloads never carry a full character/companion blob.
+ */
+interface RecruitOffer {
+    /** Id of the NPC being invited to join the party. */
+    targetNpcId: string;
+    /**
+     * When true, bypass the disposition/relationship consent gate (passed through
+     * to {@link evaluateRecruitOffer}). Reserved for scripted join moments; ordinary
+     * dialogue invites leave this unset so consent is genuinely evaluated.
+     */
+    autoAccept?: boolean;
+}
+
+function getRecruitOffer(action: Action): RecruitOffer | undefined {
+    // The recruitOffer field is not declared on the static `talk` payload union,
+    // so we read it defensively the same way getDialogueQuestOffer reads the
+    // quest offer — dialogue topics opt in by attaching it.
+    return (action.payload as { recruitOffer?: RecruitOffer } | undefined)?.recruitOffer;
+}
+
+/**
+ * Run the "Invite to party" outcome for a dialogue offer.
+ *
+ * Resolves the target NPC, asks {@link evaluateRecruitOffer} whether they will
+ * join, and on consent converts them to a party member and dispatches
+ * `RECRUIT_COMPANION`. Authored companions that already live in
+ * `state.companions` (Kaelen/Elara) are promoted via {@link promoteCompanionToMember}
+ * so their relationship history persists; freshly-met world NPCs go through the
+ * {@link npcToPartyMember} converter. A decline (or already-in-party) posts the
+ * NPC's own reason and dispatches nothing.
+ */
+function handleRecruitOffer(
+    offer: RecruitOffer | undefined,
+    gameState: GameState,
+    dispatch: React.Dispatch<AppAction>,
+    addMessage: AddMessageFn
+): void {
+    // No offer ⇒ ordinary dialogue, no recruit side effects (mirrors quest path).
+    if (!offer) return;
+
+    const targetId = offer.targetNpcId;
+    if (!targetId) return;
+
+    // An already-met authored companion: promote the existing record so loyalty
+    // and relationship history carry over ("met -> joined"). Skip if already
+    // travelling with the party.
+    const existingCompanion = gameState.companions?.[targetId];
+    if (existingCompanion) {
+        const verdict = evaluateRecruitOffer(
+            { id: targetId, name: existingCompanion.identity.name },
+            gameState,
+            { autoAccept: offer.autoAccept }
+        );
+
+        if (!verdict.willJoin) {
+            addMessage(verdict.reason, 'system');
+            return;
+        }
+
+        if (isInParty(existingCompanion)) {
+            addMessage(`${existingCompanion.identity.name} is already travelling with you.`, 'system');
+            return;
+        }
+
+        dispatch({ type: 'RECRUIT_COMPANION', payload: promoteCompanionToMember(existingCompanion) });
+        addMessage(verdict.reason, 'system');
+        return;
+    }
+
+    // Otherwise resolve a world/generated NPC and convert it. Only generated
+    // NPCs carry the full RichNPC stats/biography the converter needs.
+    const richNpc = gameState.generatedNpcs?.[targetId] as RichNPC | undefined;
+    if (!richNpc) {
+        addMessage(`There is no one named ${targetId} to invite to your party.`, 'system');
+        return;
+    }
+
+    const verdict = evaluateRecruitOffer(richNpc, gameState, { autoAccept: offer.autoAccept });
+    if (!verdict.willJoin) {
+        addMessage(verdict.reason, 'system');
+        return;
+    }
+
+    dispatch({ type: 'RECRUIT_COMPANION', payload: npcToPartyMember(richNpc, 'dialogue') });
+    addMessage(verdict.reason, 'system');
 }
 
 function buildConversationContext(state: GameState): BanterContext {
@@ -203,6 +310,12 @@ export async function handleTalk({
     addMessage("Invalid talk target.", "system");
     return;
   }
+
+  // An "Invite to party" dialogue outcome can ride on any talk action. Process it
+  // once, up front, so the recruit pipeline runs regardless of which talk branch
+  // (companion / static NPC / generated NPC) the target resolves into. It is a
+  // side effect — like the quest handoff — so the normal dialogue still proceeds.
+  handleRecruitOffer(getRecruitOffer(action), gameState, dispatch, addMessage);
 
   const companion = gameState.companions[targetId];
   if (companion) {
@@ -382,6 +495,30 @@ export async function handleTalk({
       addMessage(`${npc.name} seems unresponsive or an error occurred.`, 'system');
       dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
     }
+  } else if (gameState.generatedNpcs?.[targetId]) {
+    // Situation/town-generated strangers live in `generatedNpcs`, not the static
+    // NPCS registry. Route them through the same dialogue session the town path
+    // uses (handleStartDialogue / DialogueInterface both resolve generatedNpcs)
+    // so a fresh player can actually talk to the people the opening placed —
+    // instead of hitting the "no one named X" dead-end below.
+    const generated = gameState.generatedNpcs[targetId];
+
+    if (!gameState.metNpcIds.includes(generated.id)) {
+      const metFact: KnownFact = {
+        id: generateId(),
+        text: `Met ${playerContext}.`,
+        source: 'direct',
+        isPublic: true,
+        timestamp: gameState.gameTime.getTime(),
+        strength: 3,
+        lifespan: 999,
+      };
+      dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: generated.id, fact: metFact } });
+      dispatch({ type: 'ADD_MET_NPC', payload: { npcId: generated.id } });
+    }
+
+    dispatch({ type: 'UPDATE_NPC_INTERACTION_TIMESTAMP', payload: { npcId: generated.id, timestamp: gameState.gameTime.getTime() } });
+    dispatch({ type: 'START_DIALOGUE_SESSION', payload: { npcId: generated.id } });
   } else {
     addMessage(`There is no one named ${targetId} to talk to here.`, 'system');
     dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });

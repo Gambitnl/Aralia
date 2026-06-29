@@ -242,6 +242,12 @@ export interface Companion {
   // Reaction Logic
   reactionRules: CompanionReactionRule[];
 
+  // Party membership: true when this companion is currently in the player's party.
+  // On dismiss/desert the Companion record is KEPT with inParty:false so the
+  // relationship persists and they remain re-recruitable (decision #5).
+  // Optional for backward compatibility with existing seeded/persisted records.
+  inParty?: boolean;
+
   // Combat stats could link to a CombatCharacter or be defined here
   // For now, we assume they map to a CombatCharacter via ID
 }

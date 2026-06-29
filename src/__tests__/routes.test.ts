@@ -4,6 +4,7 @@ import {
   getPhaseSlug,
   getPhaseFromSlug,
   isWorldGenDeepLink,
+  isDummyAutoStartDeepLink,
   PHASE_SLUG_OVERRIDES,
 } from '../routes';
 
@@ -70,5 +71,19 @@ describe('routes — world-gen deep link', () => {
     expect(isWorldGenDeepLink('')).toBe(false);
     expect(isWorldGenDeepLink('?worldmap=0')).toBe(false);
     expect(isWorldGenDeepLink('?view=something')).toBe(false);
+  });
+});
+
+describe('routes — dummy auto-start opt-in', () => {
+  it('matches the explicit ?dummy=1 / ?devstart=1 opt-in', () => {
+    expect(isDummyAutoStartDeepLink('?dummy=1')).toBe(true);
+    expect(isDummyAutoStartDeepLink('?devstart=1')).toBe(true);
+    expect(isDummyAutoStartDeepLink('?foo=bar&dummy=1')).toBe(true);
+  });
+
+  it('does NOT match a bare cold load (so a new player sees the Main Menu)', () => {
+    expect(isDummyAutoStartDeepLink('')).toBe(false);
+    expect(isDummyAutoStartDeepLink('?dummy=0')).toBe(false);
+    expect(isDummyAutoStartDeepLink('?phase=playing')).toBe(false);
   });
 });

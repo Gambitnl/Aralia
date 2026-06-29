@@ -98,6 +98,12 @@ export type AppAction = {
         discoveryEntry: DiscoveryEntry;
     };
 } | {
+    type: 'PLACE_AREA_ITEMS';
+    payload: {
+        locationId: string;
+        itemIds: string[];
+    };
+} | {
     type: 'TOGGLE_MAP_VISIBILITY';
 } | {
     type: 'TOGGLE_MINIMAP_VISIBILITY';
@@ -564,6 +570,14 @@ export type AppAction = {
     payload: {
         banterId: string;
         timestamp: number;
+    };
+} | {
+    type: 'RECRUIT_COMPANION';
+    payload: import('../systems/party/recruitTypes.js').RecruitPayload;
+} | {
+    type: 'DISMISS_PARTY_MEMBER';
+    payload: {
+        memberId: string;
     };
 } | {
     type: 'ADD_NOTIFICATION';

@@ -16,7 +16,7 @@ export const QUEST_TEMPLATES: Record<string, QuestTemplate> = {
     giverId: 'villager_generic',
     objectives: [
       { id: 'find_map', description: 'Find the Old Map Fragment.' },
-      { id: 'return_map', description: 'Return the map to the town scholar (Placeholder).' }
+      { id: 'return_map', description: 'Return the map to the town scholar.' }
     ],
     rewards: {
       gold: 10,

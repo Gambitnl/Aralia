@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "agora": "node tools/agora/server.mjs",
+    "orchestrate": "node tools/agora/orchestrate.mjs",
     "clean": "rimraf dist",
     "tidy-up": "bash ./scripts/tidy-up.sh standard",
     "tidy-up:light": "bash ./scripts/tidy-up.sh light",
@@ -19,6 +20,7 @@
     "validate:charset": "tsx scripts/check-non-ascii.ts",
     "validate:spells": "tsx scripts/validateSpellJsons.ts",
     "validate:spell-markdown": "tsx scripts/validateSpellMarkdownParity.ts",
+    "spells:completeness": "tsx scripts/generateSpellCompletenessSnapshot.ts",
     "audit:spell-template": "tsx scripts/auditSpellRuntimeTemplate.ts",
     "audit:damage-type-canonical": "tsx scripts/auditSpellDamageTypeCanonical.ts",
     "generate:spell-gates": "tsx scripts/generateSpellGateReport.ts",

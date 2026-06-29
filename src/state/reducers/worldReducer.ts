@@ -23,6 +23,7 @@ import { withLegacyWeatherBridge } from '../../types/environment';
 import { AppAction } from '../actionTypes';
 import { LOCATIONS } from '../../data/world/locations';
 import { getTimeOfDay, getGameDay } from '../../utils/core';
+import { advanceRegistry } from '../../systems/worldforge/townsim/townSimRegistry';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
 import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
 import { DEFAULT_WEATHER } from '../../systems/environment/EnvironmentSystem';
@@ -281,6 +282,16 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
           ...simulatedWorldState,
           messages: [...nextState.messages, ...worldLogs]
         };
+
+        // 4b. Living-world town sim: advance every tracked town's multi-day
+        // history up to the new day. No-op until a town is first tracked
+        // (towns are registered on player encounter — see townsim Plan D).
+        if (nextState.townSim && Object.keys(nextState.townSim).length > 0) {
+          nextState = {
+            ...nextState,
+            townSim: advanceRegistry(nextState.townSim, nextState.worldSeed, newDay),
+          };
+        }
 
         // 5. Stronghold Daily Processing
         if (nextState.strongholds && Object.keys(nextState.strongholds).length > 0) {

@@ -436,7 +436,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
             ) : null}
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-amber-200">{containerName}</span>
-              <span className="text-[10px] text-gray-500">{bucket.children.length} item(s)</span>
+              <span className="text-[10px] text-gray-400">{bucket.children.length} item(s)</span>
             </div>
           </div>
           <div className="flex gap-2 text-[10px] text-gray-400">
@@ -754,7 +754,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{filter.icon}</span>
                 <span>{filter.label}</span>
-                <span className={`text-[10px] ${isActive ? 'text-sky-200' : 'text-gray-500'}`}>({count})</span>
+                <span className={`text-[10px] ${isActive ? 'text-sky-200' : 'text-gray-400'}`}>({count})</span>
               </button>
             </Tooltip>
           );
@@ -765,7 +765,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
         <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto scrollable-content pr-1">
           {renderContainer(ROOT_CONTAINER_ID)}
         </div>
-      ) : <p className="text-sm text-gray-500 italic p-4 text-center border border-dashed border-gray-700 rounded">Backpack is empty.</p>}
+      ) : <p className="text-sm text-gray-400 italic p-4 text-center border border-dashed border-gray-700 rounded">Backpack is empty.</p>}
     </div>
   );
 };

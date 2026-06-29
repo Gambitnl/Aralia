@@ -84,7 +84,7 @@ const OrgMembersList: React.FC<OrgMembersListProps> = ({ organization, onRecruit
 
       <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
         {organization.members.length === 0 ? (
-            <div className="text-gray-500 text-center italic py-4">No members yet.</div>
+            <div className="text-gray-400 text-center italic py-4">No members yet.</div>
         ) : (
             organization.members.map(member => (
                 <MemberCard key={member.id} member={member} onPromote={() => onPromote(member.id)} />
@@ -105,7 +105,7 @@ const MemberCard: React.FC<{ member: OrgMember; onPromote: () => void }> = ({ me
         </div>
         <div className="text-right flex items-center gap-4">
             <div className="text-xs">
-                <div className="text-gray-500">Loyalty</div>
+                <div className="text-gray-400">Loyalty</div>
                 <div className={`${member.loyalty > 70 ? 'text-green-400' : member.loyalty < 30 ? 'text-red-400' : 'text-yellow-400'}`}>
                     {member.loyalty}%
                 </div>

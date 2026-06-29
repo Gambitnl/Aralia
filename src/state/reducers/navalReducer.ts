@@ -27,6 +27,14 @@ import { CrewManager } from '../../systems/naval/CrewManager';
 import { createShip } from '../../utils/navalUtils';
 import { SeededRandom } from '@/utils/random';
 
+/**
+ * Default price of the starter sloop offered from the naval dashboard's
+ * "No Active Ship" state. A modest figure: out of reach for a fresh level-1
+ * character (who starts with ~10 gp) but affordable after some adventuring,
+ * so acquiring a ship is an earned milestone rather than a free handout.
+ */
+export const STARTER_SHIP_COST = 500;
+
 const hashStringToSeed = (value: string): number => {
   let hash = 2166136261;
 
@@ -52,6 +60,32 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
           ...state.naval,
           playerShips: [starterShip],
           activeShipId: starterShip.id,
+        },
+      };
+    }
+
+    case 'NAVAL_PURCHASE_STARTER_SHIP': {
+      // The player's in-game entry point for acquiring their first ship.
+      // No-op if they already own one (a fleet has been started) or can't
+      // afford the cost — the dashboard disables the button in those cases,
+      // but the reducer stays authoritative.
+      if (state.naval.playerShips.length > 0) return state;
+
+      const cost = action.payload?.cost ?? STARTER_SHIP_COST;
+      if (state.gold < cost) return state;
+
+      const ship = createShip(
+        action.payload?.name ?? 'The Drunken Seagull',
+        action.payload?.type ?? 'Sloop',
+      );
+
+      return {
+        ...state,
+        gold: state.gold - cost,
+        naval: {
+          ...state.naval,
+          playerShips: [ship],
+          activeShipId: ship.id,
         },
       };
     }

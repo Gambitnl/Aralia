@@ -9,10 +9,11 @@
  * aria-label assertion as they are now handled via tooltips.
  */
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import PartyPane from '../PartyPane';
 import { PlayerCharacter, Companion } from '../../../../types';
+import { SOFT_PARTY_CAP } from '../../../../systems/party/partyConstants';
 
 // Mock Tooltip as it might use portal or other things
 vi.mock('../../../ui/Tooltip', () => ({
@@ -139,5 +140,52 @@ describe('PartyPane', () => {
     expect(screen.queryByText('Relationship:')).not.toBeInTheDocument();
     expect(screen.queryByText('friend')).not.toBeInTheDocument();
     expect(screen.queryByText('(+250)')).not.toBeInTheDocument();
+  });
+
+  const makeMember = (id: string): PlayerCharacter => ({
+    ...mockCharacter,
+    id,
+    name: `Member ${id}`,
+  });
+
+  it('shows the party count against the soft cap', () => {
+    render(<PartyPane {...mockProps} />);
+    expect(screen.getByLabelText(`Party size: 1 of ${SOFT_PARTY_CAP} suggested`)).toBeInTheDocument();
+  });
+
+  it('does not show the large-party hint at or below the soft cap', () => {
+    const party = Array.from({ length: SOFT_PARTY_CAP }, (_, i) => makeMember(`m${i}`));
+    render(<PartyPane {...mockProps} party={party} />);
+    expect(screen.queryByText('Large party')).not.toBeInTheDocument();
+  });
+
+  it('shows a large-party hint when over the soft cap (never blocks)', () => {
+    const party = Array.from({ length: SOFT_PARTY_CAP + 1 }, (_, i) => makeMember(`m${i}`));
+    render(<PartyPane {...mockProps} party={party} />);
+    expect(screen.getByText('Large party')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(`Party size: ${SOFT_PARTY_CAP + 1} of ${SOFT_PARTY_CAP} suggested`)
+    ).toBeInTheDocument();
+  });
+
+  it('threads onDismissMember down to a non-leader member card (and omits the leader at index 0)', () => {
+    const onDismissMember = vi.fn();
+    // index 0 = leader (no Dismiss), index 1 = recruited ally (has Dismiss).
+    const party = [makeMember('leader1'), makeMember('ally1')];
+    render(<PartyPane {...mockProps} party={party} onDismissMember={onDismissMember} />);
+
+    expect(screen.queryByRole('button', { name: /Dismiss Member leader1 from the party/i })).not.toBeInTheDocument();
+    const dismissButton = screen.getByRole('button', { name: /Dismiss Member ally1 from the party/i });
+    fireEvent.click(dismissButton);
+    expect(onDismissMember).toHaveBeenCalledWith('ally1');
+  });
+
+  it('never renders a Dismiss control for the party leader (index 0), regardless of id', () => {
+    const onDismissMember = vi.fn();
+    // Leader id is NOT the literal 'player' — leader is roster index 0 (live-verified regression).
+    const party = [makeMember('hero_42')];
+    render(<PartyPane {...mockProps} party={party} onDismissMember={onDismissMember} />);
+
+    expect(screen.queryByRole('button', { name: /Dismiss/i })).not.toBeInTheDocument();
   });
 });

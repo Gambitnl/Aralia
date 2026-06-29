@@ -1,0 +1,275 @@
+{
+  "id": "summon-aberration",
+  "name": "Summon Aberration",
+  "aliases": [],
+  "level": 4,
+  "school": "Conjuration",
+  "legacy": false,
+  "classes": [
+    "Warlock",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 90,
+    "distanceUnit": "feet"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a pickled tentacle and an eyeball in a platinum-inlaid vial worth 400+ GP",
+    "materialCost": 400,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "concentration": true,
+    "value": 1,
+    "unit": "hour"
+  },
+  "targeting": {
+    "type": "point",
+    "range": 90,
+    "rangeUnit": "feet",
+    "validTargets": [
+      "point"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable",
+      "placementEligibility": {
+        "unoccupied": "required",
+        "surface": "not_applicable",
+        "destination": "visible_space_within_range",
+        "notes": "Summon Aberration manifests the Aberrant Spirit in an unoccupied space the caster can see within range."
+      }
+    }
+  },
+  "effects": [
+    {
+      "type": "SUMMONING",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "description": "Summon one Aberrant Spirit in a visible unoccupied space within 90 feet for up to 1 hour with concentration, choosing a Beholderkin, Slaad, or Star Spawn form. The spirit is an ally, shares your Initiative count but acts immediately after you, obeys verbal commands with no action required, Dodges and avoids danger when uncommanded, disappears at 0 Hit Points or when the spell ends, and uses the slot level for AC, Hit Points, and its form's attack damage.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": "Use the slot level as the spell's level in the Aberrant Spirit stat block: AC is 11 + spell level, HP is 40 + 10 for each spell level above 4, and the form attack adds the spell's level to its damage."
+      },
+      "conditionalEndings": [
+        {
+          "trigger": "created_entity_drops_to_0_hp",
+          "scope": "effect",
+          "description": "The aberrant spirit disappears when it drops to 0 Hit Points."
+        }
+      ],
+      "summon": {
+        "entityType": "creature",
+        "persistent": false,
+        "count": 1,
+        "commandCost": "none",
+        "commandsPerTurn": 1,
+        "initiative": "shared",
+        "objectDescription": "Aberrant Spirit ally that shares the caster's initiative, acts immediately after the caster, obeys verbal commands with no caster action, and uses its form's attack as its combat action.",
+        "statBlock": {
+          "name": "Aberrant Spirit",
+          "type": "Aberration",
+          "size": "Medium",
+          "hp": 40,
+          "ac": 11,
+          "speed": 30,
+          "flySpeed": 30,
+          "swimSpeed": 30,
+          "abilities": {
+            "str": 16,
+            "dex": 10,
+            "con": 15,
+            "int": 16,
+            "wis": 10,
+            "cha": 6
+          },
+          "senses": [
+            "Darkvision 60 ft.",
+            "Passive Perception 10"
+          ],
+          "cr": "None"
+        },
+        "formOptions": [
+          "Beholderkin",
+          "Slaad",
+          "Star Spawn"
+        ],
+        "telepathyRange": 60,
+        "specialActions": [
+          {
+            "name": "Aberrant Attack",
+            "description": "Melee or Ranged spell attack, reach 5 ft. or range 150 ft. Hit: 1d6 + 3 + the spell's level damage of the form's type (Psychic for Beholderkin and Star Spawn, Piercing for Slaad), with the Slaad form regaining Hit Points on a hit.",
+            "cost": "action",
+            "damage": {
+              "dice": "1d6 + 3 + spell_level",
+              "type": "psychic"
+            }
+          }
+        ]
+      },
+      "socialEffect": {
+        "relationship": "ally",
+        "alliedTo": [
+          "caster",
+          "caster_allies"
+        ],
+        "understandsCasterLanguages": true,
+        "sharesCasterInitiative": true,
+        "obeysCasterCommands": true,
+        "notes": "The summoned Aberrant Spirit is an ally to the caster and allies, understands the caster languages, shares initiative, and follows commands."
+      }
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "Choose the Aberrant Spirit form (Beholderkin, Slaad, or Star Spawn) and arrival space; use the caster's spell attack modifier for the form's attack and apply the form's rider on a hit.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 3,
+    "optionsSource": "summon.formOptions",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Beholderkin",
+        "summary": "Summon a Beholderkin Aberrant Spirit with a flying speed and a ranged Eye Ray that deals Psychic damage.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature uses the Aberrant Spirit stat block and slot-level scaling."
+      },
+      {
+        "label": "Slaad",
+        "summary": "Summon a Slaad Aberrant Spirit whose Claws deal Piercing damage and let it regain Hit Points on a hit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature uses the Aberrant Spirit stat block and slot-level scaling."
+      },
+      {
+        "label": "Star Spawn",
+        "summary": "Summon a Star Spawn Aberrant Spirit whose Psychic Slam punishes nearby enemies that target the spirit.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature uses the Aberrant Spirit stat block and slot-level scaling."
+      }
+    ],
+    "notes": "The form choice selects the Aberrant Spirit's attack mode and rider."
+  },
+  "description": "You call forth an aberrant spirit. It manifests in an unoccupied space that you can see within range and uses the Aberrant Spirit stat block. When you cast the spell, choose Beholderkin, Slaad, or Star Spawn. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+  "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Aberrant Spirit's Hit Points and attack damage increase as the spell's level increases.",
+  "tags": [
+    "summoning",
+    "controlled-entity",
+    "concentration"
+  ]
+}

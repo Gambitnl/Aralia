@@ -156,10 +156,10 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                             </div>
                                         ) : null}
                                         <div className="flex gap-4 mt-1 text-xs uppercase tracking-wider font-bold">
-                                            <span className={economy.marketFactors.surplus.length > 0 ? "text-green-400" : "text-gray-600"}>
+                                            <span className={economy.marketFactors.surplus.length > 0 ? "text-green-400" : "text-gray-300"}>
                                                 Surplus: {economy.marketFactors.surplus.join(', ') || 'None'}
                                             </span>
-                                            <span className={economy.marketFactors.scarcity.length > 0 ? "text-red-400" : "text-gray-600"}>
+                                            <span className={economy.marketFactors.scarcity.length > 0 ? "text-red-400" : "text-gray-300"}>
                                                 Scarcity: {economy.marketFactors.scarcity.join(', ') || 'None'}
                                             </span>
                                         </div>
@@ -251,7 +251,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                             </div>
                                         );
                                     })}
-                                    {merchantInventory.length === 0 && <p className="text-gray-500 italic text-center mt-10">Sold out.</p>}
+                                    {merchantInventory.length === 0 && <p className="text-gray-400 italic text-center mt-10">Sold out.</p>}
                                 </div>
                             </div>
 
@@ -288,7 +288,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                                     <span className="text-2xl" aria-hidden="true">{item.icon || '📦'}</span>
                                                     <div>
                                                         <p className="font-semibold text-gray-300">{item.name}</p>
-                                                        <p className="text-xs text-gray-500">Value: {formatGpAsCoins(finalPrice)}</p>
+                                                        <p className="text-xs text-gray-400">Value: {formatGpAsCoins(finalPrice)}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col items-end gap-1">
@@ -311,7 +311,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                             </div>
                                         );
                                     })}
-                                    {sellableItems.length === 0 && <p className="text-gray-500 italic text-center mt-10">Nothing to sell.</p>}
+                                    {sellableItems.length === 0 && <p className="text-gray-400 italic text-center mt-10">Nothing to sell.</p>}
                                 </div>
                             </div>
                         </>

@@ -60,7 +60,7 @@ export const HeistPlanningModal: React.FC<HeistPlanningModalProps> = ({
                 <div className="bg-gray-900 p-4 rounded border border-gray-700 mb-6">
                     <h4 className="font-semibold text-gray-300 mb-2">Intel Gathered</h4>
                     {plan.intelGathered.length === 0 ? (
-                        <p className="text-gray-500 italic">No intel gathering conducted yet.</p>
+                        <p className="text-gray-400 italic">No intel gathering conducted yet.</p>
                     ) : (
                         <ul className="list-disc list-inside text-sm">
                             {plan.intelGathered.map((intel, i) => (

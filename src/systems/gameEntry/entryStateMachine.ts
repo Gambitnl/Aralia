@@ -19,7 +19,7 @@
  */
 
 import type { GameEntryState, OpeningSituation } from './types';
-import { INITIAL_GAME_ENTRY_STATE } from './types';
+import { INITIAL_GAME_ENTRY_STATE, INITIAL_SCENE_IMAGE_STATE } from './types';
 
 export type GameEntryEvent =
     | { type: 'BEGIN' }
@@ -56,19 +56,22 @@ export function gameEntryTransition(
             // Only start generating from idle. Re-entry while already generating
             // or in-situation is ignored so we never double-fire a model call.
             if (state.status !== 'idle') return state;
-            return { status: 'generating', situation: null, error: null };
+            // A fresh opening: clear any prior scene illustration.
+            return { ...state, status: 'generating', situation: null, error: null, sceneImage: INITIAL_SCENE_IMAGE_STATE };
 
         case 'RESOLVED':
             if (state.status !== 'generating') return state;
-            return { status: 'in-situation', situation: event.situation, error: null };
+            // Preserve sceneImage — the scene request is fired by the orchestration
+            // hook right after this transition and is tracked by its own actions.
+            return { ...state, status: 'in-situation', situation: event.situation, error: null };
 
         case 'UNAVAILABLE':
             if (state.status !== 'generating') return state;
-            return { status: 'model-unavailable', situation: null, error: event.error };
+            return { ...state, status: 'model-unavailable', situation: null, error: event.error };
 
         case 'RETRY':
             if (state.status !== 'model-unavailable') return state;
-            return { status: 'generating', situation: null, error: null };
+            return { ...state, status: 'generating', situation: null, error: null, sceneImage: INITIAL_SCENE_IMAGE_STATE };
 
         case 'SKIP':
             // Let the player continue normal play when the optional generated

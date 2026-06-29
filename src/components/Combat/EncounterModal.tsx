@@ -245,7 +245,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
       );
     }
     if (!encounter || encounter.length === 0) {
-      return <p className="text-gray-500 italic text-center p-8">{t('encounter_modal.no_encounter')}</p>;
+      return <p className="text-gray-400 italic text-center p-8">{t('encounter_modal.no_encounter')}</p>;
     }
     return (
       <>
@@ -428,7 +428,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
 
                   {/* Template label */}
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">Template:</span>
+                    <span className="text-xs text-gray-400">Template:</span>
                     <span className="text-xs text-emerald-400 font-medium">{bestiaryResult.templateLabel}</span>
                   </div>
 
@@ -470,7 +470,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                             {/* Name + CR */}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-baseline gap-2 flex-wrap">
-                                <span className={`font-bold text-sm ${removed ? 'line-through text-gray-500' : isAdded ? 'text-indigo-300' : 'text-amber-300'}`}>
+                                <span className={`font-bold text-sm ${removed ? 'line-through text-gray-400' : isAdded ? 'text-indigo-300' : 'text-amber-300'}`}>
                                   {monster.name}
                                 </span>
                                 <span className="text-xs text-sky-400 shrink-0">CR {monster.cr}</span>
@@ -495,7 +495,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                       className="w-full flex items-center justify-between px-3 py-2 bg-gray-800/60 hover:bg-gray-700/60 text-xs font-semibold text-gray-300 transition-colors"
                     >
                       <span>＋ Add Monster from Library</span>
-                      <span className="text-gray-500">{showSearch ? '▲' : '▼'}</span>
+                      <span className="text-gray-400">{showSearch ? '▲' : '▼'}</span>
                     </button>
                     {showSearch && (
                       <div className="p-3 bg-gray-800/30 relative">
@@ -512,7 +512,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                           Adjusted XP:{' '}
                           <span className="text-white font-medium">{liveDiff.adjustedXp.toLocaleString()}</span>
                           {liveDiff.rawXp !== liveDiff.adjustedXp && (
-                            <span className="text-gray-500 ml-1">(raw {liveDiff.rawXp.toLocaleString()})</span>
+                            <span className="text-gray-400 ml-1">(raw {liveDiff.rawXp.toLocaleString()})</span>
                           )}
                         </span>
                         <span className={`text-xs font-bold ${TIER_TEXT[liveDiff.tier]}`}>
@@ -525,7 +525,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                           style={{ width: `${Math.min(100, (liveDiff.adjustedXp / (liveDiff.thresholds.deadly * 1.5)) * 100)}%` }}
                         />
                       </div>
-                      <div className="flex justify-between text-xs text-gray-500">
+                      <div className="flex justify-between text-xs text-gray-400">
                         <span>Easy {liveDiff.thresholds.easy.toLocaleString()}</span>
                         <span>Med {liveDiff.thresholds.medium.toLocaleString()}</span>
                         <span>Hard {liveDiff.thresholds.hard.toLocaleString()}</span>
@@ -533,13 +533,13 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-500 italic text-center py-2">
+                    <p className="text-xs text-gray-400 italic text-center py-2">
                       All monsters removed — add at least one to see difficulty.
                     </p>
                   )}
                 </>
               ) : (
-                <p className="text-xs text-gray-500 italic text-center py-4">
+                <p className="text-xs text-gray-400 italic text-center py-4">
                   {lairOnly
                     ? 'No lair monsters found at this difficulty — try a higher difficulty or disable the lair filter.'
                     : 'Generating encounter…'}
@@ -579,7 +579,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                       </div>
                       <button
                         onClick={() => removeCustomMonster(m.name, m.isLair)}
-                        className="text-gray-500 hover:text-red-400 text-xs ml-2 transition-colors"
+                        className="text-gray-400 hover:text-red-400 text-xs ml-2 transition-colors"
                         aria-label={`Remove ${m.name}`}
                       >
                         ✕
@@ -595,7 +595,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                     <span className="text-xs text-gray-400">
                       Encounter XP: <span className="text-white font-medium">{difficulty.adjustedXp.toLocaleString()}</span>
                       {difficulty.multiplier !== 1 && (
-                        <span className="text-gray-500 ml-1">
+                        <span className="text-gray-400 ml-1">
                           ({difficulty.rawXp.toLocaleString()} × {difficulty.multiplier})
                         </span>
                       )}
@@ -610,7 +610,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                       style={{ width: `${Math.min(100, (difficulty.adjustedXp / (difficulty.thresholds.deadly * 1.5)) * 100)}%` }}
                     />
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500">
+                  <div className="flex justify-between text-xs text-gray-400">
                     <span>Easy {difficulty.thresholds.easy.toLocaleString()}</span>
                     <span>Med {difficulty.thresholds.medium.toLocaleString()}</span>
                     <span>Hard {difficulty.thresholds.hard.toLocaleString()}</span>
@@ -620,7 +620,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
               )}
 
               {customMonsters.length === 0 && (
-                <p className="text-xs text-gray-500 italic text-center py-2">
+                <p className="text-xs text-gray-400 italic text-center py-2">
                   Search and click a monster to add it to the encounter.
                 </p>
               )}

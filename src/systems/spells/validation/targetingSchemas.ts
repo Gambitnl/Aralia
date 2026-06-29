@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/06/2026, 22:13:38
+ * Last Sync: 28/06/2026, 12:11:50
  * Dependents: systems/spells/validation/spellValidator.ts
  * Imports: None
  *
@@ -211,7 +211,10 @@ const TargetSelfRelation = z.enum([
 const TargetPlacementEligibility = z.object({
   unoccupied: z.enum(["required", "not_applicable"]).optional(),
   surface: z.enum(["ground", "liquid", "any_solid", "not_applicable"]).optional(),
-  destination: z.enum(["safest_nearby", "nearest_unoccupied", "caster_choice", "not_applicable"]).optional(),
+  // Summons can require a visible unoccupied space inside spell range. That is
+  // stricter than generic caster choice and different from fallback placement
+  // after forced movement, so preserve it as its own target-placement contract.
+  destination: z.enum(["safest_nearby", "nearest_unoccupied", "caster_choice", "visible_space_within_range", "not_applicable"]).optional(),
   notes: z.string().optional(),
 });
 

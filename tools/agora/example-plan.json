@@ -1,0 +1,25 @@
+{
+  "wave": "example",
+  "baseUrl": "http://localhost:4319",
+  "baseline": 219,
+  "packets": [
+    {
+      "id": "PK-example-menu",
+      "handle": "example-menu",
+      "agent": "claude",
+      "scope": "Give the main menu a semantic color system (one primary CTA, neutral secondary, red destructive)",
+      "files": ["src/components/layout/MainMenu.tsx"],
+      "issues": ["M1", "M2"],
+      "guidance": "Replace the rainbow per-button hues with: one accent for the primary action, neutral slate for the rest, red reserved for destructive/exit. Reuse existing Tailwind tokens; do not change layout or button behavior."
+    },
+    {
+      "id": "PK-example-bridges",
+      "handle": "example-bridges",
+      "agent": "gemini",
+      "scope": "Cap town bridge over-generation by typology (mirror dockCapForTypology)",
+      "files": ["src/systems/worldforge/town/townEngine.ts"],
+      "issues": ["TG1"],
+      "guidance": "findBridges seats a bridge at every river/ward crossing with no cap. Add a bridgeCapForTypology (hamlet/village 1, town 2, city/capital 3) and a cap pass keeping the K crossings nearest town centre; merge crossings within a span-width. Mirror the existing dock-cap approach in the same file."
+    }
+  ]
+}

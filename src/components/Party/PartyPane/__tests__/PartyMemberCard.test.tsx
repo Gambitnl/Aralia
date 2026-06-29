@@ -35,6 +35,7 @@ describe('PartyMemberCard', () => {
     companion?: Companion;
     onMoreClick: () => void;
     onMissingChoiceClick: () => void;
+    onDismiss?: (id: string) => void;
   };
 
   beforeEach(() => {
@@ -78,7 +79,7 @@ describe('PartyMemberCard', () => {
       transportMode: 'foot',
       equippedItems: {},
       statusEffects: [],
-      spellcastingAbility: 'Intelligence',
+      spellcastingAbility: 'intelligence',
       spellSlots: {
         level_1: { max: 4, current: 3 },
         level_2: { max: 2, current: 1 },
@@ -258,5 +259,38 @@ describe('PartyMemberCard', () => {
     expect(screen.queryByText('Relationship:')).not.toBeInTheDocument();
     expect(screen.queryByText('friend')).not.toBeInTheDocument();
     expect(screen.queryByText('(+150)')).not.toBeInTheDocument();
+  });
+
+  it('does not render a Dismiss control when no onDismiss handler is provided', () => {
+    render(<PartyMemberCard {...mockProps} />);
+    expect(screen.queryByRole('button', { name: /Dismiss Aethelgard/i })).not.toBeInTheDocument();
+  });
+
+  it('renders a Dismiss control and fires onDismiss with the member id', () => {
+    const onDismiss = vi.fn();
+    render(<PartyMemberCard {...mockProps} onDismiss={onDismiss} />);
+
+    const dismissButton = screen.getByRole('button', { name: /Dismiss Aethelgard from the party/i });
+    expect(dismissButton).toBeInTheDocument();
+
+    fireEvent.click(dismissButton);
+    expect(onDismiss).toHaveBeenCalledWith('char1');
+  });
+
+  it('never renders a Dismiss control for the party leader (player id)', () => {
+    mockCharacter.id = 'player';
+    const onDismiss = vi.fn();
+    render(<PartyMemberCard {...mockProps} character={mockCharacter} onDismiss={onDismiss} />);
+
+    expect(screen.queryByRole('button', { name: /Dismiss/i })).not.toBeInTheDocument();
+  });
+
+  it('never renders a Dismiss control for the leader by position, even when the id is not "player"', () => {
+    // Regression (caught in live verification): a save's leader id is not always
+    // the literal 'player' — the leader is roster index 0. isLeader must suppress Dismiss.
+    const onDismiss = vi.fn();
+    render(<PartyMemberCard {...mockProps} isLeader onDismiss={onDismiss} />);
+
+    expect(screen.queryByRole('button', { name: /Dismiss/i })).not.toBeInTheDocument();
   });
 });

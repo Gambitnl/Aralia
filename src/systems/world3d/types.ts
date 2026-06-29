@@ -58,8 +58,11 @@ export interface ChunkData {
   /**
    * Town dock/bridge deck quads clipped to this chunk (grid-space corners) with a
    * flat top in world-meters Y, rendered as low timber slabs over town water.
+   * `kind` carries the civic role end-to-end (TG5) so the renderer can tint a
+   * weathered-timber quay distinctly from a lighter bridge span — a dock and a
+   * bridge must not look identical.
    */
-  decks?: { points: { x: number; y: number }[]; topY: number }[];
+  decks?: { points: { x: number; y: number }[]; topY: number; kind: 'dock' | 'bridge' }[];
   /**
    * Lake polygons clipped to this chunk (grid space) with a shared flat water surface.
    * Lakes are filled meshes, not ribbons, so the builder can triangulate them directly.
@@ -228,8 +231,12 @@ export interface ChunkMeshBundle {
   roads?: ChunkGeometryArrays;
   /** Extruded town wall-ring barriers (Worldforge Option B). */
   walls?: ChunkGeometryArrays;
-  /** Town dock/bridge deck slabs over water (Worldforge Option B). */
-  decks?: ChunkGeometryArrays;
+  /**
+   * Town dock/bridge deck slabs over water (Worldforge Option B). Carries
+   * per-vertex `colors` (TG5) so docks and bridges read distinctly under one
+   * vertex-colored material.
+   */
+  decks?: ChunkGeometryArrays & { colors?: Float32Array };
   sites: ChunkSite[];
   vegetation?: VegetationScatter;
   /** Second vegetation layer (ground mode): bushes, rendered as their own

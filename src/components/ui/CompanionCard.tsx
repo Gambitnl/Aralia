@@ -75,14 +75,14 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, playerI
             <span className={`text-sm font-bold uppercase tracking-wide ${LEVEL_COLORS[relationship.level]}`}>
               {relationship.level}
             </span>
-            <span className="text-xs text-gray-500">({relationship.approval})</span>
+            <span className="text-xs text-gray-400">({relationship.approval})</span>
           </div>
         </div>
       </div>
 
       {/* Approval Bar */}
       <div className="mb-4">
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
+        <div className="flex justify-between text-xs text-gray-400 mb-1">
           <span>Hated</span>
           <span>Neutral</span>
           <span>Loyal</span>
@@ -102,7 +102,7 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, playerI
         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 border-b border-gray-700 pb-1">Current Goals</h4>
         <ul className="space-y-2">
           {goals.filter(g => g.status === 'active' && !g.isSecret).length === 0 && (
-            <li className="text-xs text-gray-500 italic">No active goals known.</li>
+            <li className="text-xs text-gray-400 italic">No active goals known.</li>
           )}
           {goals.filter(g => g.status === 'active' && !g.isSecret).map(goal => (
             <li key={goal.id} className="text-sm text-gray-300 flex items-start gap-2">
@@ -152,7 +152,7 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, playerI
               </li>
             ))}
             {companion.discoveredFacts.length > 5 && (
-              <li className="text-xs text-gray-500 italic pl-6">
+              <li className="text-xs text-gray-400 italic pl-6">
                 +{companion.discoveredFacts.length - 5} more facts...
               </li>
             )}

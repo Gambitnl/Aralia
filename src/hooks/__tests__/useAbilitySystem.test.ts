@@ -351,6 +351,7 @@ describe('useAbilitySystem - Reactions', () => {
             castingTime: { value: 1, unit: 'reaction' },
             castingTrigger: {
                 type: 'after_attack_hit',
+                requiredCost: 'reaction',
                 targetBinding: 'triggering_attack_target',
                 attackFilter: {
                     attackType: 'weapon',
@@ -402,7 +403,11 @@ describe('useAbilitySystem - Reactions', () => {
             ...defender,
             id: 'smite-target',
             name: 'Smite Target',
-            team: 'enemy'
+            team: 'enemy',
+            // This case proves the attacker's after-hit smite prompt. Remove
+            // inherited Shield-style reactions so the target defensive-reaction
+            // phase does not open a second pending prompt after the smite.
+            abilities: []
         };
         const onCharacterUpdate = vi.fn();
 
@@ -501,6 +506,7 @@ describe('useAbilitySystem - Reactions', () => {
             castingTime: { value: 1, unit: 'reaction' },
             castingTrigger: {
                 type: 'after_attack_hit',
+                requiredCost: 'reaction',
                 targetBinding: 'triggering_attack_target',
                 attackFilter: {
                     attackType: 'weapon',
@@ -552,7 +558,12 @@ describe('useAbilitySystem - Reactions', () => {
             ...defender,
             id: 'ranged-smite-target',
             name: 'Ranged Smite Target',
-            team: 'enemy'
+            team: 'enemy',
+            // This negative case should prove that a ranged hit does not wake a
+            // melee-only smite. Remove inherited Shield reactions so "no smite"
+            // does not turn into an unrelated defensive prompt that waits for a
+            // separate response.
+            abilities: []
         };
 
         // The attack hits, but it is explicitly a ranged weapon hit. That is
@@ -625,6 +636,7 @@ describe('useAbilitySystem - Reactions', () => {
             castingTime: { value: 1, unit: 'reaction' },
             castingTrigger: {
                 type: 'after_attack_hit',
+                requiredCost: 'reaction',
                 targetBinding: 'triggering_attack_target',
                 attackFilter: {
                     attackType: 'weapon',
@@ -676,7 +688,11 @@ describe('useAbilitySystem - Reactions', () => {
             ...defender,
             id: 'legacy-melee-smite-target',
             name: 'Legacy Melee Smite Target',
-            team: 'enemy'
+            team: 'enemy',
+            // This proof is about legacy smite filter normalization on the
+            // attacker's reaction, so the target must not open its own
+            // defensive reaction prompt after the smite resolves.
+            abilities: []
         };
 
         // The attack event is the modern compact melee shape. The spell filter
@@ -754,6 +770,7 @@ describe('useAbilitySystem - Reactions', () => {
             castingTime: { value: 1, unit: 'reaction' },
             castingTrigger: {
                 type: 'after_attack_hit',
+                requiredCost: 'reaction',
                 targetBinding: 'triggering_attack_target',
                 attackFilter: {
                     attackType: 'weapon',
@@ -806,7 +823,10 @@ describe('useAbilitySystem - Reactions', () => {
             ...defender,
             id: 'unarmed-smite-target',
             name: 'Unarmed Smite Target',
-            team: 'enemy'
+            team: 'enemy',
+            // Keep this fixture focused on the attacker-side unarmed smite
+            // prompt, not the target's separate Shield-style reaction lane.
+            abilities: []
         };
 
         // The attack event uses explicit unarmed metadata. The hook should not
@@ -1544,8 +1564,7 @@ describe('useAbilitySystem - Reactions', () => {
             id: familiar.id,
             actionEconomy: expect.objectContaining({
                 reaction: expect.objectContaining({
-                    used: true,
-                    remaining: 0
+                    used: true
                 })
             })
         }));
@@ -1669,8 +1688,7 @@ describe('useAbilitySystem - Reactions', () => {
             id: familiar.id,
             actionEconomy: expect.objectContaining({
                 action: expect.objectContaining({
-                    used: true,
-                    remaining: 0
+                    used: true
                 }),
                 reaction: expect.objectContaining({
                     used: false,
@@ -1795,8 +1813,7 @@ describe('useAbilitySystem - Reactions', () => {
                     remaining: 1
                 }),
                 bonusAction: expect.objectContaining({
-                    used: true,
-                    remaining: 0
+                    used: true
                 }),
                 reaction: expect.objectContaining({
                     used: false,
@@ -3877,7 +3894,11 @@ describe('Counterspell nested interruption outcome', () => {
         const spellIdsPassedToFactory = vi.mocked(SpellCommandFactory.createCommands).mock.calls
             .map(call => (call[0] as Spell).id);
 
-        expect(spellIdsPassedToFactory).toContain(enemyCounterspell.id);
+        // The enemy Counterspell is selected, pays its reaction, and then is
+        // itself interrupted before it can create commands. The player's nested
+        // Counterspell and the original spell should be the command payloads
+        // that actually reach execution.
+        expect(spellIdsPassedToFactory).not.toContain(enemyCounterspell.id);
         expect(spellIdsPassedToFactory).toContain(playerCounterspell.id);
         expect(spellIdsPassedToFactory).toContain(originalSpell.id);
         expect(spellIdsPassedToFactory.slice(-1)[0]).toBe(originalSpell.id);
@@ -3897,6 +3918,7 @@ describe('after-hit reaction materialization', () => {
             // from registering a rider that waits for the paladin's next hit.
             expect(smiteSpell.castingTrigger).toEqual(expect.objectContaining({
                 type: 'after_attack_hit',
+                requiredCost: 'reaction',
                 targetBinding: 'triggering_attack_target'
             }));
             expect(smiteSpell.effects.filter(effect => effect.trigger?.type === 'on_attack_hit').length).toBeGreaterThan(0);

@@ -238,6 +238,7 @@ export const initialGameState: GameState = {
     // saves are still healed at the app reducer boundary.
     activeRumors: [],
     worldHistory: createEmptyHistory(),
+    townSim: {}, // living-world town sim registry; towns added when first tracked
 
     // Town Exploration
     townState: null,
@@ -331,6 +332,7 @@ export const initialGameState: GameState = {
     worldViewMode: 'atlas' as const,
     mapSurface: 'classic' as const,
     playerWorldPos: null,
+    entry3DAnchor: null,
     // Ground-mode resume anchor
     // This stays null until the 3D ground renderer reports tile-local meters.
     // It must remain separate from playerWorldPos, which stores continent meters.

@@ -78,6 +78,15 @@ export interface TownWalls {
   ring: Pt[];
   /** Gatehouse points on the ring where main roads enter. */
   gatehouses: Pt[];
+  /**
+   * Water-gate points (TG7): where an inherited river crosses the wall ring. A
+   * river must pass UNDER/THROUGH an arch, not clip a solid rampart — these mark
+   * the ring spans the wall mesh should break for an arch/portcullis gap. Empty
+   * when no river crosses the ring (or the town is unwalled). Optional so existing
+   * `TownWalls` constructors (e.g. the canonicalTown transform) stay valid until
+   * they propagate it.
+   */
+  waterGates?: Pt[];
 }
 
 export interface TownWard {
@@ -312,6 +321,50 @@ function polylineDist2(p: Pt, line: Pt[]): number {
   return m;
 }
 
+/** Closest point on segment ab to p. */
+function closestOnSeg(p: Pt, a: Pt, b: Pt): Pt {
+  const vx = b[0] - a[0], vy = b[1] - a[1];
+  const c2 = vx * vx + vy * vy;
+  if (c2 < 1e-12) return a;
+  let t = ((p[0] - a[0]) * vx + (p[1] - a[1]) * vy) / c2;
+  t = Math.max(0, Math.min(1, t));
+  return [a[0] + t * vx, a[1] + t * vy];
+}
+
+/** Nearest point on ANY of the water polylines to p (null if no water). */
+function nearestWaterPoint(p: Pt, water: Pt[][]): Pt | null {
+  let best: Pt | null = null;
+  let bestD = Infinity;
+  for (const line of water) {
+    for (let i = 0; i < line.length - 1; i++) {
+      const q = closestOnSeg(p, line[i], line[i + 1]);
+      const d = dist2(p, q);
+      if (d < bestD) { bestD = d; best = q; }
+    }
+  }
+  return best;
+}
+
+/** Unit tangent of the water polyline segment nearest to p (river flow direction). */
+function nearestWaterTangent(p: Pt, water: Pt[][]): Pt {
+  let best: Pt = [1, 0];
+  let bestD = Infinity;
+  for (const line of water) {
+    for (let i = 0; i < line.length - 1; i++) {
+      const a = line[i], b = line[i + 1];
+      const q = closestOnSeg(p, a, b);
+      const d = dist2(p, q);
+      if (d < bestD) {
+        bestD = d;
+        const tx = b[0] - a[0], ty = b[1] - a[1];
+        const tl = Math.hypot(tx, ty) || 1;
+        best = [tx / tl, ty / tl];
+      }
+    }
+  }
+  return best;
+}
+
 /**
  * If a ward is waterfront, return the index of its edge nearest the water (where
  * a dock seats); otherwise null. "Waterfront" = an edge midpoint within `margin`
@@ -373,6 +426,24 @@ function scalePolygon(poly: Pt[], center: Pt, k: number): Pt[] {
 function squareAt(c: Pt, size: number): Pt[] {
   const h = size / 2;
   return [[c[0] - h, c[1] - h], [c[0] + h, c[1] - h], [c[0] + h, c[1] + h], [c[0] - h, c[1] + h]];
+}
+
+/**
+ * A pier deck: a rectangle of width `width` and length `length` whose near edge
+ * sits at `base` and which extends along unit direction `dir`. Used for dock
+ * decks that reach SEAWARD over the water from the shore (TG5) so a quay reads as
+ * a pier on the water rather than a shed on land.
+ */
+function pierQuad(base: Pt, dir: Pt, length: number, width: number): Pt[] {
+  const dl = Math.hypot(dir[0], dir[1]) || 1;
+  const dx = dir[0] / dl, dy = dir[1] / dl;
+  const px = -dy, py = dx; // perpendicular (deck half-width)
+  const hw = width / 2;
+  const nearL: Pt = [base[0] + px * hw, base[1] + py * hw];
+  const nearR: Pt = [base[0] - px * hw, base[1] - py * hw];
+  const farL: Pt = [nearL[0] + dx * length, nearL[1] + dy * length];
+  const farR: Pt = [nearR[0] + dx * length, nearR[1] + dy * length];
+  return [nearL, farL, farR, nearR];
 }
 
 function dist2(a: Pt, b: Pt): number {
@@ -451,7 +522,42 @@ export function buildWalls(footprint: Pt[], gateCount = 3): TownWalls {
     // Project the edge midpoint onto the ring (same inset toward centroid).
     return [c[0] + (e.mid[0] - c[0]) * 0.94, c[1] + (e.mid[1] - c[1]) * 0.94] as Pt;
   });
-  return { ring, gatehouses };
+  // waterGates are seated later by generateTownPlan once the inherited water is
+  // known (buildWalls has no water context).
+  return { ring, gatehouses, waterGates: [] };
+}
+
+/**
+ * Find where inherited water polylines cross the wall ring — the points a
+ * water-gate/arch must break the rampart so a river doesn't clip solid stone
+ * (TG7). Returns the crossing points on the ring edges.
+ */
+export function findWaterGates(ring: Pt[], water: Pt[][]): Pt[] {
+  if (ring.length < 3 || water.length === 0) return [];
+  const gates: Pt[] = [];
+  for (const line of water) {
+    for (let s = 0; s < line.length - 1; s++) {
+      const w1 = line[s], w2 = line[s + 1];
+      for (let e = 0; e < ring.length; e++) {
+        const r1 = ring[e], r2 = ring[(e + 1) % ring.length];
+        const x = segIntersectPoint(w1, w2, r1, r2);
+        if (x) gates.push(x);
+      }
+    }
+  }
+  return gates;
+}
+
+/** Intersection point of segments p1p2 and p3p4, or null if they don't cross. */
+function segIntersectPoint(p1: Pt, p2: Pt, p3: Pt, p4: Pt): Pt | null {
+  const d1x = p2[0] - p1[0], d1y = p2[1] - p1[1];
+  const d2x = p4[0] - p3[0], d2y = p4[1] - p3[1];
+  const denom = d1x * d2y - d1y * d2x;
+  if (Math.abs(denom) < 1e-12) return null; // parallel
+  const t = ((p3[0] - p1[0]) * d2y - (p3[1] - p1[1]) * d2x) / denom;
+  const u = ((p3[0] - p1[0]) * d1y - (p3[1] - p1[1]) * d1x) / denom;
+  if (t < 0 || t > 1 || u < 0 || u > 1) return null;
+  return [p1[0] + t * d1x, p1[1] + t * d1y];
 }
 
 /** Which civic structures a town of a given scale should seat. */
@@ -665,7 +771,7 @@ export function generateTownPlan(
   // Walls: for a walled town the wall RING is the build envelope — wards (and
   // therefore every building) are carved INSIDE it. The core→ring band is the
   // extramural margin. Unwalled settlements build out to the core edge.
-  const walls = !profile || profile.hasWalls ? buildWalls(core) : { ring: [], gatehouses: [] };
+  const walls = !profile || profile.hasWalls ? buildWalls(core) : { ring: [], gatehouses: [], waterGates: [] };
   const envelope = walls.ring.length >= 3 ? walls.ring : core;
   // Reuse SP1's clip-to-parent Voronoi tessellation to carve the envelope into
   // wards — the town is itself a submap, one tier deeper than the local map.
@@ -746,12 +852,23 @@ export function generateTownPlan(
       const b = polygon[(waterEdge + 1) % polygon.length];
       const wb = polygonBounds(polygon);
       const span = Math.min(wb.maxX - wb.minX, wb.maxY - wb.minY);
-      // Dock sits at the water edge midpoint, nudged toward the ward interior.
       const mid: Pt = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-      const toIn: Pt = [wardCentroids[i][0] - mid[0], wardCentroids[i][1] - mid[1]];
-      const tl = Math.hypot(toIn[0], toIn[1]) || 1;
-      const dockC: Pt = [mid[0] + (toIn[0] / tl) * span * 0.12, mid[1] + (toIn[1] / tl) * span * 0.12];
-      civic.push({ kind: 'dock', polygon: squareAt(dockC, span * civicSize.dock), wardIndex: i });
+      // SEAWARD direction (TG5): from the ward interior toward the water, so the
+      // dock reaches OVER the body instead of sitting inland as a shed. Start
+      // from the inward→exterior axis, then refine toward the nearest point on
+      // the actual water polyline so the pier points at the channel/shore.
+      let sx = mid[0] - wardCentroids[i][0];
+      let sy = mid[1] - wardCentroids[i][1];
+      const wp = nearestWaterPoint(mid, water);
+      if (wp) { sx = wp[0] - mid[0]; sy = wp[1] - mid[1]; }
+      const sl = Math.hypot(sx, sy) || 1;
+      sx /= sl; sy /= sl;
+      // The deck STARTS just shy of the shore edge and runs seaward across it,
+      // so part of the pier overhangs the water body.
+      const pierLen = span * 0.34;
+      const pierWidth = span * 0.14;
+      const base: Pt = [mid[0] - sx * pierWidth * 0.5, mid[1] - sy * pierWidth * 0.5];
+      civic.push({ kind: 'dock', polygon: pierQuad(base, [sx, sy], pierLen, pierWidth), wardIndex: i });
     }
     if (role === 'temple' || role === 'keep' || role === 'citadel') {
       const b = polygonBounds(block);
@@ -784,6 +901,13 @@ export function generateTownPlan(
     for (let idx = civic.length - 1; idx >= 0; idx--) {
       if (civic[idx].kind === 'dock' && !keep.has(civic[idx])) civic.splice(idx, 1);
     }
+  }
+
+  // Water-gates (TG7): where an inherited river crosses the wall ring, mark the
+  // arch/gate break so the rampart doesn't render through the river as solid
+  // stone. Only meaningful on a walled town (ring present).
+  if (walls.ring.length >= 3) {
+    walls.waterGates = findWaterGates(walls.ring, water);
   }
 
   // Bridges where a river crosses between wards (#4).
@@ -822,8 +946,18 @@ export function generateTownPlan(
       .map((item) => item.p);
   }
 
+  // Bridge decks SPAN the channel (TG5): a deck oriented ACROSS the river (long
+  // axis perpendicular to the local flow) long enough to reach both banks, rather
+  // than a tiny square dropped on the water line. Length covers the channel
+  // (~fpSpan*0.06 wide, matching the downstream channel buffer) plus bank margin;
+  // width is the carriageway. Centered on the crossing point.
+  const bridgeSpanLen = fpSpan * 0.11; // across the channel, both banks
+  const bridgeDeckWidth = fpSpan * 0.035; // along the road
   for (const bp of potentialBridges) {
-    civic.push({ kind: 'bridge', polygon: squareAt(bp, fpSpan * 0.02), wardIndex: -1 });
+    const tan = nearestWaterTangent(bp, water);
+    const across: Pt = [-tan[1], tan[0]]; // perpendicular to flow = bank-to-bank
+    const base: Pt = [bp[0] - across[0] * bridgeSpanLen * 0.5, bp[1] - across[1] * bridgeSpanLen * 0.5];
+    civic.push({ kind: 'bridge', polygon: pierQuad(base, across, bridgeSpanLen, bridgeDeckWidth), wardIndex: -1 });
   }
 
   // De-overlap solid civic structures: a waterfront keep/temple ward can seat

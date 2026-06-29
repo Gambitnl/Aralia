@@ -134,7 +134,7 @@ export const SpellSummaryCard: React.FC<SpellSummaryCardProps> = ({
               {spell.name}
             </span>
             {!isRow && (
-              <span className="text-[9px] font-mono uppercase tracking-wider text-gray-500 flex-shrink-0">
+              <span className="text-[9px] font-mono uppercase tracking-wider text-gray-400 flex-shrink-0">
                 {spell.school.substring(0, 4)}
               </span>
             )}
@@ -168,13 +168,13 @@ export const SpellSummaryCard: React.FC<SpellSummaryCardProps> = ({
         <>
           <div className="mt-auto pt-2 border-t border-gray-700/50 grid grid-cols-2 gap-x-2 gap-y-1">
             <div className="flex flex-col">
-              <span className="text-[8px] uppercase tracking-wider text-gray-500">Time</span>
+              <span className="text-[8px] uppercase tracking-wider text-gray-400">Time</span>
               <span className="text-[10px] text-gray-300 truncate" title={formatSpellCastingTime(spell.castingTime)}>
                 {formatSpellCastingTime(spell.castingTime)}
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[8px] uppercase tracking-wider text-gray-500">Range</span>
+              <span className="text-[8px] uppercase tracking-wider text-gray-400">Range</span>
               <span className="text-[10px] text-gray-300 truncate" title={formatSpellRange(spell.range)}>
                 {formatSpellRange(spell.range)}
               </span>
@@ -183,7 +183,7 @@ export const SpellSummaryCard: React.FC<SpellSummaryCardProps> = ({
 
           {summary && (
             <div className="mt-1 pt-1 border-t border-gray-700/30 flex justify-between items-center">
-              <span className="text-[8px] uppercase tracking-wider text-gray-500">{summary.label}</span>
+              <span className="text-[8px] uppercase tracking-wider text-gray-400">{summary.label}</span>
               <span className={`text-[11px] font-bold ${summary.color}`}>{summary.text}</span>
             </div>
           )}

@@ -59,7 +59,7 @@ import { useGameActions } from './hooks/useGameActions';
 import { useGameInitialization } from './hooks/useGameInitialization';
 import { useOllamaLogBridge } from './hooks/useOllamaLogBridge';
 import { useHistorySync } from './hooks/useHistorySync';
-import { isWorldGenDeepLink } from './routes';
+import { isWorldGenDeepLink, isDummyAutoStartDeepLink } from './routes';
 import { useCompanionCommentary } from './hooks/useCompanionCommentary';
 import { useCompanionBanter } from './hooks/useCompanionBanter';
 import { useMissingChoice } from './hooks/useMissingChoice';
@@ -128,6 +128,8 @@ const SpawnPreview = lazy(() => import('./components/Worldforge/SpawnPreview'));
 const AgentSimPreview = lazy(() => import('./components/Worldforge/AgentSimPreview'));
 // Standalone 3D agent-walking proof (?phase=agentsim3d).
 const AgentSim3DPreview = lazy(() => import('./components/Worldforge/AgentSim3DPreview'));
+// Living-world town sim chronicle preview (?phase=livingworld).
+const LivingWorldPreview = lazy(() => import('./components/Worldforge/LivingWorldPreview'));
 const TransitionController = lazy(() => import('./components/World3D/TransitionController'));
 const World3DWrapper = lazy(() => import('./components/World3D/World3DWrapper'));
 // Classic ↔ Worldforge 2D-surface toggle (small, eager — no generation stack).
@@ -489,22 +491,30 @@ const App: React.FC = () => {
     (window as unknown as { __araliaDispatch?: unknown }).__araliaDispatch = dispatch;
   }, [gameState, dispatch]);
 
-  // Dev dummy auto-start: only fire when there's no URL phase override.
-  // This prevents the legacy auto-start from hijacking deep links like ?phase=world3d
-  // during the initial mount race between useHistorySync and this effect.
+  // Dev dummy auto-start — now OPT-IN. A brand-new player (no save) must land on
+  // the Main Menu and go through New Game → character creation → start selection
+  // (the real first-run experience), instead of being silently dropped into a
+  // pre-built dummy party. Devs who want the fast start add ?dummy=1 (or
+  // ?devstart=1). Still gated by canUseDevTools() so it can never fire in prod.
   useEffect(() => {
     if (!canUseDevTools()) return;
     if (gameState.phase !== GamePhase.MAIN_MENU) return;
     if (gameState.party.length > 0 || gameState.messages.length > 0) return;
     if (SaveLoadService.hasSaveGame()) return;
-    
-    // Guard: if the URL specifies a phase, let useHistorySync handle it instead
-    // of auto-starting the dummy party. This fixes the cold-load bounce where
-    // ?phase=world3d would intermittently get overridden to MAIN_MENU → PLAYING.
+
+    // Guard: a REAL phase deep-link takes precedence — let useHistorySync handle
+    // it instead of auto-starting the dummy party. This fixes the cold-load bounce
+    // where ?phase=world3d would intermittently get overridden to MAIN_MENU →
+    // PLAYING. We must ignore `?phase=main_menu`, though: history-sync reflects the
+    // current MAIN_MENU phase back into the URL, and treating that as a deep-link
+    // would wrongly suppress the ?dummy=1 opt-in below.
     const urlParams = new URLSearchParams(window.location.search);
     const urlPhase = urlParams.get('phase');
-    if (urlPhase) return; // URL phase takes precedence
-    
+    if (urlPhase && urlPhase !== 'main_menu') return; // real deep-link wins
+
+    // Without the explicit opt-in flag, do nothing: the Main Menu stays up.
+    if (!isDummyAutoStartDeepLink()) return;
+
     handleLegacyDummyAutoStart();
   }, [
     gameState.phase,
@@ -639,7 +649,7 @@ const App: React.FC = () => {
   }, [dispatch]);
 
   // Player confirmed a start town → boot into play spawning at that town.
-  const handleStartTownConfirmed = useCallback((town: { atlasCellId: number; name?: string; stateName?: string }) => {
+  const handleStartTownConfirmed = useCallback((town: { atlasCellId: number; name?: string; stateName?: string; x?: number; y?: number }) => {
     const pending = pendingNewGameRef.current;
     if (!pending) {
       // No pending character (e.g. a reload landed here) — bounce to creation.
@@ -647,10 +657,15 @@ const App: React.FC = () => {
       return;
     }
     pendingNewGameRef.current = null;
+    // Cell-native 3D entry: carry the chosen burg's POSITION so the first 3D entry
+    // frames the town (cells are far larger than the Locale window). Threaded
+    // through startGame → START_GAME_SUCCESS so it's set atomically with the spawn
+    // (a separate dispatch would be clobbered by the reducer's state rebuild).
     startGame(pending.character, pending.inventory, gameState.worldSeed, {
       atlasCellId: town.atlasCellId,
       name: town.name,
       region: town.stateName,
+      ...(town.x != null && town.y != null ? { centerPx: [town.x, town.y] as [number, number] } : {}),
     });
   }, [dispatch, startGame, gameState.worldSeed]);
 
@@ -815,6 +830,10 @@ const App: React.FC = () => {
 
   const handleClosePartyOverlay = useCallback(() => {
     dispatch({ type: 'TOGGLE_PARTY_OVERLAY' });
+  }, [dispatch]);
+
+  const handleDismissMember = useCallback((id: string) => {
+    dispatch({ type: 'DISMISS_PARTY_MEMBER', payload: { memberId: id } });
   }, [dispatch]);
 
   const handleTransitionComplete = useCallback(() => {
@@ -1118,10 +1137,18 @@ const App: React.FC = () => {
   let mainContent: React.ReactNode = null;
   const currentLocationData = getCurrentLocation();
   const npcs = getCurrentNPCs();
-  const itemsInCurrentLocation =
-    (itemsById && !currentLocationData.id.startsWith('coord_') && currentLocationData.itemIds
-      ?.map((id) => itemsById[id])
-      .filter(Boolean) as Item[]) || [];
+  // Resolve the items present at the current location. Named locations read their
+  // authored `itemIds`; procedural coord_ tiles have none, so their items come from
+  // `dynamicLocationItemIds` (populated by "Search the Area" foraging). Either way
+  // the result feeds the Take buttons + take_item handler, which key off the same map.
+  const itemsInCurrentLocation: Item[] = (() => {
+    if (!itemsById) return [];
+    const locId = currentLocationData.id;
+    const ids = locId.startsWith('coord_')
+      ? gameState.dynamicLocationItemIds[locId] ?? []
+      : currentLocationData.itemIds ?? [];
+    return ids.map((id) => itemsById[id]).filter(Boolean) as Item[];
+  })();
 
   // Determine if the UI should be interactive based on modal/loading states.
   // This boolean is passed down to disable controls when overlays are active.
@@ -1259,6 +1286,14 @@ const App: React.FC = () => {
         <AgentSim3DPreview />
       </ErrorBoundary>
     );
+  } else if (gameState.phase === GamePhase.LIVING_WORLD_PREVIEW) {
+    // Living-world town sim preview (?phase=livingworld): a demo town aged N years
+    // with its Town Chronicle + current institution-holders rendered.
+    mainContent = (
+      <ErrorBoundary fallbackMessage="An error occurred in the Living-World Preview.">
+        <LivingWorldPreview />
+      </ErrorBoundary>
+    );
   } else if (gameState.phase === GamePhase.COMBAT_MESSAGING_DEMO) {
     // Render the unified Combat Messaging System Demo
     mainContent = (
@@ -1358,6 +1393,7 @@ const App: React.FC = () => {
           mapData={gameState.mapData}
           gameTime={gameState.gameTime}
           messages={gameState.messages}
+          openingStatus={gameState.gameEntry?.status}
           npcsInLocation={npcs}
           itemsInLocation={itemsInCurrentLocation}
           party={gameState.party}
@@ -1494,6 +1530,7 @@ const App: React.FC = () => {
               onFixMissingChoice={handleFixMissingChoice}
               handleCloseCharacterSheet={handleCloseCharacterSheet}
               handleClosePartyOverlay={handleClosePartyOverlay}
+              handleDismissMember={handleDismissMember}
               handleDevMenuAction={handleDevMenuAction}
               handleModelChange={handleModelChange}
               handleNavigateToGlossaryFromTooltip={handleNavigateToGlossaryFromTooltip}

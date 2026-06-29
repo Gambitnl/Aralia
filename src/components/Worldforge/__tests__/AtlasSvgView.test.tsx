@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import AtlasSvgView from '../AtlasSvgView';
+import { requestMapCenterOnPlayer, consumeMapCenterOnPlayer } from '../mapFocusSignal';
 import type { MultiModalRoute } from '../../../systems/travel/multiModalRoute';
 
 // Layer prefs persist to localStorage (real behavior); clear between tests so
@@ -273,5 +274,65 @@ describe('AtlasSvgView', () => {
     expect(container.querySelectorAll('[data-testid="atlas-harbor-marker"]')).toHaveLength(1);
     expect(container.querySelector('[data-testid="atlas-travel-readout"]')?.textContent).toContain('2.0 mi land');
     expect(container.querySelector('[data-testid="atlas-travel-readout"]')?.textContent).toContain('2.0 mi sea');
+  });
+
+  // The 3D HUD "Cell Map" button sets a one-shot module signal, then opens this
+  // map. AtlasSvgView consumes it on mount and centers on the player marker —
+  // proven here without a full game world (the dev-start flows that lack a
+  // player marker leave the live build unverifiable, so the contract is pinned
+  // by a unit test instead).
+  describe('map-center-on-player signal (3D HUD "Cell Map")', () => {
+    // The player marker is drawn in SCREEN space at translate(markerX*k+viewX, …),
+    // so a centered map puts it at the exact viewport middle (width/2, height/2),
+    // independent of the zoom level chosen.
+    const markerScreenPos = (container: HTMLElement) => {
+      const el = container.querySelector('[data-testid="atlas-player-marker"]');
+      const m = /translate\(([-\d.]+),\s*([-\d.]+)\)/.exec(el?.getAttribute('transform') ?? '');
+      return m ? { x: parseFloat(m[1]), y: parseFloat(m[2]) } : null;
+    };
+
+    beforeEach(() => { consumeMapCenterOnPlayer(); }); // clear any stray request
+
+    it('without the signal, the map opens at fit-view (marker NOT centered)', () => {
+      const { container } = render(
+        <AtlasSvgView atlas={stub} width={300} height={300} marker={{ x: 7, y: 7 }} />,
+      );
+      const p = markerScreenPos(container)!;
+      expect(p).not.toBeNull();
+      expect(Math.hypot(p.x - 150, p.y - 150)).toBeGreaterThan(20); // off-center at fit
+    });
+
+    it('with the signal set before open, the player cell is centered in the viewport', () => {
+      requestMapCenterOnPlayer();
+      const { container } = render(
+        <AtlasSvgView atlas={stub} width={300} height={300} marker={{ x: 7, y: 7 }} />,
+      );
+      const p = markerScreenPos(container)!;
+      expect(p.x).toBeCloseTo(150, 0); // viewport center x
+      expect(p.y).toBeCloseTo(150, 0); // viewport center y
+    });
+
+    it('consumes the request once: a second open (no new request) is fit-view again', () => {
+      requestMapCenterOnPlayer();
+      const first = render(
+        <AtlasSvgView atlas={stub} width={300} height={300} marker={{ x: 7, y: 7 }} />,
+      );
+      expect(markerScreenPos(first.container)!.x).toBeCloseTo(150, 0);
+      first.unmount();
+
+      const second = render(
+        <AtlasSvgView atlas={stub} width={300} height={300} marker={{ x: 7, y: 7 }} />,
+      );
+      const p = markerScreenPos(second.container)!;
+      expect(Math.hypot(p.x - 150, p.y - 150)).toBeGreaterThan(20); // one-shot consumed
+    });
+
+    it('with the signal but no marker, it no-ops (no crash, fit-view)', () => {
+      requestMapCenterOnPlayer();
+      const { container } = render(<AtlasSvgView atlas={stub} width={300} height={300} />);
+      // No marker → centerOnPlayer guards out; the map still renders.
+      expect(container.querySelector('[data-testid="atlas-svg-view"]')).toBeTruthy();
+      expect(container.querySelector('[data-testid="atlas-player-marker"]')).toBeNull();
+    });
   });
 });

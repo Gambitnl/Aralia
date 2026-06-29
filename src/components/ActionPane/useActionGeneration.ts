@@ -39,17 +39,31 @@ export const useActionGeneration = ({
   const generalActions = useMemo(() => {
     const actions: Action[] = [];
 
-    // Populate interactions for NPCs and Items in current location
-    if (!currentLocation.id.startsWith('coord_')) {
-      npcsInLocation.forEach((npc) => {
-        actions.push({ type: 'talk', label: `Talk to ${npc.name}`, payload: { targetNpcId: npc.id }, targetId: npc.id });
-      });
-    }
+    // Populate interactions for NPCs and Items in current location.
+    // npcsInLocation is already the authoritative resolved set (static plus
+    // dynamically-placed situation/town NPCs from getCurrentNPCs), so we always
+    // surface a Talk action for each — including on procedural coord_ tiles,
+    // where the opening situation places its strangers. Without this a fresh
+    // player can see those NPCs in the scene but has no way to talk to them.
+    npcsInLocation.forEach((npc) => {
+      actions.push({ type: 'talk', label: `Talk to ${npc.name}`, payload: { targetNpcId: npc.id }, targetId: npc.id });
+    });
 
-    if (!currentLocation.id.startsWith('coord_')) {
-      itemsInLocation.forEach((item) => {
-        actions.push({ type: 'take_item', label: `Take ${item.name}`, payload: { itemId: item.id }, targetId: item.id });
-      });
+    // Take actions for items present at the location. itemsInLocation is the
+    // authoritative resolved set for BOTH named locations (authored itemIds) and
+    // procedural coord_ tiles (items foraged onto the tile via "Search the Area",
+    // resolved from dynamicLocationItemIds in App), so we surface a Take for each
+    // unconditionally — the old coord_ guard meant foraged wilderness loot could
+    // never be picked up.
+    itemsInLocation.forEach((item) => {
+      actions.push({ type: 'take_item', label: `Take ${item.name}`, payload: { itemId: item.id }, targetId: item.id });
+    });
+
+    // Wilderness foraging: only procedural coord_ tiles (named locations use their
+    // authored loot). Always offered — the handler reports "already searched" if the
+    // tile was foraged before, so a single tile cannot be farmed for repeat loot.
+    if (currentLocation.id.startsWith('coord_')) {
+      actions.push({ type: 'SEARCH_AREA', label: 'Search the Area' });
     }
 
     // Move actions for named exits (standard non-compass moves)

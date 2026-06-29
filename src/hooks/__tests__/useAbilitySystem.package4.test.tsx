@@ -90,7 +90,9 @@ const allSpellData = {
   'vicious-mockery': viciousMockery,
   'faerie-fire': faerieFire,
   'charm-person': charmPerson,
-  'dissonant-whispers': dissonantWhispers
+  'dissonant-whispers': dissonantWhispers,
+  'sword-burst': swordBurst,
+  'word-of-radiance': wordOfRadiance
 };
 
 // The premade JSON is runtime-correct but imported as a loose object, so we
@@ -164,6 +166,13 @@ const openFloorMap = (width = 8, height = 8): BattleMapData => {
     seed: 42
   };
 };
+
+const hiddenCreature = (overrides: Partial<CombatCharacter>) => createMockCombatCharacter({
+  currentHP: 7,
+  maxHP: 7,
+  statusEffects: [{ id: 'hidden', name: 'Hidden' }],
+  ...overrides
+});
 
 describe('useAbilitySystem - Package 4 multi-target spells', () => {
   // The hook expects the full CombatAction contract, so the mock uses that
@@ -394,4 +403,5 @@ describe('useAbilitySystem - Package 4 multi-target spells', () => {
     expect(action.targetCharacterIds).toHaveLength(3);
     expect(action.targetCharacterIds).toEqual(expect.arrayContaining(['fireball-target-1', 'fireball-target-2', 'fireball-target-3']));
   });
+
 });

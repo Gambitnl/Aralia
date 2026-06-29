@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/05/2026, 02:51:49
+ * Last Sync: 28/06/2026, 12:11:49
  * Dependents: systems/spells/validation/spellValidator.ts
  * Imports: None
  *
@@ -51,7 +51,18 @@ export const ModeChoice = z.object({
   type: z.enum(["choose_one"]),
   timing: z.enum(["on_cast", "on_cast_or_later_action"]),
   optionCount: z.number(),
-  optionsSource: z.enum(["modeChoice.options", "effects", "controlOptions", "mixed"]),
+  // Summon-form menus often keep their selectable forms inside summon payloads
+  // instead of duplicating them into top-level mode options. Keep those source
+  // pointers valid so Find Familiar and Summon Beast can prove live form-choice
+  // data without weakening ordinary effect/control-option menus.
+  optionsSource: z.enum([
+    "modeChoice.options",
+    "effects",
+    "controlOptions",
+    "mixed",
+    "summon.formOptions",
+    "effects[0].summon.formOptions"
+  ]),
   maxActiveNonInstantaneous: z.union([z.number(), z.literal("not_applicable")]).optional(),
   canDismissActive: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
   options: z.array(ModeChoiceOption),

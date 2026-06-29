@@ -31,7 +31,7 @@ export const QuestHistoryRow: React.FC<QuestHistoryRowProps> = ({ quest }) => {
       <div className="flex justify-between items-center">
         <div>
           <h4 className={`text-md font-bold ${style.title}`}>{quest.title}</h4>
-          <p className="text-xs text-gray-500">{style.dateLabel}: {formatQuestDate(quest.dateCompleted)}</p>
+          <p className="text-xs text-gray-400">{style.dateLabel}: {formatQuestDate(quest.dateCompleted)}</p>
         </div>
         <span className={`text-xs uppercase border px-1 rounded ${style.badge}`}>{style.label}</span>
       </div>

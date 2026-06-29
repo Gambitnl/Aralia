@@ -255,7 +255,7 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
                     role="region"
                     aria-label="Nearby Buildings"
                 >
-                    <div className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-semibold">Nearby</div>
+                    <div className="text-xs text-gray-400 uppercase tracking-wide mb-2 font-semibold">Nearby</div>
                     <div className="flex flex-col gap-2">
                         {adjacentBuildings.map((building) => (
                             <motion.button
@@ -267,7 +267,7 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
                                 aria-label={`Enter ${building.name} (${building.type})`}
                             >
                                 <span className="font-medium text-amber-100/90">{building.name}</span>
-                                <span className="text-xs text-gray-500 ml-2 block" aria-hidden="true">{building.type}</span>
+                                <span className="text-xs text-gray-400 ml-2 block" aria-hidden="true">{building.type}</span>
                             </motion.button>
                         ))}
                     </div>
@@ -275,7 +275,7 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
             )}
 
             {/* Keyboard Hints */}
-            <motion.div variants={itemVariants} className="text-[10px] text-gray-500 flex gap-3 opacity-70" aria-hidden="true">
+            <motion.div variants={itemVariants} className="text-[10px] text-gray-400 flex gap-3 opacity-70" aria-hidden="true">
                 <span>WASD to move</span>
                 <span>ESC to exit</span>
             </motion.div>

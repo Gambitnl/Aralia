@@ -13,6 +13,7 @@ import {
   packWardInterior,
   buildTownCore,
   buildOutskirts,
+  findWaterGates,
 } from '../townEngine';
 import { pointInPolygon, polygonBounds, type Pt } from '../../submap/submapEngine';
 import { rootSeedPath } from '../../seedPath';
@@ -442,5 +443,106 @@ describe('generateTownPlan — bridge capping (TG1 fix)', () => {
     const cityBridges = bridgeCount(generateTownPlan(bigFp, rootSeedPath(8), { population: 15000, water: snakingWater, wardCount: 30 }));
     expect(townBridges).toBeLessThanOrEqual(1); // village cap
     expect(cityBridges).toBeGreaterThan(townBridges);
+  });
+});
+
+describe('dock/bridge deck geometry (TG5)', () => {
+  // A footprint with a river straight up the middle and a coast along the bottom.
+  const bigFp: Pt[] = [[0, 0], [1000, 0], [1000, 1000], [0, 1000]];
+  const water: Pt[][] = [
+    [[500, -10], [500, 1010]],   // river up the middle
+    [[0, 30], [1000, 30]],       // coast along the bottom
+  ];
+
+  // Longest side of a quad's oriented bbox vs the shortest — a pier/span is
+  // elongated (length >> width), a square is ~1:1.
+  const aspect = (poly: Pt[]): number => {
+    const b = polygonBounds(poly);
+    const w = b.maxX - b.minX, h = b.maxY - b.minY;
+    return Math.max(w, h) / Math.max(1e-6, Math.min(w, h));
+  };
+
+  it('dock decks are elongated piers, not small squares', () => {
+    const plan = generateTownPlan(bigFp, rootSeedPath(21), { population: 8000, water });
+    const docks = plan.civic.filter((c) => c.kind === 'dock');
+    expect(docks.length).toBeGreaterThan(0);
+    // Every pier deck is meaningfully longer than it is wide.
+    for (const d of docks) expect(aspect(d.polygon)).toBeGreaterThan(1.6);
+  });
+
+  it('a dock pier reaches seaward — its far end is on the water side of its base', () => {
+    const plan = generateTownPlan(bigFp, rootSeedPath(21), { population: 8000, water });
+    const dist2ToWater = (p: Pt): number => {
+      let m = Infinity;
+      for (const line of water) {
+        for (let i = 0; i < line.length - 1; i++) {
+          const a = line[i], b = line[i + 1];
+          const vx = b[0] - a[0], vy = b[1] - a[1];
+          const c2 = vx * vx + vy * vy || 1;
+          let t = ((p[0] - a[0]) * vx + (p[1] - a[1]) * vy) / c2;
+          t = Math.max(0, Math.min(1, t));
+          const qx = a[0] + t * vx, qy = a[1] + t * vy;
+          m = Math.min(m, (p[0] - qx) ** 2 + (p[1] - qy) ** 2);
+        }
+      }
+      return m;
+    };
+    const docks = plan.civic.filter((c) => c.kind === 'dock');
+    // pierQuad winds [nearL, farL, farR, nearR]: near edge = verts 0,3; far = 1,2.
+    // The far end must be at least as close to the water as the near (base) end —
+    // i.e. the pier points toward the body, not inland. (Overshoot past the line
+    // is bounded by pierLen, so the far end never lands farther than the base.)
+    let reaching = 0;
+    for (const d of docks) {
+      const near: Pt = [(d.polygon[0][0] + d.polygon[3][0]) / 2, (d.polygon[0][1] + d.polygon[3][1]) / 2];
+      const far: Pt = [(d.polygon[1][0] + d.polygon[2][0]) / 2, (d.polygon[1][1] + d.polygon[2][1]) / 2];
+      if (dist2ToWater(far) <= dist2ToWater(near) + 1e-6) reaching++;
+    }
+    // The strong majority of piers reach toward water (a few near a river
+    // corner can overshoot the nearest segment; the pier still points seaward).
+    expect(reaching).toBeGreaterThanOrEqual(Math.ceil(docks.length * 0.6));
+  });
+
+  it('bridge decks span across the river (elongated, not a tiny square)', () => {
+    const crossingWater: Pt[][] = [[[500, -10], [500, 1010]]];
+    const plan = generateTownPlan(bigFp, rootSeedPath(22), { population: 8000, water: crossingWater, wardCount: 24 });
+    const bridges = plan.civic.filter((c) => c.kind === 'bridge');
+    expect(bridges.length).toBeGreaterThan(0);
+    for (const br of bridges) expect(aspect(br.polygon)).toBeGreaterThan(1.6);
+  });
+});
+
+describe('water-gates where a river crosses the wall ring (TG7)', () => {
+  const bigFp: Pt[] = [[0, 0], [1000, 0], [1000, 1000], [0, 1000]];
+  const river: Pt[][] = [[[500, -50], [500, 1050]]]; // straight through the town
+
+  it('findWaterGates returns the crossing points of a river with a ring', () => {
+    const ring: Pt[] = [[200, 200], [800, 200], [800, 800], [200, 800]];
+    const gates = findWaterGates(ring, river);
+    // A vertical river at x=500 crosses the top edge (y=200) and bottom edge (y=800).
+    expect(gates.length).toBe(2);
+    for (const g of gates) expect(g[0]).toBeCloseTo(500, 6);
+    const ys = gates.map((g) => g[1]).sort((a, b) => a - b);
+    expect(ys[0]).toBeCloseTo(200, 6);
+    expect(ys[1]).toBeCloseTo(800, 6);
+  });
+
+  it('no gates when no water crosses the ring', () => {
+    const ring: Pt[] = [[200, 200], [800, 200], [800, 800], [200, 800]];
+    expect(findWaterGates(ring, [[[0, 0], [100, 100]]])).toHaveLength(0);
+    expect(findWaterGates(ring, [])).toHaveLength(0);
+  });
+
+  it('a walled town with a river through it seats water-gates on its wall', () => {
+    const plan = generateTownPlan(bigFp, rootSeedPath(23), { population: 12000, water: river });
+    expect(plan.walls.ring.length).toBeGreaterThanOrEqual(3);
+    expect(plan.walls.waterGates).toBeTruthy();
+    expect(plan.walls.waterGates!.length).toBeGreaterThan(0);
+  });
+
+  it('an unwalled hamlet seats no water-gates even with a river', () => {
+    const plan = generateTownPlan(bigFp, rootSeedPath(23), { population: 50, water: river });
+    expect(plan.walls.ring).toHaveLength(0);
+    expect(plan.walls.waterGates ?? []).toHaveLength(0);
   });
 });

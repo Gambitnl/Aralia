@@ -9,6 +9,9 @@ import {
   buildInteriorParts,
   INTERIOR_WALL_COLOR,
   PERIMETER_WALL_COLORS,
+  DOOR_LEAF_COLOR,
+  WINDOW_PANE_COLOR,
+  CEILING_COLOR,
   type OccupantFigure,
   type OccupantBody,
 } from '../interiorParts';
@@ -116,7 +119,7 @@ it('emits one first floor slab that spans the full interior envelope', () => {
   expect(floors[0].h).toBeLessThanOrEqual(0.15);
 });
 
-it('leaves the entry doorway open in the street wall', () => {
+it('leaves a real door gap in the street WALL and dresses it with a door leaf', () => {
   const plan = generateInterior(plot(), SEED_PATH);
   const entry = plan.doorways.find((d) => d.a === EXTERIOR)!;
   const parts = buildInteriorParts(plot(), SEED_PATH, 3);
@@ -124,17 +127,46 @@ it('leaves the entry doorway open in the street wall', () => {
   // Street wall in part coords: z = -depth/2 (in meters).
   const streetZ = (0 - plan.depthFt / 2) * FT;
   const doorX = (entry.x - plan.widthFt / 2) * FT;
-  const blocking = parts.filter(
+  // No WALL run blocks the gap (the wall is still cut open — the camera walks
+  // through it; IN1's door leaf is a separate, thin dressing, not a wall).
+  const wallBlocking = parts.filter(
     (p) =>
+      isWallColor(p.colorHex) &&
       Math.abs(p.z - streetZ) < 0.01 &&
       doorX > p.x - p.w / 2 &&
       doorX < p.x + p.w / 2,
   );
-  expect(blocking).toEqual([]);
+  expect(wallBlocking).toEqual([]);
 
   // ...but the street wall still exists either side of the gap.
-  const streetWallRuns = parts.filter((p) => Math.abs(p.z - streetZ) < 0.01);
+  const streetWallRuns = parts.filter(
+    (p) => isWallColor(p.colorHex) && Math.abs(p.z - streetZ) < 0.01,
+  );
   expect(streetWallRuns.length).toBeGreaterThanOrEqual(2);
+
+  // IN1: the entry gap is now dressed with a door leaf at the opening.
+  const leaf = parts.find(
+    (p) =>
+      p.colorHex === DOOR_LEAF_COLOR &&
+      Math.abs(p.z - streetZ) < 0.05 &&
+      doorX > p.x - p.w / 2 - 0.01 &&
+      doorX < p.x + p.w / 2 + 0.01,
+  );
+  expect(leaf).toBeDefined();
+});
+
+it('emits perimeter windows and a single-storey ceiling (IN1/IN2)', () => {
+  const parts = buildInteriorParts(plot(), SEED_PATH, 3);
+  const windows = parts.filter((p) => p.colorHex === WINDOW_PANE_COLOR);
+  // Several glazed panes set into the perimeter walls (door face skips the
+  // pane that lands on the door, so at least a handful remain).
+  expect(windows.length).toBeGreaterThanOrEqual(4);
+
+  // A one-storey building gets a ceiling slab near the shell top so the
+  // interior stays enclosed when the roof auto-hides.
+  const ceilings = parts.filter((p) => p.colorHex === CEILING_COLOR);
+  expect(ceilings).toHaveLength(1);
+  expect(ceilings[0].baseY ?? 0).toBeGreaterThan(2);
 });
 
 it('places occupant figures inside the envelope with stable heights', () => {
@@ -267,10 +299,16 @@ describe('multi-storey parts', () => {
     storeys,
   });
 
-  it('a single-storey building emits no elevated parts', () => {
-    // No occupants → nothing has baseY (heads are the only other baseY user).
+  it('a single-storey building emits no multi-storey structure', () => {
+    // No upper-floor slabs and no stair flights. (Door lintels, window panes and
+    // the IN2 ceiling legitimately carry a baseY now, so we check for the absence
+    // of multi-storey markers — floor-color slabs above ground and stairs —
+    // rather than a blanket no-baseY.)
     const parts = buildInteriorParts(plot(), SEED_PATH, 6);
-    expect(parts.every((p) => (p.baseY ?? 0) === 0)).toBe(true);
+    const elevatedFloorSlabs = parts.filter(
+      (p) => p.colorHex === FLOOR_COLOR && (p.baseY ?? 0) > 0,
+    );
+    expect(elevatedFloorSlabs).toHaveLength(0);
     expect(parts.some((p) => p.colorHex === STAIR_COLOR)).toBe(false);
   });
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { describeBuilding, findBuildingAt, generateVillageLayout, VillageTileType } from '../../services/villageGenerator';
 import { villageBuildingVisuals } from '../../config/submapVisualsConfig';
 import { Action, VillageActionContext } from '../../types';
@@ -72,8 +72,20 @@ const shopMerchantTypeMap: Partial<Record<VillageTileType, string>> = {
   shop_blacksmith: 'Blacksmith',
   shop_general: 'General Store',
   shop_tavern: 'Tavern',
-  shop_temple: 'Temple'
+  shop_temple: 'Temple',
+  inn: 'Inn'
 };
+
+// Tavern/inn tiles expose a secondary "Hire" affordance: the keeper can be
+// invited to join the party via OPEN_DYNAMIC_MERCHANT with hire:true (which the
+// merchant handler routes through the shared recruit pipeline). Only the
+// drinking-house subset of shop tiles is recruitable.
+const HIREABLE_TILE_TYPES = new Set<VillageTileType>([
+  'shop_tavern',
+  'inn',
+]);
+
+const isHireableTile = (tile: VillageTileType): boolean => HIREABLE_TILE_TYPES.has(tile);
 
 const interactionLabels: Partial<Record<VillageTileType, string>> = {
   grass: 'Wander the Green',
@@ -93,6 +105,17 @@ const interactionLabels: Partial<Record<VillageTileType, string>> = {
 
 const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, biomeId, onAction }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Tracks the most recently clicked tavern/inn so we can surface a secondary
+  // "Hire <name>" affordance next to the map. Cleared when a non-hireable tile
+  // is clicked. (`name` is the keeper descriptor; the actual NPC is generated
+  // downstream by the merchant handler.)
+  const [hireTarget, setHireTarget] = useState<{
+    merchantType: string;
+    buildingId?: string;
+    name: string;
+    villageContext: VillageActionContext;
+  } | null>(null);
 
   // Deterministically regenerate when world coordinates or seed change so
   // villages stay anchored to their parent tile.
@@ -199,6 +222,18 @@ const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, 
     // receive the culture-aware context instead of just a descriptive blurb.
     const merchantType = shopMerchantTypeMap[tileType];
 
+    // Surface (or clear) the secondary "Hire" affordance for tavern/inn tiles.
+    if (merchantType && isHireableTile(tileType)) {
+      setHireTarget({
+        merchantType,
+        buildingId: building?.id,
+        name: interactionLabels[tileType]?.replace(/^Enter\s+/, '') || merchantType,
+        villageContext
+      });
+    } else {
+      setHireTarget(null);
+    }
+
     const action: Action = merchantType
       ? {
           type: 'OPEN_DYNAMIC_MERCHANT',
@@ -214,6 +249,23 @@ const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, 
     // Emit a fully typed action so downstream handlers can immediately forward
     // the AI-friendly prompt and profile id without guessing at field names.
     onAction?.(action);
+  };
+
+  // Dispatch the hire intent: same OPEN_DYNAMIC_MERCHANT action with hire:true so
+  // the merchant handler short-circuits the browse flow and runs the recruit
+  // pipeline (consent -> convert -> dispatch RECRUIT_COMPANION) instead.
+  const handleHire = () => {
+    if (!hireTarget) return;
+    onAction?.({
+      type: 'OPEN_DYNAMIC_MERCHANT',
+      label: `Hire the ${hireTarget.name} keeper`,
+      payload: {
+        merchantType: hireTarget.merchantType,
+        buildingId: hireTarget.buildingId,
+        villageContext: hireTarget.villageContext,
+        hire: true
+      }
+    });
   };
 
   return (
@@ -238,6 +290,20 @@ const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, 
         className="w-full max-h-[70vh] rounded-lg border border-amber-700 shadow-inner bg-black"
         onClick={handleClick}
       />
+      {/* Secondary "Hire" affordance: appears after clicking a tavern/inn tile so
+          the player can invite the keeper to join the party (separate from the
+          browse flow opened by the click itself). */}
+      {hireTarget && (
+        <button
+          type="button"
+          onClick={handleHire}
+          className="self-start px-3 py-2 bg-amber-700 hover:bg-amber-600 rounded-lg text-sm font-medium text-amber-50 border border-amber-500 shadow transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+          title={`Offer the ${hireTarget.name} keeper a place in your party`}
+          aria-label={`Hire the ${hireTarget.name} keeper`}
+        >
+          Hire the {hireTarget.name} keeper
+        </button>
+      )}
     </div>
   );
 };

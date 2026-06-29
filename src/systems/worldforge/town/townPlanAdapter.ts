@@ -15,7 +15,8 @@ import { isResidential, type BuildingType } from './population';
 
 export interface AdaptedTownPlan {
   plan: ArtifactTownPlan;
-  walls: { ring: Pt[]; gatehouses: Pt[] };
+  /** Wall ring + gatehouses, plus the river water-gate breaks (TG7). */
+  walls: { ring: Pt[]; gatehouses: Pt[]; waterGates: Pt[] };
 }
 
 /** Town street default width (feet) when the engine plan carries no per-street width. */
@@ -164,6 +165,10 @@ export function toArtifactPlan(plan: EngineTownPlan, burgId: number): AdaptedTow
 
   return {
     plan: { burgId, streets, plots },
-    walls: { ring: plan.walls.ring, gatehouses: plan.walls.gatehouses },
+    walls: {
+      ring: plan.walls.ring,
+      gatehouses: plan.walls.gatehouses,
+      waterGates: plan.walls.waterGates ?? [],
+    },
   };
 }

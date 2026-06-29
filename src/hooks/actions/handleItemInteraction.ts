@@ -29,6 +29,7 @@ import * as GeminiService from '../../services/geminiService';
 import { getAbilityModifierValue } from '../../utils/characterUtils';
 import { INITIAL_QUESTS } from '../../data/quests';
 import { generateId } from '../../utils/core/idGenerator';
+import { forageWilderness } from '../../systems/exploration/forage';
 
 interface HandleTakeItemProps {
   action: Action;
@@ -52,11 +53,11 @@ export async function handleTakeItem({
   }
   const itemToTake = ITEMS[targetId];
   const currentLocId = gameState.currentLocationId;
-  if (currentLocId.startsWith('coord_')) {
-    addMessage(`There are no specific items to take in this wilderness area.`, 'system');
-    dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
-    return;
-  }
+  // NOTE: coord_ (wilderness) tiles previously hard-rejected ALL take_item here,
+  // before the placed-item check below — so even items foraged onto a tile (via
+  // "Search the Area" → PLACE_AREA_ITEMS) could never be picked up. We now run the
+  // same placed-item lookup for every location; the friendly wilderness wording is
+  // deferred to the not-found branch when a coord tile genuinely holds nothing.
   const itemsCurrentlyInLoc = gameState.dynamicLocationItemIds[currentLocId] || [];
 
   if (itemToTake && itemsCurrentlyInLoc.includes(targetId)) {
@@ -98,11 +99,85 @@ export async function handleTakeItem({
         dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'find_map', isCompleted: true } });
       }
     }
+  } else if (currentLocId.startsWith('coord_')) {
+    addMessage(`There is nothing like that to take here.`, 'system');
   } else {
     addMessage(`Cannot take ${ITEMS[targetId]?.name || targetId}. It's not here or doesn't exist.`, 'system');
   }
   dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
   dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
+}
+
+interface HandleSearchAreaProps {
+  gameState: GameState;
+  dispatch: React.Dispatch<AppAction>;
+  addMessage: AddMessageFn;
+}
+
+/**
+ * "Search the Area" — the wilderness loot affordance for procedural coord_ tiles.
+ *
+ * Named locations carry authored `itemIds`; coord_ tiles do not, so without this a
+ * player exploring the map can never pick anything up. This runs a deterministic,
+ * biome-biased forage (no AI dependency — see systems/exploration/forage.ts), places
+ * any finds onto the tile via PLACE_AREA_ITEMS (which the player then collects with
+ * the normal Take buttons), and marks the tile searched so it cannot be farmed.
+ */
+export async function handleSearchArea({
+  gameState,
+  dispatch,
+  addMessage,
+}: HandleSearchAreaProps): Promise<void> {
+  const locId = gameState.currentLocationId;
+  if (!locId.startsWith('coord_')) {
+    addMessage('You can only forage out in the wilds.', 'system');
+    dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
+    return;
+  }
+
+  // Key presence (even an empty array) means this tile was already foraged.
+  if (gameState.dynamicLocationItemIds[locId] !== undefined) {
+    addMessage('You have already searched this area thoroughly; there is nothing more to find here.', 'system');
+    dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
+    return;
+  }
+
+  const [, xStr, yStr] = locId.split('_');
+  const x = Number(xStr);
+  const y = Number(yStr);
+  const biomeId = gameState.mapData?.tiles?.flat().find((t) => t.isPlayerCurrent)?.biomeId;
+
+  const { itemIds } = forageWilderness({ worldSeed: gameState.worldSeed, x, y, biomeId });
+  // Defend against a table id that no longer exists in the registry.
+  const validIds = itemIds.filter((id) => ITEMS[id]);
+
+  // Always stamp the tile (placing [] when nothing is found) so it reads as searched.
+  dispatch({ type: 'PLACE_AREA_ITEMS', payload: { locationId: locId, itemIds: validIds } });
+
+  if (validIds.length === 0) {
+    addMessage('You search the surrounding area but turn up nothing of use.', 'system');
+  } else {
+    const names = validIds.map((id) => ITEMS[id].name).join(', ');
+    addMessage(`You search the area and uncover: ${names}.`, 'system');
+    dispatch({
+      type: 'ADD_DISCOVERY_ENTRY',
+      payload: {
+        id: generateId(),
+        gameTime: gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+        type: DiscoveryType.LOCATION_DISCOVERY,
+        title: 'Foraged the area',
+        content: `Searching the wilds, you found: ${names}.`,
+        source: { type: 'PLAYER_ACTION', name: 'Search the Area' },
+        flags: validIds.map((id) => ({ key: 'itemId', value: id, label: ITEMS[id].name })),
+        timestamp: Date.now(),
+        isRead: false,
+      },
+    });
+  }
+
+  // Foraging a tile costs time even when fruitless.
+  dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 1800 } });
+  dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
 }
 
 export function handleEquipItem(dispatch: React.Dispatch<AppAction>, payload: EquipItemPayload): void {

@@ -63,6 +63,17 @@ export function gameEntryReducer(state: GameState, action: AppAction): Partial<G
         case 'RESET_OPENING_SITUATION':
             return { gameEntry: gameEntryTransition(current, { type: 'RESET' }) };
 
+        // Scene-illustration lifecycle. Kept orthogonal to the entry status machine
+        // (the picture is optional enrichment) — these only touch `sceneImage`.
+        case 'SCENE_IMAGE_REQUEST_START':
+            return { gameEntry: { ...current, sceneImage: { status: 'generating', url: null, error: null } } };
+
+        case 'SCENE_IMAGE_REQUEST_SUCCESS':
+            return { gameEntry: { ...current, sceneImage: { status: 'ready', url: action.payload.url, error: null } } };
+
+        case 'SCENE_IMAGE_REQUEST_ERROR':
+            return { gameEntry: { ...current, sceneImage: { status: 'error', url: null, error: action.payload.error } } };
+
         case 'PLACE_SITUATION_NPCS': {
             // Place the generated strangers into the world: register them in the
             // runtime NPC registry AND add them to the current location's active

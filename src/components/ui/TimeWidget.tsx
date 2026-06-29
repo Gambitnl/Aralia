@@ -83,7 +83,7 @@ export const TimeWidget: React.FC<TimeWidgetProps> = ({ gameTime, onPassTimeClic
           <span className={`text-lg font-bold ${timeColor} flex items-center gap-2`}>
             {TIME_ICONS[timeOfDay]} {timeOfDay}
           </span>
-          <span className="text-xs text-gray-500 italic">
+          <span className="text-xs text-gray-400 italic">
             {gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })}
           </span>
         </div>

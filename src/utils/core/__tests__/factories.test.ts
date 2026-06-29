@@ -4,8 +4,10 @@ import {
   createMockItem,
   createMockQuest,
   createMockMonster,
-  createMockGameMessage
+  createMockGameMessage,
+  createMockGameState
 } from '../factories';
+import { initialGameState } from '@/state/initialState';
 import { isSpell, SpellTargeting } from '@/types/spells';
 import { SpellValidator } from '../../../systems/spells/validation/spellValidator';
 import { ItemType , QuestStatus } from '@/types/index';
@@ -165,4 +167,18 @@ describe('Mimic Factories', () => {
           expect(msg.sender).toBe('npc');
         });
       });
+
+  describe('createMockGameState parity with initialGameState', () => {
+    // Regression guard for factory drift: createMockGameState() must initialize every
+    // field that a real fresh state (initialGameState) does, or tests run against a
+    // GameState shape the app never produces. See src/state/initialState.ts.
+    it('initializes every field present in initialGameState', () => {
+      const mock = createMockGameState();
+      const missing = Object.keys(initialGameState).filter(
+        (key) => !Object.prototype.hasOwnProperty.call(mock, key)
+      );
+
+      expect(missing).toEqual([]);
     });
+  });
+});

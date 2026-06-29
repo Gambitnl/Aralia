@@ -528,9 +528,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
 
                   {/* Skill description placeholder */}
                   <p className="text-gray-400 text-sm leading-relaxed italic">
-                    Proficiency in <strong>{viewedSkill.name}</strong> allows you to add your Proficiency Bonus to checks made to...
-                    <br/><br/>
-                    (Detailed descriptions coming soon to the Archives)
+                    Proficiency in <strong>{viewedSkill.name}</strong> lets you add your Proficiency Bonus to checks that draw on this skill.
                   </p>
                 </div>
               </motion.div>

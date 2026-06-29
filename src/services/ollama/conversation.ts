@@ -16,6 +16,7 @@ import type {
 } from '../../types/ollama';
 import { OllamaClient, getDefaultClient } from './client';
 import { parseJsonRobustly } from './jsonParser';
+import { sanitizeAIPromptText } from '../../utils/core/securityUtils';
 
 // ============================================================================
 // Conversation Prompt Builders
@@ -28,10 +29,14 @@ function buildContinuePrompt(
     respondingCompanion: ConversationParticipant
 ): string {
     const historyText = history.map(m => {
-        const speakerName = m.speakerId === 'player'
+        const isPlayer = m.speakerId === 'player';
+        const speakerName = isPlayer
             ? 'Player'
             : participants.find(p => p.id === m.speakerId)?.name || m.speakerId;
-        return `${speakerName}: "${m.text}"`;
+        // Player messages are free-form input — neutralize prompt-injection markers
+        // (fake "System Instruction:" blocks, code fences) before interpolation.
+        const text = isPlayer ? sanitizeAIPromptText(m.text) : m.text;
+        return `${speakerName}: "${text}"`;
     }).join('\n');
 
     return `[Character Data]
@@ -63,10 +68,13 @@ function buildSummarizePrompt(
     contextData: BanterContext
 ): string {
     const historyText = history.map(m => {
-        const speakerName = m.speakerId === 'player'
+        const isPlayer = m.speakerId === 'player';
+        const speakerName = isPlayer
             ? 'Player'
             : participants.find(p => p.id === m.speakerId)?.name || m.speakerId;
-        return `${speakerName}: "${m.text}"`;
+        // Player messages are free-form input — neutralize prompt-injection markers.
+        const text = isPlayer ? sanitizeAIPromptText(m.text) : m.text;
+        return `${speakerName}: "${text}"`;
     }).join('\n');
 
     const companionNames = participants.map(p => p.name).join(' and ');

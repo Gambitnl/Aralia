@@ -9,6 +9,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { GameState } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { useConversation } from '../../hooks/useConversation';
+import { assetUrl } from '../../config/env';
 import './ConversationPanel.css';
 
 interface ConversationPanelProps {
@@ -152,6 +153,28 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
             </div>
 
             <div className="conversation-messages">
+                {conversation.kind === 'situation' && gameState.gameEntry?.sceneImage
+                    && gameState.gameEntry.sceneImage.status !== 'idle' && (() => {
+                    const scene = gameState.gameEntry.sceneImage;
+                    return (
+                        <div className="conversation-scene" aria-busy={scene.status === 'generating'}>
+                            {scene.status === 'ready' && scene.url && (
+                                <img
+                                    className="conversation-scene-img"
+                                    src={assetUrl(scene.url)}
+                                    alt="Establishing illustration of the opening scene"
+                                />
+                            )}
+                            {scene.status === 'generating' && (
+                                <div className="conversation-scene-note">Painting the scene…</div>
+                            )}
+                            {scene.status === 'error' && (
+                                <div className="conversation-scene-note">Scene illustration unavailable.</div>
+                            )}
+                        </div>
+                    );
+                })()}
+
                 {conversation.messages.map(msg => {
                     const isPlayer = msg.speakerId === 'player';
                     const speakerName = isPlayer

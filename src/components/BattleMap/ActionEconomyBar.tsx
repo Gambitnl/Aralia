@@ -58,25 +58,25 @@ const ActionEconomyBar: React.FC<ActionEconomyBarProps> = ({ character, onExecut
         <Tooltip content="Action">
           <div className={`p-1 flex flex-col items-center transition-opacity ${actionEconomy.action.used ? 'opacity-40' : 'opacity-100'}`}>
             <span className="text-2xl" role="img" aria-label="Action">⚔️</span>
-            <span className={`text-xs font-bold ${actionEconomy.action.used ? 'text-gray-500 line-through' : 'text-red-400'}`}>Action</span>
+            <span className={`text-xs font-bold ${actionEconomy.action.used ? 'text-gray-400 line-through' : 'text-red-400'}`}>Action</span>
           </div>
         </Tooltip>
         <Tooltip content="Bonus Action">
           <div className={`p-1 flex flex-col items-center transition-opacity ${actionEconomy.bonusAction.used ? 'opacity-40' : 'opacity-100'}`}>
             <span className="text-2xl" role="img" aria-label="Bonus Action">⭐</span>
-            <span className={`text-xs font-bold ${actionEconomy.bonusAction.used ? 'text-gray-500 line-through' : 'text-yellow-400'}`}>Bonus</span>
+            <span className={`text-xs font-bold ${actionEconomy.bonusAction.used ? 'text-gray-400 line-through' : 'text-yellow-400'}`}>Bonus</span>
           </div>
         </Tooltip>
         <Tooltip content="Reaction">
           <div className={`p-1 flex flex-col items-center transition-opacity ${actionEconomy.reaction.used ? 'opacity-40' : 'opacity-100'}`}>
             <span className="text-2xl" role="img" aria-label="Reaction">🛡️</span>
-            <span className={`text-xs font-bold ${actionEconomy.reaction.used ? 'text-gray-500 line-through' : 'text-blue-400'}`}>Reaction</span>
+            <span className={`text-xs font-bold ${actionEconomy.reaction.used ? 'text-gray-400 line-through' : 'text-blue-400'}`}>Reaction</span>
           </div>
         </Tooltip>
         <Tooltip content="Free Object Interaction">
           <div className={`p-1 flex flex-col items-center transition-opacity ${actionEconomy.freeActions <= 0 ? 'opacity-40' : 'opacity-100'}`}>
             <span className="text-2xl" role="img" aria-label="Free Object Interaction">🖐️</span>
-            <span className={`text-xs font-bold ${actionEconomy.freeActions <= 0 ? 'text-gray-500 line-through' : 'text-green-400'}`}>Free</span>
+            <span className={`text-xs font-bold ${actionEconomy.freeActions <= 0 ? 'text-gray-400 line-through' : 'text-green-400'}`}>Free</span>
           </div>
         </Tooltip>
       </div>

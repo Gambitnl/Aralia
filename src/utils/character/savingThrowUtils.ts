@@ -264,15 +264,19 @@ export function calculateSaveDamage(
         return Math.floor(initialDamage / 2);
     }
 
-    // 'negates_condition': Used for effects where a save completely avoids the effect
-    // For damage context, this means 0 damage on success.
-    // Examples: Sacred Flame (cantrip), Poison Spray (cantrip)
-    // Note: This is what CANTRIPS should use - NOT 'half'!
+    // 'none': Used by save cantrips whose successful save should deal no damage.
+    // Sacred Flame, Thunderclap, Word of Radiance, and similar rows rely on this
+    // shared convention so the failure branch still hits for full damage while the
+    // success branch collapses to zero.
+    if (effectType === 'none') {
+        return 0;
+    }
+
+    // 'negates_condition': Used for effects where a save completely avoids the effect.
+    // For damage context, this also means 0 damage on success.
     if (effectType === 'negates_condition') {
         return 0;
     }
 
-    // 'none': Save doesn't reduce damage at all (rare)
-    // Used for effects where the save only prevents secondary conditions, not the damage
     return initialDamage;
 }

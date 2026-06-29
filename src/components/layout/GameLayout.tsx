@@ -48,6 +48,13 @@ interface GameLayoutProps {
     gameTime: Date;
     /** The list of narrative messages to display in the WorldPane. */
     messages: GameMessage[];
+    /**
+     * Opening-situation entry status (gameEntry.status). When 'generating', the
+     * Log shows an honest "the world is taking shape" placeholder so a brand-new
+     * player never faces a blank narrative panel during the (possibly multi-second)
+     * model call that writes their opening scene.
+     */
+    openingStatus?: string;
     /** List of NPCs currently present in the player's location. */
     npcsInLocation: NPC[];
     /** List of interactable items currently present in the player's location. */
@@ -84,6 +91,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     mapData,
     gameTime,
     messages,
+    openingStatus,
     npcsInLocation,
     itemsInLocation,
     party,
@@ -140,7 +148,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                 render yet; revisit once the WF local layer is the source. */}
             <div id={UI_ID.RIGHT_COLUMN} data-testid={UI_ID.RIGHT_COLUMN} className="md:w-3/5 lg:w-2/3 flex flex-col gap-2 sm:gap-4 min-h-0 relative">
                 <ErrorBoundary fallbackMessage="Error in World Pane.">
-                    <WorldPane messages={messages} />
+                    <WorldPane messages={messages} openingStatus={openingStatus} />
                 </ErrorBoundary>
                 <WorldAtlasStrip
                     mapData={mapData}

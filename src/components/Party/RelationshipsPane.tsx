@@ -19,7 +19,7 @@ export const RelationshipsPane: React.FC<RelationshipsPaneProps> = ({ companions
 
   if (companionList.length === 0) {
     return (
-        <div className="p-8 text-center text-gray-500 italic">
+        <div className="p-8 text-center text-gray-400 italic">
             You have not met any potential companions yet.
         </div>
     );

@@ -123,7 +123,7 @@ const FamilyTreeTab: React.FC<FamilyTreeTabProps> = ({ character }) => {
 
             {/* Summary */}
             <div className="mt-8 pt-4 border-t border-gray-700 text-center">
-                <p className="text-gray-500 text-xs">
+                <p className="text-gray-400 text-xs">
                     Family of {family.length} members ·
                     {' '}{family.filter(m => m.isAlive).length} living ·
                     {' '}{family.filter(m => !m.isAlive).length} deceased

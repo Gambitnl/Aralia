@@ -15,7 +15,7 @@ const OrgUpgradesList: React.FC<OrgUpgradesListProps> = ({ organization, availab
 
       <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
         {availableUpgrades.length === 0 ? (
-            <div className="text-gray-500 text-center italic py-4">No new upgrades available.</div>
+            <div className="text-gray-400 text-center italic py-4">No new upgrades available.</div>
         ) : (
             availableUpgrades.map(upgrade => (
                 <UpgradeCard
@@ -31,7 +31,7 @@ const OrgUpgradesList: React.FC<OrgUpgradesListProps> = ({ organization, availab
       <div className="mt-4 pt-4 border-t border-gray-700">
         <h4 className="text-sm font-semibold text-gray-400 mb-2">Owned Upgrades</h4>
         <div className="flex flex-wrap gap-2">
-            {organization.upgrades.length === 0 && <span className="text-xs text-gray-600">None</span>}
+            {organization.upgrades.length === 0 && <span className="text-xs text-gray-300">None</span>}
             {organization.upgrades.map(uid => (
                 <span key={uid} className="text-xs bg-gray-900 border border-gray-600 px-2 py-1 rounded text-gray-300">
                     {/* Assuming we can fetch name from ID, or pass full map. For now just ID if not in available list */}

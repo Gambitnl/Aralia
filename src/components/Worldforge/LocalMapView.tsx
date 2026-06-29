@@ -227,7 +227,7 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
         <div className="text-xs text-gray-400">
           Local Area: <span className="text-white font-bold">{Math.round(local.bounds.width).toLocaleString()} × {Math.round(local.bounds.height).toLocaleString()} ft</span>
         </div>
-        <div className="text-[10px] text-gray-500 mt-0.5">
+        <div className="text-[10px] text-gray-400 mt-0.5">
           Grid: {local.terrain.widthCells}×{local.terrain.heightCells} @ 5 ft | Features: {local.features.length}
         </div>
       </div>

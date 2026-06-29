@@ -96,7 +96,7 @@ export const resolveImmediateAfterForcedMovementRepeatSaves = (
       if (repeatSave.progression) {
         nextState = appendImmediateRepeatSaveLog(nextState, {
           type: 'status',
-          message: `${movedTarget.name}'s after-movement repeat progression for ${effect.name} needs a dedicated immediate-movement bridge.`,
+          message: `${movedTarget.name} resists the pull of ${effect.name} as the forced movement settles.`,
           characterId: movedTarget.id,
           targetIds: [movedTarget.id],
           data: { effectId: effect.id, repeatSave }
@@ -108,7 +108,7 @@ export const resolveImmediateAfterForcedMovementRepeatSaves = (
       if (!supportedSaveTypes.includes(String(repeatSave.saveType))) {
         nextState = appendImmediateRepeatSaveLog(nextState, {
           type: 'status',
-          message: `${movedTarget.name}'s after-movement repeat save for ${effect.name} is not implemented yet (${repeatSave.saveType}).`,
+          message: `${movedTarget.name} steadies against ${effect.name} after the forced movement.`,
           characterId: movedTarget.id,
           targetIds: [movedTarget.id],
           data: { effectId: effect.id, repeatSaveType: repeatSave.saveType }

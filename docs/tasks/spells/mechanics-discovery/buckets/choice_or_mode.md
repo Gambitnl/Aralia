@@ -1,11 +1,11 @@
-# Choices And Modes
+﻿# Choices And Modes
 
 Bucket id: `choice_or_mode`
 Total findings: 234
 Open findings: 0
-Closed findings: 231
+Closed findings: 232
 Deferred flavor findings: 2
-Special questions: 1
+Special questions: 0
 
 Caster or player choices that alter the spell effect.
 
@@ -147,7 +147,7 @@ Caster or player choices that alter the spell effect.
 | `find-greater-steed::choice_or_mode` | `closed_implemented` | 2026-06-27 | Appearing in an unoccupied space within range, the spirit takes on a form you choose: a griffon , a pegasus , a peryton , a dire wolf , a rhinoceros , or a saber-toothed tiger . / The creature has the statistics provided in the Monster Manual for the chosen form, though it is a celestial, a fey, or a fiend (your choice) instead of its normal creature type. / Additionally, if it has an Intelligence score of 5 or lower, its Intelligence becomes 6, and it gains the ability to understand one language of your choice that you speak. | `find-greater-steed.json` now requires player input, exposes a six-form cast-time mode choice, and records Celestial/Fey/Fiend plus language as secondary casting choices until a dedicated multi-choice runtime schema is added. | Runtime JSON contains related hints: aiContext, prompt, playerInputRequired, modeChoice. |
 | `fire-shield::choice_or_mode` | `closed_implemented` | 2026-06-27 | The flames provide you with a warm shield or a chill shield, as you choose. | `fire-shield.json` now requires Warm Shield versus Chill Shield at cast time and ties the choice to resistance, retaliation damage type, and the shared light effect. | Runtime JSON contains related hints: aiContext, prompt, playerInputRequired, modeChoice. |
 | `giant-insect::choice_or_mode` | `closed_implemented` | 2026-06-27 | You summon a giant centipede, spider, or wasp (chosen when you cast the spell). / The form you choose determines certain details in its stat block. | `giant-insect.json` now requires a Giant Centipede, Giant Spider, or Giant Wasp cast-time mode choice and summarizes the form-only stat-block/action differences while preserving the shared summon rules. | Runtime JSON contains related hints: aiContext, prompt, playerInputRequired, modeChoice. |
-| `guardian-of-nature::choice_or_mode` | `special_question` |  | You choose one of the following forms to assume: Primal Beast or Great Tree. | Light Color Choice: not_applicable | Runtime JSON contains related hints: aiContext, prompt, playerInputRequired. |
+| `guardian-of-nature::choice_or_mode` | `closed_documented_deferral` | Documented source deferral via `spell-completeness-audit-G5`: local evidence says the Guardian of Nature snapshot names Primal Beast and Great Tree but omits the benefit bullets, so the mode-choice data cannot be safely encoded until trustworthy source text is recaptured. |
 | `mordenkainens-private-sanctum::choice_or_mode` | `closed_implemented` | 2026-06-27 | When you cast the spell, you decide what sort of security the spell provides, choosing any of the following properties. | `mordenkainens-private-sanctum.json` now requires player input for cube size and selected ward properties, and its utility effect exposes six runtime `controlOptions` for sound, sight, divination sensor, divination targeting, teleportation, and planar-travel blocking. | Runtime controlOptions is populated. |
 | `polymorph::choice_or_mode` | `closed_implemented` | 2026-06-27 | That form can be any Beast you choose that has a Challenge Rating equal to or less than the target's (or the target's level if it doesn't have a Challenge Rating). / The target's game statistics are replaced by the stat block of the chosen Beast, but the target retains its alignment, personality, creature type, Hit Points, and Hit Point Dice. | `polymorph.json` now requires the caster to choose a valid Beast form and records the CR-or-level eligibility rule in the casting prompt. The separate transformation utility enum gap remains open below. | Runtime JSON contains related hints: aiContext, prompt, playerInputRequired. |
 | `polymorph::utility_type_runtime_gap` | `closed_implemented` | 2026-06-27 | You attempt to transform a creature that you can see within range into a Beast. | `src/types/spells.ts`, `src/types/spells.d.ts`, and `spell-json-template.json` now accept `transformation` as a runtime utility type, and `polymorph.json` uses it for the Beast-form effect. | Runtime utilityType now preserves the structured transformation mechanic instead of collapsing it to `other`. |

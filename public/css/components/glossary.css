@@ -191,6 +191,17 @@
   margin-left: 1.25rem;
 }
 
+/* Markdown table cell borders.
+   marked emits plain <table> for glossary content (class progressions, etc.).
+   Without borders the columns are hard to track across wide rows, so add a thin
+   border to every cell. The existing shaded header color is left untouched;
+   border-collapse means the edge cells form the full outer perimeter. */
+.prose table th,
+.prose table td {
+  border: 1px solid rgba(125, 140, 170, 0.28);
+  padding: 6px 12px;
+}
+
 /* Glossary Entry Enhancements */
 .glossary-intro-quote {
   font-style: italic;

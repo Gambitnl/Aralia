@@ -50,6 +50,8 @@ if (urlParams.get('stubForgeAssets') === '1') {
 }
 
 import InWorldHUD from './InWorldHUD';
+import { requestMapCenterOnPlayer } from '../Worldforge/mapFocusSignal';
+import { findCellAtPoint } from '../Worldforge/atlasSvg';
 import { createWorkerChunkLoader, type DisposableChunkLoader } from './createWorkerChunkLoader';
 import { usePlayerWorldPos, useWorldViewMode } from '../../hooks/useWorldViewMode';
 import { getTerrainHeight, gridWorldDimensions } from '../../utils/worldCoords';
@@ -156,6 +158,10 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
   // Toggling this value tears down the existing scene streamer and rebuilds it dynamically.
   const [isGroundMode, setIsGroundMode] = useState(() => wfParam('wf_legacy') !== '1');
 
+  // Bumped by the HUD "Town Cell" button to pull the 3D camera up to an overhead
+  // framing of the spawn town (stays in the scene — see World3DScene.frameTownCellNonce).
+  const [frameTownCellNonce, setFrameTownCellNonce] = useState(0);
+
   // Worker-backed loader for PLAYING — keeps chunk mesh generation off the main thread.
   // Created and disposed inside ONE effect (the React-correct disposable-resource pattern): under
   // StrictMode's dev double-mount (setup → cleanup → setup) each setup builds a fresh loader+worker
@@ -232,7 +238,18 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
             }
           : null;
         let coords = WF_TILE ?? clicked ?? loc?.mapCoordinates;
-        if (WF_TOWN && !WF_TILE && wfSeed != null) {
+        // Cell-native 3D entry (Stage 1): an exact anchor from start-selection /
+        // map click carries the chosen cell + the burg's position. It overrides
+        // the lossy grid resolution; coords is kept only for legacy bookkeeping.
+        const anchor = state.entry3DAnchor;
+        if (anchor?.centerPx && wfSeed != null && !coords) {
+          const atlas = bridge.getBridgeAtlas(wfSeed);
+          coords = {
+            x: Math.max(0, Math.min(cols - 1, Math.floor((anchor.centerPx[0] / (atlas.graphWidth || 1)) * cols))),
+            y: Math.max(0, Math.min(rows - 1, Math.floor((anchor.centerPx[1] / (atlas.graphHeight || 1)) * rows))),
+          };
+        }
+        if (WF_TOWN && !WF_TILE && wfSeed != null && !anchor) {
           // Data-driven Enter Village: nearest burg-bearing tile to the party.
           const townTiles = bridge.getTownTilesForGrid(wfSeed, cols, rows);
           if (townTiles.length) {
@@ -246,9 +263,17 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           }
         }
         if (coords && wfSeed != null) {
-          const bridged = bridge.getWorldforgeLocalForLocation(
-            wfSeed, coords.x, coords.y, cols, rows,
-          );
+          // Exact cell-native entry when an anchor is present (the burg position
+          // centers the Locale so the chosen town renders); else the legacy tile path.
+          const bridged = anchor
+            ? bridge.getWorldforgeLocalForCell(
+                wfSeed,
+                anchor.centerPx
+                  ? findCellAtPoint(bridge.getBridgeAtlas(wfSeed), anchor.centerPx[0], anchor.centerPx[1])
+                  : anchor.cellId,
+                { centerPx: anchor.centerPx },
+              )
+            : bridge.getWorldforgeLocalForLocation(wfSeed, coords.x, coords.y, cols, rows);
 
           // Generate/register any missing businesses/NPCs for the town(s) in the local area
           const helperGetBusinessTypeForPlot = (role: string, plotId: number): BusinessType => {
@@ -407,7 +432,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
     // Re-run the effect if the world data, location, seed, or active mode scale changes.
     // HOSTILE-1: also re-run on game phase change so the ground world rebuilds
     // after a return-from-combat (BATTLE_MAP_DEMO → PLAYING transition).
-  }, [worldData, state.currentLocationId, state.worldSeed, isGroundMode, state.phase]);
+  }, [worldData, state.currentLocationId, state.worldSeed, isGroundMode, state.phase, state.entry3DAnchor]);
 
   // FPS tracking state.
   const [fps, setFps] = useState(0);
@@ -563,12 +588,27 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
                   description: 'Hostile creature from ground mode',
                 };
 
+                // PV4: Determine combat theme from dominant biome instead of hardcoding.
+                const getThemeFromBiome = (biome: string | undefined): 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp' => {
+                  if (!biome) return 'forest';
+                  const lowerBiome = biome.toLowerCase();
+                  if (lowerBiome.includes('desert')) return 'desert';
+                  if (lowerBiome.includes('swamp') || lowerBiome.includes('wetland')) return 'swamp';
+                  // Most other biomes map well to the forest theme for now.
+                  return 'forest';
+                };
+                
+                const bx = Math.max(0, Math.min(ground.cols - 1, Math.round(x / 1.524)));
+                const by = Math.max(0, Math.min(ground.rows - 1, Math.round(z / 1.524)));
+                const groundBiome = ground.biomeIds[by * ground.cols + bx];
+                const combatTheme = getThemeFromBiome(groundBiome);
+
                 // Extract the 40x30 terrain patch centered around the player's collision coordinate
                 const extractedMap = extractPatch(
                   ground,
                   x,
                   z,
-                  'forest', // Default combat theme mapping
+                  combatTheme,
                   state.worldSeed ?? 42
                 );
 
@@ -686,6 +726,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
           // Ground mode only: townsfolk walk the streets on the game clock.
           groundWorld={wfGroundView ? groundRef.current : null}
           agentClock={state.gameTime instanceof Date ? scheduleClockFromGameTime(state.gameTime) : undefined}
+          frameTownCellNonce={frameTownCellNonce}
         />
       ) : (
         <div
@@ -720,6 +761,16 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
         onExitToMenu={() => dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU })}
         isGroundMode={isGroundMode}
         onToggleGroundMode={() => setIsGroundMode(prev => !prev)}
+        // Only meaningful in ground/village mode (a town to frame); pulls the
+        // camera up to the spawn town's overhead "cell" view without leaving 3D.
+        onFrameTownCell={wfGroundView ? () => setFrameTownCellNonce((n) => n + 1) : undefined}
+        // "Cell Map": open the 2D Voronoi world map as a modal over the 3D view,
+        // centered on the player's town cell. TOGGLE_MAP_VISIBILITY leaves
+        // worldViewMode untouched, so closing the map returns here in place.
+        onOpenCellMap={wfGroundView ? () => {
+          requestMapCenterOnPlayer();
+          dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
+        } : undefined}
       />
     </div>
   );

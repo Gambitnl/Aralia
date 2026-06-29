@@ -27,6 +27,9 @@ import {
     type GenerateOpeningSituationDeps,
 } from '../systems/gameEntry/generateOpeningSituation';
 import { situationNpcsToRichNpcs } from '../systems/gameEntry/situationNpcToRichNpc';
+import { buildOpeningScenePrompt } from '../systems/gameEntry/openingScenePrompt';
+import { generateSceneUrl } from '../services/SceneService';
+import { ENV } from '../config/env';
 import type {
     OpeningSituation,
     OpeningSituationCharacter,
@@ -40,6 +43,13 @@ export interface UseOpeningSituationOptions {
         location: OpeningSituationLocation,
         deps?: GenerateOpeningSituationDeps,
     ) => Promise<OpeningSituation>;
+    /** Inject the scene-image generator (tests). Defaults to the real SceneService. */
+    generateScene?: (prompt: string) => Promise<string>;
+    /**
+     * Whether to attempt the opening-scene illustration. Defaults to the portrait
+     * feature flag (image gen is a local-only dev capability).
+     */
+    enableScene?: boolean;
 }
 
 /**
@@ -132,6 +142,8 @@ export function useOpeningSituation(
     options: UseOpeningSituationOptions = {},
 ): void {
     const generate = options.generate ?? generateOpeningSituation;
+    const generateScene = options.generateScene ?? ((prompt: string) => generateSceneUrl({ prompt }));
+    const enableScene = options.enableScene ?? ENV.VITE_ENABLE_PORTRAITS;
     // Guard so a single `generating` window fires exactly one model call even
     // across re-renders. Reset whenever we leave the generating state.
     const runningRef = useRef(false);
@@ -168,6 +180,20 @@ export function useOpeningSituation(
                 },
             });
             dispatch({ type: 'RESOLVE_OPENING_SITUATION', payload: situation });
+
+            // Fire-and-forget the establishing illustration. It must NEVER block the
+            // conversation: the player reads the predicament immediately and the
+            // picture fades in when ready. On failure the scene area shows an honest
+            // "unavailable" note (NO FALLBACK — never a stock image).
+            if (enableScene) {
+                dispatch({ type: 'SCENE_IMAGE_REQUEST_START' });
+                void generateScene(buildOpeningScenePrompt(situation))
+                    .then((url) => dispatch({ type: 'SCENE_IMAGE_REQUEST_SUCCESS', payload: { url } }))
+                    .catch((sceneErr) => dispatch({
+                        type: 'SCENE_IMAGE_REQUEST_ERROR',
+                        payload: { error: sceneErr instanceof Error ? sceneErr.message : String(sceneErr) },
+                    }));
+            }
         } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
             // The entry gate surfaces both transport and parse failures as
@@ -176,7 +202,7 @@ export function useOpeningSituation(
             console.error('[opening-situation] generation failed:', err);
             dispatch({ type: 'FAIL_OPENING_SITUATION', payload: message });
         }
-    }, [gameState, dispatch, generate]);
+    }, [gameState, dispatch, generate, generateScene, enableScene]);
 
     useEffect(() => {
         if (status === 'generating' && !runningRef.current) {

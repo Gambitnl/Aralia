@@ -17,9 +17,11 @@ A 2026-03-12 repo check confirmed:
 
 ## Use These Current Surfaces Instead
 
+- docs/projects/spells/subprojects/spell-completeness-audit/SPELL_COMPLETENESS_COVERAGE_SNAPSHOT.md
 - docs/spells/STATUS_LEVEL_1.md through STATUS_LEVEL_9.md
-- docs/tasks/spell-completeness-audit/@SPELL-COMPLETENESS-REPORT.md
 - public/data/spells/level-0 through level-9
+
+Regenerate the maintained local coverage snapshot with `npm run spells:completeness`.
 
 ## Preserved Historical Value
 

@@ -4,6 +4,22 @@ import type { AtlasSvgModel } from './atlasSvg';
 export interface AtlasLayersProps {
   model: AtlasSvgModel;
   visible: Record<string, boolean>;
+  /**
+   * P1 perf — whether the `#atlas-soften` Gaussian-blur filter should be applied
+   * to the biome/overlay groups. AtlasSvgView already zeroes the filter's
+   * `stdDeviation` once zoomed in past ~2× the fit scale (`zoomedIn`), but a
+   * stdDeviation-0 blur STILL forces the browser to allocate and walk the filter
+   * region for ~8 groups (≈1900 nodes) on every pan/zoom frame. Gating the
+   * `filter=` attribute off entirely above that threshold removes the filter
+   * pass altogether (not just a no-op blur), so panning/zooming a zoomed-in atlas
+   * does no per-frame rasterization.
+   *
+   * Defaults to `true` so callers that don't pass it keep the original
+   * filter-always-on behaviour — the low-zoom look is unchanged. AtlasSvgView
+   * should pass `softenActive={softenStdDev > 0}` (i.e. `!zoomedIn`) to mirror its
+   * own cutoff; see the cross-file follow-up note in AtlasSvgView.tsx (~544).
+   */
+  softenActive?: boolean;
 }
 
 /**
@@ -16,9 +32,15 @@ export interface AtlasLayersProps {
  * nodes on every mouse move). Props are shallow-compared: same `model` + same
  * `visible` ref ⇒ skipped.
  */
-function AtlasLayersImpl({ model, visible }: AtlasLayersProps): React.ReactElement {
+function AtlasLayersImpl({ model, visible, softenActive = true }: AtlasLayersProps): React.ReactElement {
   const ocean = model.layers.find((l) => l.id === 'ocean');
   const land = model.layers.find((l) => l.id === 'land')!;
+  // P1 perf: only reference the expensive `#atlas-soften` blur filter when it is
+  // actually doing visible work (low zoom). Above AtlasSvgView's zoom cutoff the
+  // blur is a no-op that would still cost a per-frame filter-region pass, so we
+  // omit the attribute entirely (`undefined` ⇒ no `filter=` rendered). The
+  // low-zoom look is identical to before because `softenActive` defaults to true.
+  const softenFilter = softenActive ? 'url(#atlas-soften)' : undefined;
   return (
     <>
       {(ocean?.regions ?? []).map((r, i) => (
@@ -36,7 +58,7 @@ function AtlasLayersImpl({ model, visible }: AtlasLayersProps): React.ReactEleme
       ) : null}
       {visible.biomes ? (
         <>
-          <g filter="url(#atlas-soften)">
+          <g filter={softenFilter}>
             {(land.regions ?? []).map((r, i) => (
               <path key={`r${i}`} d={r.d} fill={r.fill} fillRule="evenodd" />
             ))}
@@ -47,49 +69,49 @@ function AtlasLayersImpl({ model, visible }: AtlasLayersProps): React.ReactEleme
         </>
       ) : null}
       {visible.states ? (
-        <g filter="url(#atlas-soften)" opacity={0.7}>
+        <g filter={softenFilter} opacity={0.7}>
           {(model.stateRegions ?? []).map((r, i) => (
             <path key={`st${i}`} d={r.d} fill={r.fill} fillRule="evenodd" />
           ))}
         </g>
       ) : null}
       {visible.cultures ? (
-        <g filter="url(#atlas-soften)" opacity={0.65}>
+        <g filter={softenFilter} opacity={0.65}>
           {(model.cultureRegions ?? []).map((r, i) => (
             <path key={`cu${i}`} d={r.d} fill={r.fill} fillRule="evenodd" />
           ))}
         </g>
       ) : null}
       {visible.religions ? (
-        <g filter="url(#atlas-soften)" opacity={0.6}>
+        <g filter={softenFilter} opacity={0.6}>
           {(model.religionRegions ?? []).map((r, i) => (
             <path key={`rel${i}`} d={r.d} fill={r.fill} fillRule="evenodd" />
           ))}
         </g>
       ) : null}
       {visible.provinces ? (
-        <g filter="url(#atlas-soften)" opacity={0.6}>
+        <g filter={softenFilter} opacity={0.6}>
           {(model.provinceRegions ?? []).map((r, i) => (
             <path key={`prov${i}`} d={r.d} fill={r.fill} fillRule="evenodd" />
           ))}
         </g>
       ) : null}
       {visible.population ? (
-        <g filter="url(#atlas-soften)" opacity={0.7}>
+        <g filter={softenFilter} opacity={0.7}>
           {(model.populationCells ?? []).map((c, i) => (
             <polygon key={`pop${i}`} points={c.points} fill={c.fill} />
           ))}
         </g>
       ) : null}
       {visible.temperature ? (
-        <g filter="url(#atlas-soften)" opacity={0.6}>
+        <g filter={softenFilter} opacity={0.6}>
           {(model.temperatureCells ?? []).map((c, i) => (
             <polygon key={`tmp${i}`} points={c.points} fill={c.fill} />
           ))}
         </g>
       ) : null}
       {visible.precipitation ? (
-        <g filter="url(#atlas-soften)" opacity={0.6}>
+        <g filter={softenFilter} opacity={0.6}>
           {(model.precipitationCells ?? []).map((c, i) => (
             <polygon key={`prc${i}`} points={c.points} fill={c.fill} />
           ))}

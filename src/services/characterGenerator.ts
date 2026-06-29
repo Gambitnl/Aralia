@@ -178,6 +178,18 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
 
     addIfExists('healing_potion'); // Everyone gets a potion
 
+    // Starting provisions (PRV1): every traveler sets out with a few days of food and water
+    // so the travel food/water gate (systems/travel/provisioning.ts) can actually be satisfied
+    // by a mundane, non-caster party. The gate counts these by their canonical ids ('rations' /
+    // 'water-day'); a stack's `quantity` is its resource-days (item.quantity ?? 1).
+    const STARTING_PROVISION_DAYS = 5;
+    const addProvision = (id: string, days: number) => {
+        const base = ITEMS[id];
+        if (base) inventory.push({ ...base, quantity: days });
+    };
+    addProvision('rations', STARTING_PROVISION_DAYS);
+    addProvision('water-day', STARTING_PROVISION_DAYS);
+
     // 5. Spellcasting Setup
     let spellbook: SpellbookData | undefined;
     let spellSlots: SpellSlots | undefined;

@@ -247,7 +247,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                     />
                   ) : (
                     <span
-                      className="text-4xl text-gray-600 group-hover:text-amber-500/50 transition-colors"
+                      className="text-4xl text-gray-400 group-hover:text-amber-500/50 transition-colors"
                       role="img"
                       aria-label={`${charClass.name} icon`}
                     >
@@ -262,7 +262,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                   )}
                 </div>
                 <h3 className="font-cinzel font-bold text-amber-400">The Legend Begins</h3>
-                <p className="text-xs text-gray-500 mt-1 uppercase tracking-tighter">Enter a name to seal your fate</p>
+                <p className="text-xs text-gray-400 mt-1 uppercase tracking-tighter">Enter a name to seal your fate</p>
 
                 {portraitsEnabled && (
                   <div className="mt-4 w-full space-y-2">
@@ -389,15 +389,15 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                 </div>
                 <div className="flex gap-4 mb-1">
                   <div className="text-center">
-                    <span className="block text-[10px] text-gray-500 uppercase font-bold">HP</span>
+                    <span className="block text-[10px] text-gray-400 uppercase font-bold">HP</span>
                     <span className="text-xl font-black text-green-400">{characterPreview.maxHp}</span>
                   </div>
                   <div className="text-center">
-                    <span className="block text-[10px] text-gray-500 uppercase font-bold">AC</span>
+                    <span className="block text-[10px] text-gray-400 uppercase font-bold">AC</span>
                     <span className="text-xl font-black text-sky-400">{characterPreview.armorClass}</span>
                   </div>
                   <div className="text-center">
-                    <span className="block text-[10px] text-gray-500 uppercase font-bold">SPD</span>
+                    <span className="block text-[10px] text-gray-400 uppercase font-bold">SPD</span>
                     <span className="text-xl font-black text-amber-400">{speed}</span>
                   </div>
                 </div>
@@ -406,13 +406,13 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-y-auto pr-2 custom-scrollbar">
                 {/* Attributes Column */}
                 <section>
-                  <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                     <Shield size={14} /> Core Attributes
                   </h3>
                   <div className="grid grid-cols-3 gap-2">
                     {Object.entries(finalAbilityScores).map(([ability, value]) => (
                       <div key={ability} className="bg-gray-900/40 border border-gray-700/50 rounded-lg p-2 text-center">
-                        <div className="text-[9px] text-gray-500 uppercase font-bold mb-0.5">{ability.substring(0, 3)}</div>
+                        <div className="text-[9px] text-gray-400 uppercase font-bold mb-0.5">{ability.substring(0, 3)}</div>
                         <div className="text-lg font-bold text-white leading-none">{value}</div>
                         <div className="text-xs font-medium text-gray-400 mt-0.5">{getAbilityModifierString(value as number)}</div>
                       </div>
@@ -440,7 +440,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                     </p>
                   )}
 
-                  <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mt-6 mb-3 flex items-center gap-2">
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mt-6 mb-3 flex items-center gap-2">
                     <Zap size={14} /> Proficiencies
                   </h3>
                   <div className="space-y-1">
@@ -464,7 +464,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
 
                 {/* Features & Spells Column */}
                 <section>
-                  <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                     <BookOpen size={14} /> Class & Racial Features
                   </h3>
                   <div className="space-y-2 text-sm">
@@ -504,11 +504,11 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
 
                   {(allKnownCantrips.length > 0 || allKnownSpells.length > 0) && (
                     <>
-                      <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mt-6 mb-3">Magic Manifest</h3>
+                      <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mt-6 mb-3">Magic Manifest</h3>
                       <div className="space-y-3">
                         {allKnownCantrips.length > 0 && (
                           <div>
-                            <span className="text-[10px] text-gray-500 uppercase font-bold block mb-1">Cantrips</span>
+                            <span className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Cantrips</span>
                             <div className="flex flex-wrap gap-1">
                               {allKnownCantrips.map(s => (
                                 <span key={s.id} className="text-[10px] bg-purple-900/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-700/30">
@@ -520,7 +520,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                         )}
                         {allKnownSpells.length > 0 && (
                           <div>
-                            <span className="text-[10px] text-gray-500 uppercase font-bold block mb-1">1st Level Spells</span>
+                            <span className="text-[10px] text-gray-400 uppercase font-bold block mb-1">1st Level Spells</span>
                             <div className="flex flex-wrap gap-1">
                               {allKnownSpells.map(s => (
                                 <span key={s.id} className="text-[10px] bg-indigo-900/20 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-700/30">

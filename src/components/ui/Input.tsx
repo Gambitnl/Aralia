@@ -101,7 +101,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             </motion.span>
           ) : helperText ? (
             // Show helpful hints if no errors are present.
-            <span id={feedbackId} className="text-xs text-gray-500">
+            <span id={feedbackId} className="text-xs text-gray-400">
               {helperText}
             </span>
           ) : null}
@@ -168,7 +168,7 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
               ⚠️ {error}
             </motion.span>
           ) : helperText ? (
-            <span id={feedbackId} className="text-xs text-gray-500">
+            <span id={feedbackId} className="text-xs text-gray-400">
               {helperText}
             </span>
           ) : null}
@@ -252,7 +252,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               ⚠️ {error}
             </motion.span>
           ) : helperText ? (
-            <span id={feedbackId} className="text-xs text-gray-500">
+            <span id={feedbackId} className="text-xs text-gray-400">
               {helperText}
             </span>
           ) : null}

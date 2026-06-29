@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/06/2026, 18:19:49
+ * Last Sync: 29/06/2026, 01:52:31
  * Dependents: commands/index.ts
- * Imports: 22 files
+ * Imports: 24 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,7 +14,7 @@
  */
 // @dependencies-end
 
-import { Spell, SpellEffect, TargetConditionFilter, isDamageEffect, isHealingEffect, StatusConditionEffect, isUtilityEffect } from '@/types/spells'
+import { Spell, SpellEffect, TargetConditionFilter, UtilityEffect, isDamageEffect, isHealingEffect, StatusConditionEffect, isUtilityEffect } from '@/types/spells'
 import { CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 
 import { SpellCommand, CommandContext } from '../base/SpellCommand'
@@ -32,9 +32,17 @@ import { ReactiveEffectCommand } from '../effects/ReactiveEffectCommand'
 import { RegisterRiderCommand } from '../effects/RegisterRiderCommand'
 import { NarrativeCommand } from '../effects/NarrativeCommand'
 import { EnhanceAbilityCommand, type EnhanceAbilityChoiceMap } from '../effects/EnhanceAbilityCommand'
+import { WeaponAttackCommand } from './AbilityCommandFactory'
 import { GameState } from '@/types'
 import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidationUtils'
 import { Plane } from '@/types/planes'
+import {
+  buildTrueStrikeAttack,
+  hasTrueStrikeImmediateAttackAugment,
+  resolveTrueStrikeAttackTarget,
+  resolveTrueStrikeWeaponSnapshot,
+  validateTrueStrikeWeaponSnapshot
+} from './trueStrikeAttackBridge'
 
 type SpellWithPerTargetChoices = Spell & {
   perTargetChoicesByTargetId?: EnhanceAbilityChoiceMap
@@ -175,6 +183,61 @@ export class SpellCommandFactory {
         // regression test guards the spell files so this fallback stays a last
         // resort rather than hiding bad package data.
         activeEffects = chosenOption.effectIndices.map(index => spell.effects[index]).filter(Boolean);
+      }
+    }
+
+    // True Strike is the only spell in this slice that turns a self cast into a
+    // weapon attack during the cast itself. Keep that bridge ahead of the
+    // generic utility execution path so the spell does not fall through to a
+    // lingering log-only command.
+    if (spell.id === 'true-strike') {
+      const trueStrikeEffect = activeEffects.find(
+        effect => isUtilityEffect(effect) && effect.attackAugments?.some(augment =>
+          augment.grantedAttack?.timing === 'during_cast' &&
+          augment.grantedAttack.usesCastingWeapon === true
+        )
+      ) as UtilityEffect | undefined
+
+      if (trueStrikeEffect && hasTrueStrikeImmediateAttackAugment(spell)) {
+        const weaponSnapshot = resolveTrueStrikeWeaponSnapshot(caster)
+        const attackTarget = resolveTrueStrikeAttackTarget(selectedSpellTargets, targets, caster.id)
+        const augment = trueStrikeEffect.attackAugments?.find(attackAugment =>
+          attackAugment.grantedAttack?.timing === 'during_cast' &&
+          attackAugment.grantedAttack.usesCastingWeapon === true
+        )
+        const validation = validateTrueStrikeWeaponSnapshot(caster, weaponSnapshot, augment?.weaponRequirement)
+
+        if (!weaponSnapshot || !attackTarget || !validation.valid) {
+          const reason = validation.reason ?? 'True Strike needs a valid weapon and a creature target.'
+          return [
+            new NarrativeCommand(reason, context)
+          ]
+        }
+
+        const builtAttack = buildTrueStrikeAttack(
+          spell,
+          caster,
+          weaponSnapshot,
+          attackTarget,
+          playerInput
+        )
+
+        const attackContext: CommandContext = {
+          ...context,
+          targets: [attackTarget],
+          selectedSpellTargets: [
+            {
+              kind: 'creature',
+              id: attackTarget.id
+            }
+          ],
+          weaponProperties: weaponSnapshot.properties,
+          isMagical: true
+        }
+
+        return [
+          new WeaponAttackCommand(builtAttack.attackAbility, caster, [attackTarget], attackContext)
+        ]
       }
     }
 

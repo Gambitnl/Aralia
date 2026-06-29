@@ -136,6 +136,13 @@ export interface GenerateRegionOptions {
    * When omitted, these arrays remain empty (atlas-only mode, C1 compat).
    */
   world?: FmgWorldResult;
+  /**
+   * Optional window center override, in atlas/graph PIXELS. Used when entering a
+   * settlement: the burg sits anywhere within its (far larger) cell, so the
+   * Locale window is centered on the burg's position rather than the cell site.
+   * Defaults to the anchor cell's Voronoi site.
+   */
+  windowCenterPx?: readonly [number, number];
 }
 
 /**
@@ -165,8 +172,9 @@ export function generateRegion(
   // ── Region membership: expand rings via true cell adjacency ───────────
   const memberCells = expandRegionMembership(pack.cells.c, anchorCellId, pack.cells.p, feetPerPixel);
 
-  // ── Bounds: anchor-centered REGION_SIZE_FT window (WF-G4, scale-invariant)
-  const bounds = computeRegionBounds(anchorCellId, pack.cells.p, feetPerPixel);
+  // ── Bounds: REGION_SIZE_FT window (WF-G4, scale-invariant), centered on the
+  // anchor cell's site — or on an explicit point (e.g. a burg) when given.
+  const bounds = computeRegionBounds(anchorCellId, pack.cells.p, feetPerPixel, opts.windowCenterPx);
 
   // ── Seed path for this region ─────────────────────────────────────────
   const regionPath = childSeedPath(worldSeedPath, `cell:${anchorCellId}`);
@@ -402,8 +410,13 @@ export function computeRegionBounds(
   anchorCellId: number,
   cellPoints: Array<[number, number]>,
   feetPerPixel: number,
+  // Optional window center override, in atlas/graph PIXELS. When a settlement is
+  // entered, the burg sits anywhere within its (far larger) cell, so centering
+  // on the cell site would miss it; the caller passes the burg's position here
+  // so the Locale window frames the town. Defaults to the cell's Voronoi site.
+  centerPx?: readonly [number, number],
 ): BoundsFt {
-  const [px, py] = cellPoints[anchorCellId];
+  const [px, py] = centerPx ?? cellPoints[anchorCellId];
   const cx = px * feetPerPixel;
   const cy = py * feetPerPixel;
   return {

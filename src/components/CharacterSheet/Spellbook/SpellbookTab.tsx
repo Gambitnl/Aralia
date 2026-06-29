@@ -146,7 +146,7 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
                                 const statusBadges = (
                                     <>
                                         {isFutureRacial && (
-                                            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700 font-bold tracking-wider flex-shrink-0">
+                                            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 font-bold tracking-wider flex-shrink-0">
                                                 Level {racialGrant.minLevel}
                                             </span>
                                         )}
@@ -156,7 +156,7 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
                                             </span>
                                         )}
                                         {!isPrepared && isKnown && spell.level > 0 && (
-                                            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-700 text-slate-500 border border-slate-600/50 font-bold tracking-wider flex-shrink-0">
+                                            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 border border-slate-600/50 font-bold tracking-wider flex-shrink-0">
                                                 Unprepared
                                             </span>
                                         )}

@@ -69,6 +69,7 @@ import { journalReducer } from './reducers/journalReducer';
 import { legacyReducer } from './reducers/legacyReducer';
 import { economyReducer } from './reducers/economyReducer';
 import { gameEntryReducer } from './reducers/gameEntryReducer';
+import { navalReducer } from './reducers/navalReducer';
 
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
@@ -523,9 +524,14 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // new-game path, so the conversation always follows; dummy/auto-start
                 // and load flows keep their own seeded messages elsewhere.
                 messages: [],
-                currentLocationId: STARTING_LOCATION_ID,
+                // Spawn the player at the WF-derived tile they actually occupy
+                // (the relocated world marker), not the disconnected legacy
+                // 'clearing'. Dev/skip flows omit it and keep the legacy node.
+                currentLocationId: restOfPayload.initialLocationId ?? STARTING_LOCATION_ID,
                 startTownName: restOfPayload.startTownName,
                 startTownRegion: restOfPayload.startTownRegion,
+                // Cell-native 3D entry anchor (set atomically with the spawn).
+                entry3DAnchor: restOfPayload.entry3DAnchor ?? null,
                 subMapCoordinates: restOfPayload.initialSubMapCoordinates,
                 mapData: restOfPayload.mapData,
                 dynamicLocationItemIds: restOfPayload.dynamicLocationItemIds,
@@ -708,6 +714,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...state,
                 currentLocationId: action.payload.newLocationId,
                 subMapCoordinates: action.payload.newSubMapCoordinates,
+                // Moving invalidates a start-selection / click entry anchor so a
+                // later 3D entry doesn't snap back to the old town (cell-native).
+                entry3DAnchor: null,
                 mapData: action.payload.mapData || state.mapData,
                 currentLocationActiveDynamicNpcIds: action.payload.activeDynamicNpcIds,
                 geminiGeneratedActions: null,
@@ -768,6 +777,20 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 geminiGeneratedActions: null,
                 lastInteractedNpcId: null,
                 lastNpcResponse: null,
+            };
+        }
+
+        case 'PLACE_AREA_ITEMS': {
+            // Stamp the foraged items onto the tile. Setting the key (even to an
+            // empty array) is what marks the tile as "already searched", so a
+            // fruitless or fully-looted tile cannot be re-foraged for new loot.
+            const { locationId, itemIds } = action.payload;
+            return {
+                ...state,
+                dynamicLocationItemIds: {
+                    ...state.dynamicLocationItemIds,
+                    [locationId]: itemIds,
+                },
             };
         }
 
@@ -908,6 +931,12 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         case 'CLEAR_PLAYER_WORLD_POS':
             return { ...state, playerWorldPos: null };
 
+        case 'SET_ENTRY_3D_ANCHOR':
+            return { ...state, entry3DAnchor: action.payload };
+
+        case 'CLEAR_ENTRY_3D_ANCHOR':
+            return { ...state, entry3DAnchor: null };
+
         case 'SET_WORLD_VIEW_MODE':
             // PLAYING streamed 3D owns the canvas; never stack legacy ThreeDModal on top (W3DUI-22).
             return {
@@ -951,6 +980,11 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             nextState = { ...nextState, ...legacyReducer(nextState, action) };
             nextState = { ...nextState, ...economyReducer(nextState, action) };
             nextState = { ...nextState, ...gameEntryReducer(nextState, action) };
+            // Naval (ships, crew, voyages). navalReducer returns a full GameState,
+            // so it runs last and its result is spread over the accumulated state.
+            // Without this line every NAVAL_* action (voyage start/advance/clear,
+            // known-ports sync, fleet acquisition) was a silent no-op in production.
+            nextState = { ...nextState, ...navalReducer(nextState, action) };
 
             return nextState;
         }

@@ -18,7 +18,7 @@ const OrgOverview: React.FC<OrgOverviewProps> = ({ organization }) => {
             <p className="text-gray-400 capitalize text-sm">{organization.type} • {organization.members.length} Members</p>
         </div>
         <div className="text-right">
-            <div className="text-xs text-gray-500">Founded</div>
+            <div className="text-xs text-gray-400">Founded</div>
             <div className="text-sm text-gray-300">{foundedDay}</div>
         </div>
       </div>

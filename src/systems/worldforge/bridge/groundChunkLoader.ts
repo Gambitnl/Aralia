@@ -35,13 +35,13 @@ import type { ChunkData, ChunkMeshBundle, VegetationScatter, LodTier } from "../
 import { buildChunkBundle } from "../../world3d/chunkBundle";
 import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from "../../world3d/config";
 import { biomeColor } from "../../world3d/terrainColor";
-import type { LocalArtifact, RegionArtifact, RegionTownSite } from "../artifacts";
+import type { LocalArtifact, RegionArtifact, RegionTownSite, RegionMarker } from "../artifacts";
 import { localArtifactToWorldData, GROUND_METERS_PER_CELL } from "./groundWorldAdapter";
 import { getCanonicalTownPlan, transformTownPlan, townSpanFtForBurg, CANON_TOWN_SPAN, getCanonicalTownWaterFeatures } from "../town/canonicalTown";
 import { buildTownWaterBodies } from "../town/townWaterBodies";
 import { toArtifactPlan, type AdaptedTownPlan } from "../town/townPlanAdapter";
 import type { TownPlan } from "../artifacts";
-import { buildInterior, type SitePart, type OccupantBody } from "./interiorParts";
+import { buildInterior, DOOR_LEAF_COLOR, type SitePart, type OccupantBody } from "./interiorParts";
 import { generateTownRoster } from "../roster/generateTownRoster";
 import { occupantLocationAt, type ActivityKind } from "../roster/occupantSchedule";
 import type { TownRoster, Occupant } from "../roster/types";
@@ -78,6 +78,12 @@ export interface GroundDeck {
   cornersM: Array<{ x: number; z: number }>;
   /** Deck-top Y in world meters, just above the adjacent water (carve pass). */
   topY: number;
+  /**
+   * Civic role of the deck (TG5). Carried from the canonical plan's civic kind so
+   * the 3D renderer can tint a weathered-timber quay distinctly from a lighter
+   * bridge span — they must not share one identical slab material.
+   */
+  kind: 'dock' | 'bridge';
 }
 
 /** A roster person resolved to the plot center where their figure is rendered. */
@@ -223,6 +229,96 @@ function regionPolylinesToGround(
   return out;
 }
 
+/**
+ * Non-hostile atlas marker types (FMG `markers-generator`) that read as
+ * discoverable off-map LANDMARKS, mapped to a `HiddenPlaceKind`. Hostile
+ * marker types (brigands/pirates/dungeons/caves/…monsters/rifts/burials) are
+ * intentionally absent — those already drive `generateGroundHostiles`, so a
+ * dungeon/cave becomes a hostile spawn rather than a passive discovery site.
+ *
+ * This is the anchor that makes a revealed hidden place trace back to a real
+ * worldmap fact (PV2): each site here BEGINS as a marker the atlas already
+ * knows, not a per-window random point.
+ */
+/** Player-facing label per hidden-place kind (mirrors hiddenPlaces' KIND_NAME,
+ * kept local to avoid a cross-module export just for marker-derived sites). */
+const HIDDEN_KIND_NAME: Record<HiddenPlaceKind, string> = {
+  ruin: 'Ruins',
+  cave: 'Cave',
+  shrine: 'Shrine',
+  camp: 'Camp',
+  grove: 'Hidden Grove',
+  wreck: 'Wreck',
+};
+
+const MARKER_KIND_MAP: Record<string, HiddenPlaceKind> = {
+  ruins: 'ruin',
+  statues: 'ruin',
+  battlefields: 'ruin',
+  libraries: 'ruin',
+  'sacred-mountains': 'shrine',
+  'sacred-forests': 'grove',
+  'sacred-pineries': 'grove',
+  'sacred-palm-groves': 'grove',
+  'hot-springs': 'shrine',
+  'water-sources': 'grove',
+  waterfalls: 'grove',
+  volcanoes: 'cave',
+  mines: 'cave',
+  portals: 'shrine',
+  lighthouses: 'wreck',
+  canoes: 'wreck',
+  inns: 'camp',
+  fairs: 'camp',
+  circuses: 'camp',
+  jousts: 'camp',
+  migration: 'camp',
+};
+
+/**
+ * Anchor hidden discovery sites to real atlas marker FACTS (PV2). Each
+ * non-hostile region marker inside the local window (with a small margin)
+ * becomes a `GroundHiddenSite` positioned at the marker's feet→meters spot,
+ * so a place the player reveals by 3D proximity is a location the worldmap
+ * actually carries — not a per-window random point.
+ *
+ * Deterministic: positions come straight from marker coords; the per-site
+ * discovery radius is fixed. Returns at most one site per eligible marker,
+ * preserving region marker order (itself deterministic from the seed path).
+ */
+function markerDerivedHiddenSites(
+  markers: RegionMarker[] | undefined,
+  local: LocalArtifact,
+  discoveryRadiusFt: number,
+): GroundHiddenSite[] {
+  if (!markers?.length) return [];
+  const { bounds } = local;
+  const extentXM = bounds.width * FEET_TO_METERS;
+  const extentZM = bounds.height * FEET_TO_METERS;
+  // Accept markers a little outside the window so an off-screen-but-near
+  // landmark still seeds a reachable discovery (matches the hostile margin).
+  const MARGIN_M = 50;
+  const out: GroundHiddenSite[] = [];
+  let n = 0;
+  for (const m of markers) {
+    const kind = MARKER_KIND_MAP[m.type];
+    if (!kind) continue; // hostile or non-discoverable marker — skip
+    const xM = (m.x - bounds.x) * FEET_TO_METERS;
+    const zM = (m.y - bounds.y) * FEET_TO_METERS;
+    if (xM < -MARGIN_M || xM > extentXM + MARGIN_M) continue;
+    if (zM < -MARGIN_M || zM > extentZM + MARGIN_M) continue;
+    out.push({
+      id: `wf-hidden-marker-${m.type}-${n++}`,
+      kind,
+      name: HIDDEN_KIND_NAME[kind],
+      xM,
+      zM,
+      discoveryRadiusM: discoveryRadiusFt * FEET_TO_METERS,
+    });
+  }
+  return out;
+}
+
 export interface MakeGroundWorldOptions {
   /** In-game hour 0–23: working adults stand at their work plot during
    * business hours (8–18), at home otherwise. Default noon. */
@@ -292,28 +388,46 @@ export function makeGroundWorld(
     local.bounds.height,
   );
 
-  // SP4 discovery: deterministic off-map hidden places inside this artifact
-  // window, expressed in ground meters (start undiscovered; revealed by 3D
-  // proximity in World3DWrapper). Seeded per window so the same spot always hides
-  // the same site — discovery is exploration, not regeneration.
-  const boundsPoly: Pt[] = [
-    [local.bounds.x, local.bounds.y],
-    [local.bounds.x + local.bounds.width, local.bounds.y],
-    [local.bounds.x + local.bounds.width, local.bounds.y + local.bounds.height],
-    [local.bounds.x, local.bounds.y + local.bounds.height],
-  ];
-  const hiddenSeed = childSeedPath(rootSeedPath(seed), `hidden:${Math.round(local.bounds.x)}:${Math.round(local.bounds.y)}`);
-  const hiddenSites: GroundHiddenSite[] = generateHiddenPlaces(boundsPoly, hiddenSeed, {
-    count: 6,
-    discoveryRadius: 250, // feet
-  }).map((hp) => ({
-    id: hp.id,
-    kind: hp.kind,
-    name: hp.name,
-    xM: (hp.position[0] - local.bounds.x) * FEET_TO_METERS,
-    zM: (hp.position[1] - local.bounds.y) * FEET_TO_METERS,
-    discoveryRadiusM: hp.discoveryRadius * FEET_TO_METERS,
-  }));
+  // SP4 discovery (PV2): hidden/discovery places should BE real off-map
+  // locations of the world, not spatially-random per local. So we ANCHOR them
+  // to atlas FACTS first — each non-hostile region marker inside this window
+  // becomes a discovery site at the marker's real position (a ruin/shrine/cave
+  // the worldmap already knows). Only if there aren't enough markers to reach
+  // the target count do we TOP UP with the seeded `generateHiddenPlaces`
+  // scatter, keeping the discovery loop populated where the map is sparse.
+  // Both halves are deterministic; markers come first so a revealed site
+  // traces to a worldmap fact, with seeded scatter only as filler.
+  const HIDDEN_COUNT = 6;
+  const HIDDEN_RADIUS_FT = 250;
+  const hiddenSites: GroundHiddenSite[] = markerDerivedHiddenSites(
+    region?.markers,
+    local,
+    HIDDEN_RADIUS_FT,
+  ).slice(0, HIDDEN_COUNT);
+
+  // Top up with seeded scatter only if markers didn't fill the quota.
+  const topUpNeeded = HIDDEN_COUNT - hiddenSites.length;
+  if (topUpNeeded > 0) {
+    const boundsPoly: Pt[] = [
+      [local.bounds.x, local.bounds.y],
+      [local.bounds.x + local.bounds.width, local.bounds.y],
+      [local.bounds.x + local.bounds.width, local.bounds.y + local.bounds.height],
+      [local.bounds.x, local.bounds.y + local.bounds.height],
+    ];
+    const hiddenSeed = childSeedPath(rootSeedPath(seed), `hidden:${Math.round(local.bounds.x)}:${Math.round(local.bounds.y)}`);
+    const scattered = generateHiddenPlaces(boundsPoly, hiddenSeed, {
+      count: topUpNeeded,
+      discoveryRadius: HIDDEN_RADIUS_FT, // feet
+    }).map((hp) => ({
+      id: hp.id,
+      kind: hp.kind,
+      name: hp.name,
+      xM: (hp.position[0] - local.bounds.x) * FEET_TO_METERS,
+      zM: (hp.position[1] - local.bounds.y) * FEET_TO_METERS,
+      discoveryRadiusM: hp.discoveryRadius * FEET_TO_METERS,
+    }));
+    hiddenSites.push(...scattered);
+  }
 
   return {
     cols: wd.gridSize.cols,
@@ -428,6 +542,15 @@ const WATER_SURFACE_DROP_ENC = 1.5; // water surface sits this far below the sho
 const WATER_BED_DROP_ENC = 4;       // carved bed sits this far below the shore
 const DECK_CLEARANCE_M = 0.4;       // deck top stands this far above the water
 
+/**
+ * Walkable head clearance (meters) for the 2D combat-patch extractor (IN guard).
+ * An interior part only blocks a floor tile if it intrudes BELOW this height — so
+ * overhead parts (the door lintel at baseY 2.1, the ceiling slab near the shell
+ * top, upper-floor slabs) clear a walker's head and never block the tile beneath
+ * them. ~6.2 ft: above a tall figure, below a normal storey.
+ */
+const COMBAT_HEAD_CLEARANCE_M = 1.9;
+
 /** Even-odd point-in-polygon on the X/Z plane (handles concave channels). */
 function pointInPolygonXZ(px: number, pz: number, poly: Array<{ x: number; z: number }>): boolean {
   let inside = false;
@@ -504,6 +627,75 @@ function carveTownWaterBasins(
     const shoreEnc = sampleEncodedHeight(original, cols, rows, c.x, c.z);
     deck.topY = heightToMeters(Math.max(0, shoreEnc - WATER_SURFACE_DROP_ENC)) + DECK_CLEARANCE_M;
   }
+}
+
+/**
+ * Split a closed wall ring (open vertex list, in ground meters) into OPEN runs
+ * that skip a span of radius `gapHalfM` around each water-gate point (TG7). A
+ * river crossing the ring leaves an arch gap there instead of clipping solid
+ * stone. The ring is densified so a gate landing mid-segment (the common case —
+ * the ring is a sparse scaled footprint) still carves a clean gap, and runs wrap
+ * across the closing seam so a gate ON the seam still breaks cleanly.
+ */
+function splitWallRingAtGates(
+  ring: Array<{ x: number; z: number }>,
+  gates: Array<{ x: number; z: number }>,
+  gapHalfM: number,
+): Array<Array<{ x: number; z: number }>> {
+  if (ring.length < 3) return [ring];
+  const gapSq = gapHalfM * gapHalfM;
+  const gated = (p: { x: number; z: number }): boolean => {
+    for (const g of gates) {
+      const dx = p.x - g.x;
+      const dz = p.z - g.z;
+      if (dx * dx + dz * dz <= gapSq) return true;
+    }
+    return false;
+  };
+
+  // Densify the closed loop: emit each edge subdivided into steps small relative
+  // to the gate gap so the gated/ungated boundary is resolved finely.
+  const step = Math.max(0.5, gapHalfM / 4);
+  const dense: Array<{ x: number; z: number }> = [];
+  const flags: boolean[] = [];
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i];
+    const b = ring[(i + 1) % ring.length];
+    const segLen = Math.hypot(b.x - a.x, b.z - a.z) || 1;
+    const n = Math.max(1, Math.ceil(segLen / step));
+    for (let k = 0; k < n; k++) {
+      const t = k / n;
+      const p = { x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t };
+      dense.push(p);
+      flags.push(gated(p));
+    }
+  }
+
+  // No gate actually touches the densified ring → keep it closed.
+  if (!flags.some(Boolean)) {
+    const closed = ring.slice();
+    closed.push(ring[0]);
+    return [closed];
+  }
+
+  // Walk the closed loop once, starting at the first ungated sample, collecting
+  // maximal runs of ungated points. Starting on an ungated point guarantees runs
+  // that straddle the original closing seam are not split there.
+  const N = dense.length;
+  let start = flags.findIndex((f) => !f);
+  if (start < 0) return []; // wholly gated — emit no wall
+  const runs: Array<Array<{ x: number; z: number }>> = [];
+  let current: Array<{ x: number; z: number }> = [];
+  for (let s = 0; s <= N; s++) {
+    const idx = (start + s) % N;
+    if (s < N && !flags[idx]) {
+      current.push(dense[idx]);
+    } else {
+      if (current.length >= 2) runs.push(current);
+      current = [];
+    }
+  }
+  return runs;
 }
 
 function buildingFootprintCells(
@@ -674,7 +866,8 @@ export function canonicalTownWaterAndDecks(
   const decks: GroundDeck[] = [];
   for (const c of feetPlan.civic) {
     if (c.kind !== 'dock' && c.kind !== 'bridge') continue;
-    decks.push({ cornersM: c.polygon.map(([fx, fy]) => toM(fx, fy)), topY: 0 });
+    // Preserve the civic kind end-to-end (TG5) — it tints the deck downstream.
+    decks.push({ cornersM: c.polygon.map(([fx, fy]) => toM(fx, fy)), topY: 0, kind: c.kind });
   }
   return { waterBodies, decks };
 }
@@ -756,15 +949,33 @@ function groundTowns(
         widthM: Math.max(2.5, s.widthFt * FEET_TO_METERS),
       });
     }
-    // Defensive wall ring → a closed ground polyline (3D renders it as an
-    // extruded barrier). The ring is in region feet after the transform.
+    // Defensive wall ring → ground polyline runs (3D renders each as an extruded
+    // barrier). The ring is in region feet after the transform. TG7: where an
+    // inherited river crosses the ring, break the wall for a water-gate so the
+    // river passes through an arch gap instead of clipping solid stone — the ring
+    // is split into open runs that SKIP a span around each gate, rather than one
+    // continuous closed loop.
     if (adapted.walls.ring.length >= 3) {
       const ringM = adapted.walls.ring.map(([fx, fy]) => ({
         x: (fx - local.bounds.x) * FEET_TO_METERS,
         z: (fy - local.bounds.y) * FEET_TO_METERS,
       }));
-      ringM.push(ringM[0]); // close the ring
-      planWalls.push({ points: ringM, widthM: 1.2 });
+      const gatesM = (adapted.walls.waterGates ?? []).map(([fx, fy]) => ({
+        x: (fx - local.bounds.x) * FEET_TO_METERS,
+        z: (fy - local.bounds.y) * FEET_TO_METERS,
+      }));
+      if (gatesM.length === 0) {
+        ringM.push(ringM[0]); // no river crossing — keep the ring closed
+        planWalls.push({ points: ringM, widthM: 1.2 });
+      } else {
+        // Gate gap wide enough to clear the river channel (channelHalfWidth =
+        // spanFt*0.03, so full width ~spanFt*0.06) plus a little arch shoulder.
+        const spanFt = townSpanFtForBurg(getBridgeAtlas(worldSeed), t.burgId);
+        const gapHalfM = Math.max(3, spanFt * 0.04 * FEET_TO_METERS);
+        for (const run of splitWallRingAtGates(ringM, gatesM, gapHalfM)) {
+          if (run.length >= 2) planWalls.push({ points: run, widthM: 1.2 });
+        }
+      }
     }
     // Occupants live where the floor plans say they can (ROSTER-1), and
     // stand at work during business hours (time-of-day v0).
@@ -1112,8 +1323,9 @@ export function sampleGroundChunk(
     }),
     decks: ground.decks.flatMap((d) => {
       const clipped = clipPolygonToChunk(d.cornersM, cx, cy);
+      // Carry the dock/bridge kind through (TG5) so the geometry tints each deck.
       return clipped.length >= 3
-        ? [{ points: clipped.map((p) => pseudoGrid(p.x, p.z)), topY: d.topY }]
+        ? [{ points: clipped.map((p) => pseudoGrid(p.x, p.z)), topY: d.topY, kind: d.kind }]
         : [];
     }),
     // Sites whose center falls in this chunk (sampler convention):
@@ -1468,7 +1680,18 @@ export function extractLocalTerrainPatch(
             const inX = lx >= p.x - p.w / 2 - 0.1 && lx <= p.x + p.w / 2 + 0.1;
             const inZ = lz >= lzScene - p.d / 2 - 0.1 && lz <= lzScene + p.d / 2 + 0.1;
 
-            if (inX && inZ && p.h > 0.5) {
+            // IN guard: only parts that intrude into the walkable band below head
+            // height block the floor tile. Overhead parts — the door lintel
+            // (baseY 2.1), the flat ceiling slab (baseY near the shell top), and
+            // upper-floor slabs — sit entirely above the walker and must NOT block
+            // the tile beneath them, or the new dressing would seal the doorway.
+            const partBaseY = p.baseY ?? 0;
+            const intrudesWalkBand = partBaseY < COMBAT_HEAD_CLEARANCE_M;
+            // The door leaf fills the entry gap but is the door itself — a doorway
+            // must stay passable in tactical combat, so it never blocks movement.
+            const isDoorLeaf = p.colorHex === DOOR_LEAF_COLOR;
+
+            if (inX && inZ && p.h > 0.5 && intrudesWalkBand && !isDoorLeaf) {
               blocksMovement = true;
               // Check if this part has a wall-colored hex code to determine LoS blocking
               const isWall = p.colorHex === '#cfc7b8' || p.colorHex === '#c8923f' || p.colorHex === '#b09a72';

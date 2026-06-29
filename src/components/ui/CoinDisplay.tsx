@@ -26,7 +26,7 @@ const CoinDisplay: React.FC<CoinDisplayProps> = ({ label, amount, color, icon, t
     >
       <span className="text-lg filter drop-shadow-md" aria-hidden="true">{icon}</span>
       <span className={`text-xs font-bold ${color}`} aria-hidden="true">{amount}</span>
-      <span className="text-[9px] text-gray-500 uppercase tracking-wider" aria-hidden="true">{label}</span>
+      <span className="text-[9px] text-gray-400 uppercase tracking-wider" aria-hidden="true">{label}</span>
     </span>
   </Tooltip>
 );

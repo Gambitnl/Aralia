@@ -82,9 +82,10 @@ export class SmugglingSystem {
         event: InspectionEvent,
         playerAction: 'submit' | 'bribe' | 'bluff' | 'fight' | 'flee',
         player: PlayerCharacter,
-        cargo: ContrabandDefinition[]
+        cargo: ContrabandDefinition[],
+        seed?: number
     ): { result: InspectionResult; message: string; itemsLost: ContrabandDefinition[]; goldCost: number } {
-        const rng = new SeededRandom(Date.now());
+        const rng = new SeededRandom(seed ?? Date.now());
 
         if (playerAction === 'fight') {
              return {
@@ -136,7 +137,8 @@ export class SmugglingSystem {
             // Deception check
             const chaMod = Math.floor((((player.stats?.charisma ?? 10) - 10) / 2));
             // Add proficiency if we had skill access, assuming simplified model for now
-            const roll = rng.nextInt(1, 20) + chaMod;
+            // nextInt is max-exclusive, so a d20 is nextInt(1, 21) -> 1..20.
+            const roll = rng.nextInt(1, 21) + chaMod;
 
             if (roll >= event.difficulty) {
                 return {
@@ -159,7 +161,8 @@ export class SmugglingSystem {
              // Athletics/Vehicle check vs Patrol speed
              // Simplified: 50/50 modified by dexterity
              const dexMod = Math.floor((((player.stats?.dexterity ?? 10) - 10) / 2));
-             const roll = rng.nextInt(1, 20) + dexMod;
+             // nextInt is max-exclusive, so a d20 is nextInt(1, 21) -> 1..20.
+             const roll = rng.nextInt(1, 21) + dexMod;
 
              if (roll >= event.difficulty + 5) { // Fleeing is harder
                   return {

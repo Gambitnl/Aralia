@@ -42,6 +42,25 @@ const FLOOR_COLOR = '#9a8a72';
 const FLOOR_H = 0.12;
 /** Interior wall color (lime-washed plaster). */
 export const INTERIOR_WALL_COLOR = '#cfc7b8';
+/** Door leaf tint (stained timber) — dresses the entry gap so it reads as a
+ * real door rather than a bare punched-out hole (IN1). */
+export const DOOR_LEAF_COLOR = '#4a3220';
+/** Lintel beam tint above the entry door. */
+export const DOOR_LINTEL_COLOR = '#6b4a30';
+/** Window pane tint (dark glazed glass) set into perimeter walls (IN1). */
+export const WINDOW_PANE_COLOR = '#2f3a4d';
+/** Ceiling slab tint for single-storey interiors so they stay enclosed (IN2).
+ * Matches the floor plank so a one-room interior reads as a finished box. */
+export const CEILING_COLOR = '#8c7d68';
+/** Door leaf clear width, feet (slightly under the DOOR_FT gap so the leaf
+ * sits inside the opening). */
+const DOOR_LEAF_FT = 4;
+/** Door leaf height, meters. */
+const DOOR_LEAF_H = 2.1;
+/** Window opening height/width, meters, and sill elevation. */
+const WINDOW_W = 0.9;
+const WINDOW_H = 1.0;
+const WINDOW_SILL_M = 1.1;
 /** Exterior (perimeter) wall tint by plot role — keeps the market/house
  * identity the solid shells used to carry. */
 export const PERIMETER_WALL_COLORS: Record<string, string> = {
@@ -246,6 +265,111 @@ export function buildInteriorParts(
         parts.push({ x: toX(lineAt), z: toZ((r.lo + r.hi) / 2), w: WALL_T, d: len, h, colorHex });
       }
     }
+  }
+
+  // ── Door + windows (IN1). Without these the entry is a bare rectangular hole
+  // in the perimeter wall and the shell has no glazing — town houses read as
+  // windowless boxes. We DRESS the existing geometry: a door leaf set into the
+  // entry gap (with a lintel beam over it), and dark glazed panes recessed into
+  // the perimeter walls. These are plain SitePart boxes, so they ride the same
+  // rotation / doorZSign / z-flip the renderer already applies to every part.
+  const entry = plan.doorways.find((door) => door.a === EXTERIOR);
+  if (entry) {
+    // Entry doorway sits on h:0 (street wall) at door.x, axis x. Map to part
+    // frame: x = toX(door.x), z on the toZ(0) perimeter line.
+    const isX = entry.axis === 'x';
+    // The entry always sits on a perimeter ORIGIN line (h:0 for axis 'x', v:0
+    // for axis 'y'), so the fixed coordinate is 0; the door slides along the
+    // other axis at its position.
+    const doorPosFt = isX ? entry.x : entry.y;
+    const dx = isX ? toX(doorPosFt) : toX(0);
+    const dz = isX ? toZ(0) : toZ(doorPosFt);
+    const leafLen = DOOR_LEAF_FT * FT;
+    // Door leaf: thin slab filling the gap, slightly thicker than the wall so
+    // it shows from both faces. Spans x (h:0) or z (v:0) depending on axis.
+    parts.push({
+      x: dx,
+      z: dz,
+      w: isX ? leafLen : WALL_T + 0.06,
+      d: isX ? WALL_T + 0.06 : leafLen,
+      h: DOOR_LEAF_H,
+      colorHex: DOOR_LEAF_COLOR,
+    });
+    // Lintel: a low beam capping the opening, from the door head to the shell.
+    const lintelH = Math.max(0.15, shellHeightM - DOOR_LEAF_H);
+    if (lintelH > 0.16) {
+      parts.push({
+        x: dx,
+        z: dz,
+        w: isX ? leafLen + 0.4 : WALL_T + 0.08,
+        d: isX ? WALL_T + 0.08 : leafLen + 0.4,
+        h: lintelH,
+        colorHex: DOOR_LINTEL_COLOR,
+        baseY: DOOR_LEAF_H,
+      });
+    }
+  }
+
+  // Windows: recessed dark panes on the perimeter walls. Place a pair on each
+  // long perimeter face, inset from the corners and clear of the entry door, so
+  // the shell reads as a glazed building rather than a blank box. Deterministic
+  // (fixed fractions), so a re-bake yields identical parts.
+  {
+    const entryX = entry && entry.axis === 'x' ? entry.x : null;
+    // Front (street, h:0) + back (h:D) faces span along x; left/right (v:0,v:W)
+    // span along z. Use interior fractions; skip any pane that lands on the door.
+    const fracs = [0.28, 0.72] as const;
+    const halfPaneFt = DOOR_FT / 2;
+    // Front & back walls (panes vary in x).
+    for (const lineZ of [0, D]) {
+      for (const fr of fracs) {
+        const fx = W * fr;
+        if (lineZ === 0 && entryX != null && Math.abs(fx - entryX) < halfPaneFt) continue;
+        parts.push({
+          x: toX(fx),
+          z: toZ(lineZ),
+          w: WINDOW_W,
+          d: WALL_T + 0.04,
+          h: WINDOW_H,
+          colorHex: WINDOW_PANE_COLOR,
+          baseY: WINDOW_SILL_M,
+        });
+      }
+    }
+    // Left & right walls (panes vary in z).
+    const entryZ = entry && entry.axis === 'y' ? entry.y : null;
+    for (const lineX of [0, W]) {
+      for (const fr of fracs) {
+        const fy = D * fr;
+        if (lineX === 0 && entryZ != null && Math.abs(fy - entryZ) < halfPaneFt) continue;
+        parts.push({
+          x: toX(lineX),
+          z: toZ(fy),
+          w: WALL_T + 0.04,
+          d: WINDOW_W,
+          h: WINDOW_H,
+          colorHex: WINDOW_PANE_COLOR,
+          baseY: WINDOW_SILL_M,
+        });
+      }
+    }
+  }
+
+  // Ceiling (IN2). A single-storey building has no upper-floor slab, so hiding
+  // the roof when the camera enters opened the interior to the sky. Cap the
+  // ground room with a thin ceiling slab at the shell top. Multi-storey
+  // buildings already get this enclosure from their upper-floor slab, so emit
+  // the ceiling only when there are no upper floors.
+  if (plan.upperFloors.length === 0) {
+    parts.push({
+      x: 0,
+      z: 0,
+      w: W * FT,
+      d: D * FT,
+      h: FLOOR_H,
+      colorHex: CEILING_COLOR,
+      baseY: Math.max(FLOOR_H, shellHeightM - FLOOR_H),
+    });
   }
 
   for (const f of plan.furnishings) {

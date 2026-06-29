@@ -29,15 +29,16 @@
  * 
  * @file src/state/actionTypes.ts
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices, PlayerWorldPosition, PlayerGroundPosition, DiscoveredHiddenSite, WorldViewMode, MapSurface, WorldHistory } from '../types/index.js';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices, PlayerWorldPosition, PlayerGroundPosition, Entry3DAnchor, DiscoveredHiddenSite, WorldViewMode, MapSurface, WorldHistory } from '../types/index.js';
 import type { Puzzle } from '../systems/puzzles/types.js';
+import type { RecruitPayload } from '../systems/party/recruitTypes.js';
 import { RitualState } from '../types/rituals.js';
 // TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
 import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload, ApplyLeveragePayload } from './payloads/identityPayloads.js';
 import { DialogueSession } from '../types/dialogue.js';
 import { WorldHistoryEvent } from '../types/history.js';
-import { CrewRole } from '../types/naval.js';
+import { CrewRole, ShipType } from '../types/naval.js';
 import type { WorldDelta } from '../systems/worldforge/delta/types.js';
 import {
   CastSpellPayload,
@@ -65,6 +66,10 @@ export type AppAction =
   | { type: 'ADD_MESSAGE'; payload: GameMessage }
   | { type: 'MOVE_PLAYER'; payload: { newLocationId: string; newSubMapCoordinates: { x: number; y: number }; mapData?: MapData; activeDynamicNpcIds: string[] | null } }
   | { type: 'APPLY_TAKE_ITEM_UPDATE'; payload: { item: Item; locationId: string; discoveryEntry: DiscoveryEntry } }
+  // Places foraged items onto a (typically procedural coord_) tile and, by the
+  // mere presence of the key, marks that tile as already searched so it cannot be
+  // re-foraged for fresh loot. See systems/exploration/forage.ts.
+  | { type: 'PLACE_AREA_ITEMS'; payload: { locationId: string; itemIds: string[] } }
   | { type: 'TOGGLE_MAP_VISIBILITY' }
   | { type: 'TOGGLE_MINIMAP_VISIBILITY' }
   | { type: 'TOGGLE_THREE_D_VISIBILITY' }
@@ -217,6 +222,9 @@ export type AppAction =
   | { type: 'ADD_DISCOVERED_FACT'; payload: { companionId: string; fact: import('../types/companions.js').DiscoveredFact } }
   | { type: 'ARCHIVE_BANTER'; payload: import('../types/companions.js').BanterMoment }
   | { type: 'UPDATE_BANTER_COOLDOWN'; payload: { banterId: string; timestamp: number } }
+  // Party Recruitment Actions
+  | { type: 'RECRUIT_COMPANION'; payload: RecruitPayload }
+  | { type: 'DISMISS_PARTY_MEMBER'; payload: { memberId: string } }
   // Notification Actions
   | { type: 'ADD_NOTIFICATION'; payload: { id?: string; type: 'success' | 'error' | 'info' | 'warning'; message: string; duration?: number } }
   | { type: 'REMOVE_NOTIFICATION'; payload: { id: string } }
@@ -286,6 +294,7 @@ export type AppAction =
   | { type: 'COMPLETE_RITUAL'; payload: { result?: unknown } }
   // Naval Actions
   | { type: 'NAVAL_INITIALIZE_FLEET' }
+  | { type: 'NAVAL_PURCHASE_STARTER_SHIP'; payload?: { name?: string; type?: ShipType; cost?: number } }
   | { type: 'NAVAL_START_VOYAGE'; payload: { destinationId: string; distance: number } }
   | { type: 'NAVAL_ADVANCE_VOYAGE' }
   | { type: 'NAVAL_RECRUIT_CREW'; payload: { role: CrewRole } }
@@ -339,6 +348,10 @@ export type AppAction =
   // without creating a fake fallback situation.
   | { type: 'SKIP_OPENING_SITUATION' }
   | { type: 'RESET_OPENING_SITUATION' }
+  // Opening-scene illustration lifecycle (async, fire-and-forget; never blocks play).
+  | { type: 'SCENE_IMAGE_REQUEST_START' }
+  | { type: 'SCENE_IMAGE_REQUEST_SUCCESS'; payload: { url: string } }
+  | { type: 'SCENE_IMAGE_REQUEST_ERROR'; payload: { error: string } }
   | { type: 'PLACE_SITUATION_NPCS'; payload: { npcs: import('../types/world.js').RichNPC[] } }
   | { type: 'ADD_CONVERSATION_MESSAGE'; payload: import('../types/conversation.js').ConversationMessage }
   | { type: 'SET_CONVERSATION_PENDING'; payload: boolean }
@@ -367,5 +380,7 @@ export type AppAction =
   // 3D World Transition (world-3d-ui)
   | { type: 'SET_PLAYER_WORLD_POS'; payload: PlayerWorldPosition }
   | { type: 'CLEAR_PLAYER_WORLD_POS' }
+  | { type: 'SET_ENTRY_3D_ANCHOR'; payload: Entry3DAnchor }
+  | { type: 'CLEAR_ENTRY_3D_ANCHOR' }
   | { type: 'SET_WORLD_VIEW_MODE'; payload: WorldViewMode }
   | { type: 'SET_MAP_SURFACE'; payload: MapSurface };

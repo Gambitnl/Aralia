@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 26/06/2026, 20:31:26
+ * Last Sync: 29/06/2026, 01:24:21
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
- * Imports: 24 files
+ * Imports: 25 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -95,6 +95,12 @@ import {
 import { combatEvents } from '../systems/events/CombatEvents';
 import { TargetResolver } from '../systems/spells/targeting/TargetResolver';
 import { buildSelectedSpellTargetsForPosition } from '../systems/spells/targeting/selectedSpellTargets';
+import {
+  hasTrueStrikeImmediateAttackAugment,
+  resolveTrueStrikeAttackTarget,
+  resolveTrueStrikeWeaponSnapshot,
+  validateTrueStrikeWeaponSnapshot
+} from '../commands/factory/trueStrikeAttackBridge';
 
 /**
  * Pull the selectable command words out of structured utility effects.
@@ -288,6 +294,135 @@ const restoreInterruptedSpellSlot = (
         current: restoredCurrent
       }
     }
+  };
+};
+
+interface AreaTargetResolutionInput {
+  spell: Spell;
+  caster: CombatCharacter;
+  targetPosition: Position;
+  characters: CombatCharacter[];
+  mapData: BattleMapData | null;
+  selectedSpellTargets?: SelectedSpellTarget[];
+}
+
+interface AreaTargetResolutionResult {
+  targetCharacterIds: string[];
+  selectedSpellTargets: SelectedSpellTarget[];
+}
+
+const isCreatureSelectedSpellTarget = (
+  selectedTarget: SelectedSpellTarget
+): selectedTarget is Extract<SelectedSpellTarget, { kind: 'creature' }> => selectedTarget.kind === 'creature';
+
+const buildVisibilityCheckState = (
+  characters: CombatCharacter[],
+  mapData: BattleMapData | null
+): CombatState => ({
+  isActive: true,
+  characters,
+  turnState: {
+    currentTurn: 0,
+    turnOrder: [],
+    currentCharacterId: null,
+    phase: 'planning',
+    actionsThisTurn: []
+  },
+  selectedCharacterId: null,
+  selectedAbilityId: null,
+  actionMode: 'select',
+  validTargets: [],
+  validMoves: [],
+  combatLog: [],
+  reactiveTriggers: [],
+  activeLightSources: [],
+  mapData: mapData ?? undefined
+});
+
+const canSelectAreaCreature = (
+  spell: Spell,
+  caster: CombatCharacter,
+  target: CombatCharacter,
+  characters: CombatCharacter[],
+  mapData: BattleMapData | null
+): boolean => {
+  // Area spells that explicitly call for visible chosen creatures should reuse
+  // the same rejection language as the rest of targeting, so hidden or blocked
+  // creatures do not sneak back into the cast just because they stand on an
+  // affected tile.
+  const requiresVisibleSelection = spell.targeting.areaTargetSelection?.requiresLineOfSight ?? spell.targeting.lineOfSight;
+
+  if (!requiresVisibleSelection) {
+    return true;
+  }
+
+  const visibilityTargeting: Spell['targeting'] = {
+    ...spell.targeting,
+    range: Math.max(spell.targeting.range, 9999)
+  };
+
+  return TargetResolver.getTargetRejectionReason(
+    visibilityTargeting,
+    caster,
+    target,
+    buildVisibilityCheckState(characters, mapData)
+  ) === null;
+};
+
+export const resolveAreaTargetSelection = ({
+  spell,
+  caster,
+  targetPosition,
+  characters,
+  mapData,
+  selectedSpellTargets
+}: AreaTargetResolutionInput): AreaTargetResolutionResult => {
+  const areaOfEffect = spell.targeting.areaOfEffect;
+  const params = areaOfEffect ? resolveAoEParams(areaOfEffect, targetPosition, caster) : null;
+
+  if (!params) {
+    return {
+      targetCharacterIds: [],
+      selectedSpellTargets: []
+    };
+  }
+
+  const affectedTiles = calculateAffectedTiles(params);
+  const affectedCharacters = characters.filter(character =>
+    affectedTiles.some(tile => tile.x === character.position.x && tile.y === character.position.y)
+  );
+
+  const explicitCreatureTargets = (selectedSpellTargets ?? []).filter(isCreatureSelectedSpellTarget);
+  const explicitCreatureIds = new Set(explicitCreatureTargets.map(target => target.id));
+  const hasExplicitCasterChoice = spell.targeting.areaTargetSelection?.mode === 'caster_choice' &&
+    explicitCreatureTargets.some(target => target.id !== caster.id);
+
+  const visibleCandidates = affectedCharacters.filter(character => {
+    // Sword Burst is the self-centered exception that should never feed the
+    // caster back into its own damage pool, even though the caster occupies the
+    // area origin tile.
+    if (
+      spell.range.type === 'self' &&
+      !spell.targeting.areaTargetSelection &&
+      character.id === caster.id
+    ) {
+      return false;
+    }
+
+    return canSelectAreaCreature(spell, caster, character, characters, mapData);
+  });
+
+  const finalCharacters = hasExplicitCasterChoice
+    ? visibleCandidates.filter(character => explicitCreatureIds.has(character.id))
+    : visibleCandidates;
+
+  const resolvedSelectedSpellTargets = hasExplicitCasterChoice
+    ? explicitCreatureTargets.filter(target => finalCharacters.some(character => character.id === target.id))
+    : finalCharacters.map(character => ({ kind: 'creature', id: character.id }));
+
+  return {
+    targetCharacterIds: finalCharacters.map(character => character.id),
+    selectedSpellTargets: resolvedSelectedSpellTargets
   };
 };
 
@@ -1159,7 +1294,11 @@ export const useAbilitySystem = ({
         });
       }
 
-      executeSpell(
+      // Spell ability execution can now open reaction prompts before command
+      // creation. Await the spell pipeline so callers and tests do not observe
+      // only the early action-cost state while Counterspell, slot restoration,
+      // touch delivery, or other async spell bridges are still resolving.
+      await executeSpell(
         spellForExecution,
         casterAfterCost,
         targets,
@@ -1505,6 +1644,13 @@ export const useAbilitySystem = ({
       return;
     }
 
+    // True Strike does not finish as a normal self cast. The click that starts
+    // the spell should keep targeting active so the next creature click can be
+    // handed to the cast-time weapon attack bridge.
+    if (ability.targeting === 'self' && ability.spell && hasTrueStrikeImmediateAttackAugment(ability.spell)) {
+      return;
+    }
+
     // Auto-cast for Self abilities
     if (ability.targeting === 'self') {
       executeAbility(ability, caster, caster.position, [caster.id]);
@@ -1517,7 +1663,7 @@ export const useAbilitySystem = ({
    * Confirms selection of a target tile.
    * ACTION: Stabilized via Refs.
    */
-  const selectTarget = useCallback((targetPosition: Position, caster: CombatCharacter) => {
+  const selectTarget = useCallback((targetPosition: Position, caster: CombatCharacter, selectedSpellTargetsOverride?: SelectedSpellTarget[]) => {
     // Note: selectedAbility is from hook state (props/reactive), not ref.
     // This is fine as selectTarget is re-created if selectedAbility changes (which is rare during targeting).
     if (!selectedAbility) return false;
@@ -1628,15 +1774,55 @@ export const useAbilitySystem = ({
     // WHY: Manual combat should not silently ignore a clicked enemy. The action
     // still does not execute, and targeting remains active so the player can
     // pick a legal target without reselecting the ability.
-    const selectedSpellTargets = buildSelectedSpellTargetsForPosition({
-      position: targetPosition,
-      characters: charactersRef.current,
-      mapData: mapDataRef.current,
-      pointPurpose: 'ground_target'
-    });
-    const selectedObjectTarget = selectedSpellTargets.find((target): target is Extract<SelectedSpellTarget, { kind: 'object' }> =>
-      target.kind === 'object'
-    );
+      const selectedSpellTargets = selectedSpellTargetsOverride ?? buildSelectedSpellTargetsForPosition({
+        position: targetPosition,
+        characters: charactersRef.current,
+        mapData: mapDataRef.current,
+        pointPurpose: 'ground_target'
+      });
+
+      // True Strike uses a self-targeted spell shell but still needs the chosen
+      // enemy to travel through the selectedSpellTargets bridge so the attack
+      // command can resolve against that creature instead of the caster.
+      if (
+        selectedAbility.targeting === 'self' &&
+        selectedAbility.spell &&
+        hasTrueStrikeImmediateAttackAugment(selectedAbility.spell)
+      ) {
+        const attackTarget = resolveTrueStrikeAttackTarget(selectedSpellTargets, charactersRef.current, caster.id);
+        const weaponSnapshot = resolveTrueStrikeWeaponSnapshot(caster);
+        const trueStrikeEffect = selectedAbility.spell.effects.find(effect => effect.type === 'UTILITY') as UtilityEffect | undefined;
+        const trueStrikeAugment = trueStrikeEffect
+          ? trueStrikeEffect.attackAugments?.find(augment =>
+              augment.grantedAttack?.timing === 'during_cast' &&
+              augment.grantedAttack.usesCastingWeapon === true
+            )
+          : undefined;
+        const validation = validateTrueStrikeWeaponSnapshot(caster, weaponSnapshot, trueStrikeAugment?.weaponRequirement);
+
+        if (!attackTarget || !weaponSnapshot || !validation.valid) {
+          const message = validation.reason ?? `${selectedAbility.name} needs a valid weapon and a creature target.`;
+          if (onNotification) onNotification(message, 'error');
+          if (onLogEntry) {
+            onLogEntry({
+              id: generateId(),
+              timestamp: Date.now(),
+              type: 'action',
+              message,
+              characterId: caster.id,
+              data: { abilityName: selectedAbility.name, spellId: selectedAbility.spell.id, pendingGap: 'G58-TRUE-STRIKE-WEAPON-BRIDGE' }
+            });
+          }
+          return false;
+        }
+
+        executeAbility(selectedAbility, caster, caster.position, [caster.id, attackTarget.id], undefined, selectedSpellTargets);
+        return true;
+      }
+
+      const selectedObjectTarget = selectedSpellTargets.find((target): target is Extract<SelectedSpellTarget, { kind: 'object' }> =>
+        target.kind === 'object'
+      );
     const objectTargetIsValid = !!selectedObjectTarget?.object && !!selectedAbility.spell && TargetResolver.isValidObjectTarget(
       selectedAbility.spell.targeting,
       caster,
@@ -1682,18 +1868,40 @@ export const useAbilitySystem = ({
     }
 
     let targetCharacterIds: string[] = [];
+    let resolvedSelectedSpellTargets = selectedSpellTargets;
 
     if (selectedAbility.areaOfEffect) {
-      // Use Utils to resolve full affected area
-      const params = resolveAoEParams(selectedAbility.areaOfEffect, targetPosition, caster);
-      if (params) {
-        const affectedTiles = calculateAffectedTiles(params);
+      const spellTargeting = selectedAbility.spell?.targeting;
+      const usesCasterChoiceAreaSelection = spellTargeting?.areaTargetSelection?.mode === 'caster_choice';
+      const needsSelfCenteredAreaBridge = spellTargeting?.range.type === 'self' && !spellTargeting?.areaTargetSelection;
 
-        targetCharacterIds = charactersRef.current
-          .filter(char => affectedTiles.some(tile =>
-            tile.x === char.position.x && tile.y === char.position.y
-          ))
-          .map(char => char.id);
+      // Only the self-centered caster-exclusion and caster-choice bridges take
+      // over the old area flow. The ordinary area path keeps using the legacy
+      // affected-tile expansion so unrelated area spells stay stable.
+      if (usesCasterChoiceAreaSelection || needsSelfCenteredAreaBridge) {
+        const areaSelection = resolveAreaTargetSelection({
+          spell: selectedAbility.spell,
+          caster,
+          targetPosition,
+          characters: charactersRef.current,
+          mapData: mapDataRef.current,
+          selectedSpellTargets
+        });
+
+        targetCharacterIds = areaSelection.targetCharacterIds;
+        resolvedSelectedSpellTargets = areaSelection.selectedSpellTargets;
+      } else {
+        // Use Utils to resolve full affected area
+        const params = resolveAoEParams(selectedAbility.areaOfEffect, targetPosition, caster);
+        if (params) {
+          const affectedTiles = calculateAffectedTiles(params);
+
+          targetCharacterIds = charactersRef.current
+            .filter(char => affectedTiles.some(tile =>
+              tile.x === char.position.x && tile.y === char.position.y
+            ))
+            .map(char => char.id);
+        }
       }
     } else {
       // Creature target.
@@ -1752,7 +1960,7 @@ export const useAbilitySystem = ({
       return false;
     }
 
-    executeAbility(selectedAbility, caster, targetPosition, targetCharacterIds, undefined, selectedSpellTargets);
+    executeAbility(selectedAbility, caster, targetPosition, targetCharacterIds, undefined, resolvedSelectedSpellTargets);
     return true;
   }, [selectedAbility, pendingTeleportAssignment, executeAbility, getTargetValidation, getCharacterAtPosition, getValidTargets, isTeleportDestination, previewTeleportDestinations, cancelTargeting, onLogEntry, onNotification]);
 

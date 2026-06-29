@@ -1,6 +1,6 @@
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { calculateProficiencyBonus, calculateSpellDC, rollSavingThrow, SavingThrowModifier } from '../savingThrowUtils';
+import { calculateProficiencyBonus, calculateSaveDamage, calculateSpellDC, rollSavingThrow, SavingThrowModifier } from '../savingThrowUtils';
 import { createMockCombatCharacter } from '../../core/factories';
 import * as combatUtils from '../../combat/combatUtils';
 
@@ -240,8 +240,49 @@ describe('savingThrowUtils', () => {
         // Setup returns for Dex: First roll 10, second roll 20. If no advantage, it just takes the 10.
         rollDiceMock.mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValue(5);
 
-        const resultDex = rollSavingThrow(char, 'Dexterity', 15);
-        expect(resultDex.roll).toBe(10); // Should just be the first roll
+      const resultDex = rollSavingThrow(char, 'Dexterity', 15);
+      expect(resultDex.roll).toBe(10); // Should just be the first roll
+    });
+  });
+
+  describe('calculateSaveDamage', () => {
+    it('returns zero damage on a successful save when the effect uses saveEffect none', () => {
+      const saveResult = {
+        success: true,
+        roll: 18,
+        total: 18,
+        dc: 13,
+        natural20: false,
+        natural1: false
+      };
+
+      expect(calculateSaveDamage(8, saveResult, 'none')).toBe(0);
+    });
+
+    it('still returns full damage on a failed save when the effect uses saveEffect none', () => {
+      const saveResult = {
+        success: false,
+        roll: 2,
+        total: 2,
+        dc: 13,
+        natural20: false,
+        natural1: true
+      };
+
+      expect(calculateSaveDamage(8, saveResult, 'none')).toBe(8);
+    });
+
+    it('keeps half damage behavior unchanged for half-damage saves', () => {
+      const saveResult = {
+        success: true,
+        roll: 18,
+        total: 18,
+        dc: 13,
+        natural20: false,
+        natural1: false
+      };
+
+      expect(calculateSaveDamage(9, saveResult, 'half')).toBe(4);
     });
   });
 });

@@ -96,6 +96,39 @@ describe('SavePenaltySystem', () => {
         expect(updatedTarget?.savePenaltyRiders?.[0].sourceName).toBe('Bane');
     });
 
+    it('expires next_save penalties at the caster-turn boundary when no save is rolled', () => {
+        const secondActor = createMockCombatCharacter({
+            id: 'actor-2',
+            name: 'Skeleton'
+        });
+
+        mockTarget.savePenaltyRiders = [{
+            id: 'rider-5',
+            spellId: 'spell-1',
+            casterId: mockCasterId,
+            sourceName: 'Mind Sliver',
+            dice: '1d4',
+            applies: 'next_save',
+            duration: { type: 'rounds', value: 2 },
+            appliedTurn: 1
+        }];
+        mockState.characters = [mockTarget, secondActor];
+
+        // Before the documented boundary, the rider still exists if no save
+        // has been rolled yet. This same-round check matters because the
+        // caster's current turn is not yet the "next turn" boundary.
+        mockState.turnState.currentTurn = 1;
+        let newState = system.expirePenalties(mockState, mockCasterId);
+        expect(newState.characters[0].savePenaltyRiders).toHaveLength(1);
+
+        // Once the caster-relative turn window closes, the skipped save rider
+        // is cleared so it cannot linger forever. The extra actor protects
+        // against dividing round numbers by participant count.
+        mockState.turnState.currentTurn = 2;
+        newState = system.expirePenalties(mockState, mockCasterId);
+        expect(newState.characters[0].savePenaltyRiders).toHaveLength(0);
+    });
+
     it('expires penalties based on duration', () => {
         mockTarget.savePenaltyRiders = [
             {

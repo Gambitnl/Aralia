@@ -37,6 +37,13 @@ export interface GlossaryEntry {
   aliases?: string[];
   seeAlso?: string[];
   filePath?: string | null;
+  /**
+   * True when this entry's content is sourced from a per-spell JSON file under
+   * `data/spells/level-{n}/{id}.json` rather than a glossary `filePath`. Spell
+   * entries are manifest-driven and carry no `filePath`; consumers must render
+   * them via the spell card loader instead of fetching `filePath`.
+   */
+  hasSpellJson?: boolean;
   subEntries?: GlossaryEntry[];
 
   /**

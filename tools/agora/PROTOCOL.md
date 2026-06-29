@@ -2,6 +2,8 @@
 
 **Reference for any agent (or human) sharing the `F:\Repos\Aralia` checkout.**
 Design spec (source of truth): [`docs/superpowers/specs/2026-06-27-agora-agent-coordination-design.md`](../../docs/superpowers/specs/2026-06-27-agora-agent-coordination-design.md)
+**Orchestrating a multi-agent campaign?** Read [`ORCHESTRATOR.md`](./ORCHESTRATOR.md) — the
+board + agent matrix (external CLIs) + project tracker, end to end. This file is the per-agent API.
 
 ---
 

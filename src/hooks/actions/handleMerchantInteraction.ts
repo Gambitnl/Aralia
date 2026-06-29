@@ -13,9 +13,61 @@ import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
 import { generateNpcBusiness, pickBusinessTypeForMerchant } from '../../systems/economy/NpcBusinessManager';
 import { SeededRandom } from '@/utils/random';
 import { getGameDay } from '../../utils/core';
+import type { RichNPC } from '../../types/world';
+import { evaluateRecruitOffer } from '../../systems/party/recruitConsent';
+import { npcToPartyMember } from '../../systems/party/npcToPartyMember';
 
 function clampNumber(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
+}
+
+/**
+ * Tavern/inn merchant types are the surface where a patron can be hired into the
+ * party. Merchant types arrive in several shapes — `shop_tavern` (VillageScene),
+ * the display name `Tavern`, or a raw worldforge building type (`tavern`, `inn`).
+ * We match case-insensitively on the substring so all of those route to the hire
+ * affordance without enumerating every producer's naming convention.
+ */
+export function isTavernOrInnMerchant(merchantType: string): boolean {
+  const normalized = merchantType.toLowerCase();
+  return normalized.includes('tavern') || normalized.includes('inn');
+}
+
+/**
+ * Offer to hire the tavern/innkeeper-generated NPC into the party.
+ *
+ * Reuses the shared recruitment pipeline built for every join surface:
+ *   1. {@link evaluateRecruitOffer} (P5) — disposition-gated consent verdict.
+ *   2. On a yes, {@link npcToPartyMember} (P4) converts the world NPC into the
+ *      paired `{ character, companion }` and we dispatch `RECRUIT_COMPANION`
+ *      (P3) with `source: 'tavern'` so both stores are written under one id.
+ *   3. On a no, we surface the in-fiction decline in the merchant's voice,
+ *      matching the existing "I don't haggle" decline style.
+ *
+ * This is additive: it never blocks or alters the browse/barter flow that runs
+ * after it.
+ */
+export function offerTavernHire(
+  npc: RichNPC,
+  gameState: GameState,
+  dispatch: React.Dispatch<AppAction>,
+  addMessage: AddMessageFn,
+): void {
+  const verdict = evaluateRecruitOffer(npc, gameState);
+
+  if (!verdict.willJoin) {
+    // Decline in-fiction, matching the merchant-voice style used elsewhere in
+    // this handler (e.g. the barter refusal). The consent reason is the
+    // out-of-character explanation shown alongside it.
+    addMessage(`"I'll pour your drink, friend, but I'm not for hire."`, 'system');
+    addMessage(verdict.reason, 'system');
+    return;
+  }
+
+  const payload = npcToPartyMember(npc, 'tavern');
+  dispatch({ type: 'RECRUIT_COMPANION', payload });
+  addMessage(`${npc.name} hangs up their apron and joins your party.`, 'system');
+  addMessage(verdict.reason, 'system');
 }
 
 function roundToCopper(gpValue: number): number {
@@ -107,8 +159,8 @@ export async function handleOpenDynamicMerchant({
   addGeminiLog,
   generalActionContext,
 }: HandleMerchantInteractionProps): Promise<void> {
-  const payload = action.payload as { merchantType: string; villageContext?: VillageActionContext; buildingId?: string; seedKey?: string };
-  const { merchantType, villageContext, buildingId, seedKey } = payload || {};
+  const payload = action.payload as { merchantType: string; villageContext?: VillageActionContext; buildingId?: string; seedKey?: string; hire?: boolean };
+  const { merchantType, villageContext, buildingId, seedKey, hire } = payload || {};
   if (!merchantType) {
     addMessage("Invalid merchant data.", "system");
     return;
@@ -158,6 +210,16 @@ export async function handleOpenDynamicMerchant({
 
     // Use the generated name for the UI
     merchantName = `${npc.name} (${merchantType})`;
+
+    // Tavern/inn hire affordance: the keeper of a drinking house can be invited
+    // to join the party. An explicit `hire` intent (a "Hire <name>" affordance)
+    // routes through the shared recruit pipeline (consent → convert → dispatch)
+    // and short-circuits the browse flow — the player chose to recruit, not shop.
+    if (npc && hire === true && isTavernOrInnMerchant(merchantType)) {
+      offerTavernHire(npc, gameState, dispatch, addMessage);
+      dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
+      return;
+    }
   }
 
   // 1. Generate inventory using Gemini
@@ -400,6 +462,6 @@ export async function handleMerchantAction({
 
   if (transaction?.barter) {
     addMessage('The merchant considers your items...', 'system');
-    addMessage('Bartering system is coming soon to the Aralia UI.', 'system');
+    addMessage('"My prices are fixed, friend — I don\'t haggle."', 'system');
   }
 }

@@ -1,0 +1,265 @@
+{
+  "id": "summon-celestial",
+  "name": "Summon Celestial",
+  "aliases": [],
+  "level": 5,
+  "school": "Conjuration",
+  "legacy": false,
+  "classes": [
+    "Cleric",
+    "Paladin"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 90,
+    "distanceUnit": "feet"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a golden reliquary worth 500+ GP",
+    "materialCost": 500,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "concentration": true,
+    "value": 1,
+    "unit": "hour"
+  },
+  "targeting": {
+    "type": "point",
+    "range": 90,
+    "rangeUnit": "feet",
+    "validTargets": [
+      "point"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable",
+      "placementEligibility": {
+        "unoccupied": "required",
+        "surface": "not_applicable",
+        "destination": "visible_space_within_range",
+        "notes": "Summon Celestial manifests the Celestial Spirit in an unoccupied space the caster can see within range."
+      }
+    }
+  },
+  "effects": [
+    {
+      "type": "SUMMONING",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "description": "Summon one Celestial Spirit in a visible unoccupied space within 90 feet for up to 1 hour with concentration, choosing an Avenger or Defender form. The spirit is an ally, shares your Initiative count but acts immediately after you, obeys verbal commands with no action required, Dodges and avoids danger when uncommanded, disappears at 0 Hit Points or when the spell ends, and uses the slot level for AC, Hit Points, Radiant Bow or Radiant Mace attacks, and Healing Touch.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": "Use the slot level as the spell's level in the Celestial Spirit stat block: AC is 11 + spell level, HP is 40 + 10 for each spell level above 5, and the form attack and Healing Touch scale with the spell's level."
+      },
+      "conditionalEndings": [
+        {
+          "trigger": "created_entity_drops_to_0_hp",
+          "scope": "effect",
+          "description": "The celestial spirit disappears when it drops to 0 Hit Points."
+        }
+      ],
+      "summon": {
+        "entityType": "creature",
+        "persistent": false,
+        "count": 1,
+        "commandCost": "none",
+        "commandsPerTurn": 1,
+        "initiative": "shared",
+        "objectDescription": "Celestial Spirit ally that shares the caster's initiative, acts immediately after the caster, obeys verbal commands with no caster action, and uses its form's attack plus Healing Touch.",
+        "statBlock": {
+          "name": "Celestial Spirit",
+          "type": "Celestial",
+          "size": "Medium",
+          "hp": 40,
+          "ac": 16,
+          "speed": 30,
+          "flySpeed": 40,
+          "abilities": {
+            "str": 16,
+            "dex": 14,
+            "con": 16,
+            "int": 10,
+            "wis": 14,
+            "cha": 16
+          },
+          "senses": [
+            "Darkvision 60 ft.",
+            "Passive Perception 12"
+          ],
+          "cr": "None"
+        },
+        "formOptions": [
+          "Avenger",
+          "Defender"
+        ],
+        "specialActions": [
+          {
+            "name": "Radiant Attack",
+            "description": "Avenger makes a Radiant Bow ranged spell attack (range 600 ft.); Defender makes a Radiant Mace melee spell attack (reach 5 ft.) and can grant temporary Hit Points to an ally. Hit: 2d6 + 4 + the spell's level Radiant damage.",
+            "cost": "action",
+            "damage": {
+              "dice": "2d6 + 4 + spell_level",
+              "type": "radiant"
+            }
+          },
+          {
+            "name": "Healing Touch",
+            "description": "Once per turn, when the spirit hits a creature with an attack, it can heal a creature it can see within 30 feet, restoring Hit Points equal to 1d10 + the spell's level.",
+            "cost": "free"
+          }
+        ]
+      },
+      "socialEffect": {
+        "relationship": "ally",
+        "alliedTo": [
+          "caster",
+          "caster_allies"
+        ],
+        "understandsCasterLanguages": true,
+        "sharesCasterInitiative": true,
+        "obeysCasterCommands": true,
+        "notes": "The summoned Celestial Spirit is an ally to the caster and allies, understands the caster languages, shares initiative, and follows commands."
+      }
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "Choose the Celestial Spirit form (Avenger for ranged Radiant Bow, Defender for melee Radiant Mace and ally protection) and arrival space; use the caster's spell attack modifier for the attack and Healing Touch.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 2,
+    "optionsSource": "summon.formOptions",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Avenger",
+        "summary": "Summon an Avenger Celestial Spirit that makes a long-range Radiant Bow attack.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature uses the Celestial Spirit stat block and slot-level scaling."
+      },
+      {
+        "label": "Defender",
+        "summary": "Summon a Defender Celestial Spirit that makes a melee Radiant Mace attack and shields allies with temporary Hit Points.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature uses the Celestial Spirit stat block and slot-level scaling."
+      }
+    ],
+    "notes": "The form choice selects the Celestial Spirit's attack mode and protective rider."
+  },
+  "description": "You call forth a celestial spirit. It manifests in an unoccupied space that you can see within range and uses the Celestial Spirit stat block. When you cast the spell, choose Avenger or Defender. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+  "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Celestial Spirit's Hit Points, attack damage, and Healing Touch increase as the spell's level increases.",
+  "tags": [
+    "summoning",
+    "controlled-entity",
+    "concentration"
+  ]
+}

@@ -326,7 +326,7 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
 
             {/* Display message when search returns no results and there's no error */}
             {hasNoResults && !hasError && (
-                <p className="text-gray-500 italic text-center py-4">No terms match your search.</p>
+                <p className="text-gray-400 italic text-center py-4">No terms match your search.</p>
             )}
 
             {/* Render each category with its entries (stub singletons hidden — GL5) */}

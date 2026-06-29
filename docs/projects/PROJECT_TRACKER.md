@@ -21,7 +21,8 @@ nobody overwrites anyone. Locks are advisory (honor-system) — cooperation is t
 
 - **Is it up?** `curl -s http://localhost:4319/health` (`"ok": true` ⇒ running)
 - **Start it:** `npm run agora`
-- **Full API + etiquette:** [`tools/agora/PROTOCOL.md`](../../tools/agora/PROTOCOL.md)
+- **Full API + worker etiquette:** [`tools/agora/PROTOCOL.md`](../../tools/agora/PROTOCOL.md)
+- **Running a multi-agent campaign (ORCHESTRATORS start here):** [`tools/agora/ORCHESTRATOR.md`](../../tools/agora/ORCHESTRATOR.md) — ties the board + agent matrix + this tracker together, end to end
 - **Design spec:** [`docs/superpowers/specs/2026-06-27-agora-agent-coordination-design.md`](superpowers/specs/2026-06-27-agora-agent-coordination-design.md)
 - **Etiquette loop:** **register** on arrival → **lock** paths before editing (and check
   `/locks` before any risky `git reset`/`checkout`) → **announce** (post a task / `say`) →

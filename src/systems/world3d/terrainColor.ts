@@ -53,12 +53,48 @@ function heightShade(height01: number): number {
   return SHADE_MIN + Math.sqrt(t) * SHADE_RANGE;
 }
 
-export function biomeColor(biomeId: string, height01: number): RGB {
+/**
+ * Slope → rock blend.
+ *
+ * Flat-to-gentle ground keeps its biome tint; only genuinely steep faces pick up
+ * exposed rock so cliffs read as stone rather than as vertical grass. `slope01`
+ * is 0 on flat ground and 1 on a vertical face (derived from the face/vertex
+ * normal: `1 - n·up`). Below SLOPE_ROCK_START nothing changes; from there to
+ * SLOPE_ROCK_FULL we ramp linearly up to SLOPE_ROCK_MAX_BLEND toward the rock
+ * tint, capping the blend so even sheer cliffs keep a hint of their biome.
+ */
+const SLOPE_ROCK_START = 0.35; // below this slope: pure biome tint (gentle ground)
+const SLOPE_ROCK_FULL = 0.8; // at/above this slope: full rock blend
+const SLOPE_ROCK_MAX_BLEND = 0.75; // cap so cliffs never go 100% rock
+const ROCK_TINT: RGB = [0.42, 0.40, 0.38]; // exposed bare-rock grey
+
+function slopeRockMix(slope01: number): number {
+  const s = Math.max(0, Math.min(1, slope01));
+  if (s <= SLOPE_ROCK_START) return 0;
+  const t = (s - SLOPE_ROCK_START) / (SLOPE_ROCK_FULL - SLOPE_ROCK_START);
+  return Math.max(0, Math.min(1, t)) * SLOPE_ROCK_MAX_BLEND;
+}
+
+/**
+ * Tint for a terrain vertex.
+ *
+ * @param biomeId biome family id (see PALETTE)
+ * @param height01 un-normalized local height (drives subtle relief shading)
+ * @param slope01 optional steepness in [0,1] (0 flat, 1 vertical). When omitted
+ *   (default 0) the result is identical to the pre-slope behavior, so existing
+ *   callers that pass no slope are unaffected. Steep faces blend toward rock.
+ */
+export function biomeColor(biomeId: string, height01: number, slope01 = 0): RGB {
   const base = PALETTE[biomeId] ?? FALLBACK;
   const shade = heightShade(height01);
+  const mix = slopeRockMix(slope01);
+  // Shade the biome base, then lerp toward the (also shaded) rock tint by `mix`.
+  const r = base[0] * shade * (1 - mix) + ROCK_TINT[0] * shade * mix;
+  const g = base[1] * shade * (1 - mix) + ROCK_TINT[1] * shade * mix;
+  const b = base[2] * shade * (1 - mix) + ROCK_TINT[2] * shade * mix;
   return [
-    Math.max(0, Math.min(1, base[0] * shade)),
-    Math.max(0, Math.min(1, base[1] * shade)),
-    Math.max(0, Math.min(1, base[2] * shade)),
+    Math.max(0, Math.min(1, r)),
+    Math.max(0, Math.min(1, g)),
+    Math.max(0, Math.min(1, b)),
   ];
 }

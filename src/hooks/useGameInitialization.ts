@@ -257,7 +257,9 @@ export function useGameInitialization({
       worldSeed: number,
       // When the player picked a start town (Start Point Selection), spawn there
       // instead of the auto capital/burg. Omitted ⇒ auto spawn (dev skip path).
-      startTown?: { atlasCellId: number; name?: string; region?: string },
+      // `centerPx` is the burg's atlas/graph pixel position — carried into the
+      // entry3DAnchor so 3D entry frames the chosen town (cell-native world).
+      startTown?: { atlasCellId: number; name?: string; region?: string; centerPx?: readonly [number, number] },
     ) => {
       // Look up the starting location (e.g. the town square) for its description text.
       const initialLocation = LOCATIONS[STARTING_LOCATION_ID];
@@ -278,13 +280,18 @@ export function useGameInitialization({
       // node ('clearing') is the next migration; this makes the player's WORLD
       // position come from the generated world. Guarded so a hiccup never bricks
       // new-game boot.
+      // The logical location the player spawns at. Defaults to the legacy
+      // 'clearing' node and is upgraded to the WF spawn tile's id below, so the
+      // engine reports where the relocated world marker actually sits.
+      let spawnLocationId: string = STARTING_LOCATION_ID;
+
       try {
         // Keystone unification + WF-derived spawn (shared with reroll). Rewrites
         // the whole grid's biomes from the WF world (land = WF biome, water =
         // ocean, location anchors preserved) and relocates the start onto a
         // land/burg cell, so the map is a downsampled view of the generated world
         // and the player never starts on ocean.
-        applyWfSpawnToMap(
+        const spawn = applyWfSpawnToMap(
           mapDataToUse,
           worldSeed,
           { cols: MAP_GRID_SIZE.cols, rows: MAP_GRID_SIZE.rows },
@@ -296,6 +303,12 @@ export function useGameInitialization({
             spawnBurgName: startTown?.name,
           },
         );
+
+        // Logical location = the spawn tile the marker now sits on. Mirror
+        // movement's rule (`tile.locationId || coord_<x>_<y>`) so the spawn id is
+        // identical to what the player would see after stepping onto that tile.
+        const spawnTile = mapDataToUse.tiles[spawn.gridCell.y]?.[spawn.gridCell.x];
+        spawnLocationId = spawnTile?.locationId || `coord_${spawn.gridCell.x}_${spawn.gridCell.y}`;
       } catch (err) {
         console.error('[startGame] WF spawn resolution failed; using legacy start tile.', err);
       }
@@ -303,8 +316,10 @@ export function useGameInitialization({
       // Local position within the starting cell (vestigial submap center for now).
       const initialSubMapCoords = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
 
-      // Determine which dynamic NPCs should be present at the starting location.
-      const initialActiveDynamicNpcs = determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS);
+      // Determine which dynamic NPCs should be present at the resolved spawn
+      // location (coord_ tiles carry none statically; situation NPCs are added
+      // afterward via PLACE_SITUATION_NPCS).
+      const initialActiveDynamicNpcs = determineActiveDynamicNpcsForLocation(spawnLocationId, LOCATIONS);
 
       // Bundle everything into the payload the reducer expects.
       const payload: StartGameSuccessPayload = {
@@ -313,12 +328,19 @@ export function useGameInitialization({
         mapData: mapDataToUse,
         dynamicLocationItemIds: initialDynamicItems,
         initialLocationDescription: initialLocation.baseDescription,
+        initialLocationId: spawnLocationId,
         initialSubMapCoordinates: initialSubMapCoords,
         initialActiveDynamicNpcIds: initialActiveDynamicNpcs,
         worldHistory: createBootstrapWorldHistory(worldSeed),
         worldSeed,
         startTownName: startTown?.name,
         startTownRegion: startTown?.region,
+        // Cell-native 3D entry anchor: the chosen burg's cell + position, so the
+        // first 3D entry frames the town (set atomically with the spawn so the
+        // reducer's state rebuild can't clobber it).
+        entry3DAnchor: startTown?.centerPx
+          ? { cellId: startTown.atlasCellId, centerPx: startTown.centerPx }
+          : null,
       };
 
       // Dispatch transitions the game phase from character creation into active gameplay.

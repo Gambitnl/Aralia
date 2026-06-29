@@ -160,7 +160,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
                                     <button onClick={() => handleAcceptJob(job)} className="bg-purple-700 hover:bg-purple-600 px-3 py-1 rounded text-white text-sm">Accept</button>
                                 </div>
                             ))}
-                            {availableJobs.length === 0 && <p className="text-gray-500 text-center italic">No new jobs available right now.</p>}
+                            {availableJobs.length === 0 && <p className="text-gray-400 text-center italic">No new jobs available right now.</p>}
                         </div>
                     )}
 
@@ -178,7 +178,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
                                     </div>
                                 </div>
                             ))}
-                            {guild.activeJobs.length === 0 && <p className="text-gray-500 text-center italic">You have no active jobs.</p>}
+                            {guild.activeJobs.length === 0 && <p className="text-gray-400 text-center italic">You have no active jobs.</p>}
                         </div>
                     )}
 
@@ -194,7 +194,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
                                     </div>
                                 </div>
                             ))}
-                            {availableServices.length === 0 && <p className="col-span-2 text-gray-500 text-center italic">No services available at your rank.</p>}
+                            {availableServices.length === 0 && <p className="col-span-2 text-gray-400 text-center italic">No services available at your rank.</p>}
                         </div>
                     )}
                 </div>

@@ -90,4 +90,17 @@ describe('gameEntryTransition', () => {
         const next = gameEntryTransition(INITIAL_GAME_ENTRY_STATE, { type: 'RESOLVED', situation: SITUATION });
         expect(next).toEqual(INITIAL_GAME_ENTRY_STATE);
     });
+
+    it('preserves an in-flight sceneImage across RESOLVED but resets it on RESET', () => {
+        const generating = gameEntryTransition(INITIAL_GAME_ENTRY_STATE, { type: 'BEGIN' });
+        // Simulate the scene request having been kicked off on the generating state.
+        const withScene = { ...generating, sceneImage: { status: 'generating' as const, url: null, error: null } };
+
+        const resolved = gameEntryTransition(withScene, { type: 'RESOLVED', situation: SITUATION });
+        // The picture survives the status change — it's tracked by its own actions.
+        expect(resolved.sceneImage).toEqual({ status: 'generating', url: null, error: null });
+
+        const reset = gameEntryTransition(resolved, { type: 'RESET' });
+        expect(reset.sceneImage).toEqual(INITIAL_GAME_ENTRY_STATE.sceneImage);
+    });
 });

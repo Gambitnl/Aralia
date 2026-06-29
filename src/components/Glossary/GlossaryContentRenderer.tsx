@@ -10,10 +10,6 @@ interface GlossaryContentRendererProps {
   className?: string;
 }
 
-type GlossaryLinkElement = HTMLSpanElement & {
-  _glossaryClickHandler?: boolean;
-};
-
 /**
  * Build a Set of all valid term IDs from the glossary index (including sub-entries).
  */
@@ -27,6 +23,42 @@ const buildValidTermIds = (entries: GlossaryEntry[] | null): Set<string> => {
       // Also add aliases as valid term IDs
       if (entry.aliases) {
         entry.aliases.forEach(alias => ids.add(alias.toLowerCase().replace(/\s+/g, '_')));
+      }
+      if (entry.subEntries) {
+        addIds(entry.subEntries);
+      }
+    }
+  };
+
+  addIds(entries);
+  return ids;
+};
+
+/**
+ * Whether a glossary entry resolves to renderable content when opened.
+ * Mirrors the modal's loaders: spell entries render from their bundled JSON
+ * (`hasSpellJson`), every other entry renders from its `filePath`. An entry
+ * with neither cannot display anything — its inline links are "broken".
+ */
+const isEntryLoadable = (entry: GlossaryEntry): boolean =>
+  entry.category === 'Spells' ? !!entry.hasSpellJson : !!entry.filePath;
+
+/**
+ * Build the Set of term IDs (and aliases) that resolve to a LOADABLE entry.
+ * A term not in this set either doesn't exist or has no displayable content, so
+ * its inline link is rendered in red instead of the usual blue.
+ */
+const buildLoadableTermIds = (entries: GlossaryEntry[] | null): Set<string> => {
+  const ids = new Set<string>();
+  if (!entries) return ids;
+
+  const addIds = (entryList: GlossaryEntry[]) => {
+    for (const entry of entryList) {
+      if (isEntryLoadable(entry)) {
+        ids.add(entry.id);
+        if (entry.aliases) {
+          entry.aliases.forEach(alias => ids.add(alias.toLowerCase().replace(/\s+/g, '_')));
+        }
       }
       if (entry.subEntries) {
         addIds(entry.subEntries);
@@ -58,7 +90,7 @@ const buildValidTermIds = (entries: GlossaryEntry[] | null): Set<string> => {
  *
  * If a term doesn't exist in the glossary, the shorthand is replaced with just the display text (no link).
  */
-export const expandGlossaryShorthand = (content: string, validTermIds?: Set<string>): string => {
+export const expandGlossaryShorthand = (content: string, validTermIds?: Set<string>, loadableTermIds?: Set<string>): string => {
   // Pattern 1: [[term_id]] or [[term_id|Display Text]]
   const wikiLinkPattern = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
 
@@ -126,13 +158,20 @@ export const expandGlossaryShorthand = (content: string, validTermIds?: Set<stri
   const createSpanOrText = (termId: string, displayText?: string): string => {
     const { id: trimmedId, display } = normalizeTermToken(termId, displayText);
 
-    // Determine if the link is valid (exists in the index)
-    const isValid = validTermIds && validTermIds.has(trimmedId);
+    // A link "works" only if it opens to renderable content. When loadability
+    // info is supplied, a term is broken unless it resolves to a loadable entry
+    // (missing, or present-but-no-content both count as broken). Without that
+    // info, fall back to bare existence in the index.
+    const isWorking = loadableTermIds
+      ? loadableTermIds.has(trimmedId)
+      : !!(validTermIds && validTermIds.has(trimmedId));
 
-    // If not valid, we still render a span but with a "missing" style (red/underline) for debugging
-    const extraClass = isValid ? '' : ' text-red-500 underline decoration-dotted opacity-80 cursor-help';
+    // Broken links are rendered red with a help cursor + tooltip so it's obvious
+    // they won't open anything; working links keep the default (blue) style.
+    const extraClass = isWorking ? '' : ' text-red-500 underline decoration-dotted opacity-80 cursor-help';
+    const titleAttr = isWorking ? '' : ' title="Glossary entry unavailable"';
 
-    return `<span data-term-id="${trimmedId}" class="glossary-term-link-from-markdown${extraClass}">${display}</span>`;
+    return `<span data-term-id="${trimmedId}" class="glossary-term-link-from-markdown${extraClass}"${titleAttr}>${display}</span>`;
   };
 
   let result = content;
@@ -166,6 +205,8 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
 
   // Build the set of valid term IDs once when the index changes
   const validTermIds = useMemo(() => buildValidTermIds(glossaryIndex), [glossaryIndex]);
+  // Subset that actually resolves to renderable content — drives the red "broken" styling.
+  const loadableTermIds = useMemo(() => buildLoadableTermIds(glossaryIndex), [glossaryIndex]);
 
   const structuredHtml = useMemo(() => {
     if (!markdownContent) return '';
@@ -177,10 +218,14 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
     const deColoned = markdownContent.replace(/:{2,}/g, ':');
 
     // First expand any shorthand glossary link syntaxes, validating against known terms
-    const expandedContent = expandGlossaryShorthand(deColoned, validTermIds);
+    const expandedContent = expandGlossaryShorthand(deColoned, validTermIds, loadableTermIds);
 
-    // Replace Markdown horizontal rules with styled HTML ones before parsing
-    const preppedMarkdown = expandedContent.replace(/^---$/gm, '<hr />');
+    // Replace Markdown horizontal rules with styled HTML ones before parsing.
+    // The surrounding blank lines are REQUIRED: a raw `<hr />` opens an HTML block
+    // that swallows every following line until a blank line, so `---` immediately
+    // followed by a `## Heading` would emit the heading as literal text. Padding
+    // with blank lines keeps the rule isolated and lets the next block parse.
+    const preppedMarkdown = expandedContent.replace(/^---$/gm, '\n<hr />\n');
 
     const rawHtml = marked.parse(preppedMarkdown, { gfm: true, breaks: true, async: false }) as string;
     const safeHtml = DOMPurify.sanitize(rawHtml, { ADD_ATTR: ['target'] });
@@ -242,36 +287,46 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
     // Re-sanitize final output to ensure no DOM manipulation introduced vulnerabilities
     // Pass same config to ensure target attributes are preserved if safe
     return DOMPurify.sanitize(finalContainer.innerHTML, { ADD_ATTR: ['target'] });
-  }, [markdownContent, validTermIds]);
+  }, [markdownContent, validTermIds, loadableTermIds]);
 
   useEffect(() => {
     if (structuredHtml && contentRef.current && onNavigate) {
       const cleanupFunctions: Array<() => void> = [];
 
-      const links = contentRef.current.querySelectorAll('span.glossary-term-link-from-markdown[data-term-id]');
-      links.forEach(link => {
-        const termId = link.getAttribute('data-term-id');
+      // Use EVENT DELEGATION on the stable container instead of binding a listener
+      // to each span. The spans live inside `dangerouslySetInnerHTML`, so their DOM
+      // nodes are recreated whenever the HTML re-commits — per-node listeners get
+      // silently orphaned onto detached nodes. The container element is owned by
+      // React and persists, so one delegated listener reliably catches every term
+      // click, now and after any re-render.
+      const container = contentRef.current;
+      const termIdFromEvent = (target: EventTarget | null): string | null => {
+        if (!(target instanceof Element)) return null;
+        const link = target.closest<HTMLElement>('span.glossary-term-link-from-markdown[data-term-id]');
+        return link?.getAttribute('data-term-id') ?? null;
+      };
+      const clickHandler = (e: MouseEvent) => {
+        const termId = termIdFromEvent(e.target);
         if (termId) {
-          const glossaryLink = link as GlossaryLinkElement;
-          const handler = (e: Event) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onNavigate(termId);
-          };
-          const keydownHandler = (e: KeyboardEvent) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              handler(e);
-            }
-          };
-          
-          glossaryLink.addEventListener('click', handler);
-          glossaryLink.addEventListener('keydown', keydownHandler);
-          
-          cleanupFunctions.push(() => {
-            glossaryLink.removeEventListener('click', handler);
-            glossaryLink.removeEventListener('keydown', keydownHandler);
-          });
+          e.preventDefault();
+          e.stopPropagation();
+          onNavigate(termId);
         }
+      };
+      const keydownHandler = (e: KeyboardEvent) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const termId = termIdFromEvent(e.target);
+        if (termId) {
+          e.preventDefault();
+          e.stopPropagation();
+          onNavigate(termId);
+        }
+      };
+      container.addEventListener('click', clickHandler);
+      container.addEventListener('keydown', keydownHandler);
+      cleanupFunctions.push(() => {
+        container.removeEventListener('click', clickHandler);
+        container.removeEventListener('keydown', keydownHandler);
       });
 
       // Track toggling of details cards to preserve open/collapse state

@@ -140,7 +140,7 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
                         </div>
                         <div className="flex-1 overflow-y-auto p-2 space-y-1">
                             {inventory.length === 0 ? (
-                                <p className="text-gray-600 text-center text-sm mt-4">Inventory is empty.</p>
+                                <p className="text-gray-300 text-center text-sm mt-4">Inventory is empty.</p>
                             ) : (
                                 inventory.map(item => (
                                     
@@ -165,7 +165,7 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
                                         <span className={item.rarity === ItemRarity.Legendary ? 'text-orange-400' : item.rarity === ItemRarity.Rare ? 'text-blue-400' : 'text-gray-300'}>
                                             {item.name}
                                         </span>
-                                        <span className="text-gray-500 text-xs">
+                                        <span className="text-gray-400 text-xs">
                                             {item.costInGp ? `${item.costInGp}gp` : '-'}
                                         </span>
                                     </div>
@@ -184,7 +184,7 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
 
                                 <div className="bg-gray-900 p-4 rounded-lg border border-gray-700 w-full mb-6">
                                     <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-gray-500">Market Value:</span>
+                                        <span className="text-gray-400">Market Value:</span>
                                         <span className="text-gray-300 decoration-line-through">{selectedItem.costInGp || '?'} gp</span>
                                     </div>
                                     <div className="flex justify-between text-lg font-bold border-t border-gray-700 pt-2 mt-2">
@@ -201,7 +201,7 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
                                 </button>
                             </div>
                         ) : (
-                            <div className="text-center text-gray-500">
+                            <div className="text-center text-gray-400">
                                 <div className="text-6xl mb-4 opacity-20">⚖️</div>
                                 <p>Select an item to appraise.</p>
                             </div>
@@ -210,7 +210,7 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
                 </div>
 
                 {/* Footer */}
-                <div className="bg-gray-800 p-2 border-t border-gray-700 text-xs text-center text-gray-500">
+                <div className="bg-gray-800 p-2 border-t border-gray-700 text-xs text-center text-gray-400">
                     Your Gold: <span className="text-yellow-500">{state.gold} gp</span>
                 </div>
             </div>

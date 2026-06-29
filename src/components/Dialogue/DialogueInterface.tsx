@@ -16,6 +16,12 @@ interface DialogueInterfaceProps {
     onUpdateSession: (newSession: DialogueSession) => void;
     onTopicOutcome?: (result: ProcessTopicResult, topicId: string) => void;
     onGenerateResponse: (prompt: string) => Promise<string>;
+    /**
+     * Invokes the "Invite to party" flow for this NPC. Always rendered as a
+     * button when provided; the consent gate (downstream) declines ineligible
+     * NPCs with a reason rather than the button being hidden.
+     */
+    onInvite?: (npcId: string) => void;
 }
 
 export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
@@ -27,7 +33,8 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     onClose,
     onUpdateSession,
     onTopicOutcome,
-    onGenerateResponse
+    onGenerateResponse,
+    onInvite
 }) => {
     const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
@@ -164,6 +171,20 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
                                         )}
                                     </button>
                                 ))}
+                                {onInvite && (
+                                    <button
+                                        type="button"
+                                        data-testid="dialogue-invite-to-party"
+                                        onClick={() => onInvite(npc.id)}
+                                        disabled={isThinking}
+                                        className="w-full text-left p-3 rounded bg-stone-900 border border-amber-800/40 hover:bg-amber-900/20 hover:border-amber-600/60 transition-colors group flex items-center justify-between"
+                                    >
+                                        <span className="text-amber-200 group-hover:text-amber-100 font-medium">
+                                            Invite to party
+                                        </span>
+                                        <span className="text-lg" aria-hidden="true">🤝</span>
+                                    </button>
+                                )}
                                 <button
                                     onClick={onClose}
                                     className="w-full text-left p-3 rounded hover:bg-red-900/20 text-stone-500 hover:text-red-400 transition-colors mt-2 border border-transparent hover:border-red-900/30"

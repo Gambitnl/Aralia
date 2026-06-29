@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/05/2026, 02:54:45
+ * Last Sync: 28/06/2026, 12:11:49
  * Dependents: types/spells.ts
  * Imports: None
  *
@@ -117,7 +117,7 @@ export interface ModeChoice {
   /** Number of options in the canonical menu. */
   optionCount: number;
   /** Where the option payloads live so runtime/UI code can follow them. */
-  optionsSource: "modeChoice.options" | "effects" | "controlOptions" | "mixed";
+  optionsSource: "modeChoice.options" | "effects" | "controlOptions" | "mixed" | "summon.formOptions" | "effects[0].summon.formOptions";
   /** Active cap for non-instantaneous options, or a sentinel when none exists. */
   maxActiveNonInstantaneous?: number | "not_applicable";
   /** Whether the spell allows active non-instantaneous options to be dismissed. */

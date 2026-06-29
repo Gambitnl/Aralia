@@ -72,7 +72,7 @@ const VillagerRegistryImpl: React.FC<VillagerRegistryProps> = ({
     if (t.parentIds.length) parts.push(<span key="pa">child of {t.parentIds.map((id, i) => <React.Fragment key={id}>{i > 0 && ' & '}<KinLink id={id} /></React.Fragment>)}</span>);
     if (t.siblingIds.length) parts.push(<span key="si">siblings: {t.siblingIds.map((id, i) => <React.Fragment key={id}>{i > 0 && ', '}<KinLink id={id} /></React.Fragment>)}</span>);
     if (t.distantKin.length) parts.push(<span key="dk" style={{ color: '#94a3b8' }}>kin in {t.distantKin[0].town} (a {t.distantKin[0].relation})</span>);
-    if (parts.length === 0 && t.alone) parts.push(<span key="al" style={{ color: '#64748b' }}>no known family</span>);
+    if (parts.length === 0 && t.alone) parts.push(<span key="al" style={{ color: '#94a3af' }}>no known family</span>);
     return parts.length ? <div style={{ marginTop: 2, fontSize: 11, display: 'flex', flexWrap: 'wrap', gap: 8 }}>{parts}</div> : null;
   };
 
@@ -82,7 +82,7 @@ const VillagerRegistryImpl: React.FC<VillagerRegistryProps> = ({
       style={{ width: 320, flex: '0 0 auto', height: '100%', overflowY: 'auto', background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: 10, boxSizing: 'border-box' }}
     >
       <div style={{ position: 'sticky', top: 0, background: '#0f172a', paddingBottom: 6, fontSize: 13, fontWeight: 700, color: '#e2e8f0' }}>
-        Villagers <span style={{ color: '#64748b', fontWeight: 400 }}>({occupants.length})</span>
+        Villagers <span style={{ color: '#94a3af', fontWeight: 400 }}>({occupants.length})</span>
       </div>
       {households.map(({ plotId, members }) => (
         <div key={plotId} style={{ marginBottom: 8 }}>

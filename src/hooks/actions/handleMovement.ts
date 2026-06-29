@@ -835,29 +835,54 @@ interface HandleObserveSettlementProps {
   addMessage: AddMessageFn;
   addGeminiLog: AddGeminiLogFn;
   action: Action;
+  generalActionContext: string;
 }
 
+/**
+ * "Scout Village/Town": the player studies a settlement from a concealed
+ * distance before approaching. This generates a real reconnaissance description
+ * from the model (layout, defenses, activity), links any named entities it
+ * mentions, and costs in-game time — scouting is not free. If the model can't
+ * produce anything, we tell the player plainly rather than inventing detail.
+ */
 export async function handleObserveSettlement({
-  // TODO(lint-intent): 'gameState' is an unused parameter, which suggests a planned input for this flow.
-  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
-  gameState: _gameState,
-  // TODO(lint-intent): 'dispatch' is an unused parameter, which suggests a planned input for this flow.
-  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
-  dispatch: _dispatch,
+  gameState,
+  dispatch,
   addMessage,
   addGeminiLog,
   action,
+  generalActionContext,
 }: HandleObserveSettlementProps): Promise<void> {
   const isVillage = action.type === 'OBSERVE_VILLAGE';
   const settlementType = isVillage ? 'village' : 'town';
 
-  addMessage(`You take a moment to observe the ${settlementType} from a distance, noting its layout and activity.`, 'system');
+  addMessage(`You find a vantage point and scout the ${settlementType} from a distance.`, 'system');
 
-  // This could trigger Gemini to generate descriptions of what the player sees
-  // For now, just provide basic feedback
-  const observationPrompt = `The player is observing a ${settlementType} from a distance. Generate a brief description of what they might see based on the settlement type and surroundings.`;
+  const scoutPrompt =
+    `The player scouts a ${settlementType} from a concealed distance before approaching. ` +
+    `Describe what they observe: its layout, any visible defenses or guards, and the activity of its inhabitants. ` +
+    `Keep it concrete and useful as reconnaissance.`;
 
-  addGeminiLog('observeSettlement', observationPrompt, 'Observation logged - AI description pending implementation');
+  const result = await OllamaTextService.generateActionOutcome(scoutPrompt, generalActionContext);
+
+  addGeminiLog(
+    'observeSettlement',
+    result.data?.promptSent || result.metadata?.promptSent || scoutPrompt,
+    result.data?.rawResponse || result.metadata?.rawResponse || result.error || '',
+  );
+
+  if (result.data?.rateLimitHit || result.metadata?.rateLimitHit) {
+    dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
+  }
+
+  if (result.data?.text) {
+    addMessage(result.data.text, 'system');
+    // Keep newly-named people/places coherent with the rest of the world.
+    await resolveAndRegisterEntities(result.data.text, gameState, dispatch, addGeminiLog);
+  } else {
+    addMessage(`From this distance the ${settlementType} reveals nothing new.`, 'system');
+  }
+
+  // Observing carefully takes time.
+  dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 600 } });
 }

@@ -82,7 +82,7 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
                                         {isProficient ? (
                                             <span className="text-green-400">+{profBonus}</span>
                                         ) : (
-                                            <span className="text-gray-500">-</span>
+                                            <span className="text-gray-400">-</span>
                                         )}
                                     </td>
                                     <td className={`${tableCellClass} text-center text-gray-500`}>
@@ -101,7 +101,7 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
                                                 </span>
                                             </Tooltip>
                                         ) : (
-                                            <span className="text-gray-500">{advantageNotes}</span>
+                                            <span className="text-gray-400">{advantageNotes}</span>
                                         )}
                                     </td>
                                 </tr>

@@ -131,4 +131,44 @@ describe('SmugglingSystem', () => {
         expect(result.result).toBe(InspectionResult.Confiscation);
         expect(result.itemsLost).toHaveLength(2);
     });
+
+    it('allows a natural 20 on a bluff (the d20 can actually roll 20)', () => {
+        // CHA 10 => +0 modifier. A difficulty of 20 can ONLY be beaten by a natural 20.
+        // The previous bug used nextInt(1, 20), which is max-exclusive (1..19) and could
+        // never roll 20, so this bluff was unwinnable. The fix uses nextInt(1, 21) (1..20).
+        const flatPlayer = createMockPlayerCharacter({
+            stats: {
+                strength: 10,
+                dexterity: 10,
+                constitution: 10,
+                intelligence: 10,
+                wisdom: 10,
+                charisma: 10, // +0 modifier
+                baseInitiative: 0,
+                speed: 30,
+                cr: '1/4'
+            }
+        });
+
+        const event = {
+            routeId: 'r1',
+            difficulty: 20,
+            guardsCount: 2,
+            canBribe: false,
+            bribeCost: 0
+        };
+
+        // Sweep deterministic seeds spread across the generator's range (small
+        // sequential seeds all yield a tiny first roll with this LCG, so we space
+        // them with a large prime). With a real d20 a natural 20 (~5%) appears well
+        // within this range. Under the off-by-one bug, no seed could ever pass.
+        let sawPass = false;
+        for (let i = 1; i <= 1000 && !sawPass; i++) {
+            const seed = i * 100003;
+            const result = SmugglingSystem.resolveInspection(event, 'bluff', flatPlayer, mockCargo, seed);
+            if (result.result === InspectionResult.Pass) sawPass = true;
+        }
+
+        expect(sawPass).toBe(true);
+    });
 });

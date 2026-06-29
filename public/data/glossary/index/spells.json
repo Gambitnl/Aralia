@@ -2818,8 +2818,32 @@
         "hasSpellJson": true
       },
       {
+        "id": "summon-fey",
+        "title": "Summon Fey",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
         "id": "summon-lesser-demons",
         "title": "Summon Lesser Demons",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "summon-undead",
+        "title": "Summon Undead",
         "category": "Spells",
         "tags": [
           "level 3"
@@ -3199,6 +3223,18 @@
         "hasSpellJson": true
       },
       {
+        "id": "fount-of-moonlight",
+        "title": "Fount of Moonlight",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
         "id": "freedom-of-movement",
         "title": "Freedom of Movement",
         "category": "Spells",
@@ -3458,6 +3494,42 @@
           "level 4"
         ],
         "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "summon-aberration",
+        "title": "Summon Aberration",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "summon-construct",
+        "title": "Summon Construct",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "summon-elemental",
+        "title": "Summon Elemental",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -3916,6 +3988,20 @@
         "hasSpellJson": true
       },
       {
+        "id": "jallarzis-storm-of-radiance",
+        "title": "Jallarzi's Storm of Radiance",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [
+          "Jallarzi's Storm of Radiance"
+        ],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
         "id": "legend-lore",
         "title": "Legend Lore",
         "category": "Spells",
@@ -4096,6 +4182,30 @@
         "hasSpellJson": true
       },
       {
+        "id": "summon-celestial",
+        "title": "Summon Celestial",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "summon-dragon",
+        "title": "Summon Dragon",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
         "id": "swift-quiver",
         "title": "Swift Quiver",
         "category": "Spells",
@@ -4212,6 +4322,20 @@
         ],
         "excerpt": "Evocation spell",
         "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "yolandes-regal-presence",
+        "title": "Yolande's Regal Presence",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [
+          "Yolande's Regal Presence"
+        ],
         "filePath": null,
         "hasSpellJson": true
       }
@@ -4657,6 +4781,18 @@
         "hasSpellJson": true
       },
       {
+        "id": "summon-fiend",
+        "title": "Summon Fiend",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
         "id": "sunbeam",
         "title": "Sunbeam",
         "category": "Spells",
@@ -4665,6 +4801,20 @@
         ],
         "excerpt": "Evocation spell",
         "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "tashas-bubbling-cauldron",
+        "title": "Tasha's Bubbling Cauldron",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [
+          "Tasha's Bubbling Cauldron"
+        ],
         "filePath": null,
         "hasSpellJson": true
       },
@@ -4932,6 +5082,18 @@
         "hasSpellJson": true
       },
       {
+        "id": "power-word-fortify",
+        "title": "Power Word Fortify",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
         "id": "power-word-pain",
         "title": "Power Word Pain",
         "category": "Spells",
@@ -5123,6 +5285,18 @@
       {
         "id": "antipathy-sympathy",
         "title": "Antipathy/Sympathy",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "befuddlement",
+        "title": "Befuddlement",
         "category": "Spells",
         "tags": [
           "level 8"

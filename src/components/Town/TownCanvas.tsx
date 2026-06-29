@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { AssetPainter } from '../../services/RealmSmithAssetPainter';
-import { Building } from '../../types/realmsmith';
+import { Building, BuildingType } from '../../types/realmsmith';
 import { TownPosition, TownDirection, TOWN_DIRECTION_VECTORS } from '../../types/town';
 import { PlayerCharacter } from '../../types/character';
 import type { Action } from '../../types';
@@ -16,6 +16,19 @@ import { useTownCamera } from './hooks/useTownCamera';
 import { useTownPointerHandlers } from './hooks/useTownPointerHandlers';
 import { BUILDING_DESCRIPTIONS, COMMERCIAL_BUILDING_TYPES } from './townMetadata';
 import { mapTownBiome, TOWN_TILE_SIZE_PX } from './townUtils';
+
+// Tavern/inn buildings expose a secondary "Hire" affordance: the keeper can be
+// invited to join the party. Only the drinking-house subset of commercial
+// buildings is recruitable. (`OPEN_DYNAMIC_MERCHANT` with `hire:true` routes
+// through the shared recruit pipeline in handleMerchantInteraction.) The town
+// building enum has no dedicated INN type yet, so TAVERN is the lone member
+// today — kept as a Set so an INN type slots in without touching call sites.
+const HIREABLE_BUILDING_TYPES = new Set<BuildingType>([
+    BuildingType.TAVERN,
+]);
+
+const isHireableBuilding = (type: BuildingType): boolean =>
+    HIREABLE_BUILDING_TYPES.has(type);
 
 interface TownCanvasProps {
     worldSeed: number;
@@ -296,6 +309,23 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         }
     }, [onAction, worldX, worldY, biome]);
 
+    // Secondary "Hire <name>" affordance for tavern/inn buildings. Dispatches the
+    // same OPEN_DYNAMIC_MERCHANT action with `hire:true` so the merchant handler
+    // short-circuits the browse flow and runs the recruit pipeline instead.
+    const hireBuildingKeeper = useCallback((building: Building) => {
+        if (!isHireableBuilding(building.type)) return;
+        const buildingName = BUILDING_DESCRIPTIONS[building.type]?.name || 'Tavern';
+        onAction({
+            type: 'OPEN_DYNAMIC_MERCHANT',
+            label: `Hire the ${buildingName} keeper`,
+            payload: {
+                merchantType: building.type,
+                buildingId: building.id,
+                hire: true,
+            },
+        });
+    }, [onAction]);
+
     const handleBuildingClick = (e: React.MouseEvent) => {
         const target = e.target as HTMLElement | null;
         if (target?.closest?.('[data-no-pan]')) return;
@@ -364,6 +394,15 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
             };
         }).filter(Boolean) as Array<{ id: string; name: string; type: string }>;
     }, [mapData, effectivePlayerPosition]);
+
+    // Adjacent tavern/inn buildings that expose the "Hire" affordance. Resolved
+    // from the live building list so we can dispatch the typed hire action.
+    const hireableAdjacentBuildings = useMemo(() => {
+        if (!mapData) return [];
+        return adjacentBuildingData
+            .map(({ id }) => mapData.buildings.find(b => b.id === id))
+            .filter((b): b is Building => !!b && isHireableBuilding(b.type));
+    }, [mapData, adjacentBuildingData]);
 
     return (
         /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
@@ -522,6 +561,30 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                     </div>
                 </div>
             </main>
+
+            {/* Hire affordance - tavern/inn keepers adjacent to the player can be
+                invited to join the party (routes through OPEN_DYNAMIC_MERCHANT
+                with hire:true). Rendered above the nav pad when available. */}
+            {effectivePlayerPosition && hireableAdjacentBuildings.length > 0 && (
+                <div className="fixed bottom-44 left-4 z-[var(--z-index-minimap)] flex flex-col gap-2" data-no-pan>
+                    {hireableAdjacentBuildings.map((building) => {
+                        const buildingName = BUILDING_DESCRIPTIONS[building.type]?.name || 'Tavern';
+                        return (
+                            <button
+                                key={`hire-${building.id}`}
+                                type="button"
+                                onClick={() => hireBuildingKeeper(building)}
+                                disabled={disabled}
+                                className="px-3 py-2 bg-amber-700 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm font-medium text-amber-50 border border-amber-500 shadow-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+                                title={`Offer the ${buildingName} keeper a place in your party`}
+                                aria-label={`Hire the ${buildingName} keeper`}
+                            >
+                                Hire the {buildingName} keeper
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
 
             {/* Navigation Controls - shown when player position is available */}
             {effectivePlayerPosition && (

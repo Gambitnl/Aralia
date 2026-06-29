@@ -27,7 +27,7 @@ const calculateProgress = (quest: Quest): number => {
 };
 
 const renderRewards = (quest: Quest) => {
-  if (!quest.rewards) return <p className="text-xs text-gray-500">No reward specified.</p>;
+  if (!quest.rewards) return <p className="text-xs text-gray-400">No reward specified.</p>;
   const { gold, xp, items } = quest.rewards;
   return (
     <div className="flex flex-wrap gap-2 text-xs text-amber-200">
@@ -56,9 +56,9 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest }) => {
             </span>
           </h4>
           <p className="text-sm text-gray-400 mb-2">{quest.description}</p>
-          <p className="text-[11px] text-gray-500">Giver: {quest.giverId}</p>
-          {quest.regionHint && <p className="text-[11px] text-gray-500">Region: {quest.regionHint}</p>}
-          {quest.questType && <p className="text-[11px] text-gray-500">Type: {quest.questType}</p>}
+          <p className="text-[11px] text-gray-400">Giver: {quest.giverId}</p>
+          {quest.regionHint && <p className="text-[11px] text-gray-400">Region: {quest.regionHint}</p>}
+          {quest.questType && <p className="text-[11px] text-gray-400">Type: {quest.questType}</p>}
         </div>
         <div className="w-full sm:w-48">
           <div className="flex justify-between text-xs text-gray-400 mb-1">
@@ -76,7 +76,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest }) => {
       <div className="mt-3 space-y-1">
         {quest.objectives.map(obj => (
           <div key={obj.id} className="flex items-center text-sm">
-            <span className={`mr-2 ${obj.isCompleted ? 'text-green-500' : 'text-gray-500'}`}>
+            <span className={`mr-2 ${obj.isCompleted ? 'text-green-500' : 'text-gray-400'}`}>
               {obj.isCompleted ? '☑' : '☐'}
             </span>
             <span className={obj.isCompleted ? 'line-through text-gray-500' : 'text-gray-300'}>
@@ -85,7 +85,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest }) => {
           </div>
         ))}
       </div>
-      <div className="mt-3 text-[11px] text-gray-500 flex gap-4">
+      <div className="mt-3 text-[11px] text-gray-400 flex gap-4">
         <span>Started: {formatQuestDate(quest.dateStarted)}</span>
         <span>Completed: {formatQuestDate(quest.dateCompleted)}</span>
       </div>

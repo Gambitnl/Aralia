@@ -51,7 +51,7 @@ export const QuestLogSidebar: React.FC<QuestLogSidebarProps> = ({
                         onClick={() => setActiveTab('active')}
                         className={`pb-2 transition-colors ${activeTab === 'active'
                             ? 'border-b-2 border-amber-400 text-amber-400'
-                            : 'text-slate-500 hover:text-slate-300'
+                            : 'text-slate-400 hover:text-slate-300'
                             }`}
                     >
                         Active ({activeQuests.length})
@@ -60,7 +60,7 @@ export const QuestLogSidebar: React.FC<QuestLogSidebarProps> = ({
                         onClick={() => setActiveTab('completed')}
                         className={`pb-2 transition-colors ${activeTab === 'completed'
                             ? 'border-b-2 border-amber-400 text-amber-400'
-                            : 'text-slate-500 hover:text-slate-300'
+                            : 'text-slate-400 hover:text-slate-300'
                             }`}
                     >
                         Completed ({completedQuests.length})
@@ -71,7 +71,7 @@ export const QuestLogSidebar: React.FC<QuestLogSidebarProps> = ({
             {/* Quest List */}
             <div className="flex-grow overflow-y-auto custom-scrollbar p-2 space-y-2">
                 {displayedQuests.length === 0 ? (
-                    <p className="text-slate-500 text-sm italic text-center py-4">
+                    <p className="text-slate-400 text-sm italic text-center py-4">
                         {activeTab === 'active' ? 'No active quests' : 'No completed quests'}
                     </p>
                 ) : (
@@ -135,7 +135,7 @@ export const QuestLogSidebar: React.FC<QuestLogSidebarProps> = ({
                                             )}
                                         </div>
                                         {quest.regionHint && (
-                                            <span className="text-[10px] text-slate-500 font-mono">{quest.regionHint}</span>
+                                            <span className="text-[10px] text-slate-400 font-mono">{quest.regionHint}</span>
                                         )}
                                     </div>
                                 )}

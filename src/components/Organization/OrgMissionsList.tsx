@@ -83,7 +83,7 @@ const OrgMissionsList: React.FC<OrgMissionsListProps> = ({ organization, onStart
             <div className="mb-4">
                 <label className="block text-xs text-gray-400 mb-1">Assign Agents ({selectedMembers.length})</label>
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto bg-gray-900 p-2 rounded">
-                    {availableMembers.length === 0 && <span className="text-xs text-gray-500">No agents available.</span>}
+                    {availableMembers.length === 0 && <span className="text-xs text-gray-400">No agents available.</span>}
                     {availableMembers.map(m => (
                         
                         
@@ -120,7 +120,7 @@ const OrgMissionsList: React.FC<OrgMissionsListProps> = ({ organization, onStart
 
       <div className="space-y-3">
         {organization.missions.length === 0 ? (
-            <div className="text-gray-500 text-center italic py-4">No active operations.</div>
+            <div className="text-gray-400 text-center italic py-4">No active operations.</div>
         ) : (
             organization.missions.map(mission => (
                 <MissionCard key={mission.id} mission={mission} organization={organization} />
@@ -142,10 +142,10 @@ const MissionCard: React.FC<{ mission: OrgMission; organization: Organization }>
                 <div className="text-xs text-amber-400 font-mono">{mission.daysRemaining} days left</div>
             </div>
             <div className="text-xs text-gray-400">
-                <span className="text-gray-500">Agents:</span> {agents}
+                <span className="text-gray-400">Agents:</span> {agents}
             </div>
             <div className="text-xs text-gray-400 mt-1">
-                <span className="text-gray-500">Difficulty:</span> DC {mission.difficulty}
+                <span className="text-gray-400">Difficulty:</span> DC {mission.difficulty}
             </div>
         </div>
     );

@@ -20,6 +20,7 @@ import { logger } from "../../utils/logger";
 import { safeJSONParse, cleanAIJSON, redactSensitiveData } from "../../utils/securityUtils";
 import { SeededRandom } from '@/utils/random';
 import { formatMemoryForAI } from "../../utils/world/memoryUtils";
+import { ITEMS } from "../../data/items";
 import { InventoryResponseSchema, ItemSchema } from "../geminiSchemas";
 import { generateText } from "./core";
 import { GeminiHarvestData, GeminiInventoryData, GeminiTextData, StandardizedResult } from "./types";
@@ -48,6 +49,10 @@ function getFallbackInventory(shopType: string | undefined, seedKey?: string): I
   // Generic fallback items available everywhere
   defaults.push(createItem("Rations", "Standard travel rations.", "5 cp", 0.05, ItemType.FoodDrink));
   defaults.push(createItem("Torch", "A simple torch.", "1 cp", 0.01, ItemType.LightSource));
+
+  // Append canonical provisions for travel gate
+  defaults.push({ ...ITEMS['rations'], quantity: 10 });
+  defaults.push({ ...ITEMS['water-day'], quantity: 10 });
 
   // Deterministic "extra stock" so different buildings don't all sell the same 2 items
   // when AI generation is unavailable (e.g., no API key, rate-limit, or parse failures).

@@ -349,7 +349,7 @@ const RegionMapView: React.FC<RegionMapViewProps> = ({
         <div className="text-xs text-gray-400">
           Region Size: <span className="text-white font-bold">{Math.round(region.bounds.width).toLocaleString()} × {Math.round(region.bounds.height).toLocaleString()} ft</span>
         </div>
-        <div className="text-[10px] text-gray-500 mt-0.5">
+        <div className="text-[10px] text-gray-400 mt-0.5">
           Resolution: {region.heightfield.resolutionFt} ft | Grid: {region.heightfield.width}×{region.heightfield.height}
         </div>
       </div>

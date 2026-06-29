@@ -50,14 +50,14 @@ const CellInfoPanel: React.FC<CellInfoPanelProps> = ({ info, onClose, onDescend 
             <div className="text-sm font-bold text-gray-100">
               {info.burg ? info.burg.name : info.state ? info.state.name : `Cell #${info.cellId}`}
             </div>
-            <div className="text-[10px] text-gray-500 font-mono">Cell #{info.cellId}</div>
+            <div className="text-[10px] text-gray-400 font-mono">Cell #{info.cellId}</div>
           </div>
         </div>
         <button
           type="button"
           onClick={onClose}
           data-testid="cell-info-close"
-          className="text-gray-500 hover:text-white p-1 rounded hover:bg-gray-800 transition-colors"
+          className="text-gray-400 hover:text-white p-1 rounded hover:bg-gray-800 transition-colors"
           title="Close"
         >
           <X size={16} />

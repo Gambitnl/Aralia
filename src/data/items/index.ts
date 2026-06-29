@@ -139,15 +139,15 @@ export const ITEMS: Record<string, Item> = {
 
   // --- Accessories: Neck ---
   'silver_necklace': { id: 'silver_necklace', name: 'Silver Necklace', icon: '📿', description: 'A simple silver chain.', type: 'accessory', slot: 'Neck', weight: 0.1, cost: '10 GP' },
-  'amulet_of_health': { id: 'amulet_of_health', name: 'Amulet of Health', icon: '🔮', description: 'A magical amulet that grants vitality. (Placeholder)', type: 'accessory', slot: 'Neck', weight: 0.2, cost: '500 GP' },
+  'amulet_of_health': { id: 'amulet_of_health', name: 'Amulet of Health', icon: '🔮', description: 'A rune-etched amulet that fortifies the wearer with enduring vitality.', type: 'accessory', slot: 'Neck', weight: 0.2, cost: '500 GP' },
 
   // --- Accessories: Cloak ---
   'travelers_cloak': { id: 'travelers_cloak', name: "Traveler's Cloak", icon: '🧥', description: 'A warm, weatherproof cloak.', type: 'accessory', slot: 'Cloak', weight: 3, cost: '5 GP' },
-  'cloak_of_protection': { id: 'cloak_of_protection', name: 'Cloak of Protection', icon: '✨', description: 'A magical cloak that wards against harm. (Placeholder)', type: 'accessory', slot: 'Cloak', weight: 2, cost: '1000 GP' },
+  'cloak_of_protection': { id: 'cloak_of_protection', name: 'Cloak of Protection', icon: '✨', description: 'A shimmering cloak woven with protective wards that turn aside incoming blows.', type: 'accessory', slot: 'Cloak', weight: 2, cost: '1000 GP' },
 
   // --- Accessories: Belt ---
   'leather_belt': { id: 'leather_belt', name: 'Leather Belt', icon: '🔗', description: 'A sturdy leather belt.', type: 'accessory', slot: 'Belt', weight: 0.5, cost: '1 GP' },
-  'belt_of_giant_strength': { id: 'belt_of_giant_strength', name: 'Belt of Giant Strength', icon: '💪', description: 'A magical belt that enhances strength. (Placeholder)', type: 'accessory', slot: 'Belt', weight: 1, cost: '2000 GP' },
+  'belt_of_giant_strength': { id: 'belt_of_giant_strength', name: 'Belt of Giant Strength', icon: '💪', description: 'A heavy enchanted belt that floods the wearer with the might of giants.', type: 'accessory', slot: 'Belt', weight: 1, cost: '2000 GP' },
 
   // --- Accessories: Rings ---
   // REVIEW Q21: Lint shows 'Ring' is not assignable to EquipmentSlotType.
@@ -157,7 +157,7 @@ export const ITEMS: Record<string, Item> = {
   // ANSWER: Needs investigation - the type definition appears correct but TS doesn't recognize it.
   'silver_ring': { id: 'silver_ring', name: 'Silver Ring', icon: '💍', description: 'A plain silver band.', type: 'accessory', slot: 'Ring', weight: 0.01, cost: '5 GP' },
   'gold_ring': { id: 'gold_ring', name: 'Gold Ring', icon: '💍', description: 'A polished gold ring.', type: 'accessory', slot: 'Ring', weight: 0.01, cost: '25 GP' },
-  'ring_of_protection': { id: 'ring_of_protection', name: 'Ring of Protection', icon: '✨', description: 'A magical ring that provides protection. (Placeholder)', type: 'accessory', slot: 'Ring', weight: 0.01, cost: '1500 GP' },
+  'ring_of_protection': { id: 'ring_of_protection', name: 'Ring of Protection', icon: '✨', description: 'A finely wrought ring whose subtle magic deflects harm from its bearer.', type: 'accessory', slot: 'Ring', weight: 0.01, cost: '1500 GP' },
 
   // Armor and Shield (Torso)
   'padded_armor': { id: 'padded_armor', name: 'Padded Armor', icon: '🧥', description: 'Quilted layers of cloth and batting.', type: 'armor', slot: 'Torso', armorCategory: 'Light', baseArmorClass: 11, addsDexterityModifier: true, stealthDisadvantage: true, weight: 8, cost: '5 GP' },
@@ -182,9 +182,23 @@ import { GENERATED_GLOSSARY_ITEMS } from './generatedGlossaryItems.js';
 
 // Combined ITEMS export including all gatherable ingredients
 // GENERATED_GLOSSARY_ITEMS is spread last so that ingested PHB items override legacy hardcoded ones.
+//
+// PROVISIONS EXCEPTION (PRV2): the travel food/water gate (systems/travel/provisioning.ts)
+// counts inventory by the canonical ids 'rations' and 'water-day' and expects the
+// `food_drink` definitions above. The generated glossary, however, ALSO defines a 'rations'
+// entry — as an `accessory`/Ring — which would otherwise win because it is spread last,
+// turning trail rations into an equippable ring (wrong type/icon, and "loot all food_drink"
+// never surfaces them). We re-assert the canonical provisions AFTER the glossary so the
+// food versions always win. Keep this list in sync with the provisions block in ITEMS.
+const CANONICAL_PROVISIONS: Record<string, Item> = {
+  'rations': ITEMS['rations'],
+  'water-day': ITEMS['water-day'],
+};
+
 export const ALL_ITEMS: Record<string, Item> = {
   ...ITEMS,
   ...WEAPONS_DATA,
   ...GATHERABLE_ITEMS,
-  ...GENERATED_GLOSSARY_ITEMS
+  ...GENERATED_GLOSSARY_ITEMS,
+  ...CANONICAL_PROVISIONS,
 };

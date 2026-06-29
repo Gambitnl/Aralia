@@ -87,7 +87,7 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose, voyage, onAdv
                       </span>
                     ))
                   ) : (
-                    <span className="text-gray-500 text-sm italic">No modifications installed</span>
+                    <span className="text-gray-400 text-sm italic">No modifications installed</span>
                   )}
                 </div>
               </div>
@@ -106,13 +106,13 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose, voyage, onAdv
                   <div key={member.id} className="bg-gray-800 p-3 rounded flex justify-between items-center border border-gray-700">
                     <div>
                       <div className="font-bold text-gray-200">{member.name}</div>
-                      <div className="text-xs text-gray-500">{member.role}</div>
+                      <div className="text-xs text-gray-400">{member.role}</div>
                     </div>
                     <div className="text-sm text-gray-400">Loyalty: {member.loyalty}%</div>
                   </div>
                 ))}
                 {ship.crew.members.length === 0 && (
-                  <div className="text-center py-12 text-gray-600">
+                  <div className="text-center py-12 text-gray-300">
                     No crew assigned. Visit a tavern to recruit.
                   </div>
                 )}
@@ -126,7 +126,7 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose, voyage, onAdv
                 <div>
                   <div className="text-xs text-gray-400 uppercase">Capacity</div>
                   <div className="text-xl font-mono text-gray-200">
-                    {ship.cargo.totalWeight} / {ship.stats.cargoCapacity} <span className="text-sm text-gray-500">tons</span>
+                    {ship.cargo.totalWeight} / {ship.stats.cargoCapacity} <span className="text-sm text-gray-400">tons</span>
                   </div>
                 </div>
                 <div>
@@ -143,9 +143,9 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose, voyage, onAdv
               <Table className="text-sm">
                 <TableHeader>
                   <TableRow className="border-b border-gray-700">
-                    <TableHead className="pb-2 text-gray-500 uppercase text-xs">Item</TableHead>
-                    <TableHead className="pb-2 text-right text-gray-500 uppercase text-xs">Qty</TableHead>
-                    <TableHead className="pb-2 text-right text-gray-500 uppercase text-xs">Weight</TableHead>
+                    <TableHead className="pb-2 text-gray-400 uppercase text-xs">Item</TableHead>
+                    <TableHead className="pb-2 text-right text-gray-400 uppercase text-xs">Qty</TableHead>
+                    <TableHead className="pb-2 text-right text-gray-400 uppercase text-xs">Weight</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-gray-800">
@@ -158,7 +158,7 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose, voyage, onAdv
                   ))}
                   {ship.cargo.items.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={3} className="py-8 text-center text-gray-600">Empty Hold</TableCell>
+                      <TableCell colSpan={3} className="py-8 text-center text-gray-300">Empty Hold</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -203,7 +203,7 @@ const VoyageTab: React.FC<VoyageTabProps> = ({ voyage, onAdvanceDay }) => {
 
       {/* Progress bar */}
       <div className="bg-gray-800/30 p-3 rounded-lg border border-gray-700/50">
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
+        <div className="flex justify-between text-xs text-gray-400 mb-1">
           <span>Progress</span>
           <span>{progressPct}%</span>
         </div>
@@ -244,12 +244,12 @@ const VoyageTab: React.FC<VoyageTabProps> = ({ voyage, onAdvanceDay }) => {
       <div className="bg-gray-800/30 p-3 rounded-lg border border-gray-700/50">
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Voyage Log</h3>
         {logEntries.length === 0 ? (
-          <p className="text-gray-600 text-sm italic">No entries yet.</p>
+          <p className="text-gray-300 text-sm italic">No entries yet.</p>
         ) : (
           <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
             {logEntries.map((entry, i) => (
               <div key={i} className="flex gap-2 text-sm">
-                <span className="text-gray-600 font-mono w-12 shrink-0">Day {entry.day}</span>
+                <span className="text-gray-300 font-mono w-12 shrink-0">Day {entry.day}</span>
                 <span className={logEntryColor(entry.type)}>{entry.event}</span>
               </div>
             ))}
@@ -288,8 +288,8 @@ const NavButton = ({ active, onClick, icon, label }: { active: boolean, onClick:
 
 const StatCard = ({ label, value, subtext, colorClass = 'text-white' }: { label: string, value: string, subtext: string, colorClass?: string }) => (
   <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex flex-col items-center text-center">
-    <span className="text-xs text-gray-500 uppercase tracking-wider mb-1">{label}</span>
+    <span className="text-xs text-gray-400 uppercase tracking-wider mb-1">{label}</span>
     <span className={`text-2xl font-bold font-mono ${colorClass}`}>{value}</span>
-    <span className="text-xs text-gray-600 mt-1">{subtext}</span>
+    <span className="text-xs text-gray-300 mt-1">{subtext}</span>
   </div>
 );

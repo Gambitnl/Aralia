@@ -33,7 +33,7 @@
       "source:xphb",
       "variantrule"
     ],
-    "excerpt": "An ability check is a [[d20_test Test]] that represents using one of the six abilities—or a specific skill associated with an ability—to overcome a ch...",
+    "excerpt": "An ability check is a [[d20_test Test]] that represents using one of the six abilities-or a specific skill associated with an ability-to overcome a ch...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/ability_check.json"
@@ -86,7 +86,7 @@
       "source:xphb",
       "variantrule"
     ],
-    "excerpt": "A creature has six ability scores—Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma—each of which has a corresponding modifier. Ad...",
+    "excerpt": "A creature has six ability scores-Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma-each of which has a corresponding modifier. Ad...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/ability_score_and_modifier.json"
@@ -586,7 +586,7 @@
       "source:xphb",
       "variantrule"
     ],
-    "excerpt": "Some magic items require a creature to form a bond—called Attunement—with them before the creature can use an item's magical properties. A creature ca...",
+    "excerpt": "Some magic items require a creature to form a bond-called Attunement-with them before the creature can use an item's magical properties. A creature ca...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/attunement.json"
@@ -1759,7 +1759,7 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "You can see normally in dim_light Light and darkness—both magical and nonmagical—within 120 feet of yourself....",
+    "excerpt": "You can see normally in dim_light Light and darkness-both magical and nonmagical-within 120 feet of yourself....",
     "aliases": [],
     "seeAlso": [
       "dim_light Light",
@@ -3717,7 +3717,7 @@
       "source:xphb",
       "variantrule"
     ],
-    "excerpt": "A Long Rest is a period of extended downtime—at least 8 hours—available to any creature. During a Long Rest, you sleep for at least 6 hours and perfor...",
+    "excerpt": "A Long Rest is a period of extended downtime-at least 8 hours-available to any creature. During a Long Rest, you sleep for at least 6 hours and perfor...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/long_rest.json"
@@ -4189,7 +4189,7 @@
       "source:xphb",
       "optionalfeature"
     ],
-    "excerpt": "As a bonus_action Action, you can conjure a pact weapon in your hand—a Simple or Martial Melee weapon of your choice with which you bond—or create a b...",
+    "excerpt": "As a bonus_action Action, you can conjure a pact weapon in your hand-a Simple or Martial Melee weapon of your choice with which you bond-or create a b...",
     "aliases": [],
     "seeAlso": [
       "bonus_action Action",
@@ -4411,7 +4411,7 @@
       "source:xphb",
       "hazard"
     ],
-    "excerpt": "Certain planes of existence—and areas on the Material Plane affected by them—have supernatural effects on creatures within them. Several examples are ...",
+    "excerpt": "Certain planes of existence-and areas on the Material Plane affected by them-have supernatural effects on creatures within them. Several examples are ...",
     "aliases": [],
     "seeAlso": [
       "temporary_hit_points Hit Points",
@@ -5152,7 +5152,7 @@
       "source:xphb",
       "variantrule"
     ],
-    "excerpt": "A saving throw—also called a save—represents an attempt to avoid or resist a threat. You normally make a saving throw only when a rule requires you to...",
+    "excerpt": "A saving throw-also called a save-represents an attempt to avoid or resist a threat. You normally make a saving throw only when a rule requires you to...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/saving_throw.json"
@@ -5309,7 +5309,7 @@
       "source:xphb",
       "variantrule"
     ],
-    "excerpt": "If two or more things happen at the same time on a turn, the person at the game table—player or DM whose turn it is decides the order in which those t...",
+    "excerpt": "If two or more things happen at the same time on a turn, the person at the game table-player or DM whose turn it is decides the order in which those t...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/simultaneous_effects.json"
@@ -5973,7 +5973,7 @@
       "source:xphb",
       "hazard"
     ],
-    "excerpt": "Thin ice has a weight tolerance of 3d10 × 10 pounds per 10-foot-square area. Whenever the total weight on an area of thin ice exceeds its tolerance, t...",
+    "excerpt": "Thin ice has a weight tolerance of 3d10 x 10 pounds per 10-foot-square area. Whenever the total weight on an area of thin ice exceeds its tolerance, t...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/thin_ice.json"

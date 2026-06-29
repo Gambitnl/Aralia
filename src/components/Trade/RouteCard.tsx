@@ -48,13 +48,13 @@ const RouteCard: React.FC<RouteCardProps> = ({ route }) => {
             {/* Route Path */}
             <div className="flex items-center gap-2 text-sm mb-3">
                 <span className="text-blue-300">{originRegion?.name || route.originId}</span>
-                <span className="text-gray-500">→</span>
+                <span className="text-gray-400">→</span>
                 <span className="text-purple-300">{destRegion?.name || route.destinationId}</span>
             </div>
 
             {/* Goods */}
             <div className="mb-3">
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Goods</span>
+                <span className="text-xs text-gray-400 uppercase tracking-wide">Goods</span>
                 <div className="flex flex-wrap gap-1 mt-1">
                     {route.goods.map(good => (
                         <span key={good} className="px-2 py-0.5 bg-gray-700/70 rounded text-xs text-gray-300">
@@ -68,7 +68,7 @@ const RouteCard: React.FC<RouteCardProps> = ({ route }) => {
             <div className="grid grid-cols-2 gap-3">
                 {/* Risk Meter */}
                 <div>
-                    <span className="text-xs text-gray-500 uppercase tracking-wide">Risk</span>
+                    <span className="text-xs text-gray-400 uppercase tracking-wide">Risk</span>
                     <div className="flex items-center gap-2 mt-1">
                         <div className="flex-1 h-2 bg-gray-700 rounded-full overflow-hidden">
                             <div
@@ -82,7 +82,7 @@ const RouteCard: React.FC<RouteCardProps> = ({ route }) => {
 
                 {/* Profitability Meter */}
                 <div>
-                    <span className="text-xs text-gray-500 uppercase tracking-wide">Profit</span>
+                    <span className="text-xs text-gray-400 uppercase tracking-wide">Profit</span>
                     <div className="flex items-center gap-2 mt-1">
                         <div className="flex-1 h-2 bg-gray-700 rounded-full overflow-hidden">
                             <div
@@ -97,7 +97,7 @@ const RouteCard: React.FC<RouteCardProps> = ({ route }) => {
 
             {/* Days in Status */}
             {route.daysInStatus !== undefined && route.daysInStatus > 0 && (
-                <p className="text-xs text-gray-500 mt-3">
+                <p className="text-xs text-gray-400 mt-3">
                     {route.daysInStatus} day{route.daysInStatus !== 1 ? 's' : ''} in current status
                 </p>
             )}

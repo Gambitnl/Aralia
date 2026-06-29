@@ -214,7 +214,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                             <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">{t('game_guide.quick_creator_title')}</h3>
                             <div className="grid grid-cols-2 gap-2 mb-3">
                                 <div>
-                                    <label className="block text-[10px] text-gray-500 mb-1">{t('game_guide.label_race')}</label>
+                                    <label className="block text-[10px] text-gray-400 mb-1">{t('game_guide.label_race')}</label>
                                     <select
                                         value={quickRace}
                                         onChange={(e) => setQuickRace(e.target.value)}
@@ -226,7 +226,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] text-gray-500 mb-1">{t('game_guide.label_class')}</label>
+                                    <label className="block text-[10px] text-gray-400 mb-1">{t('game_guide.label_class')}</label>
                                     <select
                                         value={quickClass}
                                         onChange={(e) => setQuickClass(e.target.value)}

@@ -1017,7 +1017,9 @@ const MapPane: React.FC<MapPaneProps> = ({
                 Precision
               </button>
             ) : null}
-            <span className="ml-2 text-gray-800">Seed: {worldforgeSeed}</span>
+            {showGenerationControls && (
+              <span className="ml-2 text-gray-800">Seed: {worldforgeSeed}</span>
+            )}
           </div>
 
           {showGenerationControls && (

@@ -18,6 +18,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
 import { buildAtlasSvgModel, declutterLabels, findCellAtPoint, cellTraits, cellPolygonPoints, buildProvisionRingPath, type CellTraits, type BurgTier, type AtlasLegendEntry } from './atlasSvg';
 import AtlasLayers from './AtlasLayers';
+import { consumeMapCenterOnPlayer } from './mapFocusSignal';
 import type { RoutePlan } from '../../systems/travel/routePlanning';
 import type { MultiModalRoute } from '../../systems/travel/multiModalRoute';
 import { formatRouteSummary, dangerRating, formatMultiModalSummary } from '../../systems/travel/travelReadout';
@@ -68,6 +69,20 @@ export interface AtlasSvgViewProps {
    * remember different views; omit for a single shared/global scope.
    */
   prefsScope?: string | number;
+  /**
+   * How the world is fitted into the (width × height) viewport when the box
+   * aspect ratio differs from the world's.
+   *  - `'contain'` (default): scale by the tighter axis so the WHOLE world is
+   *    visible. The leftover area along the looser axis is painted as continuous
+   *    ocean (a full-viewport sea backdrop), NOT a flat dark letterbox band, so
+   *    a non-aspect-matched container (e.g. a full panel) reads as one seamless
+   *    map rather than a map sandwiched between empty bars.
+   *  - `'cover'`: scale by the looser axis so the world FILLS the viewport with
+   *    no margins, cropping the overflowing edge. Opt-in — callers that hand an
+   *    aspect-matched box (StartPointSelection) are unaffected either way, since
+   *    contain == cover when the aspects already match.
+   */
+  fitMode?: 'contain' | 'cover';
 }
 
 /** Read the persisted layer prefs for a given storage key (scoped per save). */
@@ -233,7 +248,7 @@ const SECTION_HEADER: React.CSSProperties = {
   letterSpacing: 0.5, marginBottom: 3,
 };
 
-const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], onPickCell, travelActive = false, planRoute, planMultiModalRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope }) => {
+const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], onPickCell, travelActive = false, planRoute, planMultiModalRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain' }) => {
   const model = useMemo(() => buildAtlasSvgModel(atlas), [atlas]);
 
   // Map coloring is a single exclusive choice; feature layers are independent
@@ -322,13 +337,19 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   const [selectedBurg, setSelectedBurg] = useState<number | null>(null);
   const [infoVerbosity, setInfoVerbosity] = useState<InfoVerbosity>('standard');
   const fitView = useCallback(() => {
-    const k = Math.min(width / model.width, height / model.height);
+    // 'contain' fits the whole world (tighter axis); 'cover' fills the viewport
+    // and crops the overflow (looser axis). When the box already matches the
+    // world aspect both reduce to the same k, so aspect-matched parents are
+    // unaffected by the mode.
+    const sx = width / model.width;
+    const sy = height / model.height;
+    const k = fitMode === 'cover' ? Math.max(sx, sy) : Math.min(sx, sy);
     return {
       k,
       x: (width - model.width * k) / 2,
       y: (height - model.height * k) / 2,
     };
-  }, [height, model.height, model.width, width]);
+  }, [fitMode, height, model.height, model.width, width]);
   const [view, setView] = useState(fitView);
   const drag = useRef<{ x: number; y: number } | null>(null);
   const downPos = useRef<{ x: number; y: number } | null>(null);
@@ -508,6 +529,21 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     setHoveredCell(i >= 0 ? i : null);
   }, [marker, view.k, width, height, model.width, atlas]);
 
+  // One-shot "open centered on the player's cell" (the 3D HUD "Cell Map"
+  // button). Consumed once at mount so a normal map open still uses fit-view;
+  // deferred until the player marker is available (it may not be on the first
+  // render), then centered exactly once.
+  const wantCenterOnPlayer = useRef(false);
+  useEffect(() => {
+    wantCenterOnPlayer.current = consumeMapCenterOnPlayer();
+  }, []);
+  useEffect(() => {
+    if (wantCenterOnPlayer.current && marker) {
+      wantCenterOnPlayer.current = false;
+      centerOnPlayer();
+    }
+  }, [marker, centerOnPlayer]);
+
   // The biome softening filter lives INSIDE the zoom transform, so a fixed
   // map-unit blur magnifies with zoom and smears biomes when zoomed in. Scale
   // stdDeviation by the fit ratio (fitK / view.k) so the on-screen blur holds at
@@ -518,7 +554,24 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
   // can be NaN/±Infinity — feGaussianBlur would then warn "Received NaN for
   // stdDeviation". Fall back to the overview blur amount until real values land.
   const softenRatio = fitK / view.k;
-  const softenStdDev = Number.isFinite(softenRatio) ? Math.min(2, Math.max(0.05, softenRatio)) : 1;
+  // P1 perf: the soften filter (≈8 filtered biome/overlay groups, ~1900 nodes)
+  // re-rasterizes whenever stdDeviation changes, so a smoothly-varying value
+  // invalidates the filter cache on EVERY zoom frame. Two cheap mitigations,
+  // both fully inside this file (the `filter=` attributes themselves live in
+  // AtlasLayers — see the cross-file follow-up note):
+  //   1. QUANTIZE the blur to coarse steps so small zoom nudges (and panning,
+  //      which doesn't change k at all) reuse the cached raster instead of
+  //      re-blurring. The zoom-compensation (memory: stdDev ∝ fitK/view.k, or it
+  //      smears when zoomed in) is preserved — we still track zoom, just in steps.
+  //   2. DROP the blur entirely once zoomed in past ~2× the fit scale. There the
+  //      facets are already crisp (the blur would only smear, per the memory),
+  //      and stdDeviation 0 lets the browser short-circuit the Gaussian pass.
+  const ZOOM_SOFTEN_CUTOFF = 2; // view.k ≥ fitK * cutoff ⇒ no softening needed
+  const rawStd = Number.isFinite(softenRatio) ? Math.min(2, Math.max(0.05, softenRatio)) : 1;
+  const zoomedIn = Number.isFinite(softenRatio) && view.k >= fitK * ZOOM_SOFTEN_CUTOFF;
+  // Quantize to 0.25-unit steps (0.05 floor preserved) so the raster is stable
+  // across pans and micro-zooms.
+  const softenStdDev = zoomedIn ? 0 : Math.max(0.05, Math.round(rawStd * 4) / 4);
 
   return (
     <div style={{ position: 'relative', width, height }}>
@@ -526,7 +579,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       ref={svgRef}
       width={width} height={height}
       viewBox={`0 0 ${width} ${height}`}
-      style={{ background: '#15375d', userSelect: 'none', cursor: drag.current ? 'grabbing' : 'grab' }}
+      style={{ background: '#1f4a73', userSelect: 'none', cursor: drag.current ? 'grabbing' : 'grab' }}
       onMouseDown={onDown} onMouseMove={onMove} onMouseUp={onUp} onMouseLeave={onLeave} onClick={onClick}
       data-testid="atlas-svg-view"
     >
@@ -551,12 +604,21 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           <line x1="0" y1="0" x2="0" y2="6" stroke="#b91c1c" strokeWidth="2" />
         </pattern>
       </defs>
+      {/* Full-viewport ocean backdrop (screen space, BELOW the zoom group). In
+          'contain' mode the world rarely matches the container aspect, leaving
+          a margin along one axis; painting that margin as continuous sea (the
+          same deep-ocean tone as the base rect) makes the off-world area read as
+          open water instead of an empty dark letterbox band (WG2 / S3). It sits
+          under everything, so the world, depth bands and coast still draw on top
+          exactly as before. In 'cover' mode the world covers the viewport and
+          this is simply hidden. */}
+      <rect x={0} y={0} width={width} height={height} fill="#1f4a73" pointerEvents="none" />
       <g transform={`translate(${view.x},${view.y}) scale(${view.k})`}>
         {/* Deep base ocean; shallow depth bands (T3b) layer on top near coasts. */}
         <rect x={0} y={0} width={model.width} height={model.height} fill="#1f4a73" />
         {/* Heavy static layers, memoized so hover/pan/zoom don't reconcile the
             whole (4k–18k node) subtree — the World Map freeze fix. */}
-        <AtlasLayers model={model} visible={visible} />
+        <AtlasLayers model={model} visible={visible} softenActive={softenStdDev > 0} />
         {/* Provisioning rings — glowing contour of how far current supplies reach.
             Wide soft underlay + crisp colored line per resource horizon (food /
             water). Drawn above the base coloring but below routes + hover so the
@@ -613,7 +675,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       {/* Labels overlay — screen space (constant size), zoom-thresholded + decluttered (T5c).
           Burg names (capital/town) are nudged below their point so the settlement
           glyph (drawn after this block) sits ABOVE the name without overlapping. */}
-      {visible.labels ? declutterLabels(model.labels ?? [], view).map((l, i) => (
+      {visible.labels ? declutterLabels(model.labels ?? [], view, { bounds: { width, height } }).map((l, i) => (
         <text
           key={`lb${i}`}
           x={l.sx}

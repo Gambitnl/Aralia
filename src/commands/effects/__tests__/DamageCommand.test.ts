@@ -1,11 +1,56 @@
-
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { DamageCommand } from '../DamageCommand'
 import { CombatState, CombatCharacter } from '../../../types/combat'
 import { SpellEffect } from '../../../types/spells'
 import { StateTag } from '../../../types/elemental'
 import { CommandContext } from '../../base/SpellCommand'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/factories'
+import * as combatUtils from '../../../utils/combat/combatUtils'
+
+vi.mock('../../../utils/combat/combatUtils', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../../../utils/combat/combatUtils')>()
+    return {
+        ...actual,
+        rollDice: vi.fn(),
+        rollDamage: vi.fn(),
+    }
+})
+
+const defaultRollDice = (dice: string): number => {
+    if (dice === '1d20') {
+        return 10
+    }
+
+    const isNegative = dice.startsWith('-')
+    const normalized = isNegative ? dice.slice(1) : dice
+    const match = normalized.match(/^(\d*)d(\d+)$/i)
+
+    if (!match) {
+        return 0
+    }
+
+    const count = Number(match[1] || 1)
+    const sides = Number(match[2])
+    const total = count * sides
+
+    return isNegative ? -total : total
+}
+
+const defaultRollDamage = (dice: string): number => {
+    const isNegative = dice.startsWith('-')
+    const normalized = isNegative ? dice.slice(1) : dice
+    const match = normalized.match(/^(\d*)d(\d+)$/i)
+
+    if (!match) {
+        return 0
+    }
+
+    const count = Number(match[1] || 1)
+    const sides = Number(match[2])
+    const total = count * sides
+
+    return isNegative ? -total : total
+}
 
 describe('DamageCommand', () => {
     let mockState: CombatState;
@@ -14,6 +59,9 @@ describe('DamageCommand', () => {
     let mockContext: CommandContext;
 
     beforeEach(() => {
+        vi.mocked(combatUtils.rollDice).mockImplementation(defaultRollDice)
+        vi.mocked(combatUtils.rollDamage).mockImplementation(defaultRollDamage)
+
         mockCaster = createMockCombatCharacter({
             id: 'caster-1',
             name: 'Hero',
@@ -439,5 +487,97 @@ describe('DamageCommand', () => {
         // still receive cover from the previous test.
         const saveLog = newState.combatLog.find(l => l.message.includes('Dexterity save'));
         expect(saveLog?.message).not.toContain('[Cover]');
+    });
+
+    it.each([
+        {
+            spellName: 'Sacred Flame',
+            damageDice: '1d8',
+            damageType: 'Radiant',
+            saveType: 'Dexterity',
+            resistance: ['radiant'],
+            failedDamage: 4,
+        },
+        {
+            spellName: 'Thunderclap',
+            damageDice: '1d6',
+            damageType: 'Thunder',
+            saveType: 'Constitution',
+            resistance: [],
+            failedDamage: 6,
+        }
+    ])('applies zero damage on a successful save and full damage on failure for $spellName', async ({ spellName, damageDice, damageType, saveType, resistance, failedDamage }) => {
+        const effect: SpellEffect = {
+            type: 'DAMAGE',
+            damage: {
+                dice: damageDice,
+                type: damageType
+            },
+            trigger: { type: 'immediate' },
+            condition: {
+                type: 'save',
+                saveType: saveType as 'Dexterity' | 'Constitution',
+                saveEffect: 'none'
+            }
+        };
+
+        const spellContext = {
+            ...mockContext,
+            spellName,
+        };
+
+        const successTarget = createMockCombatCharacter({
+            ...mockTarget,
+            resistances: resistance
+        });
+        const successState = createMockCombatState({
+            characters: [mockCaster, successTarget],
+            combatLog: []
+        });
+
+        vi.mocked(combatUtils.rollDice).mockImplementation((dice: string) => {
+            if (dice === '1d20') {
+                return 20;
+            }
+
+            return defaultRollDice(dice);
+        });
+        vi.mocked(combatUtils.rollDamage).mockReturnValue(defaultRollDamage(damageDice));
+
+        const successCommand = new DamageCommand(effect, {
+            ...spellContext,
+            targets: [successTarget]
+        });
+        const successResult = await successCommand.execute(successState);
+        const savedTarget = successResult.characters.find(c => c.id === successTarget.id);
+
+        expect(savedTarget?.currentHP).toBe(successTarget.currentHP);
+
+        const failureTarget = createMockCombatCharacter({
+            ...mockTarget,
+            resistances: resistance
+        });
+        const failureState = createMockCombatState({
+            characters: [mockCaster, failureTarget],
+            combatLog: []
+        });
+
+        vi.mocked(combatUtils.rollDice).mockImplementation((dice: string) => {
+            if (dice === '1d20') {
+                return 1;
+            }
+
+            return defaultRollDice(dice);
+        });
+        vi.mocked(combatUtils.rollDamage).mockReturnValue(defaultRollDamage(damageDice));
+
+        const failureCommand = new DamageCommand(effect, {
+            ...spellContext,
+            targets: [failureTarget]
+        });
+        const failureResult = await failureCommand.execute(failureState);
+        const failedTarget = failureResult.characters.find(c => c.id === failureTarget.id);
+
+        expect(failedTarget?.currentHP).toBe(failureTarget.currentHP - failedDamage);
     });
 });

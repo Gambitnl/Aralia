@@ -133,7 +133,7 @@ export const GlossaryEntryPanel: React.FC<GlossaryEntryPanelProps> = ({
                         ) : (
                             <div className="text-red-400">
                                 <p>Failed to load JSON for this spell.</p>
-                                <p className="text-sm text-gray-500 mt-2">
+                                <p className="text-sm text-gray-400 mt-2">
                                     JSON file may not exist at: /data/spells/level-{gateResults[selectedEntry.id]?.level ?? '?'}
                                     /{selectedEntry.id}.json
                                 </p>
@@ -152,7 +152,7 @@ export const GlossaryEntryPanel: React.FC<GlossaryEntryPanelProps> = ({
                     )}
                 </>
             ) : (
-                <p className="text-gray-500 italic text-center py-10">
+                <p className="text-gray-400 italic text-center py-10">
                     Select an entry to view its details or use the search bar.
                 </p>
             )}

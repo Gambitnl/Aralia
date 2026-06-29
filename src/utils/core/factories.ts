@@ -51,6 +51,7 @@ import { CommandContext } from '@/commands/base/SpellCommand';
 import { v4 as uuidv4 } from 'uuid';
 import { buildHitPointDicePools } from '@/utils/character';
 import { createEmptyHistory } from '@/utils/historyUtils';
+import { INITIAL_GAME_ENTRY_STATE } from '@/systems/gameEntry/types';
 
 /**
  * [Warden] Hardened factories against failures in uuid generation or time utilities.
@@ -577,6 +578,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isDialogueInterfaceOpen: false,
       activeRumors: [],
       worldHistory: createEmptyHistory(),
+      townSim: {},
       activeHeist: null,
       activeContracts: [],
       playerIdentity: undefined,
@@ -618,6 +620,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       worldViewMode: 'atlas',
       mapSurface: 'classic',
       playerWorldPos: null,
+      entry3DAnchor: null,
       // Ground-mode resume positions use tile-local meters and begin unset in
       // tests unless a specific renderer or save scenario overrides them.
       playerGroundPos: null,
@@ -629,6 +632,33 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
 
       // TODO: Fix TS2322 - missing or incompatible archivedBanters
       archivedBanters: [],
+
+      // Parity block: these fields are initialized in src/state/initialState.ts and
+      // MUST be mirrored here so the test factory matches a real fresh GameState.
+      // Guarded by factories.parity.test.ts (every initialGameState key exists here).
+      autoSaveEnabled: true,
+      isLongRestModalVisible: false,
+      isShortRestModalVisible: false,
+      isThreeDVisible: false,
+      extractedBattleMap: null,
+      gameEntry: INITIAL_GAME_ENTRY_STATE,
+      thievesGuild: {
+        memberId: 'player',
+        guildId: 'shadow_hands',
+        rank: 0,
+        reputation: 0,
+        activeJobs: [],
+        availableJobs: [],
+        completedJobs: [],
+        servicesUnlocked: []
+      },
+      activeConversation: null,
+      isPuzzleRuntimeVisible: false,
+      activePuzzle: null,
+      isThievesGuildSafehouseVisible: false,
+      selectedGlossaryTermForModal: undefined,
+      saveVersion: undefined,
+      saveTimestamp: undefined,
 
       ...overrides,
     // DEBT: Cast to any to allow dynamic property assignment in object factory.
@@ -666,6 +696,9 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isNpcTestModalVisible: false,
       isLogbookVisible: false,
       isGameGuideVisible: false,
+      // Required GameState fields — keep the extreme-fallback shape valid.
+      isPuzzleRuntimeVisible: false,
+      activePuzzle: null,
       dynamicLocationItemIds: {},
       currentLocationActiveDynamicNpcIds: null,
       geminiGeneratedActions: [],
@@ -745,6 +778,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isDialogueInterfaceOpen: false,
       activeRumors: [],
       worldHistory: createEmptyHistory(),
+      townSim: {},
       activeHeist: null,
       activeContracts: [],
       playerIdentity: undefined,
@@ -770,6 +804,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       worldViewMode: 'atlas',
       mapSurface: 'classic',
       playerWorldPos: null,
+      entry3DAnchor: null,
       // Keep the tile-local ground resume field present even in fallback states.
       playerGroundPos: null,
       // Keep the fallback GameState structurally complete even if factory setup fails.

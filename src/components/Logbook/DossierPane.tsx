@@ -53,7 +53,7 @@ const getGoalStatusDetails = (status: GoalStatus): { label: string; colorClass: 
         case GoalStatus.Completed: return { label: 'Completed', colorClass: 'text-green-400' };
         case GoalStatus.Failed: return { label: 'Failed', colorClass: 'text-red-400' };
         case GoalStatus.Active: return { label: 'Active', colorClass: 'text-yellow-300' };
-        default: return { label: 'Unknown', colorClass: 'text-gray-500' };
+        default: return { label: 'Unknown', colorClass: 'text-gray-400' };
     }
 };
 
@@ -131,7 +131,7 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
           {/* Left Pane: NPC List */}
           <div data-testid="dossier-npc-list" className="md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-hidden flex-shrink-0 flex flex-col min-h-0">
             {metNpcs.length === 0 ? (
-                <p className="text-gray-500 italic text-center py-4">You haven&apos;t spoken to anyone yet.</p>
+                <p className="text-gray-400 italic text-center py-4">You haven&apos;t spoken to anyone yet.</p>
             ) : (
                 <>
                   <ul className="space-y-1 flex-grow overflow-y-auto scrollable-content min-h-0">
@@ -217,11 +217,11 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
                         ))}
                     </ul>
                 ) : (
-                    <p className="text-gray-500 italic text-sm">You have no significant history with this person.</p>
+                    <p className="text-gray-400 italic text-sm">You have no significant history with this person.</p>
                 )}
               </article>
             ) : (
-              <p className="text-gray-500 italic text-center py-10">Select a character to view their dossier.</p>
+              <p className="text-gray-400 italic text-center py-10">Select a character to view their dossier.</p>
             )}
           </div>
         </div>

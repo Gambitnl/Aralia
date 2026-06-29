@@ -30,6 +30,7 @@ export const PHASE_SLUG_OVERRIDES: Partial<Record<GamePhase, string>> = {
   [GamePhase.AGENTSIM_PREVIEW]: 'agentsim',
   [GamePhase.AGENTSIM_3D_PREVIEW]: 'agentsim3d',
   [GamePhase.START_POINT_SELECTION]: 'startselect',
+  [GamePhase.LIVING_WORLD_PREVIEW]: 'livingworld',
 };
 
 // Reverse lookup: clean slug -> phase. Derived from the overrides so the two
@@ -78,6 +79,8 @@ export const getPhaseFromSlug = (slug: string | null): GamePhase | null => {
 export const ROUTE_FLAGS = {
   /** Boot straight into the World Map (world-generation) view from the menu. */
   worldGen: { params: ['worldmap', 'view'] as const },
+  /** Dev opt-in: auto-start the legacy dummy party instead of showing the menu. */
+  dummyStart: { params: ['dummy', 'devstart'] as const },
 } as const;
 
 /**
@@ -87,4 +90,17 @@ export const ROUTE_FLAGS = {
 export const isWorldGenDeepLink = (search: string = window.location.search): boolean => {
   const params = new URLSearchParams(search);
   return params.get('worldmap') === '1' || params.get('view') === 'worldgen';
+};
+
+/**
+ * True when the URL opts into the legacy dummy auto-start, i.e. `?dummy=1` or
+ * `?devstart=1`. This is now OPT-IN: a brand-new player (no save) must land on
+ * the Main Menu and go through New Game → character creation → start selection,
+ * the real first-run experience. Devs who want the fast pre-built party add the
+ * flag. (Still additionally gated by `canUseDevTools()` at the call site, so it
+ * can never fire in production.)
+ */
+export const isDummyAutoStartDeepLink = (search: string = window.location.search): boolean => {
+  const params = new URLSearchParams(search);
+  return params.get('dummy') === '1' || params.get('devstart') === '1';
 };

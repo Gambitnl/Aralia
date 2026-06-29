@@ -36,7 +36,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Sky } from '@react-three/drei';
 import * as THREE from 'three';
-import FreeRoamCameraController from './FreeRoamCameraController';
+import FreeRoamCameraController, { type CameraFrameRequest } from './FreeRoamCameraController';
 import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
 import { useChunkStreaming } from './useChunkStreaming';
 import World3DNameplates from './World3DNameplates';
@@ -81,6 +81,12 @@ interface World3DSceneProps {
   groundWorld?: GroundWorld | null;
   /** Fractional hour driving agent schedules/motion (live game clock). */
   agentClock?: number;
+  /**
+   * Bumping this (vs its previous value) pulls the 3D camera up to frame the
+   * whole spawn town from above — the HUD "Town Cell" overhead view. Stays in
+   * the same scene; no view switch.
+   */
+  frameTownCellNonce?: number;
 }
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
@@ -136,9 +142,21 @@ const WaterPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chu
   if (!water) return null;
   return (
     <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-      {/* Low roughness + slight metalness gives the water a sun specular sheen
-          instead of reading as flat blue paint. */}
-      <meshStandardMaterial color="#1d4f7a" transparent opacity={0.82} roughness={0.18} metalness={0.15} />
+      {/* Ground/walking-scale water. Metalness is kept near-zero: a metallic
+          surface goes black wherever it isn't catching a light, which is most
+          of the frame at the low/grazing, back-lit angles normal at eye level —
+          that was the "dark pit" read (TG4). A brighter dielectric tint plus a
+          small emissive lift keeps it reading as blue water from any angle,
+          while a low roughness still gives the sun a specular sheen. */}
+      <meshStandardMaterial
+        color="#2f78b4"
+        emissive="#123a5c"
+        emissiveIntensity={0.35}
+        transparent
+        opacity={0.86}
+        roughness={0.22}
+        metalness={0.0}
+      />
     </mesh>
   );
 };
@@ -175,9 +193,13 @@ const DeckPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
     decks ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
   );
   if (!decks) return null;
+  // TG5: docks and bridges share one mesh but carry per-vertex tint — weathered
+  // dark timber for quays, pale dressed stone/planking for bridge spans — so a
+  // quay and a bridge span read distinctly. `vertexColors` consumes the per-deck
+  // colors emitted by buildDeckMesh; the white base avoids tinting them.
   return (
     <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
-      <meshStandardMaterial color="#6b4b2f" roughness={0.9} side={THREE.DoubleSide} /> {/* timber dock/bridge planking */}
+      <meshStandardMaterial vertexColors color="#ffffff" roughness={0.9} side={THREE.DoubleSide} />
     </mesh>
   );
 };
@@ -418,6 +440,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   forgeAssetService,
   groundWorld = null,
   agentClock,
+  frameTownCellNonce = 0,
 }) => {
   const { loaded, update } = useChunkStreaming(loader);
 
@@ -443,6 +466,32 @@ const World3DScene: React.FC<World3DSceneProps> = ({
 
   // Fixed scene origin near the player; the scene is drawn relative to it (coords ~0).
   const sceneOrigin: SceneOrigin = useMemo(() => ({ x: start[0], z: start[2] }), [start]);
+
+  // Overhead "Town Cell" framing (HUD button). When frameTownCellNonce changes,
+  // build a one-shot command that lifts the camera to fit the spawn town. The
+  // spawn town is the one nearest the scene origin (the origin sits on the
+  // spawn); height fits its half-extent in the 55° vertical FOV with margin,
+  // clamped under the ground dolly ceiling. Nonce 0 = no command yet.
+  const townFrameRequest = useMemo<CameraFrameRequest | null>(() => {
+    if (!frameTownCellNonce) return null;
+    const towns = groundWorld?.towns ?? [];
+    let target: [number, number, number] = [0, startSurfaceY, 0];
+    let halfM = 160;
+    if (towns.length) {
+      let best = towns[0];
+      let bestDist = Infinity;
+      for (const t of towns) {
+        const s = worldToScene(t.xM, t.zM, sceneOrigin);
+        const dist = Math.hypot(s.x, s.z);
+        if (dist < bestDist) { bestDist = dist; best = t; }
+      }
+      const s = worldToScene(best.xM, best.zM, sceneOrigin);
+      target = [s.x, startSurfaceY, s.z];
+      halfM = best.halfM;
+    }
+    const height = Math.min(1400, Math.max(120, halfM * 2.6));
+    return { nonce: frameTownCellNonce, target, height };
+  }, [frameTownCellNonce, groundWorld, sceneOrigin, startSurfaceY]);
 
   // Kick off the first window once (in absolute world coords).
   React.useEffect(() => {
@@ -510,7 +559,10 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           // Walking scale: allow dollying to 2 m (eye level beside a door)
           // instead of the continent's 20 m floor.
           minDistance={viewProfile === 'ground' ? 2 : 20}
-          maxDistance={viewProfile === 'ground' ? 800 : 2000}
+          // Ground ceiling raised to 1500 m so the "Town Cell" overhead framing
+          // (up to ~1400 m for a big capital) isn't clamped by MapControls.update().
+          maxDistance={viewProfile === 'ground' ? 1500 : 2000}
+          frameRequest={townFrameRequest}
         />
         <World3DNameplates
           loaded={loaded}

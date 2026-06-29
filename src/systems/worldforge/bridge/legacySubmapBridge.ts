@@ -185,25 +185,31 @@ export interface BridgeLocalResult {
  * The bridge entry point: deterministic L2 LocalArtifact for a legacy
  * location. Same inputs â†’ byte-identical terrain, every call, every session.
  */
-export function getWorldforgeLocalForLocation(
+/**
+ * Cell-first Locale entrypoint (cell-native world, Stage 1). Builds the
+ * region/local for an EXACT atlas cell — no grid round-trip — so "enter cell C"
+ * anchors the 3D slice on C, not a coarse-grid neighbour. `anchorCellId` must be
+ * a land cell (callers land-snap first via snapToLandCell where needed).
+ */
+export function getWorldforgeLocalForCell(
   worldSeed: number,
-  worldMapX: number,
-  worldMapY: number,
-  worldMapWidth: number,
-  worldMapHeight: number,
+  anchorCellId: number,
+  // When entering a settlement, pass the burg's atlas/graph PIXEL position so the
+  // Locale window frames the town (cells are far larger than the window, and a
+  // burg sits anywhere within its cell). Omit for wilderness (centers on site).
+  opts: { centerPx?: readonly [number, number] } = {},
 ): BridgeLocalResult {
   const atlas = getBridgeAtlas(worldSeed);
-  const anchorCellId = legacyTileToAtlasCell(
-    atlas, worldMapX, worldMapY, worldMapWidth, worldMapHeight,
-  );
 
-  const regionKey = `${worldforgeSeedString(worldSeed)}/cell:${anchorCellId}`;
+  const centerTag = opts.centerPx ? `@${Math.round(opts.centerPx[0])},${Math.round(opts.centerPx[1])}` : '';
+  const regionKey = `${worldforgeSeedString(worldSeed)}/cell:${anchorCellId}${centerTag}`;
   let region = regionCache.get(regionKey);
   if (!region) {
     region = generateRegion(atlas, anchorCellId, rootSeedPath(worldSeed), {
       feetPerPixel: FEET_PER_FMG_PIXEL,
       resolutionFt: 100,
       world: atlas,
+      windowCenterPx: opts.centerPx,
     });
     regionCache.set(regionKey, region);
   }
@@ -224,6 +230,26 @@ export function getWorldforgeLocalForLocation(
   }
 
   return { local, region, anchorCellId, biomeId };
+}
+
+/**
+ * Grid-tile Locale entrypoint (legacy bookkeeping path). A thin wrapper that
+ * recovers the anchor cell from a coarse grid tile (nearest-land), then defers
+ * to {@link getWorldforgeLocalForCell}. Used for party-location / WF_TILE /
+ * WF_TOWN entries that don't carry an exact cell.
+ */
+export function getWorldforgeLocalForLocation(
+  worldSeed: number,
+  worldMapX: number,
+  worldMapY: number,
+  worldMapWidth: number,
+  worldMapHeight: number,
+): BridgeLocalResult {
+  const atlas = getBridgeAtlas(worldSeed);
+  const anchorCellId = legacyTileToAtlasCell(
+    atlas, worldMapX, worldMapY, worldMapWidth, worldMapHeight,
+  );
+  return getWorldforgeLocalForCell(worldSeed, anchorCellId);
 }
 
 // ============================================================================

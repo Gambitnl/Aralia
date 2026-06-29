@@ -108,7 +108,7 @@ const TradeRouteDashboard: React.FC<TradeRouteDashboardProps> = ({
                                 <RouteCard key={route.id} route={route} />
                             ))}
                             {tradeRoutes.length === 0 && (
-                                <p className="col-span-2 text-center text-gray-500 py-8">
+                                <p className="col-span-2 text-center text-gray-400 py-8">
                                     No trade routes available.
                                 </p>
                             )}
@@ -121,7 +121,7 @@ const TradeRouteDashboard: React.FC<TradeRouteDashboardProps> = ({
                                 <MarketEventCard key={event.id} event={event} />
                             ))}
                             {marketEvents.length === 0 && (
-                                <p className="text-center text-gray-500 py-8">
+                                <p className="text-center text-gray-400 py-8">
                                     No active market events. Trade is flowing normally.
                                 </p>
                             )}

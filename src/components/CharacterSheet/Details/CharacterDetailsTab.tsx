@@ -73,7 +73,7 @@ const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, co
                             <div className="mb-6">
                                 <div className="flex items-center gap-2 mb-3">
                                     <span className="text-teal-400 text-sm" style={{ textShadow: '0 0 8px currentColor' }}>◆</span>
-                                    <h4 className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">Values</h4>
+                                    <h4 className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Values</h4>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {personality.values.map((value: string, i: number) => (
@@ -90,7 +90,7 @@ const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, co
                             <div className="mb-6">
                                 <div className="flex items-center gap-2 mb-3">
                                     <span className="text-red-400 text-sm" style={{ textShadow: '0 0 8px currentColor' }}>❄</span>
-                                    <h4 className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">Fears</h4>
+                                    <h4 className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Fears</h4>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {personality.fears.map((fear: string, i: number) => (
@@ -107,7 +107,7 @@ const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, co
                             <div>
                                 <div className="flex items-center gap-2 mb-3">
                                     <span className="text-amber-400/60 text-sm">🧠</span>
-                                    <h4 className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">Quirks</h4>
+                                    <h4 className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Quirks</h4>
                                 </div>
                                 <ul className="space-y-2">
                                     {personality.quirks.map((quirk: string, i: number) => (
@@ -128,7 +128,7 @@ const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, co
                         <div className="absolute top-0 right-0 p-2 opacity-5">
                             <span className="text-8xl rotate-12">🛡️</span>
                         </div>
-                        <h3 className="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-4">
+                        <h3 className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-4">
                             Physical Description
                         </h3>
                         <p className="font-serif italic text-lg leading-relaxed text-gray-300">
@@ -140,7 +140,7 @@ const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, co
                 {/* Background */}
                 {character.background && (
                     <section className="p-4 bg-gray-800/40 rounded-xl border border-gray-700/50">
-                        <h3 className="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-2">
+                        <h3 className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-2">
                             Background
                         </h3>
                         <p className="text-amber-300 font-medium capitalize">{character.background}</p>
@@ -150,7 +150,7 @@ const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, co
                 {/* Reaction Style */}
                 {soulData?.reactionStyle && (
                     <section className="p-4 bg-gray-800/40 rounded-xl border border-gray-700/50">
-                        <h3 className="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-2">
+                        <h3 className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-2">
                             Reaction Style
                         </h3>
                         <span className="px-3 py-1.5 bg-purple-900/40 text-purple-300 text-sm rounded-lg border border-purple-700/50 capitalize font-medium">

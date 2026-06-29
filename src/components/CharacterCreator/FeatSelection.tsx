@@ -311,7 +311,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                   </div>
                 )}
                 {showEligibleOnly && displayedFeats.length === 0 && (
-                  <p className="text-xs text-gray-500 italic text-center py-4">No eligible feats found.</p>
+                  <p className="text-xs text-gray-400 italic text-center py-4">No eligible feats found.</p>
                 )}
                 {displayedFeats.map(feat => {
                   const isSelected = feat.id === selectedFeatId;

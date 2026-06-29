@@ -50,7 +50,7 @@ const DynamicMannequinSlotIcon: React.FC<DynamicMannequinSlotIconProps> = ({
   };
 
   if (hasError || !svgSrc) {
-    return React.cloneElement(fallbackIcon, { className: "w-full h-full object-contain text-gray-500" });
+    return React.cloneElement(fallbackIcon, { className: "w-full h-full object-contain text-gray-400" });
   }
 
   return (

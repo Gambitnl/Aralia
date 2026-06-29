@@ -162,6 +162,17 @@ export interface PlayerGroundPosition {
 }
 
 /**
+ * Exact 3D-entry anchor (cell-native world, Stage 1). `cellId` is the atlas cell
+ * to enter; `centerPx` is the optional window-center override in atlas/graph
+ * PIXELS — the burg's position for a settlement (so the Locale frames the town),
+ * omitted for wilderness (centers on the cell site).
+ */
+export interface Entry3DAnchor {
+  cellId: number;
+  centerPx?: readonly [number, number];
+}
+
+/**
  * A hidden off-map place the player has revealed by 3D proximity (SP4). Carries
  * the world tile where it was found so the atlas can pin it (the site itself is
  * off-map; tile-level position is enough — "near here").
@@ -297,6 +308,13 @@ export interface GameState {
 
   worldHistory: WorldHistory;
 
+  /**
+   * Living-world town sim: per-burg multi-day history (births/deaths/marriages/
+   * fortunes), keyed by burgId. Empty until a town is first tracked. Advanced in
+   * the ADVANCE_TIME daily loop. See src/systems/worldforge/townsim/.
+   */
+  townSim: import('../systems/worldforge/townsim/townSimRegistry').TownSimRegistry;
+
   questLog: Quest[];
   isQuestLogVisible: boolean;
   // TODO(lint-intent): The any on 'notifications' hides the intended shape of this data.
@@ -408,6 +426,14 @@ export interface GameState {
   playerWorldPos: PlayerWorldPosition | null;
   /** Player's ground-mode camera anchor in tile-local meters, or null when unset. */
   playerGroundPos?: PlayerGroundPosition | null;
+  /**
+   * Exact 3D-entry anchor (cell-native world): the atlas cell to enter plus the
+   * burg's world PIXEL position to center the Locale on (cells are far larger
+   * than the Locale window, so a settlement is framed by its burg, not the cell
+   * site). Set on map-click / start-selection, consumed by World3DWrapper,
+   * cleared on 3D exit. Null → fall back to the legacy tile-derived entry.
+   */
+  entry3DAnchor: Entry3DAnchor | null;
 
   // Worldforge replay log
   // Plot/building edits are stored as JSON-safe deltas so regenerated village

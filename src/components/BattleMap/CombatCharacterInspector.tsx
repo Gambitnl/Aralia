@@ -88,7 +88,7 @@ export const CombatCharacterInspector: React.FC<Props> = ({ character, onClose }
             <Chip key={t} label={t} cls="bg-gray-700/40 text-gray-400 border-gray-600/40" />
           ))}
           {character.alignment && (
-            <Chip label={character.alignment} cls="bg-gray-700/40 text-gray-500 border-gray-600/40" />
+            <Chip label={character.alignment} cls="bg-gray-700/40 text-gray-400 border-gray-600/40" />
           )}
         </div>
 

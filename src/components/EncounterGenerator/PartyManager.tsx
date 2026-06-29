@@ -62,7 +62,7 @@ export const PartyManager: React.FC<PartyManagerProps> = ({ party, onPartyChange
       {/* List */}
       <div className="flex-grow overflow-y-auto p-2 space-y-2">
         {party.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500 italic space-y-2">
+          <div className="flex flex-col items-center justify-center h-full text-gray-400 italic space-y-2">
             <p>No party members added.</p>
             <p className="text-sm">Click "Add Party Member" to start.</p>
           </div>

@@ -173,6 +173,10 @@ export function transformTownPlan(plan: TownPlan, k: number, dx = 0, dy = 0): To
     walls: {
       ring: mapPoly(plan.walls.ring, k, dx, dy),
       gatehouses: mapPoly(plan.walls.gatehouses, k, dx, dy),
+      // TG7: carry the river↔wall crossing points through the transform so the 3D
+      // bake can break the wall ring for a water-gate where a river passes through
+      // (previously dropped here, so the river clipped solid stone).
+      waterGates: plan.walls.waterGates ? mapPoly(plan.walls.waterGates, k, dx, dy) : [],
     },
     civic: plan.civic.map((c) => ({ ...c, polygon: mapPoly(c.polygon, k, dx, dy) })),
     streets: plan.streets.map((s) => mapPoly(s, k, dx, dy)),

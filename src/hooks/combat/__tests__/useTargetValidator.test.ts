@@ -453,6 +453,7 @@ describe('findTouchDeliveryActor action-cost variants', () => {
             name: 'Live Find Familiar Owl',
             team: 'player',
             position: { x: 2, y: 0 },
+            isSummon: true,
             actionEconomy: {
                 action: { used: false, remaining: 1 },
                 bonusAction: { used: false, remaining: 1 },

@@ -12,15 +12,25 @@
  */
 
 import { useCallback } from 'react';
-import { GameState } from '../types';
+import { GameState, Action } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { ProcessTopicResult } from '../services/dialogueService';
 import * as OllamaTextService from '../services/ollamaTextService';
 import { NPCS } from '../data/world/npcs';
+import { sanitizeAIPromptText } from '../utils/core/securityUtils';
 
 export const useDialogueSystem = (
     gameState: GameState,
-    dispatch: React.Dispatch<AppAction>
+    dispatch: React.Dispatch<AppAction>,
+    /**
+     * The interaction-action processor (`processAction` from useGameActions).
+     * Required to make {@link inviteToParty} work end-to-end: the `talk` action
+     * is routed through the action handlers (handleNpcInteraction → handleRecruitOffer),
+     * NOT the Redux reducer, so a raw `dispatch` would be inert for it. When omitted
+     * (e.g. in unit tests of the side-effect callbacks), `inviteToParty` falls back
+     * to `dispatch` so the action is still emitted and assertable.
+     */
+    processAction?: (action: Action) => void
 ) => {
 
     /**
@@ -40,7 +50,9 @@ export const useDialogueSystem = (
         try {
             const result = await OllamaTextService.generateNPCResponse(
                 npc.name,
-                prompt ?? "",
+                // The player's free-form dialogue line — neutralize prompt-injection
+                // markers before it reaches the model.
+                sanitizeAIPromptText(prompt ?? ""),
                 systemPrompt
             );
 
@@ -157,8 +169,33 @@ export const useDialogueSystem = (
 
     }, [gameState.activeDialogueSession, gameState.gameTime, dispatch]);
 
+    /**
+     * Surfaces the "Invite to party" dialogue affordance. Emits a `talk` action
+     * carrying a `recruitOffer`, which the NPC-interaction handler picks up
+     * (handleNpcInteraction → handleRecruitOffer): it runs the consent gate,
+     * converts the NPC, and dispatches RECRUIT_COMPANION on a yes (or posts the
+     * refusal reason on a no). The button is always shown in the UI — ineligible
+     * NPCs are declined by the consent gate with a reason, not hidden.
+     */
+    const inviteToParty = useCallback((npcId: string) => {
+        const action: Action = {
+            type: 'talk',
+            label: 'Invite to party',
+            targetId: npcId,
+            payload: { targetNpcId: npcId, recruitOffer: { targetNpcId: npcId } }
+        };
+        if (processAction) {
+            processAction(action);
+        } else {
+            // Fallback: emit through the raw dispatch so the action is still
+            // observable (used by unit tests that pass no processAction).
+            dispatch(action as unknown as AppAction);
+        }
+    }, [processAction, dispatch]);
+
     return {
         generateResponse,
-        handleTopicOutcome
+        handleTopicOutcome,
+        inviteToParty
     };
 };

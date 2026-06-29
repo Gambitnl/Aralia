@@ -8389,6 +8389,251 @@
       "concentration"
     ]
   },
+  "befuddlement": {
+    "id": "befuddlement",
+    "name": "Befuddlement",
+    "aliases": [],
+    "level": 8,
+    "school": "Enchantment",
+    "legacy": false,
+    "classes": [
+      "Bard",
+      "Druid",
+      "Warlock",
+      "Wizard"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "action",
+      "combatCost": {
+        "type": "action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "ranged",
+      "distance": 150,
+      "distanceUnit": "feet"
+    },
+    "components": {
+      "verbal": true,
+      "somatic": true,
+      "material": true,
+      "materialDescription": "a handful of clay, crystal, glass, or mineral spheres",
+      "materialCost": 0,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "instantaneous",
+      "concentration": false,
+      "value": 0,
+      "unit": "round"
+    },
+    "targeting": {
+      "type": "single",
+      "range": 150,
+      "rangeUnit": "feet",
+      "validTargets": [
+        "creatures"
+      ],
+      "lineOfSight": true,
+      "maxTargets": 1,
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "must_be_other"
+      }
+    },
+    "effects": [
+      {
+        "type": "DAMAGE",
+        "trigger": {
+          "type": "immediate",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "save",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveType": "Intelligence",
+          "saveEffect": "half",
+          "saveOutcomeOverrides": []
+        },
+        "damage": {
+          "dice": "10d12",
+          "type": "Psychic"
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": ""
+        },
+        "description": "One visible creature within 150 feet takes 10d12 Psychic damage and makes an Intelligence save. On a failed save, it has the Stunned condition and can repeat the save at the end of each of its turns to end the effect.",
+        "conditionalEndings": []
+      },
+      {
+        "type": "STATUS_CONDITION",
+        "trigger": {
+          "type": "immediate",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "save",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveType": "Intelligence",
+          "saveEffect": "negates_condition",
+          "saveOutcomeOverrides": []
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": ""
+        },
+        "description": "On a failed Intelligence save, the creature has the Stunned condition until the end of the caster's next turn, then repeats the save at the end of each of its turns to end the condition.",
+        "statusCondition": {
+          "name": "Stunned",
+          "duration": {
+            "type": "special"
+          },
+          "repeatSave": {
+            "timing": "turn_end",
+            "saveType": "Intelligence",
+            "successEnds": true,
+            "useOriginalDC": true
+          }
+        },
+        "conditionalEndings": []
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "",
+      "playerInputRequired": false
+    },
+    "description": "You attempt to befuddle a creature that you can see within range. The target makes an Intelligence saving throw, taking 10d12 Psychic damage on a failed save or half as much damage on a successful one. On a failed save, the target also has the Stunned condition for 1 minute. The Stunned target repeats the save at the end of each of its turns, ending the effect on itself on a success. Alternatively, casting Greater Restoration, Heal, or Wish on the target ends the effect.",
+    "higherLevels": "",
+    "tags": [
+      "damage",
+      "enchantment"
+    ]
+  },
   "bestow-curse": {
     "id": "bestow-curse",
     "name": "Bestow Curse",
@@ -43749,6 +43994,298 @@
     "higherLevels": "",
     "tags": []
   },
+  "fount-of-moonlight": {
+    "id": "fount-of-moonlight",
+    "name": "Fount of Moonlight",
+    "aliases": [],
+    "level": 4,
+    "school": "Evocation",
+    "legacy": false,
+    "classes": [
+      "Bard",
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "bonus_action",
+      "combatCost": {
+        "type": "bonus_action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "self",
+      "distance": 0
+    },
+    "components": {
+      "verbal": true,
+      "somatic": true,
+      "material": false,
+      "materialDescription": "",
+      "materialCost": 0,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "timed",
+      "concentration": true,
+      "value": 10,
+      "unit": "minute"
+    },
+    "targeting": {
+      "type": "self",
+      "range": 0,
+      "validTargets": [
+        "self"
+      ],
+      "lineOfSight": false,
+      "maxTargets": 1,
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "must_be_self"
+      }
+    },
+    "effects": [
+      {
+        "type": "DEFENSIVE",
+        "trigger": {
+          "type": "immediate",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "always",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "must_be_self"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveOutcomeOverrides": []
+        },
+        "defenseType": "resistance",
+        "damageType": [
+          "Radiant"
+        ],
+        "duration": {
+          "type": "minutes",
+          "value": 10
+        },
+        "description": "While the spell lasts, the caster has Resistance to Radiant damage and sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet.",
+        "conditionalEndings": []
+      },
+      {
+        "type": "DAMAGE",
+        "trigger": {
+          "type": "on_target_takes_damage",
+          "frequency": "first_per_turn",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "reaction",
+            "optional": true
+          }
+        },
+        "condition": {
+          "type": "save",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveType": "Constitution",
+          "saveEffect": "negates_condition",
+          "saveOutcomeOverrides": []
+        },
+        "damage": {
+          "dice": "2d10",
+          "type": "Radiant"
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": ""
+        },
+        "description": "When a creature the caster can see within 60 feet hits the caster with an attack roll, the caster can take a Reaction to deal 2d10 Radiant damage to that creature and force a Constitution save; on a failed save the creature also has the Blinded condition until the end of its next turn.",
+        "conditionalEndings": []
+      },
+      {
+        "type": "STATUS_CONDITION",
+        "trigger": {
+          "type": "on_target_takes_damage",
+          "frequency": "first_per_turn",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "reaction",
+            "optional": true
+          }
+        },
+        "condition": {
+          "type": "save",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveType": "Constitution",
+          "saveEffect": "negates_condition",
+          "saveOutcomeOverrides": []
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": ""
+        },
+        "description": "On a failed Constitution save against the moonlight Reaction, the attacker has the Blinded condition until the end of its next turn.",
+        "statusCondition": {
+          "name": "Blinded",
+          "duration": {
+            "type": "rounds",
+            "value": 1
+          }
+        },
+        "conditionalEndings": []
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "",
+      "playerInputRequired": false
+    },
+    "description": "Searing moonlight radiates from you in a 20-foot-radius Emanation for the duration. Until the spell ends, the Emanation moves with you and emits Bright Light and Dim Light for an additional 20 feet. You have Resistance to Radiant damage. The first time each turn a creature you can see hits you with an attack roll, you can take a Reaction to deal 2d10 Radiant damage to that creature, which must succeed on a Constitution saving throw or have the Blinded condition until the end of its next turn.",
+    "higherLevels": "",
+    "tags": [
+      "concentration",
+      "light",
+      "buff"
+    ]
+  },
   "freedom-of-movement": {
     "id": "freedom-of-movement",
     "name": "Freedom of Movement",
@@ -60527,6 +61064,312 @@
     "higherLevels": "",
     "tags": [
       "concentration"
+    ]
+  },
+  "jallarzis-storm-of-radiance": {
+    "id": "jallarzis-storm-of-radiance",
+    "name": "Jallarzi's Storm of Radiance",
+    "aliases": [
+      "Jallarzi's Storm of Radiance"
+    ],
+    "level": 5,
+    "school": "Evocation",
+    "legacy": false,
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "action",
+      "combatCost": {
+        "type": "action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "ranged",
+      "distance": 120,
+      "distanceUnit": "feet"
+    },
+    "components": {
+      "verbal": true,
+      "somatic": true,
+      "material": true,
+      "materialDescription": "a pinch of dust and a few drops of water",
+      "materialCost": 0,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "timed",
+      "concentration": true,
+      "value": 1,
+      "unit": "minute"
+    },
+    "targeting": {
+      "type": "area",
+      "range": 120,
+      "rangeUnit": "feet",
+      "validTargets": [
+        "point",
+        "creatures"
+      ],
+      "lineOfSight": true,
+      "maxTargets": "unlimited",
+      "areaOfEffect": {
+        "shape": "Cylinder",
+        "size": 20,
+        "sizeType": "radius",
+        "sizeUnit": "feet",
+        "height": 40,
+        "heightUnit": "feet"
+      },
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable"
+      }
+    },
+    "effects": [
+      {
+        "type": "DAMAGE",
+        "trigger": {
+          "type": "on_enter_area",
+          "frequency": "first_per_turn",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "save",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveType": "Dexterity",
+          "saveEffect": "half",
+          "saveOutcomeOverrides": []
+        },
+        "damage": {
+          "dice": "3d8",
+          "type": "Radiant"
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": ""
+        },
+        "description": "A creature that enters the 20-foot-radius, 40-foot-high Cylinder for the first time on a turn or starts its turn there makes a Dexterity save, taking 3d8 Radiant damage on a failed save or half as much on a success.",
+        "conditionalEndings": []
+      },
+      {
+        "type": "DAMAGE",
+        "trigger": {
+          "type": "on_enter_area",
+          "frequency": "first_per_turn",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "save",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveType": "Dexterity",
+          "saveEffect": "half",
+          "saveOutcomeOverrides": []
+        },
+        "damage": {
+          "dice": "3d8",
+          "type": "Thunder"
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": ""
+        },
+        "description": "The same Dexterity save also governs 3d8 Thunder damage from the crackling storm, taken in full on a failed save or halved on a success alongside the Radiant damage.",
+        "conditionalEndings": []
+      },
+      {
+        "type": "STATUS_CONDITION",
+        "trigger": {
+          "type": "on_enter_area",
+          "frequency": "first_per_turn",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "save",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveType": "Dexterity",
+          "saveEffect": "negates_condition",
+          "saveOutcomeOverrides": []
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": ""
+        },
+        "description": "On a failed Dexterity save, the creature also has the Blinded condition until the start of its next turn.",
+        "statusCondition": {
+          "name": "Blinded",
+          "duration": {
+            "type": "rounds",
+            "value": 1
+          }
+        },
+        "conditionalEndings": []
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "",
+      "playerInputRequired": false
+    },
+    "description": "You unleash a storm of light in a 20-foot-radius, 40-foot-high Cylinder centered on a point you can see within range. Until the spell ends, dazzling light and crackling thunder fill the Cylinder, which is Lightly Obscured. Whenever a creature enters the Cylinder for the first time on a turn or starts its turn there, it makes a Dexterity saving throw. On a failed save, the creature takes 3d8 Radiant damage and 3d8 Thunder damage and has the Blinded condition until the start of its next turn. On a successful save, it takes half as much damage only.",
+    "higherLevels": "",
+    "tags": [
+      "concentration",
+      "damage",
+      "area"
     ]
   },
   "jump": {
@@ -78870,6 +79713,171 @@
       "shapechange",
       "debuff",
       "concentration"
+    ]
+  },
+  "power-word-fortify": {
+    "id": "power-word-fortify",
+    "name": "Power Word Fortify",
+    "aliases": [],
+    "level": 7,
+    "school": "Enchantment",
+    "legacy": false,
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "action",
+      "combatCost": {
+        "type": "action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "ranged",
+      "distance": 60,
+      "distanceUnit": "feet"
+    },
+    "components": {
+      "verbal": true,
+      "somatic": false,
+      "material": false,
+      "materialDescription": "",
+      "materialCost": 0,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "instantaneous",
+      "concentration": false,
+      "value": 0,
+      "unit": "round"
+    },
+    "targeting": {
+      "type": "multi",
+      "range": 60,
+      "rangeUnit": "feet",
+      "validTargets": [
+        "creatures",
+        "allies",
+        "self"
+      ],
+      "lineOfSight": true,
+      "maxTargets": 6,
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "self_allowed"
+      }
+    },
+    "effects": [
+      {
+        "type": "HEALING",
+        "trigger": {
+          "type": "immediate",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "always",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "self_allowed"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveOutcomeOverrides": []
+        },
+        "healing": {
+          "dice": "120",
+          "isTemporaryHp": true
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": ""
+        },
+        "description": "Distribute 120 Temporary Hit Points among up to six creatures within 60 feet, dividing the pool in any way the caster chooses; a creature gains nothing if it already has Temporary Hit Points.",
+        "conditionalEndings": []
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "",
+      "playerInputRequired": false
+    },
+    "description": "Choose up to six creatures within range that can be affected by this spell. A pool of 120 Temporary Hit Points is divided as you choose among the chosen creatures. A creature is unaffected by this spell if it already has Temporary Hit Points or if it has 0 Hit Points.",
+    "higherLevels": "",
+    "tags": [
+      "temporary_hp",
+      "enchantment",
+      "buff"
     ]
   },
   "power-word-heal": {
@@ -99911,6 +100919,281 @@
       "concentration"
     ]
   },
+  "summon-aberration": {
+    "id": "summon-aberration",
+    "name": "Summon Aberration",
+    "aliases": [],
+    "level": 4,
+    "school": "Conjuration",
+    "legacy": false,
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "action",
+      "combatCost": {
+        "type": "action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "ranged",
+      "distance": 90,
+      "distanceUnit": "feet"
+    },
+    "components": {
+      "verbal": true,
+      "somatic": true,
+      "material": true,
+      "materialDescription": "a pickled tentacle and an eyeball in a platinum-inlaid vial worth 400+ GP",
+      "materialCost": 400,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "timed",
+      "concentration": true,
+      "value": 1,
+      "unit": "hour"
+    },
+    "targeting": {
+      "type": "point",
+      "range": 90,
+      "rangeUnit": "feet",
+      "validTargets": [
+        "point"
+      ],
+      "lineOfSight": true,
+      "maxTargets": 1,
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable",
+        "placementEligibility": {
+          "unoccupied": "required",
+          "surface": "not_applicable",
+          "destination": "visible_space_within_range",
+          "notes": "Summon Aberration manifests the Aberrant Spirit in an unoccupied space the caster can see within range."
+        }
+      }
+    },
+    "effects": [
+      {
+        "type": "SUMMONING",
+        "trigger": {
+          "type": "immediate",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "always",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveOutcomeOverrides": []
+        },
+        "description": "Summon one Aberrant Spirit in a visible unoccupied space within 90 feet for up to 1 hour with concentration, choosing a Beholderkin, Slaad, or Star Spawn form. The spirit is an ally, shares your Initiative count but acts immediately after you, obeys verbal commands with no action required, Dodges and avoids danger when uncommanded, disappears at 0 Hit Points or when the spell ends, and uses the slot level for AC, Hit Points, and its form's attack damage.",
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": "Use the slot level as the spell's level in the Aberrant Spirit stat block: AC is 11 + spell level, HP is 40 + 10 for each spell level above 4, and the form attack adds the spell's level to its damage."
+        },
+        "conditionalEndings": [
+          {
+            "trigger": "created_entity_drops_to_0_hp",
+            "scope": "effect",
+            "description": "The aberrant spirit disappears when it drops to 0 Hit Points."
+          }
+        ],
+        "summon": {
+          "entityType": "creature",
+          "persistent": false,
+          "count": 1,
+          "commandCost": "none",
+          "commandsPerTurn": 1,
+          "initiative": "shared",
+          "objectDescription": "Aberrant Spirit ally that shares the caster's initiative, acts immediately after the caster, obeys verbal commands with no caster action, and uses its form's attack as its combat action.",
+          "statBlock": {
+            "name": "Aberrant Spirit",
+            "type": "Aberration",
+            "size": "Medium",
+            "hp": 40,
+            "ac": 11,
+            "speed": 30,
+            "flySpeed": 30,
+            "swimSpeed": 30,
+            "abilities": {
+              "str": 16,
+              "dex": 10,
+              "con": 15,
+              "int": 16,
+              "wis": 10,
+              "cha": 6
+            },
+            "senses": [
+              "Darkvision 60 ft.",
+              "Passive Perception 10"
+            ],
+            "cr": "None"
+          },
+          "formOptions": [
+            "Beholderkin",
+            "Slaad",
+            "Star Spawn"
+          ],
+          "telepathyRange": 60,
+          "specialActions": [
+            {
+              "name": "Aberrant Attack",
+              "description": "Melee or Ranged spell attack, reach 5 ft. or range 150 ft. Hit: 1d6 + 3 + the spell's level damage of the form's type (Psychic for Beholderkin and Star Spawn, Piercing for Slaad), with the Slaad form regaining Hit Points on a hit.",
+              "cost": "action",
+              "damage": {
+                "dice": "1d6 + 3 + spell_level",
+                "type": "psychic"
+              }
+            }
+          ]
+        },
+        "socialEffect": {
+          "relationship": "ally",
+          "alliedTo": [
+            "caster",
+            "caster_allies"
+          ],
+          "understandsCasterLanguages": true,
+          "sharesCasterInitiative": true,
+          "obeysCasterCommands": true,
+          "notes": "The summoned Aberrant Spirit is an ally to the caster and allies, understands the caster languages, shares initiative, and follows commands."
+        }
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "Choose the Aberrant Spirit form (Beholderkin, Slaad, or Star Spawn) and arrival space; use the caster's spell attack modifier for the form's attack and apply the form's rider on a hit.",
+      "playerInputRequired": true
+    },
+    "modeChoice": {
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 3,
+      "optionsSource": "summon.formOptions",
+      "canDismissActive": false,
+      "options": [
+        {
+          "label": "Beholderkin",
+          "summary": "Summon a Beholderkin Aberrant Spirit with a flying speed and a ranged Eye Ray that deals Psychic damage.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Aberrant Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Slaad",
+          "summary": "Summon a Slaad Aberrant Spirit whose Claws deal Piercing damage and let it regain Hit Points on a hit.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Aberrant Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Star Spawn",
+          "summary": "Summon a Star Spawn Aberrant Spirit whose Psychic Slam punishes nearby enemies that target the spirit.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Aberrant Spirit stat block and slot-level scaling."
+        }
+      ],
+      "notes": "The form choice selects the Aberrant Spirit's attack mode and rider."
+    },
+    "description": "You call forth an aberrant spirit. It manifests in an unoccupied space that you can see within range and uses the Aberrant Spirit stat block. When you cast the spell, choose Beholderkin, Slaad, or Star Spawn. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+    "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Aberrant Spirit's Hit Points and attack damage increase as the spell's level increases.",
+    "tags": [
+      "summoning",
+      "controlled-entity",
+      "concentration"
+    ]
+  },
   "summon-beast": {
     "id": "summon-beast",
     "name": "Summon Beast",
@@ -100116,6 +101399,1660 @@
     "description": "You call forth a bestial spirit. It manifests in an unoccupied space that you can see within range and uses the Bestial Spirit stat block. When you cast the spell, choose an environment: Air, Land, or Water. The creature resembles an animal of your choice that is native to the chosen environment, which determines certain details in its stat block. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
     "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. Small Beast, Neutral AC 11 + the spell's level HP 20 (Air only) or 30 (Land and Water only) + 5 for each spell level above 2 Speed 30 ft.; Climb 30 ft. (Land only); Fly 60 ft. (Air only); Swim 30 ft. (Water only) Senses Darkvision 60 ft.; Passive Perception 12 Languages Understands the languages you know CR None (XP 0; PB equals your Proficiency Bonus) Flyby (Air Only). The spirit doesn't provoke Opportunity Attacks when it flies out of an enemy's reach. Pack Tactics (Land and Water Only). The spirit has Advantage on an attack roll against a creature if at least one of the spirit's allies is within 5 feet of the creature and the ally doesn't have the Incapacitated condition. Water Breathing (Water Only). The spirit can breathe only underwater. Multiattack. The spirit makes a number of Rend attacks equal to half this spell's level (round down). Rend. Melee Attack Roll: Bonus equals your spell attack modifier, reach 5 ft. Hit: 1d8 + 4 + the spell's level Piercing damage. Small Beast, Neutral AC 11 + the spell's level HP 20 (Air only) or 30 (Land and Water only) + 5 for each spell level above 2 Speed 30 ft.; Climb 30 ft. (Land only); Fly 60 ft. (Air only); Swim 30 ft. (Water only) Senses Darkvision 60 ft.; Passive Perception 12 Languages Understands the languages you know CR None (XP 0; PB equals your Proficiency Bonus) Flyby (Air Only). The spirit doesn't provoke Opportunity Attacks when it flies out of an enemy's reach. Pack Tactics (Land and Water Only). The spirit has Advantage on an attack roll against a creature if at least one of the spirit's allies is within 5 feet of the creature and the ally doesn't have the Incapacitated condition. Water Breathing (Water Only). The spirit can breathe only underwater. Multiattack. The spirit makes a number of Rend attacks equal to half this spell's level (round down). Rend. Melee Attack Roll: Bonus equals your spell attack modifier, reach 5 ft. Hit: 1d8 + 4 + the spell's level Piercing damage. Small Beast, Neutral AC 11 + the spell's level HP 20 (Air only) or 30 (Land and Water only) + 5 for each spell level above 2 Speed 30 ft.; Climb 30 ft. (Land only); Fly 60 ft. (Air only); Swim 30 ft. (Water only) Senses Darkvision 60 ft.; Passive Perception 12 Languages Understands the languages you know CR None (XP 0; PB equals your Proficiency Bonus) Flyby (Air Only). The spirit doesn't provoke Opportunity Attacks when it flies out of an enemy's reach. Pack Tactics (Land and Water Only). The spirit has Advantage on an attack roll against a creature if at least one of the spirit's allies is within 5 feet of the creature and the ally doesn't have the Incapacitated condition. Water Breathing (Water Only). The spirit can breathe only underwater. Multiattack. The spirit makes a number of Rend attacks equal to half this spell's level (round down). Rend. Melee Attack Roll: Bonus equals your spell attack modifier, reach 5 ft. Hit: 1d8 + 4 + the spell's level Piercing damage.",
     "tags": [
+      "concentration"
+    ]
+  },
+  "summon-celestial": {
+    "id": "summon-celestial",
+    "name": "Summon Celestial",
+    "aliases": [],
+    "level": 5,
+    "school": "Conjuration",
+    "legacy": false,
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "action",
+      "combatCost": {
+        "type": "action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "ranged",
+      "distance": 90,
+      "distanceUnit": "feet"
+    },
+    "components": {
+      "verbal": true,
+      "somatic": true,
+      "material": true,
+      "materialDescription": "a golden reliquary worth 500+ GP",
+      "materialCost": 500,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "timed",
+      "concentration": true,
+      "value": 1,
+      "unit": "hour"
+    },
+    "targeting": {
+      "type": "point",
+      "range": 90,
+      "rangeUnit": "feet",
+      "validTargets": [
+        "point"
+      ],
+      "lineOfSight": true,
+      "maxTargets": 1,
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable",
+        "placementEligibility": {
+          "unoccupied": "required",
+          "surface": "not_applicable",
+          "destination": "visible_space_within_range",
+          "notes": "Summon Celestial manifests the Celestial Spirit in an unoccupied space the caster can see within range."
+        }
+      }
+    },
+    "effects": [
+      {
+        "type": "SUMMONING",
+        "trigger": {
+          "type": "immediate",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "always",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveOutcomeOverrides": []
+        },
+        "description": "Summon one Celestial Spirit in a visible unoccupied space within 90 feet for up to 1 hour with concentration, choosing an Avenger or Defender form. The spirit is an ally, shares your Initiative count but acts immediately after you, obeys verbal commands with no action required, Dodges and avoids danger when uncommanded, disappears at 0 Hit Points or when the spell ends, and uses the slot level for AC, Hit Points, Radiant Bow or Radiant Mace attacks, and Healing Touch.",
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": "Use the slot level as the spell's level in the Celestial Spirit stat block: AC is 11 + spell level, HP is 40 + 10 for each spell level above 5, and the form attack and Healing Touch scale with the spell's level."
+        },
+        "conditionalEndings": [
+          {
+            "trigger": "created_entity_drops_to_0_hp",
+            "scope": "effect",
+            "description": "The celestial spirit disappears when it drops to 0 Hit Points."
+          }
+        ],
+        "summon": {
+          "entityType": "creature",
+          "persistent": false,
+          "count": 1,
+          "commandCost": "none",
+          "commandsPerTurn": 1,
+          "initiative": "shared",
+          "objectDescription": "Celestial Spirit ally that shares the caster's initiative, acts immediately after the caster, obeys verbal commands with no caster action, and uses its form's attack plus Healing Touch.",
+          "statBlock": {
+            "name": "Celestial Spirit",
+            "type": "Celestial",
+            "size": "Medium",
+            "hp": 40,
+            "ac": 16,
+            "speed": 30,
+            "flySpeed": 40,
+            "abilities": {
+              "str": 16,
+              "dex": 14,
+              "con": 16,
+              "int": 10,
+              "wis": 14,
+              "cha": 16
+            },
+            "senses": [
+              "Darkvision 60 ft.",
+              "Passive Perception 12"
+            ],
+            "cr": "None"
+          },
+          "formOptions": [
+            "Avenger",
+            "Defender"
+          ],
+          "specialActions": [
+            {
+              "name": "Radiant Attack",
+              "description": "Avenger makes a Radiant Bow ranged spell attack (range 600 ft.); Defender makes a Radiant Mace melee spell attack (reach 5 ft.) and can grant temporary Hit Points to an ally. Hit: 2d6 + 4 + the spell's level Radiant damage.",
+              "cost": "action",
+              "damage": {
+                "dice": "2d6 + 4 + spell_level",
+                "type": "radiant"
+              }
+            },
+            {
+              "name": "Healing Touch",
+              "description": "Once per turn, when the spirit hits a creature with an attack, it can heal a creature it can see within 30 feet, restoring Hit Points equal to 1d10 + the spell's level.",
+              "cost": "free"
+            }
+          ]
+        },
+        "socialEffect": {
+          "relationship": "ally",
+          "alliedTo": [
+            "caster",
+            "caster_allies"
+          ],
+          "understandsCasterLanguages": true,
+          "sharesCasterInitiative": true,
+          "obeysCasterCommands": true,
+          "notes": "The summoned Celestial Spirit is an ally to the caster and allies, understands the caster languages, shares initiative, and follows commands."
+        }
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "Choose the Celestial Spirit form (Avenger for ranged Radiant Bow, Defender for melee Radiant Mace and ally protection) and arrival space; use the caster's spell attack modifier for the attack and Healing Touch.",
+      "playerInputRequired": true
+    },
+    "modeChoice": {
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 2,
+      "optionsSource": "summon.formOptions",
+      "canDismissActive": false,
+      "options": [
+        {
+          "label": "Avenger",
+          "summary": "Summon an Avenger Celestial Spirit that makes a long-range Radiant Bow attack.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Celestial Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Defender",
+          "summary": "Summon a Defender Celestial Spirit that makes a melee Radiant Mace attack and shields allies with temporary Hit Points.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Celestial Spirit stat block and slot-level scaling."
+        }
+      ],
+      "notes": "The form choice selects the Celestial Spirit's attack mode and protective rider."
+    },
+    "description": "You call forth a celestial spirit. It manifests in an unoccupied space that you can see within range and uses the Celestial Spirit stat block. When you cast the spell, choose Avenger or Defender. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+    "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Celestial Spirit's Hit Points, attack damage, and Healing Touch increase as the spell's level increases.",
+    "tags": [
+      "summoning",
+      "controlled-entity",
+      "concentration"
+    ]
+  },
+  "summon-construct": {
+    "id": "summon-construct",
+    "name": "Summon Construct",
+    "aliases": [],
+    "level": 4,
+    "school": "Conjuration",
+    "legacy": false,
+    "classes": [
+      "Artificer",
+      "Wizard"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "action",
+      "combatCost": {
+        "type": "action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "ranged",
+      "distance": 90,
+      "distanceUnit": "feet"
+    },
+    "components": {
+      "verbal": true,
+      "somatic": true,
+      "material": true,
+      "materialDescription": "a 10-pound cube of iron, stone, or crystal worth 400+ GP",
+      "materialCost": 400,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "timed",
+      "concentration": true,
+      "value": 1,
+      "unit": "hour"
+    },
+    "targeting": {
+      "type": "point",
+      "range": 90,
+      "rangeUnit": "feet",
+      "validTargets": [
+        "point"
+      ],
+      "lineOfSight": true,
+      "maxTargets": 1,
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable",
+        "placementEligibility": {
+          "unoccupied": "required",
+          "surface": "not_applicable",
+          "destination": "visible_space_within_range",
+          "notes": "Summon Construct manifests the Construct Spirit in an unoccupied space the caster can see within range."
+        }
+      }
+    },
+    "effects": [
+      {
+        "type": "SUMMONING",
+        "trigger": {
+          "type": "immediate",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "always",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveOutcomeOverrides": []
+        },
+        "description": "Summon one Construct Spirit in a visible unoccupied space within 90 feet for up to 1 hour with concentration, choosing a Clay, Metal, or Stone material. The spirit is an ally, shares your Initiative count but acts immediately after you, obeys verbal commands with no action required, Dodges and avoids danger when uncommanded, disappears at 0 Hit Points or when the spell ends, and uses the slot level for AC, Hit Points, and Slam damage.",
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": "Use the slot level as the spell's level in the Construct Spirit stat block: AC is 13 + spell level, HP is 40 + 15 for each spell level above 4, and Slam damage is 1d8 + 4 + spell level."
+        },
+        "conditionalEndings": [
+          {
+            "trigger": "created_entity_drops_to_0_hp",
+            "scope": "effect",
+            "description": "The construct spirit disappears when it drops to 0 Hit Points."
+          }
+        ],
+        "summon": {
+          "entityType": "construct",
+          "persistent": false,
+          "count": 1,
+          "commandCost": "none",
+          "commandsPerTurn": 1,
+          "initiative": "shared",
+          "objectDescription": "Construct Spirit ally that shares the caster's initiative, acts immediately after the caster, obeys verbal commands with no caster action, and uses Slam as its combat action.",
+          "statBlock": {
+            "name": "Construct Spirit",
+            "type": "Construct",
+            "size": "Medium",
+            "hp": 40,
+            "ac": 17,
+            "speed": 30,
+            "abilities": {
+              "str": 18,
+              "dex": 10,
+              "con": 16,
+              "int": 6,
+              "wis": 8,
+              "cha": 5
+            },
+            "senses": [
+              "Darkvision 60 ft.",
+              "Passive Perception 9"
+            ],
+            "cr": "None"
+          },
+          "formOptions": [
+            "Clay",
+            "Metal",
+            "Stone"
+          ],
+          "specialActions": [
+            {
+              "name": "Slam",
+              "description": "Melee spell attack, reach 5 ft. Hit: 1d8 + 4 + the spell's level Bludgeoning damage, plus the material rider (Clay heals nearby allies, Metal deals Fire damage, Stone knocks the target Prone).",
+              "cost": "action",
+              "damage": {
+                "dice": "1d8 + 4 + spell_level",
+                "type": "bludgeoning"
+              }
+            }
+          ]
+        },
+        "socialEffect": {
+          "relationship": "ally",
+          "alliedTo": [
+            "caster",
+            "caster_allies"
+          ],
+          "understandsCasterLanguages": true,
+          "sharesCasterInitiative": true,
+          "obeysCasterCommands": true,
+          "notes": "The summoned Construct Spirit is an ally to the caster and allies, understands the caster languages, shares initiative, and follows commands."
+        }
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "Choose the Construct Spirit material (Clay, Metal, or Stone) and arrival space; use the caster's spell attack modifier for Slam and apply the material rider on a hit.",
+      "playerInputRequired": true
+    },
+    "modeChoice": {
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 3,
+      "optionsSource": "summon.formOptions",
+      "canDismissActive": false,
+      "options": [
+        {
+          "label": "Clay",
+          "summary": "Summon a Clay Construct Spirit whose Slam can restore Hit Points to a creature within 10 feet.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Construct Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Metal",
+          "summary": "Summon a Metal Construct Spirit whose Slam deals extra Fire damage.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Construct Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Stone",
+          "summary": "Summon a Stone Construct Spirit whose Slam can knock a Large or smaller target Prone.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Construct Spirit stat block and slot-level scaling."
+        }
+      ],
+      "notes": "The material choice selects the Construct Spirit's Slam rider."
+    },
+    "description": "You call forth the spirit of a construct. It manifests in an unoccupied space that you can see within range and uses the Construct Spirit stat block. When you cast the spell, choose a material: Clay, Metal, or Stone. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+    "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Construct Spirit's Hit Points and Slam damage increase as the spell's level increases.",
+    "tags": [
+      "summoning",
+      "controlled-entity",
+      "concentration"
+    ]
+  },
+  "summon-dragon": {
+    "id": "summon-dragon",
+    "name": "Summon Dragon",
+    "aliases": [],
+    "level": 5,
+    "school": "Conjuration",
+    "legacy": false,
+    "classes": [
+      "Wizard"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "action",
+      "combatCost": {
+        "type": "action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "ranged",
+      "distance": 60,
+      "distanceUnit": "feet"
+    },
+    "components": {
+      "verbal": true,
+      "somatic": true,
+      "material": true,
+      "materialDescription": "an object with the image of a dragon engraved on it worth 500+ GP",
+      "materialCost": 500,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "timed",
+      "concentration": true,
+      "value": 1,
+      "unit": "hour"
+    },
+    "targeting": {
+      "type": "point",
+      "range": 60,
+      "rangeUnit": "feet",
+      "validTargets": [
+        "point"
+      ],
+      "lineOfSight": true,
+      "maxTargets": 1,
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable",
+        "placementEligibility": {
+          "unoccupied": "required",
+          "surface": "not_applicable",
+          "destination": "visible_space_within_range",
+          "notes": "Summon Dragon manifests the Draconic Spirit in an unoccupied space the caster can see within range."
+        }
+      }
+    },
+    "effects": [
+      {
+        "type": "SUMMONING",
+        "trigger": {
+          "type": "immediate",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "always",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveOutcomeOverrides": []
+        },
+        "description": "Summon one Draconic Spirit in a visible unoccupied space within 60 feet for up to 1 hour with concentration, choosing a Chromatic, Metallic, or Gem family that sets its Breath Weapon damage type. The spirit is an ally, shares your Initiative count but acts immediately after you, obeys verbal commands with no action required, Dodges and avoids danger when uncommanded, disappears at 0 Hit Points or when the spell ends, and uses the slot level for AC, Hit Points, Multiattack Rend, and Breath Weapon.",
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": "Use the slot level as the spell's level in the Draconic Spirit stat block: AC is 14 + spell level, HP is 50 + 10 for each spell level above 5, Rend damage is 1d6 + 4 + spell level, and Breath Weapon damage is 6d6 + extra dice for each spell level above 5."
+        },
+        "conditionalEndings": [
+          {
+            "trigger": "created_entity_drops_to_0_hp",
+            "scope": "effect",
+            "description": "The draconic spirit disappears when it drops to 0 Hit Points."
+          }
+        ],
+        "summon": {
+          "entityType": "creature",
+          "persistent": false,
+          "count": 1,
+          "commandCost": "none",
+          "commandsPerTurn": 1,
+          "initiative": "shared",
+          "objectDescription": "Draconic Spirit ally that shares the caster's initiative, acts immediately after the caster, obeys verbal commands with no caster action, and uses Multiattack Rend and a recharging Breath Weapon.",
+          "statBlock": {
+            "name": "Draconic Spirit",
+            "type": "Dragon",
+            "size": "Large",
+            "hp": 50,
+            "ac": 19,
+            "speed": 30,
+            "flySpeed": 60,
+            "swimSpeed": 30,
+            "abilities": {
+              "str": 19,
+              "dex": 14,
+              "con": 17,
+              "int": 10,
+              "wis": 14,
+              "cha": 14
+            },
+            "senses": [
+              "Blindsight 30 ft.",
+              "Darkvision 60 ft.",
+              "Passive Perception 12"
+            ],
+            "cr": "None"
+          },
+          "formOptions": [
+            "Chromatic",
+            "Metallic",
+            "Gem"
+          ],
+          "specialActions": [
+            {
+              "name": "Multiattack",
+              "description": "The dragon makes two Rend attacks. Melee spell attack, reach 10 ft. Hit: 1d6 + 4 + the spell's level Piercing damage each.",
+              "cost": "action",
+              "damage": {
+                "dice": "1d6 + 4 + spell_level",
+                "type": "piercing"
+              }
+            },
+            {
+              "name": "Breath Weapon (Recharge 5-6)",
+              "description": "The dragon exhales a 30-foot Cone. Each creature in the area makes a Dexterity save, taking 6d6 damage of the chosen family's type on a failed save or half as much on a success.",
+              "cost": "action",
+              "damage": {
+                "dice": "6d6",
+                "type": "varies"
+              }
+            }
+          ]
+        },
+        "socialEffect": {
+          "relationship": "ally",
+          "alliedTo": [
+            "caster",
+            "caster_allies"
+          ],
+          "understandsCasterLanguages": true,
+          "sharesCasterInitiative": true,
+          "obeysCasterCommands": true,
+          "notes": "The summoned Draconic Spirit is an ally to the caster and allies, understands the caster languages, shares initiative, and follows commands."
+        }
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "Choose the Draconic Spirit family (Chromatic, Metallic, or Gem) which sets the Breath Weapon damage type, and the arrival space; use the caster's spell attack modifier for Rend and the spell save DC for the Breath Weapon.",
+      "playerInputRequired": true
+    },
+    "modeChoice": {
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 3,
+      "optionsSource": "summon.formOptions",
+      "canDismissActive": false,
+      "options": [
+        {
+          "label": "Chromatic",
+          "summary": "Summon a Chromatic Draconic Spirit; choose Acid, Cold, Fire, Lightning, or Poison for its Breath Weapon.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Draconic Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Metallic",
+          "summary": "Summon a Metallic Draconic Spirit; choose Acid, Cold, Fire, or Lightning for its Breath Weapon.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Draconic Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Gem",
+          "summary": "Summon a Gem Draconic Spirit; choose Force, Necrotic, Psychic, Radiant, or Thunder for its Breath Weapon.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Draconic Spirit stat block and slot-level scaling."
+        }
+      ],
+      "notes": "The family choice sets which damage type the Breath Weapon deals."
+    },
+    "description": "You call forth a draconic spirit. It manifests in an unoccupied space that you can see within range and uses the Draconic Spirit stat block. When you cast the spell, choose a family of dragon: Chromatic, Metallic, or Gem. The creature resembles a dragon of the chosen family, which determines the damage type of its Breath Weapon. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+    "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Draconic Spirit's Hit Points, Rend damage, and Breath Weapon damage increase as the spell's level increases.",
+    "tags": [
+      "summoning",
+      "controlled-entity",
+      "concentration"
+    ]
+  },
+  "summon-elemental": {
+    "id": "summon-elemental",
+    "name": "Summon Elemental",
+    "aliases": [],
+    "level": 4,
+    "school": "Conjuration",
+    "legacy": false,
+    "classes": [
+      "Druid",
+      "Ranger",
+      "Wizard"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "action",
+      "combatCost": {
+        "type": "action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "ranged",
+      "distance": 90,
+      "distanceUnit": "feet"
+    },
+    "components": {
+      "verbal": true,
+      "somatic": true,
+      "material": true,
+      "materialDescription": "air, a pebble, ash, and water inside a gilded cube worth 400+ GP",
+      "materialCost": 400,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "timed",
+      "concentration": true,
+      "value": 1,
+      "unit": "hour"
+    },
+    "targeting": {
+      "type": "point",
+      "range": 90,
+      "rangeUnit": "feet",
+      "validTargets": [
+        "point"
+      ],
+      "lineOfSight": true,
+      "maxTargets": 1,
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable",
+        "placementEligibility": {
+          "unoccupied": "required",
+          "surface": "not_applicable",
+          "destination": "visible_space_within_range",
+          "notes": "Summon Elemental manifests the Elemental Spirit in an unoccupied space the caster can see within range."
+        }
+      }
+    },
+    "effects": [
+      {
+        "type": "SUMMONING",
+        "trigger": {
+          "type": "immediate",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "always",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveOutcomeOverrides": []
+        },
+        "description": "Summon one Elemental Spirit in a visible unoccupied space within 90 feet for up to 1 hour with concentration, choosing an Air, Earth, Fire, or Water element. The spirit is an ally, shares your Initiative count but acts immediately after you, obeys verbal commands with no action required, Dodges and avoids danger when uncommanded, disappears at 0 Hit Points or when the spell ends, and uses the slot level for AC, Hit Points, movement, and Slam damage.",
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": "Use the slot level as the spell's level in the Elemental Spirit stat block: AC is 11 + spell level, HP is 50 + 10 for each spell level above 4, and Slam damage is 1d10 + 4 + spell level of the element's damage type."
+        },
+        "conditionalEndings": [
+          {
+            "trigger": "created_entity_drops_to_0_hp",
+            "scope": "effect",
+            "description": "The elemental spirit disappears when it drops to 0 Hit Points."
+          }
+        ],
+        "summon": {
+          "entityType": "creature",
+          "persistent": false,
+          "count": 1,
+          "commandCost": "none",
+          "commandsPerTurn": 1,
+          "initiative": "shared",
+          "objectDescription": "Elemental Spirit ally that shares the caster's initiative, acts immediately after the caster, obeys verbal commands with no caster action, and uses Slam as its combat action.",
+          "statBlock": {
+            "name": "Elemental Spirit",
+            "type": "Elemental",
+            "size": "Medium",
+            "hp": 50,
+            "ac": 15,
+            "speed": 40,
+            "abilities": {
+              "str": 18,
+              "dex": 15,
+              "con": 17,
+              "int": 4,
+              "wis": 10,
+              "cha": 16
+            },
+            "senses": [
+              "Darkvision 60 ft.",
+              "Passive Perception 10"
+            ],
+            "cr": "None"
+          },
+          "formOptions": [
+            "Air",
+            "Earth",
+            "Fire",
+            "Water"
+          ],
+          "specialActions": [
+            {
+              "name": "Slam",
+              "description": "Melee spell attack, reach 5 ft. Hit: 1d10 + 4 + the spell's level damage of the element's type (Bludgeoning for Air/Earth/Water, Fire for Fire), with the element's movement trait applied.",
+              "cost": "action",
+              "damage": {
+                "dice": "1d10 + 4 + spell_level",
+                "type": "bludgeoning"
+              }
+            }
+          ]
+        },
+        "socialEffect": {
+          "relationship": "ally",
+          "alliedTo": [
+            "caster",
+            "caster_allies"
+          ],
+          "understandsCasterLanguages": true,
+          "sharesCasterInitiative": true,
+          "obeysCasterCommands": true,
+          "notes": "The summoned Elemental Spirit is an ally to the caster and allies, understands the caster languages, shares initiative, and follows commands."
+        }
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "Choose the Elemental Spirit element (Air, Earth, Fire, or Water) and arrival space; use the caster's spell attack modifier for Slam, apply the element's damage type, and grant the element's movement trait.",
+      "playerInputRequired": true
+    },
+    "modeChoice": {
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 4,
+      "optionsSource": "summon.formOptions",
+      "canDismissActive": false,
+      "options": [
+        {
+          "label": "Air",
+          "summary": "Summon an Air Elemental Spirit with a flying speed and a Bludgeoning Slam.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Elemental Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Earth",
+          "summary": "Summon an Earth Elemental Spirit with a burrow speed and a Bludgeoning Slam.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Elemental Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Fire",
+          "summary": "Summon a Fire Elemental Spirit whose Slam deals Fire damage.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Elemental Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Water",
+          "summary": "Summon a Water Elemental Spirit with a swim speed and a Bludgeoning Slam.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Elemental Spirit stat block and slot-level scaling."
+        }
+      ],
+      "notes": "The element choice selects the Elemental Spirit's damage type and movement trait."
+    },
+    "description": "You call forth an elemental spirit. It manifests in an unoccupied space that you can see within range and uses the Elemental Spirit stat block. When you cast the spell, choose an element: Air, Earth, Fire, or Water. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+    "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Elemental Spirit's Hit Points and Slam damage increase as the spell's level increases.",
+    "tags": [
+      "summoning",
+      "controlled-entity",
+      "concentration"
+    ]
+  },
+  "summon-fey": {
+    "id": "summon-fey",
+    "name": "Summon Fey",
+    "aliases": [],
+    "level": 3,
+    "school": "Conjuration",
+    "legacy": false,
+    "classes": [
+      "Druid",
+      "Ranger",
+      "Warlock",
+      "Wizard"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "action",
+      "combatCost": {
+        "type": "action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "ranged",
+      "distance": 90,
+      "distanceUnit": "feet"
+    },
+    "components": {
+      "verbal": true,
+      "somatic": true,
+      "material": true,
+      "materialDescription": "a gilded flower worth 300+ GP",
+      "materialCost": 300,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "timed",
+      "concentration": true,
+      "value": 1,
+      "unit": "hour"
+    },
+    "targeting": {
+      "type": "point",
+      "range": 90,
+      "rangeUnit": "feet",
+      "validTargets": [
+        "point"
+      ],
+      "lineOfSight": true,
+      "maxTargets": 1,
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable",
+        "placementEligibility": {
+          "unoccupied": "required",
+          "surface": "not_applicable",
+          "destination": "visible_space_within_range",
+          "notes": "Summon Fey manifests the Fey Spirit in an unoccupied space the caster can see within range."
+        }
+      }
+    },
+    "effects": [
+      {
+        "type": "SUMMONING",
+        "trigger": {
+          "type": "immediate",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "always",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveOutcomeOverrides": []
+        },
+        "description": "Summon one Fey Spirit in a visible unoccupied space within 90 feet for up to 1 hour with concentration, choosing a Mirthful, Joyful, or Tricksy mood. The spirit is an ally, shares your Initiative count but acts immediately after you, obeys verbal commands with no action required, Dodges and avoids danger when uncommanded, disappears at 0 Hit Points or when the spell ends, and uses the slot level for AC, Hit Points, Fey Step teleport, and Fey Aura damage.",
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": "Use the slot level as the spell's level in the Fey Spirit stat block: AC is 12 + spell level, HP is 30 + 10 for each spell level above 3, and Fey Aura damage is 2d6 + 3 + spell level."
+        },
+        "conditionalEndings": [
+          {
+            "trigger": "created_entity_drops_to_0_hp",
+            "scope": "effect",
+            "description": "The fey spirit disappears when it drops to 0 Hit Points."
+          }
+        ],
+        "summon": {
+          "entityType": "creature",
+          "persistent": false,
+          "count": 1,
+          "commandCost": "none",
+          "commandsPerTurn": 1,
+          "initiative": "shared",
+          "objectDescription": "Fey Spirit ally that shares the caster's initiative, acts immediately after the caster, obeys verbal commands with no caster action, and uses Fey Aura as its combat action.",
+          "statBlock": {
+            "name": "Fey Spirit",
+            "type": "Fey",
+            "size": "Small",
+            "hp": 30,
+            "ac": 15,
+            "speed": 40,
+            "flySpeed": 40,
+            "abilities": {
+              "str": 13,
+              "dex": 16,
+              "con": 14,
+              "int": 14,
+              "wis": 11,
+              "cha": 16
+            },
+            "senses": [
+              "Darkvision 60 ft.",
+              "Passive Perception 10"
+            ],
+            "cr": "None"
+          },
+          "formOptions": [
+            "Mirthful",
+            "Joyful",
+            "Tricksy"
+          ],
+          "specialActions": [
+            {
+              "name": "Fey Aura",
+              "description": "Melee or Ranged spell attack, reach 5 ft. or range 60 ft. Hit: 2d6 + 4 + the spell's level Psychic damage, and on a Mirthful or Tricksy spirit the target is also affected by the mood rider.",
+              "cost": "action",
+              "damage": {
+                "dice": "2d6 + 3 + spell_level",
+                "type": "psychic"
+              }
+            }
+          ]
+        },
+        "socialEffect": {
+          "relationship": "ally",
+          "alliedTo": [
+            "caster",
+            "caster_allies"
+          ],
+          "understandsCasterLanguages": true,
+          "sharesCasterInitiative": true,
+          "obeysCasterCommands": true,
+          "notes": "The summoned Fey Spirit is an ally to the caster and allies, understands the caster languages, shares initiative, and follows commands."
+        }
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "Choose the Fey Spirit mood (Mirthful, Joyful, or Tricksy) and arrival space; use the caster's spell attack modifier for Fey Aura and apply the chosen mood rider on a hit.",
+      "playerInputRequired": true
+    },
+    "modeChoice": {
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 3,
+      "optionsSource": "summon.formOptions",
+      "canDismissActive": false,
+      "options": [
+        {
+          "label": "Mirthful",
+          "summary": "Summon a Mirthful Fey Spirit that can charm a creature it hits with Fey Aura.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Fey Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Joyful",
+          "summary": "Summon a Joyful Fey Spirit that can teleport an ally with its Fey Step.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Fey Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Tricksy",
+          "summary": "Summon a Tricksy Fey Spirit that can frighten a creature it hits with Fey Aura.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Fey Spirit stat block and slot-level scaling."
+        }
+      ],
+      "notes": "The mood choice selects the Fey Aura rider that the summoned spirit applies."
+    },
+    "description": "You call forth a fey spirit. It manifests in an unoccupied space that you can see within range and uses the Fey Spirit stat block. When you cast the spell, choose a mood: Mirthful, Joyful, or Tricksy. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+    "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Fey Spirit's AC, Hit Points, and Fey Aura damage increase as the spell's level increases.",
+    "tags": [
+      "summoning",
+      "controlled-entity",
+      "concentration"
+    ]
+  },
+  "summon-fiend": {
+    "id": "summon-fiend",
+    "name": "Summon Fiend",
+    "aliases": [],
+    "level": 6,
+    "school": "Conjuration",
+    "legacy": false,
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "action",
+      "combatCost": {
+        "type": "action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "ranged",
+      "distance": 90,
+      "distanceUnit": "feet"
+    },
+    "components": {
+      "verbal": true,
+      "somatic": true,
+      "material": true,
+      "materialDescription": "a bloodstone wrapped in a vellum scroll inscribed with infernal sigils worth 600+ GP",
+      "materialCost": 600,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "timed",
+      "concentration": true,
+      "value": 1,
+      "unit": "hour"
+    },
+    "targeting": {
+      "type": "point",
+      "range": 90,
+      "rangeUnit": "feet",
+      "validTargets": [
+        "point"
+      ],
+      "lineOfSight": true,
+      "maxTargets": 1,
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable",
+        "placementEligibility": {
+          "unoccupied": "required",
+          "surface": "not_applicable",
+          "destination": "visible_space_within_range",
+          "notes": "Summon Fiend manifests the Fiendish Spirit in an unoccupied space the caster can see within range."
+        }
+      }
+    },
+    "effects": [
+      {
+        "type": "SUMMONING",
+        "trigger": {
+          "type": "immediate",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "always",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveOutcomeOverrides": []
+        },
+        "description": "Summon one Fiendish Spirit in a visible unoccupied space within 90 feet for up to 1 hour with concentration, choosing a Demon, Devil, or Yugoloth form. The spirit is an ally, shares your Initiative count but acts immediately after you, obeys verbal commands with no action required, Dodges and avoids danger when uncommanded, disappears at 0 Hit Points or when the spell ends, and uses the slot level for AC, Hit Points, and its form's Bite or Claw attacks.",
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": "Use the slot level as the spell's level in the Fiendish Spirit stat block: AC is 12 + spell level, HP is 50 + 15 for each spell level above 6, and the form attack adds the spell's level to its damage."
+        },
+        "conditionalEndings": [
+          {
+            "trigger": "created_entity_drops_to_0_hp",
+            "scope": "effect",
+            "description": "The fiendish spirit disappears when it drops to 0 Hit Points."
+          }
+        ],
+        "summon": {
+          "entityType": "creature",
+          "persistent": false,
+          "count": 1,
+          "commandCost": "none",
+          "commandsPerTurn": 1,
+          "initiative": "shared",
+          "objectDescription": "Fiendish Spirit ally that shares the caster's initiative, acts immediately after the caster, obeys verbal commands with no caster action, and uses its form's attack as its combat action.",
+          "statBlock": {
+            "name": "Fiendish Spirit",
+            "type": "Fiend",
+            "size": "Large",
+            "hp": 50,
+            "ac": 18,
+            "speed": 40,
+            "flySpeed": 60,
+            "abilities": {
+              "str": 13,
+              "dex": 16,
+              "con": 16,
+              "int": 10,
+              "wis": 14,
+              "cha": 16
+            },
+            "senses": [
+              "Darkvision 60 ft.",
+              "Passive Perception 12"
+            ],
+            "cr": "None"
+          },
+          "formOptions": [
+            "Demon",
+            "Devil",
+            "Yugoloth"
+          ],
+          "specialActions": [
+            {
+              "name": "Fiendish Attack",
+              "description": "Melee or Ranged spell attack, reach 5 ft. or range 150 ft. Hit: 2d6 + 4 + the spell's level damage of the form's type (Slashing for Demon, Fire for Devil, Poison for Yugoloth), with the form's rider applied.",
+              "cost": "action",
+              "damage": {
+                "dice": "2d6 + 4 + spell_level",
+                "type": "slashing"
+              }
+            }
+          ]
+        },
+        "socialEffect": {
+          "relationship": "ally",
+          "alliedTo": [
+            "caster",
+            "caster_allies"
+          ],
+          "understandsCasterLanguages": true,
+          "sharesCasterInitiative": true,
+          "obeysCasterCommands": true,
+          "notes": "The summoned Fiendish Spirit is an ally to the caster and allies, understands the caster languages, shares initiative, and follows commands."
+        }
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "Choose the Fiendish Spirit form (Demon, Devil, or Yugoloth) and arrival space; use the caster's spell attack modifier for the form's attack, apply its damage type, and apply the form's rider on a hit.",
+      "playerInputRequired": true
+    },
+    "modeChoice": {
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 3,
+      "optionsSource": "summon.formOptions",
+      "canDismissActive": false,
+      "options": [
+        {
+          "label": "Demon",
+          "summary": "Summon a Demon Fiendish Spirit whose Bite deals Slashing damage and frenzies on a kill.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Fiendish Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Devil",
+          "summary": "Summon a Devil Fiendish Spirit whose ranged attack deals Fire damage.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Fiendish Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Yugoloth",
+          "summary": "Summon a Yugoloth Fiendish Spirit whose attack deals Poison damage and that has damage resistances.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Fiendish Spirit stat block and slot-level scaling."
+        }
+      ],
+      "notes": "The form choice selects the Fiendish Spirit's damage type and rider."
+    },
+    "description": "You call forth a fiendish spirit. It manifests in an unoccupied space that you can see within range and uses the Fiendish Spirit stat block. When you cast the spell, choose Demon, Devil, or Yugoloth. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+    "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Fiendish Spirit's Hit Points and attack damage increase as the spell's level increases.",
+    "tags": [
+      "summoning",
+      "controlled-entity",
       "concentration"
     ]
   },
@@ -100496,6 +103433,279 @@
     "description": "You utter foul words, summoning demons from the chaos of the Abyss. Roll on the following table to determine what appears. d6 Demons Summoned 1-2 Two demons of challenge rating 1 or lower 3-4 Four demons of challenge rating 1/2 or lower 5-6 Eight demons of challenge rating 1/4 or lower The DM chooses the demons, such as manes or dretches, and you choose the unoccupied spaces you can see within range where they appear. A summoned demon disappears when it drops to 0 hit points or when the spell ends. The demons are hostile to all creatures, including you. Roll initiative for the summoned demons as a group, which has its own turns. The demons pursue and attack the nearest non-demons to the best of their ability. As part of casting the spell, you can form a circle on the ground with the blood used as a material component. The circle is large enough to encompass your space. While the spell lasts, the summoned demons can't cross the circle or harm it, and they can't target anyone within it. Using the material component in this manner consumes it when the spell ends.",
     "higherLevels": "When you cast this spell using a spell slot of 6th or 7th level, you summon twice as many demons. If you cast it using a spell slot of 8th or 9th level, you summon three times as many demons.",
     "tags": [
+      "concentration"
+    ]
+  },
+  "summon-undead": {
+    "id": "summon-undead",
+    "name": "Summon Undead",
+    "aliases": [],
+    "level": 3,
+    "school": "Conjuration",
+    "legacy": false,
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "action",
+      "combatCost": {
+        "type": "action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "ranged",
+      "distance": 90,
+      "distanceUnit": "feet"
+    },
+    "components": {
+      "verbal": true,
+      "somatic": true,
+      "material": true,
+      "materialDescription": "a gilded skull worth 300+ GP",
+      "materialCost": 300,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "timed",
+      "concentration": true,
+      "value": 1,
+      "unit": "hour"
+    },
+    "targeting": {
+      "type": "point",
+      "range": 90,
+      "rangeUnit": "feet",
+      "validTargets": [
+        "point"
+      ],
+      "lineOfSight": true,
+      "maxTargets": 1,
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable",
+        "placementEligibility": {
+          "unoccupied": "required",
+          "surface": "not_applicable",
+          "destination": "visible_space_within_range",
+          "notes": "Summon Undead manifests the Undead Spirit in an unoccupied space the caster can see within range."
+        }
+      }
+    },
+    "effects": [
+      {
+        "type": "SUMMONING",
+        "trigger": {
+          "type": "immediate",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "always",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveOutcomeOverrides": []
+        },
+        "description": "Summon one Undead Spirit in a visible unoccupied space within 90 feet for up to 1 hour with concentration, choosing a Ghostly, Putrid, or Skeletal form. The spirit is an ally, shares your Initiative count but acts immediately after you, obeys verbal commands with no action required, Dodges and avoids danger when uncommanded, disappears at 0 Hit Points or when the spell ends, and uses the slot level for AC, Hit Points, and its form's attack damage.",
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": "Use the slot level as the spell's level in the Undead Spirit stat block: AC is 11 + spell level, HP is 30 + 10 for each spell level above 3, and the form attack adds the spell's level to its damage."
+        },
+        "conditionalEndings": [
+          {
+            "trigger": "created_entity_drops_to_0_hp",
+            "scope": "effect",
+            "description": "The undead spirit disappears when it drops to 0 Hit Points."
+          }
+        ],
+        "summon": {
+          "entityType": "undead",
+          "persistent": false,
+          "count": 1,
+          "commandCost": "none",
+          "commandsPerTurn": 1,
+          "initiative": "shared",
+          "objectDescription": "Undead Spirit ally that shares the caster's initiative, acts immediately after the caster, obeys verbal commands with no caster action, and uses its form's attack as its combat action.",
+          "statBlock": {
+            "name": "Undead Spirit",
+            "type": "Undead",
+            "size": "Medium",
+            "hp": 30,
+            "ac": 11,
+            "speed": 30,
+            "flySpeed": 40,
+            "abilities": {
+              "str": 12,
+              "dex": 16,
+              "con": 15,
+              "int": 4,
+              "wis": 10,
+              "cha": 9
+            },
+            "senses": [
+              "Darkvision 60 ft.",
+              "Passive Perception 10"
+            ],
+            "cr": "None"
+          },
+          "formOptions": [
+            "Ghostly",
+            "Putrid",
+            "Skeletal"
+          ],
+          "specialActions": [
+            {
+              "name": "Deathly Touch",
+              "description": "Melee spell attack, reach 5 ft. Hit: 1d8 + 3 + the spell's level Necrotic damage. Ghostly and Putrid forms add their condition rider; Skeletal can instead make a ranged Withering Bolt attack at range 150 ft.",
+              "cost": "action",
+              "damage": {
+                "dice": "1d8 + 3 + spell_level",
+                "type": "necrotic"
+              }
+            }
+          ]
+        },
+        "socialEffect": {
+          "relationship": "ally",
+          "alliedTo": [
+            "caster",
+            "caster_allies"
+          ],
+          "understandsCasterLanguages": true,
+          "sharesCasterInitiative": true,
+          "obeysCasterCommands": true,
+          "notes": "The summoned Undead Spirit is an ally to the caster and allies, understands the caster languages, shares initiative, and follows commands."
+        }
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "Choose the Undead Spirit form (Ghostly, Putrid, or Skeletal) and arrival space; use the caster's spell attack modifier for the form's attack and apply the form's rider on a hit.",
+      "playerInputRequired": true
+    },
+    "modeChoice": {
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 3,
+      "optionsSource": "summon.formOptions",
+      "canDismissActive": false,
+      "options": [
+        {
+          "label": "Ghostly",
+          "summary": "Summon a Ghostly Undead Spirit with a 40-foot fly speed and an incorporeal Deathly Touch that can frighten.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Undead Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Putrid",
+          "summary": "Summon a Putrid Undead Spirit whose Festering Aura can poison creatures that hit it or are hit by it.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Undead Spirit stat block and slot-level scaling."
+        },
+        {
+          "label": "Skeletal",
+          "summary": "Summon a Skeletal Undead Spirit that makes a ranged Withering Bolt attack at range 150 feet.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "SUMMONING"
+          ],
+          "duration": "1 hour with concentration",
+          "notes": "The summoned creature uses the Undead Spirit stat block and slot-level scaling."
+        }
+      ],
+      "notes": "The form choice selects the Undead Spirit's attack mode and rider."
+    },
+    "description": "You call forth an undead spirit. It manifests in an unoccupied space that you can see within range and uses the Undead Spirit stat block. When you cast the spell, choose the creature's form: Ghostly, Putrid, or Skeletal. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+    "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Undead Spirit's Hit Points and attack damage increase as the spell's level increases.",
+    "tags": [
+      "summoning",
+      "controlled-entity",
       "concentration"
     ]
   },
@@ -102468,6 +105678,232 @@
     "higherLevels": "",
     "tags": [
       "legacy"
+    ]
+  },
+  "tashas-bubbling-cauldron": {
+    "id": "tashas-bubbling-cauldron",
+    "name": "Tasha's Bubbling Cauldron",
+    "aliases": [
+      "Tasha's Bubbling Cauldron"
+    ],
+    "level": 6,
+    "school": "Conjuration",
+    "legacy": false,
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "action",
+      "combatCost": {
+        "type": "action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "self",
+      "distance": 0
+    },
+    "components": {
+      "verbal": true,
+      "somatic": true,
+      "material": true,
+      "materialDescription": "a gold-inlaid ladle worth 200+ GP",
+      "materialCost": 200,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "timed",
+      "concentration": false,
+      "value": 10,
+      "unit": "minute"
+    },
+    "targeting": {
+      "type": "point",
+      "range": 0,
+      "validTargets": [
+        "ground",
+        "point"
+      ],
+      "lineOfSight": true,
+      "maxTargets": 1,
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable",
+        "placementEligibility": {
+          "unoccupied": "required",
+          "surface": "ground",
+          "destination": "caster_choice",
+          "notes": "Tasha's Bubbling Cauldron appears in an unoccupied space on the ground within 5 feet of the caster."
+        }
+      }
+    },
+    "effects": [
+      {
+        "type": "UTILITY",
+        "trigger": {
+          "type": "immediate",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "always",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveOutcomeOverrides": []
+        },
+        "utilityType": "creation",
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": "The cauldron's potions improve with the slot level: Potion of Healing at level 6, Potion of Greater Healing at level 7, Potion of Superior Healing at level 8, and Potion of Supreme Healing at level 9."
+        },
+        "description": "Conjure a bubbling cauldron on the ground within 5 feet for 10 minutes. The cauldron contains a number of potions of healing equal to the caster's spellcasting ability modifier (minimum of one), and each can be retrieved with a Bonus Action by a creature within 5 feet of the cauldron.",
+        "createdObjects": [
+          {
+            "objectType": "other",
+            "name": "Potion of Healing",
+            "count": 1,
+            "countUnit": "item",
+            "appearsIn": "spell_area",
+            "perishable": true,
+            "expiresWithSpell": true,
+            "notes": "The cauldron holds a number of Potions of Healing equal to the caster's spellcasting ability modifier (minimum 1). Each potion can be retrieved with a Bonus Action and disappears if not consumed when the spell ends."
+          }
+        ],
+        "grantedActions": [
+          {
+            "type": "bonus_action",
+            "action": "Retrieve a Potion of Healing from the cauldron",
+            "frequency": "while_active",
+            "actor": "affected_creature",
+            "actionKind": "bonus_action",
+            "rangeLimit": 5,
+            "notes": "A creature within 5 feet of the cauldron can use a Bonus Action to draw out one of the potions the cauldron contains."
+          }
+        ],
+        "controlOptions": [
+          {
+            "name": "Healing potion supply",
+            "effect": "The cauldron contains Potions of Healing equal to the caster's spellcasting ability modifier (minimum 1)."
+          },
+          {
+            "name": "Higher-level brews",
+            "effect": "When cast with a higher-level slot, the cauldron can instead produce stronger healing potions: Greater at level 7, Superior at level 8, and Supreme at level 9."
+          }
+        ],
+        "taunt": {
+          "disadvantageAgainstOthers": false,
+          "leashRangeFeet": 0,
+          "breakConditions": []
+        },
+        "savePenalty": {
+          "dice": "",
+          "flat": 0,
+          "applies": "next_save",
+          "duration": {
+            "type": "rounds",
+            "value": 0
+          }
+        },
+        "light": {
+          "brightRadius": 0,
+          "dimRadius": 0,
+          "attachedTo": "point",
+          "color": "",
+          "colorChoice": "not_applicable",
+          "opaqueCoverBlocks": "not_applicable",
+          "emitsHeat": "not_applicable",
+          "ignitesObjects": "not_applicable",
+          "consumesFuel": "not_applicable",
+          "canBeCoveredOrHidden": "not_applicable",
+          "canBeSmotheredOrQuenched": "not_applicable"
+        },
+        "attackAugments": [],
+        "conditionalEndings": []
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "",
+      "playerInputRequired": false
+    },
+    "description": "You conjure a sturdy iron cauldron, which appears in an unoccupied space on the ground within 5 feet of you and remains for the duration. The cauldron's contents are tied to the level of the spell slot expended. The cauldron contains a number of Potions of Healing equal to your spellcasting ability modifier (minimum of one potion). A creature can take a Bonus Action to retrieve a potion from the cauldron if the creature is within 5 feet of it. When the spell ends, the cauldron and any undrunk potions in it disappear.",
+    "higherLevels": "Using a Higher-Level Spell Slot. The healing potions in the cauldron become more potent: they are Potions of Greater Healing with a level 7 slot, Potions of Superior Healing with a level 8 slot, and Potions of Supreme Healing with a level 9 slot.",
+    "tags": [
+      "conjuration",
+      "creation",
+      "healing"
     ]
   },
   "tashas-caustic-brew": {
@@ -117881,6 +121317,308 @@
       "smite",
       "necrotic",
       "control"
+    ]
+  },
+  "yolandes-regal-presence": {
+    "id": "yolandes-regal-presence",
+    "name": "Yolande's Regal Presence",
+    "aliases": [
+      "Yolande's Regal Presence"
+    ],
+    "level": 5,
+    "school": "Enchantment",
+    "legacy": false,
+    "classes": [
+      "Bard",
+      "Wizard"
+    ],
+    "subClasses": [],
+    "ritual": false,
+    "rarity": "common",
+    "attackType": "",
+    "castingTime": {
+      "value": 1,
+      "unit": "action",
+      "combatCost": {
+        "type": "action",
+        "condition": ""
+      },
+      "explorationCost": {
+        "value": 0,
+        "unit": "minute"
+      }
+    },
+    "range": {
+      "type": "self",
+      "distance": 0
+    },
+    "components": {
+      "verbal": true,
+      "somatic": true,
+      "material": false,
+      "materialDescription": "",
+      "materialCost": 0,
+      "isConsumed": false
+    },
+    "duration": {
+      "type": "timed",
+      "concentration": true,
+      "value": 1,
+      "unit": "minute"
+    },
+    "targeting": {
+      "type": "area",
+      "range": 0,
+      "validTargets": [
+        "self",
+        "creatures"
+      ],
+      "lineOfSight": false,
+      "maxTargets": "unlimited",
+      "areaOfEffect": {
+        "shape": "Emanation",
+        "size": 10,
+        "sizeType": "radius",
+        "sizeUnit": "feet"
+      },
+      "filter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable"
+      }
+    },
+    "effects": [
+      {
+        "type": "DAMAGE",
+        "trigger": {
+          "type": "on_enter_area",
+          "frequency": "first_per_turn",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "save",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveType": "Wisdom",
+          "saveEffect": "half",
+          "saveOutcomeOverrides": []
+        },
+        "damage": {
+          "dice": "4d6",
+          "type": "Psychic"
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": ""
+        },
+        "description": "A creature other than the caster that enters the 10-foot Emanation for the first time on a turn or starts its turn there makes a Wisdom save, taking 4d6 Psychic damage on a failed save or half as much on a success.",
+        "conditionalEndings": []
+      },
+      {
+        "type": "MOVEMENT",
+        "trigger": {
+          "type": "on_enter_area",
+          "frequency": "first_per_turn",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "forced",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "save",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveType": "Wisdom",
+          "saveEffect": "negates_condition",
+          "saveOutcomeOverrides": []
+        },
+        "movementType": "push",
+        "distance": 10,
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        },
+        "forcedMovement": {
+          "usesReaction": false,
+          "direction": "away_from_caster",
+          "maxDistance": "10 ft"
+        },
+        "description": "On a failed Wisdom save, the creature is pushed up to 10 feet away from the caster and knocked Prone, awed by the regal presence.",
+        "conditionalEndings": []
+      },
+      {
+        "type": "STATUS_CONDITION",
+        "trigger": {
+          "type": "on_enter_area",
+          "frequency": "first_per_turn",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "save",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveType": "Wisdom",
+          "saveEffect": "negates_condition",
+          "saveOutcomeOverrides": []
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": ""
+        },
+        "description": "On a failed Wisdom save, the creature is knocked Prone in addition to being pushed away from the caster.",
+        "statusCondition": {
+          "name": "Prone",
+          "duration": {
+            "type": "special"
+          }
+        },
+        "conditionalEndings": []
+      }
+    ],
+    "arbitrationType": "mechanical",
+    "aiContext": {
+      "prompt": "",
+      "playerInputRequired": false
+    },
+    "description": "You surround yourself with the magical presence of the legendary Yolande, a queen of the fey. Until the spell ends, you have a 10-foot Emanation that extends from you. Whenever the Emanation enters the space of a creature other than you for the first time on a turn or a creature other than you enters the Emanation or starts its turn there, that creature must succeed on a Wisdom saving throw or take 4d6 Psychic damage and, if it is Large or smaller, be pushed up to 10 feet away from you and knocked Prone. On a successful save, the creature takes half as much damage only.",
+    "higherLevels": "",
+    "tags": [
+      "concentration",
+      "damage",
+      "area"
     ]
   },
   "zone-of-truth": {

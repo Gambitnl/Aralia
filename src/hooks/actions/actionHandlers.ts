@@ -73,7 +73,7 @@ import { handleLookAround, handleInspectSubmapTile, handleAnalyzeSituation } fro
 // NPC interaction handlers are implemented in src/hooks/actions/handleNpcInteraction.ts.
 import { handleTalk, handleStartDialogue } from './handleNpcInteraction';
 // Item interaction handlers are implemented in src/hooks/actions/handleItemInteraction.ts.
-import { handleTakeItem, handleEquipItem, handleUnequipItem, handleUseItem, handleDropItem, handleHarvestResource } from './handleItemInteraction';
+import { handleTakeItem, handleEquipItem, handleUnequipItem, handleUseItem, handleDropItem, handleHarvestResource, handleSearchArea } from './handleItemInteraction';
 // Oracle/Gemini handlers are implemented in src/hooks/actions/handleOracle.ts and handleGeminiCustom.ts.
 import { handleOracle } from './handleOracle';
 import { handleGeminiCustom } from './handleGeminiCustom';
@@ -160,10 +160,10 @@ export function buildActionHandlers({
       await handleApproachSettlement({ gameState, dispatch, addMessage, action });
     },
     OBSERVE_VILLAGE: async (action) => {
-      await handleObserveSettlement({ gameState, dispatch, addMessage, addGeminiLog, action });
+      await handleObserveSettlement({ gameState, dispatch, addMessage, addGeminiLog, action, generalActionContext });
     },
     OBSERVE_TOWN: async (action) => {
-      await handleObserveSettlement({ gameState, dispatch, addMessage, addGeminiLog, action });
+      await handleObserveSettlement({ gameState, dispatch, addMessage, addGeminiLog, action, generalActionContext });
     },
 
     // Observation and situational analysis (handleObservation.ts).
@@ -248,6 +248,9 @@ export function buildActionHandlers({
     },
     HARVEST_RESOURCE: async (action) => {
       await handleHarvestResource({ action, gameState, dispatch, addMessage, addGeminiLog });
+    },
+    SEARCH_AREA: async (_action) => {
+      await handleSearchArea({ gameState, dispatch, addMessage });
     },
 
     // Encounter and combat flow (handleEncounter.ts).
@@ -435,11 +438,18 @@ export function buildActionHandlers({
         return;
       }
 
-      // Generic custom actions: provide feedback based on label content.
-      if (action.label?.includes('Visit') || action.label?.includes('Examine') || action.label?.includes('Browse') || action.label?.includes('Speak')) {
-        addMessage(`You interact with: ${action.label}`, 'system');
+      // Generic custom actions without a richer context payload. These come from
+      // flavor affordances (e.g. a town building's "Examine") rather than the
+      // AI "Suggested Actions", which carry their own `gemini_custom_action`
+      // type and route to handleGeminiCustom. Render an in-world line keyed off
+      // the verb in the label instead of a debug-style "Custom action:" echo.
+      const label = action.label?.trim() || 'the surroundings';
+      if (/^(examine|inspect|look|study|read)/i.test(label)) {
+        addMessage(`You take a closer look — ${label}.`, 'system');
+      } else if (/^(visit|enter|approach|browse|speak|talk)/i.test(label)) {
+        addMessage(`You make your way to ${label}.`, 'system');
       } else {
-        addMessage(`Custom action: ${action.label}`, 'system');
+        addMessage(`You turn your attention to ${label}.`, 'system');
       }
     },
 

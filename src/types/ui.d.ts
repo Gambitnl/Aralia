@@ -15,6 +15,7 @@ export interface GlossaryEntry {
     aliases?: string[];
     seeAlso?: string[];
     filePath?: string | null;
+    hasSpellJson?: boolean;
     subEntries?: GlossaryEntry[];
     /**
      * Data-First Architecture Fields

@@ -1069,9 +1069,14 @@ describe('WeaponAttackCommand: Lightning Arrow-style hit-or-miss riders', () => 
     expect(updatedPrimary?.currentHP).toBeLessThan(100);
     expect(updatedNearby?.currentHP).toBeLessThan(100);
     expect(updatedFar?.currentHP).toBe(100);
+    // The burst can also include the attacked creature when the area is centered
+    // on that target, so count the Lightning Arrow primary payload by its
+    // player-facing transformed-shot log instead of every damage log that names
+    // the primary target.
     expect(newState.combatLog.filter(entry =>
       entry.type === 'damage' &&
-      entry.targetIds?.includes(primaryTarget.id)
+      entry.targetIds?.includes(primaryTarget.id) &&
+      entry.message.includes('with Lightning Arrow')
     )).toHaveLength(1);
     expect(newState.combatLog.some(entry =>
       entry.type === 'damage' &&

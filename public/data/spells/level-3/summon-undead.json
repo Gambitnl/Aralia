@@ -1,0 +1,273 @@
+{
+  "id": "summon-undead",
+  "name": "Summon Undead",
+  "aliases": [],
+  "level": 3,
+  "school": "Conjuration",
+  "legacy": false,
+  "classes": [
+    "Warlock",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 90,
+    "distanceUnit": "feet"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a gilded skull worth 300+ GP",
+    "materialCost": 300,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "concentration": true,
+    "value": 1,
+    "unit": "hour"
+  },
+  "targeting": {
+    "type": "point",
+    "range": 90,
+    "rangeUnit": "feet",
+    "validTargets": [
+      "point"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable",
+      "placementEligibility": {
+        "unoccupied": "required",
+        "surface": "not_applicable",
+        "destination": "visible_space_within_range",
+        "notes": "Summon Undead manifests the Undead Spirit in an unoccupied space the caster can see within range."
+      }
+    }
+  },
+  "effects": [
+    {
+      "type": "SUMMONING",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "description": "Summon one Undead Spirit in a visible unoccupied space within 90 feet for up to 1 hour with concentration, choosing a Ghostly, Putrid, or Skeletal form. The spirit is an ally, shares your Initiative count but acts immediately after you, obeys verbal commands with no action required, Dodges and avoids danger when uncommanded, disappears at 0 Hit Points or when the spell ends, and uses the slot level for AC, Hit Points, and its form's attack damage.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": "Use the slot level as the spell's level in the Undead Spirit stat block: AC is 11 + spell level, HP is 30 + 10 for each spell level above 3, and the form attack adds the spell's level to its damage."
+      },
+      "conditionalEndings": [
+        {
+          "trigger": "created_entity_drops_to_0_hp",
+          "scope": "effect",
+          "description": "The undead spirit disappears when it drops to 0 Hit Points."
+        }
+      ],
+      "summon": {
+        "entityType": "undead",
+        "persistent": false,
+        "count": 1,
+        "commandCost": "none",
+        "commandsPerTurn": 1,
+        "initiative": "shared",
+        "objectDescription": "Undead Spirit ally that shares the caster's initiative, acts immediately after the caster, obeys verbal commands with no caster action, and uses its form's attack as its combat action.",
+        "statBlock": {
+          "name": "Undead Spirit",
+          "type": "Undead",
+          "size": "Medium",
+          "hp": 30,
+          "ac": 11,
+          "speed": 30,
+          "flySpeed": 40,
+          "abilities": {
+            "str": 12,
+            "dex": 16,
+            "con": 15,
+            "int": 4,
+            "wis": 10,
+            "cha": 9
+          },
+          "senses": [
+            "Darkvision 60 ft.",
+            "Passive Perception 10"
+          ],
+          "cr": "None"
+        },
+        "formOptions": [
+          "Ghostly",
+          "Putrid",
+          "Skeletal"
+        ],
+        "specialActions": [
+          {
+            "name": "Deathly Touch",
+            "description": "Melee spell attack, reach 5 ft. Hit: 1d8 + 3 + the spell's level Necrotic damage. Ghostly and Putrid forms add their condition rider; Skeletal can instead make a ranged Withering Bolt attack at range 150 ft.",
+            "cost": "action",
+            "damage": {
+              "dice": "1d8 + 3 + spell_level",
+              "type": "necrotic"
+            }
+          }
+        ]
+      },
+      "socialEffect": {
+        "relationship": "ally",
+        "alliedTo": [
+          "caster",
+          "caster_allies"
+        ],
+        "understandsCasterLanguages": true,
+        "sharesCasterInitiative": true,
+        "obeysCasterCommands": true,
+        "notes": "The summoned Undead Spirit is an ally to the caster and allies, understands the caster languages, shares initiative, and follows commands."
+      }
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "Choose the Undead Spirit form (Ghostly, Putrid, or Skeletal) and arrival space; use the caster's spell attack modifier for the form's attack and apply the form's rider on a hit.",
+    "playerInputRequired": true
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 3,
+    "optionsSource": "summon.formOptions",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Ghostly",
+        "summary": "Summon a Ghostly Undead Spirit with a 40-foot fly speed and an incorporeal Deathly Touch that can frighten.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature uses the Undead Spirit stat block and slot-level scaling."
+      },
+      {
+        "label": "Putrid",
+        "summary": "Summon a Putrid Undead Spirit whose Festering Aura can poison creatures that hit it or are hit by it.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature uses the Undead Spirit stat block and slot-level scaling."
+      },
+      {
+        "label": "Skeletal",
+        "summary": "Summon a Skeletal Undead Spirit that makes a ranged Withering Bolt attack at range 150 feet.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "SUMMONING"
+        ],
+        "duration": "1 hour with concentration",
+        "notes": "The summoned creature uses the Undead Spirit stat block and slot-level scaling."
+      }
+    ],
+    "notes": "The form choice selects the Undead Spirit's attack mode and rider."
+  },
+  "description": "You call forth an undead spirit. It manifests in an unoccupied space that you can see within range and uses the Undead Spirit stat block. When you cast the spell, choose the creature's form: Ghostly, Putrid, or Skeletal. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+  "higherLevels": "Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Undead Spirit's Hit Points and attack damage increase as the spell's level increases.",
+  "tags": [
+    "summoning",
+    "controlled-entity",
+    "concentration"
+  ]
+}

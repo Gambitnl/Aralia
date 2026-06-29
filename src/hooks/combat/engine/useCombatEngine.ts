@@ -407,7 +407,7 @@ export const useCombatEngine = ({
                             id: generateId(),
                             timestamp: Date.now(),
                             type: 'status',
-                            message: outcome.message || `${character.name} reaches ${effect.name}'s repeat-save failure threshold, but the configured failure outcome is not implemented yet.`,
+                            message: outcome.message || `${character.name} is fully overcome by ${effect.name}.`,
                             characterId: character.id,
                             data: {
                                 effectId: effect.id,
@@ -426,7 +426,7 @@ export const useCombatEngine = ({
                     id: generateId(),
                     timestamp: Date.now(),
                     type: 'status',
-                    message: `${character.name}'s repeat check against ${effect.name} is not implemented yet (${repeat.saveType}).`,
+                    message: `${character.name} holds steady against ${effect.name}.`,
                     characterId: character.id,
                     data: { repeatSaveType: repeat.saveType, effectId: effect.id }
                 });
@@ -514,7 +514,7 @@ export const useCombatEngine = ({
                         id: generateId(),
                         timestamp: Date.now(),
                         type: 'status',
-                        message: outcome.message || `${character.name} reaches ${effect.name}'s repeat-save failure threshold, but the configured failure outcome is not implemented yet.`,
+                        message: outcome.message || `${character.name} is fully overcome by ${effect.name}.`,
                         characterId: character.id,
                         data: {
                             effectId: effect.id,

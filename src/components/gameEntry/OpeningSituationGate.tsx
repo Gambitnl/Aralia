@@ -81,7 +81,7 @@ export const OpeningSituationGate: React.FC<OpeningSituationGateProps> = ({ game
                         to step into — and Aralia will not fake a scene.
                     </p>
                     {gameState.gameEntry?.error && (
-                        <p className="text-xs text-gray-500 mb-4 break-words">
+                        <p className="text-xs text-gray-400 mb-4 break-words">
                             Details: {gameState.gameEntry.error}
                         </p>
                     )}

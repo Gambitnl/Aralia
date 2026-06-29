@@ -44,6 +44,7 @@ import { getAbilityModifierValue } from '../../utils/character/statUtils';
 import { AnimatePresence } from 'framer-motion';
 import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
+import { STARTER_SHIP_COST } from '../../state/reducers/navalReducer';
 import { NPCS } from '../../data/world/npcs';
 import { canUseDevTools } from '../../utils/permissions';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
@@ -116,6 +117,7 @@ interface GameModalsProps {
     onFixMissingChoice: (character: PlayerCharacter, missing: MissingChoice) => void;
     handleCloseCharacterSheet: () => void;
     handleClosePartyOverlay: () => void;
+    handleDismissMember: (id: string) => void;
     handleDevMenuAction: (action: string) => void;
     handleModelChange: (model: string | null) => void;
     handleNavigateToGlossaryFromTooltip: (termId: string) => void;
@@ -152,6 +154,7 @@ const GameModals: React.FC<GameModalsProps> = ({
     onFixMissingChoice,
     handleCloseCharacterSheet,
     handleClosePartyOverlay,
+    handleDismissMember,
     handleDevMenuAction,
     handleModelChange,
     handleNavigateToGlossaryFromTooltip,
@@ -167,7 +170,7 @@ const GameModals: React.FC<GameModalsProps> = ({
     onRegenerateWorldMap,
 }) => {
 
-    const { generateResponse, handleTopicOutcome } = useDialogueSystem(gameState, dispatch);
+    const { generateResponse, handleTopicOutcome, inviteToParty } = useDialogueSystem(gameState, dispatch, onAction);
 
     // Naval: populate knownPorts from the FMG world pack once per seed.
     // Idempotent — does nothing if knownPorts is already populated.
@@ -258,7 +261,7 @@ const GameModals: React.FC<GameModalsProps> = ({
     return (
         <AnimatePresence>
             {/* World Map Overlay */}
-            {isMapModalOpen && (
+            {isMapModalOpen && gameState.mapData && (
                 <div key="map" ref={mapPaneFocusRef} tabIndex={-1}>
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error displaying the World Map.">
@@ -404,7 +407,8 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 companions={gameState.companions}
                                 onViewCharacterSheet={handleOpenCharacterSheet}
                                 onFixMissingChoice={onFixMissingChoice}
-                                onLongRest={() => onAction({ type: 'TOGGLE_LONG_REST_MODAL', label: 'Long Rest' })}
+                                onDismissMember={handleDismissMember}
+                                onLongRest={() => dispatch({ type: 'TOGGLE_LONG_REST_MODAL' })}
                                 onShortRest={() => dispatch({ type: 'TOGGLE_SHORT_REST_MODAL' })}
                                 shortRestTracker={gameState.shortRestTracker}
                                 isCombatActive={isCombatActive}
@@ -423,7 +427,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                             party={gameState.party}
                             onClose={() => dispatch({ type: 'TOGGLE_LONG_REST_MODAL' })}
                             onConfirm={(choices) => {
-                                onAction({ type: 'LONG_REST', label: 'Long Rest', payload: { racialRestChoices: choices } });
+                                dispatch({ type: 'LONG_REST', payload: { racialRestChoices: choices } });
                                 dispatch({ type: 'TOGGLE_LONG_REST_MODAL' });
                             }}
                         />
@@ -669,6 +673,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                             onUpdateSession={(newSession) => dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: { session: newSession } })}
                             onTopicOutcome={handleTopicOutcome}
                             onGenerateResponse={generateResponse}
+                            onInvite={inviteToParty}
                         />
                     </ErrorBoundary>
                 </Suspense>
@@ -741,15 +746,34 @@ const GameModals: React.FC<GameModalsProps> = ({
                     // TODO: Extract this inline "No Data" error UI into a reusable <ModalErrorState message="" /> component.
                     // Similar error states (missing data, loading failures) will likely be needed for other dashboards (Treasure, Trade, etc.) as we expand.
                     <div key="naval" className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/80">
-                        <div className="bg-gray-800 p-6 rounded border border-red-500 text-center shadow-xl max-w-md">
-                            <h2 className="text-xl font-bold text-red-500 mb-2">No Active Ship</h2>
-                            <p className="text-gray-300 mb-4">You do not have an active ship to display.</p>
-                            <button
-                                onClick={() => dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' })}
-                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white"
-                            >
-                                Close
-                            </button>
+                        <div className="bg-gray-800 p-6 rounded border border-sky-600 text-center shadow-xl max-w-md">
+                            <h2 className="text-xl font-bold text-sky-300 mb-2">No Active Ship</h2>
+                            <p className="text-gray-300 mb-2">You don't yet command a vessel.</p>
+                            <p className="text-gray-400 text-sm mb-4">
+                                A seaworthy sloop can be acquired at the harbor for{' '}
+                                <span className="text-amber-300 font-semibold">{STARTER_SHIP_COST} gp</span>.
+                            </p>
+                            {(() => {
+                                const canAfford = gameState.gold >= STARTER_SHIP_COST;
+                                return (
+                                    <div className="flex items-center justify-center gap-3">
+                                        <button
+                                            onClick={() => dispatch({ type: 'NAVAL_PURCHASE_STARTER_SHIP' })}
+                                            disabled={!canAfford}
+                                            title={canAfford ? undefined : `You need ${STARTER_SHIP_COST} gp (you have ${gameState.gold} gp).`}
+                                            className={`px-4 py-2 rounded text-white ${canAfford ? 'bg-sky-700 hover:bg-sky-600' : 'bg-gray-700 opacity-50 cursor-not-allowed'}`}
+                                        >
+                                            Acquire a Sloop ({STARTER_SHIP_COST} gp)
+                                        </button>
+                                        <button
+                                            onClick={() => dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' })}
+                                            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white"
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+                                );
+                            })()}
                         </div>
                     </div>
                 );

@@ -26,7 +26,8 @@ describe('SummoningCommand live Find Familiar metadata bridge', () => {
       team: 'player',
       position: { x: 0, y: 0 },
       currentHP: 20,
-      maxHP: 20
+      maxHP: 20,
+      stats: { size: 'medium' }
     } as unknown as CombatCharacter;
     const summonEffect = findFamiliar.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect;
     const context = {
@@ -96,7 +97,8 @@ describe('SummoningCommand live Find Familiar metadata bridge', () => {
         y: createdFamiliar.position.y
       },
       currentHP: 10,
-      maxHP: 10
+      maxHP: 10,
+      stats: { size: 'medium' }
     } as unknown as CombatCharacter;
 
     // This proves the actor created by SummoningCommand is not merely carrying

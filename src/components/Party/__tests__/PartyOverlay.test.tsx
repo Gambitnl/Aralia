@@ -17,8 +17,12 @@ vi.mock('../../ui/WindowFrame', () => ({
     ),
 }));
 
+const partyPaneSpy = vi.fn();
 vi.mock('../PartyPane', () => ({
-    default: () => <div data-testid="party-pane" />,
+    default: (props: Record<string, unknown>) => {
+        partyPaneSpy(props);
+        return <div data-testid="party-pane" />;
+    },
 }));
 
 vi.mock('../../ui/Tooltip', () => ({
@@ -40,10 +44,11 @@ const renderOverlay = (overrides: Record<string, unknown> = {}) => {
         onFixMissingChoice: vi.fn(),
         onLongRest: vi.fn(),
         onShortRest: vi.fn(),
-        shortRestTracker: { restsTakenToday: 1, lastRestDay: 12 },
+        shortRestTracker: { restsTakenToday: 1, lastRestDay: 12, lastRestEndedAtMs: null },
         ...overrides,
     };
 
+    partyPaneSpy.mockClear();
     render(<PartyOverlay {...props} />);
 
     return props;
@@ -80,5 +85,24 @@ describe('PartyOverlay rest footer', () => {
 
         expect(props.onLongRest).toHaveBeenCalledTimes(1);
         expect(props.onShortRest).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('PartyOverlay dismiss wiring', () => {
+    it('threads onDismissMember down to PartyPane', () => {
+        const onDismissMember = vi.fn();
+        renderOverlay({ onDismissMember });
+
+        expect(partyPaneSpy).toHaveBeenCalledWith(
+            expect.objectContaining({ onDismissMember })
+        );
+    });
+
+    it('passes an undefined dismiss handler through when none is provided', () => {
+        renderOverlay();
+
+        expect(partyPaneSpy).toHaveBeenCalledWith(
+            expect.objectContaining({ onDismissMember: undefined })
+        );
     });
 });
