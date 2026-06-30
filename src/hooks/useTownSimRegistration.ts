@@ -20,25 +20,18 @@ import type { Dispatch } from 'react';
 import { GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { burgIdForLocation } from '../systems/worldforge/townsim/chronicleForLocation';
-import { MAP_GRID_SIZE } from '../config/mapConfig';
 
 export function useTownSimRegistration(
   gameState: GameState,
   dispatch: Dispatch<AppAction>,
 ): void {
-  const { currentLocationId, worldSeed } = gameState;
-  // GRID-RETIRE: BA-2 — the canonical cell is the authoritative "which town am I
-  // in?"; burgIdForLocation prefers it and only falls back to the coarse grid
-  // coord when no cell is recorded (old saves mid-migration).
+  const { worldSeed } = gameState;
+  // Grid retirement: the canonical cell is the sole "which town am I in?" source.
   const cellId = gameState.playerCell?.cellId ?? null;
-  const cols = MAP_GRID_SIZE.cols;
-  const rows = MAP_GRID_SIZE.rows;
-  // Memoized so getTownTilesForGrid (which clones its array) isn't re-run every render.
   const burgId = useMemo(() => {
-    const gridSize = cols !== undefined && rows !== undefined ? { cols, rows } : undefined;
-    if (cellId == null && !gridSize) return undefined;
-    return burgIdForLocation({ currentLocationId, worldSeed, cellId, gridSize });
-  }, [currentLocationId, worldSeed, cellId, cols, rows]);
+    if (cellId == null) return undefined;
+    return burgIdForLocation({ worldSeed, cellId });
+  }, [worldSeed, cellId]);
   const alreadyTracked = burgId !== undefined && (gameState.townSim ?? {})[burgId] !== undefined;
 
   useEffect(() => {

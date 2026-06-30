@@ -26,22 +26,16 @@ describe('burgIdForCell (cell-native town reader — grid retirement Phase A1)',
 });
 
 describe('burgIdForLocation prefers the canonical cell when given one', () => {
-  it('resolves the burg from cellId alone — no gridSize/coord needed', () => {
+  it('resolves the burg from cellId alone', () => {
     expect(
-      burgIdForLocation({ currentLocationId: 'irrelevant', worldSeed: SEED, cellId: firstBurgCell }),
+      burgIdForLocation({ worldSeed: SEED, cellId: firstBurgCell }),
     ).toBe(firstTile.burgId);
   });
 
-  it('a non-burg cellId yields undefined even if the legacy coord WOULD match a town', () => {
-    // Proves the cell path is authoritative: the lossy coord could name a town,
-    // but the canonical cell says "no burg here", and the cell wins.
+  it('a non-burg cellId yields undefined', () => {
+    // The canonical cell is authoritative: cell 0 seats no burg here.
     expect(
-      burgIdForLocation({
-        currentLocationId: `coord_${firstTile.x}_${firstTile.y}`,
-        worldSeed: SEED,
-        gridSize: { cols: COLS, rows: ROWS },
-        cellId: 0,
-      }),
+      burgIdForLocation({ worldSeed: SEED, cellId: 0 }),
     ).toBeUndefined();
   });
 });

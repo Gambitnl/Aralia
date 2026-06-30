@@ -4,7 +4,6 @@ import { getGameDay } from '../../utils/core';
 import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
 import { selectTownNews, type TownNewsItem } from '../../systems/worldforge/townsim/townNews';
 import { Z_INDEX } from '../../styles/zIndex';
-import { MAP_GRID_SIZE } from '../../config/mapConfig';
 
 /**
  * Player-facing TOWN BROADSHEET. Opened in two modes:
@@ -59,11 +58,10 @@ const Broadsheet: React.FC = () => {
             cellId: state.playerCell?.cellId ?? null,
             currentLocationId: state.currentLocationId,
             worldSeed: state.worldSeed,
-            gridSize: MAP_GRID_SIZE,
             townSim: state.townSim,
             gameTime: state.gameTime,
           }),
-    [snapshot, state.playerCell?.cellId, state.currentLocationId, state.worldSeed, MAP_GRID_SIZE, state.townSim, state.gameTime],
+    [snapshot, state.playerCell?.cellId, state.currentLocationId, state.worldSeed, state.townSim, state.gameTime],
   );
 
   // The town's display name: the snapshot's frozen name when reading a keepsake,

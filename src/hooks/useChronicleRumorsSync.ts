@@ -29,7 +29,6 @@ import { getGameDay } from '../utils/core';
 import { resolveTownForLocation } from '../systems/worldforge/townsim/chronicleForLocation';
 import { selectTownNews } from '../systems/worldforge/townsim/townNews';
 import { chronicleNewsToRumors } from '../utils/world/chronicleNewsToRumors';
-import { MAP_GRID_SIZE } from '../config/mapConfig';
 
 export function useChronicleRumorsSync(
   gameState: GameState,
@@ -42,23 +41,17 @@ export function useChronicleRumorsSync(
   // rumors sync as soon as the town becomes TRACKED (registration lands after a
   // separate dispatch) — not only on the next move/day — and again whenever the
   // daily loop advances the town (new town ref → new chronicle to mine).
-  const cols = MAP_GRID_SIZE.cols;
-  const rows = MAP_GRID_SIZE.rows;
-  // Memoized so getTownTilesForGrid (which clones its array) isn't re-run every render.
   const town = useMemo(
     () =>
-      cols !== undefined && rows !== undefined
-        ? resolveTownForLocation({
-            // GRID-RETIRE: BA-2 — prefer the canonical cell.
-            cellId: gameState.playerCell?.cellId ?? null,
-            currentLocationId,
-            worldSeed: gameState.worldSeed,
-            gridSize: { cols, rows },
-            townSim: gameState.townSim,
-            gameTime,
-          })
-        : undefined,
-    [currentLocationId, gameState.worldSeed, cols, rows, gameState.townSim, gameTime, gameState.playerCell?.cellId],
+      resolveTownForLocation({
+        // Grid retirement: the canonical cell is the sole town source.
+        cellId: gameState.playerCell?.cellId ?? null,
+        currentLocationId,
+        worldSeed: gameState.worldSeed,
+        townSim: gameState.townSim,
+        gameTime,
+      }),
+    [currentLocationId, gameState.worldSeed, gameState.townSim, gameTime, gameState.playerCell?.cellId],
   );
 
   useEffect(() => {

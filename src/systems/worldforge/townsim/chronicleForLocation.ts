@@ -18,12 +18,10 @@ import type { TownSimState } from './types';
 export interface ChronicleForLocationInput {
   currentLocationId: string;
   worldSeed: number;
-  gridSize?: { cols: number; rows: number };
   /**
-   * Canonical player atlas cell (`playerCell.cellId`). When present it is the
-   * authoritative source for which burg the player stands in — the legacy
-   * `currentLocationId`/`gridSize` coord path below is only used when it's absent.
-   * GRID-RETIRE: BA-2 — flips this reader off the lossy 30×20 grid (Phase A1).
+   * Canonical player atlas cell (`playerCell.cellId`) — the authoritative source
+   * for which burg the player stands in. Grid retirement: the legacy 30×20
+   * gridSize/coord path is gone; this is the sole town resolver.
    */
   cellId?: number | null;
   townSim: TownSimRegistry;
