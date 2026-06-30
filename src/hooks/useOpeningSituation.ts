@@ -79,12 +79,9 @@ export function buildSituationLocation(state: GameState): OpeningSituationLocati
     // game read 7 AM / sun high). gameTime may be a Date or an ISO string.
     const gameTime = state.gameTime ? new Date(state.gameTime) : null;
     const validTime = gameTime && !Number.isNaN(gameTime.getTime()) ? gameTime : null;
-    // Prefer the player's ACTUAL spawn biome over the static location's, so the
-    // opening matches where the player really is on the map.
-    // GRID-RETIRE: BA-2 — read the biome from the canonical cell; the mapData.tiles
-    // scan below is the legacy fallback for cell-less old saves, until Stage 6.
+    // The opening biome is the player's canonical atlas cell's biome (cell-native;
+    // Stage 6: the legacy mapData.tiles isPlayerCurrent scan is removed).
     const cellBiome = state.playerCell ? biomeIdForCell(state.worldSeed, state.playerCell.cellId) : undefined;
-    const playerTile = state.mapData?.tiles?.flat().find((t) => t.isPlayerCurrent);
     // Prefer the town the player chose at Start Point Selection (+ its region) so
     // the opening scene is set in their actual settlement, not the static
     // 'clearing' node. Falls back to the static location for dev/skip/load flows.
@@ -93,7 +90,7 @@ export function buildSituationLocation(state: GameState): OpeningSituationLocati
         : (loc?.name ?? locId);
     return {
         name: placeName,
-        biome: cellBiome ?? playerTile?.biomeId ?? loc?.biomeId,
+        biome: cellBiome ?? loc?.biomeId,
         timeOfDay: validTime ? getTimeOfDay(validTime) : undefined,
         weather: validTime ? getTimeModifiers(validTime).description : undefined,
     };

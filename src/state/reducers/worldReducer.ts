@@ -28,8 +28,6 @@ import { biomeIdForCell } from '../../systems/worldforge/local/biomeForCell';
 import { nearBurgIdsForCell } from '../../systems/worldforge/local/burgProximity';
 import { advanceRegistry } from '../../systems/worldforge/townsim/townSimRegistry';
 import { buildTownSimStateForBurg } from '../../systems/worldforge/townsim/townSimRegistration';
-import { getTownTilesForGrid } from '../../systems/worldforge/bridge/legacySubmapBridge';
-import { parseCoordinateLocationId } from '../../utils/locationUtils';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
 import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
 import { DEFAULT_WEATHER } from '../../systems/environment/EnvironmentSystem';
@@ -43,11 +41,9 @@ import { processAllNpcBusinesses } from '../../systems/economy/NpcBusinessManage
 import { processPlayerBusinessManagement } from '../../systems/economy/BusinessManagement';
 import { SeededRandom } from '@/utils/random';
 
-/** Distance-LOD: tracked towns within this many tiles of the player tick daily;
- * farther towns catch up on approach (identical result, deferred work). */
-const NEAR_SIM_RADIUS = 24;
-/** Cell-native LOD radius in atlas GRAPH units (≈ NEAR_SIM_RADIUS grid tiles on the
- *  960-wide atlas). Perf-only; covers the player's town neighbourhood. */
+/** Distance-LOD radius in atlas GRAPH units: tracked towns within this of the
+ *  player's cell tick daily; farther towns catch up on approach (identical
+ *  result, deferred work). Perf-only; ≈ the player's town neighbourhood. */
 const NEAR_SIM_GRAPH_RADIUS = 720;
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -337,28 +333,15 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         };
 
         // 4b. Living-world town sim: advance tracked towns' multi-day history up
-        // to the new day. Distance-LOD: only towns within NEAR_SIM_RADIUS tiles
-        // of the player tick each day; far towns catch up identically when the
-        // player next comes near (per-day re-seeding makes batch == daily). When
-        // the player isn't on a world tile, advance all (conservative, correct).
-        // No-op until a town is first tracked.
+        // to the new day. Distance-LOD (cell-native): only towns within
+        // NEAR_SIM_GRAPH_RADIUS of the player's canonical cell tick each day; far
+        // towns catch up identically on approach (per-day re-seeding makes
+        // batch == daily). With no cell yet, advance all (conservative, correct).
+        // No-op until a town is first tracked. (Stage 6: grid coord LOD removed.)
         if (nextState.townSim && Object.keys(nextState.townSim).length > 0) {
-          let nearBurgIds: number[] | undefined;
-          // GRID-RETIRE: BA-2 — distance-LOD by the canonical cell (graph units),
-          // not the coarse coord_X_Y grid tile. The grid path below is the legacy
-          // fallback for cell-less old saves, until Stage 6. (Perf-only: which
-          // towns tick early never changes game state.)
-          if (nextState.playerCell?.cellId != null) {
-            nearBurgIds = nearBurgIdsForCell(nextState.worldSeed, nextState.playerCell.cellId, NEAR_SIM_GRAPH_RADIUS);
-          } else {
-            const here = parseCoordinateLocationId(nextState.currentLocationId);
-            if (here && nextState.mapData) {
-              const { cols, rows } = nextState.mapData.gridSize;
-              nearBurgIds = getTownTilesForGrid(nextState.worldSeed, cols, rows)
-                .filter((t) => Math.abs(t.x - here.x) + Math.abs(t.y - here.y) <= NEAR_SIM_RADIUS)
-                .map((t) => t.burgId);
-            }
-          }
+          const nearBurgIds = nextState.playerCell?.cellId != null
+            ? nearBurgIdsForCell(nextState.worldSeed, nextState.playerCell.cellId, NEAR_SIM_GRAPH_RADIUS)
+            : undefined;
           nextState = {
             ...nextState,
             townSim: advanceRegistry(nextState.townSim, nextState.worldSeed, newDay, nearBurgIds),

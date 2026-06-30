@@ -9,8 +9,7 @@
  * surfaces honestly.
  */
 import { getGameDay } from '../../../utils/core';
-import { parseCoordinateLocationId } from '../../../utils/locationUtils';
-import { getTownTilesForGrid, getBridgeAtlas } from '../bridge/legacySubmapBridge';
+import { getBridgeAtlas } from '../bridge/legacySubmapBridge';
 import { DAYS_PER_YEAR } from './constants';
 import { summarizeChronicle } from './chronicle';
 import type { TownSimRegistry } from './townSimRegistry';
@@ -54,28 +53,16 @@ export function resolveTownForLocation(input: ChronicleForLocationInput): TownSi
 }
 
 /**
- * The burgId of the town at the player's current location, or undefined if the
- * location isn't a town tile. Independent of whether the town is TRACKED yet —
- * used by registration to decide which burg to start simulating.
+ * The burgId of the town at the player's canonical cell, or undefined if that
+ * cell holds no burg (or no cell is recorded). Independent of whether the town is
+ * TRACKED yet — used by registration to decide which burg to start simulating.
+ * (Stage 6: cell-native; the legacy coord_X_Y grid lookup is removed.)
  */
 export function burgIdForLocation(input: {
-  currentLocationId: string;
   worldSeed: number;
-  gridSize?: { cols: number; rows: number };
-  /** Canonical player cell — preferred over the coord path when present. */
   cellId?: number | null;
 }): number | undefined {
-  const { currentLocationId, worldSeed, gridSize, cellId } = input;
-  // GRID-RETIRE: BA-2 — the canonical cell is authoritative. The lossy coord_X_Y
-  // path below is legacy bookkeeping, used only until every caller threads a cell.
-  if (cellId != null) return burgIdForCell(worldSeed, cellId);
-  if (!gridSize) return undefined;
-  const coord = parseCoordinateLocationId(currentLocationId);
-  if (!coord) return undefined;
-  const tile = getTownTilesForGrid(worldSeed, gridSize.cols, gridSize.rows).find(
-    (t) => t.x === coord.x && t.y === coord.y,
-  );
-  return tile ? tile.burgId : undefined;
+  return input.cellId != null ? burgIdForCell(input.worldSeed, input.cellId) : undefined;
 }
 
 /**

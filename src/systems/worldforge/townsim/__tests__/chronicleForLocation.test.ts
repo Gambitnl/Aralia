@@ -46,31 +46,18 @@ describe('burgIdForLocation prefers the canonical cell when given one', () => {
   });
 });
 
-describe('burgIdForLocation', () => {
-  it('resolves a town tile to its burgId regardless of tracking', () => {
-    expect(
-      burgIdForLocation({
-        currentLocationId: `coord_${firstTile.x}_${firstTile.y}`,
-        worldSeed: SEED,
-        gridSize: { cols: COLS, rows: ROWS },
-      }),
-    ).toBe(firstTile.burgId);
+describe('burgIdForLocation (cell-native; Stage 6: no coord_X_Y grid path)', () => {
+  it('resolves the burg seated on the given cell', () => {
+    expect(burgIdForLocation({ worldSeed: SEED, cellId: firstBurgCell })).toBe(firstTile.burgId);
   });
 
-  it('returns undefined for a static (non-coord) location', () => {
-    expect(
-      burgIdForLocation({ currentLocationId: 'clearing', worldSeed: SEED, gridSize: { cols: COLS, rows: ROWS } }),
-    ).toBeUndefined();
+  it('returns undefined when no cell is recorded', () => {
+    expect(burgIdForLocation({ worldSeed: SEED })).toBeUndefined();
+    expect(burgIdForLocation({ worldSeed: SEED, cellId: null })).toBeUndefined();
   });
 
-  it('returns undefined for a tile that holds no town', () => {
-    expect(
-      burgIdForLocation({ currentLocationId: 'coord_0_0', worldSeed: SEED, gridSize: { cols: COLS, rows: ROWS } }),
-    ).toBeUndefined();
-  });
-
-  it('returns undefined when gridSize is missing', () => {
-    expect(burgIdForLocation({ currentLocationId: 'coord_5_5', worldSeed: SEED })).toBeUndefined();
+  it('returns undefined for a cell that holds no town', () => {
+    expect(burgIdForLocation({ worldSeed: SEED, cellId: 0 })).toBeUndefined();
   });
 });
 
@@ -85,9 +72,9 @@ describe('townChronicleForLocation', () => {
     town = advanceTown(town, SEED, currentDay);
 
     const lines = townChronicleForLocation({
-      currentLocationId: `coord_${firstTile.x}_${firstTile.y}`,
+      currentLocationId: 'unused',
       worldSeed: SEED,
-      gridSize: { cols: COLS, rows: ROWS },
+      cellId: firstBurgCell,
       townSim: { [firstTile.burgId]: town },
       gameTime: advancedTime,
     });
@@ -95,22 +82,21 @@ describe('townChronicleForLocation', () => {
     expect(lines.length).toBeLessThanOrEqual(4); // capped
   });
 
-  it('returns [] for a non-coordinate (static) location', () => {
+  it('returns [] when no cell is recorded', () => {
     const out = townChronicleForLocation({
       currentLocationId: 'clearing',
       worldSeed: SEED,
-      gridSize: { cols: COLS, rows: ROWS },
       townSim: {},
       gameTime: new Date(),
     });
     expect(out).toEqual([]);
   });
 
-  it('returns [] for a tile that holds no tracked town', () => {
+  it('returns [] for a cell that holds no tracked town', () => {
     const out = townChronicleForLocation({
-      currentLocationId: 'coord_0_0',
+      currentLocationId: 'unused',
       worldSeed: SEED,
-      gridSize: { cols: COLS, rows: ROWS },
+      cellId: 0,
       townSim: {},
       gameTime: new Date(),
     });
