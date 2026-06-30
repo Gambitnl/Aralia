@@ -1416,12 +1416,10 @@ const App: React.FC = () => {
             mode={gameState.worldViewMode}
             onComplete={handleTransitionComplete}
             atlasContent={atlasContent}
-            sceneContent={(
-              // Grid retirement: the legacy continent-3D terrain (derived from
-              // the 30x20 mapData) is gone; the streamed cell-native ground
-              // (getWorldforgeLocalForCell) is the world. No worldData prop.
-              <World3DWrapper entryPosition={entryPosition} />
-            )}
+            // Grid retirement: the legacy continent-3D terrain (derived from the
+            // 30x20 mapData) is gone; the streamed cell-native ground
+            // (getWorldforgeLocalForCell) is the world. No worldData prop.
+            sceneContent={<World3DWrapper entryPosition={entryPosition} />}
           />
         </Suspense>
       </ErrorBoundary>
