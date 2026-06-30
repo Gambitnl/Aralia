@@ -275,7 +275,6 @@ const MapPane: React.FC<MapPaneProps> = ({
   playerAtlasCellId = null,
 }) => {
   const { gridSize } = mapData;
-  const geographySnapshot = useMemo(() => fromMapData(mapData), [mapData]);
   const projectedMapData = useMemo(() => projectMapDataForRead(mapData), [mapData]);
   const projectedTiles = projectedMapData.tiles;
   // Pre-game world-generation PREVIEW: the generation controls are shown but there
@@ -391,17 +390,6 @@ const MapPane: React.FC<MapPaneProps> = ({
   }, [hoveredCell, projectedTiles]);
 
   const hoveredBiome = hoveredTile ? BIOMES[hoveredTile.biomeId] : undefined;
-
-  const playerCell = useMemo(() => {
-    // Find the current player position so precision mode can anchor the starting
-    // cell even before the player hovers over a destination.
-    for (const point of geographySnapshot.points) {
-      if (point.isPlayerCurrent && point.legacyTile) {
-        return { x: point.legacyTile.x, y: point.legacyTile.y };
-      }
-    }
-    return null;
-  }, [geographySnapshot]);
 
   // The atlas Voronoi cell the player currently occupies (their grid cell mapped
   // back through the grid↔atlas bridge). Drives the centered marker + the drill
