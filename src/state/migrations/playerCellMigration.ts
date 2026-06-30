@@ -19,40 +19,21 @@
  * the untouched legacy grid; this is NOT a behavioural fallback path.
  */
 import type { GameState } from '../../types';
-import { LOCATIONS } from '../../data/world/locations';
-import { MAP_GRID_SIZE } from '../../config/mapConfig';
-import { locationIdToTile } from '../../utils/locationUtils';
-import { derivePlayerCellForTile } from '../../systems/worldforge/local/playerCellFromLegacy';
-import { makeCellLocationId } from '../../utils/location/cellLocationId';
+import { parseCellLocationId } from '../../utils/location/cellLocationId';
 
 /**
  * Backfills `loadedState.playerCell` in place when absent. No-op when already
  * present (idempotent). Returns the same state for convenience.
+ *
+ * Grid retirement (2026-07-01): the 30×20 grid is gone, so a pre-cell `coord_X_Y`
+ * save can no longer reverse-map to a cell (the legacy tile→cell bridge is
+ * deleted). Cell-native saves carry `playerCell`; a `cell_<cellId>` id recovers it
+ * directly; anything else loads with a null cell (an honest "unknown cell" — the
+ * game still loads and plays).
  */
 export function migratePlayerCell(loadedState: GameState): GameState {
-  // Backfill the canonical cell on pre-Stage-2 saves (those without playerCell).
-  if (!loadedState.playerCell) {
-    const tile = locationIdToTile(loadedState.currentLocationId, LOCATIONS);
-    if (tile) {
-      // Grid retirement: saves carry no mapData grid; the cell reverse-map uses the
-      // canonical MAP_GRID_SIZE bookkeeping dims. subMapCoordinates is read off the
-      // raw old save if present (the field was removed from GameState).
-      const legacySubmap = (loadedState as unknown as { subMapCoordinates?: { x: number; y: number } | null }).subMapCoordinates ?? null;
-      loadedState.playerCell = derivePlayerCellForTile(
-        loadedState.worldSeed ?? 0,
-        tile,
-        legacySubmap,
-        { cols: MAP_GRID_SIZE.cols, rows: MAP_GRID_SIZE.rows },
-      );
-    } else {
-      loadedState.playerCell = null;
-    }
-  }
-
-  // Grid retirement: rewrite a legacy `coord_X_Y` currentLocationId to the
-  // cell-native `cell_<cellId>` form, so the loaded game holds no coord_ ids.
-  if (loadedState.currentLocationId?.startsWith('coord_') && loadedState.playerCell?.cellId != null) {
-    loadedState.currentLocationId = makeCellLocationId(loadedState.playerCell.cellId);
-  }
+  if (loadedState.playerCell) return loadedState;
+  const directCell = parseCellLocationId(loadedState.currentLocationId);
+  loadedState.playerCell = directCell != null ? { cellId: directCell, localeCoords: null } : null;
   return loadedState;
 }

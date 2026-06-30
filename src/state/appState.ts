@@ -35,13 +35,10 @@ import { getAllFactions } from '../utils/factionUtils';
 import { DEITIES } from '../data/deities';
 import { TEMPLES } from '../data/temples';
 import { canUseDevTools } from '../utils/permissions';
-import { SUBMAP_DIMENSIONS, MAP_GRID_SIZE } from '../config/mapConfig';
-import { derivePlayerCellForTile } from '../systems/worldforge/local/playerCellFromLegacy';
-import { locationIdToTile } from '../utils/locationUtils';
+import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { parseCellLocationId } from '../utils/location/cellLocationId';
 import type { PlayerCell } from '../types/state';
 import { getGameDay, inGameTimestamp } from '../utils/core';
-import { gridWorldDimensions } from '../utils/worldCoords';
 import * as SaveLoadService from '../services/saveLoadService';
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 // TODO(lint-intent): 'createPlayerCharacterFromTemp' is imported but unused; it hints at a helper/type the module was meant to use.
@@ -124,21 +121,14 @@ export { initialGameState, INITIAL_DIVINE_FAVOR };
  * until Stage 6 deletes `subMapCoordinates` / this integer path, leaving feet sole.
  */
 function derivePlayerCell(
-  worldSeed: number,
   locationId: string,
   localeCoords: { x: number; y: number } | null,
 ): PlayerCell | null {
-  // Grid retirement: a cell-native `cell_<cellId>` id IS the cell — no reverse-map.
+  // Grid retirement: a cell-native `cell_<cellId>` id IS the cell. The 30×20 grid
+  // is gone, so there is no tile→cell reverse-map: a non-cell id (a pre-migration
+  // `coord_X_Y` save, or a static location) resolves to an honest null cell.
   const directCell = parseCellLocationId(locationId);
-  if (directCell != null) return { cellId: directCell, localeCoords };
-  // Authored LOCATIONS (mapCoordinates) + legacy `coord_X_Y` saves: tile → cell
-  // via the golden bridge over the canonical 30x20 bookkeeping dims.
-  const tile = locationIdToTile(locationId, LOCATIONS);
-  if (!tile) return null;
-  return derivePlayerCellForTile(worldSeed, tile, localeCoords, {
-    cols: MAP_GRID_SIZE.cols,
-    rows: MAP_GRID_SIZE.rows,
-  });
+  return directCell != null ? { cellId: directCell, localeCoords } : null;
 }
 
 // RALPH: The Root Brain.
@@ -574,9 +564,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // source of truth agrees with entry3DAnchor; dev/skip flows derive
                 // it from the resolved spawn tile (null if it's the static start).
                 playerCell: restOfPayload.playerCell ?? derivePlayerCell(
-                    restOfPayload.worldSeed ?? state.worldSeed,
                     restOfPayload.initialLocationId ?? STARTING_LOCATION_ID,
-                    null, // Stage 6: no subMapCoordinates; Locale feet come from the ground session.
+                    null, // no subMapCoordinates; Locale feet come from the ground session.
                 ),
                 dynamicLocationItemIds: restOfPayload.dynamicLocationItemIds,
                 // Standard starts use the same bridge; if a caller omits the
@@ -671,16 +660,10 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 typeof loadedPlayerWorldPos.z === 'number'
                 ? loadedPlayerWorldPos
                 : null;
-            // Grid retirement: saves no longer carry a mapData grid; clamp the
-            // resumed continent position against the canonical MAP_GRID_SIZE dims.
-            const worldDims = gridWorldDimensions(MAP_GRID_SIZE.cols, MAP_GRID_SIZE.rows);
-            const validatedPlayerWorldPos = completePlayerWorldPos
-                ? {
-                    x: Math.min(Math.max(completePlayerWorldPos.x, 0), worldDims.widthM),
-                    y: completePlayerWorldPos.y,
-                    z: Math.min(Math.max(completePlayerWorldPos.z, 0), worldDims.heightM),
-                }
-                : null;
+            // Grid retirement: the legacy continent position is vestigial — the
+            // cell-native ground frames itself from the entry anchor, not this
+            // value — so there is no 30×20 grid to clamp a resumed position into.
+            const validatedPlayerWorldPos = completePlayerWorldPos;
 
             return {
                 ...loadedState,
@@ -765,7 +748,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             const arrivalPlayerCell: PlayerCell | null = dest
                 ? { cellId: dest.cellId, localeCoords: null }
                 : derivePlayerCell(
-                    state.worldSeed,
                     action.payload.newLocationId,
                     null, // no subMapCoordinates; feet come from the ground session.
                 );
@@ -803,7 +785,6 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // Keep the canonical cell self-consistent with the dev spawn's
                 // location (null for the static 'clearing' start tile).
                 playerCell: derivePlayerCell(
-                    action.payload.worldSeed,
                     state.currentLocationId,
                     null, // no subMapCoordinates.
                 ),

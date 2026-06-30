@@ -3,43 +3,47 @@ import { appReducer } from '../appState';
 import { initialGameState } from '../initialState';
 import { GamePhase } from '../../types';
 import { createMockGameState, createMockPlayerCharacter } from '../../utils/core/factories';
-import { deriveCellIdFromTile } from '../../systems/worldforge/local/playerCellFromLegacy';
+import { makeCellLocationId } from '../../utils/location/cellLocationId';
 
 /**
- * Stage 2 (cell-native world): the canonical player presence
- * `playerCell: { cellId, localeCoords }` is the SOURCE OF TRUTH. It is RECORDED
- * wherever the legacy position is set; `currentLocationId` (coord_X_Y) +
- * `subMapCoordinates` remain the derived shadows that every existing reader keeps
- * using (this stage does not flip any readers).
+ * Cell-native world: the canonical player presence `playerCell: { cellId,
+ * localeCoords }` is the SOURCE OF TRUTH, recorded wherever the location is set.
+ * Grid retirement (2026-07-01): the location id is a `cell_<cellId>` string — the
+ * cell IS the id (no 30×20 grid reverse-map). A non-cell id resolves to null.
  */
 describe('playerCell canonical position model', () => {
   const SEED = 42;
-  const COLS = 30;
-  const ROWS = 20;
+  const CELL = 1880;
 
   it('defaults to null on a fresh factory + initial state', () => {
     expect(createMockGameState().playerCell).toBeNull();
     expect(initialGameState.playerCell).toBeNull();
   });
 
-  it('MOVE_PLAYER (no destinationCell) derives the cell from the coord_X_Y tile; localeCoords null', () => {
+  it('MOVE_PLAYER (no destinationCell) reads the cell straight from the cell_<id>; localeCoords null', () => {
     const base = createMockGameState({ worldSeed: SEED });
+    const locId = makeCellLocationId(CELL);
     const next = appReducer(base, {
       type: 'MOVE_PLAYER',
       payload: {
-        newLocationId: 'coord_15_10',
+        newLocationId: locId,
         activeDynamicNpcIds: null,
       },
     });
 
-    expect(next.currentLocationId).toBe('coord_15_10');
-
-    // Canonical cell recorded as the golden derive of that tile.
-    const expectedCell = deriveCellIdFromTile(SEED, 15, 10, COLS, ROWS);
+    expect(next.currentLocationId).toBe(locId);
     expect(next.playerCell).not.toBeNull();
-    expect(next.playerCell!.cellId).toBe(expectedCell);
-    // Stage 6: no subMapCoordinates; Locale feet come from a ground session, so null here.
+    expect(next.playerCell!.cellId).toBe(CELL);
+    // No subMapCoordinates; Locale feet come from a ground session, so null here.
     expect(next.playerCell!.localeCoords).toBeNull();
+  });
+
+  it('MOVE_PLAYER to a legacy coord_X_Y id yields a null cell (grid retired — no reverse-map)', () => {
+    const next = appReducer(createMockGameState({ worldSeed: SEED }), {
+      type: 'MOVE_PLAYER',
+      payload: { newLocationId: 'coord_15_10', activeDynamicNpcIds: null },
+    });
+    expect(next.playerCell).toBeNull();
   });
 
   it('START_GAME_SUCCESS threads an explicit playerCell from its payload', () => {
@@ -49,7 +53,7 @@ describe('playerCell canonical position model', () => {
         character: createMockPlayerCharacter({ id: 'p1', name: 'Hero' }),
         dynamicLocationItemIds: {},
         initialLocationDescription: 'x',
-        initialLocationId: 'coord_3_4',
+        initialLocationId: makeCellLocationId(562),
         initialSubMapCoordinates: { x: 1, y: 1 },
         initialActiveDynamicNpcIds: null,
         startingInventory: [],
@@ -64,24 +68,22 @@ describe('playerCell canonical position model', () => {
     expect(next.entry3DAnchor!.cellId).toBe(562);
   });
 
-  it('START_GAME_SUCCESS without a payload cell derives it from the spawn tile', () => {
+  it('START_GAME_SUCCESS without a payload cell reads it from the cell_<id> spawn id', () => {
     const next = appReducer(createMockGameState({ phase: GamePhase.CHARACTER_CREATION }), {
       type: 'START_GAME_SUCCESS',
       payload: {
         character: createMockPlayerCharacter({ id: 'p1', name: 'Hero' }),
         dynamicLocationItemIds: {},
         initialLocationDescription: 'x',
-        initialLocationId: 'coord_15_10',
+        initialLocationId: makeCellLocationId(CELL),
         initialSubMapCoordinates: { x: 2, y: 2 },
         initialActiveDynamicNpcIds: null,
         startingInventory: [],
         worldSeed: SEED,
       },
     });
-    const expectedCell = deriveCellIdFromTile(SEED, 15, 10, COLS, ROWS);
     expect(next.playerCell).not.toBeNull();
-    expect(next.playerCell!.cellId).toBe(expectedCell);
-    // Stage 6: no subMapCoordinates; the derive yields null Locale feet.
+    expect(next.playerCell!.cellId).toBe(CELL);
     expect(next.playerCell!.localeCoords).toBeNull();
   });
 }, 30000);
