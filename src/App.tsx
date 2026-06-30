@@ -84,11 +84,9 @@ import { BIOMES } from './data/biomes';
 import { applyWfSpawnToMap } from '@/systems/worldforge/local/resolveSpawn';
 import { biomeIdForCell } from '@/systems/worldforge/local/biomeForCell';
 import { wfBiomeIndexToLegacyId } from '@/systems/worldforge/local/wfBiomeToLegacy';
-import { getTownTilesForGrid } from '@/systems/worldforge/bridge/legacySubmapBridge';
-import { MAP_GRID_SIZE } from './config/mapConfig';
+import { burgIdForCell } from '@/systems/worldforge/townsim/chronicleForLocation';
 import { makeCellLocationId, parseCellLocationId, isWildernessLocationId } from './utils/location/cellLocationId';
 import { parseCoordinateLocationId } from './utils/locationUtils';
-import { gridCellCenterToWorldMeters } from './utils/worldCoords';
 import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
 import { DiceOverlay } from './components/dice/DiceOverlay';
@@ -767,43 +765,32 @@ const App: React.FC = () => {
   /**
    * Atlas "Enter 3D" mode: place the player in the streamed world at the clicked cell.
    */
-  const handleEnter3DAtCell = useCallback((x: number, y: number, tile: MapTile, anchor?: import('./types/state').Entry3DAnchor) => {
+  const handleEnter3DAtCell = useCallback((_x: number, _y: number, tile: MapTile, anchor?: import('./types/state').Entry3DAnchor) => {
     if (!tile.discovered) {
       addMessage('You cannot enter the 3D world in undiscovered areas.', 'system');
       return;
     }
 
-    // Grid retirement: 3D entry no longer requires mapData. The continent-position
-    // bookkeeping uses the canonical 30x20 dims; the cell-native ground frames via
-    // the entry anchor (SET_ENTRY_3D_ANCHOR below), not this position.
-    const { cols, rows } = MAP_GRID_SIZE;
-    const { x: wx, z: wz } = gridCellCenterToWorldMeters(x, y, cols, rows);
-    // Grid retirement: legacy-continent terrain height is gone; the cell-native
-    // ground derives its own surface from the entry anchor below. Entry y = 0.
-    dispatch({
-      type: 'SET_PLAYER_WORLD_POS',
-      payload: { x: wx, y: 0, z: wz },
-    });
-    // Cell-native 3D entry: carry the exact clicked cell (burg-centered when
-    // settled) so the ground frames that cell, not a coarse-grid neighbour.
+    // Grid retirement: 3D entry is fully cell-native. The streamed ground frames
+    // itself from the entry anchor (the chosen atlas cell), so the legacy
+    // continent position is vestigial — enter at the origin and let the anchor
+    // place the camera. (The old grid-cell→world-meters conversion is gone.)
+    dispatch({ type: 'SET_PLAYER_WORLD_POS', payload: { x: 0, y: 0, z: 0 } });
     if (anchor) {
       dispatch({ type: 'SET_ENTRY_3D_ANCHOR', payload: anchor });
+      // Living-world sim: if the entered cell holds a town, start tracking its
+      // history. Resolved straight from the cell — no grid tile lookup.
+      const burgId = burgIdForCell(gameState.worldSeed ?? 0, anchor.cellId);
+      if (burgId !== undefined) {
+        dispatch({ type: 'TOWNSIM_REGISTER_BURG', payload: { burgId } });
+      }
     }
     dispatch({ type: 'SET_WORLD_VIEW_MODE', payload: '3d' });
     if (gameState.isMapVisible) {
       dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
     }
 
-    // Living-world sim (Plan D): if this cell holds a town, start tracking its
-    // multi-day history from now on. Idempotent in the reducer; only fires for
-    // real town tiles (wilderness 3D entry registers nothing).
-    const worldSeed = gameState.worldSeed ?? 0;
-    const townHere = getTownTilesForGrid(worldSeed, cols, rows).find((t) => t.x === x && t.y === y);
-    if (townHere) {
-      dispatch({ type: 'TOWNSIM_REGISTER_BURG', payload: { burgId: townHere.burgId } });
-    }
-
-    addMessage(`Entering 3D world at map cell (${x}, ${y}).`, 'system');
+    addMessage('Entering the 3D world.', 'system');
   }, [addMessage, dispatch, gameState.isMapVisible, gameState.worldSeed]);
 
   const handleOpenCharacterSheet = useCallback((character: PlayerCharacter) => {
