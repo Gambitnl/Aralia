@@ -194,12 +194,13 @@ describe('ActionPane', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Menu$/i }));
   };
 
-  it('renders context-aware actions for NPCs, items, and named exits', () => {
+  it('renders context-aware actions for NPCs, items, and town entry', () => {
     render(<ActionPane {...defaultProps} />);
 
     expect(screen.getByText('Talk to Ava')).toBeInTheDocument();
     expect(screen.getByText('Take Ancient Coin')).toBeInTheDocument();
-    expect(screen.getByText('Go Market')).toBeInTheDocument();
+    // Grid retirement: named-exit "Go <dir>" moves are gone (navigate via the World Map).
+    expect(screen.queryByText('Go Market')).not.toBeInTheDocument();
     expect(screen.queryByText('Go North')).not.toBeInTheDocument();
     expect(screen.getByText('Enter Town')).toBeInTheDocument();
     expect(screen.getByText('Scout Town')).toBeInTheDocument();
@@ -217,11 +218,6 @@ describe('ActionPane', () => {
     fireEvent.click(screen.getByText('Take Ancient Coin'));
     expect(defaultProps.onAction).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'take_item', targetId: 'item-1' })
-    );
-
-    fireEvent.click(screen.getByText('Go Market'));
-    expect(defaultProps.onAction).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'move', targetId: 'market_1' })
     );
   });
 
