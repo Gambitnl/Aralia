@@ -771,13 +771,10 @@ const App: React.FC = () => {
       return;
     }
 
-    const mapData = gameState.mapData;
-    if (!mapData) {
-      addMessage('World map data is not ready for 3D entry.', 'system');
-      return;
-    }
-
-    const { cols, rows } = mapData.gridSize;
+    // Grid retirement: 3D entry no longer requires mapData. The continent-position
+    // bookkeeping uses the canonical 30x20 dims; the cell-native ground frames via
+    // the entry anchor (SET_ENTRY_3D_ANCHOR below), not this position.
+    const { cols, rows } = MAP_GRID_SIZE;
     const { x: wx, z: wz } = gridCellCenterToWorldMeters(x, y, cols, rows);
     // Grid retirement: legacy-continent terrain height is gone; the cell-native
     // ground derives its own surface from the entry anchor below. Entry y = 0.
