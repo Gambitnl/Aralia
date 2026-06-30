@@ -30,7 +30,6 @@ import React from 'react';
 import { Location, MapData, GameMessage, Action, NPC, Item, PlayerCharacter } from '../../types';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { VersionDisplay } from '../ui/VersionDisplay';
-import CompassPane from '../CompassPane';
 import ActionPane from '../ActionPane';
 import WorldPane from '../WorldPane';
 import WorldAtlasStrip from '../World3D/WorldAtlasStrip';
@@ -112,18 +111,18 @@ const GameLayout: React.FC<GameLayoutProps> = ({
 
             {/* Left Column: Navigation and Actions */}
             <div id={UI_ID.LEFT_COLUMN} data-testid={UI_ID.LEFT_COLUMN} className="md:w-2/5 lg:w-1/3 flex flex-col gap-2 sm:gap-4 min-h-0 md:overflow-y-auto md:overflow-x-hidden md:pr-1">
-                <ErrorBoundary fallbackMessage="Error in Compass Pane.">
-                    <CompassPane
-                        currentLocation={currentLocation}
-                        currentSubMapCoordinates={subMapCoordinates ?? null}
-                        worldMapCoords={currentLocation.mapCoordinates}
-                        subMapCoords={subMapCoordinates}
-                        onAction={onAction}
-                        disabled={disabled}
-                        mapData={mapData}
-                        gameTime={gameTime}
-                    />
-                </ErrorBoundary>
+                {/* Grid retirement: the 30x20 compass is removed. Overland travel is
+                    the cell-native World Map (atlas fast-travel); local movement is the
+                    3D/Locale view. This is the sole overland navigation entry point. */}
+                <button
+                    type="button"
+                    onClick={openWorldMap}
+                    disabled={disabled}
+                    data-testid="open-world-map"
+                    className="w-full rounded-lg border border-amber-600/60 bg-gray-800 px-4 py-3 text-sm font-semibold text-amber-200 hover:bg-gray-700 disabled:opacity-50"
+                >
+                    Open World Map
+                </button>
                 <ErrorBoundary fallbackMessage="Error in Action Pane.">
                     <ActionPane
                         currentLocation={currentLocation}
