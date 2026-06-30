@@ -86,7 +86,7 @@ import { applyWfSpawnToMap } from '@/systems/worldforge/local/resolveSpawn';
 import { biomeIdForCell } from '@/systems/worldforge/local/biomeForCell';
 import { wfBiomeIndexToLegacyId } from '@/systems/worldforge/local/wfBiomeToLegacy';
 import { getTownTilesForGrid } from '@/systems/worldforge/bridge/legacySubmapBridge';
-import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from './config/mapConfig';
+import { MAP_GRID_SIZE } from './config/mapConfig';
 import { gridCellCenterToWorldMeters, getTerrainHeight } from './utils/worldCoords';
 import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
@@ -734,26 +734,9 @@ const App: React.FC = () => {
         return;
       }
 
-      const newSubMapCoordinates = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
-      let newMapDataForDispatch = gameState.mapData;
-      if (newMapDataForDispatch) {
-        const newTiles = newMapDataForDispatch.tiles.map(row => row.map(t => ({ ...t, isPlayerCurrent: false })));
-        if (newTiles[y] && newTiles[y][x]) {
-          newTiles[y][x].isPlayerCurrent = true;
-          newTiles[y][x].discovered = true;
-          for (let y_offset = -1; y_offset <= 1; y_offset++) {
-            for (let x_offset = -1; x_offset <= 1; x_offset++) {
-              const adjY = y + y_offset;
-              const adjX = x + x_offset;
-              if (adjY >= 0 && adjY < newMapDataForDispatch.gridSize.rows && adjX >= 0 && adjX < newMapDataForDispatch.gridSize.cols) {
-                newTiles[adjY][adjX].discovered = true;
-              }
-            }
-          }
-        }
-        newMapDataForDispatch = { ...newMapDataForDispatch, tiles: newTiles };
-      }
-      dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: tile.locationId, newSubMapCoordinates, mapData: newMapDataForDispatch || undefined, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(tile.locationId, LOCATIONS), destinationCell: travelMeta?.destinationCell } });
+      // Grid retirement: no mapData tile mutation (isPlayerCurrent is the canonical
+      // cell; fog is cell-native). The destinationCell carries the exact arrival cell.
+      dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: tile.locationId, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(tile.locationId, LOCATIONS), destinationCell: travelMeta?.destinationCell } });
       dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
       dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
       applyProvisionEffects();
@@ -761,17 +744,8 @@ const App: React.FC = () => {
     } else if (tile.discovered && !tile.locationId) {
       const targetCoordId = `coord_${x}_${y}`;
       if (targetCoordId !== gameState.currentLocationId) {
-        const newSubMapCoordinates = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
-        let newMapDataForDispatch = gameState.mapData;
-        if (newMapDataForDispatch) {
-          const newTiles = newMapDataForDispatch.tiles.map(row => row.map(t => ({ ...t, isPlayerCurrent: false })));
-          if (newTiles[y] && newTiles[y][x]) {
-            newTiles[y][x].isPlayerCurrent = true;
-            newTiles[y][x].discovered = true;
-          }
-          newMapDataForDispatch = { ...newMapDataForDispatch, tiles: newTiles };
-        }
-        dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: targetCoordId, newSubMapCoordinates, mapData: newMapDataForDispatch || undefined, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetCoordId, LOCATIONS), destinationCell: travelMeta?.destinationCell } });
+        // Grid retirement: no mapData tile mutation; the destinationCell is the arrival.
+        dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: targetCoordId, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetCoordId, LOCATIONS), destinationCell: travelMeta?.destinationCell } });
         dispatch({ type: 'ADVANCE_TIME', payload: { seconds: travelSeconds } });
         dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
         applyProvisionEffects();
