@@ -30,19 +30,15 @@ describe('resolveBiomeId — cell-native biome (grid retirement Phase A2)', () =
     expect(resolveBiomeId(state)).toBe(staticBiome);
   });
 
-  it('falls back to the legacy grid tile when no cell is recorded (old saves)', () => {
+  it('returns the neutral default when no cell is recorded (Stage 6: no grid fallback)', () => {
+    // With the grid retired there is no coord_X_Y → mapData.tiles lookup; a state
+    // with no canonical cell and no static location resolves to the plains default.
     const state = createMockGameState({
       worldSeed: SEED,
       currentLocationId: 'coord_1_1',
       playerCell: null,
-      mapData: {
-        gridSize: { cols: 30, rows: 20 },
-        tiles: [
-          [],
-          [undefined, { x: 1, y: 1, biomeId: 'forest_ancient', discovered: true, isPlayerCurrent: true }],
-        ],
-      } as never,
+      mapData: null,
     });
-    expect(resolveBiomeId(state)).toBe('forest_ancient');
+    expect(resolveBiomeId(state)).toBe('plains');
   });
 });

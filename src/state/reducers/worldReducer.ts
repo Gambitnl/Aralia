@@ -121,21 +121,13 @@ export const resolveBiomeId = (state: GameState): string => {
     const staticLocation = LOCATIONS[state.currentLocationId];
     if (staticLocation?.biomeId) return staticLocation.biomeId;
 
-    // GRID-RETIRE: BA-2 — prefer the canonical cell's own biome (cell-native,
-    // exact) over the coarse coord_X_Y grid tile, which can map to a neighbouring
-    // cell with a different biome. The tile path below survives only for saves
-    // without a recorded cell, until Stage 6.
+    // Cell-native: the biome is the player's canonical atlas cell's biome.
+    // (Stage 6: the legacy coord_X_Y → mapData.tiles grid lookup is removed.)
     if (state.playerCell?.cellId != null) {
       const cellBiome = biomeIdForCell(state.worldSeed, state.playerCell.cellId);
       if (cellBiome) return cellBiome;
     }
-
-    const coordMatch = /^coord_(\d+)_(\d+)$/.exec(state.currentLocationId);
-    if (!coordMatch || !state.mapData) return 'plains';
-
-    const x = Number(coordMatch[1]);
-    const y = Number(coordMatch[2]);
-    return state.mapData.tiles?.[y]?.[x]?.biomeId || 'plains';
+    return 'plains';
 };
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
