@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveWorldSpawn, relocateStartTile, applyWfSpawnToMap } from '../resolveSpawn';
+import { resolveWorldSpawn, applyWfSpawnToMap } from '../resolveSpawn';
 import { legacyGridToAtlasCell } from '../gridAtlasBridge';
 import { generateFmgWorld } from '../../fmg/generateWorld';
 import { getBridgeAtlas } from '../../bridge/legacySubmapBridge';
@@ -107,15 +107,12 @@ describe('applyWfSpawnToMap — reroll→find-me invariant (integration)', () =>
         isWalkable,
       });
 
-      // Exactly one player tile, and it is the resolved spawn cell.
-      const playerTiles = map.tiles.flat().filter((t) => t.isPlayerCurrent);
-      expect(playerTiles, `seed ${seed}: one player tile`).toHaveLength(1);
-      const start = playerTiles[0];
-      expect({ x: start.x, y: start.y }, `seed ${seed}: at spawn cell`).toEqual(spawn.gridCell);
-
-      // The invariant: the start tile is land, walkable — never the open ocean.
-      expect(start.biomeId, `seed ${seed}: start biome not ocean`).not.toBe('ocean');
-      expect(isWalkable(start.biomeId), `seed ${seed}: start walkable`).toBe(true);
+      // Grid retirement: spawn no longer mutates the grid (no isPlayerCurrent /
+      // biome write). The invariant is now on the RESOLVED CELL: its grid cell
+      // center maps to WF LAND — never the open ocean.
+      const atlasCell = legacyGridToAtlasCell(getBridgeAtlas(seed), spawn.gridCell, { cols: COLS, rows: ROWS });
+      expect(atlasCell, `seed ${seed}: spawn cell resolves`).toBeGreaterThanOrEqual(0);
+      expect(getBridgeAtlas(seed).pack.cells.h[atlasCell], `seed ${seed}: spawn on land`).toBeGreaterThanOrEqual(20);
     }
   }, 120000);
 });
@@ -154,49 +151,14 @@ describe('applyWfSpawnToMap — player-chosen town (spawnAtlasCellId)', () => {
       spawnBurgName: chosen.name,
     });
 
+    // Grid retirement: the spawn is the chosen burg CELL (no grid mutation).
     expect(spawn.atlasCellId).toBe(chosen.cell);
     expect(spawn.burgName).toBe(chosen.name);
-    const start = map.tiles.flat().find((t) => t.isPlayerCurrent)!;
-    expect({ x: start.x, y: start.y }).toEqual(spawn.gridCell);
-    expect(start.biomeId).not.toBe('ocean'); // chosen town is always on land
+    // The chosen town's cell is land (h >= sea level) — never an ocean spawn.
+    expect(world.pack.cells.h[chosen.cell]).toBeGreaterThanOrEqual(20);
   }, 60000);
 });
 
-describe('relocateStartTile', () => {
-  const makeMap = () => ({
-    gridSize: { rows: 2, cols: 2 },
-    tiles: [
-      [{ x: 0, y: 0, biomeId: 'ocean', discovered: false, isPlayerCurrent: true }, { x: 1, y: 0, biomeId: 'ocean', discovered: false, isPlayerCurrent: false }],
-      [{ x: 0, y: 1, biomeId: 'ocean', discovered: false, isPlayerCurrent: false }, { x: 1, y: 1, biomeId: 'ocean', discovered: false, isPlayerCurrent: false }],
-    ],
-  }) as any;
-
-  const isWalkable = (b: string) => b !== 'ocean';
-
-  it('applies the desired WF biome when walkable; forces fallback when not', () => {
-    const map = makeMap(); // all tiles 'ocean'
-    relocateStartTile(map, { x: 1, y: 1 }, { biomeId: 'forest', fallbackBiomeId: 'plains', isWalkable });
-    expect(map.tiles[0][0].isPlayerCurrent).toBe(false); // old start cleared
-    const t = map.tiles[1][1];
-    expect(t.isPlayerCurrent).toBe(true);
-    expect(t.discovered).toBe(true);
-    expect(t.biomeId).toBe('forest'); // desired WF biome applied (walkable)
-
-    const map2 = makeMap();
-    relocateStartTile(map2, { x: 1, y: 1 }, { biomeId: 'ocean', fallbackBiomeId: 'plains', isWalkable });
-    expect(map2.tiles[1][1].biomeId).toBe('plains'); // unwalkable desired → fallback
-  });
-
-  it('keeps the tile biome when no desired biome is given', () => {
-    const map = makeMap();
-    map.tiles[1][1].biomeId = 'forest';
-    relocateStartTile(map, { x: 1, y: 1 }, { fallbackBiomeId: 'plains', isWalkable });
-    expect(map.tiles[1][1].biomeId).toBe('forest');
-  });
-
-  it('clamps an out-of-bounds target into the grid', () => {
-    const map = makeMap();
-    relocateStartTile(map, { x: 99, y: 99 }, { biomeId: 'forest', fallbackBiomeId: 'plains', isWalkable });
-    expect(map.tiles[1][1].isPlayerCurrent).toBe(true);
-  });
-});
+// Grid retirement: the `relocateStartTile` describe block is removed with the
+// function — the spawn no longer writes an isPlayerCurrent/biome start tile into
+// the 30x20 grid (position + biome are cell-native).

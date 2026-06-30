@@ -15,7 +15,6 @@ import { type FmgWorldResult } from '../fmg/generateWorld';
 import { getBridgeAtlas } from '../bridge/legacySubmapBridge';
 import type { MapData } from '../../../types';
 import { atlasCellToLegacyGrid, legacyGridToAtlasCell, type GridCoord, type GridSize } from './gridAtlasBridge';
-import { unifyMapBiomesWithWorld } from './unifyMapBiomes';
 
 const LAND_THRESHOLD = 20;
 
@@ -107,37 +106,9 @@ export function spawnFromAtlasCell(
   return { atlasCellId, gridCell, biomeIndex, burgName };
 }
 
-export interface RelocateStartOptions {
-  /** Desired start-tile biome (e.g. the WF-derived biome). Applied if walkable. */
-  biomeId?: string;
-  /** Walkable biome to fall back to when the desired/tile biome isn't walkable. */
-  fallbackBiomeId?: string;
-  /** Predicate; a biome that returns false is replaced by the fallback. */
-  isWalkable?: (biomeId: string) => boolean;
-}
-
-/**
- * Move the player's start tile (`isPlayerCurrent`) to `cell`. Sets the tile's
- * biome to the desired WF-derived `biomeId` (so the map + opening reflect the
- * generated world) when it's walkable, otherwise the `fallbackBiomeId`; with no
- * `biomeId` it keeps the tile's own biome under the same walkability guard.
- * Mutates the passed mapData tiles; `cell` is clamped to the grid.
- */
-export function relocateStartTile(mapData: MapData, cell: GridCoord, opts: RelocateStartOptions = {}): void {
-  const { rows, cols } = mapData.gridSize;
-  const x = Math.min(cols - 1, Math.max(0, cell.x));
-  const y = Math.min(rows - 1, Math.max(0, cell.y));
-  const target = mapData.tiles[y]?.[x];
-  if (!target) return;
-  for (const row of mapData.tiles) {
-    for (const t of row) if (t.isPlayerCurrent) t.isPlayerCurrent = false;
-  }
-  target.isPlayerCurrent = true;
-  target.discovered = true;
-  const desired = opts.biomeId ?? target.biomeId;
-  const walkable = opts.isWalkable ? opts.isWalkable(desired) : true;
-  target.biomeId = walkable ? desired : (opts.fallbackBiomeId ?? target.biomeId);
-}
+// Grid retirement (2026-06-30): `relocateStartTile` (+ RelocateStartOptions) is
+// removed — it mutated the 30x20 grid's `isPlayerCurrent`/biome tiles, which
+// nothing in the live game reads now (position + biome are cell-native).
 
 export interface ApplyWfSpawnOptions {
   /** Map the spawn cell's WF biome index to a legacy biome id for the start tile. */
@@ -156,33 +127,28 @@ export interface ApplyWfSpawnOptions {
 }
 
 /**
- * Re-place the player on a WF-derived LAND spawn for a freshly (re)generated map:
- * unify the grid's biomes to the WF world, resolve a land/burg spawn cell, and
- * move the start tile there (kept walkable via the biome guard). Call this at
- * new-game start AND on every world reroll so the player is never stranded on an
- * ocean tile. Mutates `mapData`; returns the resolved spawn.
+ * Resolve a WF-derived LAND spawn for a new game / world reroll: pick the
+ * capital/burg/land cell (optionally a player-chosen town) and return it.
+ *
+ * Grid retirement (2026-06-30): this NO LONGER mutates `mapData` — the legacy
+ * biome-unification and `isPlayerCurrent` start-tile placement wrote into the
+ * 30x20 grid, which nothing in the live game reads anymore (biome + position are
+ * cell-native: `playerCell.cellId` + `biomeIdForCell`). The caller derives the
+ * player's location/cell from `spawn.atlasCellId` (and the legacy `gridCell`
+ * bookkeeping). `mapData`/`opts` biome args are retained on the signature for the
+ * callers until the coord_X_Y/save cut lands; they are intentionally unused here.
  */
 export function applyWfSpawnToMap(
-  mapData: MapData,
+  _mapData: MapData,
   worldSeed: number,
   gridSize: GridSize,
   opts: ApplyWfSpawnOptions = {},
 ): WorldSpawn {
-  // WM1: spawn into the SAME canonical world the player sees in-game. The map,
-  // town tiles, start-selection step, and 3D bake all source their world from
-  // `getBridgeAtlas(seed)` ("aralia-<seed>" + the fixed 960×540/10k/continents
-  // options). Generating a bare `generateFmgWorld(String(seed))` here built a
-  // DIFFERENT world, so the chosen town's `spawnAtlasCellId` referred to a burg
-  // that did not exist in the world the gameplay map rendered.
+  // WM1: spawn into the SAME canonical world the player sees in-game
+  // (`getBridgeAtlas(seed)`), so a chosen town's `spawnAtlasCellId` refers to a
+  // burg that exists in the rendered world.
   const world = getBridgeAtlas(worldSeed);
-  unifyMapBiomesWithWorld(mapData, world, gridSize);
-  const spawn = opts.spawnAtlasCellId != null
+  return opts.spawnAtlasCellId != null
     ? spawnFromAtlasCell(world, gridSize, opts.spawnAtlasCellId, opts.spawnBurgName)
     : resolveWorldSpawn(world, gridSize);
-  relocateStartTile(mapData, spawn.gridCell, {
-    biomeId: opts.biomeIndexToLegacyId?.(spawn.biomeIndex),
-    fallbackBiomeId: opts.fallbackBiomeId,
-    isWalkable: opts.isWalkable,
-  });
-  return spawn;
 }

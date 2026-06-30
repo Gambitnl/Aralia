@@ -111,11 +111,11 @@ describe('Start Point Selection end-to-end spawn contract (integration)', () => 
         spawnBurgName: town.name,
       });
 
+      // Grid retirement: the spawn IS the chosen town's cell (no grid mutation).
       expect(spawn.atlasCellId, `town ${town.name}: cell`).toBe(town.atlasCellId);
       expect(spawn.burgName, `town ${town.name}: name`).toBe(town.name);
-      const start = map.tiles.flat().find((t) => t.isPlayerCurrent)!;
-      expect({ x: start.x, y: start.y }, `town ${town.name}: player at spawn cell`).toEqual(spawn.gridCell);
-      expect(start.biomeId, `town ${town.name}: on land`).not.toBe('ocean');
+      // The chosen town's cell is on land (h >= sea level) — never an ocean spawn.
+      expect(world.pack.cells.h[town.atlasCellId], `town ${town.name}: on land`).toBeGreaterThanOrEqual(20);
     }
   }, 60000);
 });

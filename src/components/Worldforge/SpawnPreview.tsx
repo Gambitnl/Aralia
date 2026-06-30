@@ -71,17 +71,16 @@ function resolveAndAudit(seed: number): { map: MapData; atlas: ReturnType<typeof
   // harness is meant to catch.
   const atlas = getBridgeAtlas(seed);
 
-  // ---- EXACT MapPane marker pipeline ----
-  let playerCell: { x: number; y: number } | null = null;
-  for (const row of map.tiles) {
-    for (const t of row) if (t.isPlayerCurrent) playerCell = { x: t.x, y: t.y };
-  }
-  const atlasCell = playerCell ? legacyGridToAtlasCell(atlas, playerCell, GRID) : null;
-  const site = atlasCell != null && atlasCell >= 0 ? atlas.pack.cells.p?.[atlasCell] : undefined;
+  // ---- Cell-native spawn audit (grid retirement) ----
+  // The spawn no longer marks an isPlayerCurrent tile; audit the RESOLVED cell
+  // directly. atlasCell is the spawn's own cell; the grid cell + biome come from
+  // the resolved spawn, not a mapData.tiles scan.
+  const playerCell = spawn.gridCell;
+  const atlasCell = spawn.atlasCellId;
+  const site = atlasCell >= 0 ? atlas.pack.cells.p?.[atlasCell] : undefined;
   const marker = site ? { x: site[0], y: site[1] } : null;
-  const height = atlasCell != null && atlasCell >= 0 ? atlas.pack.cells.h[atlasCell] : null;
-  const startTile = playerCell ? map.tiles[playerCell.y]?.[playerCell.x] : undefined;
-  const startBiomeId = startTile?.biomeId ?? '(none)';
+  const height = atlasCell >= 0 ? atlas.pack.cells.h[atlasCell] : null;
+  const startBiomeId = wfBiomeIndexToLegacyId(spawn.biomeIndex) ?? '(none)';
 
   return {
     map,
