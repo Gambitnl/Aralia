@@ -32,7 +32,6 @@ import ErrorBoundary from '../ui/ErrorBoundary';
 import { VersionDisplay } from '../ui/VersionDisplay';
 import ActionPane from '../ActionPane';
 import WorldPane from '../WorldPane';
-import WorldAtlasStrip from '../World3D/WorldAtlasStrip';
 import { UI_ID } from '../../styles/uiIds';
 import type { PlayerWorldPosition } from '../../types';
 
@@ -84,7 +83,8 @@ interface GameLayoutProps {
  */
 const GameLayout: React.FC<GameLayoutProps> = ({
     currentLocation,
-    mapData,
+    // Grid retirement: mapData/playerWorldPos were only fed to the removed
+    // WorldAtlasStrip; no longer destructured here (kept on the props type).
     gameTime,
     messages,
     openingStatus,
@@ -99,7 +99,6 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     autoSaveEnabled,
     disabled,
     onAction,
-    playerWorldPos = null,
 }) => {
     const openWorldMap = () => onAction({ type: 'toggle_map', label: 'Open World Map' });
     return (
@@ -137,18 +136,15 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                 </ErrorBoundary>
             </div>
 
-            {/* Right Column: Narrative Log + atlas strip. The old square Minimap
-                was removed 2026-06-23 — it has no valid local/submap dataset to
-                render yet; revisit once the WF local layer is the source. */}
+            {/* Right Column: Narrative Log. The old square Minimap was removed
+                2026-06-23, and the WorldAtlasStrip biome preview 2026-06-30 — both
+                read the legacy 30x20 grid, now retired. The cell-native world map
+                is one click away via "Open World Map"; a cell-native position
+                preview can be revisited once it paints from the atlas. */}
             <div id={UI_ID.RIGHT_COLUMN} data-testid={UI_ID.RIGHT_COLUMN} className="md:w-3/5 lg:w-2/3 flex flex-col gap-2 sm:gap-4 min-h-0 relative">
                 <ErrorBoundary fallbackMessage="Error in World Pane.">
                     <WorldPane messages={messages} openingStatus={openingStatus} />
                 </ErrorBoundary>
-                <WorldAtlasStrip
-                    mapData={mapData}
-                    playerWorldPos={playerWorldPos}
-                    onOpenWorldMap={openWorldMap}
-                />
             </div>
         </div>
     );
