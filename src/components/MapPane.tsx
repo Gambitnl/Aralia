@@ -299,7 +299,6 @@ const MapPane: React.FC<MapPaneProps> = ({
     noticeTimerRef.current = setTimeout(() => setMapNotice(null), 2600);
   }, []);
   useEffect(() => () => { if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current); }, []);
-  const [hoveredCell, setHoveredCell] = useState<{ x: number; y: number } | null>(null);
   // An underprovisioned travel pick awaiting the player's choice (turn back /
   // half-rations / forage / push on). Holds the route geometry so a push-on can
   // halt at the last sustainable point.
@@ -384,12 +383,6 @@ const MapPane: React.FC<MapPaneProps> = ({
     setSeedInput(String(worldforgeSeed));
   }, [worldforgeSeed]);
 
-  const hoveredTile = useMemo(() => {
-    if (!hoveredCell) return null;
-    return projectedTiles[hoveredCell.y]?.[hoveredCell.x] || null;
-  }, [hoveredCell, projectedTiles]);
-
-  const hoveredBiome = hoveredTile ? BIOMES[hoveredTile.biomeId] : undefined;
 
   // The atlas Voronoi cell the player currently occupies (their grid cell mapped
   // back through the grid↔atlas bridge). Drives the centered marker + the drill
