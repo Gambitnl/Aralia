@@ -71,7 +71,6 @@ import type {
 } from './actionHandlerTypes';
 
 // Movement and travel handlers are implemented in src/hooks/actions/handleMovement.ts.
-import { handleMovement, handleQuickTravel, handleApproachSettlement, handleObserveSettlement } from './handleMovement';
 // Observation handlers are implemented in src/hooks/actions/handleObservation.ts.
 import { handleLookAround, handleInspectSubmapTile, handleAnalyzeSituation } from './handleObservation';
 // NPC interaction handlers are implemented in src/hooks/actions/handleNpcInteraction.ts.
@@ -142,14 +141,13 @@ export function buildActionHandlers({
 }: ActionHandlerContext): Record<ActionType, ActionHandler> {
 
   const handlers: Record<ActionType, ActionHandler> = {
-    // Movement and settlement flow (handleMovement.ts).
-    move: async (action) => {
-      if (!playerCharacter) return;
-      await handleMovement({ action, gameState, dispatch, addMessage, addGeminiLog, logDiscovery, getTileTooltipText, playerContext, playerCharacter });
-    },
-    QUICK_TRAVEL: async (action) => {
-      await handleQuickTravel({ action, gameState, dispatch, addMessage });
-    },
+    // Grid retirement: the legacy 30x20 exploration movers (handleMovement.ts) are
+    // deleted. Overland navigation is the cell-native World Map (atlas fast-travel);
+    // settlement entry is Enter-3D (ENTER_VILLAGE, kept). The grid-based move/quick-
+    // travel/approach/observe actions are retained as no-ops for ActionType
+    // completeness until the action union is pruned in a later step.
+    move: async () => {},
+    QUICK_TRAVEL: async () => {},
     ENTER_VILLAGE: (action) => {
       const entryDirection = (action.payload as { entryDirection?: string })?.entryDirection as 'north' | 'east' | 'south' | 'west' | undefined;
       if (entryDirection) {
@@ -157,18 +155,10 @@ export function buildActionHandlers({
       }
       dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.VILLAGE_VIEW });
     },
-    APPROACH_VILLAGE: async (action) => {
-      await handleApproachSettlement({ gameState, dispatch, addMessage, action });
-    },
-    APPROACH_TOWN: async (action) => {
-      await handleApproachSettlement({ gameState, dispatch, addMessage, action });
-    },
-    OBSERVE_VILLAGE: async (action) => {
-      await handleObserveSettlement({ gameState, dispatch, addMessage, addGeminiLog, action, generalActionContext });
-    },
-    OBSERVE_TOWN: async (action) => {
-      await handleObserveSettlement({ gameState, dispatch, addMessage, addGeminiLog, action, generalActionContext });
-    },
+    APPROACH_VILLAGE: async () => {},
+    APPROACH_TOWN: async () => {},
+    OBSERVE_VILLAGE: async () => {},
+    OBSERVE_TOWN: async () => {},
 
     // Observation and situational analysis (handleObservation.ts).
     look_around: async (_action) => {
