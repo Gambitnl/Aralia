@@ -17,6 +17,7 @@
 import { Position, GameState, MapTile } from '../../../types';
 import { getSubmapTileInfo } from '../../../utils/submapUtils';
 import { SUBMAP_DIMENSIONS } from '../../../config/mapConfig';
+import { biomeIdForCell } from '../../worldforge/local/biomeForCell';
 
 /**
  * Service for tagging tiles/objects with materials based on biome and terrain.
@@ -35,20 +36,19 @@ export class MaterialTagService {
         position: Position,
         gameState: GameState
     ): string {
-        // Try to locate the player's current world map tile to get the correct seed/biome context
+        // Grid retirement: the caster's world tile (for worldX/worldY + biome
+        // context) is synthesized from the canonical cell — biome via
+        // biomeIdForCell, coords from the coord_X_Y location id — NOT a scan of
+        // the legacy 30x20 mapData.tiles.
         let currentWorldTile: MapTile | null = null;
-        if (gameState.mapData) {
-            for (const row of gameState.mapData.tiles) {
-                const found = row.find(t => t.isPlayerCurrent);
-                if (found) {
-                    currentWorldTile = found;
-                    break;
-                }
-            }
+        if (gameState.playerCell?.cellId != null && gameState.currentLocationId?.startsWith('coord_')) {
+            const [, xStr, yStr] = gameState.currentLocationId.split('_');
+            const biomeId = biomeIdForCell(gameState.worldSeed ?? 0, gameState.playerCell.cellId);
+            currentWorldTile = { x: Number(xStr), y: Number(yStr), biomeId, discovered: true, isPlayerCurrent: true } as MapTile;
         }
 
-        // If we found the world tile, we can generate the specific submap tile data
-        if (currentWorldTile && gameState.mapData) {
+        // If we resolved the world tile, we can generate the specific submap tile data
+        if (currentWorldTile) {
             const { x: worldX, y: worldY } = currentWorldTile;
 
             // Check if the requested position is within bounds of the submap
