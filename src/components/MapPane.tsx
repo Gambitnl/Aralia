@@ -62,7 +62,7 @@ import { generateSubmap, submapCellToChildContext, polygonBounds, pointInPolygon
 import { type TownPlan } from '@/systems/worldforge/town/townEngine';
 import { getCanonicalTownPlan } from '@/systems/worldforge/town/canonicalTown';
 import { rootSeedPath } from '@/systems/worldforge/seedPath';
-import { legacyGridToAtlasCell, gridCellToAtlasSite, spreadColocatedPoints, entry3DAnchorForCell, atlasCellToLegacyGrid, snapToLandCell } from '@/systems/worldforge/local/gridAtlasBridge';
+import { gridCellToAtlasSite, spreadColocatedPoints, entry3DAnchorForCell, atlasCellToLegacyGrid, snapToLandCell } from '@/systems/worldforge/local/gridAtlasBridge';
 import type { Entry3DAnchor } from '@/types/state';
 import { getBridgeAtlas } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { buildAtlasTravelGraph, atlasMilesPerUnit, nearestLandCell, transportMobility } from '@/systems/worldforge/travel/atlasTravelGraph';
@@ -407,13 +407,10 @@ const MapPane: React.FC<MapPaneProps> = ({
   // back through the grid↔atlas bridge). Drives the centered marker + the drill
   // player sub-cell highlight.
   const playerAtlasCell = useMemo(() => {
-    if (!worldforgeAtlas || !playerCell) return null;
-    return legacyGridToAtlasCell(
-      worldforgeAtlas,
-      { x: playerCell.x, y: playerCell.y },
-      { cols: gridSize.cols, rows: gridSize.rows },
-    );
-  }, [worldforgeAtlas, playerCell, gridSize.cols, gridSize.rows]);
+    // Cell-native: the player's atlas cell IS the canonical playerCell.cellId
+    // (Stage 6: no grid-tile -> atlas-cell round-trip).
+    return playerAtlasCellId ?? null;
+  }, [playerAtlasCellId]);
 
   // "You are here" marker for the native World Forge atlas: centered on the
   // player's actual VORONOI CELL (the atlas cell's site) rather than the coarse
@@ -427,19 +424,12 @@ const MapPane: React.FC<MapPaneProps> = ({
   // grid-center round-trip rounds to whichever is nearest the square's centre).
   // Only fall back to the grid round-trip when no canonical cell / site exists.
   const worldforgeMarker = useMemo(() => {
-    if (!worldforgeAtlas) return null;
-    if (playerAtlasCellId != null) {
-      const site = worldforgeAtlas.pack.cells.p?.[playerAtlasCellId];
-      if (site) return { x: site[0], y: site[1] };
-    }
-    if (!playerCell) return null;
-    const [x, y] = gridCellToAtlasSite(
-      worldforgeAtlas,
-      { x: playerCell.x, y: playerCell.y },
-      { cols: gridSize.cols, rows: gridSize.rows },
-    );
-    return { x, y };
-  }, [worldforgeAtlas, playerAtlasCellId, playerCell, gridSize.cols, gridSize.rows]);
+    if (!worldforgeAtlas || playerAtlasCellId == null) return null;
+    // Cell-native: anchor on the player's canonical atlas cell site (Stage 6: the
+    // grid-tile round-trip fallback is removed).
+    const site = worldforgeAtlas.pack.cells.p?.[playerAtlasCellId];
+    return site ? { x: site[0], y: site[1] } : null;
+  }, [worldforgeAtlas, playerAtlasCellId]);
 
   // The FMG burg id of the port at the player's current atlas cell, or null if
   // the player is not standing at a port. Used as the embark-gate check for
