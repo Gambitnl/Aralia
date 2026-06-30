@@ -46,11 +46,6 @@ import { WindowFrame } from './ui/WindowFrame';
 import { WINDOW_KEYS } from '../styles/uiIds';
 import oldPaperBg from '../assets/images/old-paper.svg';
 import type { PlayerWorldPosition, DiscoveredHiddenSite } from '../types';
-import {
-  fromMapData,
-  resolveLegacyTile,
-  type WorldGeographySnapshot,
-} from '@/utils/world/worldGeographyAdapter';
 import AtlasSvgView from './Worldforge/AtlasSvgView';
 import type { CellTraits } from './Worldforge/atlasSvg';
 import SubmapSvgView from './Worldforge/SubmapSvgView';
@@ -213,44 +208,20 @@ function deriveWorldSeed(mapData: MapData): number {
   return bounded > 0 ? bounded : bounded + 999_999_999;
 }
 
-// -----------------------------------------------------------------------------
-// World geography read adapter bridge
-// -----------------------------------------------------------------------------
-// MapPane still renders and emits legacy tiles. These helpers make the read side
-// depend on the World geography snapshot first, then fall back to the original
-// tile if a future non-tile geography point has not been bridged yet.
-// -----------------------------------------------------------------------------
+// Grid retirement: the legacy "project mapData.tiles through the geography snapshot"
+// read adapter is removed — MapPane reads atlas cells directly (synthCellTile).
 
-function projectTileFromGeographySnapshot(
-  tile: MapTileType,
-  snapshot: WorldGeographySnapshot,
-): MapTileType {
-  const projectedPoint = resolveLegacyTile(snapshot, { x: tile.x, y: tile.y });
-  if (!projectedPoint) {
-    return tile;
-  }
-  if (
-    projectedPoint.discovered === tile.discovered &&
-    projectedPoint.isPlayerCurrent === tile.isPlayerCurrent
-  ) {
-    return tile;
-  }
-  return {
-    ...tile,
-    discovered: projectedPoint.discovered,
-    isPlayerCurrent: projectedPoint.isPlayerCurrent,
-  };
-}
-
-function projectMapDataForRead(mapData: MapData): MapData {
-  const snapshot = fromMapData(mapData);
-  return {
-    ...mapData,
-    gridSize: { ...mapData.gridSize },
-    tiles: mapData.tiles.map((row) =>
-      row.map((tile) => projectTileFromGeographySnapshot(tile, snapshot)),
-    ),
-  };
+// Grid retirement: a click/travel target tile synthesized from an atlas CELL (its
+// biome), treated as explored — replaces reading the legacy 30x20 mapData.tiles.
+// The x,y are bookkeeping coords carried for the still-present coord_X_Y interface.
+function synthCellTile(
+  atlas: { pack: { cells: { biome?: ArrayLike<number> } } },
+  cellId: number,
+  x: number,
+  y: number,
+): MapTile {
+  const biomeIdx = (atlas.pack.cells as unknown as { biome?: ArrayLike<number> }).biome?.[cellId];
+  return { x, y, biomeId: wfBiomeIndexToLegacyId(biomeIdx), discovered: true, isPlayerCurrent: false } as MapTile;
 }
 
 const MapPane: React.FC<MapPaneProps> = ({
@@ -276,8 +247,6 @@ const MapPane: React.FC<MapPaneProps> = ({
   playerAtlasCellId = null,
 }) => {
   const { gridSize } = mapData;
-  const projectedMapData = useMemo(() => projectMapDataForRead(mapData), [mapData]);
-  const projectedTiles = projectedMapData.tiles;
   // Pre-game world-generation PREVIEW: the generation controls are shown but there
   // is no player to travel/enter-3D with. In this context the map is a pure world
   // viewer — there's no "me" to find, so the player marker + Find Me are meaningless
@@ -715,13 +684,10 @@ const MapPane: React.FC<MapPaneProps> = ({
       // derived from the anchor cell — replaces the old getTownTilesForGrid snap hack.
       const anchor = entry3DAnchorForCell(worldforgeAtlas, info.i);
       const bk = atlasCellToLegacyGrid(worldforgeAtlas, anchor.cellId, gridSize) ?? { x: tx, y: ty };
-      const tile = projectedTiles[bk.y]?.[bk.x] ?? projectedTiles[ty]?.[tx];
-      if (!tile) return;
-      onEnter3DAtCell(bk.x, bk.y, tile, anchor);
+      onEnter3DAtCell(bk.x, bk.y, synthCellTile(worldforgeAtlas, anchor.cellId, bk.x, bk.y), anchor);
       return;
     }
-    const tile = projectedTiles[ty]?.[tx];
-    if (!tile) return;
+    const tile = synthCellTile(worldforgeAtlas, info.i, tx, ty);
     if (interactionMode === 'travel' && allowTravel) {
       // ── Ship voyage branch ────────────────────────────────────────────────
       // When the player is sailing an owned ship, clicking the map picks a
@@ -789,7 +755,7 @@ const MapPane: React.FC<MapPaneProps> = ({
       // Underprovisioned → open the choice flow instead of moving.
       setPendingTravel({ cellId: info.i, tx, ty, minutes: route.minutes, points: route.points });
     }
-  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, gridSize.cols, gridSize.rows, projectedTiles, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planSelectedAtlasRoute, planAtlasMultiModal, worldforgeSeed, provisionInventory, partySize, seaPref, onSetSail, showMapNotice]);
+  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, gridSize.cols, gridSize.rows, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planSelectedAtlasRoute, planAtlasMultiModal, worldforgeSeed, provisionInventory, partySize, seaPref, onSetSail, showMapNotice]);
 
   // ── Underprovisioned travel choice resolution ──────────────────────────────
   // Map a graph-space point to a world grid tile (the same proportional bridge
@@ -853,7 +819,7 @@ const MapPane: React.FC<MapPaneProps> = ({
         ...(conditions.length ? { conditions } : {}),
         note: forageNote,
       };
-      const target = projectedTiles[pt.ty]?.[pt.tx];
+      const target = pt.tile; // cell-synthesized tile from pointToTile (Stage 6)
       // Cell-native arrival (Stage 4): the trip completes at the destination cell, so
       // carry it intact (same as the ungated commit). A partial-stop (below) halts at
       // an intermediate point that is NOT the picked cell, so it stays a legacy tile
@@ -885,7 +851,7 @@ const MapPane: React.FC<MapPaneProps> = ({
     };
     onTileClick(target.tx, target.ty, target.tile, { seconds: haltSeconds, provision });
     setPendingTravel(null);
-  }, [pendingTravel, worldforgeAtlas, provisionInventory, partySize, partySurvivalModifier, worldforgeSeed, onTileClick, pointToTile, projectedTiles]);
+  }, [pendingTravel, worldforgeAtlas, provisionInventory, partySize, partySurvivalModifier, worldforgeSeed, onTileClick, pointToTile]);
 
   // Display status for the pending choice panel (binding resource + shortfall).
   const pendingStatus = useMemo(() => {
@@ -913,9 +879,8 @@ const MapPane: React.FC<MapPaneProps> = ({
     const fallbackP = worldforgeAtlas.pack.cells.p?.[cellId];
     const tx = bk ? bk.x : clampIndex(Math.floor(((fallbackP?.[0] ?? 0) / worldforgeAtlas.graphWidth) * gridSize.cols), gridSize.cols);
     const ty = bk ? bk.y : clampIndex(Math.floor(((fallbackP?.[1] ?? 0) / worldforgeAtlas.graphHeight) * gridSize.rows), gridSize.rows);
-    const tile = projectedTiles[ty]?.[tx];
-    if (tile) onEnter3DAtCell(tx, ty, tile, anchor);
-  }, [worldforgeAtlas, onEnter3DAtCell, submapStack, gridSize.cols, gridSize.rows, projectedTiles]);
+    onEnter3DAtCell(tx, ty, synthCellTile(worldforgeAtlas, cellId, tx, ty), anchor);
+  }, [worldforgeAtlas, onEnter3DAtCell, submapStack, gridSize.cols, gridSize.rows]);
 
   const handleSubmapDrill = useCallback((siteIndex: number) => {
     setSubmapStack((stack) => {
